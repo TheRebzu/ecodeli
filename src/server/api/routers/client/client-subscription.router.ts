@@ -1,10 +1,10 @@
-import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
-import { ClientSubscriptionPlan, UsageType } from '@prisma/client';
-import { format, isBefore, isEqual, addMonths } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Decimal } from '@prisma/client/runtime/library';
+import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { ClientSubscriptionPlan, UsageType } from "@prisma/client";
+import { format, isBefore, isEqual, addMonths } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Decimal } from "@prisma/client/runtime/library";
 
 /**
  * Router tRPC pour la gestion des abonnements clients EcoDeli
@@ -19,10 +19,10 @@ export const subscriptionRouter = router({
     try {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent consulter leurs abonnements',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent consulter leurs abonnements",
         });
       }
 
@@ -38,7 +38,7 @@ export const subscriptionRouter = router({
               month: new Date().getMonth() + 1,
               year: new Date().getFullYear(),
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
           },
           client: {
             select: {
@@ -55,21 +55,21 @@ export const subscriptionRouter = router({
         const freePlan = await ctx.db.clientSubscriptionPlan.create({
           data: {
             clientId: user.id,
-            plan: 'FREE',
+            plan: "FREE",
             isActive: true,
             startDate: new Date(),
             monthlyPrice: 0,
             announcementsIncluded: 3,
             storageGBIncluded: 0,
-            supportLevel: 'COMMUNITY',
+            supportLevel: "COMMUNITY",
           },
         });
 
         return {
           subscription: freePlan,
           currentUsage: null,
-          limits: getPlanLimits('FREE'),
-          availableUpgrades: await getAvailableUpgrades('FREE'),
+          limits: getPlanLimits("FREE"),
+          availableUpgrades: await getAvailableUpgrades("FREE"),
         };
       }
 
@@ -87,13 +87,17 @@ export const subscriptionRouter = router({
             limits.announcements > 0
               ? (currentUsage.announcements / limits.announcements) * 100
               : 0,
-          storage: limits.storage > 0 ? (currentUsage.storage / limits.storage) * 100 : 0,
+          storage:
+            limits.storage > 0
+              ? (currentUsage.storage / limits.storage) * 100
+              : 0,
         },
       };
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || "Erreur lors de la récupération de l'abonnement",
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          error.message || "Erreur lors de la récupération de l'abonnement",
         cause: error,
       });
     }
@@ -106,24 +110,24 @@ export const subscriptionRouter = router({
     try {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent consulter les plans',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent consulter les plans",
         });
       }
 
       const plans = [
         {
-          id: 'FREE',
-          name: 'Gratuit',
+          id: "FREE",
+          name: "Gratuit",
           price: 0,
-          description: 'Pour découvrir EcoDeli',
+          description: "Pour découvrir EcoDeli",
           features: [
-            '3 annonces par mois',
-            'Support communautaire',
-            'Accès aux services de base',
-            'Notifications par email',
+            "3 annonces par mois",
+            "Support communautaire",
+            "Accès aux services de base",
+            "Notifications par email",
           ],
           limits: {
             announcements: 3,
@@ -134,16 +138,16 @@ export const subscriptionRouter = router({
           popular: false,
         },
         {
-          id: 'STARTER',
-          name: 'Starter',
+          id: "STARTER",
+          name: "Starter",
           price: 9.9,
-          description: 'Pour les utilisateurs réguliers',
+          description: "Pour les utilisateurs réguliers",
           features: [
-            '20 annonces par mois',
-            '2 GB stockage cloud',
-            'Support par email',
-            'Statistiques de base',
-            'Notifications en temps réel',
+            "20 annonces par mois",
+            "2 GB stockage cloud",
+            "Support par email",
+            "Statistiques de base",
+            "Notifications en temps réel",
           ],
           limits: {
             announcements: 20,
@@ -154,18 +158,18 @@ export const subscriptionRouter = router({
           popular: true,
         },
         {
-          id: 'PREMIUM',
-          name: 'Premium',
+          id: "PREMIUM",
+          name: "Premium",
           price: 19.99,
-          description: 'Pour les power users',
+          description: "Pour les power users",
           features: [
-            'Annonces illimitées',
-            '10 GB stockage cloud',
-            'Support prioritaire',
-            'Analytics avancées',
-            'API access',
-            'Intégrations tierces',
-            'Matching prioritaire',
+            "Annonces illimitées",
+            "10 GB stockage cloud",
+            "Support prioritaire",
+            "Analytics avancées",
+            "API access",
+            "Intégrations tierces",
+            "Matching prioritaire",
           ],
           limits: {
             announcements: -1, // Illimité
@@ -178,28 +182,36 @@ export const subscriptionRouter = router({
       ];
 
       // Obtenir le plan actuel de l'utilisateur
-      const currentSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
-        where: {
-          clientId: user.id,
-          isActive: true,
+      const currentSubscription = await ctx.db.clientSubscriptionPlan.findFirst(
+        {
+          where: {
+            clientId: user.id,
+            isActive: true,
+          },
         },
-      });
+      );
 
-      const currentPlan = currentSubscription?.plan || 'FREE';
+      const currentPlan = currentSubscription?.plan || "FREE";
 
       return {
-        plans: plans.map(plan => ({
+        plans: plans.map((plan) => ({
           ...plan,
           isCurrent: plan.id === currentPlan,
-          canUpgrade: canUpgrade(currentPlan, plan.id as ClientSubscriptionPlan),
-          canDowngrade: canDowngrade(currentPlan, plan.id as ClientSubscriptionPlan),
+          canUpgrade: canUpgrade(
+            currentPlan,
+            plan.id as ClientSubscriptionPlan,
+          ),
+          canDowngrade: canDowngrade(
+            currentPlan,
+            plan.id as ClientSubscriptionPlan,
+          ),
         })),
         currentPlan,
       };
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la récupération des plans',
+        code: "INTERNAL_SERVER_ERROR",
+        message: error.message || "Erreur lors de la récupération des plans",
         cause: error,
       });
     }
@@ -213,46 +225,51 @@ export const subscriptionRouter = router({
       z.object({
         newPlan: z.nativeEnum(ClientSubscriptionPlan),
         paymentMethodId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { newPlan, paymentMethodId } = input;
 
-        if (user.role !== 'CLIENT') {
+        if (user.role !== "CLIENT") {
           throw new TRPCError({
-            code: 'FORBIDDEN',
+            code: "FORBIDDEN",
             message: "Seuls les clients peuvent changer d'abonnement",
           });
         }
 
         // Récupérer l'abonnement actuel
-        const currentSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
-          where: {
-            clientId: user.id,
-            isActive: true,
-          },
-        });
+        const currentSubscription =
+          await ctx.db.clientSubscriptionPlan.findFirst({
+            where: {
+              clientId: user.id,
+              isActive: true,
+            },
+          });
 
-        const currentPlan = currentSubscription?.plan || 'FREE';
+        const currentPlan = currentSubscription?.plan || "FREE";
 
         if (currentPlan === newPlan) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Vous êtes déjà sur ce plan',
+            code: "BAD_REQUEST",
+            message: "Vous êtes déjà sur ce plan",
           });
         }
 
         // Valider la transition de plan
-        if (!canUpgrade(currentPlan, newPlan) && !canDowngrade(currentPlan, newPlan)) {
+        if (
+          !canUpgrade(currentPlan, newPlan) &&
+          !canDowngrade(currentPlan, newPlan)
+        ) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Transition de plan non autorisée',
+            code: "BAD_REQUEST",
+            message: "Transition de plan non autorisée",
           });
         }
 
-        const isUpgrade = getPlanPriority(newPlan) > getPlanPriority(currentPlan);
+        const isUpgrade =
+          getPlanPriority(newPlan) > getPlanPriority(currentPlan);
         const planDetails = getPlanDetails(newPlan);
 
         // Désactiver l'ancien abonnement
@@ -275,11 +292,15 @@ export const subscriptionRouter = router({
             startDate: new Date(),
             monthlyPrice: planDetails.price,
             announcementsIncluded:
-              planDetails.limits.announcements === -1 ? null : planDetails.limits.announcements,
+              planDetails.limits.announcements === -1
+                ? null
+                : planDetails.limits.announcements,
             storageGBIncluded: planDetails.limits.storage,
-            supportLevel: planDetails.limits.prioritySupport ? 'PRIORITY' : 'STANDARD',
+            supportLevel: planDetails.limits.prioritySupport
+              ? "PRIORITY"
+              : "STANDARD",
             paymentMethodId,
-            autoRenew: newPlan !== 'FREE',
+            autoRenew: newPlan !== "FREE",
           },
         });
 
@@ -288,11 +309,13 @@ export const subscriptionRouter = router({
           data: {
             clientId: user.id,
             subscriptionId: newSubscription.id,
-            action: isUpgrade ? 'UPGRADE' : 'DOWNGRADE',
+            action: isUpgrade ? "UPGRADE" : "DOWNGRADE",
             fromPlan: currentPlan,
             toPlan: newPlan,
             effectiveDate: new Date(),
-            reason: isUpgrade ? 'Plan upgrade requested' : 'Plan downgrade requested',
+            reason: isUpgrade
+              ? "Plan upgrade requested"
+              : "Plan downgrade requested",
           },
         });
 
@@ -309,7 +332,7 @@ export const subscriptionRouter = router({
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors du changement d'abonnement",
         });
       }
@@ -323,32 +346,33 @@ export const subscriptionRouter = router({
       z.object({
         reason: z.string().optional(),
         feedback: z.string().max(1000).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { reason, feedback } = input;
 
-        if (user.role !== 'CLIENT') {
+        if (user.role !== "CLIENT") {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Seuls les clients peuvent annuler leurs abonnements',
+            code: "FORBIDDEN",
+            message: "Seuls les clients peuvent annuler leurs abonnements",
           });
         }
 
         // Récupérer l'abonnement actif
-        const activeSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
-          where: {
-            clientId: user.id,
-            isActive: true,
-          },
-        });
+        const activeSubscription =
+          await ctx.db.clientSubscriptionPlan.findFirst({
+            where: {
+              clientId: user.id,
+              isActive: true,
+            },
+          });
 
-        if (!activeSubscription || activeSubscription.plan === 'FREE') {
+        if (!activeSubscription || activeSubscription.plan === "FREE") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Aucun abonnement payant à annuler',
+            code: "BAD_REQUEST",
+            message: "Aucun abonnement payant à annuler",
           });
         }
 
@@ -374,13 +398,13 @@ export const subscriptionRouter = router({
         const freePlan = await ctx.db.clientSubscriptionPlan.create({
           data: {
             clientId: user.id,
-            plan: 'FREE',
+            plan: "FREE",
             isActive: false, // Sera activé à la fin du plan payant
             startDate: endOfMonth,
             monthlyPrice: 0,
             announcementsIncluded: 3,
             storageGBIncluded: 0,
-            supportLevel: 'COMMUNITY',
+            supportLevel: "COMMUNITY",
           },
         });
 
@@ -389,24 +413,24 @@ export const subscriptionRouter = router({
           data: {
             clientId: user.id,
             subscriptionId: activeSubscription.id,
-            action: 'CANCELLATION',
+            action: "CANCELLATION",
             fromPlan: activeSubscription.plan,
-            toPlan: 'FREE',
+            toPlan: "FREE",
             effectiveDate: endOfMonth,
-            reason: reason || 'User cancellation request',
+            reason: reason || "User cancellation request",
           },
         });
 
         return {
           success: true,
-          message: `Abonnement programmé pour se terminer le ${format(endOfMonth, 'PPP', { locale: fr })}. Vous conservez vos avantages jusqu'à cette date.`,
+          message: `Abonnement programmé pour se terminer le ${format(endOfMonth, "PPP", { locale: fr })}. Vous conservez vos avantages jusqu'à cette date.`,
           endDate: endOfMonth,
           nextPlan: freePlan,
         };
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'annulation de l'abonnement",
         });
       }
@@ -421,16 +445,16 @@ export const subscriptionRouter = router({
         type: z.nativeEnum(UsageType),
         amount: z.number().min(0).default(1),
         metadata: z.record(z.any()).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { type, amount, metadata } = input;
 
-        if (user.role !== 'CLIENT') {
+        if (user.role !== "CLIENT") {
           throw new TRPCError({
-            code: 'FORBIDDEN',
+            code: "FORBIDDEN",
             message: "Seuls les clients peuvent enregistrer de l'usage",
           });
         }
@@ -445,8 +469,8 @@ export const subscriptionRouter = router({
 
         if (!subscription) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Aucun abonnement trouvé',
+            code: "NOT_FOUND",
+            message: "Aucun abonnement trouvé",
           });
         }
 
@@ -454,10 +478,15 @@ export const subscriptionRouter = router({
         const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
         const limits = getPlanLimits(subscription.plan);
 
-        const canUse = await checkUsageLimit(type, currentUsage, limits, amount);
+        const canUse = await checkUsageLimit(
+          type,
+          currentUsage,
+          limits,
+          amount,
+        );
         if (!canUse.allowed) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: canUse.message,
           });
         }
@@ -503,12 +532,17 @@ export const subscriptionRouter = router({
         return {
           success: true,
           usage,
-          remainingQuota: calculateRemainingQuota(type, currentUsage, limits, amount),
+          remainingQuota: calculateRemainingQuota(
+            type,
+            currentUsage,
+            limits,
+            amount,
+          ),
         };
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'enregistrement de l'usage",
         });
       }
@@ -524,17 +558,18 @@ export const subscriptionRouter = router({
         month: z.number().min(1).max(12).optional(),
         year: z.number().min(2020).optional(),
         limit: z.number().min(1).max(100).default(50),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { type, month, year, limit } = input;
 
-        if (user.role !== 'CLIENT') {
+        if (user.role !== "CLIENT") {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: "Seuls les clients peuvent consulter leur historique d'usage",
+            code: "FORBIDDEN",
+            message:
+              "Seuls les clients peuvent consulter leur historique d'usage",
           });
         }
 
@@ -548,7 +583,7 @@ export const subscriptionRouter = router({
 
         const history = await ctx.db.clientUsageHistory.findMany({
           where,
-          orderBy: { recordedAt: 'desc' },
+          orderBy: { recordedAt: "desc" },
           take: limit,
           include: {
             subscription: {
@@ -561,7 +596,7 @@ export const subscriptionRouter = router({
 
         // Calculer les statistiques par type
         const stats = await ctx.db.clientUsageHistory.groupBy({
-          by: ['type'],
+          by: ["type"],
           where: {
             clientId: user.id,
             month: month || new Date().getMonth() + 1,
@@ -579,12 +614,12 @@ export const subscriptionRouter = router({
               acc[stat.type] = stat._sum.amount || 0;
               return acc;
             },
-            {} as Record<string, number>
+            {} as Record<string, number>,
           ),
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération de l'historique",
         });
       }
@@ -598,17 +633,17 @@ export const subscriptionRouter = router({
       z.object({
         type: z.nativeEnum(UsageType),
         amount: z.number().min(1).default(1),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { type, amount } = input;
 
-        if (user.role !== 'CLIENT') {
+        if (user.role !== "CLIENT") {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Seuls les clients peuvent vérifier leurs limites',
+            code: "FORBIDDEN",
+            message: "Seuls les clients peuvent vérifier leurs limites",
           });
         }
 
@@ -622,8 +657,11 @@ export const subscriptionRouter = router({
 
         if (!subscription) {
           // Plan FREE par défaut
-          const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
-          const limits = getPlanLimits('FREE');
+          const currentUsage = await calculateCurrentMonthUsage(
+            user.id,
+            ctx.db,
+          );
+          const limits = getPlanLimits("FREE");
           return await checkUsageLimit(type, currentUsage, limits, amount);
         }
 
@@ -633,8 +671,8 @@ export const subscriptionRouter = router({
         return await checkUsageLimit(type, currentUsage, limits, amount);
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la vérification des limites',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la vérification des limites",
         });
       }
     }),
@@ -649,11 +687,15 @@ export const subscriptionRouter = router({
       z.object({
         page: z.number().int().positive().default(1),
         limit: z.number().int().positive().max(100).default(10),
-        status: z.enum(['ALL', 'ACTIVE', 'CANCELLED', 'EXPIRED', 'TRIALING']).optional(),
-        planType: z.enum(['ALL', 'FREE', 'STARTER', 'PREMIUM', 'CUSTOM']).optional(),
-        sortOrder: z.enum(['asc', 'desc']).default('desc'),
+        status: z
+          .enum(["ALL", "ACTIVE", "CANCELLED", "EXPIRED", "TRIALING"])
+          .optional(),
+        planType: z
+          .enum(["ALL", "FREE", "STARTER", "PREMIUM", "CUSTOM"])
+          .optional(),
+        sortOrder: z.enum(["asc", "desc"]).default("desc"),
         userId: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -662,11 +704,11 @@ export const subscriptionRouter = router({
         // Construire le filtre
         const where: any = {};
 
-        if (status && status !== 'ALL') {
+        if (status && status !== "ALL") {
           where.status = status;
         }
 
-        if (planType && planType !== 'ALL') {
+        if (planType && planType !== "ALL") {
           where.planType = planType;
         }
 
@@ -691,7 +733,7 @@ export const subscriptionRouter = router({
                 },
               },
               invoices: {
-                orderBy: { issuedDate: 'desc' },
+                orderBy: { issuedDate: "desc" },
                 take: 1,
               },
             },
@@ -701,7 +743,7 @@ export const subscriptionRouter = router({
 
         // Calculer les statistiques
         const stats = await ctx.db.subscription.groupBy({
-          by: ['planType', 'status'],
+          by: ["planType", "status"],
           _count: true,
         });
 
@@ -732,12 +774,12 @@ export const subscriptionRouter = router({
             byPlan: statsByPlan,
             total: total,
           },
-
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération des abonnements',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la récupération des abonnements",
           cause: error,
         });
       }
@@ -750,14 +792,14 @@ export const subscriptionRouter = router({
     .input(
       z.object({
         subscriptionId: z.string(),
-        planType: z.enum(['FREE', 'STARTER', 'PREMIUM', 'CUSTOM']).optional(),
-        status: z.enum(['ACTIVE', 'CANCELLED', 'EXPIRED']).optional(),
+        planType: z.enum(["FREE", "STARTER", "PREMIUM", "CUSTOM"]).optional(),
+        status: z.enum(["ACTIVE", "CANCELLED", "EXPIRED"]).optional(),
         autoRenew: z.boolean().optional(),
         discountPercent: z.number().min(0).max(100).optional(),
         currentPeriodEnd: z.date().optional(),
-        billingCycle: z.enum(['MONTHLY', 'YEARLY']).optional(),
+        billingCycle: z.enum(["MONTHLY", "YEARLY"]).optional(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -771,8 +813,8 @@ export const subscriptionRouter = router({
 
         if (!subscription) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Abonnement non trouvé',
+            code: "NOT_FOUND",
+            message: "Abonnement non trouvé",
           });
         }
 
@@ -780,9 +822,14 @@ export const subscriptionRouter = router({
         const dataToUpdate: any = { ...updateData };
 
         // Calculer la nouvelle date de fin si le type de plan change
-        if (updateData.planType && updateData.planType !== subscription.planType) {
+        if (
+          updateData.planType &&
+          updateData.planType !== subscription.planType
+        ) {
           // Obtenir les détails du nouveau plan
-          const planDetails = await subscriptionService.getPlanDetails(updateData.planType);
+          const planDetails = await subscriptionService.getPlanDetails(
+            updateData.planType,
+          );
 
           dataToUpdate.planName = planDetails.name;
           dataToUpdate.planDescription = planDetails.description;
@@ -801,16 +848,17 @@ export const subscriptionRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'SUBSCRIPTION',
+            entityType: "SUBSCRIPTION",
             entityId: subscriptionId,
             performedById: adminId,
-            action: 'UPDATE_SUBSCRIPTION',
+            action: "UPDATE_SUBSCRIPTION",
             changes: Object.entries(updateData).reduce(
               (acc, [key, value]) => {
-                acc[key] = value instanceof Date ? value.toISOString() : String(value);
+                acc[key] =
+                  value instanceof Date ? value.toISOString() : String(value);
                 return acc;
               },
-              {} as Record<string, string>
+              {} as Record<string, string>,
             ),
           },
         });
@@ -818,12 +866,13 @@ export const subscriptionRouter = router({
         return {
           success: true,
           subscription: updatedSubscription,
-          message: 'Abonnement mis à jour avec succès',
+          message: "Abonnement mis à jour avec succès",
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || "Erreur lors de la mise à jour de l'abonnement",
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la mise à jour de l'abonnement",
           cause: error,
         });
       }
@@ -836,15 +885,15 @@ export const subscriptionRouter = router({
     .input(
       z.object({
         userId: z.string(),
-        planType: z.enum(['FREE', 'STARTER', 'PREMIUM', 'CUSTOM']),
-        billingCycle: z.enum(['MONTHLY', 'YEARLY']).default('MONTHLY'),
+        planType: z.enum(["FREE", "STARTER", "PREMIUM", "CUSTOM"]),
+        billingCycle: z.enum(["MONTHLY", "YEARLY"]).default("MONTHLY"),
         autoRenew: z.boolean().default(true),
         discountPercent: z.number().min(0).max(100).optional(),
         startDate: z.date().default(() => new Date()),
         trialDays: z.number().int().min(0).default(0),
         notes: z.string().optional(),
         generateInvoice: z.boolean().default(true),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -858,8 +907,8 @@ export const subscriptionRouter = router({
 
         if (!user) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Utilisateur non trouvé',
+            code: "NOT_FOUND",
+            message: "Utilisateur non trouvé",
           });
         }
 
@@ -867,13 +916,13 @@ export const subscriptionRouter = router({
         const existingSubscription = await ctx.db.subscription.findFirst({
           where: {
             userId,
-            status: 'ACTIVE',
+            status: "ACTIVE",
           },
         });
 
         if (existingSubscription) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: "L'utilisateur a déjà un abonnement actif",
           });
         }
@@ -886,29 +935,31 @@ export const subscriptionRouter = router({
             ...subscriptionData,
             createdByAdmin: true,
             adminId,
-          }
+          },
         );
 
         // Générer une facture si demandé
         let invoice = null;
-        if (generateInvoice && subscription.planType !== 'FREE') {
-          const renewalResult = await subscriptionService.processRenewal(subscription.id);
+        if (generateInvoice && subscription.planType !== "FREE") {
+          const renewalResult = await subscriptionService.processRenewal(
+            subscription.id,
+          );
           invoice = renewalResult.invoiceId;
         }
 
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'SUBSCRIPTION',
+            entityType: "SUBSCRIPTION",
             entityId: subscription.id,
             performedById: adminId,
-            action: 'CREATE_SUBSCRIPTION',
+            action: "CREATE_SUBSCRIPTION",
             changes: {
               userId,
               planType: subscriptionData.planType,
               billingCycle: subscriptionData.billingCycle,
               discountPercent: String(subscriptionData.discountPercent || 0),
-              invoiceGenerated: generateInvoice ? 'true' : 'false',
+              invoiceGenerated: generateInvoice ? "true" : "false",
             },
           },
         });
@@ -917,12 +968,13 @@ export const subscriptionRouter = router({
           success: true,
           subscription,
           invoice,
-          message: 'Abonnement créé avec succès',
+          message: "Abonnement créé avec succès",
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || "Erreur lors de la création de l'abonnement",
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la création de l'abonnement",
           cause: error,
         });
       }
@@ -940,9 +992,11 @@ export const subscriptionRouter = router({
         maxUses: z.number().int().positive().default(100),
         validFrom: z.date().default(() => new Date()),
         validUntil: z.date().optional(),
-        applicablePlans: z.array(z.enum(['STARTER', 'PREMIUM', 'CUSTOM'])).min(1),
+        applicablePlans: z
+          .array(z.enum(["STARTER", "PREMIUM", "CUSTOM"]))
+          .min(1),
         isActive: z.boolean().default(true),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -955,8 +1009,8 @@ export const subscriptionRouter = router({
 
         if (existingCode) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Ce code promo existe déjà',
+            code: "BAD_REQUEST",
+            message: "Ce code promo existe déjà",
           });
         }
 
@@ -971,15 +1025,15 @@ export const subscriptionRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'COUPON_CODE',
+            entityType: "COUPON_CODE",
             entityId: coupon.id,
             performedById: adminId,
-            action: 'CREATE_COUPON',
+            action: "CREATE_COUPON",
             changes: {
               code: input.code,
               discountPercent: String(input.discountPercent),
               maxUses: String(input.maxUses),
-              applicablePlans: input.applicablePlans.join(','),
+              applicablePlans: input.applicablePlans.join(","),
             },
           },
         });
@@ -987,12 +1041,12 @@ export const subscriptionRouter = router({
         return {
           success: true,
           coupon,
-          message: 'Code promo créé avec succès',
+          message: "Code promo créé avec succès",
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la création du code promo',
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Erreur lors de la création du code promo",
           cause: error,
         });
       }
@@ -1004,7 +1058,7 @@ export const subscriptionRouter = router({
   updatePlan: adminProcedure
     .input(
       z.object({
-        planType: z.enum(['FREE', 'STARTER', 'PREMIUM', 'CUSTOM']),
+        planType: z.enum(["FREE", "STARTER", "PREMIUM", "CUSTOM"]),
         name: z.string().min(2).max(50),
         description: z.string().min(10),
         priceMonthly: z.number().nonnegative(),
@@ -1013,7 +1067,7 @@ export const subscriptionRouter = router({
         isActive: z.boolean().default(true),
         isPublic: z.boolean().default(true),
         trialDays: z.number().int().min(0).default(0),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -1026,7 +1080,9 @@ export const subscriptionRouter = router({
             name: input.name,
             description: input.description,
             priceMonthly: new Decimal(input.priceMonthly),
-            priceYearly: input.priceYearly ? new Decimal(input.priceYearly) : null,
+            priceYearly: input.priceYearly
+              ? new Decimal(input.priceYearly)
+              : null,
             features: input.features,
             isActive: input.isActive,
             isPublic: input.isPublic,
@@ -1038,7 +1094,9 @@ export const subscriptionRouter = router({
             name: input.name,
             description: input.description,
             priceMonthly: new Decimal(input.priceMonthly),
-            priceYearly: input.priceYearly ? new Decimal(input.priceYearly) : null,
+            priceYearly: input.priceYearly
+              ? new Decimal(input.priceYearly)
+              : null,
             features: input.features,
             isActive: input.isActive,
             isPublic: input.isPublic,
@@ -1053,15 +1111,17 @@ export const subscriptionRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'SUBSCRIPTION_PLAN',
+            entityType: "SUBSCRIPTION_PLAN",
             entityId: plan.id,
             performedById: adminId,
-            action: 'UPDATE_PLAN',
+            action: "UPDATE_PLAN",
             changes: {
               planType: input.planType,
               name: input.name,
               priceMonthly: String(input.priceMonthly),
-              priceYearly: input.priceYearly ? String(input.priceYearly) : 'null',
+              priceYearly: input.priceYearly
+                ? String(input.priceYearly)
+                : "null",
               isActive: String(input.isActive),
             },
           },
@@ -1070,12 +1130,12 @@ export const subscriptionRouter = router({
         return {
           success: true,
           plan,
-          message: 'Plan mis à jour avec succès',
+          message: "Plan mis à jour avec succès",
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la mise à jour du plan',
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Erreur lors de la mise à jour du plan",
           cause: error,
         });
       }
@@ -1087,10 +1147,10 @@ export const subscriptionRouter = router({
   getSubscriptionStats: adminProcedure
     .input(
       z.object({
-        period: z.enum(['day', 'week', 'month']).default('month'),
+        period: z.enum(["day", "week", "month"]).default("month"),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -1103,48 +1163,56 @@ export const subscriptionRouter = router({
 
         // Statistiques par plan
         const planStats = await ctx.db.subscription.groupBy({
-          by: ['planType'],
+          by: ["planType"],
           _count: true,
           where: startDate || endDate ? { createdAt: dateFilter } : undefined,
         });
 
         // Statistiques sur la valeur des abonnements
         const valueStats = await ctx.db.subscription.groupBy({
-          by: ['planType'],
+          by: ["planType"],
           _sum: {
             planPrice: true,
           },
           where: {
-            status: 'ACTIVE',
+            status: "ACTIVE",
             ...(startDate || endDate ? { createdAt: dateFilter } : {}),
           },
         });
 
         // Conversion en MRR (Monthly Recurring Revenue)
-        const mrrByPlan = valueStats.reduce((acc: Record<string, number>, stat) => {
-          const planType = stat.planType;
-          const mrr = stat._sum.planPrice ? parseFloat(stat._sum.planPrice.toString()) : 0;
-          acc[planType] = mrr;
-          return acc;
-        }, {});
+        const mrrByPlan = valueStats.reduce(
+          (acc: Record<string, number>, stat) => {
+            const planType = stat.planType;
+            const mrr = stat._sum.planPrice
+              ? parseFloat(stat._sum.planPrice.toString())
+              : 0;
+            acc[planType] = mrr;
+            return acc;
+          },
+          {},
+        );
 
         // Calculer le MRR total
-        const totalMRR = Object.values(mrrByPlan).reduce((sum, mrr) => sum + mrr, 0);
+        const totalMRR = Object.values(mrrByPlan).reduce(
+          (sum, mrr) => sum + mrr,
+          0,
+        );
 
         // Statistiques de conversion
         const conversionStats = {
           totalSignups: await ctx.db.subscription.count(),
           paidSubscriptions: await ctx.db.subscription.count({
             where: {
-              status: 'ACTIVE',
+              status: "ACTIVE",
               planType: {
-                not: 'FREE',
+                not: "FREE",
               },
             },
           }),
           freeTrialUsers: await ctx.db.subscription.count({
             where: {
-              status: 'TRIALING',
+              status: "TRIALING",
             },
           }),
         };
@@ -1152,11 +1220,13 @@ export const subscriptionRouter = router({
         // Calculer le taux de conversion
         const conversionRate =
           conversionStats.totalSignups > 0
-            ? (conversionStats.paidSubscriptions / conversionStats.totalSignups) * 100
+            ? (conversionStats.paidSubscriptions /
+                conversionStats.totalSignups) *
+              100
             : 0;
 
         return {
-          planDistribution: planStats.map(stat => ({
+          planDistribution: planStats.map((stat) => ({
             planType: stat.planType,
             count: stat._count,
           })),
@@ -1180,8 +1250,9 @@ export const subscriptionRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération des statistiques',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la récupération des statistiques",
           cause: error,
         });
       }
@@ -1191,21 +1262,21 @@ export const subscriptionRouter = router({
 // Helper functions
 function getPlanLimits(plan: ClientSubscriptionPlan) {
   switch (plan) {
-    case 'FREE':
+    case "FREE":
       return {
         announcements: 3,
         storage: 0, // GB
         prioritySupport: false,
         advancedFeatures: false,
       };
-    case 'STARTER':
+    case "STARTER":
       return {
         announcements: 20,
         storage: 2, // GB
         prioritySupport: false,
         advancedFeatures: true,
       };
-    case 'PREMIUM':
+    case "PREMIUM":
       return {
         announcements: -1, // Illimité
         storage: 10, // GB
@@ -1213,59 +1284,65 @@ function getPlanLimits(plan: ClientSubscriptionPlan) {
         advancedFeatures: true,
       };
     default:
-      return getPlanLimits('FREE');
+      return getPlanLimits("FREE");
   }
 }
 
 function getPlanDetails(plan: ClientSubscriptionPlan) {
   switch (plan) {
-    case 'FREE':
+    case "FREE":
       return {
-        name: 'Gratuit',
+        name: "Gratuit",
         price: 0,
-        limits: getPlanLimits('FREE'),
+        limits: getPlanLimits("FREE"),
       };
-    case 'STARTER':
+    case "STARTER":
       return {
-        name: 'Starter',
+        name: "Starter",
         price: 9.9,
-        limits: getPlanLimits('STARTER'),
+        limits: getPlanLimits("STARTER"),
       };
-    case 'PREMIUM':
+    case "PREMIUM":
       return {
-        name: 'Premium',
+        name: "Premium",
         price: 19.99,
-        limits: getPlanLimits('PREMIUM'),
+        limits: getPlanLimits("PREMIUM"),
       };
     default:
-      return getPlanDetails('FREE');
+      return getPlanDetails("FREE");
   }
 }
 
 function getPlanPriority(plan: ClientSubscriptionPlan): number {
   switch (plan) {
-    case 'FREE':
+    case "FREE":
       return 0;
-    case 'STARTER':
+    case "STARTER":
       return 1;
-    case 'PREMIUM':
+    case "PREMIUM":
       return 2;
     default:
       return 0;
   }
 }
 
-function canUpgrade(from: ClientSubscriptionPlan, to: ClientSubscriptionPlan): boolean {
+function canUpgrade(
+  from: ClientSubscriptionPlan,
+  to: ClientSubscriptionPlan,
+): boolean {
   return getPlanPriority(to) > getPlanPriority(from);
 }
 
-function canDowngrade(from: ClientSubscriptionPlan, to: ClientSubscriptionPlan): boolean {
+function canDowngrade(
+  from: ClientSubscriptionPlan,
+  to: ClientSubscriptionPlan,
+): boolean {
   return getPlanPriority(to) < getPlanPriority(from);
 }
 
 async function getAvailableUpgrades(currentPlan: ClientSubscriptionPlan) {
-  const allPlans: ClientSubscriptionPlan[] = ['FREE', 'STARTER', 'PREMIUM'];
-  return allPlans.filter(plan => canUpgrade(currentPlan, plan));
+  const allPlans: ClientSubscriptionPlan[] = ["FREE", "STARTER", "PREMIUM"];
+  return allPlans.filter((plan) => canUpgrade(currentPlan, plan));
 }
 
 async function calculateCurrentMonthUsage(clientId: string, db: any) {
@@ -1289,11 +1366,16 @@ async function calculateCurrentMonthUsage(clientId: string, db: any) {
   };
 }
 
-async function checkUsageLimit(type: UsageType, currentUsage: any, limits: any, amount: number) {
+async function checkUsageLimit(
+  type: UsageType,
+  currentUsage: any,
+  limits: any,
+  amount: number,
+) {
   switch (type) {
-    case 'ANNOUNCEMENTS':
+    case "ANNOUNCEMENTS":
       if (limits.announcements === -1) {
-        return { allowed: true, message: 'Illimité' };
+        return { allowed: true, message: "Illimité" };
       }
       if (currentUsage.announcements + amount > limits.announcements) {
         return {
@@ -1301,36 +1383,36 @@ async function checkUsageLimit(type: UsageType, currentUsage: any, limits: any, 
           message: `Limite d'annonces atteinte (${limits.announcements}/mois). Passez à un plan supérieur.`,
         };
       }
-      return { allowed: true, message: 'OK' };
+      return { allowed: true, message: "OK" };
 
-    case 'STORAGE':
+    case "STORAGE":
       if (currentUsage.storage + amount > limits.storage) {
         return {
           allowed: false,
           message: `Limite de stockage atteinte (${limits.storage}GB). Passez à un plan supérieur.`,
         };
       }
-      return { allowed: true, message: 'OK' };
+      return { allowed: true, message: "OK" };
 
-    case 'API_CALLS':
+    case "API_CALLS":
       // Les appels API ne sont pas limités pour l'instant
-      return { allowed: true, message: 'OK' };
+      return { allowed: true, message: "OK" };
 
     default:
-      return { allowed: true, message: 'OK' };
+      return { allowed: true, message: "OK" };
   }
 }
 
 function getUsageFieldName(type: UsageType): string {
   switch (type) {
-    case 'ANNOUNCEMENTS':
-      return 'announcementsCount';
-    case 'STORAGE':
-      return 'storageUsedGB';
-    case 'API_CALLS':
-      return 'apiCallsCount';
+    case "ANNOUNCEMENTS":
+      return "announcementsCount";
+    case "STORAGE":
+      return "storageUsedGB";
+    case "API_CALLS":
+      return "apiCallsCount";
     default:
-      return 'announcementsCount';
+      return "announcementsCount";
   }
 }
 
@@ -1338,13 +1420,16 @@ function calculateRemainingQuota(
   type: UsageType,
   currentUsage: any,
   limits: any,
-  usedAmount: number
+  usedAmount: number,
 ) {
   switch (type) {
-    case 'ANNOUNCEMENTS':
+    case "ANNOUNCEMENTS":
       if (limits.announcements === -1) return -1; // Illimité
-      return Math.max(0, limits.announcements - (currentUsage.announcements + usedAmount));
-    case 'STORAGE':
+      return Math.max(
+        0,
+        limits.announcements - (currentUsage.announcements + usedAmount),
+      );
+    case "STORAGE":
       return Math.max(0, limits.storage - (currentUsage.storage + usedAmount));
     default:
       return -1;

@@ -1,52 +1,51 @@
 #!/usr/bin/env tsx
 
-import fs from 'fs/promises';
-import path from 'path';
-import { generateOpenApiSpec } from '../src/lib/openapi';
+import fs from "fs/promises";
+import path from "path";
+import { generateOpenApiSpec } from "../src/lib/openapi";
 
 async function generateApiDocumentation() {
-  console.log('🚀 Generating API documentation...');
+  console.log("🚀 Generating API documentation...");
 
   try {
     // Generate OpenAPI specification
-    console.log('📝 Generating OpenAPI specification...');
+    console.log("📝 Generating OpenAPI specification...");
     const spec = generateOpenApiSpec();
 
     // Ensure output directory exists
-    const outputDir = path.join(process.cwd(), 'docs', 'api');
+    const outputDir = path.join(process.cwd(), "docs", "api");
     await fs.mkdir(outputDir, { recursive: true });
 
     // Write OpenAPI spec to file
-    const specPath = path.join(outputDir, 'openapi.json');
+    const specPath = path.join(outputDir, "openapi.json");
     await fs.writeFile(specPath, JSON.stringify(spec, null, 2));
     console.log(`✅ OpenAPI specification generated: ${specPath}`);
 
     // Generate markdown documentation
-    console.log('📖 Generating markdown documentation...');
+    console.log("📖 Generating markdown documentation...");
     const markdownContent = generateMarkdownDocs(spec);
-    const markdownPath = path.join(outputDir, 'README.md');
+    const markdownPath = path.join(outputDir, "README.md");
     await fs.writeFile(markdownPath, markdownContent);
     console.log(`✅ Markdown documentation generated: ${markdownPath}`);
 
     // Generate TypeScript client types
-    console.log('🔧 Generating TypeScript types...');
+    console.log("🔧 Generating TypeScript types...");
     const typesContent = generateTypeScriptTypes(spec);
-    const typesPath = path.join(outputDir, 'types.ts');
+    const typesPath = path.join(outputDir, "types.ts");
     await fs.writeFile(typesPath, typesContent);
     console.log(`✅ TypeScript types generated: ${typesPath}`);
 
-    console.log('🎉 API documentation generation completed successfully!');
-    console.log('\nGenerated files:');
+    console.log("🎉 API documentation generation completed successfully!");
+    console.log("\nGenerated files:");
     console.log(`  - ${specPath} (OpenAPI specification)`);
     console.log(`  - ${markdownPath} (Markdown documentation)`);
     console.log(`  - ${typesPath} (TypeScript types)`);
-    console.log('\nYou can now:');
-    console.log('  - View the interactive docs at /developers/api-docs');
-    console.log('  - Use the generated types for API client development');
-    console.log('  - Share the OpenAPI spec with external developers');
-
+    console.log("\nYou can now:");
+    console.log("  - View the interactive docs at /developers/api-docs");
+    console.log("  - Use the generated types for API client development");
+    console.log("  - Share the OpenAPI spec with external developers");
   } catch (error) {
-    console.error('❌ Error generating API documentation:', error);
+    console.error("❌ Error generating API documentation:", error);
     process.exit(1);
   }
 }
@@ -56,7 +55,7 @@ function generateMarkdownDocs(spec: any): string {
 
   let markdown = `# ${info.title}\n\n`;
   markdown += `${info.description}\n\n`;
-  
+
   if (info.version) {
     markdown += `**Version:** ${info.version}\n\n`;
   }
@@ -64,9 +63,9 @@ function generateMarkdownDocs(spec: any): string {
   if (servers && servers.length > 0) {
     markdown += `## Servers\n\n`;
     servers.forEach((server: any) => {
-      markdown += `- **${server.description || 'Server'}:** \`${server.url}\`\n`;
+      markdown += `- **${server.description || "Server"}:** \`${server.url}\`\n`;
     });
-    markdown += '\n';
+    markdown += "\n";
   }
 
   if (tags && tags.length > 0) {
@@ -92,7 +91,7 @@ function generateMarkdownDocs(spec: any): string {
           markdown += `${operation.description}\n\n`;
         }
         if (operation.tags) {
-          markdown += `**Tags:** ${operation.tags.join(', ')}\n\n`;
+          markdown += `**Tags:** ${operation.tags.join(", ")}\n\n`;
         }
       });
     });
@@ -128,44 +127,53 @@ function generateMarkdownDocs(spec: any): string {
 
 function generateTypeScriptTypes(spec: any): string {
   const { components } = spec;
-  
+
   let types = `// Generated TypeScript types for EcoDeli API\n`;
   types += `// This file is auto-generated. Do not edit manually.\n\n`;
 
   if (components?.schemas) {
     types += `export namespace EcoDeliAPI {\n`;
-    
-    Object.entries(components.schemas).forEach(([name, schema]: [string, any]) => {
-      types += `  export interface ${name} {\n`;
-      if (schema.properties) {
-        Object.entries(schema.properties).forEach(([prop, propSchema]: [string, any]) => {
-          const isRequired = schema.required?.includes(prop);
-          const optional = isRequired ? '' : '?';
-          let propType = 'any';
-          
-          if (propSchema.type === 'string') {
-            if (propSchema.enum) {
-              propType = propSchema.enum.map((e: string) => `'${e}'`).join(' | ');
-            } else {
-              propType = 'string';
-            }
-          } else if (propSchema.type === 'number' || propSchema.type === 'integer') {
-            propType = 'number';
-          } else if (propSchema.type === 'boolean') {
-            propType = 'boolean';
-          } else if (propSchema.type === 'array') {
-            const itemType = propSchema.items?.type || 'any';
-            propType = `${itemType}[]`;
-          } else if (propSchema.type === 'object') {
-            propType = 'Record<string, any>';
-          }
-          
-          types += `    ${prop}${optional}: ${propType};\n`;
-        });
-      }
-      types += `  }\n\n`;
-    });
-    
+
+    Object.entries(components.schemas).forEach(
+      ([name, schema]: [string, any]) => {
+        types += `  export interface ${name} {\n`;
+        if (schema.properties) {
+          Object.entries(schema.properties).forEach(
+            ([prop, propSchema]: [string, any]) => {
+              const isRequired = schema.required?.includes(prop);
+              const optional = isRequired ? "" : "?";
+              let propType = "any";
+
+              if (propSchema.type === "string") {
+                if (propSchema.enum) {
+                  propType = propSchema.enum
+                    .map((e: string) => `'${e}'`)
+                    .join(" | ");
+                } else {
+                  propType = "string";
+                }
+              } else if (
+                propSchema.type === "number" ||
+                propSchema.type === "integer"
+              ) {
+                propType = "number";
+              } else if (propSchema.type === "boolean") {
+                propType = "boolean";
+              } else if (propSchema.type === "array") {
+                const itemType = propSchema.items?.type || "any";
+                propType = `${itemType}[]`;
+              } else if (propSchema.type === "object") {
+                propType = "Record<string, any>";
+              }
+
+              types += `    ${prop}${optional}: ${propType};\n`;
+            },
+          );
+        }
+        types += `  }\n\n`;
+      },
+    );
+
     types += `}\n\n`;
   }
 

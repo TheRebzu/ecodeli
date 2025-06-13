@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -6,24 +6,30 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Eye, Filter, MoreHorizontal } from 'lucide-react';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Filter,
+  MoreHorizontal,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AuditLogDetails } from '@/components/admin/audit/audit-log-details';
-import Image from 'next/image';
+} from "@/components/ui/dropdown-menu";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuditLogDetails } from "@/components/admin/audit/audit-log-details";
+import Image from "next/image";
 
 // Définir un type spécifique au lieu de any
 type AuditLogData = {
@@ -58,39 +64,45 @@ export function AuditLogTable({
   isLoading = false,
   onPageChange,
 }: AuditLogTableProps) {
-  const t = useTranslations('admin.audit');
+  const t = useTranslations("admin.audit");
   const router = useRouter();
   const [selectedLog, setSelectedLog] = useState<AuditLogData | null>(null);
 
   // Formater l'action du log
   const formatAction = (action: string) => {
     switch (action) {
-      case 'CREATE':
-        return { label: t('actions.create'), variant: 'success' as const };
-      case 'UPDATE':
-        return { label: t('actions.update'), variant: 'warning' as const };
-      case 'DELETE':
-        return { label: t('actions.delete'), variant: 'destructive' as const };
-      case 'STATUS_CHANGED':
-        return { label: t('actions.statusChanged'), variant: 'info' as const };
-      case 'APPLICATION_ADDED':
-        return { label: t('actions.applicationAdded'), variant: 'info' as const };
-      case 'APPLICATION_STATUS_UPDATED':
-        return { label: t('actions.applicationStatusUpdated'), variant: 'warning' as const };
+      case "CREATE":
+        return { label: t("actions.create"), variant: "success" as const };
+      case "UPDATE":
+        return { label: t("actions.update"), variant: "warning" as const };
+      case "DELETE":
+        return { label: t("actions.delete"), variant: "destructive" as const };
+      case "STATUS_CHANGED":
+        return { label: t("actions.statusChanged"), variant: "info" as const };
+      case "APPLICATION_ADDED":
+        return {
+          label: t("actions.applicationAdded"),
+          variant: "info" as const,
+        };
+      case "APPLICATION_STATUS_UPDATED":
+        return {
+          label: t("actions.applicationStatusUpdated"),
+          variant: "warning" as const,
+        };
       default:
-        return { label: action, variant: 'default' as const };
+        return { label: action, variant: "default" as const };
     }
   };
 
   // Formater le type d'entité
   const formatEntityType = (type: string) => {
     switch (type) {
-      case 'announcement':
-        return t('entityTypes.announcement');
-      case 'user':
-        return t('entityTypes.user');
-      case 'delivery':
-        return t('entityTypes.delivery');
+      case "announcement":
+        return t("entityTypes.announcement");
+      case "user":
+        return t("entityTypes.user");
+      case "delivery":
+        return t("entityTypes.delivery");
       default:
         return type;
     }
@@ -106,9 +118,9 @@ export function AuditLogTable({
 
   // Naviguer vers l'entité concernée
   const handleNavigateToEntity = (log: AuditLogData) => {
-    if (log.resourceType === 'announcement') {
+    if (log.resourceType === "announcement") {
       router.push(`/admin/announcements/${log.resourceId}`);
-    } else if (log.resourceType === 'user') {
+    } else if (log.resourceType === "user") {
       router.push(`/admin/users/${log.resourceId}`);
     }
     // Ajouter d'autres types d'entités selon les besoins
@@ -124,7 +136,7 @@ export function AuditLogTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t('title')}</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -147,10 +159,10 @@ export function AuditLogTable({
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{t('title')}</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <Button variant="outline" size="sm">
             <Filter className="h-4 w-4 mr-2" />
-            {t('filter')}
+            {t("filter")}
           </Button>
         </CardHeader>
         <CardContent>
@@ -158,64 +170,83 @@ export function AuditLogTable({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('columns.action')}</TableHead>
-                  <TableHead>{t('columns.entityType')}</TableHead>
-                  <TableHead>{t('columns.performedBy')}</TableHead>
-                  <TableHead>{t('columns.date')}</TableHead>
-                  <TableHead className="text-right">{t('columns.actions')}</TableHead>
+                  <TableHead>{t("columns.action")}</TableHead>
+                  <TableHead>{t("columns.entityType")}</TableHead>
+                  <TableHead>{t("columns.performedBy")}</TableHead>
+                  <TableHead>{t("columns.date")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("columns.actions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {logs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center">
-                      {t('noLogs')}
+                      {t("noLogs")}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  logs.map(log => {
+                  logs.map((log) => {
                     const { label, variant } = formatAction(log.action);
                     return (
                       <TableRow key={log.id}>
                         <TableCell>
                           <Badge variant={variant}>{label}</Badge>
                         </TableCell>
-                        <TableCell>{formatEntityType(log.resourceType)}</TableCell>
+                        <TableCell>
+                          {formatEntityType(log.resourceType)}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className="relative h-8 w-8 rounded-full overflow-hidden border">
                               <Image
-                                src={log.user?.image || '/images/placeholder-user.png'}
-                                alt={`Avatar de ${log.user?.name || 'utilisateur'}`}
+                                src={
+                                  log.user?.image ||
+                                  "/images/placeholder-user.png"
+                                }
+                                alt={`Avatar de ${log.user?.name || "utilisateur"}`}
                                 fill
                                 sizes="32px"
                                 className="object-cover"
                               />
                             </div>
                             <div>
-                              <div className="font-medium">{log.user?.name}</div>
-                              <div className="text-xs text-muted-foreground">{log.user?.email}</div>
+                              <div className="font-medium">
+                                {log.user?.name}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {log.user?.email}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          {format(new Date(log.timestamp), 'PPp', { locale: fr })}
+                          {format(new Date(log.timestamp), "PPp", {
+                            locale: fr,
+                          })}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon">
                                 <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">{t('actions.open')}</span>
+                                <span className="sr-only">
+                                  {t("actions.open")}
+                                </span>
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleViewDetails(log)}>
+                              <DropdownMenuItem
+                                onClick={() => handleViewDetails(log)}
+                              >
                                 <Eye className="mr-2 h-4 w-4" />
-                                {t('actions.viewDetails')}
+                                {t("actions.viewDetails")}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleNavigateToEntity(log)}>
-                                {t('actions.goToEntity')}
+                              <DropdownMenuItem
+                                onClick={() => handleNavigateToEntity(log)}
+                              >
+                                {t("actions.goToEntity")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -237,10 +268,10 @@ export function AuditLogTable({
                 disabled={currentPage <= 1}
               >
                 <ChevronLeft className="h-4 w-4" />
-                {t('previous')}
+                {t("previous")}
               </Button>
               <div className="text-sm">
-                {t('pagination', {
+                {t("pagination", {
                   current: currentPage,
                   total: totalPages,
                 })}
@@ -251,7 +282,7 @@ export function AuditLogTable({
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages}
               >
-                {t('next')}
+                {t("next")}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
@@ -259,7 +290,9 @@ export function AuditLogTable({
         </CardContent>
       </Card>
 
-      {selectedLog && <AuditLogDetails log={selectedLog} onClose={handleCloseDetails} />}
+      {selectedLog && (
+        <AuditLogDetails log={selectedLog} onClose={handleCloseDetails} />
+      )}
     </>
   );
 }

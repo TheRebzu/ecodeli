@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useLocalizedFormat } from '@/hooks/system/use-socket';
+import { useLocalizedFormat } from "@/hooks/system/use-socket";
 
 interface FormattedNumberProps {
   value: number | null | undefined;
-  type?: 'decimal' | 'currency' | 'percent';
+  type?: "decimal" | "currency" | "percent";
   currency?: string;
   className?: string;
   options?: Intl.NumberFormatOptions;
@@ -12,28 +12,35 @@ interface FormattedNumberProps {
 
 export function FormattedNumber({
   value,
-  type = 'decimal',
+  type = "decimal",
   currency,
-  className = '',
+  className = "",
   options,
 }: FormattedNumberProps) {
-  const { formatLocalizedCurrency, formatLocalizedNumber } = useLocalizedFormat();
+  const { formatLocalizedCurrency, formatLocalizedNumber } =
+    useLocalizedFormat();
 
   if (value === null || value === undefined) {
     return <span className={className}>-</span>;
   }
 
-  if (type === 'currency') {
-    return <span className={className}>{formatLocalizedCurrency(value, currency)}</span>;
-  }
-
-  if (type === 'percent') {
+  if (type === "currency") {
     return (
       <span className={className}>
-        {formatLocalizedNumber(value, { style: 'percent', ...options })}
+        {formatLocalizedCurrency(value, currency)}
       </span>
     );
   }
 
-  return <span className={className}>{formatLocalizedNumber(value, options)}</span>;
+  if (type === "percent") {
+    return (
+      <span className={className}>
+        {formatLocalizedNumber(value, { style: "percent", ...options })}
+      </span>
+    );
+  }
+
+  return (
+    <span className={className}>{formatLocalizedNumber(value, options)}</span>
+  );
 }

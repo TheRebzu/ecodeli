@@ -1,10 +1,10 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { notFound } from 'next/navigation';
-import { getMessages } from 'next-intl/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
-import { redirect } from 'next/navigation';
-import { OnboardingWrapper } from '@/components/providers/onboarding-provider';
+import { NextIntlClientProvider } from "next-intl";
+import { notFound } from "next/navigation";
+import { getMessages } from "next-intl/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/auth/next-auth";
+import { redirect } from "next/navigation";
+import { OnboardingWrapper } from "@/components/providers/onboarding-provider";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -23,11 +23,13 @@ export default async function ProtectedLayout(props: LayoutProps) {
 
   if (!session) {
     // Rediriger vers la page de connexion si non authentifié
-    redirect(`/${locale}/login?callbackUrl=${encodeURIComponent(`/${locale}`)}`);
+    redirect(
+      `/${locale}/login?callbackUrl=${encodeURIComponent(`/${locale}`)}`,
+    );
   }
 
   // Vérifier si la locale est supportée
-  const locales = ['fr', 'en'];
+  const locales = ["fr", "en"];
   if (!locales.includes(locale)) {
     notFound();
   }

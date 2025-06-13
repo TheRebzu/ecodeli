@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
-import { db } from '@/server/db';
+import { Prisma } from "@prisma/client";
+import { db } from "@/server/db";
 import {
   CreateAvailabilityInput,
   CreateBookingInput,
@@ -7,29 +7,38 @@ import {
   SearchServicesInput,
   UpdateBookingInput,
   UpdateServiceInput,
-} from '@/schemas/service/service.schema';
-import { TRPCError } from '@trpc/server';
-import { add, format, parse, addMinutes } from 'date-fns';
+} from "@/schemas/service/service.schema";
+import { TRPCError } from "@trpc/server";
+import { add, format, parse, addMinutes } from "date-fns";
 
 // Fonction utilitaire pour convertir les chaînes de date et heure en objet Date
 const parseDateTime = (date: string, time: string): Date => {
-  const dateObj = parse(date, 'yyyy-MM-dd', new Date());
-  const [hours, minutes] = time.split(':').map(Number);
+  const dateObj = parse(date, "yyyy-MM-dd", new Date());
+  const [hours, minutes] = time.split(":").map(Number);
 
-  return new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), hours, minutes);
+  return new Date(
+    dateObj.getFullYear(),
+    dateObj.getMonth(),
+    dateObj.getDate(),
+    hours,
+    minutes,
+  );
 };
 
 export const serviceService = {
   // Gestion des catégories de service
-  async createServiceCategory(data: { name: string; description?: string | null }) {
+  async createServiceCategory(data: {
+    name: string;
+    description?: string | null;
+  }) {
     try {
       return await db.serviceCategory.create({
         data,
       });
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la création de la catégorie de service',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la création de la catégorie de service",
         cause: error,
       });
     }
@@ -38,12 +47,12 @@ export const serviceService = {
   async getServiceCategories() {
     try {
       return await db.serviceCategory.findMany({
-        orderBy: { name: 'asc' },
+        orderBy: { name: "asc" },
       });
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des catégories de service',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des catégories de service",
         cause: error,
       });
     }
@@ -60,17 +69,17 @@ export const serviceService = {
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2003') {
+        if (error.code === "P2003") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: "La catégorie spécifiée n'existe pas",
           });
         }
       }
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la création du service',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la création du service",
         cause: error,
       });
     }
@@ -86,7 +95,7 @@ export const serviceService = {
 
     if (!service) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
+        code: "NOT_FOUND",
         message: "Service non trouvé ou vous n'êtes pas autorisé à le modifier",
       });
     }
@@ -98,8 +107,8 @@ export const serviceService = {
       });
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour du service',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du service",
         cause: error,
       });
     }
@@ -128,8 +137,8 @@ export const serviceService = {
 
       if (!service) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Service non trouvé',
+          code: "NOT_FOUND",
+          message: "Service non trouvé",
         });
       }
 
@@ -138,8 +147,8 @@ export const serviceService = {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération du service',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération du service",
         cause: error,
       });
     }
@@ -152,19 +161,27 @@ export const serviceService = {
         include: {
           category: true,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des services du prestataire',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des services du prestataire",
         cause: error,
       });
     }
   },
 
   async searchServices(params: SearchServicesInput) {
-    const { categoryId, query, maxPrice, location, maxDistance, page = 1, limit = 10 } = params;
+    const {
+      categoryId,
+      query,
+      maxPrice,
+      location,
+      maxDistance,
+      page = 1,
+      limit = 10,
+    } = params;
 
     const skip = (page - 1) * limit;
 
@@ -180,8 +197,8 @@ export const serviceService = {
 
       if (query) {
         where.OR = [
-          { name: { contains: query, mode: 'insensitive' } },
-          { description: { contains: query, mode: 'insensitive' } },
+          { name: { contains: query, mode: "insensitive" } },
+          { description: { contains: query, mode: "insensitive" } },
         ];
       }
 
@@ -212,7 +229,7 @@ export const serviceService = {
           },
           category: true,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: limit,
       });
@@ -220,7 +237,12 @@ export const serviceService = {
       // Filtrer par distance si nécessaire
       if (location && maxDistance) {
         // Fonction simple pour calculer la distance (formule de Haversine)
-        const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+        const calculateDistance = (
+          lat1: number,
+          lng1: number,
+          lat2: number,
+          lng2: number,
+        ) => {
           const R = 6371; // Rayon de la Terre en km
           const dLat = ((lat2 - lat1) * Math.PI) / 180;
           const dLng = ((lng2 - lng1) * Math.PI) / 180;
@@ -234,8 +256,11 @@ export const serviceService = {
           return R * c;
         };
 
-        services = services.filter(service => {
-          if (!service.provider.providerLocationLat || !service.provider.providerLocationLng) {
+        services = services.filter((service) => {
+          if (
+            !service.provider.providerLocationLat ||
+            !service.provider.providerLocationLng
+          ) {
             return false;
           }
 
@@ -243,7 +268,7 @@ export const serviceService = {
             location.lat,
             location.lng,
             service.provider.providerLocationLat,
-            service.provider.providerLocationLng
+            service.provider.providerLocationLng,
           );
 
           return distance <= maxDistance;
@@ -261,8 +286,8 @@ export const serviceService = {
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la recherche des services',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la recherche des services",
         cause: error,
       });
     }
@@ -275,8 +300,11 @@ export const serviceService = {
     try {
       // Convertir les chaînes d'heure en objets Date pour le stockage
       const today = new Date();
-      const startDateTime = parseDateTime(format(today, 'yyyy-MM-dd'), startTime);
-      const endDateTime = parseDateTime(format(today, 'yyyy-MM-dd'), endTime);
+      const startDateTime = parseDateTime(
+        format(today, "yyyy-MM-dd"),
+        startTime,
+      );
+      const endDateTime = parseDateTime(format(today, "yyyy-MM-dd"), endTime);
 
       return await db.providerAvailability.create({
         data: {
@@ -288,8 +316,8 @@ export const serviceService = {
       });
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la création de la disponibilité',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la création de la disponibilité",
         cause: error,
       });
     }
@@ -299,12 +327,12 @@ export const serviceService = {
     try {
       return await db.providerAvailability.findMany({
         where: { providerId },
-        orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
+        orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
       });
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des disponibilités',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des disponibilités",
         cause: error,
       });
     }
@@ -318,8 +346,9 @@ export const serviceService = {
 
     if (!availability) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: "Disponibilité non trouvée ou vous n'êtes pas autorisé à la supprimer",
+        code: "NOT_FOUND",
+        message:
+          "Disponibilité non trouvée ou vous n'êtes pas autorisé à la supprimer",
       });
     }
 
@@ -329,15 +358,19 @@ export const serviceService = {
       });
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la suppression de la disponibilité',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la suppression de la disponibilité",
         cause: error,
       });
     }
   },
 
   // Gestion des créneaux horaires disponibles
-  async getAvailableTimeSlots(providerId: string, serviceId: string, date: string) {
+  async getAvailableTimeSlots(
+    providerId: string,
+    serviceId: string,
+    date: string,
+  ) {
     try {
       // Récupérer le service pour connaître sa durée
       const service = await db.service.findUnique({
@@ -347,13 +380,13 @@ export const serviceService = {
 
       if (!service) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Service non trouvé',
+          code: "NOT_FOUND",
+          message: "Service non trouvé",
         });
       }
 
       // Convertir la date en objet Date
-      const dateObj = parse(date, 'yyyy-MM-dd', new Date());
+      const dateObj = parse(date, "yyyy-MM-dd", new Date());
 
       // Jour de la semaine (0-6)
       const dayOfWeek = dateObj.getDay();
@@ -364,7 +397,7 @@ export const serviceService = {
           providerId,
           dayOfWeek,
         },
-        orderBy: { startTime: 'asc' },
+        orderBy: { startTime: "asc" },
       });
 
       if (availabilities.length === 0) {
@@ -376,13 +409,27 @@ export const serviceService = {
         where: {
           providerId,
           startTime: {
-            gte: new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0),
+            gte: new Date(
+              dateObj.getFullYear(),
+              dateObj.getMonth(),
+              dateObj.getDate(),
+              0,
+              0,
+              0,
+            ),
           },
           endTime: {
-            lt: new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + 1, 0, 0, 0),
+            lt: new Date(
+              dateObj.getFullYear(),
+              dateObj.getMonth(),
+              dateObj.getDate() + 1,
+              0,
+              0,
+              0,
+            ),
           },
           status: {
-            in: ['PENDING', 'CONFIRMED', 'RESCHEDULED'],
+            in: ["PENDING", "CONFIRMED", "RESCHEDULED"],
           },
         },
       });
@@ -403,7 +450,7 @@ export const serviceService = {
           dateObj.getMonth(),
           dateObj.getDate(),
           startHour,
-          startMinute
+          startMinute,
         );
 
         const endTime = new Date(
@@ -411,7 +458,7 @@ export const serviceService = {
           dateObj.getMonth(),
           dateObj.getDate(),
           endHour,
-          endMinute
+          endMinute,
         );
 
         // Créneaux de 15 minutes
@@ -422,18 +469,21 @@ export const serviceService = {
           const slotEndTime = addMinutes(currentTime, service.duration);
 
           // Vérifier que ce créneau n'est pas déjà réservé
-          const isBooked = bookings.some(booking => {
+          const isBooked = bookings.some((booking) => {
             return (
-              (currentTime >= booking.startTime && currentTime < booking.endTime) ||
-              (slotEndTime > booking.startTime && slotEndTime <= booking.endTime) ||
-              (currentTime <= booking.startTime && slotEndTime >= booking.endTime)
+              (currentTime >= booking.startTime &&
+                currentTime < booking.endTime) ||
+              (slotEndTime > booking.startTime &&
+                slotEndTime <= booking.endTime) ||
+              (currentTime <= booking.startTime &&
+                slotEndTime >= booking.endTime)
             );
           });
 
           if (!isBooked) {
             timeSlots.push({
-              startTime: format(currentTime, 'HH:mm'),
-              endTime: format(slotEndTime, 'HH:mm'),
+              startTime: format(currentTime, "HH:mm"),
+              endTime: format(slotEndTime, "HH:mm"),
             });
           }
 
@@ -447,8 +497,8 @@ export const serviceService = {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des créneaux disponibles',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des créneaux disponibles",
         cause: error,
       });
     }
@@ -467,8 +517,8 @@ export const serviceService = {
 
       if (!service) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Service non trouvé',
+          code: "NOT_FOUND",
+          message: "Service non trouvé",
         });
       }
 
@@ -479,8 +529,8 @@ export const serviceService = {
 
       if (!provider) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Prestataire non trouvé',
+          code: "NOT_FOUND",
+          message: "Prestataire non trouvé",
         });
       }
 
@@ -507,15 +557,15 @@ export const serviceService = {
             },
           ],
           status: {
-            in: ['PENDING', 'CONFIRMED', 'RESCHEDULED'],
+            in: ["PENDING", "CONFIRMED", "RESCHEDULED"],
           },
         },
       });
 
       if (overlappingBooking) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Ce créneau est déjà réservé',
+          code: "BAD_REQUEST",
+          message: "Ce créneau est déjà réservé",
         });
       }
 
@@ -523,7 +573,7 @@ export const serviceService = {
       const payment = await db.payment.create({
         data: {
           amount: service.price,
-          status: 'PENDING',
+          status: "PENDING",
         },
       });
 
@@ -556,8 +606,8 @@ export const serviceService = {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la création de la réservation',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la création de la réservation",
         cause: error,
       });
     }
@@ -577,8 +627,8 @@ export const serviceService = {
 
       if (!booking) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Réservation non trouvée',
+          code: "NOT_FOUND",
+          message: "Réservation non trouvée",
         });
       }
 
@@ -588,16 +638,17 @@ export const serviceService = {
 
       if (!isProvider && !isClient) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à modifier cette réservation",
         });
       }
 
       // Si c'est le client qui annule, il peut uniquement annuler
-      if (isClient && status && status !== 'CANCELLED') {
+      if (isClient && status && status !== "CANCELLED") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'En tant que client, vous pouvez uniquement annuler une réservation',
+          code: "FORBIDDEN",
+          message:
+            "En tant que client, vous pouvez uniquement annuler une réservation",
         });
       }
 
@@ -629,8 +680,8 @@ export const serviceService = {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour de la réservation',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour de la réservation",
         cause: error,
       });
     }
@@ -641,8 +692,9 @@ export const serviceService = {
 
     if (!date || !startTime) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: "La date et l'heure sont requises pour reprogrammer une réservation",
+        code: "BAD_REQUEST",
+        message:
+          "La date et l'heure sont requises pour reprogrammer une réservation",
       });
     }
 
@@ -657,8 +709,8 @@ export const serviceService = {
 
       if (!booking) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Réservation non trouvée',
+          code: "NOT_FOUND",
+          message: "Réservation non trouvée",
         });
       }
 
@@ -667,8 +719,8 @@ export const serviceService = {
 
       if (!isClient) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seul le client peut reprogrammer une réservation',
+          code: "FORBIDDEN",
+          message: "Seul le client peut reprogrammer une réservation",
         });
       }
 
@@ -696,15 +748,15 @@ export const serviceService = {
             },
           ],
           status: {
-            in: ['PENDING', 'CONFIRMED', 'RESCHEDULED'],
+            in: ["PENDING", "CONFIRMED", "RESCHEDULED"],
           },
         },
       });
 
       if (overlappingBooking) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Ce créneau est déjà réservé',
+          code: "BAD_REQUEST",
+          message: "Ce créneau est déjà réservé",
         });
       }
 
@@ -714,7 +766,7 @@ export const serviceService = {
         data: {
           startTime: startDateTime,
           endTime: endDateTime,
-          status: 'RESCHEDULED',
+          status: "RESCHEDULED",
         },
         include: {
           service: true,
@@ -732,8 +784,8 @@ export const serviceService = {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la reprogrammation de la réservation',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la reprogrammation de la réservation",
         cause: error,
       });
     }
@@ -775,8 +827,8 @@ export const serviceService = {
 
       if (!booking) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Réservation non trouvée',
+          code: "NOT_FOUND",
+          message: "Réservation non trouvée",
         });
       }
 
@@ -786,7 +838,7 @@ export const serviceService = {
 
       if (!isProvider && !isClient) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à voir cette réservation",
         });
       }
@@ -796,8 +848,8 @@ export const serviceService = {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération de la réservation',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération de la réservation",
         cause: error,
       });
     }
@@ -824,12 +876,12 @@ export const serviceService = {
           },
           review: true,
         },
-        orderBy: { startTime: 'desc' },
+        orderBy: { startTime: "desc" },
       });
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des réservations client',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des réservations client",
         cause: error,
       });
     }
@@ -855,12 +907,12 @@ export const serviceService = {
             },
           },
         },
-        orderBy: { startTime: 'desc' },
+        orderBy: { startTime: "desc" },
       });
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des réservations prestataire',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des réservations prestataire",
         cause: error,
       });
     }
@@ -869,7 +921,7 @@ export const serviceService = {
   // Gestion des évaluations
   async createReview(
     clientId: string,
-    data: { bookingId: string; rating: number; comment?: string }
+    data: { bookingId: string; rating: number; comment?: string },
   ) {
     const { bookingId, rating, comment } = data;
 
@@ -879,14 +931,15 @@ export const serviceService = {
         where: {
           id: bookingId,
           clientId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
         },
       });
 
       if (!booking) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: "Réservation non trouvée ou vous n'êtes pas autorisé à l'évaluer",
+          code: "NOT_FOUND",
+          message:
+            "Réservation non trouvée ou vous n'êtes pas autorisé à l'évaluer",
         });
       }
 
@@ -897,8 +950,8 @@ export const serviceService = {
 
       if (existingReview) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Une évaluation existe déjà pour cette réservation',
+          code: "BAD_REQUEST",
+          message: "Une évaluation existe déjà pour cette réservation",
         });
       }
 
@@ -914,7 +967,7 @@ export const serviceService = {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la création de l'évaluation",
         cause: error,
       });
@@ -927,7 +980,7 @@ export const serviceService = {
       const bookings = await db.serviceBooking.findMany({
         where: {
           serviceId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           review: { isNot: null },
         },
         include: {
@@ -944,7 +997,7 @@ export const serviceService = {
 
       // Extraire les évaluations
       return bookings
-        .map(booking => ({
+        .map((booking) => ({
           id: booking.review?.id,
           rating: booking.review?.rating || 0,
           comment: booking.review?.comment,
@@ -952,11 +1005,11 @@ export const serviceService = {
           client: booking.client,
           bookingId: booking.id,
         }))
-        .filter(review => review.id);
+        .filter((review) => review.id);
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des évaluations',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des évaluations",
         cause: error,
       });
     }
@@ -968,7 +1021,7 @@ export const serviceService = {
       const bookings = await db.serviceBooking.findMany({
         where: {
           providerId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           review: { isNot: null },
         },
         include: {
@@ -991,7 +1044,7 @@ export const serviceService = {
 
       // Extraire les évaluations
       return bookings
-        .map(booking => ({
+        .map((booking) => ({
           id: booking.review?.id,
           rating: booking.review?.rating || 0,
           comment: booking.review?.comment,
@@ -1000,11 +1053,11 @@ export const serviceService = {
           service: booking.service,
           bookingId: booking.id,
         }))
-        .filter(review => review.id);
+        .filter((review) => review.id);
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des évaluations',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des évaluations",
         cause: error,
       });
     }
@@ -1026,7 +1079,7 @@ export const serviceService = {
       quality?: number;
       communication?: number;
       valueForMoney?: number;
-    }
+    },
   ) {
     const {
       bookingId,
@@ -1047,7 +1100,7 @@ export const serviceService = {
         where: {
           id: bookingId,
           clientId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
         },
         include: {
           service: { include: { provider: true } },
@@ -1056,8 +1109,9 @@ export const serviceService = {
 
       if (!booking) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: "Réservation non trouvée ou vous n'êtes pas autorisé à l'évaluer",
+          code: "NOT_FOUND",
+          message:
+            "Réservation non trouvée ou vous n'êtes pas autorisé à l'évaluer",
         });
       }
 
@@ -1068,8 +1122,8 @@ export const serviceService = {
 
       if (existingReview) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Une évaluation existe déjà pour cette réservation',
+          code: "BAD_REQUEST",
+          message: "Une évaluation existe déjà pour cette réservation",
         });
       }
 
@@ -1097,7 +1151,7 @@ export const serviceService = {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la création de l'évaluation détaillée",
         cause: error,
       });
@@ -1125,7 +1179,7 @@ export const serviceService = {
 
       // Calculer la distribution des notes
       const ratingDistribution = await db.serviceReview.groupBy({
-        by: ['rating'],
+        by: ["rating"],
         where: {
           booking: { providerId },
         },
@@ -1133,7 +1187,7 @@ export const serviceService = {
           rating: true,
         },
         orderBy: {
-          rating: 'desc',
+          rating: "desc",
         },
       });
 
@@ -1157,7 +1211,8 @@ export const serviceService = {
 
       const recommendationRate =
         recommendationStats._count.wouldRecommend > 0
-          ? (wouldRecommendCount / recommendationStats._count.wouldRecommend) * 100
+          ? (wouldRecommendCount / recommendationStats._count.wouldRecommend) *
+            100
           : 0;
 
       // Récupérer les commentaires récents
@@ -1186,7 +1241,7 @@ export const serviceService = {
           },
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         take: 10,
       });
@@ -1200,16 +1255,20 @@ export const serviceService = {
           communication: Number(result._avg.communication?.toFixed(1) || 0),
           valueForMoney: Number(result._avg.valueForMoney?.toFixed(1) || 0),
         },
-        ratingDistribution: ratingDistribution.map(item => ({
+        ratingDistribution: ratingDistribution.map((item) => ({
           rating: item.rating,
           count: item._count.rating,
           percentage:
             result._count.rating > 0
-              ? Number(((item._count.rating / result._count.rating) * 100).toFixed(1))
+              ? Number(
+                  ((item._count.rating / result._count.rating) * 100).toFixed(
+                    1,
+                  ),
+                )
               : 0,
         })),
         recommendationRate: Number(recommendationRate.toFixed(1)),
-        recentReviews: recentReviews.map(review => ({
+        recentReviews: recentReviews.map((review) => ({
           id: review.id,
           rating: review.rating,
           comment: review.comment,
@@ -1227,8 +1286,8 @@ export const serviceService = {
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors du calcul des statistiques de ratings',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du calcul des statistiques de ratings",
         cause: error,
       });
     }
@@ -1245,96 +1304,103 @@ export const serviceService = {
       // Badge Excellence (note moyenne >= 4.5)
       if (stats.averageRating >= 4.5 && stats.totalReviews >= 10) {
         badges.push({
-          id: 'excellence',
-          name: 'Excellence',
-          description: 'Note moyenne de 4.5/5 ou plus avec au moins 10 avis',
-          icon: '⭐',
-          color: 'gold',
-          level: 'premium',
+          id: "excellence",
+          name: "Excellence",
+          description: "Note moyenne de 4.5/5 ou plus avec au moins 10 avis",
+          icon: "⭐",
+          color: "gold",
+          level: "premium",
         });
       }
 
       // Badge Qualité (note moyenne >= 4.0)
       if (stats.averageRating >= 4.0 && stats.totalReviews >= 5) {
         badges.push({
-          id: 'quality',
-          name: 'Qualité',
-          description: 'Note moyenne de 4.0/5 ou plus',
-          icon: '✨',
-          color: 'blue',
-          level: 'standard',
+          id: "quality",
+          name: "Qualité",
+          description: "Note moyenne de 4.0/5 ou plus",
+          icon: "✨",
+          color: "blue",
+          level: "standard",
         });
       }
 
       // Badge Ponctualité (ponctualité >= 4.5)
-      if (stats.detailedAverages.punctuality >= 4.5 && stats.totalReviews >= 5) {
+      if (
+        stats.detailedAverages.punctuality >= 4.5 &&
+        stats.totalReviews >= 5
+      ) {
         badges.push({
-          id: 'punctual',
-          name: 'Ponctuel',
-          description: 'Excellente ponctualité',
-          icon: '⏰',
-          color: 'green',
-          level: 'standard',
+          id: "punctual",
+          name: "Ponctuel",
+          description: "Excellente ponctualité",
+          icon: "⏰",
+          color: "green",
+          level: "standard",
         });
       }
 
       // Badge Communication (communication >= 4.5)
-      if (stats.detailedAverages.communication >= 4.5 && stats.totalReviews >= 5) {
+      if (
+        stats.detailedAverages.communication >= 4.5 &&
+        stats.totalReviews >= 5
+      ) {
         badges.push({
-          id: 'communicator',
-          name: 'Bon Communicant',
-          description: 'Excellente communication',
-          icon: '💬',
-          color: 'purple',
-          level: 'standard',
+          id: "communicator",
+          name: "Bon Communicant",
+          description: "Excellente communication",
+          icon: "💬",
+          color: "purple",
+          level: "standard",
         });
       }
 
       // Badge Recommandé (taux de recommandation >= 90%)
       if (stats.recommendationRate >= 90 && stats.totalReviews >= 10) {
         badges.push({
-          id: 'recommended',
-          name: 'Très Recommandé',
-          description: '90% des clients recommandent ce prestataire',
-          icon: '👍',
-          color: 'orange',
-          level: 'premium',
+          id: "recommended",
+          name: "Très Recommandé",
+          description: "90% des clients recommandent ce prestataire",
+          icon: "👍",
+          color: "orange",
+          level: "premium",
         });
       }
 
       // Badge Expérience (plus de 100 réservations terminées)
       if (providerStats.bookings.completed >= 100) {
         badges.push({
-          id: 'experienced',
-          name: 'Expérimenté',
-          description: 'Plus de 100 prestations réalisées',
-          icon: '🎖️',
-          color: 'bronze',
-          level: 'standard',
+          id: "experienced",
+          name: "Expérimenté",
+          description: "Plus de 100 prestations réalisées",
+          icon: "🎖️",
+          color: "bronze",
+          level: "standard",
         });
       }
 
       // Badge Fiabilité (taux d'annulation < 5%)
       const cancellationRate =
         providerStats.bookings.total > 0
-          ? (providerStats.bookings.cancelled / providerStats.bookings.total) * 100
+          ? (providerStats.bookings.cancelled / providerStats.bookings.total) *
+            100
           : 0;
 
       if (cancellationRate < 5 && providerStats.bookings.total >= 20) {
         badges.push({
-          id: 'reliable',
-          name: 'Fiable',
+          id: "reliable",
+          name: "Fiable",
           description: "Taux d'annulation très faible",
-          icon: '🛡️',
-          color: 'teal',
-          level: 'standard',
+          icon: "🛡️",
+          color: "teal",
+          level: "standard",
         });
       }
 
       return {
         badges,
         totalBadges: badges.length,
-        premiumBadges: badges.filter(b => b.level === 'premium').length,
+        premiumBadges: badges.filter((b) => b.level === "premium").length,
         stats: {
           averageRating: stats.averageRating,
           totalReviews: stats.totalReviews,
@@ -1345,8 +1411,8 @@ export const serviceService = {
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors du calcul des badges',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du calcul des badges",
         cause: error,
       });
     }
@@ -1373,7 +1439,10 @@ export const serviceService = {
 
       return stats;
     } catch (error) {
-      console.error('Erreur lors de la mise à jour des stats de rating:', error);
+      console.error(
+        "Erreur lors de la mise à jour des stats de rating:",
+        error,
+      );
       // Ne pas faire échouer l'opération principale
     }
   },
@@ -1412,11 +1481,14 @@ export const serviceService = {
             },
           },
         },
-        orderBy: [{ provider: { rating: 'desc' } }, { provider: { totalReviews: 'desc' } }],
+        orderBy: [
+          { provider: { rating: "desc" } },
+          { provider: { totalReviews: "desc" } },
+        ],
         take: limit,
       });
 
-      return providers.map(provider => ({
+      return providers.map((provider) => ({
         id: provider.id,
         name: provider.name,
         image: provider.image,
@@ -1429,8 +1501,8 @@ export const serviceService = {
       }));
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des top prestataires',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des top prestataires",
         cause: error,
       });
     }
@@ -1450,17 +1522,17 @@ export const serviceService = {
         cancelledBookings,
       ] = await Promise.all([
         db.serviceBooking.count({ where: { providerId } }),
-        db.serviceBooking.count({ where: { providerId, status: 'PENDING' } }),
-        db.serviceBooking.count({ where: { providerId, status: 'CONFIRMED' } }),
-        db.serviceBooking.count({ where: { providerId, status: 'COMPLETED' } }),
-        db.serviceBooking.count({ where: { providerId, status: 'CANCELLED' } }),
+        db.serviceBooking.count({ where: { providerId, status: "PENDING" } }),
+        db.serviceBooking.count({ where: { providerId, status: "CONFIRMED" } }),
+        db.serviceBooking.count({ where: { providerId, status: "COMPLETED" } }),
+        db.serviceBooking.count({ where: { providerId, status: "CANCELLED" } }),
       ]);
 
       // Calculer les revenus
       const revenueResult = await db.serviceBooking.aggregate({
         where: {
           providerId,
-          status: { in: ['COMPLETED', 'CONFIRMED'] },
+          status: { in: ["COMPLETED", "CONFIRMED"] },
         },
         _sum: { totalPrice: true },
       });
@@ -1484,10 +1556,10 @@ export const serviceService = {
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
       const monthlyRevenue = await db.serviceBooking.groupBy({
-        by: ['createdAt'],
+        by: ["createdAt"],
         where: {
           providerId,
-          status: { in: ['COMPLETED', 'CONFIRMED'] },
+          status: { in: ["COMPLETED", "CONFIRMED"] },
           createdAt: { gte: sixMonthsAgo },
         },
         _sum: { totalPrice: true },
@@ -1495,18 +1567,18 @@ export const serviceService = {
 
       // Services les plus demandés
       const popularServices = await db.serviceBooking.groupBy({
-        by: ['serviceId'],
+        by: ["serviceId"],
         where: {
           providerId,
-          status: { in: ['COMPLETED', 'CONFIRMED'] },
+          status: { in: ["COMPLETED", "CONFIRMED"] },
         },
         _count: { serviceId: true },
-        orderBy: { _count: { serviceId: 'desc' } },
+        orderBy: { _count: { serviceId: "desc" } },
         take: 5,
       });
 
       const popularServicesWithDetails = await Promise.all(
-        popularServices.map(async service => {
+        popularServices.map(async (service) => {
           const serviceDetails = await db.service.findUnique({
             where: { id: service.serviceId },
             select: { id: true, name: true, price: true },
@@ -1515,7 +1587,7 @@ export const serviceService = {
             service: serviceDetails,
             bookingCount: service._count.serviceId,
           };
-        })
+        }),
       );
 
       return {
@@ -1528,7 +1600,7 @@ export const serviceService = {
         },
         revenue: {
           total: Number(totalRevenue),
-          monthly: monthlyRevenue.map(item => ({
+          monthly: monthlyRevenue.map((item) => ({
             month: item.createdAt,
             amount: Number(item._sum.totalPrice || 0),
           })),
@@ -1541,8 +1613,8 @@ export const serviceService = {
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des statistiques',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des statistiques",
         cause: error,
       });
     }
@@ -1558,7 +1630,15 @@ export const serviceService = {
     page?: number;
     limit?: number;
   }) {
-    const { query, categoryId, city, maxDistance, location, page = 1, limit = 10 } = params;
+    const {
+      query,
+      categoryId,
+      city,
+      maxDistance,
+      location,
+      page = 1,
+      limit = 10,
+    } = params;
     const skip = (page - 1) * limit;
 
     try {
@@ -1579,10 +1659,10 @@ export const serviceService = {
       // Filtres de recherche textuelle
       if (query) {
         where.OR = [
-          { name: { contains: query, mode: 'insensitive' } },
+          { name: { contains: query, mode: "insensitive" } },
           {
             provider: {
-              providerBio: { contains: query, mode: 'insensitive' },
+              providerBio: { contains: query, mode: "insensitive" },
             },
           },
           {
@@ -1590,8 +1670,8 @@ export const serviceService = {
               services: {
                 some: {
                   OR: [
-                    { name: { contains: query, mode: 'insensitive' } },
-                    { description: { contains: query, mode: 'insensitive' } },
+                    { name: { contains: query, mode: "insensitive" } },
+                    { description: { contains: query, mode: "insensitive" } },
                   ],
                 },
               },
@@ -1604,7 +1684,7 @@ export const serviceService = {
       if (city) {
         where.provider = {
           ...where.provider,
-          providerCity: { contains: city, mode: 'insensitive' },
+          providerCity: { contains: city, mode: "insensitive" },
         };
       }
 
@@ -1623,12 +1703,17 @@ export const serviceService = {
         },
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
 
       // Filtrer par distance si nécessaire
       if (location && maxDistance) {
-        const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+        const calculateDistance = (
+          lat1: number,
+          lng1: number,
+          lat2: number,
+          lng2: number,
+        ) => {
           const R = 6371; // Rayon de la Terre en km
           const dLat = ((lat2 - lat1) * Math.PI) / 180;
           const dLng = ((lng2 - lng1) * Math.PI) / 180;
@@ -1642,8 +1727,11 @@ export const serviceService = {
           return R * c;
         };
 
-        providers = providers.filter(provider => {
-          if (!provider.provider?.providerLocationLat || !provider.provider?.providerLocationLng) {
+        providers = providers.filter((provider) => {
+          if (
+            !provider.provider?.providerLocationLat ||
+            !provider.provider?.providerLocationLng
+          ) {
             return false;
           }
 
@@ -1651,7 +1739,7 @@ export const serviceService = {
             location.lat,
             location.lng,
             provider.provider.providerLocationLat,
-            provider.provider.providerLocationLng
+            provider.provider.providerLocationLng,
           );
 
           return distance <= maxDistance;
@@ -1662,7 +1750,7 @@ export const serviceService = {
       const totalCount = await db.user.count({ where });
 
       return {
-        providers: providers.map(provider => ({
+        providers: providers.map((provider) => ({
           id: provider.id,
           name: provider.name,
           image: provider.image,
@@ -1681,8 +1769,8 @@ export const serviceService = {
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la recherche de prestataires',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la recherche de prestataires",
         cause: error,
       });
     }
@@ -1710,15 +1798,15 @@ export const serviceService = {
 
       if (!provider || !provider.provider) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Prestataire non trouvé',
+          code: "NOT_FOUND",
+          message: "Prestataire non trouvé",
         });
       }
 
       // Calculer les statistiques publiques
       const [totalCompletedBookings, averageRatingResult] = await Promise.all([
         db.serviceBooking.count({
-          where: { providerId, status: 'COMPLETED' },
+          where: { providerId, status: "COMPLETED" },
         }),
         db.serviceReview.aggregate({
           where: { booking: { providerId } },
@@ -1746,8 +1834,8 @@ export const serviceService = {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération du profil',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération du profil",
         cause: error,
       });
     }
@@ -1772,15 +1860,15 @@ export const serviceService = {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
 
       // Ajouter les statistiques pour chaque service
       const servicesWithStats = await Promise.all(
-        services.map(async service => {
+        services.map(async (service) => {
           const [bookingCount, reviewStats] = await Promise.all([
             db.serviceBooking.count({
-              where: { serviceId: service.id, status: 'COMPLETED' },
+              where: { serviceId: service.id, status: "COMPLETED" },
             }),
             db.serviceReview.aggregate({
               where: { booking: { serviceId: service.id } },
@@ -1797,14 +1885,14 @@ export const serviceService = {
               totalReviews: reviewStats._count.rating,
             },
           };
-        })
+        }),
       );
 
       return servicesWithStats;
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des services',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des services",
         cause: error,
       });
     }

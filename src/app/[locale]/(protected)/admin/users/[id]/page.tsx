@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { UserRole, UserStatus } from '@prisma/client';
-import { format } from 'date-fns';
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { UserRole, UserStatus } from "@prisma/client";
+import { format } from "date-fns";
 import {
   ArrowLeft,
   Calendar,
@@ -15,15 +15,21 @@ import {
   MapPin,
   Check,
   X,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { api } from '@/trpc/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
+import { api } from "@/trpc/react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,8 +39,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import ForceActivateDelivererButton from '@/components/admin/users/force-activate-deliverer-button';
+} from "@/components/ui/alert-dialog";
+import ForceActivateDelivererButton from "@/components/admin/users/force-activate-deliverer-button";
 
 export default function UserDetailPage() {
   const router = useRouter();
@@ -47,73 +53,20 @@ export default function UserDetailPage() {
     action: () => void;
   } | null>(null);
 
-  // TEMPORAIRE: Récupérer la liste des utilisateurs pour trouver celui avec l'ID correct
-  const { data: usersData, isLoading } = api.adminUser.getUsers.useQuery({
-    page: 1,
-    limit: 50, // Récupérer plus d'utilisateurs pour être sûr de trouver le bon
+  // API pour récupérer les détails complets de l'utilisateur
+  const { data: user, isLoading } = api.admin.users.getUserDetail.useQuery({ 
+    userId,
+    includeDocuments: true,
+    includeVerificationHistory: true,
+    includeActivityLogs: true,
+    includeLoginHistory: true,
+    includeNotes: false,
+    includePermissions: false,
+    includeSubscriptions: false,
+    includePaymentMethods: false,
+    includeNotificationSettings: false,
   });
-
-  // DEBUG: Afficher les données reçues
-  console.log('🔍 DEBUG - usersData:', usersData);
-  console.log('🔍 DEBUG - userId cherché:', userId);
-  console.log('🔍 DEBUG - usersData?.json?.users:', usersData?.json?.users);
-
-  // Trouver l'utilisateur avec l'ID correct dans la liste (les données sont dans json.users)
-  const user = usersData?.json?.users?.find((u: any) => u.id === userId);
-  console.log('🔍 DEBUG - user trouvé:', user);
-
-  // Si l'utilisateur n'est pas trouvé, créer des données par défaut
-  const displayUser = user
-    ? {
-        id: user.id,
-        name: user.name || 'Nom non défini',
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        phoneNumber: user.phoneNumber || 'Non défini',
-        createdAt: user.createdAt,
-        updatedAt: user.createdAt, // Utiliser createdAt comme updatedAt
-        emailVerified: user.isVerified ? user.createdAt : null,
-        isVerified: user.isVerified,
-        lastLoginAt: user.lastLoginAt,
-        twoFactorEnabled: false, // Ajouter cette propriété manquante
-        // Profils simulés basés sur le rôle
-        client: user.role === 'CLIENT' ? { id: 'client-' + user.id, address: null } : null,
-        deliverer:
-          user.role === 'DELIVERER'
-            ? {
-                id: 'deliverer-' + user.id,
-                isVerified: user.isVerified,
-                address: null,
-                vehicleType: null,
-              }
-            : null,
-        merchant:
-          user.role === 'MERCHANT'
-            ? {
-                id: 'merchant-' + user.id,
-                isVerified: user.isVerified,
-                address: null,
-              }
-            : null,
-        provider:
-          user.role === 'PROVIDER'
-            ? {
-                id: 'provider-' + user.id,
-                isVerified: user.isVerified,
-                address: null,
-              }
-            : null,
-        admin: user.role === 'ADMIN' ? { id: 'admin-' + user.id } : null,
-        documents: [],
-        verificationHistory: [],
-        activityLogs: [],
-      }
-    : null;
-
-  // TODO: Remettre l'API réelle quand l'authentification admin sera configurée
-  // const { data: user, isLoading } = api.adminUser.getUserDetail.useQuery({ userId });
-  const updateUserStatusMutation = api.adminUser.updateUserStatus.useMutation({
+  const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation({
     onSuccess: () => {
       router.refresh();
     },
@@ -155,8 +108,8 @@ export default function UserDetailPage() {
   // Functions to handle user actions
   const handleActivateUser = () => {
     setDialogAction({
-      title: 'Activate User Account',
-      description: 'Are you sure you want to activate this user account?',
+      title: "Activate User Account",
+      description: "Are you sure you want to activate this user account?",
       action: () => {
         updateUserStatusMutation.mutate({
           userId,
@@ -170,9 +123,9 @@ export default function UserDetailPage() {
 
   const handleSuspendUser = () => {
     setDialogAction({
-      title: 'Suspend User Account',
+      title: "Suspend User Account",
       description:
-        'Are you sure you want to suspend this user account? The user will lose access to the platform.',
+        "Are you sure you want to suspend this user account? The user will lose access to the platform.",
       action: () => {
         updateUserStatusMutation.mutate({
           userId,
@@ -210,7 +163,7 @@ export default function UserDetailPage() {
     );
   }
 
-  if (!displayUser) {
+  if (!user) {
     return (
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex items-center gap-2">
@@ -221,7 +174,9 @@ export default function UserDetailPage() {
         </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-64">
-            <h2 className="text-xl font-semibold mb-4">The requested user could not be found</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              The requested user could not be found
+            </h2>
             <Button asChild>
               <Link href="/admin/users">Back to User Management</Link>
             </Button>
@@ -232,14 +187,14 @@ export default function UserDetailPage() {
   }
 
   const isVerified =
-    displayUser.role === UserRole.CLIENT || displayUser.role === UserRole.ADMIN
+    user.role === UserRole.CLIENT || user.role === UserRole.ADMIN
       ? true
-      : displayUser.role === UserRole.DELIVERER && displayUser.deliverer
-        ? displayUser.deliverer.isVerified
-        : displayUser.role === UserRole.MERCHANT && displayUser.merchant
-          ? displayUser.merchant.isVerified
-          : displayUser.role === UserRole.PROVIDER && displayUser.provider
-            ? displayUser.provider.isVerified
+              : user.role === UserRole.DELIVERER && user.deliverer
+          ? user.deliverer.isVerified
+          : user.role === UserRole.MERCHANT && user.merchant
+            ? user.merchant.isVerified
+            : user.role === UserRole.PROVIDER && user.provider
+              ? user.provider.isVerified
             : false;
 
   return (
@@ -259,16 +214,19 @@ export default function UserDetailPage() {
               <CardDescription className="mt-1 flex items-center gap-2 text-base">
                 {getRoleBadge(displayUser.role)}
                 {getStatusBadge(displayUser.status)}
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
-                  🧪 Mode Test
-                </Badge>
                 {isVerified ? (
-                  <Badge variant="outline" className="border-green-500 text-green-500">
+                  <Badge
+                    variant="outline"
+                    className="border-green-500 text-green-500"
+                  >
                     <Check className="mr-1 h-3 w-3" />
                     Verified
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="border-yellow-500 text-yellow-500">
+                  <Badge
+                    variant="outline"
+                    className="border-yellow-500 text-yellow-500"
+                  >
                     <X className="mr-1 h-3 w-3" />
                     Not Verified
                   </Badge>
@@ -277,7 +235,10 @@ export default function UserDetailPage() {
             </div>
             <div className="flex gap-2">
               {displayUser.status !== UserStatus.ACTIVE && (
-                <Button onClick={handleActivateUser} className="bg-green-500 hover:bg-green-600">
+                <Button
+                  onClick={handleActivateUser}
+                  className="bg-green-500 hover:bg-green-600"
+                >
                   Activate
                 </Button>
               )}
@@ -331,7 +292,7 @@ export default function UserDetailPage() {
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Phone:</span>
-                      <span>{displayUser.phoneNumber || 'Not provided'}</span>
+                      <span>{displayUser.phoneNumber || "Not provided"}</span>
                     </div>
                     {displayUser.client?.address ||
                     displayUser.deliverer?.address ||
@@ -351,7 +312,9 @@ export default function UserDetailPage() {
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">2FA:</span>
-                      <span>{displayUser.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span>
+                      <span>
+                        {displayUser.twoFactorEnabled ? "Enabled" : "Disabled"}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -364,20 +327,24 @@ export default function UserDetailPage() {
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Created:</span>
-                      <span>{format(new Date(displayUser.createdAt), 'PPP')}</span>
+                      <span>
+                        {format(new Date(displayUser.createdAt), "PPP")}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Last Updated:</span>
-                      <span>{format(new Date(displayUser.updatedAt), 'PPP')}</span>
+                      <span>
+                        {format(new Date(displayUser.updatedAt), "PPP")}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Last Login:</span>
                       <span>
                         {displayUser.lastLoginAt
-                          ? format(new Date(displayUser.lastLoginAt), 'PPP')
-                          : 'Never'}
+                          ? format(new Date(displayUser.lastLoginAt), "PPP")
+                          : "Never"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -385,8 +352,8 @@ export default function UserDetailPage() {
                       <span className="font-semibold">Email Verified:</span>
                       <span>
                         {displayUser.emailVerified
-                          ? format(new Date(displayUser.emailVerified), 'PPP')
-                          : 'Not verified'}
+                          ? format(new Date(displayUser.emailVerified), "PPP")
+                          : "Not verified"}
                       </span>
                     </div>
                   </CardContent>
@@ -394,135 +361,164 @@ export default function UserDetailPage() {
               </div>
 
               {/* Role-specific information */}
-              {displayUser.role === UserRole.DELIVERER && displayUser.deliverer && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Deliverer Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="font-semibold">Vehicle Type:</span>
-                      <span className="ml-2">
-                        {displayUser.deliverer.vehicleType || 'Not specified'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">License Plate:</span>
-                      <span className="ml-2">{'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Max Capacity:</span>
-                      <span className="ml-2">{'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Status:</span>
-                      <Badge
-                        className={`ml-2 ${displayUser.deliverer.isVerified ? 'bg-green-500' : 'bg-gray-500'}`}
-                      >
-                        {displayUser.deliverer.isVerified ? 'Verified' : 'Not Verified'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Verification Date:</span>
-                      <span className="ml-2">{'Not verified yet'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Rating:</span>
-                      <span className="ml-2">{'No ratings yet'}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              {displayUser.role === UserRole.DELIVERER &&
+                displayUser.deliverer && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        Deliverer Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <span className="font-semibold">Vehicle Type:</span>
+                        <span className="ml-2">
+                          {displayUser.deliverer.vehicleType || "Not specified"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">License Plate:</span>
+                        <span className="ml-2">{"Not specified"}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Max Capacity:</span>
+                        <span className="ml-2">{"Not specified"}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Status:</span>
+                        <Badge
+                          className={`ml-2 ${displayUser.deliverer.isVerified ? "bg-green-500" : "bg-gray-500"}`}
+                        >
+                          {displayUser.deliverer.isVerified
+                            ? "Verified"
+                            : "Not Verified"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <span className="font-semibold">
+                          Verification Date:
+                        </span>
+                        <span className="ml-2">{"Not verified yet"}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Rating:</span>
+                        <span className="ml-2">{"No ratings yet"}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-              {displayUser.role === UserRole.MERCHANT && displayUser.merchant && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Merchant Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="font-semibold">Company Name:</span>
-                      <span className="ml-2">{'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Business Type:</span>
-                      <span className="ml-2">{'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">VAT Number:</span>
-                      <span className="ml-2">{'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Verification Status:</span>
-                      <Badge
-                        className={`ml-2 ${displayUser.merchant.isVerified ? 'bg-green-500' : 'bg-yellow-500'}`}
-                      >
-                        {displayUser.merchant.isVerified ? 'Verified' : 'Pending Verification'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Verification Date:</span>
-                      <span className="ml-2">{'Not verified yet'}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              {displayUser.role === UserRole.MERCHANT &&
+                displayUser.merchant && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        Merchant Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <span className="font-semibold">Company Name:</span>
+                        <span className="ml-2">{"Not specified"}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Business Type:</span>
+                        <span className="ml-2">{"Not specified"}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">VAT Number:</span>
+                        <span className="ml-2">{"Not specified"}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">
+                          Verification Status:
+                        </span>
+                        <Badge
+                          className={`ml-2 ${displayUser.merchant.isVerified ? "bg-green-500" : "bg-yellow-500"}`}
+                        >
+                          {displayUser.merchant.isVerified
+                            ? "Verified"
+                            : "Pending Verification"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <span className="font-semibold">
+                          Verification Date:
+                        </span>
+                        <span className="ml-2">{"Not verified yet"}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-              {displayUser.role === UserRole.PROVIDER && displayUser.provider && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Provider Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="font-semibold">Company Name:</span>
-                      <span className="ml-2">{'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Service Type:</span>
-                      <span className="ml-2">{'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Offered Services:</span>
-                      <div className="mt-1 flex flex-wrap gap-1">{'No services listed'}</div>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Verification Status:</span>
-                      <Badge
-                        className={`ml-2 ${displayUser.provider.isVerified ? 'bg-green-500' : 'bg-yellow-500'}`}
-                      >
-                        {displayUser.provider.isVerified ? 'Verified' : 'Pending Verification'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Rating:</span>
-                      <span className="ml-2">{'No ratings yet'}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              {displayUser.role === UserRole.PROVIDER &&
+                displayUser.provider && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        Provider Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <span className="font-semibold">Company Name:</span>
+                        <span className="ml-2">{"Not specified"}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Service Type:</span>
+                        <span className="ml-2">{"Not specified"}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Offered Services:</span>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {"No services listed"}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="font-semibold">
+                          Verification Status:
+                        </span>
+                        <Badge
+                          className={`ml-2 ${displayUser.provider.isVerified ? "bg-green-500" : "bg-yellow-500"}`}
+                        >
+                          {displayUser.provider.isVerified
+                            ? "Verified"
+                            : "Pending Verification"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Rating:</span>
+                        <span className="ml-2">{"No ratings yet"}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
               {displayUser.role === UserRole.ADMIN && displayUser.admin && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Administrator Information</CardTitle>
+                    <CardTitle className="text-lg">
+                      Administrator Information
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <span className="font-semibold">Department:</span>
-                      <span className="ml-2">{'Not specified'}</span>
+                      <span className="ml-2">{"Not specified"}</span>
                     </div>
                     <div>
                       <span className="font-semibold">2FA Status:</span>
                       <Badge
-                        className={`ml-2 ${displayUser.twoFactorEnabled ? 'bg-green-500' : 'bg-red-500'}`}
+                        className={`ml-2 ${displayUser.twoFactorEnabled ? "bg-green-500" : "bg-red-500"}`}
                       >
-                        {displayUser.twoFactorEnabled ? 'Enabled' : 'Disabled'}
+                        {displayUser.twoFactorEnabled ? "Enabled" : "Disabled"}
                       </Badge>
                     </div>
                     <div>
                       <span className="font-semibold">Permissions:</span>
-                      <div className="mt-1 flex flex-wrap gap-1">{'No specific permissions'}</div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {"No specific permissions"}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -533,7 +529,9 @@ export default function UserDetailPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Recent Activity</CardTitle>
-                  <CardDescription>Recent login and system activity for this user</CardDescription>
+                  <CardDescription>
+                    Recent login and system activity for this user
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col gap-4">
@@ -551,14 +549,15 @@ export default function UserDetailPage() {
                       </div>
                       <span className="text-sm text-muted-foreground">
                         {displayUser.lastLoginAt
-                          ? format(new Date(displayUser.lastLoginAt), 'PPP p')
-                          : format(new Date(), 'PPP p')}
+                          ? format(new Date(displayUser.lastLoginAt), "PPP p")
+                          : format(new Date(), "PPP p")}
                       </span>
                     </div>
                     <Separator />
 
                     <div className="text-center text-muted-foreground py-8">
-                      Activity log functionality to be implemented with ActivityLog model
+                      Activity log functionality to be implemented with
+                      ActivityLog model
                     </div>
                   </div>
                 </CardContent>
@@ -592,11 +591,15 @@ export default function UserDetailPage() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{dialogAction.title}</AlertDialogTitle>
-              <AlertDialogDescription>{dialogAction.description}</AlertDialogDescription>
+              <AlertDialogDescription>
+                {dialogAction.description}
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={dialogAction.action}>Continue</AlertDialogAction>
+              <AlertDialogAction onClick={dialogAction.action}>
+                Continue
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         )}

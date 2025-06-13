@@ -1,7 +1,11 @@
-import { z } from 'zod';
-import { router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { AnnouncementStatus, AnnouncementPriority, DeliveryType } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import {
+  AnnouncementStatus,
+  AnnouncementPriority,
+  DeliveryType,
+} from "@prisma/client";
 
 /**
  * Router pour les annonces clients selon le cahier des charges EcoDeli
@@ -44,7 +48,13 @@ const createAnnouncementSchema = z.object({
     .optional(),
 
   // Détails de l'envoi
-  packageType: z.enum(['SMALL_PACKAGE', 'MEDIUM_PACKAGE', 'LARGE_PACKAGE', 'FRAGILE', 'DOCUMENTS']),
+  packageType: z.enum([
+    "SMALL_PACKAGE",
+    "MEDIUM_PACKAGE",
+    "LARGE_PACKAGE",
+    "FRAGILE",
+    "DOCUMENTS",
+  ]),
   estimatedWeight: z.number().min(0.1).max(50), // kg
   estimatedDimensions: z
     .object({
@@ -56,7 +66,7 @@ const createAnnouncementSchema = z.object({
 
   // Prix et options
   suggestedPrice: z.number().min(5).max(500),
-  priority: z.nativeEnum(AnnouncementPriority).default('NORMAL'),
+  priority: z.nativeEnum(AnnouncementPriority).default("NORMAL"),
   isUrgent: z.boolean().default(false),
   requiresInsurance: z.boolean().default(false),
   insuranceValue: z.number().min(0).max(10000).optional(),
@@ -94,6 +104,78 @@ const filtersSchema = z.object({
   offset: z.number().min(0).default(0),
 });
 
+/**
+ * @openapi
+ * /api/trpc/client.announcements.getMyAnnouncements:
+ *   post:
+ *     tags:
+ *       - Client Announcements
+ *     summary: Get client's announcements
+ *     description: Retrieve all announcements for the authenticated client with optional filters
+ *     security:
+ *       - sessionAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               input:
+ *                 type: object
+ *                 properties:
+ *                   status:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                       enum: [DRAFT, PUBLISHED, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED]
+ *                   deliveryType:
+ *                     type: string
+ *                     enum: [EXPRESS, STANDARD, FLEXIBLE]
+ *                   priority:
+ *                     type: string
+ *                     enum: [LOW, NORMAL, HIGH, URGENT]
+ *                   dateFrom:
+ *                     type: string
+ *                     format: date-time
+ *                   dateTo:
+ *                     type: string
+ *                     format: date-time
+ *                   limit:
+ *                     type: integer
+ *                     minimum: 1
+ *                     maximum: 50
+ *                     default: 20
+ *                   offset:
+ *                     type: integer
+ *                     minimum: 0
+ *                     default: 0
+ *     responses:
+ *       200:
+ *         description: List of client announcements
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         announcements:
+ *                           type: array
+ *                           items:
+ *                             $ref: '#/components/schemas/Announcement'
+ *                         count:
+ *                           type: integer
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+
 export const clientAnnouncementsRouter = router({
   /**
    * Récupérer toutes les annonces du client
@@ -103,10 +185,10 @@ export const clientAnnouncementsRouter = router({
     .query(async ({ ctx, input = {} }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent consulter leurs annonces',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent consulter leurs annonces",
         });
       }
 
@@ -118,8 +200,8 @@ export const clientAnnouncementsRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -163,7 +245,7 @@ export const clientAnnouncementsRouter = router({
                   },
                 },
               },
-              orderBy: { suggestedPrice: 'asc' },
+              orderBy: { suggestedPrice: "asc" },
             },
             payments: {
               select: {
@@ -174,7 +256,7 @@ export const clientAnnouncementsRouter = router({
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           skip: input.offset,
           take: input.limit,
         });
@@ -182,17 +264,17 @@ export const clientAnnouncementsRouter = router({
         const totalCount = await ctx.db.announcement.count({ where });
 
         // Formatter les données
-        const formattedAnnouncements = announcements.map(announcement => ({
+        const formattedAnnouncements = announcements.map((announcement) => ({
           ...announcement,
           suggestedPrice: announcement.suggestedPrice.toNumber(),
           estimatedDistance: announcement.estimatedDistance?.toNumber(),
           proposalCount: announcement.proposals.length,
-          activeDelivery: announcement.deliveries.find(d =>
-            ['ACCEPTED', 'IN_PROGRESS', 'DELIVERED'].includes(d.status)
+          activeDelivery: announcement.deliveries.find((d) =>
+            ["ACCEPTED", "IN_PROGRESS", "DELIVERED"].includes(d.status),
           ),
           lowestProposal: announcement.proposals[0]?.suggestedPrice?.toNumber(),
-          canEdit: ['DRAFT', 'PUBLISHED'].includes(announcement.status),
-          canCancel: ['PUBLISHED', 'MATCHED'].includes(announcement.status),
+          canEdit: ["DRAFT", "PUBLISHED"].includes(announcement.status),
+          canCancel: ["PUBLISHED", "MATCHED"].includes(announcement.status),
         }));
 
         return {
@@ -208,11 +290,100 @@ export const clientAnnouncementsRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des annonces',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des annonces",
         });
       }
     }),
+
+  /**
+   * @openapi
+   * /api/trpc/client.announcements.createAnnouncement:
+   *   post:
+   *     tags:
+   *       - Client Announcements
+   *     summary: Create new announcement
+   *     description: Create a new delivery or service announcement
+   *     security:
+   *       - sessionAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               input:
+   *                 type: object
+   *                 required:
+   *                   - title
+   *                   - description
+   *                   - deliveryType
+   *                   - pickupAddress
+   *                   - deliveryAddress
+   *                   - pickupDate
+   *                 properties:
+   *                   title:
+   *                     type: string
+   *                     minLength: 5
+   *                     maxLength: 100
+   *                     example: "Livraison urgente documents"
+   *                   description:
+   *                     type: string
+   *                     minLength: 10
+   *                     maxLength: 1000
+   *                     example: "Documents importants à livrer rapidement"
+   *                   deliveryType:
+   *                     type: string
+   *                     enum: [EXPRESS, STANDARD, FLEXIBLE]
+   *                   pickupAddress:
+   *                     type: string
+   *                     example: "123 Rue de la Paix, Paris"
+   *                   pickupCity:
+   *                     type: string
+   *                     example: "Paris"
+   *                   pickupPostalCode:
+   *                     type: string
+   *                     example: "75001"
+   *                   deliveryAddress:
+   *                     type: string
+   *                     example: "456 Avenue des Champs, Lyon"
+   *                   deliveryCity:
+   *                     type: string
+   *                     example: "Lyon"
+   *                   deliveryPostalCode:
+   *                     type: string
+   *                     example: "69001"
+   *                   pickupDate:
+   *                     type: string
+   *                     format: date-time
+   *                   deliveryDate:
+   *                     type: string
+   *                     format: date-time
+   *                   estimatedWeight:
+   *                     type: number
+   *                     example: 2.5
+   *                   suggestedPrice:
+   *                     type: number
+   *                     example: 25.50
+   *     responses:
+   *       200:
+   *         description: Announcement created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 result:
+   *                   type: object
+   *                   properties:
+   *                     data:
+   *                       $ref: '#/components/schemas/Announcement'
+   *       403:
+   *         $ref: '#/components/responses/ForbiddenError'
+   *       400:
+   *         $ref: '#/components/responses/ValidationError'
+   */
 
   /**
    * Créer une nouvelle annonce
@@ -222,10 +393,10 @@ export const clientAnnouncementsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent créer des annonces',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent créer des annonces",
         });
       }
 
@@ -237,8 +408,8 @@ export const clientAnnouncementsRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -246,14 +417,14 @@ export const clientAnnouncementsRouter = router({
         const activeAnnouncements = await ctx.db.announcement.count({
           where: {
             clientId: client.id,
-            status: { in: ['DRAFT', 'PUBLISHED', 'MATCHED'] },
+            status: { in: ["DRAFT", "PUBLISHED", "MATCHED"] },
           },
         });
 
         if (activeAnnouncements >= 10) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Limite de 10 annonces actives atteinte',
+            code: "BAD_REQUEST",
+            message: "Limite de 10 annonces actives atteinte",
           });
         }
 
@@ -269,7 +440,7 @@ export const clientAnnouncementsRouter = router({
             input.pickupLatitude,
             input.pickupLongitude,
             input.deliveryLatitude,
-            input.deliveryLongitude
+            input.deliveryLongitude,
           );
         }
 
@@ -317,7 +488,7 @@ export const clientAnnouncementsRouter = router({
             requiresSignature: input.requiresSignature,
             accessCode: input.accessCode,
 
-            status: 'PUBLISHED', // Publier directement
+            status: "PUBLISHED", // Publier directement
             publishedAt: new Date(),
           },
           include: {
@@ -356,12 +527,12 @@ export const clientAnnouncementsRouter = router({
             suggestedPrice: announcement.suggestedPrice.toNumber(),
             estimatedDistance: announcement.estimatedDistance?.toNumber(),
           },
-          message: 'Annonce créée avec succès et publiée',
+          message: "Annonce créée avec succès et publiée",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la création de l'annonce",
         });
       }
@@ -375,10 +546,10 @@ export const clientAnnouncementsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent modifier leurs annonces',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent modifier leurs annonces",
         });
       }
 
@@ -390,8 +561,8 @@ export const clientAnnouncementsRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -404,16 +575,16 @@ export const clientAnnouncementsRouter = router({
 
         if (!announcement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Annonce non trouvée',
+            code: "NOT_FOUND",
+            message: "Annonce non trouvée",
           });
         }
 
         // Vérifier si l'annonce peut être modifiée
-        if (!['DRAFT', 'PUBLISHED'].includes(announcement.status)) {
+        if (!["DRAFT", "PUBLISHED"].includes(announcement.status)) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette annonce ne peut plus être modifiée',
+            code: "BAD_REQUEST",
+            message: "Cette annonce ne peut plus être modifiée",
           });
         }
 
@@ -434,15 +605,16 @@ export const clientAnnouncementsRouter = router({
           data: {
             ...updatedAnnouncement,
             suggestedPrice: updatedAnnouncement.suggestedPrice.toNumber(),
-            estimatedDistance: updatedAnnouncement.estimatedDistance?.toNumber(),
+            estimatedDistance:
+              updatedAnnouncement.estimatedDistance?.toNumber(),
           },
-          message: 'Annonce mise à jour avec succès',
+          message: "Annonce mise à jour avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la mise à jour',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour",
         });
       }
     }),
@@ -455,10 +627,10 @@ export const clientAnnouncementsRouter = router({
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -469,8 +641,8 @@ export const clientAnnouncementsRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -491,7 +663,7 @@ export const clientAnnouncementsRouter = router({
                   },
                 },
                 trackingEvents: {
-                  orderBy: { createdAt: 'desc' },
+                  orderBy: { createdAt: "desc" },
                   take: 10,
                 },
               },
@@ -513,7 +685,7 @@ export const clientAnnouncementsRouter = router({
                   },
                 },
               },
-              orderBy: { suggestedPrice: 'asc' },
+              orderBy: { suggestedPrice: "asc" },
             },
             validationCode: {
               select: {
@@ -528,8 +700,8 @@ export const clientAnnouncementsRouter = router({
 
         if (!announcement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Annonce non trouvée',
+            code: "NOT_FOUND",
+            message: "Annonce non trouvée",
           });
         }
 
@@ -539,17 +711,17 @@ export const clientAnnouncementsRouter = router({
             ...announcement,
             suggestedPrice: announcement.suggestedPrice.toNumber(),
             estimatedDistance: announcement.estimatedDistance?.toNumber(),
-            canEdit: ['DRAFT', 'PUBLISHED'].includes(announcement.status),
-            canCancel: ['PUBLISHED', 'MATCHED'].includes(announcement.status),
-            hasActiveDelivery: announcement.deliveries.some(d =>
-              ['ACCEPTED', 'IN_PROGRESS'].includes(d.status)
+            canEdit: ["DRAFT", "PUBLISHED"].includes(announcement.status),
+            canCancel: ["PUBLISHED", "MATCHED"].includes(announcement.status),
+            hasActiveDelivery: announcement.deliveries.some((d) =>
+              ["ACCEPTED", "IN_PROGRESS"].includes(d.status),
             ),
           },
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération de l'annonce",
         });
       }
@@ -563,15 +735,15 @@ export const clientAnnouncementsRouter = router({
       z.object({
         id: z.string().cuid(),
         reason: z.string().min(10).max(500),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent annuler leurs annonces',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent annuler leurs annonces",
         });
       }
 
@@ -582,8 +754,8 @@ export const clientAnnouncementsRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -599,27 +771,27 @@ export const clientAnnouncementsRouter = router({
 
         if (!announcement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Annonce non trouvée',
+            code: "NOT_FOUND",
+            message: "Annonce non trouvée",
           });
         }
 
         // Vérifier si l'annonce peut être annulée
-        if (!['PUBLISHED', 'MATCHED'].includes(announcement.status)) {
+        if (!["PUBLISHED", "MATCHED"].includes(announcement.status)) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette annonce ne peut pas être annulée',
+            code: "BAD_REQUEST",
+            message: "Cette annonce ne peut pas être annulée",
           });
         }
 
         // Vérifier s'il y a une livraison en cours
-        const activeDelivery = announcement.deliveries.find(d =>
-          ['ACCEPTED', 'IN_PROGRESS'].includes(d.status)
+        const activeDelivery = announcement.deliveries.find((d) =>
+          ["ACCEPTED", "IN_PROGRESS"].includes(d.status),
         );
 
         if (activeDelivery) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: "Impossible d'annuler: une livraison est en cours",
           });
         }
@@ -628,7 +800,7 @@ export const clientAnnouncementsRouter = router({
         const cancelledAnnouncement = await ctx.db.announcement.update({
           where: { id: input.id },
           data: {
-            status: 'CANCELLED',
+            status: "CANCELLED",
             cancelledAt: new Date(),
             cancellationReason: input.reason,
           },
@@ -638,10 +810,10 @@ export const clientAnnouncementsRouter = router({
         await ctx.db.deliveryProposal.updateMany({
           where: {
             announcementId: input.id,
-            status: 'PENDING',
+            status: "PENDING",
           },
           data: {
-            status: 'REJECTED',
+            status: "REJECTED",
           },
         });
 
@@ -651,12 +823,12 @@ export const clientAnnouncementsRouter = router({
         return {
           success: true,
           data: cancelledAnnouncement,
-          message: 'Annonce annulée avec succès',
+          message: "Annonce annulée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'annulation",
         });
       }
@@ -670,15 +842,15 @@ export const clientAnnouncementsRouter = router({
       z.object({
         proposalId: z.string().cuid(),
         notes: z.string().max(500).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent accepter des propositions',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent accepter des propositions",
         });
       }
 
@@ -689,8 +861,8 @@ export const clientAnnouncementsRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -711,34 +883,34 @@ export const clientAnnouncementsRouter = router({
 
         if (!proposal) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Proposition non trouvée',
+            code: "NOT_FOUND",
+            message: "Proposition non trouvée",
           });
         }
 
         // Vérifier que l'annonce appartient au client
         if (proposal.announcement.clientId !== client.id) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Cette proposition ne vous appartient pas',
+            code: "FORBIDDEN",
+            message: "Cette proposition ne vous appartient pas",
           });
         }
 
         // Vérifier que la proposition peut être acceptée
-        if (proposal.status !== 'PENDING') {
+        if (proposal.status !== "PENDING") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: "Cette proposition n'est plus disponible",
           });
         }
 
         // Transaction pour accepter la proposition
-        const result = await ctx.db.$transaction(async tx => {
+        const result = await ctx.db.$transaction(async (tx) => {
           // Accepter la proposition
           const acceptedProposal = await tx.deliveryProposal.update({
             where: { id: input.proposalId },
             data: {
-              status: 'ACCEPTED',
+              status: "ACCEPTED",
               acceptedAt: new Date(),
               clientNotes: input.notes,
             },
@@ -749,10 +921,10 @@ export const clientAnnouncementsRouter = router({
             where: {
               announcementId: proposal.announcement.id,
               id: { not: input.proposalId },
-              status: 'PENDING',
+              status: "PENDING",
             },
             data: {
-              status: 'REJECTED',
+              status: "REJECTED",
               rejectedAt: new Date(),
             },
           });
@@ -763,7 +935,7 @@ export const clientAnnouncementsRouter = router({
               announcementId: proposal.announcement.id,
               clientId: client.id,
               delivererId: proposal.delivererId,
-              status: 'ACCEPTED',
+              status: "ACCEPTED",
               acceptedAt: new Date(),
               scheduledAt: proposal.announcement.pickupDate,
               finalPrice: proposal.suggestedPrice,
@@ -774,7 +946,7 @@ export const clientAnnouncementsRouter = router({
           await tx.announcement.update({
             where: { id: proposal.announcement.id },
             data: {
-              status: 'MATCHED',
+              status: "MATCHED",
               matchedAt: new Date(),
             },
           });
@@ -788,12 +960,12 @@ export const clientAnnouncementsRouter = router({
         return {
           success: true,
           data: result,
-          message: 'Proposition acceptée avec succès',
+          message: "Proposition acceptée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'acceptation de la proposition",
         });
       }
@@ -801,7 +973,12 @@ export const clientAnnouncementsRouter = router({
 });
 
 // Helper functions
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
   const R = 6371; // Rayon de la Terre en km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;

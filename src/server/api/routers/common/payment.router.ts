@@ -1,12 +1,12 @@
-import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
-import { paymentService } from '@/server/services/shared/payment.service';
-import { TRPCError } from '@trpc/server';
-import { subscriptionService } from '@/server/services/shared/subscription.service';
-import { commissionService } from '@/server/services/admin/commission.service';
-import { Prisma } from '@prisma/client';
-import { db } from '@/server/db';
-import { walletService } from '@/server/services/shared/wallet.service';
+import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
+import { z } from "zod";
+import { paymentService } from "@/server/services/shared/payment.service";
+import { TRPCError } from "@trpc/server";
+import { subscriptionService } from "@/server/services/shared/subscription.service";
+import { commissionService } from "@/server/services/admin/commission.service";
+import { Prisma } from "@prisma/client";
+import { db } from "@/server/db";
+import { walletService } from "@/server/services/shared/wallet.service";
 import {
   createPayment,
   processPaymentIntent,
@@ -15,7 +15,7 @@ import {
   getPaymentHistory,
   holdPaymentForDelivery,
   releasePaymentToDeliverer,
-} from '@/server/services/shared/payment.service';
+} from "@/server/services/shared/payment.service";
 import {
   createPaymentSchema,
   processPaymentSchema,
@@ -24,125 +24,50 @@ import {
   createPaymentIntentSchema,
   paymentFilterSchema,
   releaseEscrowPaymentSchema,
-} from '@/schemas/payment/payment.schema';
-import { PaymentStatus, UserRole } from '@prisma/client';
-import { isRoleAllowed, checkPaymentAccessRights } from '@/lib/auth/auth-helpers';
+} from "@/schemas/payment/payment.schema";
+import { PaymentStatus, UserRole } from "@prisma/client";
+import {
+  isRoleAllowed,
+  checkPaymentAccessRights,
+} from "@/lib/auth/auth-helpers";
 
 // Importation conditionnelle du service de portefeuille
 let importedWalletService: any;
 try {
-  importedWalletService = require('@/server/services/wallet.service').walletService;
+  importedWalletService =
+    require("@/server/services/wallet.service").walletService;
 } catch (error) {
-  console.warn('Wallet service could not be imported:', error);
+  console.warn("Wallet service could not be imported:", error);
   importedWalletService = null;
 }
 
-// Utilisation directe du service de portefeuille
+// Extension du service de portefeuille avec implémentations réelles
 const walletServiceExt = {
   ...importedWalletService,
   async updateBankInformation(walletId: string, data: any) {
-    // Stub pour simuler la mise à jour des informations bancaires
-    console.log('Simulation: updateBankInformation', walletId, data);
-    return { success: true };
+    // Implémentation réelle via le service de portefeuille
+    return await importedWalletService.updateBankInformation(walletId, data);
   },
   async requestWithdrawal(walletId: string, amount: number, method: string) {
-    // Stub pour simuler une demande de retrait
-    console.log('Simulation: requestWithdrawal', walletId, amount, method);
-    return {
-      id: `withdraw_${Date.now()}`,
-      amount,
+    // Implémentation réelle via le service de portefeuille
+    return await importedWalletService.requestWithdrawal(
       walletId,
-      status: 'PENDING',
-      requestedAt: new Date(),
-    };
+      amount,
+      method,
+    );
   },
   async updateAutomaticWithdrawalSettings(walletId: string, settings: any) {
-    // Stub pour simuler la mise à jour des paramètres de retrait automatique
-    console.log('Simulation: updateAutomaticWithdrawalSettings', walletId, settings);
-    return { success: true };
+    // Implémentation réelle via le service de portefeuille
+    return await importedWalletService.updateAutomaticWithdrawalSettings(
+      walletId,
+      settings,
+    );
   },
 };
 
-// Extension temporaire des méthodes manquantes pour PaymentService
-// À utiliser uniquement pendant le développement
+// Extension du service de paiement avec implémentations réelles
 const paymentServiceExt = {
   ...paymentService,
-  async createDispute(paymentId: string, reason: string, description: string) {
-    // Stub pour simuler la création d'un litige
-    console.log('Simulation: createDispute', paymentId, reason, description);
-    return {
-      id: `dispute_${Date.now()}`,
-      paymentId,
-      reason,
-      description,
-      status: 'PENDING',
-      createdAt: new Date(),
-    };
-  },
-  async getUserDisputes(userId: string, options: any) {
-    // Stub pour simuler la récupération des litiges d'un utilisateur
-    return {
-      disputes: [],
-      pagination: { totalCount: 0, pageCount: 0, currentPage: 1, perPage: 10 },
-    };
-  },
-  async getDisputeById(disputeId: string, userId: string) {
-    // Stub pour simuler la récupération d'un litige par son ID
-    return null;
-  },
-  async addDisputeEvidence(
-    disputeId: string,
-    userId: string,
-    evidenceType: string,
-    content: string
-  ) {
-    // Stub pour simuler l'ajout de preuves à un litige
-    return { success: true };
-  },
-  async resolveDispute(disputeId: string, resolution: string, adminId: string, notes?: string) {
-    // Stub pour simuler la résolution d'un litige
-    return { success: true };
-  },
-  async generatePaymentReport(options: any) {
-    // Stub pour simuler la génération d'un rapport de paiements
-    return { url: 'https://example.com/reports/payment_report.pdf' };
-  },
-  async getPaymentStats() {
-    // Stub pour simuler les statistiques de paiement
-    return {
-      totalAmount: 0,
-      totalCount: 0,
-      successRate: 100,
-      averageAmount: 0,
-    };
-  },
-  async getAllPayments(options: any) {
-    // Stub pour simuler la récupération de tous les paiements
-    return {
-      payments: [],
-      pagination: { totalCount: 0, pageCount: 0, currentPage: 1, perPage: 10 },
-    };
-  },
-  async getAllDisputes(options: any) {
-    // Stub pour simuler la récupération de tous les litiges
-    return {
-      disputes: [],
-      pagination: { totalCount: 0, pageCount: 0, currentPage: 1, perPage: 10 },
-    };
-  },
-  async createRecurringPayment(data: any) {
-    // Stub pour simuler la création d'un paiement récurrent
-    return {
-      id: `recurring_${Date.now()}`,
-      ...data,
-      status: 'ACTIVE',
-      createdAt: new Date(),
-    };
-  },
-  async cancelRecurringPayment(recurringPaymentId: string, userId: string) {
-    // Stub pour simuler l'annulation d'un paiement récurrent
-    return { success: true };
-  },
 };
 
 /**
@@ -153,19 +78,22 @@ export const paymentRouter = router({
   /**
    * Récupère la liste des paiements pour l'utilisateur connecté avec pagination
    */
-  getUserPayments: protectedProcedure.input(paymentFilterSchema).query(async ({ ctx, input }) => {
-    try {
-      const userId = ctx.session.user.id;
-      const result = await getPaymentHistory(userId, input);
-      return result;
-    } catch (error: any) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la récupération des paiements',
-        cause: error,
-      });
-    }
-  }),
+  getUserPayments: protectedProcedure
+    .input(paymentFilterSchema)
+    .query(async ({ ctx, input }) => {
+      try {
+        const userId = ctx.session.user.id;
+        const result = await getPaymentHistory(userId, input);
+        return result;
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la récupération des paiements",
+          cause: error,
+        });
+      }
+    }),
 
   /**
    * Récupère les transactions de paiement pour un client avec pagination
@@ -176,12 +104,14 @@ export const paymentRouter = router({
       z.object({
         page: z.number().int().positive().default(1),
         limit: z.number().int().positive().max(100).default(10),
-        type: z.enum(['PAYMENT', 'REFUND', 'WITHDRAWAL', 'DEPOSIT']).optional(),
-        status: z.enum(['COMPLETED', 'PENDING', 'FAILED', 'CANCELLED']).optional(),
+        type: z.enum(["PAYMENT", "REFUND", "WITHDRAWAL", "DEPOSIT"]).optional(),
+        status: z
+          .enum(["COMPLETED", "PENDING", "FAILED", "CANCELLED"])
+          .optional(),
         search: z.string().optional(),
         startDate: z.string().optional(),
         endDate: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -197,8 +127,8 @@ export const paymentRouter = router({
 
         if (search) {
           where.OR = [
-            { description: { contains: search, mode: 'insensitive' } },
-            { id: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: "insensitive" } },
+            { id: { contains: search, mode: "insensitive" } },
           ];
         }
 
@@ -218,20 +148,25 @@ export const paymentRouter = router({
         // Récupérer les paiements avec pagination - simplifiés sans includes problématiques
         const payments = await ctx.db.payment.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           take: limit,
           skip: (page - 1) * limit,
         });
 
         // Transformer les données pour correspondre au format attendu par le client
-        const transactions = payments.map(payment => ({
+        const transactions = payments.map((payment) => ({
           id: payment.id,
-          type: 'PAYMENT' as const, // Type fixe pour les paiements
-          status: payment.status as 'COMPLETED' | 'PENDING' | 'FAILED' | 'CANCELLED',
+          type: "PAYMENT" as const, // Type fixe pour les paiements
+          status: payment.status as
+            | "COMPLETED"
+            | "PENDING"
+            | "FAILED"
+            | "CANCELLED",
           amount: Number(payment.amount),
           currency: payment.currency,
           date: payment.createdAt,
-          description: payment.description || `Paiement #${payment.id.slice(-6)}`,
+          description:
+            payment.description || `Paiement #${payment.id.slice(-6)}`,
           paymentMethod: payment.paymentMethodType
             ? {
                 type: payment.paymentMethodType,
@@ -268,8 +203,9 @@ export const paymentRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération des transactions',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la récupération des transactions",
           cause: error,
         });
       }
@@ -304,8 +240,8 @@ export const paymentRouter = router({
 
         if (!payment) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Paiement non trouvé',
+            code: "NOT_FOUND",
+            message: "Paiement non trouvé",
           });
         }
 
@@ -316,22 +252,24 @@ export const paymentRouter = router({
         // ou les événements réels en production
         const paymentEvents = await ctx.db.paymentEvent.findMany({
           where: { paymentId: input.paymentId },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         });
 
         return {
           payment,
           events: paymentEvents,
           canRefund:
-            payment.status === PaymentStatus.COMPLETED && ['CLIENT', 'ADMIN'].includes(role),
+            payment.status === PaymentStatus.COMPLETED &&
+            ["CLIENT", "ADMIN"].includes(role),
           canCancel:
             payment.status === PaymentStatus.PENDING &&
-            (payment.userId === userId || role === 'ADMIN'),
+            (payment.userId === userId || role === "ADMIN"),
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération du paiement',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la récupération du paiement",
           cause: error,
         });
       }
@@ -340,38 +278,40 @@ export const paymentRouter = router({
   /**
    * Crée un paiement (mode démonstration)
    */
-  createPayment: protectedProcedure.input(createPaymentSchema).mutation(async ({ ctx, input }) => {
-    try {
-      // Assignation automatique de l'ID utilisateur depuis la session
-      const paymentData = {
-        ...input,
-        userId: ctx.session.user.id,
-      };
+  createPayment: protectedProcedure
+    .input(createPaymentSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Assignation automatique de l'ID utilisateur depuis la session
+        const paymentData = {
+          ...input,
+          userId: ctx.session.user.id,
+        };
 
-      // Créer le paiement via le service
-      const result = await createPayment(paymentData);
+        // Créer le paiement via le service
+        const result = await createPayment(paymentData);
 
-      // Logger l'événement de création de paiement
-      await ctx.db.paymentEvent.create({
-        data: {
-          paymentId: result.id,
-          eventType: 'PAYMENT_CREATED',
-          description: `Paiement créé: ${input.amount} ${input.currency}`,
-          metadata: {
-            createdBy: ctx.session.user.id,
+        // Logger l'événement de création de paiement
+        await ctx.db.paymentEvent.create({
+          data: {
+            paymentId: result.id,
+            eventType: "PAYMENT_CREATED",
+            description: `Paiement créé: ${input.amount} ${input.currency}`,
+            metadata: {
+              createdBy: ctx.session.user.id,
+            },
           },
-        },
-      });
+        });
 
-      return result;
-    } catch (error: any) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la création du paiement',
-        cause: error,
-      });
-    }
-  }),
+        return result;
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Erreur lors de la création du paiement",
+          cause: error,
+        });
+      }
+    }),
 
   /**
    * Crée un intent de paiement
@@ -391,8 +331,9 @@ export const paymentRouter = router({
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la création du payment intent',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la création du payment intent",
           cause: error,
         });
       }
@@ -405,7 +346,7 @@ export const paymentRouter = router({
     .input(
       z.object({
         paymentId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -418,15 +359,15 @@ export const paymentRouter = router({
 
         if (!payment) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Paiement non trouvé',
+            code: "NOT_FOUND",
+            message: "Paiement non trouvé",
           });
         }
 
         // Vérifier que l'utilisateur est autorisé à confirmer ce paiement
-        if (payment.userId !== userId && role !== 'ADMIN') {
+        if (payment.userId !== userId && role !== "ADMIN") {
           throw new TRPCError({
-            code: 'FORBIDDEN',
+            code: "FORBIDDEN",
             message: "Vous n'êtes pas autorisé à confirmer ce paiement",
           });
         }
@@ -438,7 +379,7 @@ export const paymentRouter = router({
         await ctx.db.paymentEvent.create({
           data: {
             paymentId: result.id,
-            eventType: 'PAYMENT_CONFIRMED',
+            eventType: "PAYMENT_CONFIRMED",
             description: `Paiement confirmé`,
             metadata: {
               confirmedBy: ctx.session.user.id,
@@ -449,8 +390,9 @@ export const paymentRouter = router({
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la confirmation du paiement',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la confirmation du paiement",
           cause: error,
         });
       }
@@ -463,24 +405,24 @@ export const paymentRouter = router({
     .input(
       z.object({
         amount: z.number().positive(),
-        currency: z.string().default('EUR'),
+        currency: z.string().default("EUR"),
         deliveryId: z.string(),
         releaseAfterDays: z.number().min(1).max(30).optional(),
         generateReleaseCode: z.boolean().optional(),
         paymentMethodId: z.string().optional(),
         description: z.string().optional(),
         metadata: z.record(z.string()).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const userId = ctx.session.user.id;
 
         // Vérifier que l'utilisateur est un client
-        if (ctx.session.user.role !== 'CLIENT') {
+        if (ctx.session.user.role !== "CLIENT") {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Seul un client peut créer un paiement sous séquestre',
+            code: "FORBIDDEN",
+            message: "Seul un client peut créer un paiement sous séquestre",
           });
         }
 
@@ -492,15 +434,17 @@ export const paymentRouter = router({
           generateReleaseCode: input.generateReleaseCode,
           paymentMethodId: input.paymentMethodId,
           description:
-            input.description || `Paiement sous séquestre pour livraison #${input.deliveryId}`,
+            input.description ||
+            `Paiement sous séquestre pour livraison #${input.deliveryId}`,
           metadata: input.metadata,
         });
 
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la création du paiement escrow',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la création du paiement escrow",
           cause: error,
         });
       }
@@ -523,15 +467,15 @@ export const paymentRouter = router({
 
         if (!payment) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Paiement non trouvé',
+            code: "NOT_FOUND",
+            message: "Paiement non trouvé",
           });
         }
 
         // Vérifier que l'utilisateur est autorisé (client qui a payé ou admin)
-        if (payment.userId !== userId && role !== 'ADMIN') {
+        if (payment.userId !== userId && role !== "ADMIN") {
           throw new TRPCError({
-            code: 'FORBIDDEN',
+            code: "FORBIDDEN",
             message: "Vous n'êtes pas autorisé à libérer ce paiement",
           });
         }
@@ -539,15 +483,15 @@ export const paymentRouter = router({
         // Libérer le paiement
         const result = await releasePaymentToDeliverer(input.paymentId, {
           releaseCode: input.releaseCode,
-          releaseByAdmin: role === 'ADMIN',
-          adminId: role === 'ADMIN' ? userId : undefined,
+          releaseByAdmin: role === "ADMIN",
+          adminId: role === "ADMIN" ? userId : undefined,
         });
 
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la libération du paiement',
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Erreur lors de la libération du paiement",
           cause: error,
         });
       }
@@ -560,7 +504,7 @@ export const paymentRouter = router({
     .input(
       z.object({
         paymentId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -573,23 +517,23 @@ export const paymentRouter = router({
 
         if (!payment) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Paiement non trouvé',
+            code: "NOT_FOUND",
+            message: "Paiement non trouvé",
           });
         }
 
         // Vérifier que le paiement est en statut PENDING
         if (payment.status !== PaymentStatus.PENDING) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Seuls les paiements en attente peuvent être annulés',
+            code: "BAD_REQUEST",
+            message: "Seuls les paiements en attente peuvent être annulés",
           });
         }
 
         // Seul l'administrateur ou le propriétaire du paiement peut l'annuler
-        if (payment.userId !== userId && role !== 'ADMIN') {
+        if (payment.userId !== userId && role !== "ADMIN") {
           throw new TRPCError({
-            code: 'FORBIDDEN',
+            code: "FORBIDDEN",
             message: "Vous n'êtes pas autorisé à annuler ce paiement",
           });
         }
@@ -611,8 +555,8 @@ export const paymentRouter = router({
         await ctx.db.paymentEvent.create({
           data: {
             paymentId: input.paymentId,
-            eventType: 'PAYMENT_CANCELLED',
-            description: 'Paiement annulé',
+            eventType: "PAYMENT_CANCELLED",
+            description: "Paiement annulé",
             metadata: {
               cancelledBy: userId,
             },
@@ -622,7 +566,7 @@ export const paymentRouter = router({
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Erreur lors de l'annulation du paiement",
           cause: error,
         });
@@ -632,83 +576,84 @@ export const paymentRouter = router({
   /**
    * Rembourse un paiement
    */
-  refundPayment: protectedProcedure.input(refundPaymentSchema).mutation(async ({ ctx, input }) => {
-    try {
-      // Vérifier que l'utilisateur est autorisé à rembourser ce paiement
-      const { id: userId, role } = ctx.session.user;
+  refundPayment: protectedProcedure
+    .input(refundPaymentSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Vérifier que l'utilisateur est autorisé à rembourser ce paiement
+        const { id: userId, role } = ctx.session.user;
 
-      // Seules ces rôles peuvent effectuer un remboursement
-      if (!['ADMIN', 'MERCHANT'].includes(role)) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message:
-            'Seuls les administrateurs et les marchands peuvent effectuer des remboursements',
-        });
-      }
+        // Seules ces rôles peuvent effectuer un remboursement
+        if (!["ADMIN", "MERCHANT"].includes(role)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message:
+              "Seuls les administrateurs et les marchands peuvent effectuer des remboursements",
+          });
+        }
 
-      const payment = await ctx.db.payment.findUnique({
-        where: { id: input.paymentId },
-        select: {
-          userId: true,
-          status: true,
-          amount: true,
-          merchantId: true,
-        },
-      });
-
-      if (!payment) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Paiement non trouvé',
-        });
-      }
-
-      // Vérifier que le paiement est en statut COMPLETED
-      if (payment.status !== PaymentStatus.COMPLETED) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Seuls les paiements complétés peuvent être remboursés',
-        });
-      }
-
-      // Vérifier les permissions supplémentaires pour les marchands
-      if (role === 'MERCHANT' && payment.merchantId !== userId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'êtes pas autorisé à rembourser ce paiement",
-        });
-      }
-
-      // Effectuer le remboursement
-      const result = await refundPayment({
-        paymentId: input.paymentId,
-        amount: input.amount || Number(payment.amount),
-        reason: input.reason,
-        demoSuccessScenario: input.demoSuccessScenario,
-      });
-
-      // Logger l'événement de remboursement
-      await ctx.db.paymentEvent.create({
-        data: {
-          paymentId: input.paymentId,
-          eventType: 'PAYMENT_REFUNDED',
-          description: `Remboursement: ${input.amount || Number(payment.amount)} - Raison: ${input.reason}`,
-          metadata: {
-            refundedBy: userId,
-            reason: input.reason,
+        const payment = await ctx.db.payment.findUnique({
+          where: { id: input.paymentId },
+          select: {
+            userId: true,
+            status: true,
+            amount: true,
+            merchantId: true,
           },
-        },
-      });
+        });
 
-      return result;
-    } catch (error: any) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors du remboursement',
-        cause: error,
-      });
-    }
-  }),
+        if (!payment) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Paiement non trouvé",
+          });
+        }
+
+        // Vérifier que le paiement est en statut COMPLETED
+        if (payment.status !== PaymentStatus.COMPLETED) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Seuls les paiements complétés peuvent être remboursés",
+          });
+        }
+
+        // Vérifier les permissions supplémentaires pour les marchands
+        if (role === "MERCHANT" && payment.merchantId !== userId) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Vous n'êtes pas autorisé à rembourser ce paiement",
+          });
+        }
+
+        // Effectuer le remboursement
+        const result = await refundPayment({
+          paymentId: input.paymentId,
+          amount: input.amount || Number(payment.amount),
+          reason: input.reason,
+        });
+
+        // Logger l'événement de remboursement
+        await ctx.db.paymentEvent.create({
+          data: {
+            paymentId: input.paymentId,
+            eventType: "PAYMENT_REFUNDED",
+            description: `Remboursement: ${input.amount || Number(payment.amount)} - Raison: ${input.reason}`,
+            metadata: {
+              refundedBy: userId,
+              reason: input.reason,
+            },
+          },
+        });
+
+        return result;
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Erreur lors du remboursement",
+          cause: error,
+        });
+      }
+    }),
 
   /**
    * Récupère l'historique des paiements
@@ -722,8 +667,9 @@ export const paymentRouter = router({
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || "Erreur lors de la récupération de l'historique",
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la récupération de l'historique",
           cause: error,
         });
       }
@@ -732,84 +678,85 @@ export const paymentRouter = router({
   /**
    * Récupère tous les paiements (admin uniquement)
    */
-  getAllPayments: adminProcedure.input(paymentFilterSchema).query(async ({ ctx, input }) => {
-    try {
-      // Construction du filtre
-      const where: any = {};
+  getAllPayments: adminProcedure
+    .input(paymentFilterSchema)
+    .query(async ({ ctx, input }) => {
+      try {
+        // Construction du filtre
+        const where: any = {};
 
-      if (input.status) where.status = input.status;
-      if (input.userId) where.userId = input.userId;
-      if (input.minAmount) where.amount = { gte: input.minAmount };
-      if (input.maxAmount) {
-        where.amount = {
-          ...where.amount,
-          lte: input.maxAmount,
+        if (input.status) where.status = input.status;
+        if (input.userId) where.userId = input.userId;
+        if (input.minAmount) where.amount = { gte: input.minAmount };
+        if (input.maxAmount) {
+          where.amount = {
+            ...where.amount,
+            lte: input.maxAmount,
+          };
+        }
+        if (input.startDate || input.endDate) {
+          where.createdAt = {};
+          if (input.startDate) where.createdAt.gte = input.startDate;
+          if (input.endDate) where.createdAt.lte = input.endDate;
+        }
+        if (input.serviceId) where.serviceId = input.serviceId;
+        if (input.deliveryId) where.deliveryId = input.deliveryId;
+        if (input.subscriptionId) where.subscriptionId = input.subscriptionId;
+
+        // Pagination
+        const skip = (input.page - 1) * input.limit;
+
+        // Récupérer les paiements
+        const [payments, total] = await Promise.all([
+          ctx.db.payment.findMany({
+            where,
+            orderBy: { createdAt: "desc" },
+            skip,
+            take: input.limit,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              refunds: true,
+              delivery: {
+                select: {
+                  id: true,
+                  status: true,
+                },
+              },
+              service: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+          }),
+          ctx.db.payment.count({ where }),
+        ]);
+
+        const pages = Math.ceil(total / input.limit);
+
+        return {
+          payments,
+          total,
+          pages,
+          page: input.page,
+          limit: input.limit,
         };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la récupération des paiements",
+          cause: error,
+        });
       }
-      if (input.startDate || input.endDate) {
-        where.createdAt = {};
-        if (input.startDate) where.createdAt.gte = input.startDate;
-        if (input.endDate) where.createdAt.lte = input.endDate;
-      }
-      if (input.serviceId) where.serviceId = input.serviceId;
-      if (input.deliveryId) where.deliveryId = input.deliveryId;
-      if (input.subscriptionId) where.subscriptionId = input.subscriptionId;
-
-      // Pagination
-      const skip = (input.page - 1) * input.limit;
-
-      // Récupérer les paiements
-      const [payments, total] = await Promise.all([
-        ctx.db.payment.findMany({
-          where,
-          orderBy: { createdAt: 'desc' },
-          skip,
-          take: input.limit,
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            refunds: true,
-            delivery: {
-              select: {
-                id: true,
-                status: true,
-              },
-            },
-            service: {
-              select: {
-                id: true,
-                title: true,
-              },
-            },
-          },
-        }),
-        ctx.db.payment.count({ where }),
-      ]);
-
-      const pages = Math.ceil(total / input.limit);
-
-      return {
-        payments,
-        total,
-        pages,
-        page: input.page,
-        limit: input.limit,
-      };
-    } catch (error: any) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la récupération des paiements',
-        cause: error,
-      });
-    }
-  }),
-
-
+    }),
 
   /**
    * Génère un rapport de paiements (admin uniquement)
@@ -819,18 +766,22 @@ export const paymentRouter = router({
       z.object({
         startDate: z.date(),
         endDate: z.date(),
-        status: z.enum(['PENDING', 'COMPLETED', 'FAILED', 'REFUNDED', 'CANCELLED']).optional(),
-        type: z.enum(['DELIVERY', 'SERVICE', 'SUBSCRIPTION', 'MERCHANT_FEE']).optional(),
-        format: z.enum(['CSV', 'PDF']).default('PDF'),
-      })
+        status: z
+          .enum(["PENDING", "COMPLETED", "FAILED", "REFUNDED", "CANCELLED"])
+          .optional(),
+        type: z
+          .enum(["DELIVERY", "SERVICE", "SUBSCRIPTION", "MERCHANT_FEE"])
+          .optional(),
+        format: z.enum(["CSV", "PDF"]).default("PDF"),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         // Vérifier que la période demandée est valide
         if (input.startDate >= input.endDate) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'La date de début doit être antérieure à la date de fin',
+            code: "BAD_REQUEST",
+            message: "La date de début doit être antérieure à la date de fin",
           });
         }
 
@@ -853,8 +804,8 @@ export const paymentRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la génération du rapport',
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Erreur lors de la génération du rapport",
           cause: error,
         });
       }

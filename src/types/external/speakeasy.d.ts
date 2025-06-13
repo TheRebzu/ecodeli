@@ -1,4 +1,4 @@
-declare module 'speakeasy' {
+declare module "speakeasy" {
   interface GenerateSecretOptions {
     length?: number;
     name?: string;
@@ -15,24 +15,26 @@ declare module 'speakeasy' {
     otpauth_url?: string;
   }
 
-  export function generateSecret(options?: GenerateSecretOptions): GenerateSecretResult;
+  export function generateSecret(
+    options?: GenerateSecretOptions,
+  ): GenerateSecretResult;
 
   export function totp(options: {
     secret: string;
-    encoding?: 'ascii' | 'hex' | 'base32';
+    encoding?: "ascii" | "hex" | "base32";
     step?: number;
     time?: number;
     counter?: number;
     digits?: number;
-    algorithm?: 'sha1' | 'sha256' | 'sha512';
+    algorithm?: "sha1" | "sha256" | "sha512";
     window?: number;
   }): string;
 
   export function hotp(options: {
     secret: string;
-    encoding?: 'ascii' | 'hex' | 'base32';
+    encoding?: "ascii" | "hex" | "base32";
     counter?: number;
     digits?: number;
-    algorithm?: 'sha1' | 'sha256' | 'sha512';
+    algorithm?: "sha1" | "sha256" | "sha512";
   }): string;
 }

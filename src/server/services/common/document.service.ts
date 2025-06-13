@@ -1,17 +1,22 @@
-import { PrismaClient, DocumentType, VerificationStatus, UserRole } from '@prisma/client';
-import { EmailService } from '@/server/services/common/email.service';
-import { DocumentStatus } from '@/server/db/enums';
-import fs from 'fs/promises';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { TRPCError } from '@trpc/server';
-import { db } from '@/server/db';
-import crypto from 'crypto';
+import {
+  PrismaClient,
+  DocumentType,
+  VerificationStatus,
+  UserRole,
+} from "@prisma/client";
+import { EmailService } from "@/server/services/common/email.service";
+import { DocumentStatus } from "@/server/db/enums";
+import fs from "fs/promises";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+import { TRPCError } from "@trpc/server";
+import { db } from "@/server/db";
+import crypto from "crypto";
 import {
   NotificationService,
   sendNotification,
-} from '@/server/services/common/notification.service';
-import { getUserPreferredLocale } from '@/lib/i18n/user-locale';
+} from "@/server/services/common/notification.service";
+import { getUserPreferredLocale } from "@/lib/i18n/user-locale";
 
 // Interface Document pour typer les retours
 interface Document {
@@ -50,9 +55,9 @@ interface DocumentCreateInput {
 
 // Types pour les enums
 enum VerificationStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
 
 type UploadDocumentParams = {
@@ -103,7 +108,7 @@ export class DocumentService {
   constructor(prisma = db) {
     this.prisma = prisma;
     // Le dossier d'uploads est relatif à la racine du projet
-    this.uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    this.uploadDir = path.join(process.cwd(), "public", "uploads");
   }
 
   /**
@@ -112,7 +117,7 @@ export class DocumentService {
    */
   private async saveFile(
     file: { buffer: Buffer; filename: string; mimetype: string },
-    userId: string
+    userId: string,
   ): Promise<UploadFileResult> {
     try {
       // S'assurer que le dossier d'uploads existe
@@ -121,8 +126,8 @@ export class DocumentService {
       // Créer un nom de fichier unique avec un timestamp et un hash
       const fileExt = path.extname(file.filename);
       const fileNameBase = path.basename(file.filename, fileExt);
-      const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
-      const safeFileName = `${fileNameBase.replace(/[^a-z0-9]/gi, '-')}-${uniqueSuffix}${fileExt}`;
+      const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
+      const safeFileName = `${fileNameBase.replace(/[^a-z0-9]/gi, "-")}-${uniqueSuffix}${fileExt}`;
 
       // Créer un sous-dossier par utilisateur
       const userDir = path.join(this.uploadDir, userId);
@@ -144,9 +149,9 @@ export class DocumentService {
         fileSize: file.buffer.length,
       };
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde du fichier:', error);
+      console.error("Erreur lors de la sauvegarde du fichier:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de l'upload du fichier",
       });
     }
@@ -157,8 +162,17 @@ export class DocumentService {
    */
   async uploadDocument(params: UploadDocumentParams) {
     try {
-      const { userId, type, filename, fileUrl, mimeType, fileSize, notes, expiryDate, userRole } =
-        params;
+      const {
+        userId,
+        type,
+        filename,
+        fileUrl,
+        mimeType,
+        fileSize,
+        notes,
+        expiryDate,
+        userRole,
+      } = params;
 
       // Vérifier si l'utilisateur existe
       const user = await this.db.user.findUnique({
@@ -174,8 +188,8 @@ export class DocumentService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Utilisateur non trouvé',
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
         });
       }
 
@@ -189,7 +203,7 @@ export class DocumentService {
           fileSize,
           fileUrl,
           uploadedAt: new Date(),
-          status: 'PENDING', // Add status to match document list component expectation
+          status: "PENDING", // Add status to match document list component expectation
           verificationStatus: VerificationStatus.PENDING,
           notes,
           expiryDate,
@@ -206,36 +220,41 @@ export class DocumentService {
         data: {
           submitterId: userId,
           documentId: document.id,
-          status: 'PENDING',
+          status: "PENDING",
           requestedAt: new Date(),
         },
       });
 
       console.log(`Document créé avec succès: ${document.id}`);
-      console.log(`Envoi de notification aux administrateurs pour le document ${document.id}`);
+      console.log(
+        `Envoi de notification aux administrateurs pour le document ${document.id}`,
+      );
 
       try {
         // Envoyer une notification à tous les administrateurs
         const userLocale = getUserPreferredLocale(user);
         await this.notificationService.sendDocumentSubmissionToAdminsNotification(
           document,
-          userLocale
+          userLocale,
         );
         console.log(
-          `Notification envoyée avec succès aux administrateurs pour le document ${document.id}`
+          `Notification envoyée avec succès aux administrateurs pour le document ${document.id}`,
         );
       } catch (notifError) {
-        console.error("Erreur lors de l'envoi de la notification aux administrateurs:", notifError);
+        console.error(
+          "Erreur lors de l'envoi de la notification aux administrateurs:",
+          notifError,
+        );
         // Ne pas faire échouer l'upload si la notification échoue
       }
 
       return document;
     } catch (error) {
-      console.error('Erreur lors du téléchargement du document:', error);
+      console.error("Erreur lors du téléchargement du document:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message:
-          'Erreur lors du téléchargement du document: ' +
+          "Erreur lors du téléchargement du document: " +
           (error instanceof Error ? error.message : String(error)),
         cause: error,
       });
@@ -253,8 +272,8 @@ export class DocumentService {
 
     if (!document) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Document non trouvé',
+        code: "NOT_FOUND",
+        message: "Document non trouvé",
       });
     }
 
@@ -301,8 +320,8 @@ export class DocumentService {
 
     if (!document) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Document non trouvé',
+        code: "NOT_FOUND",
+        message: "Document non trouvé",
       });
     }
 
@@ -314,9 +333,9 @@ export class DocumentService {
       });
 
       // Seuls les admins peuvent voir les documents d'autres utilisateurs
-      if (!user || user.role !== 'ADMIN') {
+      if (!user || user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'avez pas accès à ce document",
         });
       }
@@ -334,7 +353,7 @@ export class DocumentService {
 
       const documents = await this.db.document.findMany({
         where: { userId },
-        orderBy: { uploadedAt: 'desc' },
+        orderBy: { uploadedAt: "desc" },
         include: {
           user: {
             select: {
@@ -345,7 +364,7 @@ export class DocumentService {
             },
           },
           verifications: {
-            orderBy: { requestedAt: 'desc' },
+            orderBy: { requestedAt: "desc" },
             select: {
               id: true,
               status: true,
@@ -358,17 +377,20 @@ export class DocumentService {
         },
       });
 
-      console.log(`${documents.length} documents trouvés pour l'utilisateur ${userId}`);
+      console.log(
+        `${documents.length} documents trouvés pour l'utilisateur ${userId}`,
+      );
 
       // Assurer la compatibilité avec l'interface attendue par le frontend
-      return documents.map(doc => ({
+      return documents.map((doc) => ({
         ...doc,
-        verificationStatus: doc.verifications[0]?.status || doc.verificationStatus || 'PENDING',
+        verificationStatus:
+          doc.verifications[0]?.status || doc.verificationStatus || "PENDING",
         status:
           doc.status ||
           doc.verificationStatus ||
           (doc.verifications[0]?.status as any) ||
-          'PENDING',
+          "PENDING",
         createdAt: doc.uploadedAt,
       }));
     } catch (error) {
@@ -383,14 +405,16 @@ export class DocumentService {
    */
   async getUserDocumentsWithStatus(userId: string, userRole?: UserRole) {
     try {
-      console.log(`Récupération des documents avec statut pour l'utilisateur ${userId}`);
+      console.log(
+        `Récupération des documents avec statut pour l'utilisateur ${userId}`,
+      );
 
       const documents = await this.db.document.findMany({
         where: {
           userId,
           ...(userRole ? { userRole } : {}),
         },
-        orderBy: { uploadedAt: 'desc' },
+        orderBy: { uploadedAt: "desc" },
         include: {
           user: {
             select: {
@@ -401,7 +425,7 @@ export class DocumentService {
             },
           },
           verifications: {
-            orderBy: { requestedAt: 'desc' },
+            orderBy: { requestedAt: "desc" },
             take: 1, // Récupère seulement la dernière vérification
             select: {
               id: true,
@@ -416,17 +440,21 @@ export class DocumentService {
       });
 
       // Amélioration: Ajoute des informations dérivées pour chaque document
-      return documents.map(doc => {
+      return documents.map((doc) => {
         // Détermine le statut effectif en fonction du statut et de la date d'expiration
-        const isExpired = doc.expiryDate ? new Date(doc.expiryDate) < new Date() : false;
+        const isExpired = doc.expiryDate
+          ? new Date(doc.expiryDate) < new Date()
+          : false;
         const lastVerification =
-          doc.verifications && doc.verifications.length > 0 ? doc.verifications[0] : null;
+          doc.verifications && doc.verifications.length > 0
+            ? doc.verifications[0]
+            : null;
 
         let effectiveStatus = doc.verificationStatus;
 
         // Si le document est expiré, remplacer le statut par EXPIRED
-        if (isExpired && effectiveStatus === 'APPROVED') {
-          effectiveStatus = 'EXPIRED';
+        if (isExpired && effectiveStatus === "APPROVED") {
+          effectiveStatus = "EXPIRED";
         }
 
         // Détermine le badge à afficher en fonction du statut
@@ -438,11 +466,11 @@ export class DocumentService {
           statusInfo,
           isExpired,
           lastVerification,
-          canResubmit: ['REJECTED', 'EXPIRED'].includes(effectiveStatus),
+          canResubmit: ["REJECTED", "EXPIRED"].includes(effectiveStatus),
         };
       });
     } catch (error) {
-      console.error('Erreur lors de la récupération des documents:', error);
+      console.error("Erreur lors de la récupération des documents:", error);
       throw error;
     }
   }
@@ -452,16 +480,16 @@ export class DocumentService {
    */
   getStatusBadgeProps(status: string) {
     switch (status?.toUpperCase()) {
-      case 'PENDING':
-        return { variant: 'outline' as const, label: 'En attente' };
-      case 'APPROVED':
-        return { variant: 'success' as const, label: 'Approuvé' };
-      case 'REJECTED':
-        return { variant: 'destructive' as const, label: 'Rejeté' };
-      case 'EXPIRED':
-        return { variant: 'warning' as const, label: 'Expiré' };
+      case "PENDING":
+        return { variant: "outline" as const, label: "En attente" };
+      case "APPROVED":
+        return { variant: "success" as const, label: "Approuvé" };
+      case "REJECTED":
+        return { variant: "destructive" as const, label: "Rejeté" };
+      case "EXPIRED":
+        return { variant: "warning" as const, label: "Expiré" };
       default:
-        return { variant: 'outline' as const, label: 'Inconnu' };
+        return { variant: "outline" as const, label: "Inconnu" };
     }
   }
 
@@ -470,7 +498,7 @@ export class DocumentService {
    */
   async getPendingDocuments(userRole?: UserRole) {
     const where: any = {
-      verificationStatus: 'PENDING',
+      verificationStatus: "PENDING",
     };
 
     if (userRole) {
@@ -481,7 +509,7 @@ export class DocumentService {
 
     return await this.db.document.findMany({
       where,
-      orderBy: { uploadedAt: 'desc' },
+      orderBy: { uploadedAt: "desc" },
       include: {
         user: {
           select: {
@@ -506,8 +534,8 @@ export class DocumentService {
 
     if (!document) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Document non trouvé',
+        code: "NOT_FOUND",
+        message: "Document non trouvé",
       });
     }
 
@@ -538,8 +566,8 @@ export class DocumentService {
 
     if (!verification) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Vérification non trouvée',
+        code: "NOT_FOUND",
+        message: "Vérification non trouvée",
       });
     }
 
@@ -589,7 +617,7 @@ export class DocumentService {
         },
       },
       orderBy: {
-        requestedAt: 'desc',
+        requestedAt: "desc",
       },
     });
 
@@ -612,7 +640,9 @@ export class DocumentService {
         verifiedBy: adminId,
         verifiedAt: new Date(),
         rejectionReason:
-          verificationStatus === VerificationStatus.REJECTED ? rejectionReason : null,
+          verificationStatus === VerificationStatus.REJECTED
+            ? rejectionReason
+            : null,
         isVerified: verificationStatus === VerificationStatus.APPROVED,
       },
       include: { user: true },
@@ -622,13 +652,13 @@ export class DocumentService {
     if (verificationStatus === VerificationStatus.APPROVED) {
       await this.emailService.sendDocumentApprovedEmail(
         document.user.email as string,
-        document.type as DocumentType
+        document.type as DocumentType,
       );
     } else if (verificationStatus === VerificationStatus.REJECTED) {
       await this.emailService.sendDocumentRejectedEmail(
         document.user.email as string,
         document.type as DocumentType,
-        rejectionReason || 'Aucune raison spécifiée'
+        rejectionReason || "Aucune raison spécifiée",
       );
     }
 
@@ -642,8 +672,8 @@ export class DocumentService {
 
     if (!document) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Document non trouvé',
+        code: "NOT_FOUND",
+        message: "Document non trouvé",
       });
     }
 
@@ -653,9 +683,9 @@ export class DocumentService {
       select: { role: true },
     });
 
-    if (document.userId !== userId && (!user || user.role !== 'ADMIN')) {
+    if (document.userId !== userId && (!user || user.role !== "ADMIN")) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à supprimer ce document",
       });
     }
@@ -663,10 +693,13 @@ export class DocumentService {
     // Supprimer le fichier physique
     try {
       // Extraire le chemin du fichier à partir de l'URL
-      const filePath = path.join(this.uploadDir, document.fileUrl.replace('/uploads/', ''));
+      const filePath = path.join(
+        this.uploadDir,
+        document.fileUrl.replace("/uploads/", ""),
+      );
       await fs.unlink(filePath);
     } catch (error) {
-      console.error('Erreur lors de la suppression du fichier:', error);
+      console.error("Erreur lors de la suppression du fichier:", error);
       // On continue même si le fichier ne peut pas être supprimé
     }
 
@@ -687,7 +720,7 @@ export class DocumentService {
     try {
       const documents = await db.document.findMany({
         where: { userId },
-        orderBy: { uploadedAt: 'desc' },
+        orderBy: { uploadedAt: "desc" },
         include: {
           user: {
             select: {
@@ -698,7 +731,7 @@ export class DocumentService {
             },
           },
           verifications: {
-            orderBy: { requestedAt: 'desc' },
+            orderBy: { requestedAt: "desc" },
             select: {
               id: true,
               status: true,
@@ -712,19 +745,20 @@ export class DocumentService {
       });
 
       // Assurer la cohérence avec l'instance method et le frontend
-      return documents.map(doc => ({
+      return documents.map((doc) => ({
         ...doc,
-        verificationStatus: doc.verifications?.[0]?.status || doc.verificationStatus || 'PENDING',
+        verificationStatus:
+          doc.verifications?.[0]?.status || doc.verificationStatus || "PENDING",
         status:
           doc.status ||
           doc.verificationStatus ||
           (doc.verifications?.[0]?.status as any) ||
-          'PENDING',
+          "PENDING",
         createdAt: doc.uploadedAt,
       }));
     } catch (error) {
-      console.error('Erreur lors de la récupération des documents:', error);
-      throw new Error('Impossible de récupérer les documents');
+      console.error("Erreur lors de la récupération des documents:", error);
+      throw new Error("Impossible de récupérer les documents");
     }
   }
 
@@ -733,7 +767,7 @@ export class DocumentService {
    */
   static async getPendingDocuments(userRole?: string): Promise<Document[]> {
     try {
-      const where: any = { status: 'PENDING' };
+      const where: any = { status: "PENDING" };
 
       // Si un rôle d'utilisateur est spécifié, filtrer par ce rôle
       if (userRole) {
@@ -742,7 +776,7 @@ export class DocumentService {
 
       const documents = await db.document.findMany({
         where,
-        orderBy: { uploadDate: 'asc' },
+        orderBy: { uploadDate: "asc" },
         include: {
           user: {
             select: {
@@ -756,8 +790,11 @@ export class DocumentService {
 
       return documents;
     } catch (error) {
-      console.error('Erreur lors de la récupération des documents en attente:', error);
-      throw new Error('Impossible de récupérer les documents en attente');
+      console.error(
+        "Erreur lors de la récupération des documents en attente:",
+        error,
+      );
+      throw new Error("Impossible de récupérer les documents en attente");
     }
   }
 
@@ -768,7 +805,7 @@ export class DocumentService {
     documentId: string,
     status: DocumentStatus,
     adminId: string,
-    rejectionReason?: string
+    rejectionReason?: string,
   ): Promise<Document> {
     try {
       // Récupérer le document pour vérifier qu'il existe
@@ -779,15 +816,15 @@ export class DocumentService {
 
       if (!existingDocument) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Document non trouvé',
+          code: "NOT_FOUND",
+          message: "Document non trouvé",
         });
       }
 
-      if (existingDocument.status !== 'PENDING') {
+      if (existingDocument.status !== "PENDING") {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Ce document a déjà été traité',
+          code: "BAD_REQUEST",
+          message: "Ce document a déjà été traité",
         });
       } // Mise à jour du document avec status et verificationStatus pour être cohérent avec le frontend
       const updatedDocument = await db.document.update({
@@ -795,10 +832,10 @@ export class DocumentService {
         data: {
           status,
           verificationStatus: status as unknown as VerificationStatus, // Ajouter verificationStatus
-          rejectionReason: status === 'REJECTED' ? rejectionReason : null,
+          rejectionReason: status === "REJECTED" ? rejectionReason : null,
           reviewedBy: adminId,
           reviewedAt: new Date(),
-          isVerified: status === 'APPROVED', // Mise à jour cohérente avec verifyDocument
+          isVerified: status === "APPROVED", // Mise à jour cohérente avec verifyDocument
         },
       });
 
@@ -806,25 +843,28 @@ export class DocumentService {
       const emailService = new EmailService();
       const userEmail = existingDocument.user.email;
       if (userEmail) {
-        if (status === 'APPROVED') {
+        if (status === "APPROVED") {
           await emailService.sendDocumentApprovedEmail(
             userEmail,
             existingDocument.filename,
-            this.getDocumentTypeName(existingDocument.type as DocumentType)
+            this.getDocumentTypeName(existingDocument.type as DocumentType),
           );
-        } else if (status === 'REJECTED' && rejectionReason) {
+        } else if (status === "REJECTED" && rejectionReason) {
           await emailService.sendDocumentRejectedEmail(
             userEmail,
             existingDocument.filename,
             this.getDocumentTypeName(existingDocument.type as DocumentType),
-            rejectionReason
+            rejectionReason,
           );
         }
       }
 
       // Mettre à jour le statut de vérification de l'utilisateur si nécessaire
-      if (status === 'APPROVED') {
-        await this.updateUserVerificationStatus(existingDocument.userId, existingDocument.userRole);
+      if (status === "APPROVED") {
+        await this.updateUserVerificationStatus(
+          existingDocument.userId,
+          existingDocument.userRole,
+        );
       }
 
       return updatedDocument;
@@ -833,8 +873,11 @@ export class DocumentService {
         throw error;
       }
 
-      console.error('Erreur lors de la mise à jour du statut du document:', error);
-      throw new Error('Impossible de mettre à jour le statut du document');
+      console.error(
+        "Erreur lors de la mise à jour du statut du document:",
+        error,
+      );
+      throw new Error("Impossible de mettre à jour le statut du document");
     }
   }
 
@@ -852,22 +895,25 @@ export class DocumentService {
           mimeType: input.mimeType,
           userId: input.userId,
           userRole: input.userRole,
-          status: 'PENDING',
-          verificationStatus: 'PENDING', // Add verificationStatus to match frontend expectations
+          status: "PENDING",
+          verificationStatus: "PENDING", // Add verificationStatus to match frontend expectations
         },
       });
 
       return document;
     } catch (error) {
-      console.error('Erreur lors de la création du document:', error);
-      throw new Error('Impossible de créer le document');
+      console.error("Erreur lors de la création du document:", error);
+      throw new Error("Impossible de créer le document");
     }
   }
 
   /**
    * Supprime un document
    */
-  static async deleteDocument(documentId: string, userId: string): Promise<boolean> {
+  static async deleteDocument(
+    documentId: string,
+    userId: string,
+  ): Promise<boolean> {
     try {
       // Vérifier que le document appartient à l'utilisateur
       const document = await db.document.findUnique({
@@ -876,8 +922,8 @@ export class DocumentService {
 
       if (!document) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Document non trouvé',
+          code: "NOT_FOUND",
+          message: "Document non trouvé",
         });
       }
 
@@ -890,7 +936,7 @@ export class DocumentService {
         try {
           await fs.unlink(document.filePath);
         } catch (error) {
-          console.error('Erreur lors de la suppression du fichier:', error);
+          console.error("Erreur lors de la suppression du fichier:", error);
           // On continue même si la suppression du fichier échoue
         }
       }
@@ -906,8 +952,8 @@ export class DocumentService {
         throw error;
       }
 
-      console.error('Erreur lors de la suppression du document:', error);
-      throw new Error('Impossible de supprimer le document');
+      console.error("Erreur lors de la suppression du document:", error);
+      throw new Error("Impossible de supprimer le document");
     }
   }
 
@@ -916,22 +962,22 @@ export class DocumentService {
    */
   private static async updateUserVerificationStatus(
     userId: string,
-    userRole: string
+    userRole: string,
   ): Promise<void> {
     try {
-      if (userRole === 'DELIVERER') {
+      if (userRole === "DELIVERER") {
         const requiredDocumentTypes = [
-          'ID_CARD',
-          'DRIVING_LICENSE',
-          'VEHICLE_REGISTRATION',
-          'INSURANCE',
+          "ID_CARD",
+          "DRIVING_LICENSE",
+          "VEHICLE_REGISTRATION",
+          "INSURANCE",
         ];
 
         // Vérifier si tous les documents requis sont approuvés
         const approvedDocuments = await db.document.findMany({
           where: {
             userId,
-            status: 'APPROVED',
+            status: "APPROVED",
             type: { in: requiredDocumentTypes },
           },
         });
@@ -946,22 +992,22 @@ export class DocumentService {
           // Mise à jour du statut utilisateur
           await db.user.update({
             where: { id: userId },
-            data: { status: 'ACTIVE' },
+            data: { status: "ACTIVE" },
           });
         }
-      } else if (userRole === 'PROVIDER') {
+      } else if (userRole === "PROVIDER") {
         // Documents requis pour les prestataires
         const requiredDocumentTypes = [
-          'ID_CARD',
-          'QUALIFICATION_CERTIFICATE',
-          'INSURANCE',
-          'PROOF_OF_ADDRESS',
+          "ID_CARD",
+          "QUALIFICATION_CERTIFICATE",
+          "INSURANCE",
+          "PROOF_OF_ADDRESS",
         ];
 
         const approvedDocuments = await db.document.findMany({
           where: {
             userId,
-            status: 'APPROVED',
+            status: "APPROVED",
             type: { in: requiredDocumentTypes },
           },
         });
@@ -974,12 +1020,15 @@ export class DocumentService {
 
           await db.user.update({
             where: { id: userId },
-            data: { status: 'ACTIVE' },
+            data: { status: "ACTIVE" },
           });
         }
       }
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut de vérification:', error);
+      console.error(
+        "Erreur lors de la mise à jour du statut de vérification:",
+        error,
+      );
       // Ne pas propager l'erreur pour éviter de bloquer la vérification du document
     }
   }
@@ -988,7 +1037,7 @@ export class DocumentService {
    */
   private static getDocumentTypeName(type: DocumentType): string {
     // Import dynamiquement depuis le module partagé pour éviter les dépendances circulaires
-    const { documentTypeNames } = require('@/utils/document-utils');
+    const { documentTypeNames } = require("@/utils/document-utils");
 
     // Vérifier si le type existe dans le mapping
     if (documentTypeNames[type]) {
@@ -997,12 +1046,12 @@ export class DocumentService {
 
     // Fallback pour les types qui ne sont plus dans l'enum actuel
     const legacyTypes: Record<string, string> = {
-      DRIVER_LICENSE: 'Permis de conduire',
-      CRIMINAL_RECORD: 'Casier judiciaire',
-      PROFESSIONAL_CERTIFICATION: 'Certification professionnelle',
+      DRIVER_LICENSE: "Permis de conduire",
+      CRIMINAL_RECORD: "Casier judiciaire",
+      PROFESSIONAL_CERTIFICATION: "Certification professionnelle",
     };
 
-    return legacyTypes[type as string] || 'Document';
+    return legacyTypes[type as string] || "Document";
   }
 
   // Create a new document
@@ -1017,14 +1066,14 @@ export class DocumentService {
           fileSize: data.fileSize,
           mimeType: data.mimeType,
           userRole: data.userRole,
-          status: 'PENDING',
+          status: "PENDING",
         },
       });
     } catch (error) {
-      console.error('Error creating document:', error);
+      console.error("Error creating document:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to create document',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create document",
       });
     }
   }
@@ -1040,26 +1089,32 @@ export class DocumentService {
   async getDocumentsByUserId(userId: string): Promise<Document[]> {
     return await this.db.document.findMany({
       where: { userId },
-      orderBy: { uploadedAt: 'desc' },
+      orderBy: { uploadedAt: "desc" },
     });
   }
 
   // Get the most recent document of a specific type for a user
-  async getMostRecentDocumentByType(userId: string, type: DocumentType): Promise<Document | null> {
+  async getMostRecentDocumentByType(
+    userId: string,
+    type: DocumentType,
+  ): Promise<Document | null> {
     return await this.db.document.findFirst({
       where: { userId, type },
-      orderBy: { uploadedAt: 'desc' },
+      orderBy: { uploadedAt: "desc" },
     });
   }
 
   // Update a document
-  async updateDocument(id: string, data: UpdateDocumentInput): Promise<Document> {
+  async updateDocument(
+    id: string,
+    data: UpdateDocumentInput,
+  ): Promise<Document> {
     const document = await this.getDocumentById(id);
 
     if (!document) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Document not found',
+        code: "NOT_FOUND",
+        message: "Document not found",
       });
     }
 
@@ -1079,8 +1134,8 @@ export class DocumentService {
 
       if (!userWithDocument) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Document with user not found',
+          code: "NOT_FOUND",
+          message: "Document with user not found",
         });
       }
     }
@@ -1099,9 +1154,9 @@ export class DocumentService {
           // Send approval notification using the exported NotificationService function
           await sendNotification({
             userId: userWithDocument.user.id,
-            title: 'Document approuvé',
+            title: "Document approuvé",
             message: `Votre document ${userWithDocument.type} a été approuvé.`,
-            type: 'VERIFICATION',
+            type: "VERIFICATION",
             data: { status: VerificationStatus.APPROVED },
           });
 
@@ -1113,10 +1168,13 @@ export class DocumentService {
           // Send rejection notification
           await sendNotification({
             userId: userWithDocument.user.id,
-            title: 'Document rejeté',
-            message: `Votre document ${userWithDocument.type} a été rejeté: ${data.rejectionReason || 'Document invalide'}`,
-            type: 'VERIFICATION',
-            data: { status: VerificationStatus.REJECTED, reason: data.rejectionReason },
+            title: "Document rejeté",
+            message: `Votre document ${userWithDocument.type} a été rejeté: ${data.rejectionReason || "Document invalide"}`,
+            type: "VERIFICATION",
+            data: {
+              status: VerificationStatus.REJECTED,
+              reason: data.rejectionReason,
+            },
           });
 
           // Send email notification (if integrated with email service)
@@ -1126,10 +1184,10 @@ export class DocumentService {
 
       return updatedDocument;
     } catch (error) {
-      console.error('Error updating document:', error);
+      console.error("Error updating document:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to update document',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to update document",
       });
     }
   }
@@ -1140,8 +1198,8 @@ export class DocumentService {
 
     if (!document) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Document not found',
+        code: "NOT_FOUND",
+        message: "Document not found",
       });
     }
 
@@ -1150,35 +1208,47 @@ export class DocumentService {
         where: { id },
       });
     } catch (error) {
-      console.error('Error deleting document:', error);
+      console.error("Error deleting document:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to delete document',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to delete document",
       });
     }
   }
 
   // Check if user has provided all required documents
-  async hasRequiredDocuments(userId: string, requiredTypes: DocumentType[]): Promise<boolean> {
+  async hasRequiredDocuments(
+    userId: string,
+    requiredTypes: DocumentType[],
+  ): Promise<boolean> {
     const documents = await this.getDocumentsByUserId(userId);
-    const verifiedDocumentTypes = documents.filter(doc => doc.isVerified).map(doc => doc.type);
+    const verifiedDocumentTypes = documents
+      .filter((doc) => doc.isVerified)
+      .map((doc) => doc.type);
 
-    return requiredTypes.every(type => verifiedDocumentTypes.includes(type));
+    return requiredTypes.every((type) => verifiedDocumentTypes.includes(type));
   }
 
   // Get missing required documents
   async getMissingRequiredDocuments(
     userId: string,
-    requiredTypes: DocumentType[]
+    requiredTypes: DocumentType[],
   ): Promise<DocumentType[]> {
     const documents = await this.getDocumentsByUserId(userId);
-    const verifiedDocumentTypes = documents.filter(doc => doc.isVerified).map(doc => doc.type);
+    const verifiedDocumentTypes = documents
+      .filter((doc) => doc.isVerified)
+      .map((doc) => doc.type);
 
-    return requiredTypes.filter(type => !verifiedDocumentTypes.includes(type));
+    return requiredTypes.filter(
+      (type) => !verifiedDocumentTypes.includes(type),
+    );
   }
 
   // Check if any documents are about to expire
-  async getExpiringDocuments(userId: string, daysUntilExpiry: number): Promise<Document[]> {
+  async getExpiringDocuments(
+    userId: string,
+    daysUntilExpiry: number,
+  ): Promise<Document[]> {
     const expiryThreshold = new Date();
     expiryThreshold.setDate(expiryThreshold.getDate() + daysUntilExpiry);
 
@@ -1195,18 +1265,27 @@ export class DocumentService {
   // Get required document types by user role
   getRequiredDocumentTypesByRole(role: string): DocumentType[] {
     // Utiliser la fonction centralisée dans document-utils
-    const { getRequiredDocumentTypesByRole } = require('@/utils/document-utils');
+    const {
+      getRequiredDocumentTypesByRole,
+    } = require("@/utils/document-utils");
     return getRequiredDocumentTypesByRole(role);
   }
 
   // Send reminders for missing documents
   async sendMissingDocumentsReminders(user: User): Promise<void> {
     const requiredDocuments = this.getRequiredDocumentTypesByRole(user.role);
-    const missingDocuments = await this.getMissingRequiredDocuments(user.id, requiredDocuments);
+    const missingDocuments = await this.getMissingRequiredDocuments(
+      user.id,
+      requiredDocuments,
+    );
 
     if (missingDocuments.length > 0) {
       const locale = getUserPreferredLocale(user);
-      await this.notificationService.sendMissingDocumentsReminder(user, missingDocuments, locale);
+      await this.notificationService.sendMissingDocumentsReminder(
+        user,
+        missingDocuments,
+        locale,
+      );
     }
   }
 
@@ -1227,7 +1306,7 @@ export class DocumentService {
 
     const documents = await this.db.document.findMany({
       where,
-      orderBy: { uploadedAt: 'desc' },
+      orderBy: { uploadedAt: "desc" },
       include: {
         user: {
           select: {
@@ -1238,7 +1317,7 @@ export class DocumentService {
           },
         },
         verifications: {
-          orderBy: { requestedAt: 'desc' },
+          orderBy: { requestedAt: "desc" },
           select: {
             id: true,
             status: true,
@@ -1252,7 +1331,7 @@ export class DocumentService {
     });
 
     // Ensure consistent data format for both admin and merchant interfaces
-    return documents.map(doc => ({
+    return documents.map((doc) => ({
       ...doc,
       status: doc.verificationStatus,
       createdAt: doc.uploadedAt,

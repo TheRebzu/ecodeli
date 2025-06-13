@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -9,10 +9,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +20,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -28,17 +28,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   CheckCircle,
   XCircle,
@@ -52,14 +52,18 @@ import {
   UserCheck,
   MapPin,
   Star,
-} from 'lucide-react';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Link } from '@/navigation';
+} from "lucide-react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "@/navigation";
 
-type DelivererStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING_VERIFICATION';
-type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+type DelivererStatus =
+  | "ACTIVE"
+  | "INACTIVE"
+  | "SUSPENDED"
+  | "PENDING_VERIFICATION";
+type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 interface Deliverer {
   id: string;
@@ -99,11 +103,11 @@ export function DeliverersTable({
   onPageChange,
   onRefresh,
 }: DeliverersTableProps) {
-  const t = useTranslations('Admin');
+  const t = useTranslations("Admin");
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
-  const [verificationFilter, setVerificationFilter] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [verificationFilter, setVerificationFilter] = useState("ALL");
 
   // États pour les dialogs
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
@@ -113,7 +117,8 @@ export function DeliverersTable({
     newStatus: DelivererStatus;
   } | null>(null);
 
-  const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
+  const [isVerificationDialogOpen, setIsVerificationDialogOpen] =
+    useState(false);
   const [verificationAction, setVerificationAction] = useState<{
     delivererId: string;
     name: string;
@@ -124,51 +129,56 @@ export function DeliverersTable({
     delivererId: string;
     name: string;
   } | null>(null);
-  const [messageContent, setMessageContent] = useState('');
-  const [messageSubject, setMessageSubject] = useState('');
+  const [messageContent, setMessageContent] = useState("");
+  const [messageSubject, setMessageSubject] = useState("");
 
   // Mutations pour les actions admin
   const updateStatusMutation = api.admin.deliverers.updateStatus.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Statut du livreur mis à jour',
+        title: "Statut du livreur mis à jour",
       });
       setIsStatusDialogOpen(false);
       onRefresh?.();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
         title: `Erreur: ${error.message}`,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
 
-  const verifyDelivererMutation = api.admin.deliverers.verifyDeliverer.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Livreur vérifié avec succès',
-      });
-      setIsVerificationDialogOpen(false);
-      onRefresh?.();
-    },
-    onError: error => {
-      toast({
-        title: `Erreur: ${error.message}`,
-        variant: 'destructive',
-      });
-    },
-  });
+  const verifyDelivererMutation =
+    api.admin.deliverers.verifyDeliverer.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Livreur vérifié avec succès",
+        });
+        setIsVerificationDialogOpen(false);
+        onRefresh?.();
+      },
+      onError: (error) => {
+        toast({
+          title: `Erreur: ${error.message}`,
+          variant: "destructive",
+        });
+      },
+    });
 
   // Handlers pour les actions
   const handleSendMessage = (delivererId: string, name: string) => {
     setMessageAction({ delivererId, name });
-    setMessageSubject('');
-    setMessageContent('');
+    setMessageSubject("");
+    setMessageContent("");
     setIsMessageDialogOpen(true);
   };
 
-  const handleStatusChange = (delivererId: string, name: string, newStatus: DelivererStatus) => {
+  const handleStatusChange = (
+    delivererId: string,
+    name: string,
+    newStatus: DelivererStatus,
+  ) => {
     setStatusAction({ delivererId, name, newStatus });
     setIsStatusDialogOpen(true);
   };
@@ -199,14 +209,14 @@ export function DeliverersTable({
     if (messageAction && messageContent && messageSubject) {
       // Ici on pourrait implémenter l'envoi de message
       toast({
-        title: 'Message envoyé',
+        title: "Message envoyé",
       });
       setIsMessageDialogOpen(false);
     }
   };
 
   // Filtrer les livreurs
-  const filteredDeliverers = deliverers.filter(deliverer => {
+  const filteredDeliverers = deliverers.filter((deliverer) => {
     // Filtre par recherche
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -220,14 +230,18 @@ export function DeliverersTable({
     }
 
     // Filtre par statut
-    if (statusFilter && statusFilter !== 'ALL' && deliverer.status !== statusFilter) {
+    if (
+      statusFilter &&
+      statusFilter !== "ALL" &&
+      deliverer.status !== statusFilter
+    ) {
       return false;
     }
 
     // Filtre par vérification
     if (
       verificationFilter &&
-      verificationFilter !== 'ALL' &&
+      verificationFilter !== "ALL" &&
       deliverer.verificationStatus !== verificationFilter
     ) {
       return false;
@@ -238,27 +252,33 @@ export function DeliverersTable({
 
   const renderStatusBadge = (status: DelivererStatus) => {
     switch (status) {
-      case 'ACTIVE':
+      case "ACTIVE":
         return (
           <Badge variant="default" className="bg-green-100 text-green-800">
             Actif
           </Badge>
         );
-      case 'INACTIVE':
+      case "INACTIVE":
         return <Badge variant="secondary">Inactif</Badge>;
-      case 'SUSPENDED':
+      case "SUSPENDED":
         return <Badge variant="destructive">Suspendu</Badge>;
-      case 'PENDING_VERIFICATION':
+      case "PENDING_VERIFICATION":
         return <Badge variant="outline">En attente</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const renderVerificationBadge = (status: VerificationStatus, isVerified: boolean) => {
+  const renderVerificationBadge = (
+    status: VerificationStatus,
+    isVerified: boolean,
+  ) => {
     if (isVerified) {
       return (
-        <Badge variant="default" className="bg-green-100 text-green-800 flex items-center gap-1">
+        <Badge
+          variant="default"
+          className="bg-green-100 text-green-800 flex items-center gap-1"
+        >
           <CheckCircle className="h-3 w-3" />
           Vérifié
         </Badge>
@@ -266,14 +286,14 @@ export function DeliverersTable({
     }
 
     switch (status) {
-      case 'PENDING':
+      case "PENDING":
         return (
           <Badge variant="outline" className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             En attente
           </Badge>
         );
-      case 'REJECTED':
+      case "REJECTED":
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <XCircle className="h-3 w-3" />
@@ -286,31 +306,31 @@ export function DeliverersTable({
   };
 
   const formatEarnings = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   const formatDate = (date: Date | string | null | undefined) => {
-    if (!date) return '-';
+    if (!date) return "-";
 
     try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      const dateObj = typeof date === "string" ? new Date(date) : date;
 
       // Vérifier si la date est valide
       if (isNaN(dateObj.getTime())) {
-        return '-';
+        return "-";
       }
 
-      return new Intl.DateTimeFormat('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
+      return new Intl.DateTimeFormat("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
       }).format(dateObj);
     } catch (error) {
-      console.warn('Erreur lors du formatage de la date:', date, error);
-      return '-';
+      console.warn("Erreur lors du formatage de la date:", date, error);
+      return "-";
     }
   };
 
@@ -332,7 +352,7 @@ export function DeliverersTable({
           <Input
             placeholder="Rechercher par nom ou email..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -348,7 +368,10 @@ export function DeliverersTable({
             <SelectItem value="PENDING_VERIFICATION">En attente</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={verificationFilter} onValueChange={setVerificationFilter}>
+        <Select
+          value={verificationFilter}
+          onValueChange={setVerificationFilter}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Vérification" />
           </SelectTrigger>
@@ -378,7 +401,7 @@ export function DeliverersTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredDeliverers.map(deliverer => (
+            {filteredDeliverers.map((deliverer) => (
               <TableRow key={deliverer.id}>
                 <TableCell>
                   <div className="flex items-center space-x-3">
@@ -393,25 +416,36 @@ export function DeliverersTable({
                       <div className="font-medium">
                         {deliverer.firstName} {deliverer.lastName}
                       </div>
-                      <div className="text-sm text-muted-foreground">{deliverer.email}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {deliverer.email}
+                      </div>
                       {deliverer.phone && (
-                        <div className="text-sm text-muted-foreground">{deliverer.phone}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {deliverer.phone}
+                        </div>
                       )}
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>{renderStatusBadge(deliverer.status)}</TableCell>
                 <TableCell>
-                  {renderVerificationBadge(deliverer.verificationStatus, deliverer.isVerified)}
+                  {renderVerificationBadge(
+                    deliverer.verificationStatus,
+                    deliverer.isVerified,
+                  )}
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
                     <div>
-                      {deliverer.completedDeliveries}/{deliverer.totalDeliveries}
+                      {deliverer.completedDeliveries}/
+                      {deliverer.totalDeliveries}
                     </div>
                     <div className="text-muted-foreground">
-                      {getCompletionRate(deliverer.completedDeliveries, deliverer.totalDeliveries)}%
-                      réussite
+                      {getCompletionRate(
+                        deliverer.completedDeliveries,
+                        deliverer.totalDeliveries,
+                      )}
+                      % réussite
                     </div>
                   </div>
                 </TableCell>
@@ -425,7 +459,7 @@ export function DeliverersTable({
                 <TableCell>
                   {deliverer.hasVehicle ? (
                     <div className="text-sm">
-                      <div>{deliverer.vehicleType || 'Véhicule'}</div>
+                      <div>{deliverer.vehicleType || "Véhicule"}</div>
                       <Badge variant="outline" className="text-xs">
                         Véhiculé
                       </Badge>
@@ -436,7 +470,9 @@ export function DeliverersTable({
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-sm">{formatDate(deliverer.createdAt)}</TableCell>
+                <TableCell className="text-sm">
+                  {formatDate(deliverer.createdAt)}
+                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -456,7 +492,7 @@ export function DeliverersTable({
                         onClick={() =>
                           handleSendMessage(
                             deliverer.id,
-                            `${deliverer.firstName} ${deliverer.lastName}`
+                            `${deliverer.firstName} ${deliverer.lastName}`,
                           )
                         }
                       >
@@ -464,32 +500,35 @@ export function DeliverersTable({
                         Envoyer un message
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/admin/verification/deliverer/${deliverer.id}`}>
+                        <Link
+                          href={`/admin/verification/deliverer/${deliverer.id}`}
+                        >
                           <MapPin className="mr-2 h-4 w-4" />
                           Voir les documents
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      {!deliverer.isVerified && deliverer.verificationStatus === 'PENDING' && (
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleVerifyDeliverer(
-                              deliverer.id,
-                              `${deliverer.firstName} ${deliverer.lastName}`
-                            )
-                          }
-                        >
-                          <UserCheck className="mr-2 h-4 w-4" />
-                          Vérifier
-                        </DropdownMenuItem>
-                      )}
-                      {deliverer.status === 'ACTIVE' && (
+                      {!deliverer.isVerified &&
+                        deliverer.verificationStatus === "PENDING" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleVerifyDeliverer(
+                                deliverer.id,
+                                `${deliverer.firstName} ${deliverer.lastName}`,
+                              )
+                            }
+                          >
+                            <UserCheck className="mr-2 h-4 w-4" />
+                            Vérifier
+                          </DropdownMenuItem>
+                        )}
+                      {deliverer.status === "ACTIVE" && (
                         <DropdownMenuItem
                           onClick={() =>
                             handleStatusChange(
                               deliverer.id,
                               `${deliverer.firstName} ${deliverer.lastName}`,
-                              'SUSPENDED'
+                              "SUSPENDED",
                             )
                           }
                         >
@@ -497,13 +536,13 @@ export function DeliverersTable({
                           Suspendre
                         </DropdownMenuItem>
                       )}
-                      {deliverer.status === 'SUSPENDED' && (
+                      {deliverer.status === "SUSPENDED" && (
                         <DropdownMenuItem
                           onClick={() =>
                             handleStatusChange(
                               deliverer.id,
                               `${deliverer.firstName} ${deliverer.lastName}`,
-                              'ACTIVE'
+                              "ACTIVE",
                             )
                           }
                         >
@@ -552,54 +591,70 @@ export function DeliverersTable({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {statusAction?.newStatus === 'SUSPENDED'
-                ? 'Suspendre le livreur'
-                : 'Réactiver le livreur'}
+              {statusAction?.newStatus === "SUSPENDED"
+                ? "Suspendre le livreur"
+                : "Réactiver le livreur"}
             </DialogTitle>
             <DialogDescription>
-              {statusAction?.newStatus === 'SUSPENDED'
+              {statusAction?.newStatus === "SUSPENDED"
                 ? `Vous êtes sur le point de suspendre ${statusAction?.name}. Le livreur ne pourra plus accepter de nouvelles livraisons.`
                 : `Vous êtes sur le point de réactiver ${statusAction?.name}. Le livreur pourra à nouveau accepter des livraisons.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsStatusDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsStatusDialogOpen(false)}
+            >
               Annuler
             </Button>
             <Button
-              variant={statusAction?.newStatus === 'SUSPENDED' ? 'destructive' : 'default'}
+              variant={
+                statusAction?.newStatus === "SUSPENDED"
+                  ? "destructive"
+                  : "default"
+              }
               onClick={handleConfirmStatusChange}
               disabled={updateStatusMutation.isPending}
             >
               {updateStatusMutation.isPending
-                ? 'Traitement...'
-                : statusAction?.newStatus === 'SUSPENDED'
-                  ? 'Confirmer la suspension'
-                  : 'Confirmer la réactivation'}
+                ? "Traitement..."
+                : statusAction?.newStatus === "SUSPENDED"
+                  ? "Confirmer la suspension"
+                  : "Confirmer la réactivation"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Dialog de confirmation de vérification */}
-      <Dialog open={isVerificationDialogOpen} onOpenChange={setIsVerificationDialogOpen}>
+      <Dialog
+        open={isVerificationDialogOpen}
+        onOpenChange={setIsVerificationDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Vérifier le livreur</DialogTitle>
             <DialogDescription>
-              Vous êtes sur le point de vérifier {verificationAction?.name}. Cette action validera
-              ses documents et lui permettra de commencer à effectuer des livraisons.
+              Vous êtes sur le point de vérifier {verificationAction?.name}.
+              Cette action validera ses documents et lui permettra de commencer
+              à effectuer des livraisons.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsVerificationDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsVerificationDialogOpen(false)}
+            >
               Annuler
             </Button>
             <Button
               onClick={handleConfirmVerification}
               disabled={verifyDelivererMutation.isPending}
             >
-              {verifyDelivererMutation.isPending ? 'Traitement...' : 'Confirmer la vérification'}
+              {verifyDelivererMutation.isPending
+                ? "Traitement..."
+                : "Confirmer la vérification"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -610,7 +665,9 @@ export function DeliverersTable({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Envoyer un message</DialogTitle>
-            <DialogDescription>Envoyer un message à {messageAction?.name}</DialogDescription>
+            <DialogDescription>
+              Envoyer un message à {messageAction?.name}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -618,7 +675,7 @@ export function DeliverersTable({
               <Input
                 id="message-subject"
                 value={messageSubject}
-                onChange={e => setMessageSubject(e.target.value)}
+                onChange={(e) => setMessageSubject(e.target.value)}
                 placeholder="Sujet du message"
               />
             </div>
@@ -627,17 +684,23 @@ export function DeliverersTable({
               <Textarea
                 id="message-content"
                 value={messageContent}
-                onChange={e => setMessageContent(e.target.value)}
+                onChange={(e) => setMessageContent(e.target.value)}
                 placeholder="Contenu de votre message..."
                 className="min-h-[100px]"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsMessageDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsMessageDialogOpen(false)}
+            >
               Annuler
             </Button>
-            <Button onClick={handleConfirmMessage} disabled={!messageContent || !messageSubject}>
+            <Button
+              onClick={handleConfirmMessage}
+              disabled={!messageContent || !messageSubject}
+            >
               Envoyer le message
             </Button>
           </DialogFooter>

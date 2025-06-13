@@ -1,5 +1,5 @@
-import { createNavigation } from 'next-intl/navigation';
-import { routing } from '@/i18n/routing';
+import { createNavigation } from "next-intl/navigation";
+import { routing } from "@/i18n/routing";
 
 /**
  * Navigation utilities that are aware of internationalization

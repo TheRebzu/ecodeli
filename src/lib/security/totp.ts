@@ -1,5 +1,5 @@
-import { authenticator } from 'otplib';
-import { randomBytes } from 'crypto';
+import { authenticator } from "otplib";
+import { randomBytes } from "crypto";
 
 export function generateTOTPSecret(): string {
   return authenticator.generateSecret();
@@ -8,7 +8,7 @@ export function generateTOTPSecret(): string {
 export function generateBackupCodes(count: number = 10): string[] {
   const codes = [];
   for (let i = 0; i < count; i++) {
-    const code = randomBytes(4).toString('hex').toUpperCase();
+    const code = randomBytes(4).toString("hex").toUpperCase();
     codes.push(code);
   }
   return codes;

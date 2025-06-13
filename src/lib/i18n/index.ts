@@ -4,6 +4,6 @@
  */
 
 // Exports des fichiers locaux
-export * from './formatters';
-export * from './localization';
-export * from './user-locale';
+export * from "./formatters";
+export * from "./localization";
+export * from "./user-locale";

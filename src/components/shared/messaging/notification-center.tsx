@@ -1,13 +1,20 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Bell, Check, Clock, FileText, Trash, AlertTriangle } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { fr, enGB } from 'date-fns/locale';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import {
+  Bell,
+  Check,
+  Clock,
+  FileText,
+  Trash,
+  AlertTriangle,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { fr, enGB } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,14 +22,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Pagination } from '@/components/ui/pagination';
-import { useToast } from '@/components/ui/use-toast';
-import { api } from '@/trpc/react';
-import { cn } from '@/lib/utils/common';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
+import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/trpc/react";
+import { cn } from "@/lib/utils/common";
 
 interface NotificationCenterProps {
   locale: string;
@@ -41,11 +48,11 @@ interface Notification {
 
 export function NotificationCenter({ locale }: NotificationCenterProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+  const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
   const [itemsPerPage] = useState(10);
 
   const t = useTranslations();
-  const tNotif = useTranslations('notifications');
+  const tNotif = useTranslations("notifications");
   const router = useRouter();
   const { toast } = useToast();
 
@@ -54,7 +61,10 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
     data: notificationsData,
     isLoading,
     refetch,
-  } = api.notification.getNotifications.useQuery({ page: currentPage, limit: itemsPerPage });
+  } = api.notification.getNotifications.useQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+  });
 
   // Get unread notifications
   const {
@@ -62,7 +72,7 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
     isLoading: isLoadingUnread,
     refetch: refetchUnread,
   } = api.notification.getUnreadNotifications.useQuery(undefined, {
-    enabled: activeTab === 'unread',
+    enabled: activeTab === "unread",
   });
 
   // Mutations
@@ -78,33 +88,35 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
       refetch();
       refetchUnread();
       toast({
-        title: tNotif('allMarkedAsRead'),
+        title: tNotif("allMarkedAsRead"),
       });
     },
   });
 
-  const deleteNotificationMutation = api.notification.deleteNotification.useMutation({
-    onSuccess: () => {
-      refetch();
-      refetchUnread();
-      toast({
-        title: tNotif('notificationDeleted'),
-      });
-    },
-  });
+  const deleteNotificationMutation =
+    api.notification.deleteNotification.useMutation({
+      onSuccess: () => {
+        refetch();
+        refetchUnread();
+        toast({
+          title: tNotif("notificationDeleted"),
+        });
+      },
+    });
 
-  const deleteAllNotificationsMutation = api.notification.deleteAllNotifications.useMutation({
-    onSuccess: () => {
-      refetch();
-      refetchUnread();
-      toast({
-        title: tNotif('allNotificationsDeleted'),
-      });
-    },
-  });
+  const deleteAllNotificationsMutation =
+    api.notification.deleteAllNotifications.useMutation({
+      onSuccess: () => {
+        refetch();
+        refetchUnread();
+        toast({
+          title: tNotif("allNotificationsDeleted"),
+        });
+      },
+    });
 
   const handleTabChange = (value: string) => {
-    setActiveTab(value as 'all' | 'unread');
+    setActiveTab(value as "all" | "unread");
     setCurrentPage(1);
   };
 
@@ -112,7 +124,11 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
     setCurrentPage(page);
   };
 
-  const handleNotificationClick = async (id: string, read: boolean, link: string | null) => {
+  const handleNotificationClick = async (
+    id: string,
+    read: boolean,
+    link: string | null,
+  ) => {
     if (!read) {
       await markAsReadMutation.mutateAsync({ id });
     }
@@ -136,17 +152,17 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
   };
 
   const getNotificationIcon = (type: string) => {
-    if (type.includes('DOCUMENT')) {
-      if (type.includes('APPROVED')) {
+    if (type.includes("DOCUMENT")) {
+      if (type.includes("APPROVED")) {
         return <Check className="h-5 w-5 text-green-500" />;
-      } else if (type.includes('REJECTED')) {
+      } else if (type.includes("REJECTED")) {
         return <AlertTriangle className="h-5 w-5 text-red-500" />;
       }
       return <FileText className="h-5 w-5 text-primary" />;
-    } else if (type.includes('VERIFICATION')) {
-      if (type.includes('APPROVED')) {
+    } else if (type.includes("VERIFICATION")) {
+      if (type.includes("APPROVED")) {
         return <Check className="h-5 w-5 text-green-500" />;
-      } else if (type.includes('REJECTED')) {
+      } else if (type.includes("REJECTED")) {
         return <AlertTriangle className="h-5 w-5 text-red-500" />;
       } else {
         return <Clock className="h-5 w-5 text-amber-500" />;
@@ -157,13 +173,16 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
   };
 
   const formatDate = (date: Date) => {
-    const localeObj = locale === 'fr' ? fr : enGB;
-    return formatDistanceToNow(new Date(date), { addSuffix: true, locale: localeObj });
+    const localeObj = locale === "fr" ? fr : enGB;
+    return formatDistanceToNow(new Date(date), {
+      addSuffix: true,
+      locale: localeObj,
+    });
   };
 
   const renderNotificationList = (
     notifications: Notification[] | undefined,
-    isLoading: boolean
+    isLoading: boolean,
   ) => {
     if (isLoading) {
       return (
@@ -187,25 +206,31 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Bell className="h-16 w-16 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium text-muted-foreground mb-1">
-            {tNotif('noNotifications')}
+            {tNotif("noNotifications")}
           </h3>
-          <p className="text-sm text-muted-foreground">{tNotif('notificationsWillAppearHere')}</p>
+          <p className="text-sm text-muted-foreground">
+            {tNotif("notificationsWillAppearHere")}
+          </p>
         </div>
       );
     }
 
     return (
       <div className="space-y-4">
-        {notifications.map(notification => (
+        {notifications.map((notification) => (
           <div
             key={notification.id}
             className={cn(
-              'flex items-start gap-4 p-4 border rounded-md cursor-pointer transition-colors',
-              !notification.read && 'bg-muted/30 hover:bg-muted/50',
-              notification.read && 'hover:bg-muted/10'
+              "flex items-start gap-4 p-4 border rounded-md cursor-pointer transition-colors",
+              !notification.read && "bg-muted/30 hover:bg-muted/50",
+              notification.read && "hover:bg-muted/10",
             )}
             onClick={() =>
-              handleNotificationClick(notification.id, notification.read, notification.link)
+              handleNotificationClick(
+                notification.id,
+                notification.read,
+                notification.link,
+              )
             }
           >
             <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -215,19 +240,26 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start mb-1">
                 <div>
-                  <h4 className={cn('font-medium', !notification.read && 'font-semibold')}>
+                  <h4
+                    className={cn(
+                      "font-medium",
+                      !notification.read && "font-semibold",
+                    )}
+                  >
                     {notification.title}
                   </h4>
-                  <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {notification.message}
+                  </p>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="text-muted-foreground hover:text-destructive"
-                  onClick={e => handleDeleteNotification(e, notification.id)}
+                  onClick={(e) => handleDeleteNotification(e, notification.id)}
                 >
                   <Trash className="h-4 w-4" />
-                  <span className="sr-only">{tNotif('delete')}</span>
+                  <span className="sr-only">{tNotif("delete")}</span>
                 </Button>
               </div>
 
@@ -237,7 +269,7 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
                 </span>
                 {!notification.read ? (
                   <Badge variant="secondary" className="text-xs">
-                    {tNotif('unread')}
+                    {tNotif("unread")}
                   </Badge>
                 ) : null}
               </div>
@@ -249,19 +281,25 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
   };
 
   // Calculate total pages
-  const totalPages = notificationsData ? Math.ceil(notificationsData.total / itemsPerPage) : 0;
+  const totalPages = notificationsData
+    ? Math.ceil(notificationsData.total / itemsPerPage)
+    : 0;
 
   return (
     <Card className="w-full">
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>{tNotif('title')}</CardTitle>
-            <CardDescription>{tNotif('description')}</CardDescription>
+            <CardTitle>{tNotif("title")}</CardTitle>
+            <CardDescription>{tNotif("description")}</CardDescription>
           </div>
           <div className="flex gap-2">
-            {(activeTab === 'unread' && unreadNotifications && unreadNotifications.length > 0) ||
-            (activeTab === 'all' && notificationsData && notificationsData.total > 0) ? (
+            {(activeTab === "unread" &&
+              unreadNotifications &&
+              unreadNotifications.length > 0) ||
+            (activeTab === "all" &&
+              notificationsData &&
+              notificationsData.total > 0) ? (
               <>
                 <Button
                   variant="outline"
@@ -269,7 +307,7 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
                   onClick={handleMarkAllAsRead}
                   disabled={markAllAsReadMutation.isPending}
                 >
-                  {tNotif('markAllAsRead')}
+                  {tNotif("markAllAsRead")}
                 </Button>
                 <Button
                   variant="outline"
@@ -278,7 +316,7 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
                   disabled={deleteAllNotificationsMutation.isPending}
                   className="text-destructive border-destructive hover:bg-destructive/10"
                 >
-                  {tNotif('deleteAll')}
+                  {tNotif("deleteAll")}
                 </Button>
               </>
             ) : null}
@@ -287,11 +325,15 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
       </CardHeader>
 
       <CardContent>
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
           <TabsList className="mb-4">
-            <TabsTrigger value="all">{tNotif('allNotifications')}</TabsTrigger>
+            <TabsTrigger value="all">{tNotif("allNotifications")}</TabsTrigger>
             <TabsTrigger value="unread">
-              {tNotif('unreadOnly')}
+              {tNotif("unreadOnly")}
               {unreadNotifications && unreadNotifications.length > 0 ? (
                 <Badge variant="secondary" className="ml-2">
                   {unreadNotifications.length}
@@ -301,7 +343,10 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
           </TabsList>
 
           <TabsContent value="all" className="mt-0">
-            {renderNotificationList(notificationsData?.notifications, isLoading)}
+            {renderNotificationList(
+              notificationsData?.notifications,
+              isLoading,
+            )}
 
             {totalPages > 1 && (
               <div className="flex justify-center mt-6">
@@ -322,7 +367,7 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
 
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={() => router.back()}>
-          {t('common.back')}
+          {t("common.back")}
         </Button>
       </CardFooter>
     </Card>

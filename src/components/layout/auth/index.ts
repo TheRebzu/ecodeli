@@ -4,5 +4,5 @@
  */
 
 // Exports des fichiers locaux
-export { default as Navbar } from './navbar';
-export * from './navbar';
+export { default as Navbar } from "./navbar";
+export * from "./navbar";

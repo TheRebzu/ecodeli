@@ -4,6 +4,6 @@
  */
 
 // Exports des fichiers locaux
-export * from './commission-calculator.service';
-export * from './monthly-invoice-generator.service';
-export * from './payment-release.service';
+export * from "./commission-calculator.service";
+export * from "./monthly-invoice-generator.service";
+export * from "./payment-release.service";

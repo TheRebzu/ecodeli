@@ -2,7 +2,7 @@ export type WarehouseFilters = {
   search?: string;
   isActive?: boolean;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
 };
@@ -40,7 +40,7 @@ export type BoxFilters = {
   clientId?: string;
   search?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
 };
@@ -81,7 +81,7 @@ export type ReservationFilters = {
   endDateFrom?: Date;
   endDateTo?: Date;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
 };

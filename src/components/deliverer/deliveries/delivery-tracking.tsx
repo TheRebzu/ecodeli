@@ -1,16 +1,23 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useRef } from 'react';
-import { useTranslations } from 'next-intl';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet-routing-machine';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+import React, { useEffect, useState, useRef } from "react";
+import { useTranslations } from "next-intl";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  Polyline,
+} from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet-routing-machine";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   AlertCircle,
   Navigation,
@@ -20,11 +27,11 @@ import {
   LocateFixed,
   MapPin,
   Truck,
-} from 'lucide-react';
-import { cn } from '@/lib/utils/common';
+} from "lucide-react";
+import { cn } from "@/lib/utils/common";
 
 // Déclaration pour étendre l'interface Leaflet avec Routing Machine
-declare module 'leaflet' {
+declare module "leaflet" {
   interface RoutingControlOptions {
     waypoints: L.LatLng[];
     lineOptions?: {
@@ -76,7 +83,13 @@ interface DeliveryTrackingMapProps {
 }
 
 // Composant pour mettre à jour la vue de la carte
-function SetViewOnChange({ center, zoom }: { center: L.LatLngExpression; zoom: number }) {
+function SetViewOnChange({
+  center,
+  zoom,
+}: {
+  center: L.LatLngExpression;
+  zoom: number;
+}) {
   const map = useMap();
   useEffect(() => {
     map.setView(center, zoom);
@@ -108,7 +121,7 @@ function RoutingControl({
     const control = L.Routing.control({
       waypoints: [L.latLng(origin), L.latLng(destination)],
       lineOptions: {
-        styles: [{ color: '#6366F1', weight: 4 }],
+        styles: [{ color: "#6366F1", weight: 4 }],
         extendToWaypoints: true,
         missingRouteTolerance: 0,
       },
@@ -166,21 +179,21 @@ function UserLocation({
 
     // Fonction pour gérer les erreurs de localisation
     const onLocationError = (e: L.ErrorEvent) => {
-      console.error('Erreur de géolocalisation:', e.message);
+      console.error("Erreur de géolocalisation:", e.message);
       setIsLocating(false);
     };
 
     // Ajouter les gestionnaires d'événements
-    map.on('locationfound', onLocationFound);
-    map.on('locationerror', onLocationError);
+    map.on("locationfound", onLocationFound);
+    map.on("locationerror", onLocationError);
 
     // Initier la localisation au montage
     handleLocate();
 
     // Nettoyer les gestionnaires d'événements à la destruction
     return () => {
-      map.off('locationfound', onLocationFound);
-      map.off('locationerror', onLocationError);
+      map.off("locationfound", onLocationFound);
+      map.off("locationerror", onLocationError);
       map.stopLocate();
     };
   }, [map, onLocationUpdate]);
@@ -190,7 +203,7 @@ function UserLocation({
     <Marker
       position={[userPosition.lat, userPosition.lng]}
       icon={L.divIcon({
-        className: 'custom-div-icon',
+        className: "custom-div-icon",
         html: `
           <div class="relative">
             <div class="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-blue-500 border-2 border-white shadow-lg flex items-center justify-center">
@@ -211,7 +224,7 @@ function UserLocation({
 // Icônes personnalisées pour les marqueurs
 const createMapIcon = (iconUrl: string, className?: string) => {
   return L.divIcon({
-    className: cn('custom-div-icon', className),
+    className: cn("custom-div-icon", className),
     html: `<div class="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md">${iconUrl}</div>`,
     iconSize: [40, 40],
     iconAnchor: [20, 20],
@@ -220,28 +233,28 @@ const createMapIcon = (iconUrl: string, className?: string) => {
 
 // Icônes pour les différents points
 const originIcon = createMapIcon(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package-open"><path d="M20.5 7.28V14a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2V7.28a2 2 0 0 1 1.36-1.9L11.5 2a2 2 0 0 1 .73-.1h.54a2 2 0 0 1 .73.1l6.64 3.38a2 2 0 0 1 1.36 1.9Z"/><path d="M11.62 16 7 13.28V7.72L11.62 5"/><path d="M12.38 5 17 7.72v5.56L12.38 16"/><path d="M7 8l5 3"/><path d="M12 11l5-3"/></svg>`
+  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package-open"><path d="M20.5 7.28V14a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2V7.28a2 2 0 0 1 1.36-1.9L11.5 2a2 2 0 0 1 .73-.1h.54a2 2 0 0 1 .73.1l6.64 3.38a2 2 0 0 1 1.36 1.9Z"/><path d="M11.62 16 7 13.28V7.72L11.62 5"/><path d="M12.38 5 17 7.72v5.56L12.38 16"/><path d="M7 8l5 3"/><path d="M12 11l5-3"/></svg>`,
 );
 const destinationIcon = createMapIcon(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E11D48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`
+  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E11D48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
 );
 const delivererIcon = createMapIcon(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3M4 14h12"/><circle cx="7" cy="18" r="2"/><path d="M13 18h.01"/><circle cx="18" cy="18" r="2"/><path d="M20 15v-3a2 2 0 0 0-2-2h-1"/></svg>`
+  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2a1 1 0 0 0 1-1v-3M4 14h12"/><circle cx="7" cy="18" r="2"/><path d="M13 18h.01"/><circle cx="18" cy="18" r="2"/><path d="M20 15v-3a2 2 0 0 0-2-2h-1"/></svg>`,
 );
 
 export default function DeliveryTrackingMap({
   currentLocation,
   origin,
   destination,
-  height = '400px',
-  width = '100%',
+  height = "400px",
+  width = "100%",
   showDirections = true,
   showControls = true,
   interactive = true,
   className,
   onLocationUpdate,
 }: DeliveryTrackingMapProps) {
-  const t = useTranslations('deliveries.tracking');
+  const t = useTranslations("deliveries.tracking");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -263,7 +276,7 @@ export default function DeliveryTrackingMap({
         });
       }
     } catch (err) {
-      setError('Votre navigateur ne prend pas en charge le mode plein écran');
+      setError("Votre navigateur ne prend pas en charge le mode plein écran");
     }
   };
 
@@ -273,9 +286,9 @@ export default function DeliveryTrackingMap({
       setIsFullscreen(!!document.fullscreenElement);
     };
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
 
@@ -290,8 +303,8 @@ export default function DeliveryTrackingMap({
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>{t('errorTitle')}</AlertTitle>
-        <AlertDescription>{t('missingDestination')}</AlertDescription>
+        <AlertTitle>{t("errorTitle")}</AlertTitle>
+        <AlertDescription>{t("missingDestination")}</AlertDescription>
       </Alert>
     );
   }
@@ -300,9 +313,9 @@ export default function DeliveryTrackingMap({
     <div
       ref={mapContainerRef}
       className={cn(
-        'relative rounded-lg overflow-hidden border',
-        isFullscreen && 'fixed inset-0 z-50 rounded-none border-none',
-        className
+        "relative rounded-lg overflow-hidden border",
+        isFullscreen && "fixed inset-0 z-50 rounded-none border-none",
+        className,
       )}
       style={{ height, width }}
     >
@@ -311,7 +324,7 @@ export default function DeliveryTrackingMap({
       {error && (
         <Alert variant="destructive" className="absolute inset-0 z-20 m-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('errorTitle')}</AlertTitle>
+          <AlertTitle>{t("errorTitle")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -319,7 +332,7 @@ export default function DeliveryTrackingMap({
       <MapContainer
         center={[destination.lat, destination.lng]}
         zoom={13}
-        style={{ height: '100%', width: '100%' }}
+        style={{ height: "100%", width: "100%" }}
         attributionControl={false}
         zoomControl={false}
         dragging={interactive}
@@ -336,19 +349,25 @@ export default function DeliveryTrackingMap({
         {/* Marqueur pour l'origine (point de retrait) */}
         {origin && (
           <Marker position={[origin.lat, origin.lng]} icon={originIcon}>
-            <Popup>{t('originPoint')}</Popup>
+            <Popup>{t("originPoint")}</Popup>
           </Marker>
         )}
 
         {/* Marqueur pour la destination (point de livraison) */}
-        <Marker position={[destination.lat, destination.lng]} icon={destinationIcon}>
-          <Popup>{t('destinationPoint')}</Popup>
+        <Marker
+          position={[destination.lat, destination.lng]}
+          icon={destinationIcon}
+        >
+          <Popup>{t("destinationPoint")}</Popup>
         </Marker>
 
         {/* Marqueur pour la position actuelle du livreur */}
         {currentLocation && (
-          <Marker position={[currentLocation.lat, currentLocation.lng]} icon={delivererIcon}>
-            <Popup>{t('currentPosition')}</Popup>
+          <Marker
+            position={[currentLocation.lat, currentLocation.lng]}
+            icon={delivererIcon}
+          >
+            <Popup>{t("currentPosition")}</Popup>
           </Marker>
         )}
 
@@ -395,7 +414,11 @@ export default function DeliveryTrackingMap({
             className="h-10 w-10 rounded-full shadow-md bg-white hover:bg-gray-100 text-black"
             onClick={toggleFullscreen}
           >
-            {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+            {isFullscreen ? (
+              <Minimize2 className="h-5 w-5" />
+            ) : (
+              <Maximize2 className="h-5 w-5" />
+            )}
           </Button>
           {interactive && (
             <Button
@@ -405,7 +428,7 @@ export default function DeliveryTrackingMap({
               onClick={() => {
                 if (destination) {
                   const url = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`;
-                  window.open(url, '_blank');
+                  window.open(url, "_blank");
                 }
               }}
             >
@@ -419,7 +442,7 @@ export default function DeliveryTrackingMap({
       {showDirections && currentLocation && (
         <div className="absolute left-2 bottom-2 z-10">
           <Badge variant="secondary" className="bg-white text-black shadow-md">
-            <Truck className="h-3 w-3 mr-1" /> {t('navigationMode')}
+            <Truck className="h-3 w-3 mr-1" /> {t("navigationMode")}
           </Badge>
         </div>
       )}
@@ -427,23 +450,23 @@ export default function DeliveryTrackingMap({
       {/* Légende de la carte - visible uniquement en mode plein écran */}
       {isFullscreen && (
         <Card className="absolute left-2 top-2 z-10 p-2 bg-white/90 shadow-md">
-          <div className="text-sm font-medium mb-2">{t('legend')}</div>
+          <div className="text-sm font-medium mb-2">{t("legend")}</div>
           <div className="flex flex-col gap-2 text-xs">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span>{t('yourPosition')}</span>
+              <span>{t("yourPosition")}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-              <span>{t('pickupPoint')}</span>
+              <span>{t("pickupPoint")}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span>{t('deliveryPoint')}</span>
+              <span>{t("deliveryPoint")}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-1 bg-indigo-500"></div>
-              <span>{t('route')}</span>
+              <span>{t("route")}</span>
             </div>
           </div>
         </Card>

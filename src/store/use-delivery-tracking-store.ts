@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-import { shallow } from 'zustand/shallow';
-import { DeliveryStatus } from '@prisma/client';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
+import { shallow } from "zustand/shallow";
+import { DeliveryStatus } from "@prisma/client";
 import {
   connectSocket,
   disconnectSocket,
@@ -10,8 +10,8 @@ import {
   DeliveryTrackingEvent,
   socket,
   GeoPoint,
-} from '@/socket';
-import { debounce, throttle } from 'lodash';
+} from "@/socket";
+import { debounce, throttle } from "lodash";
 
 // Types pour le store
 type DeliveryInfo = {
@@ -73,7 +73,7 @@ type DeliveryMetrics = {
 };
 
 // État de connexion
-type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
+type ConnectionState = "disconnected" | "connecting" | "connected" | "error";
 
 // État du store
 type DeliveryTrackingState = {
@@ -114,7 +114,9 @@ type DeliveryTrackingActions = {
   // Arrêter le suivi
   stopTracking: () => void;
   // Mettre à jour la position (pour les livreurs)
-  updatePosition: (position: Omit<DeliveryPosition, 'timestamp'>) => Promise<boolean>;
+  updatePosition: (
+    position: Omit<DeliveryPosition, "timestamp">,
+  ) => Promise<boolean>;
   // Se reconnecter au serveur
   reconnect: () => void;
   // Rafraîchir l'état initial
@@ -126,7 +128,11 @@ type DeliveryTrackingActions = {
   // Activer/désactiver le mode hors ligne
   toggleOfflineMode: (value?: boolean) => void;
   // Signaler un problème (pour les livreurs)
-  reportIssue: (type: string, severity: string, description: string) => Promise<boolean>;
+  reportIssue: (
+    type: string,
+    severity: string,
+    description: string,
+  ) => Promise<boolean>;
   // Résoudre un problème signalé
   resolveIssue: (issueId: string, resolutionNotes: string) => Promise<boolean>;
   // Nettoyer le store
@@ -134,7 +140,12 @@ type DeliveryTrackingActions = {
 };
 
 // Calcul de la distance entre deux points géographiques (Haversine)
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
   const R = 6371e3; // rayon de la Terre en mètres
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
@@ -150,7 +161,11 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 // Calculer le temps restant en secondes
-function calculateRemainingTime(distance: number, averageSpeed: number, currentTime: Date): number {
+function calculateRemainingTime(
+  distance: number,
+  averageSpeed: number,
+  currentTime: Date,
+): number {
   if (averageSpeed <= 0) return Infinity;
   // Convertir la vitesse de km/h à m/s
   const speedInMetersPerSecond = (averageSpeed * 1000) / 3600;
@@ -171,7 +186,9 @@ const initialMetrics: DeliveryMetrics = {
 const CACHE_EXPIRY_TIME = 60;
 
 // Créer le store
-export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryTrackingActions>()(
+export const useDeliveryTrackingStore = create<
+  DeliveryTrackingState & DeliveryTrackingActions
+>()(
   persist(
     immer((set, get) => ({
       // État initial
@@ -185,7 +202,7 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
       statusHistory: [],
       reportedIssues: [],
       metrics: { ...initialMetrics },
-      connectionState: 'disconnected',
+      connectionState: "disconnected",
       connectionError: null,
       lastUpdateTime: null,
       isOffline: false,
@@ -194,13 +211,16 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
       startTracking: async (deliveryId: string) => {
         try {
           // Si déjà en train de suivre cette livraison
-          if (get().currentDeliveryId === deliveryId && get().connectionState === 'connected') {
+          if (
+            get().currentDeliveryId === deliveryId &&
+            get().connectionState === "connected"
+          ) {
             return true;
           }
 
-          set(state => {
+          set((state) => {
             state.currentDeliveryId = deliveryId;
-            state.connectionState = 'connecting';
+            state.connectionState = "connecting";
             state.connectionError = null;
           });
 
@@ -210,8 +230,8 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
           // Si en mode hors ligne, utiliser uniquement les données en cache
           if (get().isOffline) {
             // Calculer les métriques à partir des données en cache
-            set(state => {
-              state.connectionState = 'disconnected';
+            set((state) => {
+              state.connectionState = "disconnected";
               state.lastUpdateTime = new Date();
 
               // Recalculer les métriques avec les données en cache
@@ -222,10 +242,10 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
           }
 
           // Sinon, se connecter au serveur
-          const token = localStorage.getItem('auth-token');
+          const token = localStorage.getItem("auth-token");
           if (!token) {
-            set(state => {
-              state.connectionState = 'error';
+            set((state) => {
+              state.connectionState = "error";
               state.connectionError = "Token d'authentification manquant";
             });
             return false;
@@ -238,32 +258,33 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
           connectSocket(token);
 
           // Démarrer le suivi de la livraison
-          return new Promise(resolve => {
+          return new Promise((resolve) => {
             socket.emit(
-              'track_delivery',
+              "track_delivery",
               deliveryId,
               (response: { success: boolean; error?: string }) => {
                 if (response.success) {
-                  set(state => {
-                    state.connectionState = 'connected';
+                  set((state) => {
+                    state.connectionState = "connected";
                     state.lastUpdateTime = new Date();
                   });
                   resolve(true);
                 } else {
-                  set(state => {
-                    state.connectionState = 'error';
+                  set((state) => {
+                    state.connectionState = "error";
                     state.connectionError =
-                      response.error || 'Erreur lors du suivi de la livraison';
+                      response.error || "Erreur lors du suivi de la livraison";
                   });
                   resolve(false);
                 }
-              }
+              },
             );
           });
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-          set(state => {
-            state.connectionState = 'error';
+          const errorMessage =
+            error instanceof Error ? error.message : "Erreur inconnue";
+          set((state) => {
+            state.connectionState = "error";
             state.connectionError = errorMessage;
           });
           return false;
@@ -273,7 +294,7 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
       stopTracking: () => {
         const deliveryId = get().currentDeliveryId;
         if (deliveryId) {
-          socket.emit('untrack_delivery', deliveryId);
+          socket.emit("untrack_delivery", deliveryId);
         }
 
         // Nettoyer les écouteurs d'événements
@@ -282,13 +303,13 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
         // Se déconnecter du socket
         disconnectSocket();
 
-        set(state => {
-          state.connectionState = 'disconnected';
+        set((state) => {
+          state.connectionState = "disconnected";
           // Ne pas effacer les données, elles peuvent être utiles hors ligne
         });
       },
 
-      updatePosition: async position => {
+      updatePosition: async (position) => {
         const deliveryId = get().currentDeliveryId;
         if (!deliveryId) return false;
 
@@ -300,7 +321,7 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
               timestamp: new Date(),
             };
 
-            set(state => {
+            set((state) => {
               state.currentPosition = newPosition;
               state.positionHistory.push(newPosition);
               state.lastUpdateTime = new Date();
@@ -314,20 +335,20 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
           }
 
           // Sinon, envoyer au serveur
-          return new Promise(resolve => {
+          return new Promise((resolve) => {
             socket.emit(
-              'update_position',
+              "update_position",
               {
                 deliveryId,
                 ...position,
               },
               (response: { success: boolean; error?: string }) => {
                 resolve(response.success);
-              }
+              },
             );
           });
         } catch (error) {
-          console.error('Erreur lors de la mise à jour de la position:', error);
+          console.error("Erreur lors de la mise à jour de la position:", error);
           return false;
         }
       },
@@ -336,16 +357,16 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
         const deliveryId = get().currentDeliveryId;
         if (!deliveryId) return;
 
-        set(state => {
-          state.connectionState = 'connecting';
+        set((state) => {
+          state.connectionState = "connecting";
           state.connectionError = null;
         });
 
         // Se reconnecter au socket
-        const token = localStorage.getItem('auth-token');
+        const token = localStorage.getItem("auth-token");
         if (!token) {
-          set(state => {
-            state.connectionState = 'error';
+          set((state) => {
+            state.connectionState = "error";
             state.connectionError = "Token d'authentification manquant";
           });
           return;
@@ -359,21 +380,22 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
 
         // Reprendre le suivi
         socket.emit(
-          'track_delivery',
+          "track_delivery",
           deliveryId,
           (response: { success: boolean; error?: string }) => {
             if (response.success) {
-              set(state => {
-                state.connectionState = 'connected';
+              set((state) => {
+                state.connectionState = "connected";
                 state.lastUpdateTime = new Date();
               });
             } else {
-              set(state => {
-                state.connectionState = 'error';
-                state.connectionError = response.error || 'Erreur lors de la reconnexion';
+              set((state) => {
+                state.connectionState = "error";
+                state.connectionError =
+                  response.error || "Erreur lors de la reconnexion";
               });
             }
-          }
+          },
         );
       },
 
@@ -385,26 +407,26 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
         if (get().isOffline) return false;
 
         // Si déconnecté, essayer de se reconnecter
-        if (get().connectionState !== 'connected') {
+        if (get().connectionState !== "connected") {
           get().reconnect();
           return false;
         }
 
         // Arrêter et redémarrer le suivi pour obtenir l'état initial complet
-        socket.emit('untrack_delivery', deliveryId);
+        socket.emit("untrack_delivery", deliveryId);
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           socket.emit(
-            'track_delivery',
+            "track_delivery",
             deliveryId,
             (response: { success: boolean; error?: string }) => {
               if (response.success) {
-                set(state => {
+                set((state) => {
                   state.lastUpdateTime = new Date();
                 });
               }
               resolve(response.success);
-            }
+            },
           );
         });
       },
@@ -414,7 +436,7 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
         const metrics = calculateMetrics(get());
 
         // Mettre à jour les métriques dans le store
-        set(state => {
+        set((state) => {
           state.metrics = metrics;
         });
 
@@ -425,10 +447,10 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
         return get().isOffline;
       },
 
-      toggleOfflineMode: value => {
+      toggleOfflineMode: (value) => {
         const newValue = value !== undefined ? value : !get().isOffline;
 
-        set(state => {
+        set((state) => {
           state.isOffline = newValue;
         });
 
@@ -440,8 +462,8 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
         // Si passage en mode hors ligne, se déconnecter mais garder les données
         if (newValue) {
           disconnectSocket();
-          set(state => {
-            state.connectionState = 'disconnected';
+          set((state) => {
+            state.connectionState = "disconnected";
           });
         }
       },
@@ -462,7 +484,7 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
             resolutionNotes: null,
           };
 
-          set(state => {
+          set((state) => {
             state.reportedIssues.push(newIssue);
             state.lastUpdateTime = new Date();
           });
@@ -470,19 +492,32 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
           return true;
         }
 
-        // TODO: Implémenter l'API pour signaler un problème
-        // Pour l'instant, simuler une réussite
-        return true;
+        // Signaler le problème via l'API réelle
+        try {
+          const response = await api.deliverer.tracking.reportIssue.mutate({
+            deliveryId: get().currentDeliveryId!,
+            type,
+            severity,
+            description,
+          });
+          return response.success;
+        } catch (error) {
+          console.error('Erreur lors du signalement du problème:', error);
+          return false;
+        }
       },
 
       resolveIssue: async (issueId, resolutionNotes) => {
         // Si en mode hors ligne, mettre à jour localement
         if (get().isOffline) {
-          set(state => {
-            const issueIndex = state.reportedIssues.findIndex(issue => issue.id === issueId);
+          set((state) => {
+            const issueIndex = state.reportedIssues.findIndex(
+              (issue) => issue.id === issueId,
+            );
             if (issueIndex !== -1) {
               state.reportedIssues[issueIndex].resolved = true;
-              state.reportedIssues[issueIndex].resolutionNotes = resolutionNotes;
+              state.reportedIssues[issueIndex].resolutionNotes =
+                resolutionNotes;
               state.lastUpdateTime = new Date();
             }
           });
@@ -490,9 +525,17 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
           return true;
         }
 
-        // TODO: Implémenter l'API pour résoudre un problème
-        // Pour l'instant, simuler une réussite
-        return true;
+        // Résoudre le problème via l'API réelle
+        try {
+          const response = await api.deliverer.tracking.resolveIssue.mutate({
+            issueId,
+            resolutionNotes,
+          });
+          return response.success;
+        } catch (error) {
+          console.error('Erreur lors de la résolution du problème:', error);
+          return false;
+        }
       },
 
       reset: () => {
@@ -500,7 +543,7 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
         get().stopTracking();
 
         // Réinitialiser l'état
-        set(state => {
+        set((state) => {
           state.currentDeliveryId = null;
           state.deliveryInfo = null;
           state.positionHistory = [];
@@ -511,7 +554,7 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
           state.statusHistory = [];
           state.reportedIssues = [];
           state.metrics = { ...initialMetrics };
-          state.connectionState = 'disconnected';
+          state.connectionState = "disconnected";
           state.connectionError = null;
           state.lastUpdateTime = null;
           state.isOffline = false;
@@ -519,9 +562,9 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
       },
     })),
     {
-      name: 'delivery-tracking-store',
+      name: "delivery-tracking-store",
       storage: createJSONStorage(() => localStorage),
-      partialize: state => ({
+      partialize: (state) => ({
         // Ne pas persister ces valeurs
         currentDeliveryId: state.currentDeliveryId,
         deliveryInfo: state.deliveryInfo,
@@ -537,20 +580,22 @@ export const useDeliveryTrackingStore = create<DeliveryTrackingState & DeliveryT
         isOffline: state.isOffline,
       }),
       // Vérifier l'expiration du cache
-      onRehydrateStorage: () => state => {
+      onRehydrateStorage: () => (state) => {
         if (!state) return;
 
         const lastUpdate = state.lastUpdateTime;
         if (!lastUpdate) return;
 
-        const expiryTime = new Date(lastUpdate.getTime() + CACHE_EXPIRY_TIME * 60 * 1000);
+        const expiryTime = new Date(
+          lastUpdate.getTime() + CACHE_EXPIRY_TIME * 60 * 1000,
+        );
         if (new Date() > expiryTime) {
           // Le cache a expiré, réinitialiser l'état
           state.reset();
         }
       },
-    }
-  )
+    },
+  ),
 );
 
 // Fonction pour calculer les métriques à partir de l'état
@@ -575,7 +620,7 @@ function calculateMetrics(state: DeliveryTrackingState): DeliveryMetrics {
         prev.latitude,
         prev.longitude,
         curr.latitude,
-        curr.longitude
+        curr.longitude,
       );
     }
   }
@@ -585,7 +630,8 @@ function calculateMetrics(state: DeliveryTrackingState): DeliveryMetrics {
     const first = positionHistory[0];
     const last = positionHistory[positionHistory.length - 1];
 
-    const timeElapsed = (last.timestamp.getTime() - first.timestamp.getTime()) / 1000; // en secondes
+    const timeElapsed =
+      (last.timestamp.getTime() - first.timestamp.getTime()) / 1000; // en secondes
 
     if (timeElapsed > 0) {
       // Convertir m/s en km/h
@@ -595,7 +641,11 @@ function calculateMetrics(state: DeliveryTrackingState): DeliveryMetrics {
 
   // Calculer le temps restant
   if (remainingDistance > 0 && averageSpeed > 0) {
-    remainingTime = calculateRemainingTime(remainingDistance, averageSpeed, new Date());
+    remainingTime = calculateRemainingTime(
+      remainingDistance,
+      averageSpeed,
+      new Date(),
+    );
 
     // Calculer l'heure d'arrivée estimée
     if (remainingTime !== Infinity) {
@@ -606,7 +656,10 @@ function calculateMetrics(state: DeliveryTrackingState): DeliveryMetrics {
   // Calculer le pourcentage d'achèvement
   if (distanceTraveled > 0 || remainingDistance > 0) {
     const totalDistance = distanceTraveled + remainingDistance;
-    completionPercentage = Math.min(100, Math.round((distanceTraveled / totalDistance) * 100));
+    completionPercentage = Math.min(
+      100,
+      Math.round((distanceTraveled / totalDistance) * 100),
+    );
   }
 
   return {
@@ -625,45 +678,45 @@ function setupSocketListeners() {
   cleanupSocketListeners();
 
   // État initial de la livraison
-  socket.on('delivery_initial_state', handleInitialState);
+  socket.on("delivery_initial_state", handleInitialState);
 
   // Mises à jour de position
-  socket.on('position_update', handlePositionUpdate);
+  socket.on("position_update", handlePositionUpdate);
 
   // Mises à jour de statut
-  socket.on('status_update', handleStatusUpdate);
+  socket.on("status_update", handleStatusUpdate);
 
   // Mises à jour d'ETA
-  socket.on('eta_update', handleEtaUpdate);
+  socket.on("eta_update", handleEtaUpdate);
 
   // Points de passage atteints
-  socket.on('checkpoint_reached', handleCheckpointReached);
+  socket.on("checkpoint_reached", handleCheckpointReached);
 
   // Problèmes signalés
-  socket.on('issue_reported', handleIssueReported);
+  socket.on("issue_reported", handleIssueReported);
 
   // Événements de connexion
-  socket.on('connect', handleConnect);
-  socket.on('disconnect', handleDisconnect);
-  socket.on('connect_error', handleConnectError);
+  socket.on("connect", handleConnect);
+  socket.on("disconnect", handleDisconnect);
+  socket.on("connect_error", handleConnectError);
 }
 
 // Nettoyer les écouteurs d'événements
 function cleanupSocketListeners() {
-  socket.off('delivery_initial_state', handleInitialState);
-  socket.off('position_update', handlePositionUpdate);
-  socket.off('status_update', handleStatusUpdate);
-  socket.off('eta_update', handleEtaUpdate);
-  socket.off('checkpoint_reached', handleCheckpointReached);
-  socket.off('issue_reported', handleIssueReported);
-  socket.off('connect', handleConnect);
-  socket.off('disconnect', handleDisconnect);
-  socket.off('connect_error', handleConnectError);
+  socket.off("delivery_initial_state", handleInitialState);
+  socket.off("position_update", handlePositionUpdate);
+  socket.off("status_update", handleStatusUpdate);
+  socket.off("eta_update", handleEtaUpdate);
+  socket.off("checkpoint_reached", handleCheckpointReached);
+  socket.off("issue_reported", handleIssueReported);
+  socket.off("connect", handleConnect);
+  socket.off("disconnect", handleDisconnect);
+  socket.off("connect_error", handleConnectError);
 }
 
 // Gestionnaire pour l'état initial
 function handleInitialState(data: any) {
-  useDeliveryTrackingStore.setState(state => {
+  useDeliveryTrackingStore.setState((state) => {
     state.deliveryInfo = data.delivery;
     state.currentPosition = data.lastPosition;
 
@@ -689,9 +742,9 @@ function handleInitialState(data: any) {
 // Gestionnaire pour les mises à jour de position
 // Utiliser throttle pour limiter les mises à jour fréquentes
 const handlePositionUpdate = throttle((event: any) => {
-  if (event.type !== 'POSITION_UPDATE' || !event.position) return;
+  if (event.type !== "POSITION_UPDATE" || !event.position) return;
 
-  useDeliveryTrackingStore.setState(state => {
+  useDeliveryTrackingStore.setState((state) => {
     const newPosition = event.position;
 
     // Mettre à jour la position actuelle
@@ -721,9 +774,9 @@ const handlePositionUpdate = throttle((event: any) => {
 
 // Gestionnaire pour les mises à jour de statut
 function handleStatusUpdate(event: any) {
-  if (event.type !== 'STATUS_UPDATE') return;
+  if (event.type !== "STATUS_UPDATE") return;
 
-  useDeliveryTrackingStore.setState(state => {
+  useDeliveryTrackingStore.setState((state) => {
     // Mettre à jour le statut de la livraison
     if (state.deliveryInfo) {
       state.deliveryInfo.status = event.status;
@@ -743,9 +796,9 @@ function handleStatusUpdate(event: any) {
 
 // Gestionnaire pour les mises à jour d'ETA
 function handleEtaUpdate(event: any) {
-  if (event.type !== 'ETA_UPDATE') return;
+  if (event.type !== "ETA_UPDATE") return;
 
-  useDeliveryTrackingStore.setState(state => {
+  useDeliveryTrackingStore.setState((state) => {
     const etaInfo: EtaInfo = {
       eta: event.eta,
       distance: event.distance,
@@ -767,9 +820,9 @@ function handleEtaUpdate(event: any) {
 
 // Gestionnaire pour les points de passage
 function handleCheckpointReached(event: any) {
-  if (event.type !== 'CHECKPOINT_REACHED') return;
+  if (event.type !== "CHECKPOINT_REACHED") return;
 
-  useDeliveryTrackingStore.setState(state => {
+  useDeliveryTrackingStore.setState((state) => {
     const checkpoint: CheckpointInfo = {
       id: event.checkpointId,
       type: event.type,
@@ -788,9 +841,9 @@ function handleCheckpointReached(event: any) {
 
 // Gestionnaire pour les problèmes signalés
 function handleIssueReported(event: any) {
-  if (event.type !== 'ISSUE_REPORTED') return;
+  if (event.type !== "ISSUE_REPORTED") return;
 
-  useDeliveryTrackingStore.setState(state => {
+  useDeliveryTrackingStore.setState((state) => {
     const issue: ReportedIssue = {
       id: event.issueId,
       type: event.type,
@@ -810,23 +863,23 @@ function handleIssueReported(event: any) {
 
 // Gestionnaire de connexion
 function handleConnect() {
-  useDeliveryTrackingStore.setState(state => {
-    state.connectionState = 'connected';
+  useDeliveryTrackingStore.setState((state) => {
+    state.connectionState = "connected";
     state.connectionError = null;
   });
 }
 
 // Gestionnaire de déconnexion
 function handleDisconnect() {
-  useDeliveryTrackingStore.setState(state => {
-    state.connectionState = 'disconnected';
+  useDeliveryTrackingStore.setState((state) => {
+    state.connectionState = "disconnected";
   });
 }
 
 // Gestionnaire d'erreur de connexion
 function handleConnectError(error: Error) {
-  useDeliveryTrackingStore.setState(state => {
-    state.connectionState = 'error';
+  useDeliveryTrackingStore.setState((state) => {
+    state.connectionState = "error";
     state.connectionError = error.message;
   });
 }
@@ -836,54 +889,54 @@ function handleConnectError(error: Error) {
 // Hook pour obtenir uniquement la position actuelle
 export function useCurrentPosition() {
   return useDeliveryTrackingStore(
-    state => ({
+    (state) => ({
       position: state.currentPosition,
       lastUpdateTime: state.lastUpdateTime,
     }),
-    shallow
+    shallow,
   );
 }
 
 // Hook pour obtenir uniquement les métriques
 export function useDeliveryMetrics() {
-  const getMetrics = useDeliveryTrackingStore(state => state.getMetrics);
+  const getMetrics = useDeliveryTrackingStore((state) => state.getMetrics);
   return getMetrics();
 }
 
 // Hook pour obtenir l'état de la connexion
 export function useConnectionState() {
   return useDeliveryTrackingStore(
-    state => ({
+    (state) => ({
       connectionState: state.connectionState,
       connectionError: state.connectionError,
       isOffline: state.isOffline,
       toggleOfflineMode: state.toggleOfflineMode,
       reconnect: state.reconnect,
     }),
-    shallow
+    shallow,
   );
 }
 
 // Hook pour obtenir l'historique des statuts
 export function useStatusHistory() {
-  return useDeliveryTrackingStore(state => state.statusHistory);
+  return useDeliveryTrackingStore((state) => state.statusHistory);
 }
 
 // Hook pour obtenir les informations de livraison
 export function useDeliveryInfo() {
-  return useDeliveryTrackingStore(state => state.deliveryInfo);
+  return useDeliveryTrackingStore((state) => state.deliveryInfo);
 }
 
 // Hook pour contrôler le suivi
 export function useDeliveryTracking() {
   return useDeliveryTrackingStore(
-    state => ({
+    (state) => ({
       currentDeliveryId: state.currentDeliveryId,
       startTracking: state.startTracking,
       stopTracking: state.stopTracking,
       refreshDeliveryState: state.refreshDeliveryState,
       reset: state.reset,
     }),
-    shallow
+    shallow,
   );
 }

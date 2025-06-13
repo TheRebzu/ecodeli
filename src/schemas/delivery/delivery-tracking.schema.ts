@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { DeliveryStatus } from '@prisma/client';
-import { AnnouncementStatusEnum } from '@/schemas/delivery/announcement.schema';
+import { z } from "zod";
+import { DeliveryStatus } from "@prisma/client";
+import { AnnouncementStatusEnum } from "@/schemas/delivery/announcement.schema";
 
 // Schéma pour les coordonnées géographiques
 export const geoCoordinatesSchema = z.object({
@@ -10,7 +10,7 @@ export const geoCoordinatesSchema = z.object({
 
 // Schéma pour les points géographiques (format GeoJSON)
 export const geoPointSchema = z.object({
-  type: z.literal('Point'),
+  type: z.literal("Point"),
   coordinates: z.tuple([z.number(), z.number()]), // [longitude, latitude] en format GeoJSON
 });
 
@@ -33,7 +33,9 @@ export const positionMetadataSchema = z
 
 // Schéma pour la mise à jour de position GPS
 export const updateLocationSchema = z.object({
-  deliveryId: z.string().min(1, { message: "L'identifiant de livraison est requis" }),
+  deliveryId: z
+    .string()
+    .min(1, { message: "L'identifiant de livraison est requis" }),
   location: geoPointSchema,
   accuracy: z.number().min(0).optional(),
   heading: z.number().min(0).max(360).optional(),
@@ -47,17 +49,17 @@ export const updateLocationSchema = z.object({
 // Schéma étendu pour les statuts incluant les valeurs personnalisées
 export const deliveryStatusEnumSchema = z.enum([
   // Statuts Prisma
-  'PENDING',
-  'ACCEPTED',
-  'PICKED_UP',
-  'IN_TRANSIT',
-  'DELIVERED',
-  'CANCELLED',
+  "PENDING",
+  "ACCEPTED",
+  "PICKED_UP",
+  "IN_TRANSIT",
+  "DELIVERED",
+  "CANCELLED",
   // Statuts étendus
-  'EN_ROUTE_TO_PICKUP',
-  'AT_PICKUP',
-  'EN_ROUTE_TO_DROPOFF',
-  'AT_DROPOFF',
+  "EN_ROUTE_TO_PICKUP",
+  "AT_PICKUP",
+  "EN_ROUTE_TO_DROPOFF",
+  "AT_DROPOFF",
 ]);
 
 // Schéma pour la création d'une livraison dans le système de suivi
@@ -70,8 +72,14 @@ export const createDeliveryTrackingSchema = z.object({
   weight: z.number().optional(),
   dimensions: z.string().optional(),
   description: z.string().optional(),
-  price: z.number().min(1, 'Le prix doit être supérieur à 0'),
-  type: z.enum(['PACKAGE', 'SHOPPING_CART', 'AIRPORT_TRANSFER', 'GROCERY', 'FOREIGN_PRODUCT']),
+  price: z.number().min(1, "Le prix doit être supérieur à 0"),
+  type: z.enum([
+    "PACKAGE",
+    "SHOPPING_CART",
+    "AIRPORT_TRANSFER",
+    "GROCERY",
+    "FOREIGN_PRODUCT",
+  ]),
 });
 
 // Schéma pour la mise à jour des coordonnées de livraison
@@ -103,22 +111,22 @@ export const updateDeliveryStatusSchema = z.object({
 
 // Énumération pour les types de points de passage
 export const checkpointTypeSchema = z.enum([
-  'DEPARTURE',
-  'PICKUP',
-  'WAYPOINT',
-  'DELIVERY_ATTEMPT',
-  'DELIVERY',
-  'RETURN_POINT',
-  'WAREHOUSE',
-  'CUSTOMS',
-  'HANDOFF',
-  'OTHER',
+  "DEPARTURE",
+  "PICKUP",
+  "WAYPOINT",
+  "DELIVERY_ATTEMPT",
+  "DELIVERY",
+  "RETURN_POINT",
+  "WAREHOUSE",
+  "CUSTOMS",
+  "HANDOFF",
+  "OTHER",
 ]);
 
 // Schéma pour la création de point de passage
 export const createCheckpointSchema = z.object({
   deliveryId: z.string().min(1),
-  type: z.enum(['PICKUP', 'WAYPOINT', 'DELIVERY', 'CUSTOMS', 'DEPOT']),
+  type: z.enum(["PICKUP", "WAYPOINT", "DELIVERY", "CUSTOMS", "DEPOT"]),
   location: z.object({
     latitude: z.number().min(-90).max(90),
     longitude: z.number().min(-180).max(180),
@@ -136,7 +144,9 @@ export const createCheckpointSchema = z.object({
 
 // Schéma pour la mise à jour d'un point de passage existant
 export const updateCheckpointSchema = z.object({
-  id: z.string().min(1, { message: "L'identifiant du point de passage est requis" }),
+  id: z
+    .string()
+    .min(1, { message: "L'identifiant du point de passage est requis" }),
   actualTime: z.date().optional(),
   completedBy: z.string().optional(),
   notes: z.string().optional(),
@@ -147,10 +157,14 @@ export const updateCheckpointSchema = z.object({
 });
 
 // Types de calcul d'ETA
-export const etaCalculationTypeSchema = z.enum(['REAL_TIME', 'HISTORICAL', 'MANUAL']);
+export const etaCalculationTypeSchema = z.enum([
+  "REAL_TIME",
+  "HISTORICAL",
+  "MANUAL",
+]);
 
 // Conditions de trafic
-export const trafficConditionSchema = z.enum(['LIGHT', 'MODERATE', 'HEAVY']);
+export const trafficConditionSchema = z.enum(["LIGHT", "MODERATE", "HEAVY"]);
 
 // Schéma pour la mise à jour d'ETA
 export const updateETASchema = z.object({
@@ -162,30 +176,49 @@ export const updateETASchema = z.object({
 
 // Types d'incidents de livraison
 export const deliveryIssueTypeSchema = z.enum([
-  'ACCESS_PROBLEM',
-  'ADDRESS_NOT_FOUND',
-  'CUSTOMER_ABSENT',
-  'DAMAGED_PACKAGE',
-  'DELIVERY_REFUSED',
-  'VEHICLE_BREAKDOWN',
-  'TRAFFIC_JAM',
-  'WEATHER_CONDITION',
-  'SECURITY_ISSUE',
-  'OTHER',
+  "ACCESS_PROBLEM",
+  "ADDRESS_NOT_FOUND",
+  "CUSTOMER_ABSENT",
+  "DAMAGED_PACKAGE",
+  "DELIVERY_REFUSED",
+  "VEHICLE_BREAKDOWN",
+  "TRAFFIC_JAM",
+  "WEATHER_CONDITION",
+  "SECURITY_ISSUE",
+  "OTHER",
 ]);
 
 // Niveaux de sévérité des incidents
-export const issueSeveritySchema = z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
+export const issueSeveritySchema = z.enum([
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "CRITICAL",
+]);
 
 // Statuts des incidents
-export const issueStatusSchema = z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED', 'ESCALATED', 'CLOSED']);
+export const issueStatusSchema = z.enum([
+  "OPEN",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "ESCALATED",
+  "CLOSED",
+]);
 
 // Schéma pour signaler un incident de livraison
 export const deliveryIssueCreateSchema = z.object({
   deliveryId: z.string().min(1),
-  type: z.enum(['DELAY', 'DAMAGE', 'LOSS', 'ACCIDENT', 'WEATHER', 'VEHICLE_ISSUE', 'OTHER']),
+  type: z.enum([
+    "DELAY",
+    "DAMAGE",
+    "LOSS",
+    "ACCIDENT",
+    "WEATHER",
+    "VEHICLE_ISSUE",
+    "OTHER",
+  ]),
   description: z.string().min(10).max(500),
-  severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
+  severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).default("MEDIUM"),
   location: z
     .object({
       latitude: z.number().min(-90).max(90),
@@ -200,7 +233,7 @@ export const deliveryIssueCreateSchema = z.object({
 export const deliveryConfirmationSchema = z.object({
   deliveryId: z.string().min(1),
   confirmationCode: z.string().min(4).max(10),
-  proofType: z.enum(['PHOTO', 'SIGNATURE', 'CODE']).optional(),
+  proofType: z.enum(["PHOTO", "SIGNATURE", "CODE"]).optional(),
   proofUrl: z.string().url().optional(),
   signatureUrl: z.string().url().optional(),
   notes: z.string().optional(),
@@ -228,8 +261,8 @@ export const trackingQuerySchema = z.object({
   search: z.string().optional(),
   limit: z.number().min(1).max(100).default(20),
   page: z.number().min(1).default(1),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'pickupDate']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  sortBy: z.enum(["createdAt", "updatedAt", "pickupDate"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
 // Schéma pour le filtrage des positions de livraison

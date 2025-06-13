@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   TrendingUp,
   TrendingDown,
@@ -12,10 +12,10 @@ import {
   Wallet,
   Target,
   Clock,
-} from 'lucide-react';
-import { useTranslations } from 'next-intl';
+} from "lucide-react";
+import { useTranslations } from "next-intl";
 
-type EarningsPeriod = 'day' | 'week' | 'month';
+type EarningsPeriod = "day" | "week" | "month";
 
 type EarningsData = {
   current: number;
@@ -40,9 +40,9 @@ type DelivererEarningsSummaryProps = {
 export function DelivererEarningsSummary({
   earnings,
   isLoading = false,
-  currency = '€',
+  currency = "€",
 }: DelivererEarningsSummaryProps) {
-  const t = useTranslations('dashboard.deliverer');
+  const t = useTranslations("dashboard.deliverer");
 
   if (isLoading) {
     return (
@@ -54,7 +54,7 @@ export function DelivererEarningsSummary({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-8 w-full" />
@@ -67,9 +67,9 @@ export function DelivererEarningsSummary({
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency === '€' ? 'EUR' : 'USD',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: currency === "€" ? "EUR" : "USD",
       minimumFractionDigits: 2,
     }).format(amount);
   };
@@ -88,17 +88,21 @@ export function DelivererEarningsSummary({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Wallet className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">{t('earnings.total')}</span>
+              <span className="text-sm font-medium">{t("earnings.total")}</span>
             </div>
-            <p className="text-2xl font-bold text-green-600">{formatCurrency(data.current)}</p>
+            <p className="text-2xl font-bold text-green-600">
+              {formatCurrency(data.current)}
+            </p>
             <div className="flex items-center gap-1">
               {isPositiveChange ? (
                 <TrendingUp className="h-3 w-3 text-green-500" />
               ) : (
                 <TrendingDown className="h-3 w-3 text-red-500" />
               )}
-              <span className={`text-xs ${isPositiveChange ? 'text-green-500' : 'text-red-500'}`}>
-                {isPositiveChange ? '+' : ''}
+              <span
+                className={`text-xs ${isPositiveChange ? "text-green-500" : "text-red-500"}`}
+              >
+                {isPositiveChange ? "+" : ""}
                 {data.changePercentage.toFixed(1)}%
               </span>
             </div>
@@ -107,20 +111,27 @@ export function DelivererEarningsSummary({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">{t('earnings.deliveries')}</span>
+              <span className="text-sm font-medium">
+                {t("earnings.deliveries")}
+              </span>
             </div>
             <p className="text-2xl font-bold">{data.deliveriesCount}</p>
             <p className="text-xs text-muted-foreground">
-              {formatCurrency(data.averagePerDelivery)} / {t('earnings.delivery')}
+              {formatCurrency(data.averagePerDelivery)} /{" "}
+              {t("earnings.delivery")}
             </p>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">{t('earnings.hoursWorked')}</span>
+              <span className="text-sm font-medium">
+                {t("earnings.hoursWorked")}
+              </span>
             </div>
-            <p className="text-2xl font-bold">{formatHours(data.hoursWorked)}</p>
+            <p className="text-2xl font-bold">
+              {formatHours(data.hoursWorked)}
+            </p>
             <p className="text-xs text-muted-foreground">
               {formatCurrency(data.current / data.hoursWorked)} / h
             </p>
@@ -129,16 +140,18 @@ export function DelivererEarningsSummary({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">{t('earnings.change')}</span>
+              <span className="text-sm font-medium">
+                {t("earnings.change")}
+              </span>
             </div>
             <p
-              className={`text-2xl font-bold ${isPositiveChange ? 'text-green-600' : 'text-red-600'}`}
+              className={`text-2xl font-bold ${isPositiveChange ? "text-green-600" : "text-red-600"}`}
             >
-              {isPositiveChange ? '+' : ''}
+              {isPositiveChange ? "+" : ""}
               {formatCurrency(data.change)}
             </p>
             <p className="text-xs text-muted-foreground">
-              {t('earnings.previousPeriod')}: {formatCurrency(data.previous)}
+              {t("earnings.previousPeriod")}: {formatCurrency(data.previous)}
             </p>
           </div>
         </div>
@@ -146,18 +159,18 @@ export function DelivererEarningsSummary({
         {/* Badge de performance */}
         <div className="flex justify-center">
           <Badge
-            variant={isPositiveChange ? 'default' : 'secondary'}
-            className={`${isPositiveChange ? 'bg-green-100 text-green-800 border-green-300' : 'bg-gray-100 text-gray-800 border-gray-300'}`}
+            variant={isPositiveChange ? "default" : "secondary"}
+            className={`${isPositiveChange ? "bg-green-100 text-green-800 border-green-300" : "bg-gray-100 text-gray-800 border-gray-300"}`}
           >
             {isPositiveChange ? (
               <>
                 <TrendingUp className="h-3 w-3 mr-1" />
-                {t('earnings.performance.improving')}
+                {t("earnings.performance.improving")}
               </>
             ) : (
               <>
                 <TrendingDown className="h-3 w-3 mr-1" />
-                {t('earnings.performance.declining')}
+                {t("earnings.performance.declining")}
               </>
             )}
           </Badge>
@@ -204,7 +217,7 @@ export function DelivererEarningsSummary({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wallet className="h-5 w-5" />
-          {t('earnings.title')}
+          {t("earnings.title")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -212,28 +225,28 @@ export function DelivererEarningsSummary({
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="day" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              {t('earnings.periods.day')}
+              {t("earnings.periods.day")}
             </TabsTrigger>
             <TabsTrigger value="week" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              {t('earnings.periods.week')}
+              {t("earnings.periods.week")}
             </TabsTrigger>
             <TabsTrigger value="month" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              {t('earnings.periods.month')}
+              {t("earnings.periods.month")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="day" className="space-y-4 mt-6">
-            {renderPeriodCard('day', earningsData.day)}
+            {renderPeriodCard("day", earningsData.day)}
           </TabsContent>
 
           <TabsContent value="week" className="space-y-4 mt-6">
-            {renderPeriodCard('week', earningsData.week)}
+            {renderPeriodCard("week", earningsData.week)}
           </TabsContent>
 
           <TabsContent value="month" className="space-y-4 mt-6">
-            {renderPeriodCard('month', earningsData.month)}
+            {renderPeriodCard("month", earningsData.month)}
           </TabsContent>
         </Tabs>
       </CardContent>

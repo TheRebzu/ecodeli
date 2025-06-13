@@ -4,11 +4,11 @@
  */
 
 // Exports des fichiers locaux
-export * from './api-key.schema';
-export * from './cloud-auth.schema';
-export * from './login.schema';
-export * from './oauth.schema';
-export * from './password-reset.schema';
-export * from './register.schema';
-export * from './two-factor.schema';
-export * from './verification.schema';
+export * from "./api-key.schema";
+export * from "./cloud-auth.schema";
+export * from "./login.schema";
+export * from "./oauth.schema";
+export * from "./password-reset.schema";
+export * from "./register.schema";
+export * from "./two-factor.schema";
+export * from "./verification.schema";

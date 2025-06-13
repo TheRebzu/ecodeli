@@ -1,39 +1,47 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { useToast } from '@/components/ui/use-toast';
-import { api } from '@/trpc/react';
-import { FileText, PenTool, CheckCircle, AlertTriangle, Download, Eye, Clock } from 'lucide-react';
-import { ContractStatus } from '@prisma/client';
+} from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/trpc/react";
+import {
+  FileText,
+  PenTool,
+  CheckCircle,
+  AlertTriangle,
+  Download,
+  Eye,
+  Clock,
+} from "lucide-react";
+import { ContractStatus } from "@prisma/client";
 
 interface ContractSignatureProps {
   contractId: string;
-  userRole?: 'MERCHANT' | 'ADMIN';
+  userRole?: "MERCHANT" | "ADMIN";
   onSignatureComplete?: () => void;
 }
 
 export default function ContractSignature({
   contractId,
-  userRole = 'MERCHANT',
+  userRole = "MERCHANT",
   onSignatureComplete,
 }: ContractSignatureProps) {
   const { toast } = useToast();
   const [isSignatureDialogOpen, setIsSignatureDialogOpen] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [signatureNote, setSignatureNote] = useState('');
-  const [digitalSignature, setDigitalSignature] = useState('');
+  const [signatureNote, setSignatureNote] = useState("");
+  const [digitalSignature, setDigitalSignature] = useState("");
 
   // Récupérer les détails du contrat
   const {
@@ -48,56 +56,57 @@ export default function ContractSignature({
   const signContractMutation = api.merchant.contracts.signContract.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Contrat signé avec succès',
+        title: "Contrat signé avec succès",
         description:
-          'Votre signature a été enregistrée et le contrat a été transmis pour validation',
-        variant: 'default',
+          "Votre signature a été enregistrée et le contrat a été transmis pour validation",
+        variant: "default",
       });
       setIsSignatureDialogOpen(false);
       refetch();
       onSignatureComplete?.();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur lors de la signature',
+        title: "Erreur lors de la signature",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
 
   const adminSignMutation =
-    userRole === 'ADMIN'
+    userRole === "ADMIN"
       ? api.contract.signAndValidateContract.useMutation({
           onSuccess: () => {
             toast({
-              title: 'Contrat validé',
-              description: "Le contrat a été signé et validé par l'administration",
-              variant: 'default',
+              title: "Contrat validé",
+              description:
+                "Le contrat a été signé et validé par l'administration",
+              variant: "default",
             });
             setIsSignatureDialogOpen(false);
             refetch();
             onSignatureComplete?.();
           },
-          onError: error => {
+          onError: (error) => {
             toast({
-              title: 'Erreur lors de la validation',
+              title: "Erreur lors de la validation",
               description: error.message,
-              variant: 'destructive',
+              variant: "destructive",
             });
           },
         })
       : null;
 
   const generatePdfMutation = api.merchant.contracts.generatePdf.useMutation({
-    onSuccess: data => {
-      window.open(data.pdfUrl, '_blank');
+    onSuccess: (data) => {
+      window.open(data.pdfUrl, "_blank");
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -105,9 +114,10 @@ export default function ContractSignature({
   const handleSignature = () => {
     if (!acceptedTerms) {
       toast({
-        title: 'Acceptation requise',
-        description: 'Vous devez accepter les termes et conditions pour signer le contrat',
-        variant: 'destructive',
+        title: "Acceptation requise",
+        description:
+          "Vous devez accepter les termes et conditions pour signer le contrat",
+        variant: "destructive",
       });
       return;
     }
@@ -115,29 +125,32 @@ export default function ContractSignature({
     // Générer une signature électronique simple
     const signature = `${userRole.toLowerCase()}_signature_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    if (userRole === 'MERCHANT') {
+    if (userRole === "MERCHANT") {
       signContractMutation.mutate({
         contractId,
         merchantSignature: signature,
       });
-    } else if (userRole === 'ADMIN' && adminSignMutation) {
+    } else if (userRole === "ADMIN" && adminSignMutation) {
       adminSignMutation.mutate({
         contractId,
-        merchantSignature: contract?.merchantSignature || '',
+        merchantSignature: contract?.merchantSignature || "",
         signedById: undefined, // sera défini côté serveur
       });
     }
   };
 
   const canSign = () => {
-    if (userRole === 'MERCHANT') {
+    if (userRole === "MERCHANT") {
       return (
         contract?.status === ContractStatus.DRAFT ||
         contract?.status === ContractStatus.PENDING_SIGNATURE
       );
     }
-    if (userRole === 'ADMIN') {
-      return contract?.status === ContractStatus.PENDING_SIGNATURE && contract?.merchantSignature;
+    if (userRole === "ADMIN") {
+      return (
+        contract?.status === ContractStatus.PENDING_SIGNATURE &&
+        contract?.merchantSignature
+      );
     }
     return false;
   };
@@ -148,27 +161,34 @@ export default function ContractSignature({
     const isMerchantSigned = !!contract.merchantSignature;
     const isAdminSigned = !!contract.adminSignature;
 
-    if (contract.status === ContractStatus.ACTIVE && isMerchantSigned && isAdminSigned) {
+    if (
+      contract.status === ContractStatus.ACTIVE &&
+      isMerchantSigned &&
+      isAdminSigned
+    ) {
       return {
-        type: 'success' as const,
+        type: "success" as const,
         icon: CheckCircle,
-        message: 'Contrat entièrement signé et actif',
+        message: "Contrat entièrement signé et actif",
       };
     }
 
-    if (contract.status === ContractStatus.PENDING_SIGNATURE && isMerchantSigned) {
+    if (
+      contract.status === ContractStatus.PENDING_SIGNATURE &&
+      isMerchantSigned
+    ) {
       return {
-        type: 'warning' as const,
+        type: "warning" as const,
         icon: Clock,
-        message: 'En attente de validation administrateur',
+        message: "En attente de validation administrateur",
       };
     }
 
     if (contract.status === ContractStatus.DRAFT || !isMerchantSigned) {
       return {
-        type: 'info' as const,
+        type: "info" as const,
         icon: PenTool,
-        message: 'En attente de signature du commerçant',
+        message: "En attente de signature du commerçant",
       };
     }
 
@@ -197,7 +217,8 @@ export default function ContractSignature({
           <AlertTriangle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">Contrat non trouvé</h3>
           <p className="text-muted-foreground">
-            Le contrat demandé n'existe pas ou vous n'avez pas les permissions pour y accéder.
+            Le contrat demandé n'existe pas ou vous n'avez pas les permissions
+            pour y accéder.
           </p>
         </CardContent>
       </Card>
@@ -213,11 +234,11 @@ export default function ContractSignature({
             <div className="flex items-center gap-3">
               <signatureStatus.icon
                 className={`h-5 w-5 ${
-                  signatureStatus.type === 'success'
-                    ? 'text-green-500'
-                    : signatureStatus.type === 'warning'
-                      ? 'text-yellow-500'
-                      : 'text-blue-500'
+                  signatureStatus.type === "success"
+                    ? "text-green-500"
+                    : signatureStatus.type === "warning"
+                      ? "text-yellow-500"
+                      : "text-blue-500"
                 }`}
               />
               <span className="font-medium">{signatureStatus.message}</span>
@@ -240,16 +261,22 @@ export default function ContractSignature({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Type</label>
+              <label className="text-sm font-medium text-muted-foreground">
+                Type
+              </label>
               <p>{contract.type}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Statut</label>
+              <label className="text-sm font-medium text-muted-foreground">
+                Statut
+              </label>
               <p>{contract.status}</p>
             </div>
             {contract.monthlyFee && (
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Frais mensuels</label>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Frais mensuels
+                </label>
                 <p>{Number(contract.monthlyFee).toFixed(2)}€</p>
               </div>
             )}
@@ -264,7 +291,9 @@ export default function ContractSignature({
           </div>
 
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Contenu du contrat</label>
+            <label className="text-sm font-medium text-muted-foreground">
+              Contenu du contrat
+            </label>
             <div
               className="mt-2 p-4 border rounded-lg bg-muted/30 max-h-60 overflow-y-auto prose prose-sm"
               dangerouslySetInnerHTML={{ __html: contract.content }}
@@ -325,7 +354,9 @@ export default function ContractSignature({
             {canSign() && (
               <Button onClick={() => setIsSignatureDialogOpen(true)}>
                 <PenTool className="h-4 w-4 mr-2" />
-                {userRole === 'MERCHANT' ? 'Signer le contrat' : 'Valider et signer'}
+                {userRole === "MERCHANT"
+                  ? "Signer le contrat"
+                  : "Valider et signer"}
               </Button>
             )}
           </div>
@@ -333,18 +364,27 @@ export default function ContractSignature({
       </Card>
 
       {/* Dialog de signature */}
-      <Dialog open={isSignatureDialogOpen} onOpenChange={setIsSignatureDialogOpen}>
+      <Dialog
+        open={isSignatureDialogOpen}
+        onOpenChange={setIsSignatureDialogOpen}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {userRole === 'MERCHANT' ? 'Signature du contrat' : 'Validation et signature'}
+              {userRole === "MERCHANT"
+                ? "Signature du contrat"
+                : "Validation et signature"}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Contrat: {contract.title}</label>
-              <p className="text-sm text-muted-foreground">#{contract.contractNumber}</p>
+              <label className="text-sm font-medium">
+                Contrat: {contract.title}
+              </label>
+              <p className="text-sm text-muted-foreground">
+                #{contract.contractNumber}
+              </p>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -366,37 +406,43 @@ export default function ContractSignature({
               <Textarea
                 placeholder="Ajoutez une note sur cette signature..."
                 value={signatureNote}
-                onChange={e => setSignatureNote(e.target.value)}
+                onChange={(e) => setSignatureNote(e.target.value)}
                 className="mt-1"
               />
             </div>
 
-            {userRole === 'ADMIN' && (
+            {userRole === "ADMIN" && (
               <div className="p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-700">
-                  En validant ce contrat, vous confirmez que tous les termes ont été vérifiés et que
-                  le contrat peut entrer en vigueur.
+                  En validant ce contrat, vous confirmez que tous les termes ont
+                  été vérifiés et que le contrat peut entrer en vigueur.
                 </p>
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsSignatureDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsSignatureDialogOpen(false)}
+            >
               Annuler
             </Button>
             <Button
               onClick={handleSignature}
               disabled={
-                !acceptedTerms || signContractMutation.isPending || adminSignMutation?.isPending
+                !acceptedTerms ||
+                signContractMutation.isPending ||
+                adminSignMutation?.isPending
               }
             >
-              {signContractMutation.isPending || adminSignMutation?.isPending ? (
+              {signContractMutation.isPending ||
+              adminSignMutation?.isPending ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               ) : (
                 <PenTool className="h-4 w-4 mr-2" />
               )}
-              {userRole === 'MERCHANT' ? 'Signer' : 'Valider et signer'}
+              {userRole === "MERCHANT" ? "Signer" : "Valider et signer"}
             </Button>
           </DialogFooter>
         </DialogContent>

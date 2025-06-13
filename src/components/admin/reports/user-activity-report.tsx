@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
   Bar,
@@ -23,12 +23,19 @@ import {
   Radar,
   AreaChart,
   Area,
-} from 'recharts';
-import { Users, UserCheck, Zap, UserPlus, Download, FileText } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { UserRole } from '@prisma/client';
+} from "recharts";
+import {
+  Users,
+  UserCheck,
+  Zap,
+  UserPlus,
+  Download,
+  FileText,
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { UserRole } from "@prisma/client";
 
 // Types pour les données d'activité utilisateur
 interface UserActivityData {
@@ -81,11 +88,11 @@ export function UserActivityReport({
   onExportPdf,
   onExportCsv,
 }: UserActivityReportProps) {
-  const t = useTranslations('admin.reports');
+  const t = useTranslations("admin.reports");
 
   // Format du pourcentage pour l'affichage des changements
   const formatPercentage = (value: number) => {
-    return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
+    return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
   };
 
   // Format temporel pour la durée de session
@@ -98,7 +105,7 @@ export function UserActivityReport({
     }
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = Math.round(minutes % 60);
-    return `${hours}h ${remainingMinutes > 0 ? remainingMinutes + 'min' : ''}`;
+    return `${hours}h ${remainingMinutes > 0 ? remainingMinutes + "min" : ""}`;
   };
 
   if (isLoading) {
@@ -151,35 +158,44 @@ export function UserActivityReport({
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <h3 className="text-lg font-medium text-destructive mb-2">{t('errors.loadFailed')}</h3>
-          <p className="text-muted-foreground">{t('errors.tryAgain')}</p>
+          <h3 className="text-lg font-medium text-destructive mb-2">
+            {t("errors.loadFailed")}
+          </h3>
+          <p className="text-muted-foreground">{t("errors.tryAgain")}</p>
         </div>
       </div>
     );
   }
 
   // Couleurs pour les graphiques
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
+  const COLORS = [
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+    "#ff8042",
+    "#0088FE",
+    "#00C49F",
+  ];
 
   // Traduire les rôles d'utilisateur
   const translateRole = (role: UserRole) => {
     switch (role) {
-      case 'CLIENT':
-        return t('users.roles.client');
-      case 'DELIVERER':
-        return t('users.roles.deliverer');
-      case 'MERCHANT':
-        return t('users.roles.merchant');
-      case 'PROVIDER':
-        return t('users.roles.provider');
-      case 'ADMIN':
-        return t('users.roles.admin');
+      case "CLIENT":
+        return t("users.roles.client");
+      case "DELIVERER":
+        return t("users.roles.deliverer");
+      case "MERCHANT":
+        return t("users.roles.merchant");
+      case "PROVIDER":
+        return t("users.roles.provider");
+      case "ADMIN":
+        return t("users.roles.admin");
       default:
         return role;
     }
   };
 
-  const usersByRoleWithTranslation = data.usersByRole.map(item => ({
+  const usersByRoleWithTranslation = data.usersByRole.map((item) => ({
     ...item,
     role: translateRole(item.role),
   }));
@@ -212,33 +228,46 @@ export function UserActivityReport({
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('users.totalUsers')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("users.totalUsers")}
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.userSummary.totalUsers.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              {data.userSummary.totalUsers.toLocaleString()}
+            </div>
             <p
-              className={`text-xs ${data.userSummary.percentGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}
+              className={`text-xs ${data.userSummary.percentGrowth >= 0 ? "text-green-500" : "text-red-500"}`}
             >
-              {formatPercentage(data.userSummary.percentGrowth)} {t('users.growth')}
+              {formatPercentage(data.userSummary.percentGrowth)}{" "}
+              {t("users.growth")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('users.newUsers')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("users.newUsers")}
+            </CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.userSummary.newUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">{t('users.duringPeriod')}</p>
+            <div className="text-2xl font-bold">
+              {data.userSummary.newUsers.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("users.duringPeriod")}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('users.activeUsers')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("users.activeUsers")}
+            </CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -246,21 +275,26 @@ export function UserActivityReport({
               {data.userSummary.activeUsers.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {formatPercentage(data.userSummary.percentActiveUsers)} {t('users.ofTotalUsers')}
+              {formatPercentage(data.userSummary.percentActiveUsers)}{" "}
+              {t("users.ofTotalUsers")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('users.avgSessionTime')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("users.avgSessionTime")}
+            </CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {formatTime(data.userSummary.averageSessionTime)}
             </div>
-            <p className="text-xs text-muted-foreground">{t('users.perSession')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("users.perSession")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -268,15 +302,19 @@ export function UserActivityReport({
       {/* Graphiques */}
       <Tabs defaultValue="growth">
         <TabsList className="mb-4">
-          <TabsTrigger value="growth">{t('users.tabs.growth')}</TabsTrigger>
-          <TabsTrigger value="engagement">{t('users.tabs.engagement')}</TabsTrigger>
-          <TabsTrigger value="distribution">{t('users.tabs.distribution')}</TabsTrigger>
+          <TabsTrigger value="growth">{t("users.tabs.growth")}</TabsTrigger>
+          <TabsTrigger value="engagement">
+            {t("users.tabs.engagement")}
+          </TabsTrigger>
+          <TabsTrigger value="distribution">
+            {t("users.tabs.distribution")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="growth" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('users.charts.newUsersOverTime')}</CardTitle>
+              <CardTitle>{t("users.charts.newUsersOverTime")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-80 w-full pt-4">
@@ -295,22 +333,24 @@ export function UserActivityReport({
                     />
                     <YAxis />
                     <Tooltip
-                      formatter={value => [`${value}`, t('users.newUsers')]}
-                      labelFormatter={label => `${label}`}
+                      formatter={(value) => [`${value}`, t("users.newUsers")]}
+                      labelFormatter={(label) => `${label}`}
                     />
                     <Legend />
                     <Line
                       type="monotone"
                       dataKey="count"
-                      name={t('users.newUsers')}
+                      name={t("users.newUsers")}
                       stroke="#8884d8"
                       activeDot={{ r: 8 }}
                     />
-                    {data.newUsersOverTime.some(d => d.previousCount !== undefined) && (
+                    {data.newUsersOverTime.some(
+                      (d) => d.previousCount !== undefined,
+                    ) && (
                       <Line
                         type="monotone"
                         dataKey="previousCount"
-                        name={t('users.previousPeriod')}
+                        name={t("users.previousPeriod")}
                         stroke="#82ca9d"
                         strokeDasharray="5 5"
                       />
@@ -323,7 +363,7 @@ export function UserActivityReport({
 
           <Card>
             <CardHeader>
-              <CardTitle>{t('users.charts.retentionRate')}</CardTitle>
+              <CardTitle>{t("users.charts.retentionRate")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-80 w-full pt-4">
@@ -340,10 +380,22 @@ export function UserActivityReport({
                       height={70}
                       tick={{ fontSize: 12 }}
                     />
-                    <YAxis tickFormatter={value => `${value}%`} domain={[0, 100]} />
-                    <Tooltip formatter={value => [`${value}%`, t('users.retentionRate')]} />
+                    <YAxis
+                      tickFormatter={(value) => `${value}%`}
+                      domain={[0, 100]}
+                    />
+                    <Tooltip
+                      formatter={(value) => [
+                        `${value}%`,
+                        t("users.retentionRate"),
+                      ]}
+                    />
                     <Legend />
-                    <Bar dataKey="rate" name={t('users.retentionRate')} fill="#8884d8" />
+                    <Bar
+                      dataKey="rate"
+                      name={t("users.retentionRate")}
+                      fill="#8884d8"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -354,7 +406,7 @@ export function UserActivityReport({
         <TabsContent value="engagement" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('users.charts.activeUsers')}</CardTitle>
+              <CardTitle>{t("users.charts.activeUsers")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-80 w-full pt-4">
@@ -365,8 +417,16 @@ export function UserActivityReport({
                   >
                     <defs>
                       <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                        <stop
+                          offset="5%"
+                          stopColor="#8884d8"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#8884d8"
+                          stopOpacity={0}
+                        />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -378,12 +438,17 @@ export function UserActivityReport({
                       tick={{ fontSize: 12 }}
                     />
                     <YAxis />
-                    <Tooltip formatter={value => [`${value}`, t('users.activeUsers')]} />
+                    <Tooltip
+                      formatter={(value) => [
+                        `${value}`,
+                        t("users.activeUsers"),
+                      ]}
+                    />
                     <Legend />
                     <Area
                       type="monotone"
                       dataKey="count"
-                      name={t('users.activeUsers')}
+                      name={t("users.activeUsers")}
                       stroke="#8884d8"
                       fillOpacity={1}
                       fill="url(#colorUv)"
@@ -396,7 +461,7 @@ export function UserActivityReport({
 
           <Card>
             <CardHeader>
-              <CardTitle>{t('users.charts.engagementByFeature')}</CardTitle>
+              <CardTitle>{t("users.charts.engagementByFeature")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-80 w-full pt-4">
@@ -406,14 +471,19 @@ export function UserActivityReport({
                     <PolarAngleAxis dataKey="feature" />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} />
                     <Radar
-                      name={t('users.engagementScore')}
+                      name={t("users.engagementScore")}
                       dataKey="score"
                       stroke="#8884d8"
                       fill="#8884d8"
                       fillOpacity={0.6}
                     />
                     <Legend />
-                    <Tooltip formatter={value => [`${value}`, t('users.engagementScore')]} />
+                    <Tooltip
+                      formatter={(value) => [
+                        `${value}`,
+                        t("users.engagementScore"),
+                      ]}
+                    />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
@@ -425,7 +495,7 @@ export function UserActivityReport({
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>{t('users.charts.usersByRole')}</CardTitle>
+                <CardTitle>{t("users.charts.usersByRole")}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-80 w-full pt-4">
@@ -440,7 +510,9 @@ export function UserActivityReport({
                         fill="#8884d8"
                         dataKey="count"
                         nameKey="role"
-                        label={({ role, percent }) => `${role}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ role, percent }) =>
+                          `${role}: ${(percent * 100).toFixed(0)}%`
+                        }
                       >
                         {usersByRoleWithTranslation.map((entry, index) => (
                           <Cell
@@ -449,7 +521,9 @@ export function UserActivityReport({
                           />
                         ))}
                       </Pie>
-                      <Tooltip formatter={value => [`${value}`, t('users.count')]} />
+                      <Tooltip
+                        formatter={(value) => [`${value}`, t("users.count")]}
+                      />
                       <Legend />
                     </PieChart>
                   </ResponsiveContainer>
@@ -459,7 +533,7 @@ export function UserActivityReport({
 
             <Card>
               <CardHeader>
-                <CardTitle>{t('users.charts.usersByRoleBar')}</CardTitle>
+                <CardTitle>{t("users.charts.usersByRoleBar")}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-80 w-full pt-4">
@@ -472,9 +546,15 @@ export function UserActivityReport({
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
                       <YAxis type="category" dataKey="role" width={100} />
-                      <Tooltip formatter={value => [`${value}`, t('users.count')]} />
+                      <Tooltip
+                        formatter={(value) => [`${value}`, t("users.count")]}
+                      />
                       <Legend />
-                      <Bar dataKey="count" name={t('users.count')} fill="#8884d8">
+                      <Bar
+                        dataKey="count"
+                        name={t("users.count")}
+                        fill="#8884d8"
+                      >
                         {usersByRoleWithTranslation.map((entry, index) => (
                           <Cell
                             key={`cell-${index}`}

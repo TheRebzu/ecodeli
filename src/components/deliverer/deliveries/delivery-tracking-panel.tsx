@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -9,17 +9,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import DeliveryTrackingMap from '@/components/shared/maps/delivery-tracking-map';
-import DeliveryTimeline from '@/components/merchant/announcements/delivery-timeline';
-import DeliveryStatusIndicator from '@/components/shared/deliveries/delivery-status';
-import DeliveryETA from '@/components/deliverer/deliveries/delivery-eta';
-import { useDeliveryLiveTracking } from '@/hooks/features/use-delivery-tracking';
-import { DeliveryStatus } from '@/types/delivery/delivery';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import DeliveryTrackingMap from "@/components/shared/maps/delivery-tracking-map";
+import DeliveryTimeline from "@/components/merchant/announcements/delivery-timeline";
+import DeliveryStatusIndicator from "@/components/shared/deliveries/delivery-status";
+import DeliveryETA from "@/components/deliverer/deliveries/delivery-eta";
+import { useDeliveryLiveTracking } from "@/hooks/features/use-delivery-tracking";
+import { DeliveryStatus } from "@/types/delivery/delivery";
 import {
   Truck,
   Clock,
@@ -34,10 +34,10 @@ import {
   History,
   Info,
   RefreshCw,
-} from 'lucide-react';
-import { cn } from '@/lib/utils/common';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+} from "lucide-react";
+import { cn } from "@/lib/utils/common";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface DeliveryTrackingPanelProps {
   deliveryId: string;
@@ -52,26 +52,27 @@ export default function DeliveryTrackingPanel({
   onContactClick,
   showMap = true,
   showTimeline = true,
-  className = '',
+  className = "",
 }: DeliveryTrackingPanelProps) {
-  const t = useTranslations('deliveries.tracking');
-  const [activeTab, setActiveTab] = useState<string>('map');
+  const t = useTranslations("deliveries.tracking");
+  const [activeTab, setActiveTab] = useState<string>("map");
   const [refreshing, setRefreshing] = useState(false);
 
   // Récupérer les données de livraison en temps réel
-  const { deliveryInfo, isLoading, error, refresh } = useDeliveryLiveTracking(deliveryId);
+  const { deliveryInfo, isLoading, error, refresh } =
+    useDeliveryLiveTracking(deliveryId);
 
   // Effet pour changer l'onglet en fonction de la taille de l'écran
   useEffect(() => {
     const handleResize = () => {
       // Sur mobile, on préfère afficher la carte par défaut
-      if (window.innerWidth < 768 && activeTab === 'details') {
-        setActiveTab('map');
+      if (window.innerWidth < 768 && activeTab === "details") {
+        setActiveTab("map");
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [activeTab]);
 
   // Fonction pour rafraîchir les données
@@ -83,17 +84,17 @@ export default function DeliveryTrackingPanel({
 
   // Formater une date
   const formatDate = (date: Date | string | null) => {
-    if (!date) return t('notAvailable');
-    return format(new Date(date), 'PPp', { locale: fr });
+    if (!date) return t("notAvailable");
+    return format(new Date(date), "PPp", { locale: fr });
   };
 
   // Si en chargement, afficher un indicateur
   if (isLoading) {
     return (
-      <Card className={cn('w-full', className)}>
+      <Card className={cn("w-full", className)}>
         <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[400px]">
           <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mb-4" />
-          <p className="text-muted-foreground">{t('loading')}</p>
+          <p className="text-muted-foreground">{t("loading")}</p>
         </CardContent>
       </Card>
     );
@@ -102,15 +103,15 @@ export default function DeliveryTrackingPanel({
   // Si erreur, afficher un message
   if (error || !deliveryInfo) {
     return (
-      <Card className={cn('w-full', className)}>
+      <Card className={cn("w-full", className)}>
         <CardHeader>
-          <CardTitle>{t('errorTitle')}</CardTitle>
-          <CardDescription>{t('errorDescription')}</CardDescription>
+          <CardTitle>{t("errorTitle")}</CardTitle>
+          <CardDescription>{t("errorDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center min-h-[200px]">
-          <p className="text-destructive mb-4">{t('errorMessage')}</p>
+          <p className="text-destructive mb-4">{t("errorMessage")}</p>
           <Button onClick={handleRefresh} variant="outline">
-            {t('tryAgain')}
+            {t("tryAgain")}
           </Button>
         </CardContent>
       </Card>
@@ -130,16 +131,22 @@ export default function DeliveryTrackingPanel({
       <div className="space-y-3">
         <h3 className="text-base font-medium flex items-center">
           <Info className="w-5 h-5 mr-2 text-muted-foreground" />
-          {t('deliveryInfo')}
+          {t("deliveryInfo")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{t('orderNumber')}</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              {t("orderNumber")}
+            </p>
             <p className="font-medium">#{deliveryId.slice(-6)}</p>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{t('status')}</p>
-            <DeliveryStatusIndicator status={deliveryInfo.status as DeliveryStatus} />
+            <p className="text-sm font-medium text-muted-foreground">
+              {t("status")}
+            </p>
+            <DeliveryStatusIndicator
+              status={deliveryInfo.status as DeliveryStatus}
+            />
           </div>
         </div>
       </div>
@@ -149,15 +156,19 @@ export default function DeliveryTrackingPanel({
       <div className="space-y-3">
         <h3 className="text-base font-medium flex items-center">
           <Calendar className="w-5 h-5 mr-2 text-muted-foreground" />
-          {t('schedule')}
+          {t("schedule")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{t('createdAt')}</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              {t("createdAt")}
+            </p>
             <p>{formatDate(deliveryInfo.createdAt)}</p>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{t('estimatedArrival')}</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              {t("estimatedArrival")}
+            </p>
             <div className="flex items-center">
               <Clock className="w-4 h-4 mr-2 text-blue-500" />
               <span>{formatDate(deliveryInfo.estimatedArrival)}</span>
@@ -165,7 +176,11 @@ export default function DeliveryTrackingPanel({
           </div>
         </div>
         <div className="mt-2">
-          <DeliveryETA deliveryId={deliveryId} showProgress variant="detailed" />
+          <DeliveryETA
+            deliveryId={deliveryId}
+            showProgress
+            variant="detailed"
+          />
         </div>
       </div>
 
@@ -174,17 +189,21 @@ export default function DeliveryTrackingPanel({
       <div className="space-y-3">
         <h3 className="text-base font-medium flex items-center">
           <MapPin className="w-5 h-5 mr-2 text-muted-foreground" />
-          {t('locations')}
+          {t("locations")}
         </h3>
         <div className="space-y-4">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{t('pickupAddress')}</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              {t("pickupAddress")}
+            </p>
             <div className="p-3 bg-muted/50 rounded-md">
               <p>{deliveryInfo.pickupAddress}</p>
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{t('deliveryAddress')}</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              {t("deliveryAddress")}
+            </p>
             <div className="p-3 bg-muted/50 rounded-md">
               <p>{deliveryInfo.deliveryAddress}</p>
             </div>
@@ -198,13 +217,13 @@ export default function DeliveryTrackingPanel({
           <div className="space-y-3">
             <h3 className="text-base font-medium flex items-center">
               <UserCircle className="w-5 h-5 mr-2 text-muted-foreground" />
-              {t('delivererInfo')}
+              {t("delivererInfo")}
             </h3>
             <div className="flex items-center space-x-4">
               {deliveryInfo.deliverer.image ? (
                 <img
                   src={deliveryInfo.deliverer.image}
-                  alt={deliveryInfo.deliverer.name || t('deliverer')}
+                  alt={deliveryInfo.deliverer.name || t("deliverer")}
                   className="w-12 h-12 rounded-full object-cover"
                 />
               ) : (
@@ -220,7 +239,7 @@ export default function DeliveryTrackingPanel({
                     onClick={onContactClick}
                   >
                     <Phone className="w-3 h-3 mr-1" />
-                    {t('contact')}
+                    {t("contact")}
                   </button>
                 )}
               </div>
@@ -229,18 +248,20 @@ export default function DeliveryTrackingPanel({
         </>
       )}
 
-      {showTimeline && deliveryInfo.statusHistory && deliveryInfo.statusHistory.length > 0 && (
-        <>
-          <Separator />
-          <div className="space-y-3">
-            <h3 className="text-base font-medium flex items-center">
-              <History className="w-5 h-5 mr-2 text-muted-foreground" />
-              {t('deliveryHistory')}
-            </h3>
-            <DeliveryTimeline deliveryId={deliveryId} limit={5} />
-          </div>
-        </>
-      )}
+      {showTimeline &&
+        deliveryInfo.statusHistory &&
+        deliveryInfo.statusHistory.length > 0 && (
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <h3 className="text-base font-medium flex items-center">
+                <History className="w-5 h-5 mr-2 text-muted-foreground" />
+                {t("deliveryHistory")}
+              </h3>
+              <DeliveryTimeline deliveryId={deliveryId} limit={5} />
+            </div>
+          </>
+        )}
     </div>
   );
 
@@ -248,31 +269,31 @@ export default function DeliveryTrackingPanel({
   const getStatusSummary = () => {
     switch (deliveryInfo.status) {
       case DeliveryStatus.PENDING:
-        return t('statusSummary.pending');
+        return t("statusSummary.pending");
       case DeliveryStatus.ACCEPTED:
-        return t('statusSummary.accepted');
+        return t("statusSummary.accepted");
       case DeliveryStatus.PICKED_UP:
-        return t('statusSummary.pickedUp');
+        return t("statusSummary.pickedUp");
       case DeliveryStatus.IN_TRANSIT:
-        return t('statusSummary.inTransit');
+        return t("statusSummary.inTransit");
       case DeliveryStatus.DELIVERED:
-        return t('statusSummary.delivered');
+        return t("statusSummary.delivered");
       case DeliveryStatus.CONFIRMED:
-        return t('statusSummary.confirmed');
+        return t("statusSummary.confirmed");
       case DeliveryStatus.CANCELLED:
-        return t('statusSummary.cancelled');
+        return t("statusSummary.cancelled");
       default:
-        return '';
+        return "";
     }
   };
 
   return (
-    <Card className={cn('w-full overflow-hidden', className)}>
+    <Card className={cn("w-full overflow-hidden", className)}>
       <CardHeader className="relative pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center">
             <Package className="w-5 h-5 mr-2" />
-            {t('title')}
+            {t("title")}
           </CardTitle>
           <DeliveryStatusIndicator
             status={deliveryInfo.status as DeliveryStatus}
@@ -289,28 +310,32 @@ export default function DeliveryTrackingPanel({
           onClick={handleRefresh}
           disabled={refreshing}
         >
-          <RefreshCw className={cn('h-4 w-4', refreshing && 'animate-spin')} />
-          <span className="sr-only">{t('refresh')}</span>
+          <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
+          <span className="sr-only">{t("refresh")}</span>
         </Button>
       </CardHeader>
 
       <CardContent className="p-0">
         <div className="md:hidden">
-          <Tabs defaultValue="map" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            defaultValue="map"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <div className="px-6 py-2 border-b">
               <TabsList className="w-full grid grid-cols-3">
                 <TabsTrigger value="map">
                   <Map className="w-4 h-4 mr-2" />
-                  {t('mapTab')}
+                  {t("mapTab")}
                 </TabsTrigger>
                 <TabsTrigger value="details">
                   <Info className="w-4 h-4 mr-2" />
-                  {t('detailsTab')}
+                  {t("detailsTab")}
                 </TabsTrigger>
                 {showTimeline && (
                   <TabsTrigger value="timeline">
                     <History className="w-4 h-4 mr-2" />
-                    {t('timelineTab')}
+                    {t("timelineTab")}
                   </TabsTrigger>
                 )}
               </TabsList>
@@ -319,7 +344,10 @@ export default function DeliveryTrackingPanel({
             <TabsContent value="map" className="p-0 m-0">
               {showMap && (
                 <div className="h-[300px] w-full">
-                  <DeliveryTrackingMap deliveryId={deliveryId} isActive={isDeliveryActive} />
+                  <DeliveryTrackingMap
+                    deliveryId={deliveryId}
+                    isActive={isDeliveryActive}
+                  />
                 </div>
               )}
               <div className="p-4">
@@ -329,10 +357,10 @@ export default function DeliveryTrackingPanel({
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      {t('currentLocation')}
+                      {t("currentLocation")}
                     </p>
                     <p className="line-clamp-1">
-                      {deliveryInfo.currentAddress || t('notAvailable')}
+                      {deliveryInfo.currentAddress || t("notAvailable")}
                     </p>
                   </div>
                   {onContactClick && isDeliveryActive && (
@@ -343,7 +371,7 @@ export default function DeliveryTrackingPanel({
                       className="flex items-center"
                     >
                       <Phone className="w-3 h-3 mr-2" />
-                      {t('contactButton')}
+                      {t("contactButton")}
                     </Button>
                   )}
                 </div>
@@ -366,7 +394,10 @@ export default function DeliveryTrackingPanel({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
             {showMap && (
               <div className="h-[350px] w-full">
-                <DeliveryTrackingMap deliveryId={deliveryId} isActive={isDeliveryActive} />
+                <DeliveryTrackingMap
+                  deliveryId={deliveryId}
+                  isActive={isDeliveryActive}
+                />
                 <div className="mt-4">
                   <DeliveryETA deliveryId={deliveryId} showProgress size="lg" />
                 </div>
@@ -381,13 +412,13 @@ export default function DeliveryTrackingPanel({
 
       <CardFooter className="flex justify-between border-t p-4">
         <div>
-          <p className="text-sm text-muted-foreground">{t('lastUpdated')}</p>
+          <p className="text-sm text-muted-foreground">{t("lastUpdated")}</p>
           <p className="text-sm">{formatDate(deliveryInfo.updatedAt)}</p>
         </div>
         {onContactClick && isDeliveryActive && (
           <Button onClick={onContactClick} className="flex items-center">
             <Phone className="w-4 h-4 mr-2" />
-            {t('contactDeliverer')}
+            {t("contactDeliverer")}
           </Button>
         )}
       </CardFooter>

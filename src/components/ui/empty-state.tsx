@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { Package2 } from 'lucide-react';
+import { ReactNode } from "react";
+import { Package2 } from "lucide-react";
 
 interface EmptyStateProps {
   icon?: ReactNode;

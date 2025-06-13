@@ -11,18 +11,18 @@ export interface HomeService {
   tools: string[];
 }
 
-export type HomeServiceCategory = 
-  | 'CLEANING'
-  | 'PLUMBING'
-  | 'ELECTRICAL'
-  | 'GARDENING'
-  | 'HANDYMAN'
-  | 'CHILDCARE'
-  | 'ELDERLY_CARE';
+export type HomeServiceCategory =
+  | "CLEANING"
+  | "PLUMBING"
+  | "ELECTRICAL"
+  | "GARDENING"
+  | "HANDYMAN"
+  | "CHILDCARE"
+  | "ELDERLY_CARE";
 
 export interface HomeServiceBooking extends HomeService {
   clientId: string;
   address: string;
   scheduledDate: Date;
-  status: 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 }

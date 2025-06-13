@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/use-toast';
-import { api } from '@/trpc/react';
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/trpc/react";
 import {
   Search,
   MapPin,
@@ -29,13 +29,13 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface DelivererAnnouncementListProps {
-  view?: 'available' | 'applied' | 'favorites';
-  onViewChange?: (view: 'available' | 'applied' | 'favorites') => void;
+  view?: "available" | "applied" | "favorites";
+  onViewChange?: (view: "available" | "applied" | "favorites") => void;
 }
 
 const AnnouncementCard = ({
@@ -55,39 +55,43 @@ const AnnouncementCard = ({
 }) => {
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      PACKAGE: 'Colis',
-      SHOPPING_CART: 'Courses',
-      AIRPORT_TRANSFER: 'Transfert aéroport',
-      GROCERY: 'Épicerie',
-      FOREIGN_PRODUCT: 'Produit étranger',
+      PACKAGE: "Colis",
+      SHOPPING_CART: "Courses",
+      AIRPORT_TRANSFER: "Transfert aéroport",
+      GROCERY: "Épicerie",
+      FOREIGN_PRODUCT: "Produit étranger",
     };
     return labels[type] || type;
   };
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case 'URGENT':
-        return 'bg-red-100 text-red-800';
-      case 'HIGH':
-        return 'bg-orange-100 text-orange-800';
-      case 'NORMAL':
-        return 'bg-blue-100 text-blue-800';
-      case 'LOW':
-        return 'bg-gray-100 text-gray-800';
+      case "URGENT":
+        return "bg-red-100 text-red-800";
+      case "HIGH":
+        return "bg-orange-100 text-orange-800";
+      case "NORMAL":
+        return "bg-blue-100 text-blue-800";
+      case "LOW":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const canApply = !userApplicationStatus || userApplicationStatus === 'REJECTED';
-  const hasApplied = userApplicationStatus && userApplicationStatus !== 'REJECTED';
+  const canApply =
+    !userApplicationStatus || userApplicationStatus === "REJECTED";
+  const hasApplied =
+    userApplicationStatus && userApplicationStatus !== "REJECTED";
 
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg mb-2 line-clamp-2">{announcement.title}</CardTitle>
+            <CardTitle className="text-lg mb-2 line-clamp-2">
+              {announcement.title}
+            </CardTitle>
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="outline">{getTypeLabel(announcement.type)}</Badge>
               {announcement.urgencyLevel && (
@@ -105,14 +109,20 @@ const AnnouncementCard = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => onFavoriteToggle(announcement.id)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onFavoriteToggle(announcement.id)}
+            >
               <Heart
-                className={`h-4 w-4 ${announcement.isFavorite ? 'fill-red-500 text-red-500' : ''}`}
+                className={`h-4 w-4 ${announcement.isFavorite ? "fill-red-500 text-red-500" : ""}`}
               />
             </Button>
             <div className="text-right">
-              <div className="font-bold text-lg">{announcement.suggestedPrice || 0}€</div>
-              {announcement.priceType === 'negotiable' && (
+              <div className="font-bold text-lg">
+                {announcement.suggestedPrice || 0}€
+              </div>
+              {announcement.priceType === "negotiable" && (
                 <div className="text-xs text-muted-foreground">Négociable</div>
               )}
             </div>
@@ -126,11 +136,15 @@ const AnnouncementCard = ({
           <div className="space-y-2 text-sm">
             <div className="flex items-start gap-2">
               <Package className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-              <span className="text-muted-foreground truncate">{announcement.pickupAddress}</span>
+              <span className="text-muted-foreground truncate">
+                {announcement.pickupAddress}
+              </span>
             </div>
             <div className="flex items-start gap-2">
               <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-              <span className="text-muted-foreground truncate">{announcement.deliveryAddress}</span>
+              <span className="text-muted-foreground truncate">
+                {announcement.deliveryAddress}
+              </span>
             </div>
           </div>
 
@@ -138,7 +152,10 @@ const AnnouncementCard = ({
           {announcement.pickupDate && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
-              <span>Récupération: {new Date(announcement.pickupDate).toLocaleDateString()}</span>
+              <span>
+                Récupération:{" "}
+                {new Date(announcement.pickupDate).toLocaleDateString()}
+              </span>
             </div>
           )}
 
@@ -147,16 +164,18 @@ const AnnouncementCard = ({
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
                 <span className="text-xs font-medium">
-                  {announcement.client.profile?.firstName?.charAt(0) || 'C'}
+                  {announcement.client.profile?.firstName?.charAt(0) || "C"}
                 </span>
               </div>
               <span className="text-sm font-medium">
-                {announcement.client.profile?.firstName || 'Client'}
+                {announcement.client.profile?.firstName || "Client"}
               </span>
               {announcement.client.averageRating && (
                 <div className="flex items-center gap-1">
                   <Star className="h-3 w-3 text-yellow-500" />
-                  <span className="text-xs">{announcement.client.averageRating.toFixed(1)}</span>
+                  <span className="text-xs">
+                    {announcement.client.averageRating.toFixed(1)}
+                  </span>
                 </div>
               )}
             </div>
@@ -165,22 +184,28 @@ const AnnouncementCard = ({
           {/* Application status */}
           {hasApplied && (
             <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-              {userApplicationStatus === 'PENDING' && (
+              {userApplicationStatus === "PENDING" && (
                 <>
                   <Clock className="h-4 w-4 text-yellow-500" />
-                  <span className="text-sm font-medium">Candidature en attente</span>
+                  <span className="text-sm font-medium">
+                    Candidature en attente
+                  </span>
                 </>
               )}
-              {userApplicationStatus === 'ACCEPTED' && (
+              {userApplicationStatus === "ACCEPTED" && (
                 <>
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium">Candidature acceptée</span>
+                  <span className="text-sm font-medium">
+                    Candidature acceptée
+                  </span>
                 </>
               )}
-              {userApplicationStatus === 'REJECTED' && (
+              {userApplicationStatus === "REJECTED" && (
                 <>
                   <XCircle className="h-4 w-4 text-red-500" />
-                  <span className="text-sm font-medium">Candidature refusée</span>
+                  <span className="text-sm font-medium">
+                    Candidature refusée
+                  </span>
                 </>
               )}
             </div>
@@ -188,7 +213,9 @@ const AnnouncementCard = ({
 
           {/* Description */}
           {announcement.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">{announcement.description}</p>
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {announcement.description}
+            </p>
           )}
 
           {/* Actions */}
@@ -204,10 +231,14 @@ const AnnouncementCard = ({
             </Button>
 
             {canApply ? (
-              <Button size="sm" onClick={() => onApply(announcement.id)} className="flex-1">
+              <Button
+                size="sm"
+                onClick={() => onApply(announcement.id)}
+                className="flex-1"
+              >
                 Postuler
               </Button>
-            ) : hasApplied && userApplicationStatus === 'PENDING' ? (
+            ) : hasApplied && userApplicationStatus === "PENDING" ? (
               <Button
                 variant="destructive"
                 size="sm"
@@ -221,7 +252,7 @@ const AnnouncementCard = ({
 
           {/* Time since posted */}
           <div className="text-xs text-muted-foreground pt-1 border-t">
-            Publié{' '}
+            Publié{" "}
             {formatDistanceToNow(new Date(announcement.createdAt), {
               addSuffix: true,
               locale: fr,
@@ -234,13 +265,13 @@ const AnnouncementCard = ({
 };
 
 export default function DelivererAnnouncementList({
-  view = 'available',
+  view = "available",
   onViewChange,
 }: DelivererAnnouncementListProps) {
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
 
   // Récupérer les annonces selon la vue
@@ -252,9 +283,9 @@ export default function DelivererAnnouncementList({
     page: currentPage,
     limit: 12,
     search: searchQuery,
-    type: typeFilter !== 'all' ? typeFilter : undefined,
+    type: typeFilter !== "all" ? typeFilter : undefined,
     sortBy,
-    status: 'PUBLISHED',
+    status: "PUBLISHED",
     forDeliverer: true,
   });
 
@@ -262,17 +293,17 @@ export default function DelivererAnnouncementList({
   const applyMutation = api.announcement.apply.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Candidature envoyée',
-        description: 'Votre candidature a été envoyée avec succès',
-        variant: 'success',
+        title: "Candidature envoyée",
+        description: "Votre candidature a été envoyée avec succès",
+        variant: "success",
       });
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -280,17 +311,17 @@ export default function DelivererAnnouncementList({
   const cancelMutation = api.announcement.cancelApplication.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Candidature annulée',
-        description: 'Votre candidature a été annulée',
-        variant: 'success',
+        title: "Candidature annulée",
+        description: "Votre candidature a été annulée",
+        variant: "success",
       });
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -314,7 +345,7 @@ export default function DelivererAnnouncementList({
   };
 
   const handleViewDetails = (announcementId: string) => {
-    window.open(`/announcements/${announcementId}`, '_blank');
+    window.open(`/announcements/${announcementId}`, "_blank");
   };
 
   const handleSearch = () => {
@@ -351,8 +382,8 @@ export default function DelivererAnnouncementList({
                 <Input
                   placeholder="Rechercher des annonces..."
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  onKeyPress={e => e.key === 'Enter' && handleSearch()}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                 />
                 <Button variant="outline" size="icon" onClick={handleSearch}>
                   <Search className="h-4 w-4" />
@@ -370,9 +401,13 @@ export default function DelivererAnnouncementList({
                   <SelectItem value="all">Tous les types</SelectItem>
                   <SelectItem value="PACKAGE">Colis</SelectItem>
                   <SelectItem value="SHOPPING_CART">Courses</SelectItem>
-                  <SelectItem value="AIRPORT_TRANSFER">Transfert aéroport</SelectItem>
+                  <SelectItem value="AIRPORT_TRANSFER">
+                    Transfert aéroport
+                  </SelectItem>
                   <SelectItem value="GROCERY">Épicerie</SelectItem>
-                  <SelectItem value="FOREIGN_PRODUCT">Produit étranger</SelectItem>
+                  <SelectItem value="FOREIGN_PRODUCT">
+                    Produit étranger
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -409,7 +444,8 @@ export default function DelivererAnnouncementList({
       <div>
         {totalCount > 0 && (
           <div className="text-sm text-muted-foreground mb-4">
-            {totalCount} annonce{totalCount > 1 ? 's' : ''} trouvée{totalCount > 1 ? 's' : ''}
+            {totalCount} annonce{totalCount > 1 ? "s" : ""} trouvée
+            {totalCount > 1 ? "s" : ""}
           </div>
         )}
 
@@ -422,13 +458,17 @@ export default function DelivererAnnouncementList({
           <Card>
             <CardContent className="text-center py-12">
               <Package className="h-12 w-12 mx-auto text-muted-foreground opacity-50 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Aucune annonce trouvée</h3>
+              <h3 className="text-lg font-medium mb-2">
+                Aucune annonce trouvée
+              </h3>
               <p className="text-muted-foreground mb-4">
-                {view === 'available' && 'Aucune annonce disponible pour le moment.'}
-                {view === 'applied' && "Vous n'avez postulé à aucune annonce."}
-                {view === 'favorites' && "Vous n'avez aucune annonce en favoris."}
+                {view === "available" &&
+                  "Aucune annonce disponible pour le moment."}
+                {view === "applied" && "Vous n'avez postulé à aucune annonce."}
+                {view === "favorites" &&
+                  "Vous n'avez aucune annonce en favoris."}
               </p>
-              {view === 'available' && (
+              {view === "available" && (
                 <Button onClick={() => refetch()}>Actualiser la liste</Button>
               )}
             </CardContent>
@@ -437,7 +477,7 @@ export default function DelivererAnnouncementList({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {announcements.map((announcement: any) => {
               const userApplication = announcement.applications?.find(
-                (app: any) => app.delivererId === announcement.currentUserId
+                (app: any) => app.delivererId === announcement.currentUserId,
               );
 
               return (
@@ -460,7 +500,7 @@ export default function DelivererAnnouncementList({
           <div className="flex justify-center items-center gap-2 mt-6">
             <Button
               variant="outline"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               Précédent
@@ -472,7 +512,7 @@ export default function DelivererAnnouncementList({
                 return (
                   <Button
                     key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
+                    variant={currentPage === page ? "default" : "outline"}
                     size="sm"
                     onClick={() => setCurrentPage(page)}
                   >
@@ -484,7 +524,9 @@ export default function DelivererAnnouncementList({
 
             <Button
               variant="outline"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
               disabled={currentPage === totalPages}
             >
               Suivant

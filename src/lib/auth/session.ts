@@ -1,6 +1,6 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
-import { UserRole } from '@prisma/client';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/auth/next-auth";
+import { UserRole } from "@prisma/client";
 
 /**
  * Récupère la session de l'utilisateur actuel côté serveur
@@ -47,15 +47,15 @@ export async function getCurrentUserId() {
   const session = await getCurrentSession();
   return session?.user?.id || null;
 }
-import { nanoid } from 'nanoid';
-import { addHours, isAfter } from 'date-fns';
+import { nanoid } from "nanoid";
+import { addHours, isAfter } from "date-fns";
 
 /**
  * Types de tokens supportés par l'application
  */
 export enum TokenType {
-  EMAIL_VERIFICATION = 'EMAIL_VERIFICATION',
-  PASSWORD_RESET = 'PASSWORD_RESET',
+  EMAIL_VERIFICATION = "EMAIL_VERIFICATION",
+  PASSWORD_RESET = "PASSWORD_RESET",
 }
 
 /**
@@ -70,7 +70,10 @@ export function generateToken(): string {
  * Génère un token de vérification d'email
  * @returns Le token et sa date d'expiration
  */
-export function generateVerificationToken(): { token: string; expiresAt: Date } {
+export function generateVerificationToken(): {
+  token: string;
+  expiresAt: Date;
+} {
   return {
     token: generateToken(),
     expiresAt: getTokenExpiration(TokenType.EMAIL_VERIFICATION),
@@ -81,7 +84,10 @@ export function generateVerificationToken(): { token: string; expiresAt: Date } 
  * Génère un token de réinitialisation de mot de passe
  * @returns Le token et sa date d'expiration
  */
-export function generatePasswordResetToken(): { token: string; expiresAt: Date } {
+export function generatePasswordResetToken(): {
+  token: string;
+  expiresAt: Date;
+} {
   return {
     token: generateToken(),
     expiresAt: getTokenExpiration(TokenType.PASSWORD_RESET),

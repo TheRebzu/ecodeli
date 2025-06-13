@@ -1,13 +1,13 @@
 // src/server/services/security/financial-validation.service.ts
-import { db } from '@/server/db';
-import { TRPCError } from '@trpc/server';
+import { db } from "@/server/db";
+import { TRPCError } from "@trpc/server";
 
 export const financialValidationService = {
   async validateWithdrawalRequest(
     withdrawalId: string,
     adminId: string,
     approved: boolean,
-    comments?: string
+    comments?: string,
   ) {
     const withdrawalRequest = await db.withdrawalRequest.findUnique({
       where: { id: withdrawalId },
@@ -18,15 +18,15 @@ export const financialValidationService = {
 
     if (!withdrawalRequest) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Demande de retrait non trouvée',
+        code: "NOT_FOUND",
+        message: "Demande de retrait non trouvée",
       });
     }
 
-    if (withdrawalRequest.status !== 'PENDING') {
+    if (withdrawalRequest.status !== "PENDING") {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Cette demande a déjà été traitée',
+        code: "BAD_REQUEST",
+        message: "Cette demande a déjà été traitée",
       });
     }
 
@@ -35,14 +35,14 @@ export const financialValidationService = {
       where: {
         userId: adminId,
         permissions: {
-          has: 'APPROVE_WITHDRAWALS',
+          has: "APPROVE_WITHDRAWALS",
         },
       },
     });
 
     if (!admin) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'avez pas les permissions nécessaires",
       });
     }
@@ -68,9 +68,9 @@ export const financialValidationService = {
         data: {
           walletId: withdrawalRequest.walletId,
           amount: -withdrawalRequest.amount,
-          type: 'WITHDRAWAL',
-          status: 'COMPLETED',
-          description: 'Retrait vers compte bancaire',
+          type: "WITHDRAWAL",
+          status: "COMPLETED",
+          description: "Retrait vers compte bancaire",
           withdrawalId: withdrawalRequest.id,
           currency: withdrawalRequest.currency,
         },
@@ -92,7 +92,7 @@ export const financialValidationService = {
           recipientName: bankTransfer.recipientName,
           recipientIban: bankTransfer.recipientIban,
           initiatedAt: new Date(),
-          status: 'PENDING',
+          status: "PENDING",
           externalTransferId: bankTransfer.transferId,
         },
       });
@@ -100,7 +100,7 @@ export const financialValidationService = {
       return await db.withdrawalRequest.update({
         where: { id: withdrawalId },
         data: {
-          status: 'APPROVED',
+          status: "APPROVED",
           processedAt: new Date(),
           processorId: adminId,
           processorComments: comments,
@@ -110,10 +110,10 @@ export const financialValidationService = {
       return await db.withdrawalRequest.update({
         where: { id: withdrawalId },
         data: {
-          status: 'REJECTED',
+          status: "REJECTED",
           processedAt: new Date(),
           processorId: adminId,
-          processorComments: comments || 'Rejeté par administrateur',
+          processorComments: comments || "Rejeté par administrateur",
         },
       });
     }
@@ -131,8 +131,8 @@ export const financialValidationService = {
     // Enregistrer l'activité pour audit
     await db.auditLog.create({
       data: {
-        entityType: data.entityType || 'FINANCIAL',
-        entityId: data.entityId || 'SYSTEM',
+        entityType: data.entityType || "FINANCIAL",
+        entityId: data.entityId || "SYSTEM",
         action: data.action,
         performedById: data.userId,
         changes: {
@@ -146,7 +146,7 @@ export const financialValidationService = {
     await db.userActivityLog.create({
       data: {
         userId: data.userId,
-        activityType: 'OTHER',
+        activityType: "OTHER",
         details: data.description || data.action,
         ipAddress: data.ipAddress,
       },
@@ -173,12 +173,15 @@ export const financialValidationService = {
     return { isValid: true, errors: [] };
   },
 
-  async recordValidationResult(transactionId: string, result: {
-    isValid: boolean;
-    errors: string[];
-    validatedAt: Date;
-    validatedBy: string;
-  }) {
+  async recordValidationResult(
+    transactionId: string,
+    result: {
+      isValid: boolean;
+      errors: string[];
+      validatedAt: Date;
+      validatedBy: string;
+    },
+  ) {
     // Implementation of recordValidationResult method
   },
 
@@ -191,15 +194,15 @@ export const financialValidationService = {
       this.validateFraudDetection(transactionId),
     ]);
 
-    const isValid = validationResults.every(result => result.isValid);
-    const errors = validationResults.flatMap(result => result.errors || []);
+    const isValid = validationResults.every((result) => result.isValid);
+    const errors = validationResults.flatMap((result) => result.errors || []);
 
     // Enregistrer le résultat de validation
     await this.recordValidationResult(transactionId, {
       isValid,
       errors,
       validatedAt: new Date(),
-      validatedBy: 'SYSTEM',
+      validatedBy: "SYSTEM",
     });
 
     return {

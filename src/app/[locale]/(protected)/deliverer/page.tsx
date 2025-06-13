@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
-import { authOptions } from '@/server/auth/next-auth';
-import { getTranslations } from 'next-intl/server';
-import DelivererDashboard from '@/components/deliverer/dashboard/deliverer-dashboard';
-import { UserStatus } from '@/server/db/enums';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
+import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/server/auth/next-auth";
+import { getTranslations } from "next-intl/server";
+import DelivererDashboard from "@/components/deliverer/dashboard/deliverer-dashboard";
+import { UserStatus } from "@/server/db/enums";
+import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 
 // Interface pour les propriétés de la page
 interface Props {
@@ -15,12 +15,13 @@ interface Props {
 // Génération des métadonnées pour le dashboard livreur
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'dashboard' });
+  const t = await getTranslations({ locale, namespace: "dashboard" });
 
   return {
-    title: t('deliverer.title') || 'Tableau de bord Livreur | EcoDeli',
+    title: t("deliverer.title") || "Tableau de bord Livreur | EcoDeli",
     description:
-      t('deliverer.description') || 'Gérez vos livraisons et suivez votre activité sur EcoDeli',
+      t("deliverer.description") ||
+      "Gérez vos livraisons et suivez votre activité sur EcoDeli",
   };
 }
 
@@ -35,7 +36,7 @@ export default async function DelivererPage({ params }: Props) {
   }
 
   // Vérifier que l'utilisateur est bien un livreur
-  if (session.user.role !== 'DELIVERER') {
+  if (session.user.role !== "DELIVERER") {
     redirect(`/${locale}/dashboard`);
   }
 

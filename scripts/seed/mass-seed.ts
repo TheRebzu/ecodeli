@@ -9,16 +9,16 @@ import {
   DeliveryStatus,
   DeliveryStatusModel,
   PaymentStatus,
-} from '@prisma/client';
-import { faker } from '@faker-js/faker/locale/fr';
-import { performance } from 'perf_hooks';
-import { add, sub, format } from 'date-fns';
-import * as fs from 'fs';
-import * as path from 'path';
+} from "@prisma/client";
+import { faker } from "@faker-js/faker/locale/fr";
+import { performance } from "perf_hooks";
+import { add, sub, format } from "date-fns";
+import * as fs from "fs";
+import * as path from "path";
 
 // Configuration du client Prisma avec optimisations
 const prisma = new PrismaClient({
-  log: ['warn', 'error'],
+  log: ["warn", "error"],
 });
 
 // Configuration par défaut
@@ -81,7 +81,7 @@ let deliveryIds: string[] = [];
 function getDistributedItems<T>(
   items: T[],
   count: number,
-  distribution: { [key in T extends string ? T : string]?: number }
+  distribution: { [key in T extends string ? T : string]?: number },
 ): T[] {
   const result: T[] = [];
 
@@ -119,7 +119,7 @@ function getDistributedItems<T>(
 function generateHashedPassword(): string {
   // Dans un environnement de test, on utilise un hash fictif
   // En production, on utiliserait bcrypt ou autre
-  return '$2a$10$VJpzBUEWMZtEG0Wp7VrOJOXO90/ZDmeIhObEpK.tO8xJQBOxLMgZi'; // "password123"
+  return "$2a$10$VJpzBUEWMZtEG0Wp7VrOJOXO90/ZDmeIhObEpK.tO8xJQBOxLMgZi"; // "password123"
 }
 
 /**
@@ -132,7 +132,11 @@ async function generateUsers(config = DEFAULT_CONFIG) {
   const distribution = config.USERS.DISTRIBUTION;
 
   // Préparer la répartition des rôles
-  const roles = getDistributedItems(Object.values(UserRole), config.USERS.COUNT, distribution);
+  const roles = getDistributedItems(
+    Object.values(UserRole),
+    config.USERS.COUNT,
+    distribution,
+  );
 
   // Initialiser les tableaux d'IDs par rôle
   userIds = Object.values(UserRole).reduce(
@@ -140,7 +144,7 @@ async function generateUsers(config = DEFAULT_CONFIG) {
       acc[role] = [];
       return acc;
     },
-    {} as { [key in UserRole]: string[] }
+    {} as { [key in UserRole]: string[] },
   );
 
   // Générer les utilisateurs par lots
@@ -169,10 +173,10 @@ async function generateUsers(config = DEFAULT_CONFIG) {
         }),
         hasCompletedOnboarding: Math.random() > 0.1,
         locale: faker.helpers.weightedArrayElement([
-          { value: 'fr', weight: 0.7 },
-          { value: 'en', weight: 0.2 },
-          { value: 'es', weight: 0.05 },
-          { value: 'de', weight: 0.05 },
+          { value: "fr", weight: 0.7 },
+          { value: "en", weight: 0.2 },
+          { value: "es", weight: 0.05 },
+          { value: "de", weight: 0.05 },
         ]),
         phoneNumber: faker.phone.number(),
       });
@@ -186,7 +190,7 @@ async function generateUsers(config = DEFAULT_CONFIG) {
       });
 
       // Organiser les IDs par rôle
-      batch.forEach(user => {
+      batch.forEach((user) => {
         if (!userIds[user.role]) {
           userIds[user.role] = [];
         }
@@ -200,18 +204,18 @@ async function generateUsers(config = DEFAULT_CONFIG) {
         }
       });
     } catch (error) {
-      console.error('Erreur lors de la création des utilisateurs:', error);
-      console.log('Données utilisateur qui ont posé problème:', batch[0]);
+      console.error("Erreur lors de la création des utilisateurs:", error);
+      console.log("Données utilisateur qui ont posé problème:", batch[0]);
     }
 
     console.log(
-      `Progression: ${Math.min(i + config.BATCH_SIZE, config.USERS.COUNT)}/${config.USERS.COUNT} utilisateurs`
+      `Progression: ${Math.min(i + config.BATCH_SIZE, config.USERS.COUNT)}/${config.USERS.COUNT} utilisateurs`,
     );
   }
 
   const endTime = performance.now();
   console.log(
-    `✅ ${config.USERS.COUNT} utilisateurs créés en ${((endTime - startTime) / 1000).toFixed(2)}s`
+    `✅ ${config.USERS.COUNT} utilisateurs créés en ${((endTime - startTime) / 1000).toFixed(2)}s`,
   );
 
   // Générer les profils spécifiques aux rôles
@@ -222,20 +226,24 @@ async function generateUsers(config = DEFAULT_CONFIG) {
  * Générer les profils spécifiques aux rôles (client, livreur, etc.)
  */
 async function generateRoleSpecificProfiles(config = DEFAULT_CONFIG) {
-  console.log('Génération des profils spécifiques aux rôles...');
+  console.log("Génération des profils spécifiques aux rôles...");
 
   // Clients
   if (clientIds.length > 0) {
-    const clientBatch = clientIds.map(userId => ({
-      id: `client_${userId.split('_')[1]}`,
+    const clientBatch = clientIds.map((userId) => ({
+      id: `client_${userId.split("_")[1]}`,
       userId,
       address: faker.location.streetAddress(),
       city: faker.location.city(),
       postalCode: faker.location.zipCode(),
-      country: 'France',
+      country: "France",
       preferences: {
         notificationEnabled: true,
-        preferredPaymentMethod: faker.helpers.arrayElement(['card', 'paypal', 'bank_transfer']),
+        preferredPaymentMethod: faker.helpers.arrayElement([
+          "card",
+          "paypal",
+          "bank_transfer",
+        ]),
         newsletterOptIn: Math.random() > 0.5,
       },
       state: faker.location.state(),
@@ -255,20 +263,25 @@ async function generateRoleSpecificProfiles(config = DEFAULT_CONFIG) {
 
   // Livreurs
   if (delivererIds.length > 0) {
-    const delivererBatch = delivererIds.map(userId => ({
-      id: `deliverer_${userId.split('_')[1]}`,
+    const delivererBatch = delivererIds.map((userId) => ({
+      id: `deliverer_${userId.split("_")[1]}`,
       userId,
       address: faker.location.streetAddress(),
       phone: faker.phone.number(),
-      vehicleType: faker.helpers.arrayElement(['vélo', 'scooter', 'voiture', 'camionnette']),
+      vehicleType: faker.helpers.arrayElement([
+        "vélo",
+        "scooter",
+        "voiture",
+        "camionnette",
+      ]),
       licensePlate: Math.random() > 0.2 ? faker.vehicle.vrm() : null,
       isVerified: Math.random() > 0.3,
       isActive: Math.random() > 0.2,
       rating: faker.number.float({ min: 3, max: 5, fractionDigits: 1 }),
       maxCapacity: faker.number.float({ min: 5, max: 500 }),
       currentLocation: `${faker.location.latitude()},${faker.location.longitude()}`,
-      availableDays: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'].filter(
-        () => Math.random() > 0.3
+      availableDays: ["lundi", "mardi", "mercredi", "jeudi", "vendredi"].filter(
+        () => Math.random() > 0.3,
       ),
       maxWeightCapacity: faker.number.float({ min: 5, max: 200 }),
       yearsOfExperience: faker.number.int({ min: 0, max: 15 }),
@@ -287,24 +300,24 @@ async function generateRoleSpecificProfiles(config = DEFAULT_CONFIG) {
 
   // Commerçants
   if (merchantIds.length > 0) {
-    const merchantBatch = merchantIds.map(userId => ({
-      id: `merchant_${userId.split('_')[1]}`,
+    const merchantBatch = merchantIds.map((userId) => ({
+      id: `merchant_${userId.split("_")[1]}`,
       userId,
       companyName: faker.company.name(),
       address: faker.location.streetAddress(),
       phone: faker.phone.number(),
       businessType: faker.helpers.arrayElement([
-        'Restaurant',
-        'Magasin',
-        'Épicerie',
-        'Pharmacie',
-        'Fleuriste',
+        "Restaurant",
+        "Magasin",
+        "Épicerie",
+        "Pharmacie",
+        "Fleuriste",
       ]),
       vatNumber: `FR${faker.string.numeric(11)}`,
       businessCity: faker.location.city(),
       businessState: faker.location.state(),
       businessPostal: faker.location.zipCode(),
-      businessCountry: 'France',
+      businessCountry: "France",
       isVerified: Math.random() > 0.2,
     }));
 
@@ -324,8 +337,11 @@ async function generateRoleSpecificProfiles(config = DEFAULT_CONFIG) {
  * Générer des documents en masse
  */
 async function generateDocuments(config = DEFAULT_CONFIG) {
-  if (userIds[UserRole.CLIENT].length === 0 && userIds[UserRole.DELIVERER].length === 0) {
-    console.warn('⚠️ Aucun utilisateur trouvé pour générer des documents');
+  if (
+    userIds[UserRole.CLIENT].length === 0 &&
+    userIds[UserRole.DELIVERER].length === 0
+  ) {
+    console.warn("⚠️ Aucun utilisateur trouvé pour générer des documents");
     return;
   }
 
@@ -342,10 +358,16 @@ async function generateDocuments(config = DEFAULT_CONFIG) {
   for (let i = 0; i < config.DOCUMENTS.COUNT; i += config.BATCH_SIZE) {
     const batch = [];
 
-    for (let j = 0; j < config.BATCH_SIZE && i + j < config.DOCUMENTS.COUNT; j++) {
+    for (
+      let j = 0;
+      j < config.BATCH_SIZE && i + j < config.DOCUMENTS.COUNT;
+      j++
+    ) {
       const index = i + j;
       const userId = faker.helpers.arrayElement(allUserIds);
-      const documentType = faker.helpers.arrayElement(Object.values(DocumentType));
+      const documentType = faker.helpers.arrayElement(
+        Object.values(DocumentType),
+      );
 
       batch.push({
         id: `doc_${index}`,
@@ -353,7 +375,7 @@ async function generateDocuments(config = DEFAULT_CONFIG) {
         userId,
         filename: `document_${documentType.toLowerCase()}_${index}.pdf`,
         fileUrl: `https://storage.ecodeli.example/documents/${faker.string.uuid()}.pdf`,
-        mimeType: 'application/pdf',
+        mimeType: "application/pdf",
         fileSize: faker.number.int({ min: 10000, max: 5000000 }),
         uploadedAt: faker.date.between({
           from: config.DATE_RANGE.START,
@@ -370,16 +392,16 @@ async function generateDocuments(config = DEFAULT_CONFIG) {
     });
 
     // Stocker les IDs pour référence ultérieure
-    documentIds.push(...batch.map(doc => doc.id));
+    documentIds.push(...batch.map((doc) => doc.id));
 
     console.log(
-      `Progression: ${Math.min(i + config.BATCH_SIZE, config.DOCUMENTS.COUNT)}/${config.DOCUMENTS.COUNT} documents`
+      `Progression: ${Math.min(i + config.BATCH_SIZE, config.DOCUMENTS.COUNT)}/${config.DOCUMENTS.COUNT} documents`,
     );
   }
 
   const endTime = performance.now();
   console.log(
-    `✅ ${config.DOCUMENTS.COUNT} documents créés en ${((endTime - startTime) / 1000).toFixed(2)}s`
+    `✅ ${config.DOCUMENTS.COUNT} documents créés en ${((endTime - startTime) / 1000).toFixed(2)}s`,
   );
 }
 
@@ -388,7 +410,7 @@ async function generateDocuments(config = DEFAULT_CONFIG) {
  */
 async function generateAnnouncements(config = DEFAULT_CONFIG) {
   if (clientIds.length === 0) {
-    console.warn('⚠️ Aucun client trouvé pour générer des annonces');
+    console.warn("⚠️ Aucun client trouvé pour générer des annonces");
     return;
   }
 
@@ -400,21 +422,26 @@ async function generateAnnouncements(config = DEFAULT_CONFIG) {
   const statuses = getDistributedItems(
     Object.values(AnnouncementStatus),
     config.ANNOUNCEMENTS.COUNT,
-    config.ANNOUNCEMENTS.STATUS_DISTRIBUTION
+    config.ANNOUNCEMENTS.STATUS_DISTRIBUTION,
   );
 
   // Générer les annonces par lots
   for (let i = 0; i < config.ANNOUNCEMENTS.COUNT; i += config.BATCH_SIZE) {
     const batch = [];
 
-    for (let j = 0; j < config.BATCH_SIZE && i + j < config.ANNOUNCEMENTS.COUNT; j++) {
+    for (
+      let j = 0;
+      j < config.BATCH_SIZE && i + j < config.ANNOUNCEMENTS.COUNT;
+      j++
+    ) {
       const index = i + j;
       const status = statuses[index];
       const clientId = faker.helpers.arrayElement(clientIds);
 
       // Si l'annonce est assignée ou complétée, on lui attribue un livreur
       const delivererId =
-        (status === AnnouncementStatus.ASSIGNED || status === AnnouncementStatus.COMPLETED) &&
+        (status === AnnouncementStatus.ASSIGNED ||
+          status === AnnouncementStatus.COMPLETED) &&
         delivererIds.length > 0
           ? faker.helpers.arrayElement(delivererIds)
           : null;
@@ -428,16 +455,18 @@ async function generateAnnouncements(config = DEFAULT_CONFIG) {
         id: `ann_${index}`,
         title:
           faker.helpers.arrayElement([
-            'Livraison de colis',
-            'Transport de documents',
-            'Livraison urgente',
-            'Livraison de courses',
-            'Transport de marchandises',
+            "Livraison de colis",
+            "Transport de documents",
+            "Livraison urgente",
+            "Livraison de courses",
+            "Transport de marchandises",
           ]) + ` #${index}`,
         description: faker.lorem.paragraph(),
         type: faker.helpers.arrayElement(Object.values(AnnouncementType)),
         status,
-        priority: faker.helpers.arrayElement(Object.values(AnnouncementPriority)),
+        priority: faker.helpers.arrayElement(
+          Object.values(AnnouncementPriority),
+        ),
         pickupAddress: faker.location.streetAddress(),
         deliveryAddress: faker.location.streetAddress(),
         pickupLatitude: faker.location.latitude(),
@@ -450,7 +479,11 @@ async function generateAnnouncements(config = DEFAULT_CONFIG) {
         pickupDate: faker.date.soon({ days: 7, refDate: createdAt }),
         deliveryDate: faker.date.soon({ days: 10, refDate: createdAt }),
         isFlexible: Math.random() > 0.6,
-        suggestedPrice: faker.number.float({ min: 5, max: 150, fractionDigits: 2 }),
+        suggestedPrice: faker.number.float({
+          min: 5,
+          max: 150,
+          fractionDigits: 2,
+        }),
         finalPrice:
           status === AnnouncementStatus.COMPLETED
             ? faker.number.float({ min: 5, max: 150, fractionDigits: 2 })
@@ -461,7 +494,11 @@ async function generateAnnouncements(config = DEFAULT_CONFIG) {
         updatedAt: faker.date.between({ from: createdAt, to: new Date() }),
         viewCount: faker.number.int({ min: 0, max: 500 }),
         applicationsCount: faker.number.int({ min: 0, max: 20 }),
-        estimatedDistance: faker.number.float({ min: 0.5, max: 50, fractionDigits: 1 }),
+        estimatedDistance: faker.number.float({
+          min: 0.5,
+          max: 50,
+          fractionDigits: 1,
+        }),
         estimatedDuration: faker.number.int({ min: 5, max: 180 }),
       });
     }
@@ -473,16 +510,16 @@ async function generateAnnouncements(config = DEFAULT_CONFIG) {
     });
 
     // Stocker les IDs pour référence ultérieure
-    announcementIds.push(...batch.map(ann => ann.id));
+    announcementIds.push(...batch.map((ann) => ann.id));
 
     console.log(
-      `Progression: ${Math.min(i + config.BATCH_SIZE, config.ANNOUNCEMENTS.COUNT)}/${config.ANNOUNCEMENTS.COUNT} annonces`
+      `Progression: ${Math.min(i + config.BATCH_SIZE, config.ANNOUNCEMENTS.COUNT)}/${config.ANNOUNCEMENTS.COUNT} annonces`,
     );
   }
 
   const endTime = performance.now();
   console.log(
-    `✅ ${config.ANNOUNCEMENTS.COUNT} annonces créées en ${((endTime - startTime) / 1000).toFixed(2)}s`
+    `✅ ${config.ANNOUNCEMENTS.COUNT} annonces créées en ${((endTime - startTime) / 1000).toFixed(2)}s`,
   );
 }
 
@@ -491,7 +528,9 @@ async function generateAnnouncements(config = DEFAULT_CONFIG) {
  */
 async function generateDeliveries(config = DEFAULT_CONFIG) {
   if (clientIds.length === 0 || delivererIds.length === 0) {
-    console.warn('⚠️ Clients ou livreurs manquants pour générer des livraisons');
+    console.warn(
+      "⚠️ Clients ou livreurs manquants pour générer des livraisons",
+    );
     return;
   }
 
@@ -503,14 +542,18 @@ async function generateDeliveries(config = DEFAULT_CONFIG) {
   const statuses = getDistributedItems(
     Object.values(DeliveryStatus),
     config.DELIVERIES.COUNT,
-    config.DELIVERIES.STATUS_DISTRIBUTION
+    config.DELIVERIES.STATUS_DISTRIBUTION,
   );
 
   // Générer les livraisons par lots
   for (let i = 0; i < config.DELIVERIES.COUNT; i += config.BATCH_SIZE) {
     const batch = [];
 
-    for (let j = 0; j < config.BATCH_SIZE && i + j < config.DELIVERIES.COUNT; j++) {
+    for (
+      let j = 0;
+      j < config.BATCH_SIZE && i + j < config.DELIVERIES.COUNT;
+      j++
+    ) {
       const index = i + j;
       const status = statuses[index];
       const clientId = faker.helpers.arrayElement(clientIds);
@@ -546,7 +589,11 @@ async function generateDeliveries(config = DEFAULT_CONFIG) {
         distance: faker.number.float({ min: 0.5, max: 50, fractionDigits: 1 }),
         price: faker.number.float({ min: 5, max: 100, fractionDigits: 2 }),
         isPaid: Math.random() > 0.3,
-        packageWeight: faker.number.float({ min: 0.1, max: 30, fractionDigits: 1 }),
+        packageWeight: faker.number.float({
+          min: 0.1,
+          max: 30,
+          fractionDigits: 1,
+        }),
         createdAt,
         updatedAt: faker.date.between({ from: createdAt, to: new Date() }),
       });
@@ -559,16 +606,16 @@ async function generateDeliveries(config = DEFAULT_CONFIG) {
     });
 
     // Stocker les IDs pour référence ultérieure
-    deliveryIds.push(...batch.map(del => del.id));
+    deliveryIds.push(...batch.map((del) => del.id));
 
     console.log(
-      `Progression: ${Math.min(i + config.BATCH_SIZE, config.DELIVERIES.COUNT)}/${config.DELIVERIES.COUNT} livraisons`
+      `Progression: ${Math.min(i + config.BATCH_SIZE, config.DELIVERIES.COUNT)}/${config.DELIVERIES.COUNT} livraisons`,
     );
   }
 
   const endTime = performance.now();
   console.log(
-    `✅ ${config.DELIVERIES.COUNT} livraisons créées en ${((endTime - startTime) / 1000).toFixed(2)}s`
+    `✅ ${config.DELIVERIES.COUNT} livraisons créées en ${((endTime - startTime) / 1000).toFixed(2)}s`,
   );
 }
 
@@ -580,7 +627,7 @@ async function generatePayments(config = DEFAULT_CONFIG) {
     userIds[UserRole.CLIENT].length === 0 ||
     (deliveryIds.length === 0 && announcementIds.length === 0)
   ) {
-    console.warn('⚠️ Données insuffisantes pour générer des paiements');
+    console.warn("⚠️ Données insuffisantes pour générer des paiements");
     return;
   }
 
@@ -592,15 +639,25 @@ async function generatePayments(config = DEFAULT_CONFIG) {
   for (let i = 0; i < config.PAYMENTS.COUNT; i += config.BATCH_SIZE) {
     const batch = [];
 
-    for (let j = 0; j < config.BATCH_SIZE && i + j < config.PAYMENTS.COUNT; j++) {
+    for (
+      let j = 0;
+      j < config.BATCH_SIZE && i + j < config.PAYMENTS.COUNT;
+      j++
+    ) {
       const index = i + j;
       const userId = faker.helpers.arrayElement(userIds[UserRole.CLIENT]);
 
       // Choisir un objet associé au paiement (livraison ou annonce)
       const useDelivery = deliveryIds.length > 0 && Math.random() > 0.3;
-      const deliveryId = useDelivery ? faker.helpers.arrayElement(deliveryIds) : null;
+      const deliveryId = useDelivery
+        ? faker.helpers.arrayElement(deliveryIds)
+        : null;
 
-      const amount = faker.number.float({ min: 5, max: 200, fractionDigits: 2 });
+      const amount = faker.number.float({
+        min: 5,
+        max: 200,
+        fractionDigits: 2,
+      });
       const status = faker.helpers.weightedArrayElement([
         { value: PaymentStatus.COMPLETED, weight: 0.7 },
         { value: PaymentStatus.PENDING, weight: 0.15 },
@@ -617,13 +674,17 @@ async function generatePayments(config = DEFAULT_CONFIG) {
       batch.push({
         id: `pay_${index}`,
         amount,
-        currency: 'EUR',
+        currency: "EUR",
         status,
-        description: `Paiement pour ${useDelivery ? 'livraison' : 'service'} #${index}`,
+        description: `Paiement pour ${useDelivery ? "livraison" : "service"} #${index}`,
         userId,
         deliveryId,
         stripePaymentId: `pi_${faker.string.alphanumeric(24)}`,
-        paymentMethodType: faker.helpers.arrayElement(['card', 'paypal', 'bank_transfer']),
+        paymentMethodType: faker.helpers.arrayElement([
+          "card",
+          "paypal",
+          "bank_transfer",
+        ]),
         createdAt,
         updatedAt: faker.date.between({ from: createdAt, to: new Date() }),
         capturedAt:
@@ -640,13 +701,13 @@ async function generatePayments(config = DEFAULT_CONFIG) {
     });
 
     console.log(
-      `Progression: ${Math.min(i + config.BATCH_SIZE, config.PAYMENTS.COUNT)}/${config.PAYMENTS.COUNT} paiements`
+      `Progression: ${Math.min(i + config.BATCH_SIZE, config.PAYMENTS.COUNT)}/${config.PAYMENTS.COUNT} paiements`,
     );
   }
 
   const endTime = performance.now();
   console.log(
-    `✅ ${config.PAYMENTS.COUNT} paiements créés en ${((endTime - startTime) / 1000).toFixed(2)}s`
+    `✅ ${config.PAYMENTS.COUNT} paiements créés en ${((endTime - startTime) / 1000).toFixed(2)}s`,
   );
 }
 
@@ -655,17 +716,20 @@ async function generatePayments(config = DEFAULT_CONFIG) {
  */
 async function generateDeliveryCoordinates() {
   if (deliveryIds.length === 0) {
-    console.warn('⚠️ Aucune livraison trouvée pour générer des coordonnées');
+    console.warn("⚠️ Aucune livraison trouvée pour générer des coordonnées");
     return;
   }
 
-  console.log('Génération des coordonnées de livraison...');
+  console.log("Génération des coordonnées de livraison...");
 
   const startTime = performance.now();
   const coordinatesBatch = [];
 
   // Sélectionner les livraisons en transit pour ajouter des coordonnées
-  const inTransitDeliveries = deliveryIds.slice(0, Math.min(1000, deliveryIds.length));
+  const inTransitDeliveries = deliveryIds.slice(
+    0,
+    Math.min(1000, deliveryIds.length),
+  );
 
   for (const deliveryId of inTransitDeliveries) {
     // Générer 5 à 15 points de suivi par livraison
@@ -690,7 +754,7 @@ async function generateDeliveryCoordinates() {
 
   const endTime = performance.now();
   console.log(
-    `✅ ${coordinatesBatch.length} coordonnées de livraison créées en ${((endTime - startTime) / 1000).toFixed(2)}s`
+    `✅ ${coordinatesBatch.length} coordonnées de livraison créées en ${((endTime - startTime) / 1000).toFixed(2)}s`,
   );
 }
 
@@ -709,7 +773,7 @@ async function exportStats(config = DEFAULT_CONFIG) {
             acc[role] = ids.length;
             return acc;
           },
-          {} as Record<string, number>
+          {} as Record<string, number>,
         ),
       },
       documents: documentIds.length,
@@ -724,7 +788,7 @@ async function exportStats(config = DEFAULT_CONFIG) {
   };
 
   // Créer le répertoire de sortie s'il n'existe pas
-  const statsDir = path.join(process.cwd(), 'data');
+  const statsDir = path.join(process.cwd(), "data");
   if (!fs.existsSync(statsDir)) {
     fs.mkdirSync(statsDir, { recursive: true });
   }
@@ -732,7 +796,7 @@ async function exportStats(config = DEFAULT_CONFIG) {
   // Écrire les statistiques dans un fichier
   const statsPath = path.join(
     statsDir,
-    `mass-seed-stats-${format(new Date(), 'yyyyMMdd-HHmmss')}.json`
+    `mass-seed-stats-${format(new Date(), "yyyyMMdd-HHmmss")}.json`,
   );
   fs.writeFileSync(statsPath, JSON.stringify(stats, null, 2));
 
@@ -746,9 +810,9 @@ async function main(options: any = {}) {
   // Fusionner les options utilisateur avec la configuration par défaut
   const config = { ...DEFAULT_CONFIG, ...options };
 
-  console.log('🚀 Démarrage de la génération massive de données...');
+  console.log("🚀 Démarrage de la génération massive de données...");
   console.log(
-    `Configuration: ${config.USERS.COUNT} utilisateurs, ${config.ANNOUNCEMENTS.COUNT} annonces, ${config.DELIVERIES.COUNT} livraisons`
+    `Configuration: ${config.USERS.COUNT} utilisateurs, ${config.ANNOUNCEMENTS.COUNT} annonces, ${config.DELIVERIES.COUNT} livraisons`,
   );
 
   try {
@@ -758,22 +822,29 @@ async function main(options: any = {}) {
     await generateUsers(config);
 
     // Pour une version minimaliste, nous nous arrêtons après avoir créé quelques utilisateurs
-    console.log('Note: cette version est minimaliste pour des raisons de test.');
     console.log(
-      'Pour générer tous les modèles de données, le script doit être complété et déboggé.'
+      "Note: cette version est minimaliste pour des raisons de test.",
+    );
+    console.log(
+      "Pour générer tous les modèles de données, le script doit être complété et déboggé.",
     );
 
     const endTime = performance.now();
     const durationSeconds = (endTime - startTime) / 1000;
 
-    console.log(`\n🎉 Génération partielle terminée en ${durationSeconds.toFixed(2)}s !`);
+    console.log(
+      `\n🎉 Génération partielle terminée en ${durationSeconds.toFixed(2)}s !`,
+    );
   } catch (error) {
-    console.error('❌ Erreur pendant la génération des données:', error);
+    console.error("❌ Erreur pendant la génération des données:", error);
   } finally {
     await prisma.$disconnect();
   }
 
-  return { success: true, message: 'Génération partielle terminée avec succès' };
+  return {
+    success: true,
+    message: "Génération partielle terminée avec succès",
+  };
 }
 
 // Point d'entrée avec options personnalisables via ligne de commande
@@ -787,17 +858,23 @@ if (process.argv[1] === process.argv[1]) {
     const value = args[i + 1];
 
     if (key && value) {
-      if (key === '--users')
+      if (key === "--users")
         options.USERS = { ...DEFAULT_CONFIG.USERS, COUNT: parseInt(value, 10) };
-      if (key === '--announcements')
-        options.ANNOUNCEMENTS = { ...DEFAULT_CONFIG.ANNOUNCEMENTS, COUNT: parseInt(value, 10) };
-      if (key === '--deliveries')
-        options.DELIVERIES = { ...DEFAULT_CONFIG.DELIVERIES, COUNT: parseInt(value, 10) };
-      if (key === '--batch-size') options.BATCH_SIZE = parseInt(value, 10);
+      if (key === "--announcements")
+        options.ANNOUNCEMENTS = {
+          ...DEFAULT_CONFIG.ANNOUNCEMENTS,
+          COUNT: parseInt(value, 10),
+        };
+      if (key === "--deliveries")
+        options.DELIVERIES = {
+          ...DEFAULT_CONFIG.DELIVERIES,
+          COUNT: parseInt(value, 10),
+        };
+      if (key === "--batch-size") options.BATCH_SIZE = parseInt(value, 10);
     }
   }
 
-  main(options).catch(e => {
+  main(options).catch((e) => {
     console.error(e);
     process.exit(1);
   });

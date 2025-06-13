@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   type ClientProfile,
   type DelivererProfile,
   type MerchantProfile,
   type ProviderProfile,
-} from '@/schemas/user/profile.schema';
-import { api } from '@/trpc/react';
-import { UserRole } from '@prisma/client';
+} from "@/schemas/user/profile.schema";
+import { api } from "@/trpc/react";
+import { UserRole } from "@prisma/client";
 
 export function useProfile() {
   const router = useRouter();
@@ -39,12 +39,12 @@ export function useProfile() {
   // Procédure de mise à jour du profil
   const updateProfileMutation = api.profile.updateProfile.useMutation({
     onSuccess: () => {
-      toast.success('Profil mis à jour avec succès');
+      toast.success("Profil mis à jour avec succès");
       // Rafraîchir les données du profil
       refetchProfile();
       refetchRoleProfile();
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur lors de la mise à jour du profil: ${error.message}`);
     },
   });
@@ -52,11 +52,11 @@ export function useProfile() {
   // Procédure d'ajout d'adresse (seulement pour les clients)
   const addAddressMutation = api.profile.addClientAddress.useMutation({
     onSuccess: () => {
-      toast.success('Adresse ajoutée avec succès');
+      toast.success("Adresse ajoutée avec succès");
       refetchProfile();
       refetchRoleProfile();
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur lors de l'ajout de l'adresse: ${error.message}`);
     },
   });
@@ -64,36 +64,42 @@ export function useProfile() {
   // Procédure de mise à jour d'adresse (seulement pour les clients)
   const updateAddressMutation = api.profile.updateClientAddress.useMutation({
     onSuccess: () => {
-      toast.success('Adresse mise à jour avec succès');
+      toast.success("Adresse mise à jour avec succès");
       refetchProfile();
       refetchRoleProfile();
     },
-    onError: error => {
-      toast.error(`Erreur lors de la mise à jour de l'adresse: ${error.message}`);
+    onError: (error) => {
+      toast.error(
+        `Erreur lors de la mise à jour de l'adresse: ${error.message}`,
+      );
     },
   });
 
   // Procédure de suppression d'adresse (seulement pour les clients)
   const deleteAddressMutation = api.profile.deleteClientAddress.useMutation({
     onSuccess: () => {
-      toast.success('Adresse supprimée avec succès');
+      toast.success("Adresse supprimée avec succès");
       refetchProfile();
       refetchRoleProfile();
     },
-    onError: error => {
-      toast.error(`Erreur lors de la suppression de l'adresse: ${error.message}`);
+    onError: (error) => {
+      toast.error(
+        `Erreur lors de la suppression de l'adresse: ${error.message}`,
+      );
     },
   });
 
   // Procédure pour définir une adresse par défaut (seulement pour les clients)
   const setDefaultAddressMutation = api.profile.setDefaultAddress.useMutation({
     onSuccess: () => {
-      toast.success('Adresse par défaut définie avec succès');
+      toast.success("Adresse par défaut définie avec succès");
       refetchProfile();
       refetchRoleProfile();
     },
-    onError: error => {
-      toast.error(`Erreur lors de la définition de l'adresse par défaut: ${error.message}`);
+    onError: (error) => {
+      toast.error(
+        `Erreur lors de la définition de l'adresse par défaut: ${error.message}`,
+      );
     },
   });
 
@@ -101,10 +107,14 @@ export function useProfile() {
    * Met à jour le profil de l'utilisateur en fonction de son rôle
    */
   const updateProfile = useCallback(
-    (data: Partial<ClientProfile | DelivererProfile | MerchantProfile | ProviderProfile>) => {
+    (
+      data: Partial<
+        ClientProfile | DelivererProfile | MerchantProfile | ProviderProfile
+      >,
+    ) => {
       updateProfileMutation.mutate({ data });
     },
-    [updateProfileMutation]
+    [updateProfileMutation],
   );
 
   /**
@@ -121,13 +131,13 @@ export function useProfile() {
       isDefault?: boolean;
     }) => {
       if (!profile || profile.role !== UserRole.CLIENT) {
-        toast.error('Vous devez être un client pour ajouter une adresse');
+        toast.error("Vous devez être un client pour ajouter une adresse");
         return;
       }
 
       addAddressMutation.mutate(addressData);
     },
-    [addAddressMutation, profile]
+    [addAddressMutation, profile],
   );
 
   /**
@@ -144,10 +154,10 @@ export function useProfile() {
         postalCode: string;
         country: string;
         isDefault?: boolean;
-      }
+      },
     ) => {
       if (!profile || profile.role !== UserRole.CLIENT) {
-        toast.error('Vous devez être un client pour modifier une adresse');
+        toast.error("Vous devez être un client pour modifier une adresse");
         return;
       }
 
@@ -156,7 +166,7 @@ export function useProfile() {
         data: addressData,
       });
     },
-    [updateAddressMutation, profile]
+    [updateAddressMutation, profile],
   );
 
   /**
@@ -165,13 +175,13 @@ export function useProfile() {
   const deleteAddress = useCallback(
     (addressId: string) => {
       if (!profile || profile.role !== UserRole.CLIENT) {
-        toast.error('Vous devez être un client pour supprimer une adresse');
+        toast.error("Vous devez être un client pour supprimer une adresse");
         return;
       }
 
       deleteAddressMutation.mutate({ addressId });
     },
-    [deleteAddressMutation, profile]
+    [deleteAddressMutation, profile],
   );
 
   /**
@@ -180,13 +190,15 @@ export function useProfile() {
   const setDefaultAddress = useCallback(
     (addressId: string) => {
       if (!profile || profile.role !== UserRole.CLIENT) {
-        toast.error('Vous devez être un client pour définir une adresse par défaut');
+        toast.error(
+          "Vous devez être un client pour définir une adresse par défaut",
+        );
         return;
       }
 
       setDefaultAddressMutation.mutate({ addressId });
     },
-    [setDefaultAddressMutation, profile]
+    [setDefaultAddressMutation, profile],
   );
 
   return {

@@ -1,13 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Camera, Upload, X, Image as ImageIcon, AlertTriangle, Eye } from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils/common';
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+  Camera,
+  Upload,
+  X,
+  Image as ImageIcon,
+  AlertTriangle,
+  Eye,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils/common";
 
 interface PhotoFile {
   id: string;
@@ -50,12 +57,14 @@ export function AnnouncementPhotoUpload({
     Array.from(files).forEach((file, index) => {
       // Vérifier le nombre max de photos
       if (currentCount + newFiles.length >= maxPhotos) {
-        toast.error(`Vous ne pouvez télécharger que ${maxPhotos} photos maximum`);
+        toast.error(
+          `Vous ne pouvez télécharger que ${maxPhotos} photos maximum`,
+        );
         return;
       }
 
       // Vérifier le type de fichier
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         toast.error(`Le fichier "${file.name}" n'est pas une image valide`);
         return;
       }
@@ -79,9 +88,9 @@ export function AnnouncementPhotoUpload({
     });
 
     if (newFiles.length > 0) {
-      setPhotoFiles(prev => [...prev, ...newFiles]);
+      setPhotoFiles((prev) => [...prev, ...newFiles]);
       // Simuler l'upload
-      newFiles.forEach(photoFile => {
+      newFiles.forEach((photoFile) => {
         uploadPhoto(photoFile);
       });
     }
@@ -89,49 +98,57 @@ export function AnnouncementPhotoUpload({
 
   // Simuler l'upload de photo
   const uploadPhoto = async (photoFile: PhotoFile) => {
-    setPhotoFiles(prev =>
-      prev.map(p => (p.id === photoFile.id ? { ...p, isUploading: true, uploadProgress: 0 } : p))
+    setPhotoFiles((prev) =>
+      prev.map((p) =>
+        p.id === photoFile.id
+          ? { ...p, isUploading: true, uploadProgress: 0 }
+          : p,
+      ),
     );
 
     // Simulation de l'upload avec progression
     const intervals = [10, 25, 50, 75, 90, 100];
     for (const progress of intervals) {
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
-      setPhotoFiles(prev =>
-        prev.map(p => (p.id === photoFile.id ? { ...p, uploadProgress: progress } : p))
+      setPhotoFiles((prev) =>
+        prev.map((p) =>
+          p.id === photoFile.id ? { ...p, uploadProgress: progress } : p,
+        ),
       );
     }
 
     // Marquer comme uploadé
     const uploadedUrl = photoFile.preview; // En réalité, ce serait l'URL retournée par l'API
-    setPhotoFiles(prev =>
-      prev.map(p =>
-        p.id === photoFile.id ? { ...p, isUploading: false, isUploaded: true, url: uploadedUrl } : p
-      )
+    setPhotoFiles((prev) =>
+      prev.map((p) =>
+        p.id === photoFile.id
+          ? { ...p, isUploading: false, isUploaded: true, url: uploadedUrl }
+          : p,
+      ),
     );
 
     // Ajouter l'URL à la liste des photos
     const newPhotos = [...photos, uploadedUrl];
     onPhotosChange(newPhotos);
 
-    toast.success('Photo téléchargée avec succès');
+    toast.success("Photo téléchargée avec succès");
   };
 
   // Supprimer une photo
   const removePhoto = (photoId: string) => {
-    const photoToRemove = photoFiles.find(p => p.id === photoId);
+    const photoToRemove = photoFiles.find((p) => p.id === photoId);
     if (!photoToRemove) return;
 
     // Nettoyer l'URL d'objet
     URL.revokeObjectURL(photoToRemove.preview);
 
     // Retirer de la liste des fichiers
-    setPhotoFiles(prev => prev.filter(p => p.id !== photoId));
+    setPhotoFiles((prev) => prev.filter((p) => p.id !== photoId));
 
     // Retirer de la liste des URLs
     if (photoToRemove.url) {
-      const newPhotos = photos.filter(url => url !== photoToRemove.url);
+      const newPhotos = photos.filter((url) => url !== photoToRemove.url);
       onPhotosChange(newPhotos);
     }
   };
@@ -140,9 +157,9 @@ export function AnnouncementPhotoUpload({
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   };
@@ -170,16 +187,18 @@ export function AnnouncementPhotoUpload({
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { facingMode: "environment" },
       });
 
       // Ici on pourrait ouvrir un modal avec le flux vidéo
       // Pour simplifier, on ouvre juste le sélecteur de fichier
-      toast.info('Fonction caméra à implémenter. Utilisez le sélecteur de fichier.');
+      toast.info(
+        "Fonction caméra à implémenter. Utilisez le sélecteur de fichier.",
+      );
       openFileSelector();
 
       // Arrêter le stream
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
     } catch (error) {
       toast.error("Impossible d'accéder à la caméra");
       openFileSelector();
@@ -189,23 +208,23 @@ export function AnnouncementPhotoUpload({
   // Prévisualiser une photo
   const previewPhoto = (photoFile: PhotoFile) => {
     // Ici on pourrait ouvrir un modal avec l'image en grand
-    window.open(photoFile.preview, '_blank');
+    window.open(photoFile.preview, "_blank");
   };
 
   const hasPhotos = photoFiles.length > 0;
   const canAddMore = photoFiles.length < maxPhotos;
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {/* Zone de drop */}
       {canAddMore && (
         <div
           className={cn(
-            'relative border-2 border-dashed rounded-lg p-6 transition-colors',
+            "relative border-2 border-dashed rounded-lg p-6 transition-colors",
             dragActive
-              ? 'border-primary bg-primary/5'
-              : 'border-muted-foreground/25 hover:border-primary/50',
-            disabled && 'opacity-50 cursor-not-allowed'
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25 hover:border-primary/50",
+            disabled && "opacity-50 cursor-not-allowed",
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -261,7 +280,7 @@ export function AnnouncementPhotoUpload({
             multiple
             accept="image/*"
             className="hidden"
-            onChange={e => handleFileSelect(e.target.files)}
+            onChange={(e) => handleFileSelect(e.target.files)}
             disabled={disabled}
           />
         </div>
@@ -270,7 +289,7 @@ export function AnnouncementPhotoUpload({
       {/* Liste des photos */}
       {hasPhotos && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {photoFiles.map(photoFile => (
+          {photoFiles.map((photoFile) => (
             <Card key={photoFile.id} className="overflow-hidden">
               <CardContent className="p-0">
                 <div className="relative aspect-square">
@@ -285,8 +304,13 @@ export function AnnouncementPhotoUpload({
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <div className="text-center text-white space-y-2">
                         <div className="text-xs">Upload...</div>
-                        <Progress value={photoFile.uploadProgress || 0} className="w-16 h-1" />
-                        <div className="text-xs">{photoFile.uploadProgress || 0}%</div>
+                        <Progress
+                          value={photoFile.uploadProgress || 0}
+                          className="w-16 h-1"
+                        />
+                        <div className="text-xs">
+                          {photoFile.uploadProgress || 0}%
+                        </div>
                       </div>
                     </div>
                   )}
@@ -344,8 +368,8 @@ export function AnnouncementPhotoUpload({
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Vous avez atteint la limite de {maxPhotos} photos. Supprimez une photo pour en ajouter
-            une nouvelle.
+            Vous avez atteint la limite de {maxPhotos} photos. Supprimez une
+            photo pour en ajouter une nouvelle.
           </AlertDescription>
         </Alert>
       )}
@@ -354,7 +378,9 @@ export function AnnouncementPhotoUpload({
       {hasPhotos && (
         <div className="text-xs text-muted-foreground space-y-1">
           <p>• Les photos aident les livreurs à identifier votre colis</p>
-          <p>• Évitez les informations personnelles visibles (adresses, noms)</p>
+          <p>
+            • Évitez les informations personnelles visibles (adresses, noms)
+          </p>
           <p>• Prenez des photos nettes et bien éclairées</p>
         </div>
       )}

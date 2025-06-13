@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export * from './consent.schema';
-export * from './data-export-request.schema';
-export * from './data-retention.schema';
-export * from './gdpr.schema';
+export * from "./consent.schema";
+export * from "./data-export-request.schema";
+export * from "./data-retention.schema";
+export * from "./gdpr.schema";

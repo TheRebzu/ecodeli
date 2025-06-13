@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export { default as MerchantAnalytics } from './merchant-analytics';
-export * from './merchant-analytics';
-export { default as MerchantContracts } from './merchant-contracts';
-export * from './merchant-contracts';
-export { default as MerchantValidation } from './merchant-validation';
-export * from './merchant-validation';
+export { default as MerchantAnalytics } from "./merchant-analytics";
+export * from "./merchant-analytics";
+export { default as MerchantContracts } from "./merchant-contracts";
+export * from "./merchant-contracts";
+export { default as MerchantValidation } from "./merchant-validation";
+export * from "./merchant-validation";

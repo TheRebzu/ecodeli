@@ -8,47 +8,47 @@
  * Actions de bannissement possibles
  */
 export enum UserBanAction {
-  BAN = 'BAN',
-  UNBAN = 'UNBAN',
+  BAN = "BAN",
+  UNBAN = "UNBAN",
 }
 
 /**
  * Statuts de vérification possibles
  */
 export enum VerificationStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
 
 /**
  * Types de raisons de rejet
  */
 export enum RejectionReason {
-  UNREADABLE = 'UNREADABLE',
-  EXPIRED = 'EXPIRED',
-  INCOMPLETE = 'INCOMPLETE',
-  FAKE = 'FAKE',
-  WRONG_TYPE = 'WRONG_TYPE',
-  LOW_QUALITY = 'LOW_QUALITY',
-  INFORMATION_MISMATCH = 'INFORMATION_MISMATCH',
-  OTHER = 'OTHER',
+  UNREADABLE = "UNREADABLE",
+  EXPIRED = "EXPIRED",
+  INCOMPLETE = "INCOMPLETE",
+  FAKE = "FAKE",
+  WRONG_TYPE = "WRONG_TYPE",
+  LOW_QUALITY = "LOW_QUALITY",
+  INFORMATION_MISMATCH = "INFORMATION_MISMATCH",
+  OTHER = "OTHER",
 }
 
 /**
  * Types de documents pour vérification
  */
 export enum VerificationDocumentType {
-  ID_CARD = 'ID_CARD',
-  PASSPORT = 'PASSPORT',
-  DRIVERS_LICENSE = 'DRIVERS_LICENSE',
-  PROOF_OF_ADDRESS = 'PROOF_OF_ADDRESS',
-  BUSINESS_LICENSE = 'BUSINESS_LICENSE',
-  TAX_CERTIFICATE = 'TAX_CERTIFICATE',
-  BUSINESS_REGISTRATION = 'BUSINESS_REGISTRATION',
-  VAT_REGISTRATION = 'VAT_REGISTRATION',
-  INSURANCE_CERTIFICATE = 'INSURANCE_CERTIFICATE',
-  PROFESSIONAL_QUALIFICATION = 'PROFESSIONAL_QUALIFICATION',
+  ID_CARD = "ID_CARD",
+  PASSPORT = "PASSPORT",
+  DRIVERS_LICENSE = "DRIVERS_LICENSE",
+  PROOF_OF_ADDRESS = "PROOF_OF_ADDRESS",
+  BUSINESS_LICENSE = "BUSINESS_LICENSE",
+  TAX_CERTIFICATE = "TAX_CERTIFICATE",
+  BUSINESS_REGISTRATION = "BUSINESS_REGISTRATION",
+  VAT_REGISTRATION = "VAT_REGISTRATION",
+  INSURANCE_CERTIFICATE = "INSURANCE_CERTIFICATE",
+  PROFESSIONAL_QUALIFICATION = "PROFESSIONAL_QUALIFICATION",
 }
 
 /**
@@ -164,18 +164,17 @@ export interface VerificationStatusResponse {
   notes?: string;
 }
 
-
 // Export ajouté automatiquement
 // Types pour la vérification utilisateur
 export interface CodeVerification {
   id: string;
   userId: string;
   code: string;
-  type: 'EMAIL' | 'PHONE' | 'TWO_FACTOR';
+  type: "EMAIL" | "PHONE" | "TWO_FACTOR";
   expiresAt: Date;
   verified: boolean;
   attempts: number;
-  maxAttempts: number;  
+  maxAttempts: number;
   createdAt: Date;
 }
 

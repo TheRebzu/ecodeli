@@ -1,6 +1,6 @@
-import { SeedResult } from './seed-helpers';
+import { SeedResult } from "./seed-helpers";
 
-type LogLevel = 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR' | 'PROGRESS';
+type LogLevel = "INFO" | "SUCCESS" | "WARNING" | "ERROR" | "PROGRESS";
 
 interface LogEntry {
   timestamp: Date;
@@ -20,7 +20,12 @@ export class SeedLogger {
     this.verbose = verbose;
   }
 
-  private log(level: LogLevel, category: string, message: string, data?: any): void {
+  private log(
+    level: LogLevel,
+    category: string,
+    message: string,
+    data?: any,
+  ): void {
     const entry: LogEntry = {
       timestamp: new Date(),
       level,
@@ -31,7 +36,7 @@ export class SeedLogger {
 
     this.logs.push(entry);
 
-    if (this.verbose || level === 'ERROR') {
+    if (this.verbose || level === "ERROR") {
       this.printLog(entry);
     }
   }
@@ -44,65 +49,73 @@ export class SeedLogger {
     console.log(`${emoji} ${timestamp} ${categoryFormatted} ${entry.message}`);
 
     if (entry.data && this.verbose) {
-      console.log('  Data:', entry.data);
+      console.log("  Data:", entry.data);
     }
   }
 
   private getEmoji(level: LogLevel): string {
     switch (level) {
-      case 'SUCCESS':
-        return '✅';
-      case 'ERROR':
-        return '❌';
-      case 'WARNING':
-        return '⚠️';
-      case 'PROGRESS':
-        return '📊';
-      case 'INFO':
+      case "SUCCESS":
+        return "✅";
+      case "ERROR":
+        return "❌";
+      case "WARNING":
+        return "⚠️";
+      case "PROGRESS":
+        return "📊";
+      case "INFO":
       default:
-        return 'ℹ️';
+        return "ℹ️";
     }
   }
 
   info(category: string, message: string, data?: any): void {
-    this.log('INFO', category, message, data);
+    this.log("INFO", category, message, data);
   }
 
   success(category: string, message: string, data?: any): void {
-    this.log('SUCCESS', category, message, data);
+    this.log("SUCCESS", category, message, data);
   }
 
   warning(category: string, message: string, data?: any): void {
-    this.log('WARNING', category, message, data);
+    this.log("WARNING", category, message, data);
   }
 
   error(category: string, message: string, data?: any): void {
-    this.log('ERROR', category, message, data);
+    this.log("ERROR", category, message, data);
   }
 
-  progress(category: string, current: number, total: number, message?: string): void {
+  progress(
+    category: string,
+    current: number,
+    total: number,
+    message?: string,
+  ): void {
     const percentage = Math.round((current / total) * 100);
     const progressMessage = message || `${current}/${total} (${percentage}%)`;
-    this.log('PROGRESS', category, progressMessage);
+    this.log("PROGRESS", category, progressMessage);
   }
 
   startSeed(seedName: string): void {
-    this.info('SEED', `🚀 Démarrage du seed: ${seedName}`);
+    this.info("SEED", `🚀 Démarrage du seed: ${seedName}`);
   }
 
   endSeed(seedName: string, result: SeedResult, duration?: number): void {
-    const durationText = duration ? ` en ${duration}ms` : '';
+    const durationText = duration ? ` en ${duration}ms` : "";
     const summary = `✨ ${seedName} terminé${durationText} - Créés: ${result.created}, Erreurs: ${result.errors}`;
 
     if (result.errors > 0) {
-      this.warning('SEED', summary, result);
+      this.warning("SEED", summary, result);
     } else {
-      this.success('SEED', summary, result);
+      this.success("SEED", summary, result);
     }
   }
 
   startBatch(batchName: string, totalItems: number): void {
-    this.info('BATCH', `📦 Démarrage du batch: ${batchName} (${totalItems} éléments)`);
+    this.info(
+      "BATCH",
+      `📦 Démarrage du batch: ${batchName} (${totalItems} éléments)`,
+    );
   }
 
   endBatch(batchName: string, results: SeedResult[]): void {
@@ -110,22 +123,26 @@ export class SeedLogger {
     const totalErrors = results.reduce((sum, r) => sum + r.errors, 0);
 
     this.success(
-      'BATCH',
-      `📦 Batch ${batchName} terminé - Total créés: ${totalCreated}, Total erreurs: ${totalErrors}`
+      "BATCH",
+      `📦 Batch ${batchName} terminé - Total créés: ${totalCreated}, Total erreurs: ${totalErrors}`,
     );
   }
 
   database(action: string, table: string, count?: number): void {
-    const countText = count !== undefined ? ` (${count} enregistrements)` : '';
-    this.info('DATABASE', `🗄️  ${action} ${table}${countText}`);
+    const countText = count !== undefined ? ` (${count} enregistrements)` : "";
+    this.info("DATABASE", `🗄️  ${action} ${table}${countText}`);
   }
 
-  validation(entity: string, status: 'PASSED' | 'FAILED', details?: string): void {
-    const level = status === 'PASSED' ? 'SUCCESS' : 'ERROR';
-    const emoji = status === 'PASSED' ? '✓' : '✗';
+  validation(
+    entity: string,
+    status: "PASSED" | "FAILED",
+    details?: string,
+  ): void {
+    const level = status === "PASSED" ? "SUCCESS" : "ERROR";
+    const emoji = status === "PASSED" ? "✓" : "✗";
     const message = `${emoji} Validation ${entity}: ${status}`;
 
-    this.log(level, 'VALIDATION', message, details);
+    this.log(level, "VALIDATION", message, details);
   }
 
   getReport(): {
@@ -143,11 +160,11 @@ export class SeedLogger {
         acc[log.level] = (acc[log.level] || 0) + 1;
         return acc;
       },
-      {} as Record<LogLevel, number>
+      {} as Record<LogLevel, number>,
     );
 
-    const errors = this.logs.filter(log => log.level === 'ERROR');
-    const warnings = this.logs.filter(log => log.level === 'WARNING');
+    const errors = this.logs.filter((log) => log.level === "ERROR");
+    const warnings = this.logs.filter((log) => log.level === "WARNING");
 
     return {
       duration,
@@ -162,9 +179,9 @@ export class SeedLogger {
     const report = this.getReport();
     const durationSeconds = Math.round(report.duration / 1000);
 
-    console.log('\n' + '='.repeat(60));
-    console.log('📋 RAPPORT DE SEED');
-    console.log('='.repeat(60));
+    console.log("\n" + "=".repeat(60));
+    console.log("📋 RAPPORT DE SEED");
+    console.log("=".repeat(60));
     console.log(`⏱️  Durée: ${durationSeconds}s`);
     console.log(`📝 Total logs: ${report.totalLogs}`);
     console.log(`✅ Succès: ${report.logsByLevel.SUCCESS || 0}`);
@@ -172,7 +189,7 @@ export class SeedLogger {
     console.log(`❌ Erreurs: ${report.logsByLevel.ERROR || 0}`);
 
     if (report.errors.length > 0) {
-      console.log('\n❌ ERREURS DÉTAILLÉES:');
+      console.log("\n❌ ERREURS DÉTAILLÉES:");
       report.errors.forEach((error, index) => {
         console.log(`${index + 1}. [${error.category}] ${error.message}`);
         if (error.data) {
@@ -182,13 +199,13 @@ export class SeedLogger {
     }
 
     if (report.warnings.length > 0) {
-      console.log('\n⚠️  AVERTISSEMENTS:');
+      console.log("\n⚠️  AVERTISSEMENTS:");
       report.warnings.forEach((warning, index) => {
         console.log(`${index + 1}. [${warning.category}] ${warning.message}`);
       });
     }
 
-    console.log('='.repeat(60));
+    console.log("=".repeat(60));
   }
 
   exportLogs(filePath?: string): string {
@@ -207,9 +224,9 @@ export class SeedLogger {
     const jsonData = JSON.stringify(logData, null, 2);
 
     if (filePath) {
-      const fs = require('fs');
+      const fs = require("fs");
       fs.writeFileSync(filePath, jsonData);
-      this.info('EXPORT', `📄 Logs exportés vers: ${filePath}`);
+      this.info("EXPORT", `📄 Logs exportés vers: ${filePath}`);
     }
 
     return jsonData;

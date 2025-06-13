@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export { default as ClientTutorial } from './client-tutorial';
-export * from './client-tutorial';
-export { default as TutorialOverlay } from './tutorial-overlay';
-export * from './tutorial-overlay';
+export { default as ClientTutorial } from "./client-tutorial";
+export * from "./client-tutorial";
+export { default as TutorialOverlay } from "./tutorial-overlay";
+export * from "./tutorial-overlay";

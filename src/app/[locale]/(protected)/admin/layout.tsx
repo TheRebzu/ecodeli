@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { ProtectedHeader } from '@/components/layout/protected/header';
-import { ProtectedFooter } from '@/components/layout/protected/footer';
-import { AdminSidebar } from '@/components/layout/sidebars/admin-sidebar';
+import React from "react";
+import { ProtectedHeader } from "@/components/layout/protected/header";
+import { ProtectedFooter } from "@/components/layout/protected/footer";
+import { AdminSidebar } from "@/components/layout/sidebars/admin-sidebar";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -13,7 +13,9 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children, params }: AdminLayoutProps) {
-  const paramsValue = React.use(params as unknown as Promise<{ locale: string }>);
+  const paramsValue = React.use(
+    params as unknown as Promise<{ locale: string }>,
+  );
   const locale = paramsValue.locale;
 
   return (
@@ -28,7 +30,9 @@ export default function AdminLayout({ children, params }: AdminLayoutProps) {
         </div>
 
         <main className="flex-1 overflow-x-hidden bg-muted/10">
-          <div className="container max-w-7xl mx-auto p-4 md:p-8">{children}</div>
+          <div className="container max-w-7xl mx-auto p-4 md:p-8">
+            {children}
+          </div>
         </main>
       </div>
 

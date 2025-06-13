@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslations } from 'next-intl';
-import { z } from 'zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
+import { z } from "zod";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -14,36 +20,36 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { CircleDollarSign, Save } from 'lucide-react';
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { CircleDollarSign, Save } from "lucide-react";
 
 // Define the form schema
 const formSchema = z.object({
   price: z.number().optional(),
   isPriceNegotiable: z.boolean().default(true),
   priceRange: z.array(z.number()).default([0, 100]),
-  pricingMethod: z.string().default('FIXED'),
+  pricingMethod: z.string().default("FIXED"),
   weightPricing: z
     .array(
       z.object({
         minWeight: z.number(),
         maxWeight: z.number(),
         price: z.number(),
-      })
+      }),
     )
     .optional(),
   distancePricing: z
@@ -52,7 +58,7 @@ const formSchema = z.object({
         minDistance: z.number(),
         maxDistance: z.number(),
         pricePerKm: z.number(),
-      })
+      }),
     )
     .optional(),
   rushHourFee: z.number().optional(),
@@ -60,7 +66,7 @@ const formSchema = z.object({
   holidayFee: z.number().optional(),
   insuranceAmount: z.number().optional(),
   handlingFee: z.number().optional(),
-  paymentMethod: z.enum(['CARD', 'CASH', 'BOTH']).default('BOTH'),
+  paymentMethod: z.enum(["CARD", "CASH", "BOTH"]).default("BOTH"),
   acceptPartialPayment: z.boolean().default(false),
 });
 
@@ -86,17 +92,20 @@ export function TariffSettingsForm({
 }: TariffSettingsFormProps) {
   // Use create-announcement page props if provided
   const effectiveInitialValues = data || initialValues;
-  const effectiveIsSubmitting = isLoading !== undefined ? isLoading : isSubmitting;
+  const effectiveIsSubmitting =
+    isLoading !== undefined ? isLoading : isSubmitting;
   const effectiveOnSubmit = onUpdateForm || onSubmit;
-  const t = useTranslations('announcements.tariff');
-  const [priceDisplay, setPriceDisplay] = useState(initialValues?.price?.toString() || '');
+  const t = useTranslations("announcements.tariff");
+  const [priceDisplay, setPriceDisplay] = useState(
+    initialValues?.price?.toString() || "",
+  );
   const form = useForm<TariffSettingsData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       price: undefined,
       isPriceNegotiable: true,
       priceRange: [20, 50],
-      pricingMethod: 'FIXED',
+      pricingMethod: "FIXED",
       weightPricing: [],
       distancePricing: [],
       rushHourFee: 0,
@@ -104,22 +113,22 @@ export function TariffSettingsForm({
       holidayFee: 0,
       insuranceAmount: 0,
       handlingFee: 0,
-      paymentMethod: 'BOTH',
+      paymentMethod: "BOTH",
       acceptPartialPayment: false,
       ...initialValues,
     },
   });
 
-  const pricingMethod = form.watch('pricingMethod');
-  const isPriceNegotiable = form.watch('isPriceNegotiable');
+  const pricingMethod = form.watch("pricingMethod");
+  const isPriceNegotiable = form.watch("isPriceNegotiable");
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>{t('pricing')}</CardTitle>
-            <CardDescription>{t('pricingDescription')}</CardDescription>
+            <CardTitle>{t("pricing")}</CardTitle>
+            <CardDescription>{t("pricingDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -127,37 +136,46 @@ export function TariffSettingsForm({
               name="pricingMethod"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('pricingMethod')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>{t("pricingMethod")}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('selectPricingMethod')} />
+                        <SelectValue placeholder={t("selectPricingMethod")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="FIXED">{t('pricingMethods.fixed')}</SelectItem>
+                      <SelectItem value="FIXED">
+                        {t("pricingMethods.fixed")}
+                      </SelectItem>
                       <SelectItem value="WEIGHT_BASED">
-                        {t('pricingMethods.weightBased')}
+                        {t("pricingMethods.weightBased")}
                       </SelectItem>
                       <SelectItem value="DISTANCE_BASED">
-                        {t('pricingMethods.distanceBased')}
+                        {t("pricingMethods.distanceBased")}
                       </SelectItem>
-                      <SelectItem value="NEGOTIABLE">{t('pricingMethods.negotiable')}</SelectItem>
+                      <SelectItem value="NEGOTIABLE">
+                        {t("pricingMethods.negotiable")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>{t('pricingMethodDescription')}</FormDescription>
+                  <FormDescription>
+                    {t("pricingMethodDescription")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {pricingMethod === 'FIXED' && (
+            {pricingMethod === "FIXED" && (
               <FormField
                 control={form.control}
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('price')}</FormLabel>
+                    <FormLabel>{t("price")}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -166,7 +184,7 @@ export function TariffSettingsForm({
                           min="0"
                           placeholder="0.00"
                           value={priceDisplay}
-                          onChange={e => {
+                          onChange={(e) => {
                             setPriceDisplay(e.target.value);
                             field.onChange(parseFloat(e.target.value) || 0);
                           }}
@@ -182,13 +200,13 @@ export function TariffSettingsForm({
               />
             )}
 
-            {pricingMethod === 'NEGOTIABLE' && (
+            {pricingMethod === "NEGOTIABLE" && (
               <FormField
                 control={form.control}
                 name="priceRange"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('priceRange')}</FormLabel>
+                    <FormLabel>{t("priceRange")}</FormLabel>
                     <FormControl>
                       <div className="space-y-3">
                         <Slider
@@ -199,16 +217,24 @@ export function TariffSettingsForm({
                           onValueChange={field.onChange}
                         />
                         <div className="flex justify-between items-center">
-                          <Badge variant="outline" className="font-normal text-sm">
+                          <Badge
+                            variant="outline"
+                            className="font-normal text-sm"
+                          >
                             Min: {field.value[0]}€
                           </Badge>
-                          <Badge variant="outline" className="font-normal text-sm">
+                          <Badge
+                            variant="outline"
+                            className="font-normal text-sm"
+                          >
                             Max: {field.value[1]}€
                           </Badge>
                         </div>
                       </div>
                     </FormControl>
-                    <FormDescription>{t('priceRangeDescription')}</FormDescription>
+                    <FormDescription>
+                      {t("priceRangeDescription")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -221,11 +247,18 @@ export function TariffSettingsForm({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">{t('isPriceNegotiable')}</FormLabel>
-                    <FormDescription>{t('isPriceNegotiableDescription')}</FormDescription>
+                    <FormLabel className="text-base">
+                      {t("isPriceNegotiable")}
+                    </FormLabel>
+                    <FormDescription>
+                      {t("isPriceNegotiableDescription")}
+                    </FormDescription>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -235,8 +268,8 @@ export function TariffSettingsForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('additionalFees')}</CardTitle>
-            <CardDescription>{t('additionalFeesDescription')}</CardDescription>
+            <CardTitle>{t("additionalFees")}</CardTitle>
+            <CardDescription>{t("additionalFeesDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -245,7 +278,7 @@ export function TariffSettingsForm({
                 name="rushHourFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('rushHourFee')}</FormLabel>
+                    <FormLabel>{t("rushHourFee")}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -254,14 +287,18 @@ export function TariffSettingsForm({
                           min="0"
                           placeholder="0.00"
                           {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                           <span className="text-muted-foreground">€</span>
                         </div>
                       </div>
                     </FormControl>
-                    <FormDescription>{t('rushHourFeeDescription')}</FormDescription>
+                    <FormDescription>
+                      {t("rushHourFeeDescription")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -272,7 +309,7 @@ export function TariffSettingsForm({
                 name="weekendFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('weekendFee')}</FormLabel>
+                    <FormLabel>{t("weekendFee")}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -281,14 +318,18 @@ export function TariffSettingsForm({
                           min="0"
                           placeholder="0.00"
                           {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                           <span className="text-muted-foreground">€</span>
                         </div>
                       </div>
                     </FormControl>
-                    <FormDescription>{t('weekendFeeDescription')}</FormDescription>
+                    <FormDescription>
+                      {t("weekendFeeDescription")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -299,7 +340,7 @@ export function TariffSettingsForm({
                 name="holidayFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('holidayFee')}</FormLabel>
+                    <FormLabel>{t("holidayFee")}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -308,14 +349,18 @@ export function TariffSettingsForm({
                           min="0"
                           placeholder="0.00"
                           {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                           <span className="text-muted-foreground">€</span>
                         </div>
                       </div>
                     </FormControl>
-                    <FormDescription>{t('holidayFeeDescription')}</FormDescription>
+                    <FormDescription>
+                      {t("holidayFeeDescription")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -330,7 +375,7 @@ export function TariffSettingsForm({
                 name="insuranceAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('insuranceAmount')}</FormLabel>
+                    <FormLabel>{t("insuranceAmount")}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -339,14 +384,18 @@ export function TariffSettingsForm({
                           min="0"
                           placeholder="0.00"
                           {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                           <span className="text-muted-foreground">€</span>
                         </div>
                       </div>
                     </FormControl>
-                    <FormDescription>{t('insuranceAmountDescription')}</FormDescription>
+                    <FormDescription>
+                      {t("insuranceAmountDescription")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -357,7 +406,7 @@ export function TariffSettingsForm({
                 name="handlingFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('handlingFee')}</FormLabel>
+                    <FormLabel>{t("handlingFee")}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -366,14 +415,18 @@ export function TariffSettingsForm({
                           min="0"
                           placeholder="0.00"
                           {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                           <span className="text-muted-foreground">€</span>
                         </div>
                       </div>
                     </FormControl>
-                    <FormDescription>{t('handlingFeeDescription')}</FormDescription>
+                    <FormDescription>
+                      {t("handlingFeeDescription")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -384,8 +437,8 @@ export function TariffSettingsForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('paymentOptions')}</CardTitle>
-            <CardDescription>{t('paymentOptionsDescription')}</CardDescription>
+            <CardTitle>{t("paymentOptions")}</CardTitle>
+            <CardDescription>{t("paymentOptionsDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -393,20 +446,31 @@ export function TariffSettingsForm({
               name="paymentMethod"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('paymentMethod')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>{t("paymentMethod")}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('selectPaymentMethod')} />
+                        <SelectValue placeholder={t("selectPaymentMethod")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="CARD">{t('paymentMethods.card')}</SelectItem>
-                      <SelectItem value="CASH">{t('paymentMethods.cash')}</SelectItem>
-                      <SelectItem value="BOTH">{t('paymentMethods.both')}</SelectItem>
+                      <SelectItem value="CARD">
+                        {t("paymentMethods.card")}
+                      </SelectItem>
+                      <SelectItem value="CASH">
+                        {t("paymentMethods.cash")}
+                      </SelectItem>
+                      <SelectItem value="BOTH">
+                        {t("paymentMethods.both")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>{t('paymentMethodDescription')}</FormDescription>
+                  <FormDescription>
+                    {t("paymentMethodDescription")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -418,11 +482,18 @@ export function TariffSettingsForm({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">{t('acceptPartialPayment')}</FormLabel>
-                    <FormDescription>{t('acceptPartialPaymentDescription')}</FormDescription>
+                    <FormLabel className="text-base">
+                      {t("acceptPartialPayment")}
+                    </FormLabel>
+                    <FormDescription>
+                      {t("acceptPartialPaymentDescription")}
+                    </FormDescription>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -433,11 +504,11 @@ export function TariffSettingsForm({
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
-              <>{t('saving')}</>
+              <>{t("saving")}</>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                {t('save')}
+                {t("save")}
               </>
             )}
           </Button>

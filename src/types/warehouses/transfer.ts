@@ -23,23 +23,23 @@ export interface TransferItem {
   notes?: string;
 }
 
-export type ItemCondition = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'DAMAGED';
+export type ItemCondition = "EXCELLENT" | "GOOD" | "FAIR" | "DAMAGED";
 
-export type TransferType = 
-  | 'CLIENT_REQUESTED'
-  | 'WAREHOUSE_CONSOLIDATION'
-  | 'MAINTENANCE_MOVE'
-  | 'CAPACITY_BALANCING'
-  | 'EMERGENCY_RELOCATION';
+export type TransferType =
+  | "CLIENT_REQUESTED"
+  | "WAREHOUSE_CONSOLIDATION"
+  | "MAINTENANCE_MOVE"
+  | "CAPACITY_BALANCING"
+  | "EMERGENCY_RELOCATION";
 
-export type TransferStatus = 
-  | 'REQUESTED'
-  | 'APPROVED'
-  | 'SCHEDULED'
-  | 'IN_TRANSIT'
-  | 'DELIVERED'
-  | 'CANCELLED'
-  | 'FAILED';
+export type TransferStatus =
+  | "REQUESTED"
+  | "APPROVED"
+  | "SCHEDULED"
+  | "IN_TRANSIT"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "FAILED";
 
 export interface TransferCost {
   transport: number;
@@ -48,7 +48,7 @@ export interface TransferCost {
   urgencyFee?: number;
   total: number;
   currency: string;
-  billingTo: 'CLIENT' | 'WAREHOUSE' | 'SYSTEM';
+  billingTo: "CLIENT" | "WAREHOUSE" | "SYSTEM";
 }
 
 export interface TransferLogistics {
@@ -93,16 +93,16 @@ export interface TransferTracking {
 }
 
 export interface TransferMilestone {
-  type: 'PICKUP' | 'CHECKPOINT' | 'DELIVERY';
+  type: "PICKUP" | "CHECKPOINT" | "DELIVERY";
   location: string;
   scheduledTime: Date;
   actualTime?: Date;
-  status: 'PENDING' | 'COMPLETED' | 'DELAYED';
+  status: "PENDING" | "COMPLETED" | "DELAYED";
 }
 
 export interface TrackingUpdate {
   timestamp: Date;
   location: LocationPoint;
   message: string;
-  type: 'INFO' | 'WARNING' | 'ERROR';
+  type: "INFO" | "WARNING" | "ERROR";
 }

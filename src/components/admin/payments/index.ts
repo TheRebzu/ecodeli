@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export { default as PaymentMonitoring } from './payment-monitoring';
-export * from './payment-monitoring';
-export { default as PaymentReconciliation } from './payment-reconciliation';
-export * from './payment-reconciliation';
-export { default as StripeDashboard } from './stripe-dashboard';
-export * from './stripe-dashboard';
+export { default as PaymentMonitoring } from "./payment-monitoring";
+export * from "./payment-monitoring";
+export { default as PaymentReconciliation } from "./payment-reconciliation";
+export * from "./payment-reconciliation";
+export { default as StripeDashboard } from "./stripe-dashboard";
+export * from "./stripe-dashboard";

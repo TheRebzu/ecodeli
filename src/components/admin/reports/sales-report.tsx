@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
   Bar,
@@ -18,10 +18,15 @@ import {
   Cell,
   Area,
   AreaChart,
-} from 'recharts';
-import { DollarSign, TrendingUp, PackageIcon, ShoppingCart } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "recharts";
+import {
+  DollarSign,
+  TrendingUp,
+  PackageIcon,
+  ShoppingCart,
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Types pour les données de vente
 interface SalesData {
@@ -58,21 +63,26 @@ interface SalesReportProps {
   dateRange: string;
 }
 
-export function SalesReport({ data, isLoading, isError, dateRange }: SalesReportProps) {
-  const t = useTranslations('admin.reports');
+export function SalesReport({
+  data,
+  isLoading,
+  isError,
+  dateRange,
+}: SalesReportProps) {
+  const t = useTranslations("admin.reports");
 
   // Format monétaire pour l'affichage des valeurs
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
       minimumFractionDigits: 2,
     }).format(value);
   };
 
   // Format de pourcentage pour l'affichage des changements
   const formatPercentage = (value: number) => {
-    return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
+    return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
   };
 
   if (isLoading) {
@@ -125,8 +135,10 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <h3 className="text-lg font-medium text-destructive mb-2">{t('errors.loadFailed')}</h3>
-          <p className="text-muted-foreground">{t('errors.tryAgain')}</p>
+          <h3 className="text-lg font-medium text-destructive mb-2">
+            {t("errors.loadFailed")}
+          </h3>
+          <p className="text-muted-foreground">{t("errors.tryAgain")}</p>
         </div>
       </div>
     );
@@ -139,12 +151,20 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
       data.revenueSummary.previousOrderCount) *
     100;
   const aovChange =
-    ((data.revenueSummary.averageOrderValue - data.revenueSummary.previousAverageOrderValue) /
+    ((data.revenueSummary.averageOrderValue -
+      data.revenueSummary.previousAverageOrderValue) /
       data.revenueSummary.previousAverageOrderValue) *
     100;
 
   // Couleurs pour les graphiques
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
+  const COLORS = [
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+    "#ff8042",
+    "#0088FE",
+    "#00C49F",
+  ];
 
   return (
     <div className="space-y-6">
@@ -152,60 +172,78 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('sales.totalRevenue')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("sales.totalRevenue")}
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(data.revenueSummary.total)}</div>
-            <p className={`text-xs ${revenueChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {formatPercentage(revenueChange)} {t('sales.vsPrevious')}
+            <div className="text-2xl font-bold">
+              {formatCurrency(data.revenueSummary.total)}
+            </div>
+            <p
+              className={`text-xs ${revenueChange >= 0 ? "text-green-500" : "text-red-500"}`}
+            >
+              {formatPercentage(revenueChange)} {t("sales.vsPrevious")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('sales.orderCount')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("sales.orderCount")}
+            </CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.revenueSummary.orderCount}</div>
-            <p className={`text-xs ${orderCountChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {formatPercentage(orderCountChange)} {t('sales.vsPrevious')}
+            <div className="text-2xl font-bold">
+              {data.revenueSummary.orderCount}
+            </div>
+            <p
+              className={`text-xs ${orderCountChange >= 0 ? "text-green-500" : "text-red-500"}`}
+            >
+              {formatPercentage(orderCountChange)} {t("sales.vsPrevious")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('sales.averageOrderValue')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("sales.averageOrderValue")}
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {formatCurrency(data.revenueSummary.averageOrderValue)}
             </div>
-            <p className={`text-xs ${aovChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {formatPercentage(aovChange)} {t('sales.vsPrevious')}
+            <p
+              className={`text-xs ${aovChange >= 0 ? "text-green-500" : "text-red-500"}`}
+            >
+              {formatPercentage(aovChange)} {t("sales.vsPrevious")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('sales.topCategory')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("sales.topCategory")}
+            </CardTitle>
             <PackageIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {data.topCategories && data.topCategories.length > 0
                 ? data.topCategories[0].name
-                : t('sales.noData')}
+                : t("sales.noData")}
             </div>
             <p className="text-xs text-muted-foreground">
               {data.topCategories && data.topCategories.length > 0
-                ? `${Math.round((data.topCategories[0].value / data.revenueSummary.total) * 100)}% ${t('sales.ofTotalRevenue')}`
-                : ''}
+                ? `${Math.round((data.topCategories[0].value / data.revenueSummary.total) * 100)}% ${t("sales.ofTotalRevenue")}`
+                : ""}
             </p>
           </CardContent>
         </Card>
@@ -214,14 +252,16 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
       {/* Graphiques */}
       <Tabs defaultValue="revenue">
         <TabsList className="mb-4">
-          <TabsTrigger value="revenue">{t('sales.charts.revenue')}</TabsTrigger>
-          <TabsTrigger value="comparison">{t('sales.charts.comparison')}</TabsTrigger>
+          <TabsTrigger value="revenue">{t("sales.charts.revenue")}</TabsTrigger>
+          <TabsTrigger value="comparison">
+            {t("sales.charts.comparison")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="revenue" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('sales.charts.revenueOverTime')}</CardTitle>
+              <CardTitle>{t("sales.charts.revenueOverTime")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-80 w-full pt-4">
@@ -238,19 +278,19 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
                       height={70}
                       tick={{ fontSize: 12 }}
                     />
-                    <YAxis tickFormatter={value => `${value}€`} />
+                    <YAxis tickFormatter={(value) => `${value}€`} />
                     <Tooltip
-                      formatter={value => [
+                      formatter={(value) => [
                         `${formatCurrency(value as number)}`,
-                        t('sales.revenue'),
+                        t("sales.revenue"),
                       ]}
-                      labelFormatter={label => `${label}`}
+                      labelFormatter={(label) => `${label}`}
                     />
                     <Legend />
                     <Area
                       type="monotone"
                       dataKey="revenue"
-                      name={t('sales.revenue')}
+                      name={t("sales.revenue")}
                       stroke="#8884d8"
                       fill="#8884d8"
                       activeDot={{ r: 8 }}
@@ -264,7 +304,7 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>{t('sales.charts.topCategories')}</CardTitle>
+                <CardTitle>{t("sales.charts.topCategories")}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-64 w-full pt-4">
@@ -279,7 +319,9 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
                         fill="#8884d8"
                         dataKey="value"
                         nameKey="name"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
                       >
                         {data.topCategories.map((entry, index) => (
                           <Cell
@@ -289,7 +331,10 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={value => [formatCurrency(value as number), t('sales.value')]}
+                        formatter={(value) => [
+                          formatCurrency(value as number),
+                          t("sales.value"),
+                        ]}
                       />
                       <Legend />
                     </PieChart>
@@ -300,7 +345,7 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
 
             <Card>
               <CardHeader>
-                <CardTitle>{t('sales.charts.deliveryTypes')}</CardTitle>
+                <CardTitle>{t("sales.charts.deliveryTypes")}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-64 w-full pt-4">
@@ -311,11 +356,14 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                      <YAxis tickFormatter={value => `${value}€`} />
+                      <YAxis tickFormatter={(value) => `${value}€`} />
                       <Tooltip
-                        formatter={value => [formatCurrency(value as number), t('sales.revenue')]}
+                        formatter={(value) => [
+                          formatCurrency(value as number),
+                          t("sales.revenue"),
+                        ]}
                       />
-                      <Bar dataKey="value" name={t('sales.revenue')}>
+                      <Bar dataKey="value" name={t("sales.revenue")}>
                         {data.salesByDeliveryType.map((entry, index) => (
                           <Cell
                             key={`cell-${index}`}
@@ -334,13 +382,15 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
         <TabsContent value="comparison" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('sales.charts.periodComparison')}</CardTitle>
+              <CardTitle>{t("sales.charts.periodComparison")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-80 w-full pt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={data.revenueOverTime.filter(d => d.previousRevenue !== undefined)}
+                    data={data.revenueOverTime.filter(
+                      (d) => d.previousRevenue !== undefined,
+                    )}
                     margin={{ top: 10, right: 30, left: 30, bottom: 30 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -351,23 +401,26 @@ export function SalesReport({ data, isLoading, isError, dateRange }: SalesReport
                       height={70}
                       tick={{ fontSize: 12 }}
                     />
-                    <YAxis tickFormatter={value => `${value}€`} />
+                    <YAxis tickFormatter={(value) => `${value}€`} />
                     <Tooltip
-                      formatter={value => [`${formatCurrency(value as number)}`, '']}
-                      labelFormatter={label => `${label}`}
+                      formatter={(value) => [
+                        `${formatCurrency(value as number)}`,
+                        "",
+                      ]}
+                      labelFormatter={(label) => `${label}`}
                     />
                     <Legend />
                     <Line
                       type="monotone"
                       dataKey="revenue"
-                      name={t('sales.currentPeriod')}
+                      name={t("sales.currentPeriod")}
                       stroke="#8884d8"
                       activeDot={{ r: 8 }}
                     />
                     <Line
                       type="monotone"
                       dataKey="previousRevenue"
-                      name={t('sales.previousPeriod')}
+                      name={t("sales.previousPeriod")}
                       stroke="#82ca9d"
                       activeDot={{ r: 8 }}
                     />

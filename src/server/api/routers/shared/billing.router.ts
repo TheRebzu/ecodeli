@@ -1,12 +1,16 @@
-import { z } from 'zod';
-import { router as router, adminProcedure, protectedProcedure } from '@/server/api/trpc';
-import { billingService } from '@/server/services/shared/billing.service';
-import { TRPCError } from '@trpc/server';
-import { format, subMonths } from 'date-fns';
-import { BillingService } from '@/server/services/shared/billing.service';
-import { billingSettingsSchema } from '@/schemas/payment/billing.schema';
-import { db } from '@/server/db';
-import { Decimal } from '@prisma/client/runtime/library';
+import { z } from "zod";
+import {
+  router as router,
+  adminProcedure,
+  protectedProcedure,
+} from "@/server/api/trpc";
+import { billingService } from "@/server/services/shared/billing.service";
+import { TRPCError } from "@trpc/server";
+import { format, subMonths } from "date-fns";
+import { BillingService } from "@/server/services/shared/billing.service";
+import { billingSettingsSchema } from "@/schemas/payment/billing.schema";
+import { db } from "@/server/db";
+import { Decimal } from "@prisma/client/runtime/library";
 
 // Initialiser le service de facturation
 const billingServiceInstance = new BillingService();
@@ -35,7 +39,7 @@ export const billingRouter = router({
       return result;
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: `Erreur lors de l'exécution de la facturation mensuelle: ${error.message}`,
       });
     }
@@ -48,15 +52,17 @@ export const billingRouter = router({
     .input(
       z.object({
         scheduledDate: z.date().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
-        const result = await billingService.scheduleMonthlyCycles(input.scheduledDate);
+        const result = await billingService.scheduleMonthlyCycles(
+          input.scheduledDate,
+        );
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: `Erreur lors de la planification des cycles: ${error.message}`,
         });
       }
@@ -71,7 +77,7 @@ export const billingRouter = router({
       return result;
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: `Erreur lors de l'exécution des cycles planifiés: ${error.message}`,
       });
     }
@@ -80,17 +86,19 @@ export const billingRouter = router({
   /**
    * Crée un cycle de facturation personnalisé
    */
-  createBillingCycle: adminProcedure.input(createBillingCycleSchema).mutation(async ({ input }) => {
-    try {
-      const result = await billingService.createBillingCycle(input);
-      return result;
-    } catch (error: any) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: `Erreur lors de la création du cycle: ${error.message}`,
-      });
-    }
-  }),
+  createBillingCycle: adminProcedure
+    .input(createBillingCycleSchema)
+    .mutation(async ({ input }) => {
+      try {
+        const result = await billingService.createBillingCycle(input);
+        return result;
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erreur lors de la création du cycle: ${error.message}`,
+        });
+      }
+    }),
 
   /**
    * Réexécute un cycle de facturation échoué
@@ -103,7 +111,7 @@ export const billingRouter = router({
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: `Erreur lors de la réexécution du cycle: ${error.message}`,
         });
       }
@@ -118,7 +126,7 @@ export const billingRouter = router({
       return result;
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: `Erreur lors du traitement des virements automatiques: ${error.message}`,
       });
     }
@@ -133,7 +141,7 @@ export const billingRouter = router({
       return result;
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: `Erreur lors de l'envoi des rappels: ${error.message}`,
       });
     }
@@ -145,8 +153,8 @@ export const billingRouter = router({
   getBillingStats: adminProcedure
     .input(
       z.object({
-        period: z.enum(['MONTH', 'QUARTER', 'YEAR']).default('MONTH'),
-      })
+        period: z.enum(["MONTH", "QUARTER", "YEAR"]).default("MONTH"),
+      }),
     )
     .query(async ({ input }) => {
       try {
@@ -154,7 +162,7 @@ export const billingRouter = router({
         return stats;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: `Erreur lors de la récupération des statistiques: ${error.message}`,
         });
       }
@@ -169,7 +177,7 @@ export const billingRouter = router({
         providerId: z.string(),
         month: z.number().min(1).max(12).optional(),
         year: z.number().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
@@ -183,13 +191,13 @@ export const billingRouter = router({
         const result = await billingService.generateProviderInvoice(
           input.providerId,
           startDate,
-          endDate
+          endDate,
         );
 
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: `Erreur lors de la génération de la facture: ${error.message}`,
         });
       }
@@ -204,7 +212,7 @@ export const billingRouter = router({
         merchantId: z.string(),
         month: z.number().min(1).max(12).optional(),
         year: z.number().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
@@ -218,13 +226,13 @@ export const billingRouter = router({
         const result = await billingService.generateMerchantInvoice(
           input.merchantId,
           startDate,
-          endDate
+          endDate,
         );
 
         return result;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: `Erreur lors de la génération de la facture: ${error.message}`,
         });
       }
@@ -242,25 +250,27 @@ export const billingRouter = router({
 
       return {
         settings: settings || {
-          companyName: 'EcoDeli SAS',
-          address: '123 Avenue de la République',
-          city: 'Paris',
-          postalCode: '75011',
-          country: 'France',
-          email: 'facturation@ecodeli.fr',
-          website: 'https://ecodeli.fr',
-          defaultCurrency: 'EUR',
-          defaultPaymentTerms: 'À régler sous 30 jours',
+          companyName: "EcoDeli SAS",
+          address: "123 Avenue de la République",
+          city: "Paris",
+          postalCode: "75011",
+          country: "France",
+          email: "facturation@ecodeli.fr",
+          website: "https://ecodeli.fr",
+          defaultCurrency: "EUR",
+          defaultPaymentTerms: "À régler sous 30 jours",
           defaultTaxRate: 20,
-          invoicePrefix: 'ECO-',
-          invoiceNumberFormat: 'YYYY-MM-[N]',
+          invoicePrefix: "ECO-",
+          invoiceNumberFormat: "YYYY-MM-[N]",
           isDefault: true,
         },
       };
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la récupération des paramètres de facturation',
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          error.message ||
+          "Erreur lors de la récupération des paramètres de facturation",
         cause: error,
       });
     }
@@ -283,7 +293,7 @@ export const billingRouter = router({
         // Mettre à jour ou créer les paramètres
         const settings = await ctx.db.billingSettings.upsert({
           where: {
-            id: currentSettings?.id || 'default-settings',
+            id: currentSettings?.id || "default-settings",
           },
           update: {
             ...input,
@@ -293,17 +303,17 @@ export const billingRouter = router({
             ...input,
             isDefault: true,
             createdById: adminId,
-            id: 'default-settings',
+            id: "default-settings",
           },
         });
 
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'BILLING_SETTINGS',
+            entityType: "BILLING_SETTINGS",
             entityId: settings.id,
             performedById: adminId,
-            action: 'UPDATE_BILLING_SETTINGS',
+            action: "UPDATE_BILLING_SETTINGS",
             changes: {
               companyName: input.companyName,
               taxRate: String(input.defaultTaxRate),
@@ -315,12 +325,14 @@ export const billingRouter = router({
         return {
           success: true,
           settings,
-          message: 'Paramètres de facturation mis à jour avec succès',
+          message: "Paramètres de facturation mis à jour avec succès",
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la mise à jour des paramètres de facturation',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la mise à jour des paramètres de facturation",
           cause: error,
         });
       }
@@ -338,20 +350,37 @@ export const billingRouter = router({
       if (commissionRates.length === 0) {
         return {
           rates: [
-            { entityType: 'MERCHANT', rate: 10, isPercentage: true, isActive: true },
-            { entityType: 'DELIVERER', rate: 15, isPercentage: true, isActive: true },
-            { entityType: 'PROVIDER', rate: 12, isPercentage: true, isActive: true },
+            {
+              entityType: "MERCHANT",
+              rate: 10,
+              isPercentage: true,
+              isActive: true,
+            },
+            {
+              entityType: "DELIVERER",
+              rate: 15,
+              isPercentage: true,
+              isActive: true,
+            },
+            {
+              entityType: "PROVIDER",
+              rate: 12,
+              isPercentage: true,
+              isActive: true,
+            },
           ],
         };
       }
 
-              return {
-          rates: commissionRates,
-        };
+      return {
+        rates: commissionRates,
+      };
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la récupération des taux de commission',
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          error.message ||
+          "Erreur lors de la récupération des taux de commission",
         cause: error,
       });
     }
@@ -364,12 +393,12 @@ export const billingRouter = router({
     .input(
       z.object({
         id: z.string().optional(),
-        entityType: z.enum(['MERCHANT', 'DELIVERER', 'PROVIDER']),
+        entityType: z.enum(["MERCHANT", "DELIVERER", "PROVIDER"]),
         rate: z.number().min(0).max(100),
         isPercentage: z.boolean().default(true),
         isActive: z.boolean().default(true),
         description: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -419,10 +448,10 @@ export const billingRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'COMMISSION_RATE',
+            entityType: "COMMISSION_RATE",
             entityId: commissionRate.id,
             performedById: adminId,
-            action: id ? 'UPDATE_COMMISSION_RATE' : 'CREATE_COMMISSION_RATE',
+            action: id ? "UPDATE_COMMISSION_RATE" : "CREATE_COMMISSION_RATE",
             changes: {
               entityType: data.entityType,
               rate: String(data.rate),
@@ -436,13 +465,15 @@ export const billingRouter = router({
           success: true,
           commissionRate,
           message: id
-            ? 'Taux de commission mis à jour avec succès'
-            : 'Taux de commission créé avec succès',
+            ? "Taux de commission mis à jour avec succès"
+            : "Taux de commission créé avec succès",
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la mise à jour du taux de commission',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la mise à jour du taux de commission",
           cause: error,
         });
       }
@@ -456,9 +487,11 @@ export const billingRouter = router({
       z.object({
         startDate: z.date().optional(),
         endDate: z.date().optional(),
-        entityTypes: z.array(z.enum(['MERCHANT', 'DELIVERER', 'PROVIDER'])).optional(),
+        entityTypes: z
+          .array(z.enum(["MERCHANT", "DELIVERER", "PROVIDER"]))
+          .optional(),
         dryRun: z.boolean().default(false),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -475,7 +508,7 @@ export const billingRouter = router({
         const result = await billingService.generateCommissionInvoices({
           startDate: period.start,
           endDate: period.end,
-          entityTypes: entityTypes || ['MERCHANT', 'DELIVERER', 'PROVIDER'],
+          entityTypes: entityTypes || ["MERCHANT", "DELIVERER", "PROVIDER"],
           dryRun,
         });
 
@@ -483,14 +516,14 @@ export const billingRouter = router({
         if (!dryRun) {
           await ctx.db.auditLog.create({
             data: {
-              entityType: 'BILLING_TASK',
-              entityId: 'commission-invoices',
+              entityType: "BILLING_TASK",
+              entityId: "commission-invoices",
               performedById: adminId,
-              action: 'GENERATE_COMMISSION_INVOICES',
+              action: "GENERATE_COMMISSION_INVOICES",
               changes: {
                 periodStart: period.start.toISOString(),
                 periodEnd: period.end.toISOString(),
-                entityTypes: entityTypes?.join(',') || 'ALL',
+                entityTypes: entityTypes?.join(",") || "ALL",
                 generatedCount: String(result.results?.length || 0),
               },
             },
@@ -501,14 +534,16 @@ export const billingRouter = router({
           success: result.success,
           message: dryRun
             ? `Simulation: ${result.results?.length || 0} factures de commission seraient générées`
-            : `${result.results?.filter(r => r.success).length || 0} factures de commission générées avec succès`,
+            : `${result.results?.filter((r) => r.success).length || 0} factures de commission générées avec succès`,
           invoices: result.results,
           dryRun,
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la génération des factures de commission',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la génération des factures de commission",
           cause: error,
         });
       }
@@ -525,11 +560,15 @@ export const billingRouter = router({
         startDate: z.date(),
         endDate: z.date(),
         invoiceDueDate: z.date().optional(),
-        status: z.enum(['PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).default('PLANNED'),
-        entityTypes: z.array(z.enum(['MERCHANT', 'DELIVERER', 'PROVIDER', 'CLIENT'])),
+        status: z
+          .enum(["PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"])
+          .default("PLANNED"),
+        entityTypes: z.array(
+          z.enum(["MERCHANT", "DELIVERER", "PROVIDER", "CLIENT"]),
+        ),
         autoGenerateInvoices: z.boolean().default(true),
         sendEmailNotifications: z.boolean().default(true),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -538,8 +577,8 @@ export const billingRouter = router({
         // Vérifier que les dates sont cohérentes
         if (input.endDate < input.startDate) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'La date de fin doit être postérieure à la date de début',
+            code: "BAD_REQUEST",
+            message: "La date de fin doit être postérieure à la date de début",
           });
         }
 
@@ -558,15 +597,15 @@ export const billingRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'BILLING_CYCLE',
+            entityType: "BILLING_CYCLE",
             entityId: billingCycle.id,
             performedById: adminId,
-            action: 'CREATE_BILLING_CYCLE',
+            action: "CREATE_BILLING_CYCLE",
             changes: {
               name: input.name,
               startDate: input.startDate.toISOString(),
               endDate: input.endDate.toISOString(),
-              entityTypes: input.entityTypes.join(','),
+              entityTypes: input.entityTypes.join(","),
             },
           },
         });
@@ -574,12 +613,14 @@ export const billingRouter = router({
         return {
           success: true,
           billingCycle,
-          message: 'Cycle de facturation créé avec succès',
+          message: "Cycle de facturation créé avec succès",
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la création du cycle de facturation',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la création du cycle de facturation",
           cause: error,
         });
       }
@@ -591,10 +632,12 @@ export const billingRouter = router({
   getBillingCycles: adminProcedure
     .input(
       z.object({
-        status: z.enum(['ALL', 'PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
+        status: z
+          .enum(["ALL", "PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"])
+          .optional(),
         page: z.number().int().positive().default(1),
         limit: z.number().int().positive().max(100).default(10),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -602,7 +645,7 @@ export const billingRouter = router({
 
         // Construire le filtre
         const where: any = {};
-        if (status && status !== 'ALL') {
+        if (status && status !== "ALL") {
           where.status = status;
         }
 
@@ -610,7 +653,7 @@ export const billingRouter = router({
         const [billingCycles, total] = await Promise.all([
           ctx.db.billingCycle.findMany({
             where,
-            orderBy: { startDate: 'desc' },
+            orderBy: { startDate: "desc" },
             skip: (page - 1) * limit,
             take: limit,
             include: {
@@ -627,7 +670,7 @@ export const billingRouter = router({
 
         // Enrichir les résultats avec des statistiques
         const enrichedCycles = await Promise.all(
-          billingCycles.map(async cycle => {
+          billingCycles.map(async (cycle) => {
             // Récupérer le nombre de factures générées pour ce cycle
             const invoiceCount = await ctx.db.invoice.count({
               where: {
@@ -654,7 +697,7 @@ export const billingRouter = router({
                   : 0,
               },
             };
-          })
+          }),
         );
 
         return {
@@ -668,8 +711,10 @@ export const billingRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération des cycles de facturation',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la récupération des cycles de facturation",
           cause: error,
         });
       }
@@ -683,7 +728,7 @@ export const billingRouter = router({
       z.object({
         billingCycleId: z.string(),
         dryRun: z.boolean().default(false),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -697,22 +742,26 @@ export const billingRouter = router({
 
         if (!billingCycle) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Cycle de facturation non trouvé',
+            code: "NOT_FOUND",
+            message: "Cycle de facturation non trouvé",
           });
         }
 
         // Vérifier que le cycle peut être exécuté
-        if (billingCycle.status === 'COMPLETED' || billingCycle.status === 'CANCELLED') {
+        if (
+          billingCycle.status === "COMPLETED" ||
+          billingCycle.status === "CANCELLED"
+        ) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: `Impossible d'exécuter un cycle au statut ${billingCycle.status}`,
           });
         }
 
         if (dryRun) {
           // Simuler l'exécution
-          const simulationResult = await billingService.simulateBillingCycle(billingCycleId);
+          const simulationResult =
+            await billingService.simulateBillingCycle(billingCycleId);
 
           return {
             success: true,
@@ -722,14 +771,17 @@ export const billingRouter = router({
         }
 
         // Exécuter le cycle de facturation
-        const result = await billingService.executeBillingCycle(billingCycleId, adminId);
+        const result = await billingService.executeBillingCycle(
+          billingCycleId,
+          adminId,
+        );
 
         // Mettre à jour le statut du cycle si exécuté avec succès
         if (result.success) {
           await ctx.db.billingCycle.update({
             where: { id: billingCycleId },
             data: {
-              status: 'IN_PROGRESS',
+              status: "IN_PROGRESS",
               executedById: adminId,
               executedAt: new Date(),
             },
@@ -739,10 +791,10 @@ export const billingRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'BILLING_CYCLE',
+            entityType: "BILLING_CYCLE",
             entityId: billingCycleId,
             performedById: adminId,
-            action: 'EXECUTE_BILLING_CYCLE',
+            action: "EXECUTE_BILLING_CYCLE",
             changes: {
               cycleId: billingCycleId,
               generatedInvoices: String(result.generatedInvoices?.length || 0),
@@ -758,8 +810,10 @@ export const billingRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || "Erreur lors de l'exécution du cycle de facturation",
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de l'exécution du cycle de facturation",
           cause: error,
         });
       }
@@ -773,7 +827,7 @@ export const billingRouter = router({
       z.object({
         billingCycleId: z.string(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -787,15 +841,15 @@ export const billingRouter = router({
 
         if (!billingCycle) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Cycle de facturation non trouvé',
+            code: "NOT_FOUND",
+            message: "Cycle de facturation non trouvé",
           });
         }
 
         // Vérifier que le cycle peut être finalisé
-        if (billingCycle.status !== 'IN_PROGRESS') {
+        if (billingCycle.status !== "IN_PROGRESS") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: `Impossible de finaliser un cycle au statut ${billingCycle.status}`,
           });
         }
@@ -804,7 +858,7 @@ export const billingRouter = router({
         const [invoiceStats, paymentStats] = await Promise.all([
           // Statistiques des factures
           ctx.db.invoice.groupBy({
-            by: ['status'],
+            by: ["status"],
             where: { billingCycleId },
             _count: true,
             _sum: {
@@ -814,7 +868,7 @@ export const billingRouter = router({
 
           // Statistiques des paiements
           ctx.db.payment.groupBy({
-            by: ['status'],
+            by: ["status"],
             where: {
               invoice: {
                 billingCycleId,
@@ -829,20 +883,26 @@ export const billingRouter = router({
 
         // Calculer les totaux
         const totalInvoiced = invoiceStats.reduce((total, stat) => {
-          return total + (stat._sum.amount ? parseFloat(stat._sum.amount.toString()) : 0);
+          return (
+            total +
+            (stat._sum.amount ? parseFloat(stat._sum.amount.toString()) : 0)
+          );
         }, 0);
 
         const totalPaid = paymentStats
-          .filter(stat => stat.status === 'COMPLETED')
+          .filter((stat) => stat.status === "COMPLETED")
           .reduce((total, stat) => {
-            return total + (stat._sum.amount ? parseFloat(stat._sum.amount.toString()) : 0);
+            return (
+              total +
+              (stat._sum.amount ? parseFloat(stat._sum.amount.toString()) : 0)
+            );
           }, 0);
 
         // Finaliser le cycle
         const updatedCycle = await ctx.db.billingCycle.update({
           where: { id: billingCycleId },
           data: {
-            status: 'COMPLETED',
+            status: "COMPLETED",
             completedById: adminId,
             completedAt: new Date(),
             notes: notes
@@ -853,10 +913,12 @@ export const billingRouter = router({
             statistics: {
               totalInvoiced,
               totalPaid,
-              invoicesByStatus: invoiceStats.map(stat => ({
+              invoicesByStatus: invoiceStats.map((stat) => ({
                 status: stat.status,
                 count: stat._count,
-                amount: stat._sum.amount ? parseFloat(stat._sum.amount.toString()) : 0,
+                amount: stat._sum.amount
+                  ? parseFloat(stat._sum.amount.toString())
+                  : 0,
               })),
             },
           },
@@ -865,14 +927,14 @@ export const billingRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'BILLING_CYCLE',
+            entityType: "BILLING_CYCLE",
             entityId: billingCycleId,
             performedById: adminId,
-            action: 'COMPLETE_BILLING_CYCLE',
+            action: "COMPLETE_BILLING_CYCLE",
             changes: {
               totalInvoiced: String(totalInvoiced),
               totalPaid: String(totalPaid),
-              notes: notes || '',
+              notes: notes || "",
             },
           },
         });
@@ -883,18 +945,22 @@ export const billingRouter = router({
           stats: {
             totalInvoiced,
             totalPaid,
-            invoicesByStatus: invoiceStats.map(stat => ({
+            invoicesByStatus: invoiceStats.map((stat) => ({
               status: stat.status,
               count: stat._count,
-              amount: stat._sum.amount ? parseFloat(stat._sum.amount.toString()) : 0,
+              amount: stat._sum.amount
+                ? parseFloat(stat._sum.amount.toString())
+                : 0,
             })),
           },
           message: `Cycle de facturation finalisé avec succès. Total facturé: ${totalInvoiced}€, Total payé: ${totalPaid}€`,
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la finalisation du cycle de facturation',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la finalisation du cycle de facturation",
           cause: error,
         });
       }
@@ -906,11 +972,13 @@ export const billingRouter = router({
   getFinancialStats: adminProcedure
     .input(
       z.object({
-        period: z.enum(['day', 'week', 'month', 'quarter', 'year']).default('month'),
+        period: z
+          .enum(["day", "week", "month", "quarter", "year"])
+          .default("month"),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
         compareWithPrevious: z.boolean().default(true),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -920,12 +988,12 @@ export const billingRouter = router({
         const currentPeriod = {
           start:
             startDate ||
-            (period === 'month'
+            (period === "month"
               ? startOfMonth(new Date())
               : new Date(new Date().getFullYear(), 0, 1)),
           end:
             endDate ||
-            (period === 'month'
+            (period === "month"
               ? endOfMonth(new Date())
               : new Date(new Date().getFullYear(), 11, 31)),
         };
@@ -933,20 +1001,20 @@ export const billingRouter = router({
         // Définir la période précédente pour comparaison
         const previousPeriod = {
           start:
-            period === 'month'
+            period === "month"
               ? subMonths(currentPeriod.start, 1)
               : new Date(
                   currentPeriod.start.getFullYear() - 1,
                   currentPeriod.start.getMonth(),
-                  currentPeriod.start.getDate()
+                  currentPeriod.start.getDate(),
                 ),
           end:
-            period === 'month'
+            period === "month"
               ? subMonths(currentPeriod.end, 1)
               : new Date(
                   currentPeriod.end.getFullYear() - 1,
                   currentPeriod.end.getMonth(),
-                  currentPeriod.end.getDate()
+                  currentPeriod.end.getDate(),
                 ),
         };
 
@@ -960,7 +1028,7 @@ export const billingRouter = router({
         ] = await Promise.all([
           // Factures de la période courante
           ctx.db.invoice.groupBy({
-            by: ['status'],
+            by: ["status"],
             where: {
               issuedDate: {
                 gte: currentPeriod.start,
@@ -976,7 +1044,7 @@ export const billingRouter = router({
           // Factures de la période précédente
           compareWithPrevious
             ? ctx.db.invoice.groupBy({
-                by: ['status'],
+                by: ["status"],
                 where: {
                   issuedDate: {
                     gte: previousPeriod.start,
@@ -992,7 +1060,7 @@ export const billingRouter = router({
 
           // Paiements de la période courante
           ctx.db.payment.groupBy({
-            by: ['status'],
+            by: ["status"],
             where: {
               createdAt: {
                 gte: currentPeriod.start,
@@ -1008,7 +1076,7 @@ export const billingRouter = router({
           // Paiements de la période précédente
           compareWithPrevious
             ? ctx.db.payment.groupBy({
-                by: ['status'],
+                by: ["status"],
                 where: {
                   createdAt: {
                     gte: previousPeriod.start,
@@ -1024,14 +1092,14 @@ export const billingRouter = router({
 
           // Top clients par montant facturé
           ctx.db.invoice.groupBy({
-            by: ['userId'],
+            by: ["userId"],
             where: {
               issuedDate: {
                 gte: currentPeriod.start,
                 lte: currentPeriod.end,
               },
               status: {
-                in: ['PAID', 'PENDING'],
+                in: ["PAID", "PENDING"],
               },
             },
             _sum: {
@@ -1039,7 +1107,7 @@ export const billingRouter = router({
             },
             orderBy: {
               _sum: {
-                amount: 'desc',
+                amount: "desc",
               },
             },
             take: 5,
@@ -1048,7 +1116,7 @@ export const billingRouter = router({
 
         // Enrichir les top clients avec les informations utilisateur
         const topClientsWithDetails = await Promise.all(
-          topClients.map(async client => {
+          topClients.map(async (client) => {
             const user = await ctx.db.user.findUnique({
               where: { id: client.userId },
               select: {
@@ -1061,9 +1129,11 @@ export const billingRouter = router({
 
             return {
               user,
-              totalAmount: client._sum.amount ? parseFloat(client._sum.amount.toString()) : 0,
+              totalAmount: client._sum.amount
+                ? parseFloat(client._sum.amount.toString())
+                : 0,
             };
-          })
+          }),
         );
 
         // Calculer les totaux
@@ -1071,10 +1141,12 @@ export const billingRouter = router({
           return stats.reduce(
             (totals, stat) => {
               totals.count += stat._count;
-              totals.amount += stat._sum.amount ? parseFloat(stat._sum.amount.toString()) : 0;
+              totals.amount += stat._sum.amount
+                ? parseFloat(stat._sum.amount.toString())
+                : 0;
               return totals;
             },
-            { count: 0, amount: 0 }
+            { count: 0, amount: 0 },
           );
         };
 
@@ -1084,10 +1156,14 @@ export const billingRouter = router({
           : { count: 0, amount: 0 };
 
         const currentPaymentTotals = calculateTotals(
-          currentPaymentStats.filter(stat => stat.status === 'COMPLETED')
+          currentPaymentStats.filter((stat) => stat.status === "COMPLETED"),
         );
         const previousPaymentTotals = compareWithPrevious
-          ? calculateTotals(previousPaymentStats.filter(stat => stat.status === 'COMPLETED'))
+          ? calculateTotals(
+              previousPaymentStats.filter(
+                (stat) => stat.status === "COMPLETED",
+              ),
+            )
           : { count: 0, amount: 0 };
 
         // Calculer les variations
@@ -1097,15 +1173,21 @@ export const billingRouter = router({
         };
 
         const variations = {
-          invoiceCount: calculateVariation(currentInvoiceTotals.count, previousInvoiceTotals.count),
+          invoiceCount: calculateVariation(
+            currentInvoiceTotals.count,
+            previousInvoiceTotals.count,
+          ),
           invoiceAmount: calculateVariation(
             currentInvoiceTotals.amount,
-            previousInvoiceTotals.amount
+            previousInvoiceTotals.amount,
           ),
-          paymentCount: calculateVariation(currentPaymentTotals.count, previousPaymentTotals.count),
+          paymentCount: calculateVariation(
+            currentPaymentTotals.count,
+            previousPaymentTotals.count,
+          ),
           paymentAmount: calculateVariation(
             currentPaymentTotals.amount,
-            previousPaymentTotals.amount
+            previousPaymentTotals.amount,
           ),
         };
 
@@ -1127,10 +1209,12 @@ export const billingRouter = router({
             current: {
               total: currentInvoiceTotals.amount,
               count: currentInvoiceTotals.count,
-              byStatus: currentInvoiceStats.map(stat => ({
+              byStatus: currentInvoiceStats.map((stat) => ({
                 status: stat.status,
                 count: stat._count,
-                amount: stat._sum.amount ? parseFloat(stat._sum.amount.toString()) : 0,
+                amount: stat._sum.amount
+                  ? parseFloat(stat._sum.amount.toString())
+                  : 0,
               })),
             },
             previous: compareWithPrevious
@@ -1145,10 +1229,12 @@ export const billingRouter = router({
             current: {
               total: currentPaymentTotals.amount,
               count: currentPaymentTotals.count,
-              byStatus: currentPaymentStats.map(stat => ({
+              byStatus: currentPaymentStats.map((stat) => ({
                 status: stat.status,
                 count: stat._count,
-                amount: stat._sum.amount ? parseFloat(stat._sum.amount.toString()) : 0,
+                amount: stat._sum.amount
+                  ? parseFloat(stat._sum.amount.toString())
+                  : 0,
               })),
             },
             previous: compareWithPrevious
@@ -1166,8 +1252,10 @@ export const billingRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération des statistiques financières',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la récupération des statistiques financières",
           cause: error,
         });
       }
@@ -1179,12 +1267,17 @@ export const billingRouter = router({
   generateFinancialReport: adminProcedure
     .input(
       z.object({
-        reportType: z.enum(['REVENUE', 'COMMISSIONS', 'PAYMENTS', 'SUBSCRIPTIONS']),
-        period: z.enum(['month', 'quarter', 'year']).default('month'),
+        reportType: z.enum([
+          "REVENUE",
+          "COMMISSIONS",
+          "PAYMENTS",
+          "SUBSCRIPTIONS",
+        ]),
+        period: z.enum(["month", "quarter", "year"]).default("month"),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
-        format: z.enum(['JSON', 'CSV', 'PDF']).default('JSON'),
-      })
+        format: z.enum(["JSON", "CSV", "PDF"]).default("JSON"),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -1195,12 +1288,12 @@ export const billingRouter = router({
         const reportPeriod = {
           start:
             startDate ||
-            (period === 'month'
+            (period === "month"
               ? startOfMonth(new Date())
               : new Date(new Date().getFullYear(), 0, 1)),
           end:
             endDate ||
-            (period === 'month'
+            (period === "month"
               ? endOfMonth(new Date())
               : new Date(new Date().getFullYear(), 11, 31)),
         };
@@ -1216,10 +1309,10 @@ export const billingRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'FINANCIAL_REPORT',
-            entityId: report.reportId || 'report',
+            entityType: "FINANCIAL_REPORT",
+            entityId: report.reportId || "report",
             performedById: adminId,
-            action: 'GENERATE_FINANCIAL_REPORT',
+            action: "GENERATE_FINANCIAL_REPORT",
             changes: {
               reportType,
               period,
@@ -1237,8 +1330,10 @@ export const billingRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la génération du rapport financier',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la génération du rapport financier",
           cause: error,
         });
       }

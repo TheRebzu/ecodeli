@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useTranslations } from 'next-intl';
-import { Loader2, PackageX, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { AnnouncementCard } from '@/components/shared/announcements/announcement-card';
+import React from "react";
+import { useTranslations } from "next-intl";
+import { Loader2, PackageX, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AnnouncementCard } from "@/components/shared/announcements/announcement-card";
 import {
   Pagination,
   PaginationContent,
@@ -13,11 +13,15 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { useMediaQuery } from '@/hooks/common/use-media-query';
-import { AnnouncementStatus, UserRole, type Announcement } from '@prisma/client';
-import { cn } from '@/lib/utils/common';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/pagination";
+import { useMediaQuery } from "@/hooks/common/use-media-query";
+import {
+  AnnouncementStatus,
+  UserRole,
+  type Announcement,
+} from "@prisma/client";
+import { cn } from "@/lib/utils/common";
+import { Input } from "@/components/ui/input";
 
 // Type étendu pour inclure des champs de recherche
 interface AnnouncementFilterInput {
@@ -98,10 +102,10 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
   filters,
   className,
 }) => {
-  const t = useTranslations('Announcements');
-  const [searchQuery, setSearchQuery] = React.useState(filters?.search || '');
-  const isMobile = useMediaQuery('(max-width: 640px)');
-  const isTablet = useMediaQuery('(max-width: 1024px)');
+  const t = useTranslations("Announcements");
+  const [searchQuery, setSearchQuery] = React.useState(filters?.search || "");
+  const isMobile = useMediaQuery("(max-width: 640px)");
+  const isTablet = useMediaQuery("(max-width: 1024px)");
 
   // Gérer la pagination pour l'affichage
   const displayPages = () => {
@@ -170,12 +174,16 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
         <PackageX className="h-16 w-16 text-muted-foreground mb-4" />
-        <h3 className="text-xl font-semibold mb-2">{emptyStateTitle || t('emptyState.title')}</h3>
+        <h3 className="text-xl font-semibold mb-2">
+          {emptyStateTitle || t("emptyState.title")}
+        </h3>
         <p className="text-muted-foreground mb-6 max-w-md">
-          {emptyStateMessage || t('emptyState.message')}
+          {emptyStateMessage || t("emptyState.message")}
         </p>
         {emptyStateAction && (
-          <Button onClick={emptyStateAction.onClick}>{emptyStateAction.label}</Button>
+          <Button onClick={emptyStateAction.onClick}>
+            {emptyStateAction.label}
+          </Button>
         )}
       </div>
     );
@@ -186,7 +194,7 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2 text-lg font-medium">{t('loading')}</span>
+        <span className="ml-2 text-lg font-medium">{t("loading")}</span>
       </div>
     );
   };
@@ -200,20 +208,20 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder={t('search.placeholder')}
+              placeholder={t("search.placeholder")}
               className="pl-9"
               value={searchQuery}
               onChange={handleSearchChange}
             />
           </div>
-          <Button type="submit">{t('search.button')}</Button>
+          <Button type="submit">{t("search.button")}</Button>
         </form>
       )}
 
       {/* Statut de la recherche */}
       {totalCount > 0 && (
         <div className="text-sm text-muted-foreground mb-4">
-          {t('totalResults', { count: totalCount })}
+          {t("totalResults", { count: totalCount })}
         </div>
       )}
 
@@ -224,7 +232,7 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
         renderEmptyState()
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          {announcements.map(announcement => (
+          {announcements.map((announcement) => (
             <AnnouncementCard
               key={announcement.id}
               id={announcement.id}
@@ -232,7 +240,9 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
               description={announcement.description}
               type={announcement.type}
               status={announcement.status as AnnouncementStatus}
-              price={announcement.suggestedPrice || announcement.finalPrice || 0}
+              price={
+                announcement.suggestedPrice || announcement.finalPrice || 0
+              }
               distance={announcement.distance}
               pickupAddress={announcement.pickupAddress}
               deliveryAddress={announcement.deliveryAddress}
@@ -264,13 +274,15 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
             <PaginationItem>
               <PaginationPrevious
                 href="#"
-                onClick={e => {
+                onClick={(e) => {
                   e.preventDefault();
                   if (currentPage > 1) {
                     onPageChange(currentPage - 1);
                   }
                 }}
-                className={cn(currentPage === 1 && 'pointer-events-none opacity-50')}
+                className={cn(
+                  currentPage === 1 && "pointer-events-none opacity-50",
+                )}
               />
             </PaginationItem>
 
@@ -281,7 +293,7 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
                 ) : (
                   <PaginationLink
                     href="#"
-                    onClick={e => {
+                    onClick={(e) => {
                       e.preventDefault();
                       onPageChange(page);
                     }}
@@ -296,13 +308,16 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
             <PaginationItem>
               <PaginationNext
                 href="#"
-                onClick={e => {
+                onClick={(e) => {
                   e.preventDefault();
                   if (currentPage < totalPages) {
                     onPageChange(currentPage + 1);
                   }
                 }}
-                className={cn(currentPage === totalPages && 'pointer-events-none opacity-50')}
+                className={cn(
+                  currentPage === totalPages &&
+                    "pointer-events-none opacity-50",
+                )}
               />
             </PaginationItem>
           </PaginationContent>

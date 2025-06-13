@@ -1,13 +1,16 @@
-'use client';
+"use client";
 
-import React, { useMemo } from 'react';
-import { Marker, Popup, Polyline } from 'react-leaflet';
-import L from 'leaflet';
-import { Home, Store, Clock, MapPin } from 'lucide-react';
-import { cn } from '@/lib/utils/common';
-import LeafletMap, { MapBounds, MapPoint } from '@/components/shared/maps/leaflet-map';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useMemo } from "react";
+import { Marker, Popup, Polyline } from "react-leaflet";
+import L from "leaflet";
+import { Home, Store, Clock, MapPin } from "lucide-react";
+import { cn } from "@/lib/utils/common";
+import LeafletMap, {
+  MapBounds,
+  MapPoint,
+} from "@/components/shared/maps/leaflet-map";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 // Types
 interface DeliveryMapProps {
@@ -33,9 +36,9 @@ interface DeliveryMapProps {
 
 // Couleurs pour les parcours
 const COLORS = {
-  route: '#3b82f6', // blue-500
-  pickup: '#10b981', // emerald-500
-  delivery: '#8b5cf6', // violet-500
+  route: "#3b82f6", // blue-500
+  pickup: "#10b981", // emerald-500
+  delivery: "#8b5cf6", // violet-500
 };
 
 // Créer un marqueur personnalisé avec un svg et une couleur
@@ -47,7 +50,7 @@ const createCustomMarker = (color: string, size = 36) => {
         <path d="M12 0c-4.4 0-8 3.6-8 8 0 1.5.4 2.9 1.2 4.1.3.5.7 1.1 1.2 1.7l5.6 7.9 5.6-7.9c.5-.6.8-1.1 1.2-1.7.7-1.2 1.2-2.6 1.2-4.1 0-4.4-3.6-8-8-8zm0 11c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/>
       </svg>
     `,
-    className: '',
+    className: "",
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
     popupAnchor: [0, -size],
@@ -89,9 +92,9 @@ const formatDistance = (meters: number): string => {
 // Carte statique de livraison
 const DeliveryMap: React.FC<DeliveryMapProps> = ({
   delivery,
-  height = '300px',
-  width = '100%',
-  className = '',
+  height = "300px",
+  width = "100%",
+  className = "",
   showInfo = true,
   interactive = false,
 }) => {
@@ -153,11 +156,13 @@ const DeliveryMap: React.FC<DeliveryMapProps> = ({
   const routePositions = useMemo(() => {
     if (!delivery.route || delivery.route.length === 0) return [];
 
-    return delivery.route.map(point => [point.latitude, point.longitude] as [number, number]);
+    return delivery.route.map(
+      (point) => [point.latitude, point.longitude] as [number, number],
+    );
   }, [delivery.route]);
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn("relative", className)}>
       <LeafletMap
         center={initialCenter}
         zoom={13}
@@ -173,7 +178,10 @@ const DeliveryMap: React.FC<DeliveryMapProps> = ({
       >
         {/* Marqueur du point de collecte */}
         {pickupPosition && (
-          <Marker position={[pickupPosition.lat, pickupPosition.lng]} icon={ICONS.pickup}>
+          <Marker
+            position={[pickupPosition.lat, pickupPosition.lng]}
+            icon={ICONS.pickup}
+          >
             <Popup>
               <div className="p-1.5">
                 <h4 className="text-xs font-bold flex items-center">
@@ -188,7 +196,10 @@ const DeliveryMap: React.FC<DeliveryMapProps> = ({
 
         {/* Marqueur du point de livraison */}
         {deliveryPosition && (
-          <Marker position={[deliveryPosition.lat, deliveryPosition.lng]} icon={ICONS.delivery}>
+          <Marker
+            position={[deliveryPosition.lat, deliveryPosition.lng]}
+            icon={ICONS.delivery}
+          >
             <Popup>
               <div className="p-1.5">
                 <h4 className="text-xs font-bold flex items-center">

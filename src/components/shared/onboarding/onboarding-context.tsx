@@ -1,6 +1,11 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react";
 
 // Types pour le contexte onboarding
 export interface OnboardingStep {
@@ -26,7 +31,9 @@ export interface OnboardingContextType {
 }
 
 // Contexte React
-const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
+const OnboardingContext = createContext<OnboardingContextType | undefined>(
+  undefined,
+);
 
 // Provider du contexte
 interface OnboardingProviderProps {
@@ -34,10 +41,14 @@ interface OnboardingProviderProps {
   steps?: OnboardingStep[];
 }
 
-export function OnboardingProvider({ children, steps = [] }: OnboardingProviderProps) {
+export function OnboardingProvider({
+  children,
+  steps = [],
+}: OnboardingProviderProps) {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [onboardingSteps, setOnboardingSteps] = useState<OnboardingStep[]>(steps);
+  const [onboardingSteps, setOnboardingSteps] =
+    useState<OnboardingStep[]>(steps);
 
   const startOnboarding = () => {
     setIsActive(true);
@@ -61,7 +72,9 @@ export function OnboardingProvider({ children, steps = [] }: OnboardingProviderP
 
   const completeStep = (stepId: string) => {
     setOnboardingSteps((prev: OnboardingStep[]) =>
-      prev.map((step: OnboardingStep) => (step.id === stepId ? { ...step, completed: true } : step))
+      prev.map((step: OnboardingStep) =>
+        step.id === stepId ? { ...step, completed: true } : step,
+      ),
     );
   };
 
@@ -73,7 +86,7 @@ export function OnboardingProvider({ children, steps = [] }: OnboardingProviderP
     setIsActive(false);
     setCurrentStep(0);
     setOnboardingSteps((prev: OnboardingStep[]) =>
-      prev.map((step: OnboardingStep) => ({ ...step, completed: false }))
+      prev.map((step: OnboardingStep) => ({ ...step, completed: false })),
     );
   };
 
@@ -89,14 +102,20 @@ export function OnboardingProvider({ children, steps = [] }: OnboardingProviderP
     resetOnboarding,
   };
 
-  return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
+  return (
+    <OnboardingContext.Provider value={value}>
+      {children}
+    </OnboardingContext.Provider>
+  );
 }
 
 // Hook pour utiliser le contexte
 export const useOnboarding = (): OnboardingContextType => {
   const context = useContext(OnboardingContext);
   if (!context) {
-    throw new Error('useOnboarding doit être utilisé dans un OnboardingProvider');
+    throw new Error(
+      "useOnboarding doit être utilisé dans un OnboardingProvider",
+    );
   }
   return context;
 };

@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -13,20 +19,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Search,
   Plus,
@@ -39,17 +45,26 @@ import {
   Users,
   Star,
   MapPin,
-} from 'lucide-react';
-import { Link } from '@/navigation';
-import { useToast } from '@/components/ui/use-toast';
+} from "lucide-react";
+import { Link } from "@/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
-type ServiceStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'SUSPENDED';
-type ServiceCategory = 'DELIVERY' | 'CLEANING' | 'MAINTENANCE' | 'REPAIR' | 'OTHER';
+type ServiceStatus = "ACTIVE" | "INACTIVE" | "DRAFT" | "SUSPENDED";
+type ServiceCategory =
+  | "DELIVERY"
+  | "CLEANING"
+  | "MAINTENANCE"
+  | "REPAIR"
+  | "OTHER";
 
 export default function AdminServicesPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ServiceStatus | 'ALL'>('ALL');
-  const [categoryFilter, setCategoryFilter] = useState<ServiceCategory | 'ALL'>('ALL');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ServiceStatus | "ALL">(
+    "ALL",
+  );
+  const [categoryFilter, setCategoryFilter] = useState<ServiceCategory | "ALL">(
+    "ALL",
+  );
   const { toast } = useToast();
 
   // Récupérer les services via tRPC
@@ -60,8 +75,8 @@ export default function AdminServicesPage() {
     refetch,
   } = api.admin.services.getAll.useQuery({
     search: searchTerm,
-    status: statusFilter === 'ALL' ? undefined : statusFilter,
-    category: categoryFilter === 'ALL' ? undefined : categoryFilter,
+    status: statusFilter === "ALL" ? undefined : statusFilter,
+    category: categoryFilter === "ALL" ? undefined : categoryFilter,
     page: 1,
     limit: 50,
   });
@@ -70,50 +85,51 @@ export default function AdminServicesPage() {
   const deleteServiceMutation = api.admin.services.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Service supprimé',
-        description: 'Le service a été supprimé avec succès.',
+        title: "Service supprimé",
+        description: "Le service a été supprimé avec succès.",
       });
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la suppression: ' + error.message,
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Erreur lors de la suppression: " + error.message,
+        variant: "destructive",
       });
     },
   });
 
-  const updateServiceStatusMutation = api.admin.services.updateStatus.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Statut mis à jour',
-        description: 'Le statut du service a été mis à jour.',
-      });
-      refetch();
-    },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la mise à jour: ' + error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  const updateServiceStatusMutation =
+    api.admin.services.updateStatus.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Statut mis à jour",
+          description: "Le statut du service a été mis à jour.",
+        });
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: "Erreur lors de la mise à jour: " + error.message,
+          variant: "destructive",
+        });
+      },
+    });
 
   const getStatusBadge = (status: ServiceStatus) => {
     switch (status) {
-      case 'ACTIVE':
+      case "ACTIVE":
         return (
           <Badge variant="default" className="bg-green-100 text-green-800">
             Actif
           </Badge>
         );
-      case 'INACTIVE':
+      case "INACTIVE":
         return <Badge variant="secondary">Inactif</Badge>;
-      case 'DRAFT':
+      case "DRAFT":
         return <Badge variant="outline">Brouillon</Badge>;
-      case 'SUSPENDED':
+      case "SUSPENDED":
         return <Badge variant="destructive">Suspendu</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
@@ -122,30 +138,33 @@ export default function AdminServicesPage() {
 
   const getCategoryLabel = (category: ServiceCategory) => {
     const labels = {
-      DELIVERY: 'Livraison',
-      CLEANING: 'Nettoyage',
-      MAINTENANCE: 'Maintenance',
-      REPAIR: 'Réparation',
-      OTHER: 'Autre',
+      DELIVERY: "Livraison",
+      CLEANING: "Nettoyage",
+      MAINTENANCE: "Maintenance",
+      REPAIR: "Réparation",
+      OTHER: "Autre",
     };
     return labels[category] || category;
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(price);
   };
 
   const handleDeleteService = (serviceId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce service ?')) {
+    if (confirm("Êtes-vous sûr de vouloir supprimer ce service ?")) {
       deleteServiceMutation.mutate({ id: serviceId });
     }
   };
 
-  const handleToggleStatus = (serviceId: string, currentStatus: ServiceStatus) => {
-    const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+  const handleToggleStatus = (
+    serviceId: string,
+    currentStatus: ServiceStatus,
+  ) => {
+    const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     updateServiceStatusMutation.mutate({
       id: serviceId,
       status: newStatus,
@@ -163,7 +182,9 @@ export default function AdminServicesPage() {
   if (error) {
     return (
       <div className="container mx-auto py-6">
-        <div className="text-center text-red-500">Erreur lors du chargement des services.</div>
+        <div className="text-center text-red-500">
+          Erreur lors du chargement des services.
+        </div>
       </div>
     );
   }
@@ -193,19 +214,23 @@ export default function AdminServicesPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Services actifs</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Services actifs
+            </CardTitle>
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {services.filter(s => s.status === 'ACTIVE').length}
+              {services.filter((s) => s.status === "ACTIVE").length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total services</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total services
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -221,10 +246,11 @@ export default function AdminServicesPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {services.length > 0
-                ? (services.reduce((acc, s) => acc + (s.rating || 0), 0) / services.length).toFixed(
-                    1
-                  )
-                : '0.0'}
+                ? (
+                    services.reduce((acc, s) => acc + (s.rating || 0), 0) /
+                    services.length
+                  ).toFixed(1)
+                : "0.0"}
             </div>
           </CardContent>
         </Card>
@@ -235,7 +261,9 @@ export default function AdminServicesPage() {
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{new Set(services.map(s => s.category)).size}</div>
+            <div className="text-2xl font-bold">
+              {new Set(services.map((s) => s.category)).size}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -252,14 +280,16 @@ export default function AdminServicesPage() {
               <Input
                 placeholder="Rechercher un service..."
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8"
               />
             </div>
 
             <Select
               value={statusFilter}
-              onValueChange={value => setStatusFilter(value as ServiceStatus | 'ALL')}
+              onValueChange={(value) =>
+                setStatusFilter(value as ServiceStatus | "ALL")
+              }
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Statut" />
@@ -275,7 +305,9 @@ export default function AdminServicesPage() {
 
             <Select
               value={categoryFilter}
-              onValueChange={value => setCategoryFilter(value as ServiceCategory | 'ALL')}
+              onValueChange={(value) =>
+                setCategoryFilter(value as ServiceCategory | "ALL")
+              }
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Catégorie" />
@@ -297,7 +329,9 @@ export default function AdminServicesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Liste des Services ({totalServices})</CardTitle>
-          <CardDescription>Gérez et modifiez tous les services disponibles</CardDescription>
+          <CardDescription>
+            Gérez et modifiez tous les services disponibles
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -313,7 +347,7 @@ export default function AdminServicesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {services.map(service => (
+              {services.map((service) => (
                 <TableRow key={service.id}>
                   <TableCell>
                     <div>
@@ -324,17 +358,21 @@ export default function AdminServicesPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{getCategoryLabel(service.category)}</Badge>
+                    <Badge variant="outline">
+                      {getCategoryLabel(service.category)}
+                    </Badge>
                   </TableCell>
                   <TableCell>{formatPrice(service.price)}</TableCell>
                   <TableCell>{getStatusBadge(service.status)}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      {service.rating?.toFixed(1) || '0.0'}
+                      {service.rating?.toFixed(1) || "0.0"}
                     </div>
                   </TableCell>
-                  <TableCell>{new Date(service.createdAt).toLocaleDateString('fr-FR')}</TableCell>
+                  <TableCell>
+                    {new Date(service.createdAt).toLocaleDateString("fr-FR")}
+                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -356,9 +394,13 @@ export default function AdminServicesPage() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleToggleStatus(service.id, service.status)}
+                          onClick={() =>
+                            handleToggleStatus(service.id, service.status)
+                          }
                         >
-                          {service.status === 'ACTIVE' ? 'Désactiver' : 'Activer'}
+                          {service.status === "ACTIVE"
+                            ? "Désactiver"
+                            : "Activer"}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteService(service.id)}

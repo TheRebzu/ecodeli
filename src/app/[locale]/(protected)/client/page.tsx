@@ -1,10 +1,10 @@
-import { Suspense } from 'react';
-import { ClientDashboard } from '@/components/client/dashboard/client-dashboard';
-import { Loader2 } from 'lucide-react';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
-import { redirect } from 'next/navigation';
-import { UserStatus } from '@/server/db/enums';
+import { Suspense } from "react";
+import { ClientDashboard } from "@/components/client/dashboard/client-dashboard";
+import { Loader2 } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/auth/next-auth";
+import { redirect } from "next/navigation";
+import { UserStatus } from "@/server/db/enums";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -19,7 +19,7 @@ export default async function ClientDashboardPage({ params }: Props) {
     redirect(`/${locale}/login`);
   }
 
-  if (session.user.role !== 'CLIENT') {
+  if (session.user.role !== "CLIENT") {
     redirect(`/${locale}/dashboard`);
   }
 
@@ -32,7 +32,9 @@ export default async function ClientDashboardPage({ params }: Props) {
     <div className="container mx-auto py-6 px-4 lg:px-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Tableau de bord</h1>
-        <p className="text-muted-foreground">Gérez vos annonces, services et livraisons</p>
+        <p className="text-muted-foreground">
+          Gérez vos annonces, services et livraisons
+        </p>
       </div>
 
       <Suspense

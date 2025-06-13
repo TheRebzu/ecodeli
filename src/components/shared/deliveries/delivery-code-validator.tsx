@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
+import { useState, useRef, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import {
   QrCode,
   Camera,
@@ -37,14 +43,19 @@ import {
   CreditCard,
   ScanLine,
   Loader2,
-} from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils/common';
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils/common";
 
 export interface ValidationPhoto {
   id: string;
-  type: 'package' | 'signature' | 'delivery_location' | 'id_document' | 'damage';
+  type:
+    | "package"
+    | "signature"
+    | "delivery_location"
+    | "id_document"
+    | "damage";
   file: File;
   preview: string;
   timestamp: Date;
@@ -72,7 +83,7 @@ interface DeliveryCodeValidatorProps {
     photos: ValidationPhoto[],
     location?: GeolocationPosition,
     signature?: string,
-    notes?: string
+    notes?: string,
   ) => Promise<boolean>;
   onContactClient: () => void;
   isValidating?: boolean;
@@ -94,19 +105,21 @@ export default function DeliveryCodeValidator({
   isValidating = false,
   className,
 }: DeliveryCodeValidatorProps) {
-  const t = useTranslations('delivery.validation');
+  const t = useTranslations("delivery.validation");
 
   // États principaux
   const [currentStep, setCurrentStep] = useState(0);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState("");
   const [photos, setPhotos] = useState<ValidationPhoto[]>([]);
-  const [signature, setSignature] = useState('');
-  const [notes, setNotes] = useState('');
+  const [signature, setSignature] = useState("");
+  const [notes, setNotes] = useState("");
   const [location, setLocation] = useState<GeolocationPosition | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   // États de validation
-  const [codeMethod, setCodeMethod] = useState<'manual' | 'qr' | 'nfc'>('manual');
+  const [codeMethod, setCodeMethod] = useState<"manual" | "qr" | "nfc">(
+    "manual",
+  );
   const [isScanning, setIsScanning] = useState(false);
   const [validationProgress, setValidationProgress] = useState(0);
 
@@ -118,37 +131,37 @@ export default function DeliveryCodeValidator({
   // Définir les étapes de validation
   const steps: ValidationStep[] = [
     {
-      id: 'location',
-      title: 'Localisation',
-      description: 'Confirmer votre position',
+      id: "location",
+      title: "Localisation",
+      description: "Confirmer votre position",
       completed: !!location,
       required: true,
     },
     {
-      id: 'code',
-      title: 'Code',
-      description: 'Scanner ou saisir le code',
+      id: "code",
+      title: "Code",
+      description: "Scanner ou saisir le code",
       completed: code.length >= 3,
       required: true,
     },
     {
-      id: 'photos',
-      title: 'Photos',
-      description: 'Prendre les photos requises',
-      completed: photos.some(p => p.type === 'package'),
+      id: "photos",
+      title: "Photos",
+      description: "Prendre les photos requises",
+      completed: photos.some((p) => p.type === "package"),
       required: true,
     },
     {
-      id: 'signature',
-      title: 'Signature',
-      description: 'Signature du destinataire',
+      id: "signature",
+      title: "Signature",
+      description: "Signature du destinataire",
       completed: !deliveryInfo.requiresSignature || signature.length > 0,
       required: deliveryInfo.requiresSignature,
     },
     {
-      id: 'confirmation',
-      title: 'Confirmation',
-      description: 'Valider la livraison',
+      id: "confirmation",
+      title: "Confirmation",
+      description: "Valider la livraison",
       completed: false,
       required: true,
     },
@@ -157,24 +170,26 @@ export default function DeliveryCodeValidator({
   // Obtenir la géolocalisation
   const getCurrentLocation = async () => {
     if (!navigator.geolocation) {
-      toast.error('Géolocalisation non supportée');
+      toast.error("Géolocalisation non supportée");
       return;
     }
 
     setIsGettingLocation(true);
     try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000,
-        });
-      });
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000,
+          });
+        },
+      );
 
       setLocation(position);
-      toast.success('Position obtenue');
+      toast.success("Position obtenue");
     } catch (error) {
-      console.error('Erreur de géolocalisation:', error);
+      console.error("Erreur de géolocalisation:", error);
       toast.error("Erreur lors de l'obtention de la position");
     } finally {
       setIsGettingLocation(false);
@@ -186,15 +201,15 @@ export default function DeliveryCodeValidator({
     setIsScanning(true);
     try {
       // Simulation d'un scan QR
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Code simulé
-      const scannedCode = 'ABC123';
+      const scannedCode = "ABC123";
       setCode(scannedCode);
-      setCodeMethod('qr');
-      toast.success('QR Code scanné');
+      setCodeMethod("qr");
+      toast.success("QR Code scanné");
     } catch (error) {
-      toast.error('Erreur lors du scan QR');
+      toast.error("Erreur lors du scan QR");
     } finally {
       setIsScanning(false);
     }
@@ -202,45 +217,46 @@ export default function DeliveryCodeValidator({
 
   // Scanner NFC (simulation)
   const scanNFC = async () => {
-    if (!('NDEFReader' in window)) {
-      toast.error('NFC non supporté');
+    if (!("NDEFReader" in window)) {
+      toast.error("NFC non supporté");
       return;
     }
 
     try {
       // Simulation NFC
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      const nfcCode = 'ABC123';
+      const nfcCode = "ABC123";
       setCode(nfcCode);
-      setCodeMethod('nfc');
-      toast.success('Code NFC lu');
+      setCodeMethod("nfc");
+      toast.success("Code NFC lu");
     } catch (error) {
-      toast.error('Erreur NFC');
+      toast.error("Erreur NFC");
     }
   };
 
   // Gérer l'upload de photos
   const handlePhotoUpload = (
     event: React.ChangeEvent<HTMLInputElement>,
-    type: ValidationPhoto['type']
+    type: ValidationPhoto["type"],
   ) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    Array.from(files).forEach(file => {
-      if (!file.type.startsWith('image/')) {
-        toast.error('Type de fichier invalide');
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Type de fichier invalide");
         return;
       }
 
       if (file.size > 10 * 1024 * 1024) {
         // 10MB max
-        toast.error('Fichier trop volumineux');
+        toast.error("Fichier trop volumineux");
         return;
       }
 
-      const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      const id =
+        Date.now().toString() + Math.random().toString(36).substr(2, 9);
       const preview = URL.createObjectURL(file);
 
       const photo: ValidationPhoto = {
@@ -249,34 +265,36 @@ export default function DeliveryCodeValidator({
         file,
         preview,
         timestamp: new Date(),
-        required: type === 'package' || (type === 'signature' && deliveryInfo.requiresSignature),
+        required:
+          type === "package" ||
+          (type === "signature" && deliveryInfo.requiresSignature),
       };
 
-      setPhotos(prev => [...prev, photo]);
+      setPhotos((prev) => [...prev, photo]);
     });
 
     // Reset file input
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   // Supprimer une photo
   const removePhoto = (photoId: string) => {
-    setPhotos(prev => {
-      const photo = prev.find(p => p.id === photoId);
+    setPhotos((prev) => {
+      const photo = prev.find((p) => p.id === photoId);
       if (photo) {
         URL.revokeObjectURL(photo.preview);
       }
-      return prev.filter(p => p.id !== photoId);
+      return prev.filter((p) => p.id !== photoId);
     });
   };
 
   // Prendre une photo avec la caméra
-  const takePhoto = async (type: ValidationPhoto['type']) => {
+  const takePhoto = async (type: ValidationPhoto["type"]) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { facingMode: "environment" },
       });
 
       if (videoRef.current) {
@@ -285,25 +303,27 @@ export default function DeliveryCodeValidator({
       }
 
       // Interface de capture photo (simplified)
-      toast.info('Mode capture photo activé');
+      toast.info("Mode capture photo activé");
     } catch (error) {
-      toast.error('Erreur caméra');
+      toast.error("Erreur caméra");
     }
   };
 
   // Dessiner la signature
   const drawSignature = (
-    event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+    event:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
   ) => {
     const canvas = signaturePadRef.current;
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     let clientX, clientY;
-    if ('touches' in event) {
+    if ("touches" in event) {
       clientX = event.touches[0].clientX;
       clientY = event.touches[0].clientY;
     } else {
@@ -315,13 +335,13 @@ export default function DeliveryCodeValidator({
     const y = clientY - rect.top;
 
     ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#000';
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#000";
 
-    if (event.type === 'mousedown' || event.type === 'touchstart') {
+    if (event.type === "mousedown" || event.type === "touchstart") {
       ctx.beginPath();
       ctx.moveTo(x, y);
-    } else if (event.type === 'mousemove' || event.type === 'touchmove') {
+    } else if (event.type === "mousemove" || event.type === "touchmove") {
       ctx.lineTo(x, y);
       ctx.stroke();
     }
@@ -332,11 +352,11 @@ export default function DeliveryCodeValidator({
     const canvas = signaturePadRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setSignature('');
+    setSignature("");
   };
 
   // Sauvegarder la signature
@@ -346,12 +366,12 @@ export default function DeliveryCodeValidator({
 
     const dataURL = canvas.toDataURL();
     setSignature(dataURL);
-    toast.success('Signature sauvegardée');
+    toast.success("Signature sauvegardée");
   };
 
   // Calculer le progrès
   useEffect(() => {
-    const completedSteps = steps.filter(step => step.completed).length;
+    const completedSteps = steps.filter((step) => step.completed).length;
     const progress = (completedSteps / steps.length) * 100;
     setValidationProgress(progress);
   }, [steps]);
@@ -359,25 +379,31 @@ export default function DeliveryCodeValidator({
   // Valider la livraison
   const handleValidation = async () => {
     if (!code) {
-      toast.error('Code requis');
+      toast.error("Code requis");
       return;
     }
 
-    if (!photos.some(p => p.type === 'package')) {
-      toast.error('Photo du colis requise');
+    if (!photos.some((p) => p.type === "package")) {
+      toast.error("Photo du colis requise");
       return;
     }
 
     if (deliveryInfo.requiresSignature && !signature) {
-      toast.error('Signature requise');
+      toast.error("Signature requise");
       return;
     }
 
-    const success = await onValidateCode(code, photos, location || undefined, signature, notes);
+    const success = await onValidateCode(
+      code,
+      photos,
+      location || undefined,
+      signature,
+      notes,
+    );
 
     if (success) {
       // Nettoyage des URLs d'objets
-      photos.forEach(photo => {
+      photos.forEach((photo) => {
         URL.revokeObjectURL(photo.preview);
       });
     }
@@ -408,7 +434,9 @@ export default function DeliveryCodeValidator({
               <Package className="h-5 w-5" />
               Validation de livraison
             </CardTitle>
-            <CardDescription>Suivez les étapes pour valider la livraison</CardDescription>
+            <CardDescription>
+              Suivez les étapes pour valider la livraison
+            </CardDescription>
           </div>
           <Button variant="outline" onClick={onContactClient}>
             <Phone className="h-4 w-4 mr-2" />
@@ -472,7 +500,9 @@ export default function DeliveryCodeValidator({
             {deliveryInfo.specialInstructions && (
               <div className="text-sm">
                 <span className="font-medium">Instructions:</span>
-                <p className="text-muted-foreground mt-1">{deliveryInfo.specialInstructions}</p>
+                <p className="text-muted-foreground mt-1">
+                  {deliveryInfo.specialInstructions}
+                </p>
               </div>
             )}
           </div>
@@ -486,9 +516,9 @@ export default function DeliveryCodeValidator({
                 key={step.id}
                 value={step.id}
                 className={cn(
-                  'flex items-center gap-1 text-xs',
-                  step.completed && 'bg-green-100 text-green-700',
-                  currentStep === index && 'ring-2 ring-primary'
+                  "flex items-center gap-1 text-xs",
+                  step.completed && "bg-green-100 text-green-700",
+                  currentStep === index && "ring-2 ring-primary",
                 )}
                 onClick={() => setCurrentStep(index)}
                 disabled={index > currentStep + 1}
@@ -512,7 +542,9 @@ export default function DeliveryCodeValidator({
                 <MapPin className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Confirmer votre position</h3>
+                <h3 className="text-lg font-semibold">
+                  Confirmer votre position
+                </h3>
                 <p className="text-muted-foreground">
                   Votre position GPS est requise pour valider la livraison
                 </p>
@@ -522,7 +554,7 @@ export default function DeliveryCodeValidator({
                 <Alert>
                   <CheckCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Position obtenue: {location.coords.latitude.toFixed(6)},{' '}
+                    Position obtenue: {location.coords.latitude.toFixed(6)},{" "}
                     {location.coords.longitude.toFixed(6)}
                     <br />
                     Précision: ±{Math.round(location.coords.accuracy)}m
@@ -540,7 +572,9 @@ export default function DeliveryCodeValidator({
                   ) : (
                     <MapPin className="h-4 w-4 mr-2" />
                   )}
-                  {isGettingLocation ? 'Obtention de la position...' : 'Obtenir ma position'}
+                  {isGettingLocation
+                    ? "Obtention de la position..."
+                    : "Obtenir ma position"}
                 </Button>
               )}
             </div>
@@ -561,7 +595,7 @@ export default function DeliveryCodeValidator({
 
               <Tabs
                 value={codeMethod}
-                onValueChange={value => setCodeMethod(value as any)}
+                onValueChange={(value) => setCodeMethod(value as any)}
                 className="w-full"
               >
                 <TabsList className="grid w-full grid-cols-3">
@@ -585,7 +619,7 @@ export default function DeliveryCodeValidator({
                     <Input
                       id="validation-code"
                       value={code}
-                      onChange={e => setCode(e.target.value.toUpperCase())}
+                      onChange={(e) => setCode(e.target.value.toUpperCase())}
                       placeholder="Ex: ABC123"
                       className="text-center text-lg font-mono tracking-wider"
                       maxLength={10}
@@ -598,16 +632,22 @@ export default function DeliveryCodeValidator({
                     <div className="mx-auto w-48 h-48 bg-muted/50 rounded-lg flex items-center justify-center border-2 border-dashed">
                       <div className="text-center">
                         <ScanLine className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Zone de scan QR</p>
+                        <p className="text-sm text-muted-foreground">
+                          Zone de scan QR
+                        </p>
                       </div>
                     </div>
-                    <Button onClick={startQRScan} disabled={isScanning} size="lg">
+                    <Button
+                      onClick={startQRScan}
+                      disabled={isScanning}
+                      size="lg"
+                    >
                       {isScanning ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       ) : (
                         <QrCode className="h-4 w-4 mr-2" />
                       )}
-                      {isScanning ? 'Scan en cours...' : 'Démarrer le scan'}
+                      {isScanning ? "Scan en cours..." : "Démarrer le scan"}
                     </Button>
                   </div>
                 </TabsContent>
@@ -658,7 +698,7 @@ export default function DeliveryCodeValidator({
                   <Button
                     variant="outline"
                     className="w-full h-20 flex-col"
-                    onClick={() => takePhoto('package')}
+                    onClick={() => takePhoto("package")}
                   >
                     <Camera className="h-6 w-6 mb-1" />
                     Prendre photo
@@ -670,7 +710,7 @@ export default function DeliveryCodeValidator({
                     accept="image/*"
                     multiple
                     className="hidden"
-                    onChange={e => handlePhotoUpload(e, 'package')}
+                    onChange={(e) => handlePhotoUpload(e, "package")}
                   />
                   <Button
                     variant="outline"
@@ -705,7 +745,7 @@ export default function DeliveryCodeValidator({
                 <div className="space-y-4">
                   <Separator />
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {photos.map(photo => (
+                    {photos.map((photo) => (
                       <div key={photo.id} className="relative group">
                         <img
                           src={photo.preview}
@@ -721,9 +761,14 @@ export default function DeliveryCodeValidator({
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                        <Badge className="absolute top-1 left-1 text-xs">{photo.type}</Badge>
+                        <Badge className="absolute top-1 left-1 text-xs">
+                          {photo.type}
+                        </Badge>
                         {photo.required && (
-                          <Badge variant="destructive" className="absolute top-1 right-1 text-xs">
+                          <Badge
+                            variant="destructive"
+                            className="absolute top-1 right-1 text-xs"
+                          >
                             *
                           </Badge>
                         )}
@@ -743,7 +788,9 @@ export default function DeliveryCodeValidator({
                   <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                     <Signature className="h-8 w-8 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold">Signature du destinataire</h3>
+                  <h3 className="text-lg font-semibold">
+                    Signature du destinataire
+                  </h3>
                   <p className="text-muted-foreground">
                     Demandez au destinataire de signer ci-dessous
                   </p>
@@ -800,8 +847,12 @@ export default function DeliveryCodeValidator({
                 <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                   <CheckCircle className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold">Confirmation de livraison</h3>
-                <p className="text-muted-foreground">Vérifiez les informations avant de valider</p>
+                <h3 className="text-lg font-semibold">
+                  Confirmation de livraison
+                </h3>
+                <p className="text-muted-foreground">
+                  Vérifiez les informations avant de valider
+                </p>
               </div>
 
               {/* Résumé de la validation */}
@@ -822,7 +873,7 @@ export default function DeliveryCodeValidator({
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Position:</span>
-                        <span>{location ? 'Obtenue' : 'Non obtenue'}</span>
+                        <span>{location ? "Obtenue" : "Non obtenue"}</span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -830,10 +881,10 @@ export default function DeliveryCodeValidator({
                         <span>Signature:</span>
                         <span>
                           {signature
-                            ? 'Fournie'
+                            ? "Fournie"
                             : deliveryInfo.requiresSignature
-                              ? 'Requise'
-                              : 'Non requise'}
+                              ? "Requise"
+                              : "Non requise"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -851,7 +902,7 @@ export default function DeliveryCodeValidator({
                 <Textarea
                   id="delivery-notes"
                   value={notes}
-                  onChange={e => setNotes(e.target.value)}
+                  onChange={(e) => setNotes(e.target.value)}
                   placeholder="Commentaires sur la livraison (optionnel)"
                   rows={3}
                 />
@@ -861,8 +912,8 @@ export default function DeliveryCodeValidator({
               <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                  Une fois validée, cette action ne peut pas être annulée. Le paiement sera
-                  déclenché automatiquement.
+                  Une fois validée, cette action ne peut pas être annulée. Le
+                  paiement sera déclenché automatiquement.
                 </AlertDescription>
               </Alert>
 
@@ -870,7 +921,9 @@ export default function DeliveryCodeValidator({
                 onClick={handleValidation}
                 disabled={
                   isValidating ||
-                  !steps.slice(0, -1).every(step => step.completed || !step.required)
+                  !steps
+                    .slice(0, -1)
+                    .every((step) => step.completed || !step.required)
                 }
                 size="lg"
                 className="w-full"
@@ -880,7 +933,9 @@ export default function DeliveryCodeValidator({
                 ) : (
                   <CheckCircle className="h-4 w-4 mr-2" />
                 )}
-                {isValidating ? 'Validation en cours...' : 'Valider la livraison'}
+                {isValidating
+                  ? "Validation en cours..."
+                  : "Valider la livraison"}
               </Button>
             </div>
           </TabsContent>
@@ -888,15 +943,22 @@ export default function DeliveryCodeValidator({
 
         {/* Navigation entre les étapes */}
         <div className="flex justify-between pt-4 border-t">
-          <Button variant="outline" onClick={prevStep} disabled={currentStep === 0}>
+          <Button
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 0}
+          >
             Précédent
           </Button>
 
           <Button
             onClick={nextStep}
-            disabled={currentStep === steps.length - 1 || !canProceedToNextStep(currentStep)}
+            disabled={
+              currentStep === steps.length - 1 ||
+              !canProceedToNextStep(currentStep)
+            }
           >
-            {currentStep === steps.length - 1 ? 'Valider' : 'Suivant'}
+            {currentStep === steps.length - 1 ? "Valider" : "Suivant"}
           </Button>
         </div>
       </CardContent>

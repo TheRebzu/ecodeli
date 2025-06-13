@@ -1,49 +1,49 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useOnboarding } from '@/components/shared/onboarding/onboarding-context';
-import { TutorialStep } from '@/components/shared/onboarding/tutorial-step';
-import { TutorialProgress } from '@/components/shared/onboarding/tutorial-progress';
-import { TutorialNavigation } from '@/components/shared/onboarding/tutorial-navigation';
-import { useTranslations } from 'next-intl';
+import { useEffect } from "react";
+import { useOnboarding } from "@/components/shared/onboarding/onboarding-context";
+import { TutorialStep } from "@/components/shared/onboarding/tutorial-step";
+import { TutorialProgress } from "@/components/shared/onboarding/tutorial-progress";
+import { TutorialNavigation } from "@/components/shared/onboarding/tutorial-navigation";
+import { useTranslations } from "next-intl";
 
 // Définition des étapes du tutoriel commerçant
 const MERCHANT_TUTORIAL_STEPS = [
   {
-    id: 'welcome',
-    title: 'steps.welcome.title',
-    description: 'steps.welcome.description',
-    image: '/images/onboarding/merchant/welcome.png',
+    id: "welcome",
+    title: "steps.welcome.title",
+    description: "steps.welcome.description",
+    image: "/images/onboarding/merchant/welcome.png",
   },
   {
-    id: 'dashboard',
-    title: 'steps.dashboard.title',
-    description: 'steps.dashboard.description',
-    image: '/images/onboarding/merchant/dashboard.png',
+    id: "dashboard",
+    title: "steps.dashboard.title",
+    description: "steps.dashboard.description",
+    image: "/images/onboarding/merchant/dashboard.png",
   },
   {
-    id: 'contract',
-    title: 'steps.contract.title',
-    description: 'steps.contract.description',
-    image: '/images/onboarding/merchant/contract.png',
+    id: "contract",
+    title: "steps.contract.title",
+    description: "steps.contract.description",
+    image: "/images/onboarding/merchant/contract.png",
   },
   {
-    id: 'announcements',
-    title: 'steps.announcements.title',
-    description: 'steps.announcements.description',
-    image: '/images/onboarding/merchant/announcements.png',
+    id: "announcements",
+    title: "steps.announcements.title",
+    description: "steps.announcements.description",
+    image: "/images/onboarding/merchant/announcements.png",
   },
   {
-    id: 'deliveries',
-    title: 'steps.deliveries.title',
-    description: 'steps.deliveries.description',
-    image: '/images/onboarding/merchant/deliveries.png',
+    id: "deliveries",
+    title: "steps.deliveries.title",
+    description: "steps.deliveries.description",
+    image: "/images/onboarding/merchant/deliveries.png",
   },
   {
-    id: 'invoices',
-    title: 'steps.invoices.title',
-    description: 'steps.invoices.description',
-    image: '/images/onboarding/merchant/invoices.png',
+    id: "invoices",
+    title: "steps.invoices.title",
+    description: "steps.invoices.description",
+    image: "/images/onboarding/merchant/invoices.png",
   },
 ];
 
@@ -65,7 +65,7 @@ export function MerchantTutorial({ options }: MerchantTutorialProps) {
     setStepsConfiguration,
   } = useOnboarding();
 
-  const t = useTranslations('Merchant.Onboarding');
+  const t = useTranslations("Merchant.Onboarding");
 
   // Initialiser le tutoriel avec le bon nombre d'étapes
   useEffect(() => {
@@ -73,8 +73,11 @@ export function MerchantTutorial({ options }: MerchantTutorialProps) {
       setStepsConfiguration(0, MERCHANT_TUTORIAL_STEPS.length);
     } else {
       // Fallback pour le cas où setStepsConfiguration n'est pas disponible
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('tutorial-total-steps', MERCHANT_TUTORIAL_STEPS.length.toString());
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          "tutorial-total-steps",
+          MERCHANT_TUTORIAL_STEPS.length.toString(),
+        );
       }
     }
   }, [setStepsConfiguration]);
@@ -114,7 +117,10 @@ export function MerchantTutorial({ options }: MerchantTutorialProps) {
           />
         }
       >
-        <TutorialProgress currentStep={currentStep} totalSteps={stepsTotalCount} />
+        <TutorialProgress
+          currentStep={currentStep}
+          totalSteps={stepsTotalCount}
+        />
       </TutorialStep>
     </div>
   );

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { DocumentVerification } from '@/components/auth/document-verification';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react';
-import { UserRole } from '@prisma/client';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import { DocumentVerification } from "@/components/auth/document-verification";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
+import { UserRole } from "@prisma/client";
 
 type Verification = {
   id: string;
@@ -39,18 +39,18 @@ export function DelivererVerificationList({
 }: {
   initialVerifications?: Verification[];
 }) {
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState("pending");
 
   const {
     data: pendingVerifications,
     isLoading,
     refetch,
   } = trpc.verification.getPendingVerifications.useQuery(
-    { userRole: 'DELIVERER' as UserRole },
+    { userRole: "DELIVERER" as UserRole },
     {
-      initialData: activeTab === 'pending' ? initialVerifications : undefined,
-      enabled: activeTab === 'pending',
-    }
+      initialData: activeTab === "pending" ? initialVerifications : undefined,
+      enabled: activeTab === "pending",
+    },
   );
 
   const handleVerificationComplete = async () => {
@@ -70,13 +70,15 @@ export function DelivererVerificationList({
       return (
         <Card>
           <CardContent className="py-8">
-            <p className="text-center text-muted-foreground">Aucune vérification en attente</p>
+            <p className="text-center text-muted-foreground">
+              Aucune vérification en attente
+            </p>
           </CardContent>
         </Card>
       );
     }
 
-    return pendingVerifications.map(verification => (
+    return pendingVerifications.map((verification) => (
       <DocumentVerification
         key={verification.id}
         document={{
@@ -93,11 +95,17 @@ export function DelivererVerificationList({
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-medium">Documents des livreurs</h2>
         {pendingVerifications && pendingVerifications.length > 0 && (
-          <Badge variant="secondary">{pendingVerifications.length} en attente</Badge>
+          <Badge variant="secondary">
+            {pendingVerifications.length} en attente
+          </Badge>
         )}
       </div>
 
-      <Tabs defaultValue="pending" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        defaultValue="pending"
+        value={activeTab}
+        onValueChange={setActiveTab}
+      >
         <TabsList>
           <TabsTrigger value="pending">En attente</TabsTrigger>
           <TabsTrigger value="approved">Approuvés</TabsTrigger>
@@ -114,7 +122,9 @@ export function DelivererVerificationList({
               <CardTitle>Documents approuvés</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground">Fonctionnalité à implémenter</p>
+              <p className="text-center text-muted-foreground">
+                Fonctionnalité à implémenter
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -125,7 +135,9 @@ export function DelivererVerificationList({
               <CardTitle>Documents rejetés</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground">Fonctionnalité à implémenter</p>
+              <p className="text-center text-muted-foreground">
+                Fonctionnalité à implémenter
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

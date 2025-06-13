@@ -1,22 +1,28 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { api } from '@/trpc/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
+import { useState, useEffect } from "react";
+import { api } from "@/trpc/react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Settings,
   Save,
@@ -30,8 +36,8 @@ import {
   MapPin,
   Clock,
   AlertTriangle,
-} from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface SystemSettings {
   general: {
@@ -88,46 +94,50 @@ interface SystemSettings {
 
 export default function AdminSettingsPage() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState("general");
   const [unsavedChanges, setUnsavedChanges] = useState(false);
 
   // Récupérer les paramètres via tRPC
-  const { data: settingsData, isLoading, refetch } = api.admin.settings.getAll.useQuery();
+  const {
+    data: settingsData,
+    isLoading,
+    refetch,
+  } = api.admin.settings.getAll.useQuery();
 
   // État local pour les modifications
   const [settings, setSettings] = useState<SystemSettings>(
     settingsData || {
       general: {
-        siteName: 'EcoDeli',
-        siteDescription: 'Plateforme de livraison écologique',
-        contactEmail: 'contact@ecodeli.me',
-        supportPhone: '+33 1 23 45 67 89',
+        siteName: "EcoDeli",
+        siteDescription: "Plateforme de livraison écologique",
+        contactEmail: "contact@ecodeli.me",
+        supportPhone: "+33 1 23 45 67 89",
         maintenanceMode: false,
         debugMode: false,
       },
       email: {
-        smtpHost: 'smtp.gmail.com',
+        smtpHost: "smtp.gmail.com",
         smtpPort: 587,
-        smtpUsername: 'noreply@ecodeli.me',
-        smtpPassword: '••••••••',
+        smtpUsername: "noreply@ecodeli.me",
+        smtpPassword: "••••••••",
         smtpSecure: true,
-        fromEmail: 'noreply@ecodeli.me',
-        fromName: 'EcoDeli',
+        fromEmail: "noreply@ecodeli.me",
+        fromName: "EcoDeli",
       },
       security: {
         sessionTimeout: 30,
         maxLoginAttempts: 5,
         passwordMinLength: 8,
         requireTwoFactor: false,
-        allowedIpAddresses: '',
+        allowedIpAddresses: "",
         rateLimitRequests: 100,
       },
       payments: {
-        stripePublicKey: 'pk_test_••••••••',
-        stripeSecretKey: 'sk_test_••••••••',
-        paypalClientId: '••••••••',
-        paypalSecret: '••••••••',
-        defaultCurrency: 'EUR',
+        stripePublicKey: "pk_test_••••••••",
+        stripeSecretKey: "sk_test_••••••••",
+        paypalClientId: "••••••••",
+        paypalSecret: "••••••••",
+        defaultCurrency: "EUR",
         taxRate: 20,
         commissionRate: 5,
       },
@@ -147,7 +157,7 @@ export default function AdminSettingsPage() {
         userWelcomeEmail: true,
         orderConfirmationEmail: true,
       },
-    }
+    },
   );
 
   // Mettre à jour l'état local quand les données arrivent
@@ -157,8 +167,12 @@ export default function AdminSettingsPage() {
     }
   }, [settingsData]);
 
-  const updateSettings = (section: keyof SystemSettings, key: string, value: any) => {
-    setSettings(prev => ({
+  const updateSettings = (
+    section: keyof SystemSettings,
+    key: string,
+    value: any,
+  ) => {
+    setSettings((prev) => ({
       ...prev,
       [section]: {
         ...prev[section],
@@ -168,20 +182,30 @@ export default function AdminSettingsPage() {
     setUnsavedChanges(true);
   };
 
-  const saveSettings = async () => {
-    try {
-      // TODO: Implémenter la sauvegarde via tRPC
+  const saveSettingsMutation = api.admin.settings.updateSystemSettings.useMutation({
+    onSuccess: () => {
       toast({
-        title: 'Paramètres sauvegardés',
-        description: 'Les paramètres système ont été mis à jour avec succès.',
+        title: "Paramètres sauvegardés",
+        description: "Les paramètres système ont été mis à jour avec succès.",
       });
       setUnsavedChanges(false);
-    } catch (error) {
+    },
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la sauvegarde des paramètres.',
-        variant: 'destructive',
+        title: "Erreur",
+        description: error.message || "Erreur lors de la sauvegarde des paramètres.",
+        variant: "destructive",
       });
+    },
+  });
+
+  const saveSettings = async () => {
+    try {
+      await saveSettingsMutation.mutateAsync({
+        settings,
+      });
+    } catch (error) {
+      console.error('Erreur sauvegarde paramètres:', error);
     }
   };
 
@@ -235,7 +259,9 @@ export default function AdminSettingsPage() {
                 <Settings className="h-5 w-5" />
                 Paramètres Généraux
               </CardTitle>
-              <CardDescription>Configuration de base de l'application</CardDescription>
+              <CardDescription>
+                Configuration de base de l'application
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -244,7 +270,9 @@ export default function AdminSettingsPage() {
                   <Input
                     id="siteName"
                     value={settings.general.siteName}
-                    onChange={e => updateSettings('general', 'siteName', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("general", "siteName", e.target.value)
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -253,7 +281,9 @@ export default function AdminSettingsPage() {
                     id="contactEmail"
                     type="email"
                     value={settings.general.contactEmail}
-                    onChange={e => updateSettings('general', 'contactEmail', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("general", "contactEmail", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -263,7 +293,9 @@ export default function AdminSettingsPage() {
                 <Textarea
                   id="siteDescription"
                   value={settings.general.siteDescription}
-                  onChange={e => updateSettings('general', 'siteDescription', e.target.value)}
+                  onChange={(e) =>
+                    updateSettings("general", "siteDescription", e.target.value)
+                  }
                 />
               </div>
 
@@ -272,7 +304,9 @@ export default function AdminSettingsPage() {
                 <Input
                   id="supportPhone"
                   value={settings.general.supportPhone}
-                  onChange={e => updateSettings('general', 'supportPhone', e.target.value)}
+                  onChange={(e) =>
+                    updateSettings("general", "supportPhone", e.target.value)
+                  }
                 />
               </div>
 
@@ -288,8 +322,8 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={settings.general.maintenanceMode}
-                    onCheckedChange={checked =>
-                      updateSettings('general', 'maintenanceMode', checked)
+                    onCheckedChange={(checked) =>
+                      updateSettings("general", "maintenanceMode", checked)
                     }
                   />
                 </div>
@@ -303,7 +337,9 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={settings.general.debugMode}
-                    onCheckedChange={checked => updateSettings('general', 'debugMode', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSettings("general", "debugMode", checked)
+                    }
                   />
                 </div>
               </div>
@@ -319,7 +355,9 @@ export default function AdminSettingsPage() {
                 <Mail className="h-5 w-5" />
                 Configuration Email
               </CardTitle>
-              <CardDescription>Paramètres SMTP pour l'envoi d'emails</CardDescription>
+              <CardDescription>
+                Paramètres SMTP pour l'envoi d'emails
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -328,7 +366,9 @@ export default function AdminSettingsPage() {
                   <Input
                     id="smtpHost"
                     value={settings.email.smtpHost}
-                    onChange={e => updateSettings('email', 'smtpHost', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("email", "smtpHost", e.target.value)
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -337,7 +377,13 @@ export default function AdminSettingsPage() {
                     id="smtpPort"
                     type="number"
                     value={settings.email.smtpPort}
-                    onChange={e => updateSettings('email', 'smtpPort', parseInt(e.target.value))}
+                    onChange={(e) =>
+                      updateSettings(
+                        "email",
+                        "smtpPort",
+                        parseInt(e.target.value),
+                      )
+                    }
                   />
                 </div>
               </div>
@@ -348,7 +394,9 @@ export default function AdminSettingsPage() {
                   <Input
                     id="smtpUsername"
                     value={settings.email.smtpUsername}
-                    onChange={e => updateSettings('email', 'smtpUsername', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("email", "smtpUsername", e.target.value)
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -357,7 +405,9 @@ export default function AdminSettingsPage() {
                     id="smtpPassword"
                     type="password"
                     value={settings.email.smtpPassword}
-                    onChange={e => updateSettings('email', 'smtpPassword', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("email", "smtpPassword", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -369,7 +419,9 @@ export default function AdminSettingsPage() {
                     id="fromEmail"
                     type="email"
                     value={settings.email.fromEmail}
-                    onChange={e => updateSettings('email', 'fromEmail', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("email", "fromEmail", e.target.value)
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -377,7 +429,9 @@ export default function AdminSettingsPage() {
                   <Input
                     id="fromName"
                     value={settings.email.fromName}
-                    onChange={e => updateSettings('email', 'fromName', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("email", "fromName", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -391,7 +445,9 @@ export default function AdminSettingsPage() {
                 </div>
                 <Switch
                   checked={settings.email.smtpSecure}
-                  onCheckedChange={checked => updateSettings('email', 'smtpSecure', checked)}
+                  onCheckedChange={(checked) =>
+                    updateSettings("email", "smtpSecure", checked)
+                  }
                 />
               </div>
             </CardContent>
@@ -406,7 +462,9 @@ export default function AdminSettingsPage() {
                 <Shield className="h-5 w-5" />
                 Paramètres de Sécurité
               </CardTitle>
-              <CardDescription>Configuration de la sécurité et des accès</CardDescription>
+              <CardDescription>
+                Configuration de la sécurité et des accès
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -416,19 +474,29 @@ export default function AdminSettingsPage() {
                     id="sessionTimeout"
                     type="number"
                     value={settings.security.sessionTimeout}
-                    onChange={e =>
-                      updateSettings('security', 'sessionTimeout', parseInt(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "security",
+                        "sessionTimeout",
+                        parseInt(e.target.value),
+                      )
                     }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="maxLoginAttempts">Tentatives de connexion max</Label>
+                  <Label htmlFor="maxLoginAttempts">
+                    Tentatives de connexion max
+                  </Label>
                   <Input
                     id="maxLoginAttempts"
                     type="number"
                     value={settings.security.maxLoginAttempts}
-                    onChange={e =>
-                      updateSettings('security', 'maxLoginAttempts', parseInt(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "security",
+                        "maxLoginAttempts",
+                        parseInt(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -436,13 +504,19 @@ export default function AdminSettingsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="passwordMinLength">Longueur min mot de passe</Label>
+                  <Label htmlFor="passwordMinLength">
+                    Longueur min mot de passe
+                  </Label>
                   <Input
                     id="passwordMinLength"
                     type="number"
                     value={settings.security.passwordMinLength}
-                    onChange={e =>
-                      updateSettings('security', 'passwordMinLength', parseInt(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "security",
+                        "passwordMinLength",
+                        parseInt(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -452,20 +526,32 @@ export default function AdminSettingsPage() {
                     id="rateLimitRequests"
                     type="number"
                     value={settings.security.rateLimitRequests}
-                    onChange={e =>
-                      updateSettings('security', 'rateLimitRequests', parseInt(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "security",
+                        "rateLimitRequests",
+                        parseInt(e.target.value),
+                      )
                     }
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="allowedIpAddresses">IPs autorisées (optionnel)</Label>
+                <Label htmlFor="allowedIpAddresses">
+                  IPs autorisées (optionnel)
+                </Label>
                 <Textarea
                   id="allowedIpAddresses"
                   placeholder="192.168.1.0/24, 10.0.0.0/8"
                   value={settings.security.allowedIpAddresses}
-                  onChange={e => updateSettings('security', 'allowedIpAddresses', e.target.value)}
+                  onChange={(e) =>
+                    updateSettings(
+                      "security",
+                      "allowedIpAddresses",
+                      e.target.value,
+                    )
+                  }
                 />
               </div>
 
@@ -478,8 +564,8 @@ export default function AdminSettingsPage() {
                 </div>
                 <Switch
                   checked={settings.security.requireTwoFactor}
-                  onCheckedChange={checked =>
-                    updateSettings('security', 'requireTwoFactor', checked)
+                  onCheckedChange={(checked) =>
+                    updateSettings("security", "requireTwoFactor", checked)
                   }
                 />
               </div>
@@ -495,7 +581,9 @@ export default function AdminSettingsPage() {
                 <CreditCard className="h-5 w-5" />
                 Configuration Paiements
               </CardTitle>
-              <CardDescription>Paramètres des systèmes de paiement</CardDescription>
+              <CardDescription>
+                Paramètres des systèmes de paiement
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -504,7 +592,13 @@ export default function AdminSettingsPage() {
                   <Input
                     id="stripePublicKey"
                     value={settings.payments.stripePublicKey}
-                    onChange={e => updateSettings('payments', 'stripePublicKey', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings(
+                        "payments",
+                        "stripePublicKey",
+                        e.target.value,
+                      )
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -513,7 +607,13 @@ export default function AdminSettingsPage() {
                     id="stripeSecretKey"
                     type="password"
                     value={settings.payments.stripeSecretKey}
-                    onChange={e => updateSettings('payments', 'stripeSecretKey', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings(
+                        "payments",
+                        "stripeSecretKey",
+                        e.target.value,
+                      )
+                    }
                   />
                 </div>
               </div>
@@ -524,7 +624,13 @@ export default function AdminSettingsPage() {
                   <Input
                     id="paypalClientId"
                     value={settings.payments.paypalClientId}
-                    onChange={e => updateSettings('payments', 'paypalClientId', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings(
+                        "payments",
+                        "paypalClientId",
+                        e.target.value,
+                      )
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -533,7 +639,9 @@ export default function AdminSettingsPage() {
                     id="paypalSecret"
                     type="password"
                     value={settings.payments.paypalSecret}
-                    onChange={e => updateSettings('payments', 'paypalSecret', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("payments", "paypalSecret", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -543,7 +651,9 @@ export default function AdminSettingsPage() {
                   <Label htmlFor="defaultCurrency">Devise par défaut</Label>
                   <Select
                     value={settings.payments.defaultCurrency}
-                    onValueChange={value => updateSettings('payments', 'defaultCurrency', value)}
+                    onValueChange={(value) =>
+                      updateSettings("payments", "defaultCurrency", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -562,8 +672,12 @@ export default function AdminSettingsPage() {
                     type="number"
                     step="0.1"
                     value={settings.payments.taxRate}
-                    onChange={e =>
-                      updateSettings('payments', 'taxRate', parseFloat(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "payments",
+                        "taxRate",
+                        parseFloat(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -574,8 +688,12 @@ export default function AdminSettingsPage() {
                     type="number"
                     step="0.1"
                     value={settings.payments.commissionRate}
-                    onChange={e =>
-                      updateSettings('payments', 'commissionRate', parseFloat(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "payments",
+                        "commissionRate",
+                        parseFloat(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -592,7 +710,9 @@ export default function AdminSettingsPage() {
                 <Truck className="h-5 w-5" />
                 Paramètres de Livraison
               </CardTitle>
-              <CardDescription>Configuration du système de livraison</CardDescription>
+              <CardDescription>
+                Configuration du système de livraison
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -602,8 +722,12 @@ export default function AdminSettingsPage() {
                     id="defaultRadius"
                     type="number"
                     value={settings.delivery.defaultRadius}
-                    onChange={e =>
-                      updateSettings('delivery', 'defaultRadius', parseFloat(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "delivery",
+                        "defaultRadius",
+                        parseFloat(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -613,8 +737,12 @@ export default function AdminSettingsPage() {
                     id="maxDeliveryDistance"
                     type="number"
                     value={settings.delivery.maxDeliveryDistance}
-                    onChange={e =>
-                      updateSettings('delivery', 'maxDeliveryDistance', parseFloat(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "delivery",
+                        "maxDeliveryDistance",
+                        parseFloat(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -628,8 +756,12 @@ export default function AdminSettingsPage() {
                     type="number"
                     step="0.01"
                     value={settings.delivery.baseDeliveryPrice}
-                    onChange={e =>
-                      updateSettings('delivery', 'baseDeliveryPrice', parseFloat(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "delivery",
+                        "baseDeliveryPrice",
+                        parseFloat(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -640,19 +772,29 @@ export default function AdminSettingsPage() {
                     type="number"
                     step="0.01"
                     value={settings.delivery.pricePerKm}
-                    onChange={e =>
-                      updateSettings('delivery', 'pricePerKm', parseFloat(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "delivery",
+                        "pricePerKm",
+                        parseFloat(e.target.value),
+                      )
                     }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="estimatedDeliveryTime">Temps estimé (min)</Label>
+                  <Label htmlFor="estimatedDeliveryTime">
+                    Temps estimé (min)
+                  </Label>
                   <Input
                     id="estimatedDeliveryTime"
                     type="number"
                     value={settings.delivery.estimatedDeliveryTime}
-                    onChange={e =>
-                      updateSettings('delivery', 'estimatedDeliveryTime', parseInt(e.target.value))
+                    onChange={(e) =>
+                      updateSettings(
+                        "delivery",
+                        "estimatedDeliveryTime",
+                        parseInt(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -667,8 +809,12 @@ export default function AdminSettingsPage() {
                 </div>
                 <Switch
                   checked={settings.delivery.enableRealTimeTracking}
-                  onCheckedChange={checked =>
-                    updateSettings('delivery', 'enableRealTimeTracking', checked)
+                  onCheckedChange={(checked) =>
+                    updateSettings(
+                      "delivery",
+                      "enableRealTimeTracking",
+                      checked,
+                    )
                   }
                 />
               </div>
@@ -684,7 +830,9 @@ export default function AdminSettingsPage() {
                 <Bell className="h-5 w-5" />
                 Paramètres de Notifications
               </CardTitle>
-              <CardDescription>Configuration des notifications système</CardDescription>
+              <CardDescription>
+                Configuration des notifications système
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
@@ -697,8 +845,12 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={settings.notifications.enableEmailNotifications}
-                    onCheckedChange={checked =>
-                      updateSettings('notifications', 'enableEmailNotifications', checked)
+                    onCheckedChange={(checked) =>
+                      updateSettings(
+                        "notifications",
+                        "enableEmailNotifications",
+                        checked,
+                      )
                     }
                   />
                 </div>
@@ -712,8 +864,12 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={settings.notifications.enableSmsNotifications}
-                    onCheckedChange={checked =>
-                      updateSettings('notifications', 'enableSmsNotifications', checked)
+                    onCheckedChange={(checked) =>
+                      updateSettings(
+                        "notifications",
+                        "enableSmsNotifications",
+                        checked,
+                      )
                     }
                   />
                 </div>
@@ -727,8 +883,12 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={settings.notifications.enablePushNotifications}
-                    onCheckedChange={checked =>
-                      updateSettings('notifications', 'enablePushNotifications', checked)
+                    onCheckedChange={(checked) =>
+                      updateSettings(
+                        "notifications",
+                        "enablePushNotifications",
+                        checked,
+                      )
                     }
                   />
                 </div>
@@ -744,8 +904,12 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={settings.notifications.adminEmailAlerts}
-                    onCheckedChange={checked =>
-                      updateSettings('notifications', 'adminEmailAlerts', checked)
+                    onCheckedChange={(checked) =>
+                      updateSettings(
+                        "notifications",
+                        "adminEmailAlerts",
+                        checked,
+                      )
                     }
                   />
                 </div>
@@ -759,8 +923,12 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={settings.notifications.userWelcomeEmail}
-                    onCheckedChange={checked =>
-                      updateSettings('notifications', 'userWelcomeEmail', checked)
+                    onCheckedChange={(checked) =>
+                      updateSettings(
+                        "notifications",
+                        "userWelcomeEmail",
+                        checked,
+                      )
                     }
                   />
                 </div>
@@ -774,8 +942,12 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={settings.notifications.orderConfirmationEmail}
-                    onCheckedChange={checked =>
-                      updateSettings('notifications', 'orderConfirmationEmail', checked)
+                    onCheckedChange={(checked) =>
+                      updateSettings(
+                        "notifications",
+                        "orderConfirmationEmail",
+                        checked,
+                      )
                     }
                   />
                 </div>

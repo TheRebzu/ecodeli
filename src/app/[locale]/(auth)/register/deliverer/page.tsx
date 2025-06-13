@@ -1,9 +1,9 @@
-import { Metadata } from 'next';
-import DelivererRegisterForm from '@/components/auth/register/deliverer-register-form';
-import { getServerSession } from 'next-auth';
-import { redirect, notFound } from 'next/navigation';
-import { authOptions } from '@/server/auth/next-auth';
-import { getTranslations } from 'next-intl/server';
+import { Metadata } from "next";
+import DelivererRegisterForm from "@/components/auth/register/deliverer-register-form";
+import { getServerSession } from "next-auth";
+import { redirect, notFound } from "next/navigation";
+import { authOptions } from "@/server/auth/next-auth";
+import { getTranslations } from "next-intl/server";
 type Props = {
   params: Promise<{ locale: string }>;
 };
@@ -14,13 +14,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const locale = resolvedParams.locale;
 
   // Vérifier si la locale est valide
-  if (!['en', 'fr'].includes(locale)) notFound();
+  if (!["en", "fr"].includes(locale)) notFound();
 
-  const t = await getTranslations({ locale, namespace: 'auth.register' });
+  const t = await getTranslations({ locale, namespace: "auth.register" });
 
   return {
-    title: t('delivererPageTitle') || 'Inscription Livreur | EcoDeli',
-    description: t('delivererPageDescription') || 'Créez votre compte livreur EcoDeli',
+    title: t("delivererPageTitle") || "Inscription Livreur | EcoDeli",
+    description:
+      t("delivererPageDescription") || "Créez votre compte livreur EcoDeli",
   };
 }
 
@@ -30,7 +31,7 @@ export default async function DelivererRegisterPage({ params }: Props) {
   const locale = resolvedParams.locale;
 
   // Vérifier si la locale est valide
-  if (!['en', 'fr'].includes(locale)) notFound();
+  if (!["en", "fr"].includes(locale)) notFound();
 
   // Récupérer la session utilisateur
   const session = await getServerSession(authOptions);
@@ -41,13 +42,15 @@ export default async function DelivererRegisterPage({ params }: Props) {
   }
 
   // Récupérer les traductions
-  const t = await getTranslations({ locale, namespace: 'auth.register' });
+  const t = await getTranslations({ locale, namespace: "auth.register" });
 
   return (
     <div className="max-w-lg w-full">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-3">{t('createDelivererAccount')}</h1>
-        <p className="text-muted-foreground">{t('enterDelivererDetails')}</p>
+        <h1 className="text-3xl font-bold tracking-tight mb-3">
+          {t("createDelivererAccount")}
+        </h1>
+        <p className="text-muted-foreground">{t("enterDelivererDetails")}</p>
       </div>
 
       <DelivererRegisterForm />

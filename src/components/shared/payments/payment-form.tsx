@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardContent,
@@ -11,7 +11,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -20,32 +20,44 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CreditCard, AlertCircle, Check, Euro, Banknote, Zap } from 'lucide-react';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  CreditCard,
+  AlertCircle,
+  Check,
+  Euro,
+  Banknote,
+  Zap,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { formatCurrency } from '@/utils/document-utils';
-import { useToast } from '@/components/ui/use-toast';
-import { useTranslations } from 'next-intl';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/select";
+import { formatCurrency } from "@/utils/document-utils";
+import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   PaymentMethodSelector,
   type SavedCard,
-} from '@/components/shared/payments/payment-method-selector';
-import { useInitiatePayment } from '@/hooks/payment/use-payment';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/shared/payments/payment-method-selector";
+import { useInitiatePayment } from "@/hooks/payment/use-payment";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 // Type d'objet pour représenter une méthode de paiement sauvegardée
 export interface PaymentFormProps {
@@ -54,7 +66,7 @@ export interface PaymentFormProps {
   savedPaymentMethods: SavedCard[];
   initialAmount?: number;
   destinationId?: string;
-  destinationType?: 'DELIVERY' | 'SERVICE' | 'SUBSCRIPTION';
+  destinationType?: "DELIVERY" | "SERVICE" | "SUBSCRIPTION";
   walletBalance?: number;
   redirectUrl?: string;
   description?: string;
@@ -70,16 +82,16 @@ export function PaymentForm({
   destinationType,
   walletBalance,
   redirectUrl,
-  description: initialDescription = '',
+  description: initialDescription = "",
   metadata = {},
 }: PaymentFormProps) {
-  const t = useTranslations('payment');
+  const t = useTranslations("payment");
   const { toast } = useToast();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    'card' | 'wallet' | 'sepa' | 'saved_card'
-  >(savedPaymentMethods.length > 0 ? 'saved_card' : 'card');
+    "card" | "wallet" | "sepa" | "saved_card"
+  >(savedPaymentMethods.length > 0 ? "saved_card" : "card");
   const [selectedCardId, setSelectedCardId] = useState<string | undefined>(
-    savedPaymentMethods.length > 0 ? savedPaymentMethods[0].id : undefined
+    savedPaymentMethods.length > 0 ? savedPaymentMethods[0].id : undefined,
   );
 
   // Utiliser notre hook personnalisé pour l'initialisation du paiement
@@ -94,15 +106,15 @@ export function PaymentForm({
   } = useInitiatePayment();
 
   // État local pour afficher les messages de succès/erreur
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Schéma de validation avec Zod
   const paymentSchema = z.object({
     amount: z
       .number()
-      .positive({ message: t('amountPositive') })
-      .min(1, { message: t('amountMinimum') }),
+      .positive({ message: t("amountPositive") })
+      .min(1, { message: t("amountMinimum") }),
     description: z.string().optional(),
     savePaymentMethod: z.boolean().optional(),
   });
@@ -122,20 +134,24 @@ export function PaymentForm({
   // Fonction pour gérer la soumission du formulaire
   const onSubmit = async (values: PaymentFormValues) => {
     try {
-      setStatus('idle');
+      setStatus("idle");
       setErrorMessage(null);
 
       // Construire les paramètres de paiement
       const paymentParams = {
         amount: values.amount,
-        currency: 'EUR',
-        description: values.description || t('defaultPaymentDescription'),
-        ...(destinationId && destinationType === 'DELIVERY' ? { deliveryId: destinationId } : {}),
-        ...(destinationId && destinationType === 'SERVICE' ? { serviceId: destinationId } : {}),
-        ...(destinationId && destinationType === 'SUBSCRIPTION'
+        currency: "EUR",
+        description: values.description || t("defaultPaymentDescription"),
+        ...(destinationId && destinationType === "DELIVERY"
+          ? { deliveryId: destinationId }
+          : {}),
+        ...(destinationId && destinationType === "SERVICE"
+          ? { serviceId: destinationId }
+          : {}),
+        ...(destinationId && destinationType === "SUBSCRIPTION"
           ? { subscriptionId: destinationId }
           : {}),
-        ...(selectedPaymentMethod === 'saved_card' && selectedCardId
+        ...(selectedPaymentMethod === "saved_card" && selectedCardId
           ? { paymentMethodId: selectedCardId }
           : {}),
         metadata: {
@@ -149,32 +165,34 @@ export function PaymentForm({
       const result = await initiatePayment(paymentParams, redirectUrl);
 
       if (result.success) {
-        setStatus('success');
+        setStatus("success");
         toast({
-          title: t('paymentInitiated'),
-          description: t('paymentBeingProcessed'),
+          title: t("paymentInitiated"),
+          description: t("paymentBeingProcessed"),
         });
 
         if (onSuccess && result.paymentIntentId) {
           onSuccess(result.paymentIntentId);
         }
       } else {
-        setStatus('error');
-        setErrorMessage(result.error || t('unknownError'));
+        setStatus("error");
+        setErrorMessage(result.error || t("unknownError"));
       }
     } catch (error) {
-      setStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : t('unknownError'));
+      setStatus("error");
+      setErrorMessage(
+        error instanceof Error ? error.message : t("unknownError"),
+      );
     }
   };
 
   // Fonction pour gérer le changement de méthode de paiement
   const handlePaymentMethodChange = (
-    method: 'card' | 'wallet' | 'sepa' | 'saved_card',
-    cardId?: string
+    method: "card" | "wallet" | "sepa" | "saved_card",
+    cardId?: string,
   ) => {
     setSelectedPaymentMethod(method);
-    if (method === 'saved_card' && cardId) {
+    if (method === "saved_card" && cardId) {
       setSelectedCardId(cardId);
     }
   };
@@ -183,7 +201,7 @@ export function PaymentForm({
   const handleCancel = () => {
     resetPayment();
     form.reset();
-    setStatus('idle');
+    setStatus("idle");
     setErrorMessage(null);
     if (onCancel) {
       onCancel();
@@ -197,7 +215,7 @@ export function PaymentForm({
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
-              {t('processPayment')}
+              {t("processPayment")}
             </CardTitle>
             {isDemoMode && (
               <TooltipProvider>
@@ -208,11 +226,11 @@ export function PaymentForm({
                       className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
                     >
                       <Zap className="h-3 w-3" />
-                      {t('demoMode')}
+                      {t("demoMode")}
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{t('demoModeDescription')}</p>
+                    <p>{t("demoModeDescription")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -220,32 +238,36 @@ export function PaymentForm({
           </div>
           <CardDescription>
             {initialAmount > 0
-              ? t('amountToPay', { amount: formatCurrency(initialAmount, 'EUR') })
-              : t('enterPaymentDetails')}
+              ? t("amountToPay", {
+                  amount: formatCurrency(initialAmount, "EUR"),
+                })
+              : t("enterPaymentDetails")}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {status === 'success' && (
+          {status === "success" && (
             <Alert className="mb-4 bg-green-50 text-green-800 border-green-200">
               <Check className="h-4 w-4" />
-              <AlertTitle>{t('success')}</AlertTitle>
-              <AlertDescription>{t('paymentSuccessful')}</AlertDescription>
+              <AlertTitle>{t("success")}</AlertTitle>
+              <AlertDescription>{t("paymentSuccessful")}</AlertDescription>
             </Alert>
           )}
 
-          {status === 'error' && (
+          {status === "error" && (
             <Alert className="mb-4 bg-red-50 text-red-800 border-red-200">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{t('error')}</AlertTitle>
-              <AlertDescription>{errorMessage || t('paymentFailed')}</AlertDescription>
+              <AlertTitle>{t("error")}</AlertTitle>
+              <AlertDescription>
+                {errorMessage || t("paymentFailed")}
+              </AlertDescription>
             </Alert>
           )}
 
-          {isDemoMode && status === 'idle' && (
+          {isDemoMode && status === "idle" && (
             <Alert className="mb-4 bg-blue-50 text-blue-800 border-blue-200">
               <Banknote className="h-4 w-4" />
-              <AlertTitle>{t('demoPayment')}</AlertTitle>
-              <AlertDescription>{t('demoPaymentDescription')}</AlertDescription>
+              <AlertTitle>{t("demoPayment")}</AlertTitle>
+              <AlertDescription>{t("demoPaymentDescription")}</AlertDescription>
             </Alert>
           )}
 
@@ -258,7 +280,7 @@ export function PaymentForm({
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('amount')}</FormLabel>
+                      <FormLabel>{t("amount")}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
@@ -272,14 +294,16 @@ export function PaymentForm({
                             placeholder="0.00"
                             className="pl-8"
                             value={field.value}
-                            onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                            disabled={isProcessing || status === 'success'}
+                            onChange={(e) =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
+                            disabled={isProcessing || status === "success"}
                             aria-describedby="amount-description"
                           />
                         </div>
                       </FormControl>
                       <FormDescription id="amount-description">
-                        {t('enterAmountDesc')}
+                        {t("enterAmountDesc")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -293,16 +317,18 @@ export function PaymentForm({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('description')}</FormLabel>
+                    <FormLabel>{t("description")}</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
-                        placeholder={t('descriptionPlaceholder')}
-                        disabled={isProcessing || status === 'success'}
+                        placeholder={t("descriptionPlaceholder")}
+                        disabled={isProcessing || status === "success"}
                         aria-describedby="description-help"
                       />
                     </FormControl>
-                    <FormDescription id="description-help">{t('descriptionDesc')}</FormDescription>
+                    <FormDescription id="description-help">
+                      {t("descriptionDesc")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -310,18 +336,18 @@ export function PaymentForm({
 
               {/* Méthode de paiement */}
               <div className="space-y-4">
-                <Label>{t('paymentMethod')}</Label>
+                <Label>{t("paymentMethod")}</Label>
                 <PaymentMethodSelector
                   selectedMethod={selectedPaymentMethod}
                   onSelect={handlePaymentMethodChange}
                   savedCards={savedPaymentMethods}
                   walletBalance={walletBalance}
-                  disabled={isProcessing || status === 'success'}
+                  disabled={isProcessing || status === "success"}
                 />
               </div>
 
               {/* Option pour sauvegarder la méthode de paiement */}
-              {selectedPaymentMethod === 'card' && (
+              {selectedPaymentMethod === "card" && (
                 <FormField
                   control={form.control}
                   name="savePaymentMethod"
@@ -331,12 +357,14 @@ export function PaymentForm({
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          disabled={isProcessing || status === 'success'}
+                          disabled={isProcessing || status === "success"}
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>{t('saveCardForFuture')}</FormLabel>
-                        <FormDescription>{t('saveCardDescription')}</FormDescription>
+                        <FormLabel>{t("saveCardForFuture")}</FormLabel>
+                        <FormDescription>
+                          {t("saveCardDescription")}
+                        </FormDescription>
                       </div>
                     </FormItem>
                   )}
@@ -351,57 +379,57 @@ export function PaymentForm({
                   onClick={handleCancel}
                   disabled={isProcessing}
                 >
-                  {t('cancel')}
+                  {t("cancel")}
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isProcessing || status === 'success'}
+                  disabled={isProcessing || status === "success"}
                   aria-live="polite"
                 >
                   {isProcessing ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t('processing')}
+                      {t("processing")}
                     </>
-                  ) : status === 'success' ? (
-                    t('paymentComplete')
+                  ) : status === "success" ? (
+                    t("paymentComplete")
                   ) : (
-                    t('pay')
+                    t("pay")
                   )}
                 </Button>
               </div>
             </form>
           </Form>
         </CardContent>
-        {isDemoMode && status !== 'success' && (
+        {isDemoMode && status !== "success" && (
           <CardFooter className="flex-col gap-2 border-t pt-4">
-            <p className="text-xs text-muted-foreground">{t('demoTipTitle')}</p>
+            <p className="text-xs text-muted-foreground">{t("demoTipTitle")}</p>
             <div className="grid grid-cols-2 gap-2 w-full">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  form.setValue('amount', 42.0);
-                  form.setValue('description', t('demoSuccessDescription'));
+                  form.setValue("amount", 42.0);
+                  form.setValue("description", t("demoSuccessDescription"));
                 }}
                 disabled={isProcessing}
                 className="text-xs"
               >
                 <Zap className="mr-1 h-3 w-3" />
-                {t('simulateSuccess')}
+                {t("simulateSuccess")}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  form.setValue('amount', 666.0);
-                  form.setValue('description', t('demoFailureDescription'));
+                  form.setValue("amount", 666.0);
+                  form.setValue("description", t("demoFailureDescription"));
                 }}
                 disabled={isProcessing}
                 className="text-xs"
               >
                 <AlertCircle className="mr-1 h-3 w-3" />
-                {t('simulateFailure')}
+                {t("simulateFailure")}
               </Button>
             </div>
           </CardFooter>

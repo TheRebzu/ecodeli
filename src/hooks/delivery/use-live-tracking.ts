@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useSocket } from '@/hooks/system/use-socket';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useSocket } from "@/hooks/system/use-socket";
 
 /**
  * Custom hook for live tracking of deliveries
@@ -10,7 +10,10 @@ import { useSocket } from '@/hooks/system/use-socket';
  */
 export function useLiveTracking(deliveryId: string) {
   const [isConnected, setIsConnected] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -26,13 +29,13 @@ export function useLiveTracking(deliveryId: string) {
     const trackingChannel = `delivery-tracking:${deliveryId}`;
 
     // Connect to tracking
-    socket.emit('join-tracking', {
+    socket.emit("join-tracking", {
       deliveryId,
       userId: session.user.id,
     });
 
     // Handle connection status
-    socket.on('tracking-connected', () => {
+    socket.on("tracking-connected", () => {
       setIsConnected(true);
       setIsError(false);
     });
@@ -46,7 +49,7 @@ export function useLiveTracking(deliveryId: string) {
           lng: data.longitude,
         });
         setLastUpdate(new Date(data.timestamp));
-      }
+      },
     );
 
     // Handle errors
@@ -56,7 +59,7 @@ export function useLiveTracking(deliveryId: string) {
     });
 
     // Handle disconnection
-    socket.on('disconnect', () => {
+    socket.on("disconnect", () => {
       setIsConnected(false);
     });
 
@@ -64,14 +67,14 @@ export function useLiveTracking(deliveryId: string) {
     return () => {
       socket.off(`${trackingChannel}:location-update`);
       socket.off(`${trackingChannel}:error`);
-      socket.emit('leave-tracking', { deliveryId });
+      socket.emit("leave-tracking", { deliveryId });
     };
   }, [socket, deliveryId, session]);
 
   // Function to request fresh location
   const requestLocationUpdate = () => {
     if (socket && isConnected) {
-      socket.emit('request-location-update', { deliveryId });
+      socket.emit("request-location-update", { deliveryId });
     }
   };
 
@@ -87,16 +90,15 @@ export function useLiveTracking(deliveryId: string) {
 
 export default useLiveTracking;
 
-
 // Export ajouté automatiquement
-import { api } from '@/hooks/system/use-trpc';
+import { api } from "@/hooks/system/use-trpc";
 
 export function useLiveTrackingDetails(deliveryId: string) {
   const { data: tracking, isLoading } = api.delivery.getLiveTracking.useQuery(
     { deliveryId },
-    { refetchInterval: 5000 }
+    { refetchInterval: 5000 },
   );
-  
+
   return {
     tracking,
     isLoading,

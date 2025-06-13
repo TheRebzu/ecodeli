@@ -1,14 +1,18 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { addDays, format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils/common';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useTranslations } from 'next-intl';
+import * as React from "react";
+import { addDays, format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils/common";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useTranslations } from "next-intl";
 
 export interface DatePickerProps {
   className?: string;
@@ -29,7 +33,7 @@ export function DatePicker({
   placeholder,
   disabled,
 }: DatePickerProps) {
-  const t = useTranslations('datePickerLocale');
+  const t = useTranslations("datePickerLocale");
   const [date, setDate] = React.useState<Date | undefined>(selected);
 
   // Mettre à jour l'état local si la prop selected change
@@ -51,13 +55,15 @@ export function DatePicker({
         <Button
           variant="outline"
           className={cn(
-            'w-full justify-start text-left font-normal',
-            !date && 'text-muted-foreground',
-            className
+            "w-full justify-start text-left font-normal",
+            !date && "text-muted-foreground",
+            className,
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, 'P', { locale: fr }) : placeholder || t('selectDate')}
+          {date
+            ? format(date, "P", { locale: fr })
+            : placeholder || t("selectDate")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

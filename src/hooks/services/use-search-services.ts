@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { useTranslations } from 'next-intl';
-import { type searchServicesSchema } from '@/schemas/service/service.schema';
-import { z } from 'zod';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+import { type searchServicesSchema } from "@/schemas/service/service.schema";
+import { z } from "zod";
 
 // Type inféré à partir du schéma searchServicesSchema
 type SearchServicesInput = z.infer<typeof searchServicesSchema>;
@@ -15,9 +15,11 @@ type SearchServicesInput = z.infer<typeof searchServicesSchema>;
  * Hook pour la recherche de services avec gestion d'état
  */
 export function useSearchServices() {
-  const t = useTranslations('services.search');
+  const t = useTranslations("services.search");
   const router = useRouter();
-  const [searchParams, setSearchParams] = useState<SearchServicesInput | null>(null);
+  const [searchParams, setSearchParams] = useState<SearchServicesInput | null>(
+    null,
+  );
 
   // Récupérer les catégories de services
   const categoriesQuery = api.service.getCategories.useQuery();
@@ -27,7 +29,7 @@ export function useSearchServices() {
     searchParams || {
       page: 1,
       limit: 10,
-    }
+    },
   );
 
   // Fonction pour effectuer une recherche avec les valeurs du formulaire
@@ -111,7 +113,7 @@ export function useSearchServices() {
 
   // Gérer les erreurs de recherche
   if (searchQuery.error) {
-    toast.error(searchQuery.error.message || t('errors.searchFailed'));
+    toast.error(searchQuery.error.message || t("errors.searchFailed"));
   }
 
   // Préparer les informations de pagination
@@ -119,7 +121,8 @@ export function useSearchServices() {
     ? {
         currentPage: searchParams?.page || 1,
         totalPages: Math.ceil(
-          (searchQuery.data.pagination?.total || 0) / (searchParams?.limit || 10)
+          (searchQuery.data.pagination?.total || 0) /
+            (searchParams?.limit || 10),
         ),
         totalCount: searchQuery.data.pagination?.total || 0,
       }

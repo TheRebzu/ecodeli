@@ -1,28 +1,36 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
-import { MapContainer, TileLayer, useMap, ZoomControl, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { cn } from '@/lib/utils/common';
+import React, { useEffect, useRef, useState } from "react";
+import L from "leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  useMap,
+  ZoomControl,
+  Marker,
+  Popup,
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import { cn } from "@/lib/utils/common";
 
 // Correction pour les icônes en SSR/CSR
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 // Fonction pour initialiser les icônes Leaflet côté client
 const initializeLeafletIcons = () => {
-  if (typeof window === 'undefined') return { defaultIcon: undefined, markerIcons: {} };
+  if (typeof window === "undefined")
+    return { defaultIcon: undefined, markerIcons: {} };
 
   // Éviter les erreurs côté serveur en vérifiant si window est défini
   delete (L.Icon.Default.prototype as any)._getIconUrl;
 
   // Configuration des icônes par défaut
   const iconOptions = {
-    iconUrl: '/leaflet/marker-icon.png',
-    iconRetinaUrl: '/leaflet/marker-icon-2x.png',
-    shadowUrl: '/leaflet/marker-shadow.png',
+    iconUrl: "/leaflet/marker-icon.png",
+    iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+    shadowUrl: "/leaflet/marker-shadow.png",
     iconSize: [25, 41] as [number, number],
     iconAnchor: [12, 41] as [number, number],
     popupAnchor: [1, -34] as [number, number],
@@ -41,15 +49,15 @@ const initializeLeafletIcons = () => {
     default: defaultIcon,
     pickup: new L.Icon({
       ...iconOptions,
-      className: 'leaflet-marker-pickup',
+      className: "leaflet-marker-pickup",
     }),
     delivery: new L.Icon({
       ...iconOptions,
-      className: 'leaflet-marker-delivery',
+      className: "leaflet-marker-delivery",
     }),
     current: new L.Icon({
       ...iconOptions,
-      className: 'leaflet-marker-current',
+      className: "leaflet-marker-current",
     }),
   };
 
@@ -90,7 +98,7 @@ export type LeafletMapProps = {
   attribution?: string;
   tileLayerUrl?: string;
   touchZoom?: boolean;
-  scrollWheelZoom?: boolean | 'center';
+  scrollWheelZoom?: boolean | "center";
   dragging?: boolean;
   animate?: boolean;
   showZoomControl?: boolean;
@@ -122,7 +130,7 @@ const MapCenterController = ({
       ) {
         const latLngBounds = L.latLngBounds(
           L.latLng(southWest.lat, southWest.lng),
-          L.latLng(northEast.lat, northEast.lng)
+          L.latLng(northEast.lat, northEast.lng),
         );
 
         map.fitBounds(latLngBounds, {
@@ -133,7 +141,9 @@ const MapCenterController = ({
     } else if (center) {
       // Vérifier que les coordonnées sont valides
       if (center.lat !== undefined && center.lng !== undefined) {
-        map.setView([center.lat, center.lng], zoom || map.getZoom(), { animate });
+        map.setView([center.lat, center.lng], zoom || map.getZoom(), {
+          animate,
+        });
       }
     }
   }, [map, center, zoom, bounds, animate]);
@@ -163,7 +173,7 @@ const MapEventController = ({
     // Ajouter les gestionnaires d'événements avec références pour le nettoyage
     if (onMapClick) {
       eventHandlersRef.current.click = onMapClick;
-      map.on('click', onMapClick);
+      map.on("click", onMapClick);
     }
 
     if (onMoveEnd) {
@@ -172,7 +182,7 @@ const MapEventController = ({
         onMoveEnd({ lat: center.lat, lng: center.lng }, map.getZoom());
       };
       eventHandlersRef.current.moveend = moveEndHandler;
-      map.on('moveend', moveEndHandler);
+      map.on("moveend", moveEndHandler);
     }
 
     // Nettoyer lors du démontage
@@ -182,20 +192,20 @@ const MapEventController = ({
         // Vérifier multiple conditions pour s'assurer que la carte est valide
         if (
           map &&
-          typeof map.off === 'function' &&
+          typeof map.off === "function" &&
           (map as any)._leaflet_events &&
           !(map as any)._removed
         ) {
-          Object.keys(eventHandlersRef.current).forEach(eventType => {
+          Object.keys(eventHandlersRef.current).forEach((eventType) => {
             const handler = eventHandlersRef.current[eventType];
-            if (handler && typeof handler === 'function') {
+            if (handler && typeof handler === "function") {
               try {
                 map.off(eventType as any, handler);
               } catch (eventError) {
                 // Ignorer les erreurs spécifiques aux événements
                 console.debug(
                   `Erreur lors du détachement de l'événement ${eventType}:`,
-                  eventError
+                  eventError,
                 );
               }
             }
@@ -203,7 +213,10 @@ const MapEventController = ({
         }
       } catch (e) {
         // Ignorer les erreurs lors du démontage de la carte
-        console.debug('Erreur lors du détachement des événements de la carte:', e);
+        console.debug(
+          "Erreur lors du détachement des événements de la carte:",
+          e,
+        );
       } finally {
         // Nettoyer les références dans tous les cas
         eventHandlersRef.current = {};
@@ -217,7 +230,7 @@ const MapEventController = ({
 // Composant pour initialiser les icônes Leaflet
 const LeafletIconInitializer = () => {
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       initializeLeafletIcons();
     }
   }, []);
@@ -231,9 +244,9 @@ const LeafletMap = ({
   zoom = 13,
   minZoom = 3,
   maxZoom = 18,
-  height = '400px',
-  width = '100%',
-  className = '',
+  height = "400px",
+  width = "100%",
+  className = "",
   markers,
   polylines,
   polygons,
@@ -246,7 +259,7 @@ const LeafletMap = ({
   onMapClick,
   onMoveEnd,
   attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  tileLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  tileLayerUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   touchZoom = true,
   scrollWheelZoom = true,
   dragging = true,
@@ -258,8 +271,8 @@ const LeafletMap = ({
 
   // Styles pour la carte
   const mapStyle = {
-    height: typeof height === 'number' ? `${height}px` : height,
-    width: typeof width === 'number' ? `${width}px` : width,
+    height: typeof height === "number" ? `${height}px` : height,
+    width: typeof width === "number" ? `${width}px` : width,
   };
 
   // Vérifier que les coordonnées du centre sont valides
@@ -270,7 +283,8 @@ const LeafletMap = ({
 
   // Fonction pour rendre les marqueurs React à partir des objets de marqueurs
   const renderMarkers = () => {
-    if (!markers || !Array.isArray(markers) || typeof window === 'undefined') return null;
+    if (!markers || !Array.isArray(markers) || typeof window === "undefined")
+      return null;
 
     // Initialiser les icônes
     const { defaultIcon, markerIcons } = initializeLeafletIcons();
@@ -286,8 +300,8 @@ const LeafletMap = ({
       if (
         !position ||
         position.length !== 2 ||
-        typeof position[0] !== 'number' ||
-        typeof position[1] !== 'number'
+        typeof position[0] !== "number" ||
+        typeof position[1] !== "number"
       ) {
         console.warn(`Marker ${index} has invalid position:`, position);
         return null;
@@ -298,7 +312,10 @@ const LeafletMap = ({
       if (defaultIcon) {
         // Utiliser l'icône correspondant au type ou l'icône par défaut
         const markerType = marker.type as keyof typeof markerIcons;
-        icon = markerType && markerIcons[markerType] ? markerIcons[markerType] : defaultIcon; // Utiliser notre icône par défaut
+        icon =
+          markerType && markerIcons[markerType]
+            ? markerIcons[markerType]
+            : defaultIcon; // Utiliser notre icône par défaut
       }
 
       // Si aucune icône n'est disponible, ne pas rendre le marker
@@ -311,8 +328,12 @@ const LeafletMap = ({
         <Marker key={`marker-${index}`} position={position} icon={icon}>
           {marker.popup && (
             <Popup>
-              {marker.popup.title && <h3 className="font-medium text-sm">{marker.popup.title}</h3>}
-              {marker.popup.content && <p className="text-xs">{marker.popup.content}</p>}
+              {marker.popup.title && (
+                <h3 className="font-medium text-sm">{marker.popup.title}</h3>
+              )}
+              {marker.popup.content && (
+                <p className="text-xs">{marker.popup.content}</p>
+              )}
             </Popup>
           )}
         </Marker>
@@ -327,12 +348,12 @@ const LeafletMap = ({
   };
 
   // Ne pas rendre la carte côté serveur
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return (
       <div
         className={cn(
-          'relative overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center',
-          className
+          "relative overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center",
+          className,
         )}
         style={mapStyle}
       >
@@ -342,14 +363,17 @@ const LeafletMap = ({
   }
 
   return (
-    <div className={cn('relative overflow-hidden rounded-lg', className)} style={mapStyle}>
+    <div
+      className={cn("relative overflow-hidden rounded-lg", className)}
+      style={mapStyle}
+    >
       <LeafletIconInitializer />
       <MapContainer
         center={validCenter as [number, number]}
         zoom={zoom}
         minZoom={minZoom}
         maxZoom={maxZoom}
-        style={{ height: '100%', width: '100%' }}
+        style={{ height: "100%", width: "100%" }}
         touchZoom={touchZoom}
         scrollWheelZoom={scrollWheelZoom}
         dragging={dragging}
@@ -362,11 +386,16 @@ const LeafletMap = ({
         {showZoomControl && <ZoomControl position="bottomright" />}
 
         {/* Gestionnaire de centrage */}
-        <MapCenterController center={center} zoom={zoom} bounds={bounds} animate={animate} />
+        <MapCenterController
+          center={center}
+          zoom={zoom}
+          bounds={bounds}
+          animate={animate}
+        />
 
         {/* Gestionnaire d'événements */}
         <MapEventController
-          onMapReady={map => {
+          onMapReady={(map) => {
             handleMapReady(map);
             if (onMapReady) onMapReady(map);
           }}

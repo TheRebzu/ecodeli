@@ -1,8 +1,8 @@
-import { db } from '@/server/db';
-import { TRPCError } from '@trpc/server';
-import { billingService } from '@/server/services/shared/billing.service';
-import { invoiceService } from '@/server/services/shared/invoice.service';
-import type { ContractStatus } from '@prisma/client';
+import { db } from "@/server/db";
+import { TRPCError } from "@trpc/server";
+import { billingService } from "@/server/services/shared/billing.service";
+import { invoiceService } from "@/server/services/shared/invoice.service";
+import type { ContractStatus } from "@prisma/client";
 
 /**
  * Service merchant spécialisé
@@ -32,8 +32,8 @@ export class MerchantService {
 
     if (!user || !user.merchant) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Profil merchant non trouvé',
+        code: "NOT_FOUND",
+        message: "Profil merchant non trouvé",
       });
     }
 
@@ -51,52 +51,61 @@ export class MerchantService {
    * Génère un rapport de facturation pour un merchant
    * Utilise billingService.generateMerchantInvoice() existant
    */
-  async generateBillingReport(merchantId: string, startDate: Date, endDate: Date) {
+  async generateBillingReport(
+    merchantId: string,
+    startDate: Date,
+    endDate: Date,
+  ) {
     try {
       // Utilise le service de facturation existant
-      const invoice = await billingService.generateMerchantInvoice(merchantId, startDate, endDate);
+      const invoice = await billingService.generateMerchantInvoice(
+        merchantId,
+        startDate,
+        endDate,
+      );
 
       // Récupère les statistiques additionnelles
-      const [deliveriesCount, commissionsTotal, paymentsTotal] = await Promise.all([
-        db.delivery.count({
-          where: {
-            merchantId,
-            createdAt: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-        }),
-
-        db.commission.aggregate({
-          where: {
-            payment: {
-              delivery: {
-                merchantId,
-              },
+      const [deliveriesCount, commissionsTotal, paymentsTotal] =
+        await Promise.all([
+          db.delivery.count({
+            where: {
+              merchantId,
               createdAt: {
                 gte: startDate,
                 lte: endDate,
               },
             },
-          },
-          _sum: { amount: true },
-        }),
+          }),
 
-        db.payment.aggregate({
-          where: {
-            delivery: {
-              merchantId,
+          db.commission.aggregate({
+            where: {
+              payment: {
+                delivery: {
+                  merchantId,
+                },
+                createdAt: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
             },
-            status: 'COMPLETED',
-            createdAt: {
-              gte: startDate,
-              lte: endDate,
+            _sum: { amount: true },
+          }),
+
+          db.payment.aggregate({
+            where: {
+              delivery: {
+                merchantId,
+              },
+              status: "COMPLETED",
+              createdAt: {
+                gte: startDate,
+                lte: endDate,
+              },
             },
-          },
-          _sum: { amount: true },
-        }),
-      ]);
+            _sum: { amount: true },
+          }),
+        ]);
 
       return {
         invoice,
@@ -108,10 +117,10 @@ export class MerchantService {
         },
       };
     } catch (error) {
-      console.error('Erreur génération rapport facturation merchant:', error);
+      console.error("Erreur génération rapport facturation merchant:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la génération du rapport',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la génération du rapport",
       });
     }
   }
@@ -128,7 +137,7 @@ export class MerchantService {
       limit?: number;
       startDate?: Date;
       endDate?: Date;
-    } = {}
+    } = {},
   ) {
     return await invoiceService.listInvoices({
       userId,
@@ -154,7 +163,7 @@ export class MerchantService {
       dueDate?: Date;
       notes?: string;
       invoiceType?: string;
-    } = {}
+    } = {},
   ) {
     return await invoiceService.createInvoice({
       userId,
@@ -168,7 +177,7 @@ export class MerchantService {
    */
   async calculatePerformanceMetrics(
     merchantId: string,
-    period: 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR' = 'MONTH'
+    period: "WEEK" | "MONTH" | "QUARTER" | "YEAR" = "MONTH",
   ) {
     const now = new Date();
     const periodDays = {
@@ -178,53 +187,60 @@ export class MerchantService {
       YEAR: 365,
     };
 
-    const startDate = new Date(now.getTime() - periodDays[period] * 24 * 60 * 60 * 1000);
+    const startDate = new Date(
+      now.getTime() - periodDays[period] * 24 * 60 * 60 * 1000,
+    );
 
-    const [deliveriesStats, revenueStats, ratingStats, completionStats] = await Promise.all([
-      // Statistiques de livraisons
-      db.delivery.groupBy({
-        by: ['status'],
-        where: {
-          merchantId,
-          createdAt: { gte: startDate },
-        },
-        _count: { id: true },
-      }),
+    const [deliveriesStats, revenueStats, ratingStats, completionStats] =
+      await Promise.all([
+        // Statistiques de livraisons
+        db.delivery.groupBy({
+          by: ["status"],
+          where: {
+            merchantId,
+            createdAt: { gte: startDate },
+          },
+          _count: { id: true },
+        }),
 
-      // Statistiques de revenus
-      db.payment.aggregate({
-        where: {
-          delivery: { merchantId },
-          status: 'COMPLETED',
-          createdAt: { gte: startDate },
-        },
-        _sum: { amount: true },
-        _avg: { amount: true },
-        _count: { id: true },
-      }),
+        // Statistiques de revenus
+        db.payment.aggregate({
+          where: {
+            delivery: { merchantId },
+            status: "COMPLETED",
+            createdAt: { gte: startDate },
+          },
+          _sum: { amount: true },
+          _avg: { amount: true },
+          _count: { id: true },
+        }),
 
-      // Statistiques de notation
-      db.rating.aggregate({
-        where: {
-          delivery: { merchantId },
-          createdAt: { gte: startDate },
-        },
-        _avg: { rating: true },
-        _count: { id: true },
-      }),
+        // Statistiques de notation
+        db.rating.aggregate({
+          where: {
+            delivery: { merchantId },
+            createdAt: { gte: startDate },
+          },
+          _avg: { rating: true },
+          _count: { id: true },
+        }),
 
-      // Taux de complétion
-      db.delivery.count({
-        where: {
-          merchantId,
-          status: 'DELIVERED',
-          createdAt: { gte: startDate },
-        },
-      }),
-    ]);
+        // Taux de complétion
+        db.delivery.count({
+          where: {
+            merchantId,
+            status: "DELIVERED",
+            createdAt: { gte: startDate },
+          },
+        }),
+      ]);
 
-    const totalDeliveries = deliveriesStats.reduce((sum, stat) => sum + stat._count.id, 0);
-    const completionRate = totalDeliveries > 0 ? (completionStats / totalDeliveries) * 100 : 0;
+    const totalDeliveries = deliveriesStats.reduce(
+      (sum, stat) => sum + stat._count.id,
+      0,
+    );
+    const completionRate =
+      totalDeliveries > 0 ? (completionStats / totalDeliveries) * 100 : 0;
 
     return {
       period,
@@ -258,7 +274,7 @@ export class MerchantService {
       status?: ContractStatus;
       page?: number;
       limit?: number;
-    } = {}
+    } = {},
   ) {
     const { page = 1, limit = 10, status } = options;
 
@@ -284,12 +300,12 @@ export class MerchantService {
               createdAt: true,
             },
             orderBy: {
-              createdAt: 'desc',
+              createdAt: "desc",
             },
             take: 3,
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -318,7 +334,7 @@ export class MerchantService {
       page?: number;
       limit?: number;
       status?: string;
-    } = {}
+    } = {},
   ) {
     const { page = 1, limit = 10, status } = options;
 
@@ -341,7 +357,7 @@ export class MerchantService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -367,12 +383,12 @@ export class MerchantService {
     merchantId: string,
     startDate: Date,
     endDate: Date,
-    groupBy: 'DAY' | 'WEEK' | 'MONTH' = 'DAY'
+    groupBy: "DAY" | "WEEK" | "MONTH" = "DAY",
   ) {
     const payments = await db.payment.findMany({
       where: {
         delivery: { merchantId },
-        status: 'COMPLETED',
+        status: "COMPLETED",
         createdAt: {
           gte: startDate,
           lte: endDate,
@@ -382,7 +398,7 @@ export class MerchantService {
         amount: true,
         createdAt: true,
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
 
     // Grouper les données selon la période
@@ -392,16 +408,16 @@ export class MerchantService {
         const date = payment.createdAt;
 
         switch (groupBy) {
-          case 'DAY':
-            key = date.toISOString().split('T')[0];
+          case "DAY":
+            key = date.toISOString().split("T")[0];
             break;
-          case 'WEEK':
+          case "WEEK":
             const startOfWeek = new Date(date);
             startOfWeek.setDate(date.getDate() - date.getDay());
-            key = startOfWeek.toISOString().split('T')[0];
+            key = startOfWeek.toISOString().split("T")[0];
             break;
-          case 'MONTH':
-            key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          case "MONTH":
+            key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
             break;
         }
 
@@ -418,7 +434,7 @@ export class MerchantService {
 
         return acc;
       },
-      {} as Record<string, { period: string; amount: number; count: number }>
+      {} as Record<string, { period: string; amount: number; count: number }>,
     );
 
     return Object.values(groupedData);
@@ -429,7 +445,7 @@ export class MerchantService {
    */
   async getMerchantDocumentsSummary(userId: string) {
     const documents = await db.document.groupBy({
-      by: ['type', 'status'],
+      by: ["type", "status"],
       where: { userId },
       _count: { id: true },
     });
@@ -443,7 +459,7 @@ export class MerchantService {
         acc[doc.type].byStatus[doc.status] = doc._count.id;
         return acc;
       },
-      {} as Record<string, { total: number; byStatus: Record<string, number> }>
+      {} as Record<string, { total: number; byStatus: Record<string, number> }>,
     );
 
     return summary;

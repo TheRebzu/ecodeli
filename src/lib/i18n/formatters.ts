@@ -1,5 +1,5 @@
-import { format } from 'date-fns';
-import { fr, enUS } from 'date-fns/locale';
+import { format } from "date-fns";
+import { fr, enUS } from "date-fns/locale";
 
 /**
  * Formate une date pour l'affichage
@@ -9,10 +9,10 @@ import { fr, enUS } from 'date-fns/locale';
  */
 export function formatDate(
   date: Date | string,
-  formatStyle: 'short' | 'medium' | 'long' | 'full' = 'medium',
-  locale: string = 'fr-FR'
+  formatStyle: "short" | "medium" | "long" | "full" = "medium",
+  locale: string = "fr-FR",
 ): string {
-  if (typeof date === 'string') {
+  if (typeof date === "string") {
     date = new Date(date);
   }
 
@@ -29,10 +29,10 @@ export function formatDate(
  */
 export function formatDateTime(
   date: Date | string,
-  formatStyle: 'short' | 'medium' | 'long' | 'full' = 'medium',
-  locale: string = 'fr-FR'
+  formatStyle: "short" | "medium" | "long" | "full" = "medium",
+  locale: string = "fr-FR",
 ): string {
-  if (typeof date === 'string') {
+  if (typeof date === "string") {
     date = new Date(date);
   }
 
@@ -51,14 +51,14 @@ export function formatDateTime(
 export function formatDateCustom(
   date: Date | string,
   formatString: string,
-  localeStr: string = 'fr'
+  localeStr: string = "fr",
 ): string {
-  if (typeof date === 'string') {
+  if (typeof date === "string") {
     date = new Date(date);
   }
 
   return format(date, formatString, {
-    locale: localeStr === 'fr' ? fr : enUS,
+    locale: localeStr === "fr" ? fr : enUS,
   });
 }
 
@@ -66,9 +66,9 @@ export function formatDateCustom(
  * Formate un prix avec 2 décimales et le symbole €
  */
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
   }).format(price);
 }
 
@@ -80,7 +80,7 @@ export function formatDuration(minutes: number): string {
   const remainingMinutes = minutes % 60;
 
   if (hours > 0) {
-    return `${hours}h${remainingMinutes > 0 ? remainingMinutes : ''}`;
+    return `${hours}h${remainingMinutes > 0 ? remainingMinutes : ""}`;
   }
 
   return `${minutes}min`;
@@ -95,11 +95,11 @@ export function formatDuration(minutes: number): string {
  */
 export function formatCurrency(
   amount: number,
-  currency: string = 'EUR',
-  locale: string = 'fr-FR'
+  currency: string = "EUR",
+  locale: string = "fr-FR",
 ): string {
   return new Intl.NumberFormat(locale, {
-    style: 'currency',
+    style: "currency",
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -112,9 +112,9 @@ export function formatCurrency(
  * @param locale Locale pour le formatage (fr-FR par défaut)
  * @returns Le pourcentage formaté
  */
-export function formatPercent(value: number, locale: string = 'fr-FR'): string {
+export function formatPercent(value: number, locale: string = "fr-FR"): string {
   return new Intl.NumberFormat(locale, {
-    style: 'percent',
+    style: "percent",
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(value);
@@ -125,14 +125,17 @@ export function formatPercent(value: number, locale: string = 'fr-FR'): string {
  * @param date Date à formater
  * @param locale Locale pour le formatage (fr-FR par défaut)
  */
-export function formatTime(date: Date | string, locale: string = 'fr-FR'): string {
-  if (typeof date === 'string') {
+export function formatTime(
+  date: Date | string,
+  locale: string = "fr-FR",
+): string {
+  if (typeof date === "string") {
     date = new Date(date);
   }
 
   return new Intl.DateTimeFormat(locale, {
-    hour: 'numeric',
-    minute: 'numeric',
+    hour: "numeric",
+    minute: "numeric",
   }).format(date);
 }
 
@@ -144,10 +147,10 @@ export function formatTime(date: Date | string, locale: string = 'fr-FR'): strin
  */
 export function formatDateLocalized(
   date: Date | string,
-  locale: string = 'fr',
-  formatString?: string
+  locale: string = "fr",
+  formatString?: string,
 ): string {
-  if (typeof date === 'string') {
+  if (typeof date === "string") {
     date = new Date(date);
   }
 
@@ -156,6 +159,6 @@ export function formatDateLocalized(
   }
 
   // Format par défaut selon la locale
-  const defaultFormat = locale === 'fr' ? 'dd/MM/yyyy' : 'MM/dd/yyyy';
+  const defaultFormat = locale === "fr" ? "dd/MM/yyyy" : "MM/dd/yyyy";
   return formatDateCustom(date, defaultFormat, locale);
 }

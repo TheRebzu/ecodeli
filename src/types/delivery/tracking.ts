@@ -1,9 +1,9 @@
-import { z } from 'zod';
-import { DeliveryStatus } from '@prisma/client';
+import { z } from "zod";
+import { DeliveryStatus } from "@prisma/client";
 
 // Types de base pour la géolocalisation
 export interface GeoPoint {
-  type: 'Point';
+  type: "Point";
   coordinates: [number, number]; // [longitude, latitude]
 }
 
@@ -68,16 +68,16 @@ export interface DeliveryStatusHistoryData {
  * Types pour les points de passage
  */
 export enum CheckpointType {
-  DEPARTURE = 'DEPARTURE',
-  PICKUP = 'PICKUP',
-  WAYPOINT = 'WAYPOINT',
-  DELIVERY_ATTEMPT = 'DELIVERY_ATTEMPT',
-  DELIVERY = 'DELIVERY',
-  RETURN_POINT = 'RETURN_POINT',
-  WAREHOUSE = 'WAREHOUSE',
-  CUSTOMS = 'CUSTOMS',
-  HANDOFF = 'HANDOFF',
-  OTHER = 'OTHER',
+  DEPARTURE = "DEPARTURE",
+  PICKUP = "PICKUP",
+  WAYPOINT = "WAYPOINT",
+  DELIVERY_ATTEMPT = "DELIVERY_ATTEMPT",
+  DELIVERY = "DELIVERY",
+  RETURN_POINT = "RETURN_POINT",
+  WAREHOUSE = "WAREHOUSE",
+  CUSTOMS = "CUSTOMS",
+  HANDOFF = "HANDOFF",
+  OTHER = "OTHER",
 }
 
 export interface DeliveryCheckpointData {
@@ -101,15 +101,15 @@ export interface DeliveryCheckpointData {
  * Types pour l'estimation de temps d'arrivée
  */
 export enum ETACalculationType {
-  REAL_TIME = 'REAL_TIME',
-  HISTORICAL = 'HISTORICAL',
-  MANUAL = 'MANUAL',
+  REAL_TIME = "REAL_TIME",
+  HISTORICAL = "HISTORICAL",
+  MANUAL = "MANUAL",
 }
 
 export enum TrafficCondition {
-  LIGHT = 'LIGHT',
-  MODERATE = 'MODERATE',
-  HEAVY = 'HEAVY',
+  LIGHT = "LIGHT",
+  MODERATE = "MODERATE",
+  HEAVY = "HEAVY",
 }
 
 export interface DeliveryETAData {
@@ -131,31 +131,31 @@ export interface DeliveryETAData {
  * Types pour les incidents de livraison
  */
 export enum DeliveryIssueType {
-  ACCESS_PROBLEM = 'ACCESS_PROBLEM',
-  ADDRESS_NOT_FOUND = 'ADDRESS_NOT_FOUND',
-  CUSTOMER_ABSENT = 'CUSTOMER_ABSENT',
-  DAMAGED_PACKAGE = 'DAMAGED_PACKAGE',
-  DELIVERY_REFUSED = 'DELIVERY_REFUSED',
-  VEHICLE_BREAKDOWN = 'VEHICLE_BREAKDOWN',
-  TRAFFIC_JAM = 'TRAFFIC_JAM',
-  WEATHER_CONDITION = 'WEATHER_CONDITION',
-  SECURITY_ISSUE = 'SECURITY_ISSUE',
-  OTHER = 'OTHER',
+  ACCESS_PROBLEM = "ACCESS_PROBLEM",
+  ADDRESS_NOT_FOUND = "ADDRESS_NOT_FOUND",
+  CUSTOMER_ABSENT = "CUSTOMER_ABSENT",
+  DAMAGED_PACKAGE = "DAMAGED_PACKAGE",
+  DELIVERY_REFUSED = "DELIVERY_REFUSED",
+  VEHICLE_BREAKDOWN = "VEHICLE_BREAKDOWN",
+  TRAFFIC_JAM = "TRAFFIC_JAM",
+  WEATHER_CONDITION = "WEATHER_CONDITION",
+  SECURITY_ISSUE = "SECURITY_ISSUE",
+  OTHER = "OTHER",
 }
 
 export enum IssueSeverity {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL',
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
 }
 
 export enum IssueStatus {
-  OPEN = 'OPEN',
-  IN_PROGRESS = 'IN_PROGRESS',
-  RESOLVED = 'RESOLVED',
-  ESCALATED = 'ESCALATED',
-  CLOSED = 'CLOSED',
+  OPEN = "OPEN",
+  IN_PROGRESS = "IN_PROGRESS",
+  RESOLVED = "RESOLVED",
+  ESCALATED = "ESCALATED",
+  CLOSED = "CLOSED",
 }
 
 export interface DeliveryIssueData {
@@ -236,20 +236,20 @@ export interface TrackingQueryFilters {
   minDelayMinutes?: number;
   page?: number;
   limit?: number;
-  sortBy?: 'updatedAt' | 'createdAt' | 'estimatedTime' | 'status';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "updatedAt" | "createdAt" | "estimatedTime" | "status";
+  sortOrder?: "asc" | "desc";
 }
 
 /**
  * Type pour les mises à jour WebSocket
  */
 export enum TrackingEventType {
-  LOCATION_UPDATE = 'LOCATION_UPDATE',
-  STATUS_UPDATE = 'STATUS_UPDATE',
-  ETA_UPDATE = 'ETA_UPDATE',
-  CHECKPOINT_REACHED = 'CHECKPOINT_REACHED',
-  ISSUE_REPORTED = 'ISSUE_REPORTED',
-  ISSUE_RESOLVED = 'ISSUE_RESOLVED',
+  LOCATION_UPDATE = "LOCATION_UPDATE",
+  STATUS_UPDATE = "STATUS_UPDATE",
+  ETA_UPDATE = "ETA_UPDATE",
+  CHECKPOINT_REACHED = "CHECKPOINT_REACHED",
+  ISSUE_REPORTED = "ISSUE_REPORTED",
+  ISSUE_RESOLVED = "ISSUE_RESOLVED",
 }
 
 export interface TrackingUpdate {
@@ -275,7 +275,7 @@ export interface DeliveryTrackingResponse {
 // Types pour les entrées API
 export type DeliveryTrackingCreateInput = Omit<
   DeliveryTrackingData,
-  'id' | 'startedAt' | 'lastUpdatedAt'
+  "id" | "startedAt" | "lastUpdatedAt"
 >;
 
 export type DeliveryPositionUpdateInput = {
@@ -301,7 +301,7 @@ export type DeliveryStatusUpdateInput = {
 
 export type DeliveryCheckpointCreateInput = Omit<
   DeliveryCheckpointData,
-  'id' | 'createdAt' | 'updatedAt'
+  "id" | "createdAt" | "updatedAt"
 >;
 
 export type DeliveryCheckpointUpdateInput = {
@@ -324,7 +324,10 @@ export type DeliveryETAUpdateInput = {
   metadata?: Record<string, any>;
 };
 
-export type DeliveryIssueCreateInput = Omit<DeliveryIssueData, 'id' | 'reportedAt' | 'status'>;
+export type DeliveryIssueCreateInput = Omit<
+  DeliveryIssueData,
+  "id" | "reportedAt" | "status"
+>;
 
 export type DeliveryIssueUpdateInput = {
   id: string;
@@ -358,7 +361,7 @@ export type DeliveryIssuesResponse = {
 
 // Schémas Zod pour validation
 export const geoPointSchema = z.object({
-  type: z.literal('Point'),
+  type: z.literal("Point"),
   coordinates: z.tuple([z.number(), z.number()]),
 });
 
@@ -420,9 +423,11 @@ export const deliveryETAUpdateSchema = z.object({
   deliveryId: z.string(),
   estimatedTime: z.date(),
   distanceRemaining: z.number().min(0).optional(),
-  trafficCondition: z.enum(['LIGHT', 'MODERATE', 'HEAVY']).optional(),
+  trafficCondition: z.enum(["LIGHT", "MODERATE", "HEAVY"]).optional(),
   confidence: z.number().min(0).max(1).optional(),
-  calculationType: z.enum(['REAL_TIME', 'HISTORICAL', 'MANUAL']).default('REAL_TIME'),
+  calculationType: z
+    .enum(["REAL_TIME", "HISTORICAL", "MANUAL"])
+    .default("REAL_TIME"),
   metadata: z.record(z.any()).optional(),
 });
 
@@ -454,7 +459,7 @@ export function geoPointToCoordinates(point: GeoPoint): Coordinates {
  */
 export function coordinatesToGeoPoint(coords: Coordinates): GeoPoint {
   return {
-    type: 'Point',
+    type: "Point",
     coordinates: [coords.longitude, coords.latitude],
   };
 }
@@ -462,13 +467,15 @@ export function coordinatesToGeoPoint(coords: Coordinates): GeoPoint {
 /**
  * Calcule des limites géographiques (bounds) à partir d'un ensemble de positions
  */
-export function calculateBounds(positions: DeliveryTrackingPositionData[]): GeoBounds | null {
+export function calculateBounds(
+  positions: DeliveryTrackingPositionData[],
+): GeoBounds | null {
   if (positions.length === 0) return null;
 
   const latitudes: number[] = [];
   const longitudes: number[] = [];
 
-  positions.forEach(pos => {
+  positions.forEach((pos) => {
     const coords = geoPointToCoordinates(pos.location);
     latitudes.push(coords.latitude);
     longitudes.push(coords.longitude);
@@ -489,7 +496,10 @@ export function calculateBounds(positions: DeliveryTrackingPositionData[]): GeoB
 /**
  * Calcule la distance en mètres entre deux coordonnées (formule de Haversine)
  */
-export function calculateDistance(start: Coordinates, end: Coordinates): number {
+export function calculateDistance(
+  start: Coordinates,
+  end: Coordinates,
+): number {
   const R = 6371e3; // Rayon de la Terre en mètres
   const φ1 = (start.latitude * Math.PI) / 180;
   const φ2 = (end.latitude * Math.PI) / 180;
@@ -511,7 +521,10 @@ export function calculateDistance(start: Coordinates, end: Coordinates): number 
  * @param averageSpeed Vitesse moyenne en km/h
  * @returns Estimation du temps d'arrivée en minutes
  */
-export function calculateETA(distance: number, averageSpeed: number = 30): number {
+export function calculateETA(
+  distance: number,
+  averageSpeed: number = 30,
+): number {
   // Convertir la distance de mètres en kilomètres
   const distanceKm = distance / 1000;
   // Calculer le temps en heures
@@ -532,7 +545,7 @@ export interface Coordinates {
  * Type pour un point GeoJSON
  */
 export interface GeoPoint {
-  type: 'Point';
+  type: "Point";
   coordinates: [number, number]; // [longitude, latitude]
 }
 
@@ -540,7 +553,7 @@ export interface GeoPoint {
  * Type pour un polygone GeoJSON
  */
 export interface GeoPolygon {
-  type: 'Polygon';
+  type: "Polygon";
   coordinates: [number, number][][]; // [[long, lat], [long, lat], ...]
 }
 
@@ -690,16 +703,41 @@ export interface DeliveryStatusHistory {
  * Type pour un événement de livraison
  */
 export type DeliveryEvent =
-  | { type: 'LOCATION_UPDATE'; deliveryId: string; location: GeoPoint; timestamp: Date }
-  | { type: 'STATUS_UPDATE'; deliveryId: string; status: DeliveryStatus; timestamp: Date }
   | {
-      type: 'ETA_UPDATE';
+      type: "LOCATION_UPDATE";
+      deliveryId: string;
+      location: GeoPoint;
+      timestamp: Date;
+    }
+  | {
+      type: "STATUS_UPDATE";
+      deliveryId: string;
+      status: DeliveryStatus;
+      timestamp: Date;
+    }
+  | {
+      type: "ETA_UPDATE";
       deliveryId: string;
       eta: Date | string;
       distance: number;
       timestamp: Date;
     }
-  | { type: 'CHECKPOINT_REACHED'; deliveryId: string; checkpointId: string; timestamp: Date }
-  | { type: 'ISSUE_REPORTED'; deliveryId: string; issueId: string; timestamp: Date }
-  | { type: 'DELIVERY_CONFIRMED'; deliveryId: string; timestamp: Date }
-  | { type: 'CLIENT_MESSAGE'; deliveryId: string; messageId: string; timestamp: Date };
+  | {
+      type: "CHECKPOINT_REACHED";
+      deliveryId: string;
+      checkpointId: string;
+      timestamp: Date;
+    }
+  | {
+      type: "ISSUE_REPORTED";
+      deliveryId: string;
+      issueId: string;
+      timestamp: Date;
+    }
+  | { type: "DELIVERY_CONFIRMED"; deliveryId: string; timestamp: Date }
+  | {
+      type: "CLIENT_MESSAGE";
+      deliveryId: string;
+      messageId: string;
+      timestamp: Date;
+    };

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -10,19 +10,27 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Package, Search, Filter, ArrowUpDown, MapPin, Clock } from 'lucide-react';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  Package,
+  Search,
+  Filter,
+  ArrowUpDown,
+  MapPin,
+  Clock,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -31,46 +39,56 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { DeliveryStatusBadge } from '@/components/shared/deliveries/delivery-status-badge';
-import DeliveryArrivalNotice from '@/components/deliverer/deliveries/delivery-arrival-notice';
-import { useClientDeliveries } from '@/hooks/client/use-client-deliveries';
-import { DeliveryStatus } from '@prisma/client';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils/common';
+} from "@/components/ui/pagination";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DeliveryStatusBadge } from "@/components/shared/deliveries/delivery-status-badge";
+import DeliveryArrivalNotice from "@/components/deliverer/deliveries/delivery-arrival-notice";
+import { useClientDeliveries } from "@/hooks/client/use-client-deliveries";
+import { DeliveryStatus } from "@prisma/client";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils/common";
 
-type FilterStatus = 'all' | 'active' | 'completed' | 'upcoming';
+type FilterStatus = "all" | "active" | "completed" | "upcoming";
 
 export default function ClientDeliveriesPage() {
-  const t = useTranslations('client.deliveries');
+  const t = useTranslations("client.deliveries");
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<FilterStatus>('active');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [activeTab, setActiveTab] = useState<FilterStatus>("active");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   // Récupérer les livraisons avec notre hook personnalisé
-  const { deliveries, isLoading, error, refetch, hasActiveDeliveries, pagination } =
-    useClientDeliveries({
-      status: activeTab,
-      searchQuery,
-      sortOrder,
-      page: currentPage,
-      limit: itemsPerPage,
-    });
+  const {
+    deliveries,
+    isLoading,
+    error,
+    refetch,
+    hasActiveDeliveries,
+    pagination,
+  } = useClientDeliveries({
+    status: activeTab,
+    searchQuery,
+    sortOrder,
+    page: currentPage,
+    limit: itemsPerPage,
+  });
 
   // Filtrer selon le statut actif
   const getStatusFilter = (status: FilterStatus) => {
     switch (status) {
-      case 'active':
-        return [DeliveryStatus.ACCEPTED, DeliveryStatus.PICKED_UP, DeliveryStatus.IN_TRANSIT];
-      case 'completed':
+      case "active":
+        return [
+          DeliveryStatus.ACCEPTED,
+          DeliveryStatus.PICKED_UP,
+          DeliveryStatus.IN_TRANSIT,
+        ];
+      case "completed":
         return [DeliveryStatus.DELIVERED, DeliveryStatus.CONFIRMED];
-      case 'upcoming':
+      case "upcoming":
         return [DeliveryStatus.PENDING];
       default:
         return [];
@@ -82,10 +100,15 @@ export default function ClientDeliveriesPage() {
     status: DeliveryStatus;
     estimatedArrival?: Date | string;
   }): boolean => {
-    if (delivery?.status === DeliveryStatus.IN_TRANSIT && delivery?.estimatedArrival) {
+    if (
+      delivery?.status === DeliveryStatus.IN_TRANSIT &&
+      delivery?.estimatedArrival
+    ) {
       const now = new Date();
       const eta = new Date(delivery.estimatedArrival);
-      const diffMinutes = Math.round((eta.getTime() - now.getTime()) / (1000 * 60));
+      const diffMinutes = Math.round(
+        (eta.getTime() - now.getTime()) / (1000 * 60),
+      );
       return diffMinutes <= 30 && diffMinutes >= 0;
     }
     return false;
@@ -130,23 +153,26 @@ export default function ClientDeliveriesPage() {
 
   // Formater une date
   const formatDate = (date: string | Date) => {
-    return format(new Date(date), 'PPP', { locale: fr });
+    return format(new Date(date), "PPP", { locale: fr });
   };
 
   // Formater l'heure
   const formatTime = (date: string | Date) => {
-    return format(new Date(date), 'HH:mm', { locale: fr });
+    return format(new Date(date), "HH:mm", { locale: fr });
   };
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground">{t('description')}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("description")}</p>
         </div>
-        <Button className="mt-4 sm:mt-0" onClick={() => router.push('/client/services')}>
-          {t('bookNewDelivery')}
+        <Button
+          className="mt-4 sm:mt-0"
+          onClick={() => router.push("/client/services")}
+        >
+          {t("bookNewDelivery")}
         </Button>
       </div>
 
@@ -155,10 +181,14 @@ export default function ClientDeliveriesPage() {
           <DeliveryArrivalNotice
             deliveryId={deliveries?.find(isArrivingSoon)?.id}
             onTrackClick={() =>
-              router.push(`/client/deliveries/${deliveries?.find(isArrivingSoon)?.id}`)
+              router.push(
+                `/client/deliveries/${deliveries?.find(isArrivingSoon)?.id}`,
+              )
             }
             onContactClick={() =>
-              router.push(`/client/deliveries/${deliveries?.find(isArrivingSoon)?.id}?contact=true`)
+              router.push(
+                `/client/deliveries/${deliveries?.find(isArrivingSoon)?.id}?contact=true`,
+              )
             }
           />
         </div>
@@ -166,8 +196,8 @@ export default function ClientDeliveriesPage() {
 
       <Card className="mb-6">
         <CardHeader className="pb-3">
-          <CardTitle>{t('filterTitle')}</CardTitle>
-          <CardDescription>{t('filterDescription')}</CardDescription>
+          <CardTitle>{t("filterTitle")}</CardTitle>
+          <CardDescription>{t("filterDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4">
@@ -176,29 +206,29 @@ export default function ClientDeliveriesPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder={t('searchPlaceholder')}
+                  placeholder={t("searchPlaceholder")}
                   className="pl-8"
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </form>
             <div className="flex gap-2 ml-auto">
               <Select
                 value={sortOrder}
-                onValueChange={value => setSortOrder(value as 'asc' | 'desc')}
+                onValueChange={(value) => setSortOrder(value as "asc" | "desc")}
               >
                 <SelectTrigger className="w-auto">
                   <SelectValue>
                     <div className="flex items-center">
                       <ArrowUpDown className="mr-2 h-4 w-4" />
-                      {sortOrder === 'desc' ? t('newest') : t('oldest')}
+                      {sortOrder === "desc" ? t("newest") : t("oldest")}
                     </div>
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="desc">{t('newest')}</SelectItem>
-                  <SelectItem value="asc">{t('oldest')}</SelectItem>
+                  <SelectItem value="desc">{t("newest")}</SelectItem>
+                  <SelectItem value="asc">{t("oldest")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -209,17 +239,19 @@ export default function ClientDeliveriesPage() {
       <Tabs
         defaultValue="active"
         value={activeTab}
-        onValueChange={v => {
+        onValueChange={(v) => {
           setActiveTab(v as FilterStatus);
           setCurrentPage(1);
         }}
         className="mb-6"
       >
         <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="all">{t('allDeliveries')}</TabsTrigger>
-          <TabsTrigger value="active">{t('activeDeliveries')}</TabsTrigger>
-          <TabsTrigger value="upcoming">{t('upcomingDeliveries')}</TabsTrigger>
-          <TabsTrigger value="completed">{t('completedDeliveries')}</TabsTrigger>
+          <TabsTrigger value="all">{t("allDeliveries")}</TabsTrigger>
+          <TabsTrigger value="active">{t("activeDeliveries")}</TabsTrigger>
+          <TabsTrigger value="upcoming">{t("upcomingDeliveries")}</TabsTrigger>
+          <TabsTrigger value="completed">
+            {t("completedDeliveries")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-0">
@@ -231,10 +263,16 @@ export default function ClientDeliveriesPage() {
                 <div className="rounded-full bg-red-100 p-3 mb-4">
                   <Package className="h-6 w-6 text-red-600" />
                 </div>
-                <h3 className="text-lg font-medium">{t('errorTitle')}</h3>
-                <p className="text-muted-foreground text-center mt-1">{t('errorDescription')}</p>
-                <Button variant="outline" className="mt-4" onClick={() => refetch()}>
-                  {t('retry')}
+                <h3 className="text-lg font-medium">{t("errorTitle")}</h3>
+                <p className="text-muted-foreground text-center mt-1">
+                  {t("errorDescription")}
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => refetch()}
+                >
+                  {t("retry")}
                 </Button>
               </CardContent>
             </Card>
@@ -245,31 +283,34 @@ export default function ClientDeliveriesPage() {
                   <Package className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <h3 className="text-lg font-medium">
-                  {activeTab === 'all'
-                    ? t('noDeliveries')
-                    : activeTab === 'active'
-                      ? t('noActiveDeliveries')
-                      : activeTab === 'upcoming'
-                        ? t('noUpcomingDeliveries')
-                        : t('noCompletedDeliveries')}
+                  {activeTab === "all"
+                    ? t("noDeliveries")
+                    : activeTab === "active"
+                      ? t("noActiveDeliveries")
+                      : activeTab === "upcoming"
+                        ? t("noUpcomingDeliveries")
+                        : t("noCompletedDeliveries")}
                 </h3>
                 <p className="text-muted-foreground text-center mt-1">
-                  {t('emptyStateDescription')}
+                  {t("emptyStateDescription")}
                 </p>
-                <Button className="mt-4" onClick={() => router.push('/client/services')}>
-                  {t('bookNewDelivery')}
+                <Button
+                  className="mt-4"
+                  onClick={() => router.push("/client/services")}
+                >
+                  {t("bookNewDelivery")}
                 </Button>
               </CardContent>
             </Card>
           ) : (
             <>
               <div className="space-y-4">
-                {deliveries.map(delivery => (
+                {deliveries.map((delivery) => (
                   <Card
                     key={delivery.id}
                     className={cn(
-                      'cursor-pointer hover:shadow-md transition-shadow',
-                      isArrivingSoon(delivery) && 'border-blue-300'
+                      "cursor-pointer hover:shadow-md transition-shadow",
+                      isArrivingSoon(delivery) && "border-blue-300",
                     )}
                     onClick={() => goToDeliveryDetail(delivery.id)}
                   >
@@ -279,8 +320,10 @@ export default function ClientDeliveriesPage() {
                           <Package className="h-5 w-5 mr-2 text-primary" />
                           <div>
                             <h3 className="font-semibold">
-                              {t('deliveryNumber', {
-                                number: delivery.number || delivery.id.substring(0, 6),
+                              {t("deliveryNumber", {
+                                number:
+                                  delivery.number ||
+                                  delivery.id.substring(0, 6),
                               })}
                             </h3>
                             <p className="text-sm text-muted-foreground">
@@ -296,7 +339,9 @@ export default function ClientDeliveriesPage() {
                         <div className="flex items-start gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                           <div className="flex-1">
-                            <p className="line-clamp-1 text-sm">{delivery.deliveryAddress}</p>
+                            <p className="line-clamp-1 text-sm">
+                              {delivery.deliveryAddress}
+                            </p>
                           </div>
                         </div>
 
@@ -304,7 +349,7 @@ export default function ClientDeliveriesPage() {
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
-                              {t('estimatedArrival')}:{' '}
+                              {t("estimatedArrival")}:{" "}
                               <span className="font-medium">
                                 {formatTime(delivery.estimatedArrival)}
                               </span>
@@ -313,7 +358,7 @@ export default function ClientDeliveriesPage() {
                         )}
 
                         <div className="flex justify-end items-center pt-2">
-                          <Button size="sm">{t('viewDetails')}</Button>
+                          <Button size="sm">{t("viewDetails")}</Button>
                         </div>
                       </div>
                     </CardContent>
@@ -328,16 +373,24 @@ export default function ClientDeliveriesPage() {
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
-                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                          }
                           isActive={currentPage > 1}
-                          className={currentPage <= 1 ? 'cursor-not-allowed opacity-50' : ''}
+                          className={
+                            currentPage <= 1
+                              ? "cursor-not-allowed opacity-50"
+                              : ""
+                          }
                           href="#"
                         />
                       </PaginationItem>
 
                       {pagination &&
                         pagination.totalPages > 0 &&
-                        Array.from({ length: Math.min(5, pagination.totalPages) }).map((_, i) => {
+                        Array.from({
+                          length: Math.min(5, pagination.totalPages),
+                        }).map((_, i) => {
                           // Logique pour afficher les bonnes pages en fonction de la page courante
                           let pageToShow: number;
                           if (pagination.totalPages <= 5) {
@@ -345,7 +398,10 @@ export default function ClientDeliveriesPage() {
                           } else {
                             if (currentPage <= 3) {
                               pageToShow = i + 1;
-                            } else if (currentPage >= pagination.totalPages - 2) {
+                            } else if (
+                              currentPage >=
+                              pagination.totalPages - 2
+                            ) {
                               pageToShow = pagination.totalPages - 4 + i;
                             } else {
                               pageToShow = currentPage - 2 + i;
@@ -368,13 +424,17 @@ export default function ClientDeliveriesPage() {
                       <PaginationItem>
                         <PaginationNext
                           onClick={() =>
-                            setCurrentPage(prev => Math.min(prev + 1, pagination?.totalPages || 1))
+                            setCurrentPage((prev) =>
+                              Math.min(prev + 1, pagination?.totalPages || 1),
+                            )
                           }
-                          isActive={pagination && currentPage < pagination.totalPages}
+                          isActive={
+                            pagination && currentPage < pagination.totalPages
+                          }
                           className={
                             !pagination || currentPage >= pagination.totalPages
-                              ? 'cursor-not-allowed opacity-50'
-                              : ''
+                              ? "cursor-not-allowed opacity-50"
+                              : ""
                           }
                           href="#"
                         />

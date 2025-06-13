@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Router pour admin services
@@ -10,45 +10,131 @@ export const adminServicesRouter = router({
   // Récupérer les statistiques des services
   getStats: protectedProcedure.query(async ({ ctx }) => {
     try {
-      // Mock data pour les statistiques
-      const mockStats = {
-        totalServices: 42,
-        activeServices: 35,
-        inactiveServices: 7,
-        totalCategories: 4,
-        totalRevenue: 125340.5,
-        monthlyRevenue: 12450.75,
-        averageRating: 4.3,
-        totalBookings: 1247,
-        recentServices: [
-          {
-            id: '1',
-            name: 'Livraison Express',
-            category: 'DELIVERY',
-            bookingsCount: 156,
-            revenue: 2340.44,
+      // Calculer les vraies statistiques depuis la base de données
+      const totalServices = await ctx.db.service.count();
+      const activeServices = await ctx.db.service.count({
+        where: { status: "ACTIVE" },
+      });
+      const inactiveServices = await ctx.db.service.count({
+        where: { status: "INACTIVE" },
+      });
+
+      // Compter les catégories distinctes
+      const categories = await ctx.db.service.findMany({
+        select: { category: true },
+        distinct: ["category"],
+      });
+
+      // Calculer le chiffre d'affaires depuis les réservations
+      const revenueData = await ctx.db.booking.aggregate({
+        where: {
+          status: "COMPLETED",
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), 0, 1), // Début de l'année
           },
-          {
-            id: '2',
-            name: 'Nettoyage Bureau',
-            category: 'CLEANING',
-            bookingsCount: 89,
-            revenue: 4005.0,
+        },
+        _sum: {
+          totalPrice: true,
+        },
+      });
+
+      const monthlyRevenueData = await ctx.db.booking.aggregate({
+        where: {
+          status: "COMPLETED",
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Début du mois
           },
-        ],
-        categoryStats: [
-          { category: 'DELIVERY', count: 15, revenue: 45230.5 },
-          { category: 'CLEANING', count: 12, revenue: 32140.25 },
-          { category: 'MAINTENANCE', count: 8, revenue: 28960.75 },
-          { category: 'REPAIR', count: 7, revenue: 19009.0 },
-        ],
+        },
+        _sum: {
+          totalPrice: true,
+        },
+      });
+
+      // Calculer la note moyenne
+      const avgRating = await ctx.db.review.aggregate({
+        _avg: {
+          rating: true,
+        },
+      });
+
+      // Compter le nombre total de réservations
+      const totalBookings = await ctx.db.booking.count();
+
+      // Services récents avec leurs statistiques
+      const recentServices = await ctx.db.service.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: {
+          _count: {
+            select: { bookings: true },
+          },
+          bookings: {
+            where: { status: "COMPLETED" },
+            select: { totalPrice: true },
+          },
+        },
+      });
+
+      // Statistiques par catégorie
+      const categoryStats = await ctx.db.service.groupBy({
+        by: ["category"],
+        _count: {
+          id: true,
+        },
+        orderBy: {
+          _count: {
+            id: "desc",
+          },
+        },
+      });
+
+      // Calculer le chiffre d'affaires par catégorie
+      const categoryRevenue = await Promise.all(
+        categoryStats.map(async (cat) => {
+          const revenue = await ctx.db.booking.aggregate({
+            where: {
+              service: { category: cat.category },
+              status: "COMPLETED",
+            },
+            _sum: {
+              totalPrice: true,
+            },
+          });
+          return {
+            category: cat.category,
+            count: cat._count.id,
+            revenue: revenue._sum.totalPrice || 0,
+          };
+        }),
+      );
+
+      const stats = {
+        totalServices,
+        activeServices,
+        inactiveServices,
+        totalCategories: categories.length,
+        totalRevenue: revenueData._sum.totalPrice || 0,
+        monthlyRevenue: monthlyRevenueData._sum.totalPrice || 0,
+        averageRating: avgRating._avg.rating || 0,
+        totalBookings,
+        recentServices: recentServices.map((service) => ({
+          id: service.id,
+          name: service.name,
+          category: service.category,
+          bookingsCount: service._count.bookings,
+          revenue: service.bookings.reduce(
+            (sum, booking) => sum + (booking.totalPrice || 0),
+            0,
+          ),
+        })),
+        categoryStats: categoryRevenue,
       };
 
-      return mockStats;
+      return stats;
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des statistiques',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des statistiques",
       });
     }
   }),
@@ -58,85 +144,69 @@ export const adminServicesRouter = router({
     .input(
       z.object({
         search: z.string().optional(),
-        status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'SUSPENDED']).optional(),
-        category: z.enum(['DELIVERY', 'CLEANING', 'MAINTENANCE', 'REPAIR', 'OTHER']).optional(),
+        status: z.enum(["ACTIVE", "INACTIVE", "DRAFT", "SUSPENDED"]).optional(),
+        category: z
+          .enum(["DELIVERY", "CLEANING", "MAINTENANCE", "REPAIR", "OTHER"])
+          .optional(),
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(100).default(50),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
         // TODO: Vérifier les permissions selon le rôle
         const { user } = ctx.session;
 
-        // Mock data pour le moment
-        const mockServices = [
-          {
-            id: '1',
-            name: 'Livraison Express',
-            description: 'Service de livraison rapide en moins de 2h',
-            category: 'DELIVERY' as const,
-            price: 15.99,
-            status: 'ACTIVE' as const,
-            rating: 4.5,
-            createdAt: new Date('2024-01-01'),
-            updatedAt: new Date('2024-01-01'),
-          },
-          {
-            id: '2',
-            name: 'Nettoyage Bureau',
-            description: 'Service de nettoyage professionnel pour bureaux',
-            category: 'CLEANING' as const,
-            price: 45.0,
-            status: 'ACTIVE' as const,
-            rating: 4.2,
-            createdAt: new Date('2024-01-15'),
-            updatedAt: new Date('2024-01-15'),
-          },
-          {
-            id: '3',
-            name: 'Réparation Électroménager',
-            description: "Réparation d'appareils électroménagers à domicile",
-            category: 'REPAIR' as const,
-            price: 80.0,
-            status: 'INACTIVE' as const,
-            rating: 3.8,
-            createdAt: new Date('2024-02-01'),
-            updatedAt: new Date('2024-02-01'),
-          },
-        ];
-
-        // Filtrer selon les critères
-        let filteredServices = mockServices;
+        // Récupérer les services depuis la base de données
+        const whereClause: any = {};
 
         if (input.search) {
-          filteredServices = filteredServices.filter(
-            service =>
-              service.name.toLowerCase().includes(input.search!.toLowerCase()) ||
-              service.description.toLowerCase().includes(input.search!.toLowerCase())
-          );
+          whereClause.OR = [
+            { name: { contains: input.search, mode: "insensitive" } },
+            { description: { contains: input.search, mode: "insensitive" } },
+          ];
         }
 
         if (input.status) {
-          filteredServices = filteredServices.filter(service => service.status === input.status);
+          whereClause.status = input.status;
         }
 
         if (input.category) {
-          filteredServices = filteredServices.filter(
-            service => service.category === input.category
-          );
+          whereClause.category = input.category;
         }
 
+        // Compter le total pour la pagination
+        const total = await ctx.db.service.count({ where: whereClause });
+
+        // Récupérer les services avec pagination
+        const services = await ctx.db.service.findMany({
+          where: whereClause,
+          orderBy: { createdAt: "desc" },
+          skip: (input.page - 1) * input.limit,
+          take: input.limit,
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            category: true,
+            price: true,
+            status: true,
+            rating: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+
         return {
-          services: filteredServices,
-          total: filteredServices.length,
+          services,
+          total,
           page: input.page,
           limit: input.limit,
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des services',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des services",
         });
       }
     }),
@@ -146,28 +216,38 @@ export const adminServicesRouter = router({
     .input(
       z.object({
         id: z.string(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
-        // Mock data
-        const mockService = {
-          id: input.id,
-          name: 'Livraison Express',
-          description: 'Service de livraison rapide en moins de 2h',
-          category: 'DELIVERY' as const,
-          price: 15.99,
-          status: 'ACTIVE' as const,
-          rating: 4.5,
-          createdAt: new Date('2024-01-01'),
-          updatedAt: new Date('2024-01-01'),
-        };
+        // Récupérer le service depuis la base de données
+        const service = await ctx.db.service.findUnique({
+          where: { id: input.id },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            category: true,
+            price: true,
+            status: true,
+            rating: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
 
-        return mockService;
+        if (!service) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Service non trouvé",
+          });
+        }
+
+        return service;
       } catch (error) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Service non trouvé',
+          code: "NOT_FOUND",
+          message: "Service non trouvé",
         });
       }
     }),
@@ -178,9 +258,15 @@ export const adminServicesRouter = router({
       z.object({
         name: z.string().min(1),
         description: z.string().min(1),
-        category: z.enum(['DELIVERY', 'CLEANING', 'MAINTENANCE', 'REPAIR', 'OTHER']),
+        category: z.enum([
+          "DELIVERY",
+          "CLEANING",
+          "MAINTENANCE",
+          "REPAIR",
+          "OTHER",
+        ]),
         price: z.number().min(0),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -190,7 +276,7 @@ export const adminServicesRouter = router({
         const newService = {
           id: Math.random().toString(36).substr(2, 9),
           ...input,
-          status: 'DRAFT' as const,
+          status: "DRAFT" as const,
           rating: 0,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -202,8 +288,8 @@ export const adminServicesRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la création du service',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la création du service",
         });
       }
     }),
@@ -215,9 +301,11 @@ export const adminServicesRouter = router({
         id: z.string(),
         name: z.string().min(1).optional(),
         description: z.string().min(1).optional(),
-        category: z.enum(['DELIVERY', 'CLEANING', 'MAINTENANCE', 'REPAIR', 'OTHER']).optional(),
+        category: z
+          .enum(["DELIVERY", "CLEANING", "MAINTENANCE", "REPAIR", "OTHER"])
+          .optional(),
         price: z.number().min(0).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -225,12 +313,12 @@ export const adminServicesRouter = router({
 
         return {
           success: true,
-          message: 'Service mis à jour avec succès',
+          message: "Service mis à jour avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la mise à jour du service',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la mise à jour du service",
         });
       }
     }),
@@ -240,8 +328,8 @@ export const adminServicesRouter = router({
     .input(
       z.object({
         id: z.string(),
-        status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'SUSPENDED']),
-      })
+        status: z.enum(["ACTIVE", "INACTIVE", "DRAFT", "SUSPENDED"]),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -249,12 +337,12 @@ export const adminServicesRouter = router({
 
         return {
           success: true,
-          message: 'Statut du service mis à jour',
+          message: "Statut du service mis à jour",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la mise à jour du statut',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la mise à jour du statut",
         });
       }
     }),
@@ -264,7 +352,7 @@ export const adminServicesRouter = router({
     .input(
       z.object({
         id: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -273,12 +361,12 @@ export const adminServicesRouter = router({
 
         return {
           success: true,
-          message: 'Service supprimé avec succès',
+          message: "Service supprimé avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la suppression du service',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la suppression du service",
         });
       }
     }),
@@ -289,58 +377,46 @@ export const adminServicesRouter = router({
   categories: router({
     getAll: protectedProcedure.query(async ({ ctx }) => {
       try {
-        // Mock data pour les catégories
-        const mockCategories = [
-          {
-            id: '1',
-            name: 'Livraison',
-            description: 'Services de livraison et transport',
-            color: '#3B82F6',
-            icon: 'Truck',
-            servicesCount: 15,
+        // Récupérer les catégories depuis la base de données
+        const categories = await ctx.db.serviceCategory.findMany({
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            color: true,
+            icon: true,
             isActive: true,
-            createdAt: new Date('2024-01-01'),
+            createdAt: true,
+            _count: {
+              select: {
+                services: true,
+              },
+            },
           },
-          {
-            id: '2',
-            name: 'Nettoyage',
-            description: 'Services de nettoyage professionnel',
-            color: '#10B981',
-            icon: 'Sparkles',
-            servicesCount: 8,
-            isActive: true,
-            createdAt: new Date('2024-01-05'),
+          orderBy: {
+            name: "asc",
           },
-          {
-            id: '3',
-            name: 'Maintenance',
-            description: 'Services de maintenance et entretien',
-            color: '#F59E0B',
-            icon: 'Wrench',
-            servicesCount: 12,
-            isActive: true,
-            createdAt: new Date('2024-01-10'),
-          },
-          {
-            id: '4',
-            name: 'Réparation',
-            description: 'Services de réparation technique',
-            color: '#EF4444',
-            icon: 'Settings',
-            servicesCount: 6,
-            isActive: false,
-            createdAt: new Date('2024-01-15'),
-          },
-        ];
+        });
+
+        const formattedCategories = categories.map((category) => ({
+          id: category.id,
+          name: category.name,
+          description: category.description,
+          color: category.color,
+          icon: category.icon,
+          servicesCount: category._count.services,
+          isActive: category.isActive,
+          createdAt: category.createdAt,
+        }));
 
         return {
-          categories: mockCategories,
-          total: mockCategories.length,
+          categories: formattedCategories,
+          total: categories.length,
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des catégories',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des catégories",
         });
       }
     }),
@@ -353,7 +429,7 @@ export const adminServicesRouter = router({
           description: z.string().min(1),
           color: z.string().regex(/^#[0-9A-F]{6}$/i),
           icon: z.string().min(1),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         try {
@@ -371,8 +447,8 @@ export const adminServicesRouter = router({
           };
         } catch (error) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Erreur lors de la création de la catégorie',
+            code: "BAD_REQUEST",
+            message: "Erreur lors de la création de la catégorie",
           });
         }
       }),
@@ -389,18 +465,18 @@ export const adminServicesRouter = router({
             .regex(/^#[0-9A-F]{6}$/i)
             .optional(),
           icon: z.string().min(1).optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         try {
           return {
             success: true,
-            message: 'Catégorie mise à jour avec succès',
+            message: "Catégorie mise à jour avec succès",
           };
         } catch (error) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Erreur lors de la mise à jour de la catégorie',
+            code: "BAD_REQUEST",
+            message: "Erreur lors de la mise à jour de la catégorie",
           });
         }
       }),
@@ -411,18 +487,18 @@ export const adminServicesRouter = router({
         z.object({
           id: z.string(),
           isActive: z.boolean(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         try {
           return {
             success: true,
-            message: `Catégorie ${input.isActive ? 'activée' : 'désactivée'} avec succès`,
+            message: `Catégorie ${input.isActive ? "activée" : "désactivée"} avec succès`,
           };
         } catch (error) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Erreur lors de la modification du statut',
+            code: "BAD_REQUEST",
+            message: "Erreur lors de la modification du statut",
           });
         }
       }),
@@ -432,18 +508,18 @@ export const adminServicesRouter = router({
       .input(
         z.object({
           id: z.string(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         try {
           return {
             success: true,
-            message: 'Catégorie supprimée avec succès',
+            message: "Catégorie supprimée avec succès",
           };
         } catch (error) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Erreur lors de la suppression de la catégorie',
+            code: "BAD_REQUEST",
+            message: "Erreur lors de la suppression de la catégorie",
           });
         }
       }),

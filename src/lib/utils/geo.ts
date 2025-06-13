@@ -10,7 +10,7 @@ export interface Coordinates {
 
 // Type pour les points géographiques (format GeoJSON)
 export interface GeoPoint {
-  type: 'Point';
+  type: "Point";
   coordinates: [number, number]; // [longitude, latitude] en format GeoJSON
 }
 
@@ -18,7 +18,10 @@ export interface GeoPoint {
  * Calcule la distance en mètres entre deux points GPS
  * Utilise la formule de Haversine
  */
-export const calculateDistance = (start: Coordinates, end: Coordinates): number => {
+export const calculateDistance = (
+  start: Coordinates,
+  end: Coordinates,
+): number => {
   const toRad = (value: number) => (value * Math.PI) / 180;
   const R = 6371e3; // Rayon de la terre en mètres
   const φ1 = toRad(start.latitude);
@@ -36,7 +39,10 @@ export const calculateDistance = (start: Coordinates, end: Coordinates): number 
 /**
  * Calcule le temps d'arrivée estimé en minutes
  */
-export const calculateETA = (distanceInMeters: number, speedInKmh: number): number => {
+export const calculateETA = (
+  distanceInMeters: number,
+  speedInKmh: number,
+): number => {
   // Convertir vitesse en m/s
   const speedInMetersPerSecond = (speedInKmh * 1000) / 3600;
   const timeInSeconds = distanceInMeters / speedInMetersPerSecond;
@@ -58,7 +64,7 @@ export const geoPointToCoordinates = (geoPoint: GeoPoint): Coordinates => {
  */
 export const coordinatesToGeoPoint = (coordinates: Coordinates): GeoPoint => {
   return {
-    type: 'Point',
+    type: "Point",
     coordinates: [coordinates.longitude, coordinates.latitude],
   };
 };
@@ -69,7 +75,7 @@ export const coordinatesToGeoPoint = (coordinates: Coordinates): GeoPoint => {
 export const isPointInRadius = (
   center: Coordinates,
   point: Coordinates,
-  radiusInMeters: number
+  radiusInMeters: number,
 ): boolean => {
   const distance = calculateDistance(center, point);
   return distance <= radiusInMeters;
@@ -80,11 +86,12 @@ export const isPointInRadius = (
  */
 export const calculateBounds = (
   center: Coordinates,
-  radiusInMeters: number
+  radiusInMeters: number,
 ): { southWest: Coordinates; northEast: Coordinates } => {
   // Approximation: 1 degré de latitude = 111 km, 1 degré de longitude = 111 km * cos(latitude)
   const latDelta = radiusInMeters / 111000;
-  const lngDelta = radiusInMeters / (111000 * Math.cos((center.latitude * Math.PI) / 180));
+  const lngDelta =
+    radiusInMeters / (111000 * Math.cos((center.latitude * Math.PI) / 180));
 
   return {
     southWest: {
@@ -114,19 +121,21 @@ export const formatETA = (minutes: number): string => {
   const remainingMinutes = Math.round(minutes % 60);
 
   if (remainingMinutes === 0) {
-    return `${hours} heure${hours > 1 ? 's' : ''}`;
+    return `${hours} heure${hours > 1 ? "s" : ""}`;
   }
 
-  return `${hours} heure${hours > 1 ? 's' : ''} et ${remainingMinutes} minute${remainingMinutes > 1 ? 's' : ''}`;
+  return `${hours} heure${hours > 1 ? "s" : ""} et ${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`;
 };
 
 /**
  * Détermine la condition de trafic en fonction de la vitesse
  */
-export const determineTrafficCondition = (speedInKmh: number): 'LIGHT' | 'MODERATE' | 'HEAVY' => {
-  if (speedInKmh > 40) return 'LIGHT';
-  if (speedInKmh < 20) return 'HEAVY';
-  return 'MODERATE';
+export const determineTrafficCondition = (
+  speedInKmh: number,
+): "LIGHT" | "MODERATE" | "HEAVY" => {
+  if (speedInKmh > 40) return "LIGHT";
+  if (speedInKmh < 20) return "HEAVY";
+  return "MODERATE";
 };
 
 /**
@@ -137,15 +146,20 @@ export const calculateAverageSpeed = (
     timestamp: Date;
     location: GeoPoint;
     speed?: number | null;
-  }>
+  }>,
 ): number => {
   // Si les positions ont déjà des données de vitesse, utiliser ces valeurs
   const speedsFromData = positions
-    .filter(pos => pos.speed !== null && pos.speed !== undefined && pos.speed > 0)
-    .map(pos => pos.speed as number);
+    .filter(
+      (pos) => pos.speed !== null && pos.speed !== undefined && pos.speed > 0,
+    )
+    .map((pos) => pos.speed as number);
 
   if (speedsFromData.length > 0) {
-    return speedsFromData.reduce((sum, speed) => sum + speed, 0) / speedsFromData.length;
+    return (
+      speedsFromData.reduce((sum, speed) => sum + speed, 0) /
+      speedsFromData.length
+    );
   }
 
   // Sinon, calculer les vitesses à partir des distances et des temps
@@ -164,7 +178,8 @@ export const calculateAverageSpeed = (
     const currentCoords = geoPointToCoordinates(currentPos.location);
 
     const distance = calculateDistance(prevCoords, currentCoords);
-    const timeInSeconds = (currentPos.timestamp.getTime() - prevPos.timestamp.getTime()) / 1000;
+    const timeInSeconds =
+      (currentPos.timestamp.getTime() - prevPos.timestamp.getTime()) / 1000;
 
     // Ignorer les points trop proches dans le temps ou l'espace
     if (distance > 5 && timeInSeconds > 1) {

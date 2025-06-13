@@ -4,9 +4,10 @@
  */
 
 // Exports des fichiers locaux
-export { default as PaymentHistory } from './payment-history';
-export * from './payment-history';
-export { default as PaymentMethods } from './payment-methods';
-export * from './payment-methods';
-export { default as SubscriptionManager } from './subscription-manager';
-export * from './subscription-manager';
+export { ClientInvoiceList } from "./invoice-list";
+export { default as PaymentHistory } from "./payment-history";
+export * from "./payment-history";
+export { default as PaymentMethods } from "./payment-methods";
+export * from "./payment-methods";
+export { default as SubscriptionManager } from "./subscription-manager";
+export * from "./subscription-manager";

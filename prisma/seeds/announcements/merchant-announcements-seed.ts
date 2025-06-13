@@ -4,10 +4,15 @@ import {
   AnnouncementStatus,
   AnnouncementType,
   AnnouncementPriority,
-} from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+} from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import {
+  SeedResult,
+  SeedOptions,
+  getRandomElement,
+  getRandomDate,
+} from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Seed des annonces commerçants EcoDeli
@@ -15,12 +20,12 @@ import { faker } from '@faker-js/faker';
 export async function seedMerchantAnnouncements(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('MERCHANT_ANNOUNCEMENTS');
+  logger.startSeed("MERCHANT_ANNOUNCEMENTS");
 
   const result: SeedResult = {
-    entity: 'merchant_announcements',
+    entity: "merchant_announcements",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -34,8 +39,8 @@ export async function seedMerchantAnnouncements(
 
   if (merchants.length === 0) {
     logger.warning(
-      'MERCHANT_ANNOUNCEMENTS',
-      "Aucun commerçant trouvé - exécuter d'abord les seeds utilisateurs"
+      "MERCHANT_ANNOUNCEMENTS",
+      "Aucun commerçant trouvé - exécuter d'abord les seeds utilisateurs",
     );
     return result;
   }
@@ -51,8 +56,8 @@ export async function seedMerchantAnnouncements(
 
   if (existingMerchantAnnouncements > 0 && !options.force) {
     logger.warning(
-      'MERCHANT_ANNOUNCEMENTS',
-      `${existingMerchantAnnouncements} annonces commerçants déjà présentes - utiliser force:true pour recréer`
+      "MERCHANT_ANNOUNCEMENTS",
+      `${existingMerchantAnnouncements} annonces commerçants déjà présentes - utiliser force:true pour recréer`,
     );
     result.skipped = existingMerchantAnnouncements;
     return result;
@@ -67,40 +72,47 @@ export async function seedMerchantAnnouncements(
         },
       },
     });
-    logger.database('NETTOYAGE', 'merchant announcements', 0);
+    logger.database("NETTOYAGE", "merchant announcements", 0);
   }
 
   // Trouver TechShop SARL pour créer ses annonces spécifiques
-  const techShopMerchant = merchants.find(m => m.email === 'techshop.sarl@orange.fr');
+  const techShopMerchant = merchants.find(
+    (m) => m.email === "techshop.sarl@orange.fr",
+  );
 
   // Créer les annonces spécifiques pour TechShop SARL
   if (techShopMerchant) {
     try {
       // Annonce 1 : Livraison de matériel informatique vers Lyon
-      logger.progress('MERCHANT_ANNOUNCEMENTS', 1, 2, 'Création annonce TechShop - Livraison Lyon');
+      logger.progress(
+        "MERCHANT_ANNOUNCEMENTS",
+        1,
+        2,
+        "Création annonce TechShop - Livraison Lyon",
+      );
 
       await prisma.announcement.create({
         data: {
-          title: 'Livraison matériel informatique - TechShop vers Lyon',
+          title: "Livraison matériel informatique - TechShop vers Lyon",
           description:
-            'TechShop SARL propose une livraison de matériel informatique (ordinateurs, imprimantes, accessoires) vers Lyon. Commande groupée pour optimiser les coûts. Matériel neuf sous garantie, emballage professionnel sécurisé.',
+            "TechShop SARL propose une livraison de matériel informatique (ordinateurs, imprimantes, accessoires) vers Lyon. Commande groupée pour optimiser les coûts. Matériel neuf sous garantie, emballage professionnel sécurisé.",
           status: AnnouncementStatus.PUBLISHED,
           type: AnnouncementType.PACKAGE_DELIVERY,
           priority: AnnouncementPriority.MEDIUM,
 
           // Adresses pickup - TechShop SARL
-          pickupAddress: '125 rue de Flandre',
-          pickupCity: 'Paris',
-          pickupPostalCode: '75019',
-          pickupCountry: 'France',
+          pickupAddress: "125 rue de Flandre",
+          pickupCity: "Paris",
+          pickupPostalCode: "75019",
+          pickupCountry: "France",
           pickupLatitude: 48.8948,
           pickupLongitude: 2.373,
 
           // Adresses delivery - Lyon
-          deliveryAddress: '45 rue Victor Hugo',
-          deliveryCity: 'Lyon',
-          deliveryPostalCode: '69002',
-          deliveryCountry: 'France',
+          deliveryAddress: "45 rue Victor Hugo",
+          deliveryCity: "Lyon",
+          deliveryPostalCode: "69002",
+          deliveryCountry: "France",
           deliveryLatitude: 45.764,
           deliveryLongitude: 4.8357,
 
@@ -111,8 +123,8 @@ export async function seedMerchantAnnouncements(
 
           // Prix
           suggestedPrice: 85.0,
-          priceType: 'negotiable',
-          currency: 'EUR',
+          priceType: "negotiable",
+          currency: "EUR",
 
           // Client (TechShop)
           clientId: techShopMerchant.id,
@@ -127,15 +139,15 @@ export async function seedMerchantAnnouncements(
 
       // Annonce 2 : Service "lâcher de chariot" pour clients locaux
       logger.progress(
-        'MERCHANT_ANNOUNCEMENTS',
+        "MERCHANT_ANNOUNCEMENTS",
         2,
         2,
-        'Création annonce TechShop - Service lâcher de chariot'
+        "Création annonce TechShop - Service lâcher de chariot",
       );
 
       await prisma.announcement.create({
         data: {
-          title: 'Service lâcher de chariot - TechShop Paris 19ème',
+          title: "Service lâcher de chariot - TechShop Paris 19ème",
           description:
             'TechShop SARL propose un service de "lâcher de chariot" pour nos clients locaux. Nous nous chargeons de porter vos achats informatiques lourds (UC, écrans, imprimantes) directement à votre véhicule ou point de rdv proche. Service pratique et sécurisé.',
           status: AnnouncementStatus.PUBLISHED,
@@ -143,18 +155,18 @@ export async function seedMerchantAnnouncements(
           priority: AnnouncementPriority.LOW,
 
           // Adresses pickup - TechShop SARL
-          pickupAddress: '125 rue de Flandre',
-          pickupCity: 'Paris',
-          pickupPostalCode: '75019',
-          pickupCountry: 'France',
+          pickupAddress: "125 rue de Flandre",
+          pickupCity: "Paris",
+          pickupPostalCode: "75019",
+          pickupCountry: "France",
           pickupLatitude: 48.8948,
           pickupLongitude: 2.373,
 
           // Zone de service - Quartier Paris 19ème
-          deliveryAddress: 'Zone Paris 19ème arrondissement',
-          deliveryCity: 'Paris',
-          deliveryPostalCode: '75019',
-          deliveryCountry: 'France',
+          deliveryAddress: "Zone Paris 19ème arrondissement",
+          deliveryCity: "Paris",
+          deliveryPostalCode: "75019",
+          deliveryCountry: "France",
           deliveryLatitude: 48.88,
           deliveryLongitude: 2.37,
 
@@ -165,8 +177,8 @@ export async function seedMerchantAnnouncements(
 
           // Prix
           suggestedPrice: 15.0,
-          priceType: 'fixed',
-          currency: 'EUR',
+          priceType: "fixed",
+          currency: "EUR",
 
           // Client (TechShop)
           clientId: techShopMerchant.id,
@@ -178,11 +190,14 @@ export async function seedMerchantAnnouncements(
       });
 
       result.created++;
-      logger.success('MERCHANT_ANNOUNCEMENTS', '✅ Annonces spécifiques TechShop SARL créées');
+      logger.success(
+        "MERCHANT_ANNOUNCEMENTS",
+        "✅ Annonces spécifiques TechShop SARL créées",
+      );
     } catch (error: any) {
       logger.error(
-        'MERCHANT_ANNOUNCEMENTS',
-        `❌ Erreur création annonces TechShop: ${error.message}`
+        "MERCHANT_ANNOUNCEMENTS",
+        `❌ Erreur création annonces TechShop: ${error.message}`,
       );
       result.errors += 2;
     }
@@ -190,107 +205,110 @@ export async function seedMerchantAnnouncements(
 
   // Statuts d'annonce possibles
   const announcementStatuses = [
-    'DRAFT',
-    'PUBLISHED',
-    'IN_APPLICATION',
-    'ASSIGNED',
-    'IN_PROGRESS',
-    'DELIVERED',
-    'COMPLETED',
-    'PAID',
-    'CANCELLED',
+    "DRAFT",
+    "PUBLISHED",
+    "IN_APPLICATION",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "DELIVERED",
+    "COMPLETED",
+    "PAID",
+    "CANCELLED",
   ];
 
   // Types d'annonce pour commerçants
-  const announcementTypes = ['PACKAGE_DELIVERY', 'GROCERY_SHOPPING'];
+  const announcementTypes = ["PACKAGE_DELIVERY", "GROCERY_SHOPPING"];
 
   // Priorités
-  const priorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+  const priorities = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 
   // Villes françaises avec coordonnées (même liste que client-announcements pour cohérence)
   const cities = [
-    { name: 'Paris', lat: 48.8566, lng: 2.3522, postal: '75001' },
-    { name: 'Lyon', lat: 45.764, lng: 4.8357, postal: '69001' },
-    { name: 'Marseille', lat: 43.2965, lng: 5.3698, postal: '13001' },
-    { name: 'Toulouse', lat: 43.6047, lng: 1.4442, postal: '31000' },
-    { name: 'Nice', lat: 43.7102, lng: 7.262, postal: '06000' },
-    { name: 'Bordeaux', lat: 44.8378, lng: -0.5792, postal: '33000' },
-    { name: 'Lille', lat: 50.6292, lng: 3.0573, postal: '59000' },
-    { name: 'Strasbourg', lat: 48.5734, lng: 7.7521, postal: '67000' },
-    { name: 'Nantes', lat: 47.2184, lng: -1.5536, postal: '44000' },
-    { name: 'Montpellier', lat: 43.611, lng: 3.8767, postal: '34000' },
+    { name: "Paris", lat: 48.8566, lng: 2.3522, postal: "75001" },
+    { name: "Lyon", lat: 45.764, lng: 4.8357, postal: "69001" },
+    { name: "Marseille", lat: 43.2965, lng: 5.3698, postal: "13001" },
+    { name: "Toulouse", lat: 43.6047, lng: 1.4442, postal: "31000" },
+    { name: "Nice", lat: 43.7102, lng: 7.262, postal: "06000" },
+    { name: "Bordeaux", lat: 44.8378, lng: -0.5792, postal: "33000" },
+    { name: "Lille", lat: 50.6292, lng: 3.0573, postal: "59000" },
+    { name: "Strasbourg", lat: 48.5734, lng: 7.7521, postal: "67000" },
+    { name: "Nantes", lat: 47.2184, lng: -1.5536, postal: "44000" },
+    { name: "Montpellier", lat: 43.611, lng: 3.8767, postal: "34000" },
   ];
 
   // Types de commerce et leurs spécificités
   const businessSpecifics = {
     Restaurant: {
-      types: ['PACKAGE_DELIVERY'],
-      keywords: ['repas', 'menu', 'plat', 'commande'],
-      timeSlots: ['11:30-14:00', '18:30-22:00'],
+      types: ["PACKAGE_DELIVERY"],
+      keywords: ["repas", "menu", "plat", "commande"],
+      timeSlots: ["11:30-14:00", "18:30-22:00"],
       avgPrice: [8, 35],
     },
     Boulangerie: {
-      types: ['PACKAGE_DELIVERY'],
-      keywords: ['pain', 'viennoiserie', 'pâtisserie', 'sandwich'],
-      timeSlots: ['07:00-19:00'],
+      types: ["PACKAGE_DELIVERY"],
+      keywords: ["pain", "viennoiserie", "pâtisserie", "sandwich"],
+      timeSlots: ["07:00-19:00"],
       avgPrice: [3, 25],
     },
     Pharmacie: {
-      types: ['PACKAGE_DELIVERY'],
-      keywords: ['médicament', 'ordonnance', 'produit de santé'],
-      timeSlots: ['09:00-19:00'],
+      types: ["PACKAGE_DELIVERY"],
+      keywords: ["médicament", "ordonnance", "produit de santé"],
+      timeSlots: ["09:00-19:00"],
       avgPrice: [5, 50],
     },
     Épicerie: {
-      types: ['GROCERY_SHOPPING', 'PACKAGE_DELIVERY'],
-      keywords: ['courses', 'produits frais', 'épicerie'],
-      timeSlots: ['08:00-20:00'],
+      types: ["GROCERY_SHOPPING", "PACKAGE_DELIVERY"],
+      keywords: ["courses", "produits frais", "épicerie"],
+      timeSlots: ["08:00-20:00"],
       avgPrice: [10, 80],
     },
     Superette: {
-      types: ['GROCERY_SHOPPING', 'PACKAGE_DELIVERY'],
-      keywords: ['courses', 'alimentaire', 'produits du quotidien'],
-      timeSlots: ['08:00-21:00'],
+      types: ["GROCERY_SHOPPING", "PACKAGE_DELIVERY"],
+      keywords: ["courses", "alimentaire", "produits du quotidien"],
+      timeSlots: ["08:00-21:00"],
       avgPrice: [15, 120],
     },
   };
 
   // Nombre d'annonces à créer (3-8 par commerçant actif)
-  const activeMerchants = merchants.filter(m => m.status === 'ACTIVE' && m.merchant?.isVerified);
+  const activeMerchants = merchants.filter(
+    (m) => m.status === "ACTIVE" && m.merchant?.isVerified,
+  );
   const totalAnnouncements = Math.min(
     activeMerchants.length * faker.number.int({ min: 3, max: 8 }),
-    800
+    800,
   );
 
   for (let i = 0; i < totalAnnouncements; i++) {
     try {
       logger.progress(
-        'MERCHANT_ANNOUNCEMENTS',
+        "MERCHANT_ANNOUNCEMENTS",
         i + 1,
         totalAnnouncements,
-        `Création annonce commerçant ${i + 1}`
+        `Création annonce commerçant ${i + 1}`,
       );
 
       // Sélectionner un commerçant aléatoire (avec préférence pour les actifs vérifiés)
       const merchant = getRandomElement(merchants);
-      const isActiveMerchant = merchant.status === 'ACTIVE' && merchant.merchant?.isVerified;
-      const businessType = merchant.merchant?.businessType || 'Épicerie';
+      const isActiveMerchant =
+        merchant.status === "ACTIVE" && merchant.merchant?.isVerified;
+      const businessType = merchant.merchant?.businessType || "Épicerie";
 
       // Déterminer le statut selon le profil commerçant
       let status: string;
       if (isActiveMerchant) {
         // Commerçant actif vérifié : variété de statuts avec majorité publiées/assignées
         status = getRandomElement([
-          'PUBLISHED',
-          'PUBLISHED',
-          'ASSIGNED',
-          'IN_PROGRESS',
-          'COMPLETED',
-          'DRAFT',
+          "PUBLISHED",
+          "PUBLISHED",
+          "ASSIGNED",
+          "IN_PROGRESS",
+          "COMPLETED",
+          "DRAFT",
         ]);
       } else {
         // Commerçant non vérifié : majorité brouillon/annulé
-        status = getRandomElement(['CANCELLED', 'DRAFT', 'DRAFT']);
+        status = getRandomElement(["CANCELLED", "DRAFT", "DRAFT"]);
       }
 
       // Sélectionner le type d'annonce selon le commerce
@@ -302,10 +320,12 @@ export async function seedMerchantAnnouncements(
 
       // Générer les adresses (pickup = adresse commerçant, delivery = zone de livraison)
       const pickupCity = getRandomElement(cities);
-      const deliveryCity = Math.random() > 0.8 ? getRandomElement(cities) : pickupCity; // 80% même ville
+      const deliveryCity =
+        Math.random() > 0.8 ? getRandomElement(cities) : pickupCity; // 80% même ville
 
       const pickupAddress =
-        merchant.merchant?.address || generateBusinessAddress(pickupCity, businessType);
+        merchant.merchant?.address ||
+        generateBusinessAddress(pickupCity, businessType);
       const deliveryAddress = generateDeliveryZoneAddress(deliveryCity);
 
       // Générer les dates selon le type et statut
@@ -313,17 +333,21 @@ export async function seedMerchantAnnouncements(
       let pickupDate = null;
       let deliveryDate = null;
 
-      if (['PUBLISHED', 'IN_APPLICATION', 'ASSIGNED', 'IN_PROGRESS'].includes(status)) {
+      if (
+        ["PUBLISHED", "IN_APPLICATION", "ASSIGNED", "IN_PROGRESS"].includes(
+          status,
+        )
+      ) {
         // Annonces actives : dates futures avec créneaux business
         pickupDate = generateBusinessPickupDate(businessInfo.timeSlots);
 
-        if (type === 'PACKAGE_DELIVERY') {
+        if (type === "PACKAGE_DELIVERY") {
           deliveryDate = faker.date.between({
             from: pickupDate,
             to: new Date(pickupDate.getTime() + 4 * 60 * 60 * 1000), // 4h après pickup max
           });
         }
-      } else if (['DELIVERED', 'COMPLETED', 'PAID'].includes(status)) {
+      } else if (["DELIVERED", "COMPLETED", "PAID"].includes(status)) {
         // Annonces terminées : dates passées
         pickupDate = faker.date.recent({ days: 30 });
         deliveryDate = faker.date.between({
@@ -334,7 +358,12 @@ export async function seedMerchantAnnouncements(
 
       // Générer le prix selon le type et commerce
       const distance = calculateDistance(pickupCity, deliveryCity);
-      const price = generateMerchantPrice(businessType, type, distance, businessInfo.avgPrice);
+      const price = generateMerchantPrice(
+        businessType,
+        type,
+        distance,
+        businessInfo.avgPrice,
+      );
 
       // Générer titre et description selon le commerce
       const { title, description } = generateMerchantAnnouncementContent(
@@ -342,7 +371,7 @@ export async function seedMerchantAnnouncements(
         type,
         pickupCity.name,
         deliveryCity.name,
-        businessInfo.keywords
+        businessInfo.keywords,
       );
 
       // Créer l'annonce commerçant
@@ -358,17 +387,21 @@ export async function seedMerchantAnnouncements(
           pickupAddress,
           pickupCity: pickupCity.name,
           pickupPostalCode: pickupCity.postal,
-          pickupCountry: 'France',
-          pickupLatitude: pickupCity.lat + faker.number.float({ min: -0.01, max: 0.01 }),
-          pickupLongitude: pickupCity.lng + faker.number.float({ min: -0.01, max: 0.01 }),
+          pickupCountry: "France",
+          pickupLatitude:
+            pickupCity.lat + faker.number.float({ min: -0.01, max: 0.01 }),
+          pickupLongitude:
+            pickupCity.lng + faker.number.float({ min: -0.01, max: 0.01 }),
 
           // Adresses delivery (zone de livraison)
           deliveryAddress,
           deliveryCity: deliveryCity.name,
           deliveryPostalCode: deliveryCity.postal,
-          deliveryCountry: 'France',
-          deliveryLatitude: deliveryCity.lat + faker.number.float({ min: -0.01, max: 0.01 }),
-          deliveryLongitude: deliveryCity.lng + faker.number.float({ min: -0.01, max: 0.01 }),
+          deliveryCountry: "France",
+          deliveryLatitude:
+            deliveryCity.lat + faker.number.float({ min: -0.01, max: 0.01 }),
+          deliveryLongitude:
+            deliveryCity.lng + faker.number.float({ min: -0.01, max: 0.01 }),
 
           // Dates
           pickupDate,
@@ -377,8 +410,8 @@ export async function seedMerchantAnnouncements(
 
           // Prix
           suggestedPrice: price,
-          priceType: getRandomElement(['fixed', 'negotiable']),
-          currency: 'EUR',
+          priceType: getRandomElement(["fixed", "negotiable"]),
+          currency: "EUR",
 
           // Client = commerçant
           clientId: merchant.id,
@@ -392,8 +425,8 @@ export async function seedMerchantAnnouncements(
       result.created++;
     } catch (error: any) {
       logger.error(
-        'MERCHANT_ANNOUNCEMENTS',
-        `❌ Erreur création annonce commerçant ${i + 1}: ${error.message}`
+        "MERCHANT_ANNOUNCEMENTS",
+        `❌ Erreur création annonce commerçant ${i + 1}: ${error.message}`,
       );
       result.errors++;
     }
@@ -411,49 +444,61 @@ export async function seedMerchantAnnouncements(
 
   if (finalAnnouncements.length >= totalAnnouncements - result.errors) {
     logger.validation(
-      'MERCHANT_ANNOUNCEMENTS',
-      'PASSED',
-      `${finalAnnouncements.length} annonces commerçants créées avec succès`
+      "MERCHANT_ANNOUNCEMENTS",
+      "PASSED",
+      `${finalAnnouncements.length} annonces commerçants créées avec succès`,
     );
   } else {
     logger.validation(
-      'MERCHANT_ANNOUNCEMENTS',
-      'FAILED',
-      `Attendu: ${totalAnnouncements}, Créé: ${finalAnnouncements.length}`
+      "MERCHANT_ANNOUNCEMENTS",
+      "FAILED",
+      `Attendu: ${totalAnnouncements}, Créé: ${finalAnnouncements.length}`,
     );
   }
 
   // Statistiques par statut
-  const byStatus = finalAnnouncements.reduce((acc: Record<string, number>, announcement) => {
-    acc[announcement.status] = (acc[announcement.status] || 0) + 1;
-    return acc;
-  }, {});
+  const byStatus = finalAnnouncements.reduce(
+    (acc: Record<string, number>, announcement) => {
+      acc[announcement.status] = (acc[announcement.status] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
-  logger.info('MERCHANT_ANNOUNCEMENTS', `📊 Répartition par statut: ${JSON.stringify(byStatus)}`);
+  logger.info(
+    "MERCHANT_ANNOUNCEMENTS",
+    `📊 Répartition par statut: ${JSON.stringify(byStatus)}`,
+  );
 
   // Statistiques par type
-  const byType = finalAnnouncements.reduce((acc: Record<string, number>, announcement) => {
-    acc[announcement.type] = (acc[announcement.type] || 0) + 1;
-    return acc;
-  }, {});
+  const byType = finalAnnouncements.reduce(
+    (acc: Record<string, number>, announcement) => {
+      acc[announcement.type] = (acc[announcement.type] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
-  logger.info('MERCHANT_ANNOUNCEMENTS', `📦 Répartition par type: ${JSON.stringify(byType)}`);
+  logger.info(
+    "MERCHANT_ANNOUNCEMENTS",
+    `📦 Répartition par type: ${JSON.stringify(byType)}`,
+  );
 
   // Statistiques des annonces actives
-  const activeAnnouncements = finalAnnouncements.filter(a =>
-    ['PUBLISHED', 'IN_APPLICATION', 'ASSIGNED'].includes(a.status)
+  const activeAnnouncements = finalAnnouncements.filter((a) =>
+    ["PUBLISHED", "IN_APPLICATION", "ASSIGNED"].includes(a.status),
   );
   logger.info(
-    'MERCHANT_ANNOUNCEMENTS',
-    `✅ Annonces actives: ${activeAnnouncements.length} (${Math.round((activeAnnouncements.length / finalAnnouncements.length) * 100)}%)`
+    "MERCHANT_ANNOUNCEMENTS",
+    `✅ Annonces actives: ${activeAnnouncements.length} (${Math.round((activeAnnouncements.length / finalAnnouncements.length) * 100)}%)`,
   );
 
   // Prix moyen par type de commerce
   const avgPrices = finalAnnouncements
-    .filter(a => a.suggestedPrice)
+    .filter((a) => a.suggestedPrice)
     .reduce((acc: Record<string, { total: number; count: number }>, a) => {
       const merchant = a.client;
-      const businessType = (merchant as any).merchant?.businessType || 'Autre';
+      const businessType = (merchant as any).merchant?.businessType || "Autre";
       if (!acc[businessType]) acc[businessType] = { total: 0, count: 0 };
       acc[businessType].total += Number(a.suggestedPrice) || 0;
       acc[businessType].count++;
@@ -463,12 +508,12 @@ export async function seedMerchantAnnouncements(
   Object.entries(avgPrices).forEach(([type, data]) => {
     const avg = (data.total / data.count).toFixed(2);
     logger.info(
-      'MERCHANT_ANNOUNCEMENTS',
-      `💰 Prix moyen ${type}: ${avg}€ (${data.count} annonces)`
+      "MERCHANT_ANNOUNCEMENTS",
+      `💰 Prix moyen ${type}: ${avg}€ (${data.count} annonces)`,
     );
   });
 
-  logger.endSeed('MERCHANT_ANNOUNCEMENTS', result);
+  logger.endSeed("MERCHANT_ANNOUNCEMENTS", result);
   return result;
 }
 
@@ -476,19 +521,25 @@ export async function seedMerchantAnnouncements(
  * Génère une adresse commerciale réaliste
  */
 function generateBusinessAddress(city: any, businessType: string): string {
-  const streetTypes = ['rue', 'avenue', 'boulevard', 'place'];
+  const streetTypes = ["rue", "avenue", "boulevard", "place"];
   const businessStreets = {
-    Restaurant: ['du Commerce', 'de la République', 'Victor Hugo', 'du Marché'],
-    Boulangerie: ['de la Boulangerie', 'des Artisans', 'du Four', 'de la Place'],
-    Pharmacie: ['de la Pharmacie', 'de la Santé', 'Pasteur', 'de la Croix'],
-    Épicerie: ["de l'Épicerie", 'du Commerce', 'des Commerçants', 'du Marché'],
-    Superette: ['du Shopping', 'du Centre', 'Commerciale', 'des Halles'],
+    Restaurant: ["du Commerce", "de la République", "Victor Hugo", "du Marché"],
+    Boulangerie: [
+      "de la Boulangerie",
+      "des Artisans",
+      "du Four",
+      "de la Place",
+    ],
+    Pharmacie: ["de la Pharmacie", "de la Santé", "Pasteur", "de la Croix"],
+    Épicerie: ["de l'Épicerie", "du Commerce", "des Commerçants", "du Marché"],
+    Superette: ["du Shopping", "du Centre", "Commerciale", "des Halles"],
   };
 
   const number = faker.number.int({ min: 1, max: 200 });
   const streetType = getRandomElement(streetTypes);
   const streetName = getRandomElement(
-    businessStreets[businessType as keyof typeof businessStreets] || businessStreets.Épicerie
+    businessStreets[businessType as keyof typeof businessStreets] ||
+      businessStreets.Épicerie,
   );
 
   return `${number} ${streetType} ${streetName}`;
@@ -498,16 +549,23 @@ function generateBusinessAddress(city: any, businessType: string): string {
  * Génère une adresse dans la zone de livraison
  */
 function generateDeliveryZoneAddress(city: any): string {
-  const streetTypes = ['rue', 'avenue', 'boulevard', 'place', 'impasse', 'allée'];
+  const streetTypes = [
+    "rue",
+    "avenue",
+    "boulevard",
+    "place",
+    "impasse",
+    "allée",
+  ];
   const streetNames = [
-    'des Clients',
-    'de la Livraison',
-    'du Domicile',
-    'des Résidents',
-    'de la Maison',
-    'du Foyer',
+    "des Clients",
+    "de la Livraison",
+    "du Domicile",
+    "des Résidents",
+    "de la Maison",
+    "du Foyer",
     "de l'Habitation",
-    'des Habitants',
+    "des Habitants",
   ];
 
   const number = faker.number.int({ min: 1, max: 300 });
@@ -522,9 +580,9 @@ function generateDeliveryZoneAddress(city: any): string {
  */
 function generateBusinessPickupDate(timeSlots: string[]): Date {
   const timeSlot = getRandomElement(timeSlots);
-  const [startTime, endTime] = timeSlot.split('-');
-  const [startHour, startMinute] = startTime.split(':').map(Number);
-  const [endHour, endMinute] = endTime.split(':').map(Number);
+  const [startTime, endTime] = timeSlot.split("-");
+  const [startHour, startMinute] = startTime.split(":").map(Number);
+  const [endHour, endMinute] = endTime.split(":").map(Number);
 
   // Date dans les 7 prochains jours
   const baseDate = faker.date.between({
@@ -548,25 +606,25 @@ function generateMerchantAnnouncementContent(
   type: string,
   pickupCity: string,
   deliveryCity: string,
-  keywords: string[]
+  keywords: string[],
 ): { title: string; description: string } {
   const keyword = getRandomElement(keywords);
 
-  if (type === 'PACKAGE_DELIVERY') {
+  if (type === "PACKAGE_DELIVERY") {
     switch (businessType) {
-      case 'Restaurant':
+      case "Restaurant":
         return {
           title: `Livraison repas ${pickupCity} → ${deliveryCity}`,
           description: `Livraison de ${keyword} préparés avec soin. Commande prête à récupérer, livraison rapide souhaitée. Maintien température requis.`,
         };
 
-      case 'Boulangerie':
+      case "Boulangerie":
         return {
           title: `Livraison boulangerie ${pickupCity} → ${deliveryCity}`,
           description: `Livraison de ${keyword} frais du jour. Produits emballés, prêts à la livraison. Client régulier, livraison de confiance.`,
         };
 
-      case 'Pharmacie':
+      case "Pharmacie":
         return {
           title: `Livraison pharmacie ${pickupCity} → ${deliveryCity}`,
           description: `Livraison de ${keyword} avec ordonnance. Respect confidentialité et délais. Produits préparés et sécurisés.`,
@@ -600,7 +658,10 @@ function calculateDistance(city1: any, city2: any): number {
 
   const a =
     Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+    Math.cos(lat1) *
+      Math.cos(lat2) *
+      Math.sin(deltaLng / 2) *
+      Math.sin(deltaLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return Math.round(6371 * c); // Distance en km
@@ -613,13 +674,16 @@ function generateMerchantPrice(
   businessType: string,
   type: string,
   distance: number,
-  avgPriceRange: number[]
+  avgPriceRange: number[],
 ): number {
   let basePrice = 0;
 
-  if (type === 'PACKAGE_DELIVERY') {
+  if (type === "PACKAGE_DELIVERY") {
     // Prix basé sur la valeur moyenne des produits + frais de livraison
-    const productValue = faker.number.float({ min: avgPriceRange[0], max: avgPriceRange[1] });
+    const productValue = faker.number.float({
+      min: avgPriceRange[0],
+      max: avgPriceRange[1],
+    });
     const deliveryFee = 5 + distance * 0.3;
     basePrice = productValue + deliveryFee;
   } else {
@@ -642,7 +706,8 @@ function generateMerchantPrice(
     Boulangerie: 0.8,
   };
 
-  basePrice *= businessMultiplier[businessType as keyof typeof businessMultiplier] || 1.0;
+  basePrice *=
+    businessMultiplier[businessType as keyof typeof businessMultiplier] || 1.0;
 
   // Variabilité finale
   basePrice *= faker.number.float({ min: 0.85, max: 1.15 });
@@ -655,9 +720,9 @@ function generateMerchantPrice(
  */
 export async function validateMerchantAnnouncements(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des annonces commerçants...');
+  logger.info("VALIDATION", "🔍 Validation des annonces commerçants...");
 
   let isValid = true;
 
@@ -676,53 +741,56 @@ export async function validateMerchantAnnouncements(
   });
 
   if (merchantAnnouncements.length === 0) {
-    logger.error('VALIDATION', '❌ Aucune annonce commerçant trouvée');
+    logger.error("VALIDATION", "❌ Aucune annonce commerçant trouvée");
     isValid = false;
   } else {
     logger.success(
-      'VALIDATION',
-      `✅ ${merchantAnnouncements.length} annonces commerçants trouvées pour ${merchantsCount} commerçants`
+      "VALIDATION",
+      `✅ ${merchantAnnouncements.length} annonces commerçants trouvées pour ${merchantsCount} commerçants`,
     );
   }
 
   // Vérifier la cohérence des dates
   const invalidDates = merchantAnnouncements.filter(
-    a => a.pickupDate && a.deliveryDate && a.pickupDate > a.deliveryDate
+    (a) => a.pickupDate && a.deliveryDate && a.pickupDate > a.deliveryDate,
   );
 
   if (invalidDates.length > 0) {
     logger.error(
-      'VALIDATION',
-      `❌ ${invalidDates.length} annonces commerçants avec dates incohérentes`
+      "VALIDATION",
+      `❌ ${invalidDates.length} annonces commerçants avec dates incohérentes`,
     );
     isValid = false;
   }
 
   // Vérifier que les annonces sont bien créées par des commerçants
   const nonMerchantAnnouncements = merchantAnnouncements.filter(
-    a => a.client.role !== UserRole.MERCHANT
+    (a) => a.client.role !== UserRole.MERCHANT,
   );
 
   if (nonMerchantAnnouncements.length > 0) {
     logger.error(
-      'VALIDATION',
-      `❌ ${nonMerchantAnnouncements.length} annonces créées par des non-commerçants`
+      "VALIDATION",
+      `❌ ${nonMerchantAnnouncements.length} annonces créées par des non-commerçants`,
     );
     isValid = false;
   }
 
   // Statistiques des annonces actives par commerçants vérifiés
   const verifiedMerchantAnnouncements = merchantAnnouncements.filter(
-    a =>
-      ['PUBLISHED', 'IN_APPLICATION', 'ASSIGNED'].includes(a.status) &&
-      (a.client as any).merchant?.isVerified
+    (a) =>
+      ["PUBLISHED", "IN_APPLICATION", "ASSIGNED"].includes(a.status) &&
+      (a.client as any).merchant?.isVerified,
   );
 
   logger.info(
-    'VALIDATION',
-    `✅ Annonces actives de commerçants vérifiés: ${verifiedMerchantAnnouncements.length}`
+    "VALIDATION",
+    `✅ Annonces actives de commerçants vérifiés: ${verifiedMerchantAnnouncements.length}`,
   );
 
-  logger.success('VALIDATION', '✅ Validation des annonces commerçants terminée');
+  logger.success(
+    "VALIDATION",
+    "✅ Validation des annonces commerçants terminée",
+  );
   return isValid;
 }

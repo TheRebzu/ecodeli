@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react';
-import { api } from '@/trpc/react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useState, useCallback } from "react";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 /**
  * Type pour les options du hook useInvoices
@@ -65,35 +65,35 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
     {
       enabled: initialFetch,
       refetchInterval: refreshInterval > 0 ? refreshInterval : undefined,
-    }
+    },
   );
 
   // Mutation pour télécharger une facture
   const downloadInvoiceMutation = api.billing.downloadInvoice.useMutation({
-    onSuccess: data => {
+    onSuccess: (data) => {
       if (data.downloadUrl) {
         // Déclencher le téléchargement
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = data.downloadUrl;
-        link.download = data.filename || 'facture.pdf';
+        link.download = data.filename || "facture.pdf";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
-        toast.success('Facture téléchargée avec succès');
+        toast.success("Facture téléchargée avec succès");
       } else {
-        toast.error('Impossible de télécharger la facture');
+        toast.error("Impossible de télécharger la facture");
       }
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur lors du téléchargement: ${error.message}`);
     },
   });
 
   // Mutation pour payer une facture
   const payInvoiceMutation = api.billing.payInvoice.useMutation({
-    onSuccess: data => {
-      toast.success('Paiement initié avec succès');
+    onSuccess: (data) => {
+      toast.success("Paiement initié avec succès");
 
       if (data.redirectUrl) {
         router.push(data.redirectUrl);
@@ -102,31 +102,31 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
         refetch();
       }
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur lors du paiement: ${error.message}`);
     },
   });
 
   // Mutation pour exporter les factures
   const exportInvoicesMutation = api.billing.exportInvoices.useMutation({
-    onSuccess: data => {
+    onSuccess: (data) => {
       setIsExporting(false);
 
       if (data.downloadUrl) {
         // Déclencher le téléchargement
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = data.downloadUrl;
-        link.download = data.filename || 'factures.zip';
+        link.download = data.filename || "factures.zip";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
-        toast.success('Factures exportées avec succès');
+        toast.success("Factures exportées avec succès");
       } else {
         toast.error("Impossible d'exporter les factures");
       }
     },
-    onError: error => {
+    onError: (error) => {
       setIsExporting(false);
       toast.error(`Erreur lors de l'export: ${error.message}`);
     },
@@ -139,7 +139,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
     (invoiceId: string) => {
       downloadInvoiceMutation.mutate({ invoiceId });
     },
-    [downloadInvoiceMutation]
+    [downloadInvoiceMutation],
   );
 
   /**
@@ -152,7 +152,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
         redirectUrl: redirectAfterPayment,
       });
     },
-    [payInvoiceMutation]
+    [payInvoiceMutation],
   );
 
   /**
@@ -174,22 +174,27 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
    * Filtre les factures
    */
   const filterInvoices = useCallback(
-    (newFilters: { status?: string; startDate?: Date; endDate?: Date; search?: string }) => {
-      setFilters(prev => ({ ...prev, ...newFilters }));
+    (newFilters: {
+      status?: string;
+      startDate?: Date;
+      endDate?: Date;
+      search?: string;
+    }) => {
+      setFilters((prev) => ({ ...prev, ...newFilters }));
       setCurrentPage(1); // Retour à la première page lors du filtrage
     },
-    []
+    [],
   );
 
   /**
    * Exporte les factures sélectionnées
    */
   const exportInvoices = useCallback(
-    (invoiceIds: string[], format: 'PDF' | 'CSV' = 'PDF') => {
+    (invoiceIds: string[], format: "PDF" | "CSV" = "PDF") => {
       setIsExporting(true);
       exportInvoicesMutation.mutate({ invoiceIds, format });
     },
-    [exportInvoicesMutation]
+    [exportInvoicesMutation],
   );
 
   /**
@@ -200,11 +205,11 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
       const result = await refetch();
       return result.data;
     } catch (error) {
-      console.error('Erreur lors du rafraîchissement des factures:', error);
+      console.error("Erreur lors du rafraîchissement des factures:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'Une erreur est survenue lors du rafraîchissement des factures';
+          : "Une erreur est survenue lors du rafraîchissement des factures";
 
       toast.error(errorMessage);
       throw error;
@@ -244,7 +249,11 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
  * @returns Données et fonctions pour la gestion des abonnements
  */
 export function useSubscription(options: UseSubscriptionOptions = {}) {
-  const { refreshInterval = 0, initialFetch = true, onSubscriptionChange } = options;
+  const {
+    refreshInterval = 0,
+    initialFetch = true,
+    onSubscriptionChange,
+  } = options;
 
   const router = useRouter();
   const [isChangingPlan, setIsChangingPlan] = useState(false);
@@ -259,7 +268,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
   } = api.billing.getActiveSubscription.useQuery(undefined, {
     enabled: initialFetch,
     refetchInterval: refreshInterval > 0 ? refreshInterval : undefined,
-    onSuccess: data => {
+    onSuccess: (data) => {
       if (onSubscriptionChange && data) {
         onSubscriptionChange(data);
       }
@@ -274,48 +283,51 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
 
   // Mutation pour changer de forfait
   const changePlanMutation = api.billing.changePlan.useMutation({
-    onSuccess: data => {
+    onSuccess: (data) => {
       setIsChangingPlan(false);
 
       if (data.requiresPayment && data.redirectUrl) {
-        toast.success('Vous allez être redirigé vers la page de paiement');
+        toast.success("Vous allez être redirigé vers la page de paiement");
         router.push(data.redirectUrl);
       } else {
-        toast.success('Forfait mis à jour avec succès');
+        toast.success("Forfait mis à jour avec succès");
         refetch();
       }
     },
-    onError: error => {
+    onError: (error) => {
       setIsChangingPlan(false);
       toast.error(`Erreur lors du changement de forfait: ${error.message}`);
     },
   });
 
   // Mutation pour annuler l'abonnement
-  const cancelSubscriptionMutation = api.billing.cancelSubscription.useMutation({
-    onSuccess: () => {
-      setIsCancel(false);
-      toast.success(
-        "Abonnement annulé avec succès. Il restera actif jusqu'à la fin de la période en cours."
-      );
-      refetch();
+  const cancelSubscriptionMutation = api.billing.cancelSubscription.useMutation(
+    {
+      onSuccess: () => {
+        setIsCancel(false);
+        toast.success(
+          "Abonnement annulé avec succès. Il restera actif jusqu'à la fin de la période en cours.",
+        );
+        refetch();
+      },
+      onError: (error) => {
+        setIsCancel(false);
+        toast.error(`Erreur lors de l'annulation: ${error.message}`);
+      },
     },
-    onError: error => {
-      setIsCancel(false);
-      toast.error(`Erreur lors de l'annulation: ${error.message}`);
-    },
-  });
+  );
 
   // Mutation pour réactiver un abonnement annulé
-  const reactivateSubscriptionMutation = api.billing.reactivateSubscription.useMutation({
-    onSuccess: () => {
-      toast.success('Abonnement réactivé avec succès');
-      refetch();
-    },
-    onError: error => {
-      toast.error(`Erreur lors de la réactivation: ${error.message}`);
-    },
-  });
+  const reactivateSubscriptionMutation =
+    api.billing.reactivateSubscription.useMutation({
+      onSuccess: () => {
+        toast.success("Abonnement réactivé avec succès");
+        refetch();
+      },
+      onError: (error) => {
+        toast.error(`Erreur lors de la réactivation: ${error.message}`);
+      },
+    });
 
   /**
    * Change de forfait
@@ -325,7 +337,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
       setIsChangingPlan(true);
       changePlanMutation.mutate({ planId, couponCode });
     },
-    [changePlanMutation]
+    [changePlanMutation],
   );
 
   /**
@@ -336,7 +348,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
       setIsCancel(true);
       cancelSubscriptionMutation.mutate({ reason });
     },
-    [cancelSubscriptionMutation]
+    [cancelSubscriptionMutation],
   );
 
   /**
@@ -354,7 +366,10 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
       const result = await refetch();
       return result.data;
     } catch (error) {
-      console.error("Erreur lors du rafraîchissement des données d'abonnement:", error);
+      console.error(
+        "Erreur lors du rafraîchissement des données d'abonnement:",
+        error,
+      );
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -383,9 +398,11 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
    * Formate la date de fin de période
    */
   const formatPeriodEnd = useCallback(() => {
-    if (!subscription?.currentPeriodEnd) return '';
+    if (!subscription?.currentPeriodEnd) return "";
 
-    return format(new Date(subscription.currentPeriodEnd), 'dd MMMM yyyy', { locale: fr });
+    return format(new Date(subscription.currentPeriodEnd), "dd MMMM yyyy", {
+      locale: fr,
+    });
   }, [subscription]);
 
   return {
@@ -402,7 +419,8 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
     refreshSubscription,
     getRemainingDays,
     formatPeriodEnd,
-    hasActiveSubscription: !!subscription?.status && subscription.status === 'ACTIVE',
+    hasActiveSubscription:
+      !!subscription?.status && subscription.status === "ACTIVE",
     isCancelled: !!subscription?.cancelAtPeriodEnd,
   };
 }
@@ -419,81 +437,93 @@ export const useBilling = () => {
   // Mutations tRPC
   const runMonthlyBillingMutation = api.billing.runMonthlyBilling.useMutation({
     onSuccess: () => {
-      toast.success('Facturation mensuelle exécutée avec succès');
+      toast.success("Facturation mensuelle exécutée avec succès");
       router.refresh();
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur lors de la facturation mensuelle: ${error.message}`);
     },
   });
 
-  const scheduleMonthlyCyclesMutation = api.billing.scheduleMonthlyCycles.useMutation({
-    onSuccess: data => {
-      toast.success(`${data.cyclesCreated} cycles de facturation planifiés`);
-      router.refresh();
-    },
-    onError: error => {
-      toast.error(`Erreur lors de la planification: ${error.message}`);
-    },
-  });
+  const scheduleMonthlyCyclesMutation =
+    api.billing.scheduleMonthlyCycles.useMutation({
+      onSuccess: (data) => {
+        toast.success(`${data.cyclesCreated} cycles de facturation planifiés`);
+        router.refresh();
+      },
+      onError: (error) => {
+        toast.error(`Erreur lors de la planification: ${error.message}`);
+      },
+    });
 
-  const executeScheduledCyclesMutation = api.billing.executeScheduledCycles.useMutation({
-    onSuccess: data => {
-      toast.success(`${data.cyclesFound} cycles exécutés`);
-      router.refresh();
-    },
-    onError: error => {
-      toast.error(`Erreur lors de l'exécution des cycles: ${error.message}`);
-    },
-  });
+  const executeScheduledCyclesMutation =
+    api.billing.executeScheduledCycles.useMutation({
+      onSuccess: (data) => {
+        toast.success(`${data.cyclesFound} cycles exécutés`);
+        router.refresh();
+      },
+      onError: (error) => {
+        toast.error(`Erreur lors de l'exécution des cycles: ${error.message}`);
+      },
+    });
 
   const retryCycleMutation = api.billing.retryCycle.useMutation({
     onSuccess: () => {
-      toast.success('Cycle de facturation réexécuté avec succès');
+      toast.success("Cycle de facturation réexécuté avec succès");
       router.refresh();
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur lors de la réexécution: ${error.message}`);
     },
   });
 
-  const sendPaymentRemindersMutation = api.billing.sendPaymentReminders.useMutation({
-    onSuccess: data => {
-      toast.success(`${data.processedCount} rappels envoyés`);
-    },
-    onError: error => {
-      toast.error(`Erreur lors de l'envoi des rappels: ${error.message}`);
-    },
-  });
+  const sendPaymentRemindersMutation =
+    api.billing.sendPaymentReminders.useMutation({
+      onSuccess: (data) => {
+        toast.success(`${data.processedCount} rappels envoyés`);
+      },
+      onError: (error) => {
+        toast.error(`Erreur lors de l'envoi des rappels: ${error.message}`);
+      },
+    });
 
-  const processAutomaticPayoutsMutation = api.billing.processAutomaticPayouts.useMutation({
-    onSuccess: data => {
-      toast.success(`${data.processedCount} virements automatiques traités`);
-    },
-    onError: error => {
-      toast.error(`Erreur lors du traitement des virements: ${error.message}`);
-    },
-  });
+  const processAutomaticPayoutsMutation =
+    api.billing.processAutomaticPayouts.useMutation({
+      onSuccess: (data) => {
+        toast.success(`${data.processedCount} virements automatiques traités`);
+      },
+      onError: (error) => {
+        toast.error(
+          `Erreur lors du traitement des virements: ${error.message}`,
+        );
+      },
+    });
 
-  const generateProviderInvoiceMutation = api.billing.generateProviderInvoice.useMutation({
-    onSuccess: data => {
-      toast.success(`Facture générée: ${data.invoice.number}`);
-      router.push(`/admin/invoices/${data.invoice.id}`);
-    },
-    onError: error => {
-      toast.error(`Erreur lors de la génération de la facture: ${error.message}`);
-    },
-  });
+  const generateProviderInvoiceMutation =
+    api.billing.generateProviderInvoice.useMutation({
+      onSuccess: (data) => {
+        toast.success(`Facture générée: ${data.invoice.number}`);
+        router.push(`/admin/invoices/${data.invoice.id}`);
+      },
+      onError: (error) => {
+        toast.error(
+          `Erreur lors de la génération de la facture: ${error.message}`,
+        );
+      },
+    });
 
-  const generateMerchantInvoiceMutation = api.billing.generateMerchantInvoice.useMutation({
-    onSuccess: data => {
-      toast.success(`Facture générée: ${data.invoice.number}`);
-      router.push(`/admin/invoices/${data.invoice.id}`);
-    },
-    onError: error => {
-      toast.error(`Erreur lors de la génération de la facture: ${error.message}`);
-    },
-  });
+  const generateMerchantInvoiceMutation =
+    api.billing.generateMerchantInvoice.useMutation({
+      onSuccess: (data) => {
+        toast.success(`Facture générée: ${data.invoice.number}`);
+        router.push(`/admin/invoices/${data.invoice.id}`);
+      },
+      onError: (error) => {
+        toast.error(
+          `Erreur lors de la génération de la facture: ${error.message}`,
+        );
+      },
+    });
 
   // Requête pour les statistiques
   const {
@@ -501,8 +531,8 @@ export const useBilling = () => {
     isLoading: isLoadingStats,
     refetch: refetchStats,
   } = api.billing.getBillingStats.useQuery(
-    { period: 'MONTH' },
-    { refetchInterval: 60000 * 15 } // Rafraîchir toutes les 15 minutes
+    { period: "MONTH" },
+    { refetchInterval: 60000 * 15 }, // Rafraîchir toutes les 15 minutes
   );
 
   // Fonctions exposées
@@ -584,7 +614,11 @@ export const useBilling = () => {
   /**
    * Génère une facture pour un prestataire
    */
-  const generateProviderInvoice = async (providerId: string, month?: number, year?: number) => {
+  const generateProviderInvoice = async (
+    providerId: string,
+    month?: number,
+    year?: number,
+  ) => {
     setIsLoading(true);
     try {
       await generateProviderInvoiceMutation.mutateAsync({
@@ -600,7 +634,11 @@ export const useBilling = () => {
   /**
    * Génère une facture pour un commerçant
    */
-  const generateMerchantInvoice = async (merchantId: string, month?: number, year?: number) => {
+  const generateMerchantInvoice = async (
+    merchantId: string,
+    month?: number,
+    year?: number,
+  ) => {
     setIsLoading(true);
     try {
       await generateMerchantInvoiceMutation.mutateAsync({
@@ -617,7 +655,7 @@ export const useBilling = () => {
    * Formatage de la période de facturation pour affichage
    */
   const formatBillingPeriod = (startDate: Date, endDate: Date) => {
-    return `${format(startDate, 'dd MMMM yyyy', { locale: fr })} - ${format(endDate, 'dd MMMM yyyy', { locale: fr })}`;
+    return `${format(startDate, "dd MMMM yyyy", { locale: fr })} - ${format(endDate, "dd MMMM yyyy", { locale: fr })}`;
   };
 
   return {

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,16 +8,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,9 +27,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   MoreHorizontal,
   Edit,
@@ -42,9 +42,9 @@ import {
   DollarSign,
   Percent,
   Clock,
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+} from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface Contract {
   id: string;
@@ -95,31 +95,31 @@ interface ContractsListProps {
 }
 
 const CONTRACT_STATUS_COLORS = {
-  DRAFT: 'bg-gray-100 text-gray-800',
-  PENDING_SIGNATURE: 'bg-blue-100 text-blue-800',
-  ACTIVE: 'bg-green-100 text-green-800',
-  SUSPENDED: 'bg-yellow-100 text-yellow-800',
-  TERMINATED: 'bg-red-100 text-red-800',
-  EXPIRED: 'bg-orange-100 text-orange-800',
-  CANCELLED: 'bg-gray-100 text-gray-600',
+  DRAFT: "bg-gray-100 text-gray-800",
+  PENDING_SIGNATURE: "bg-blue-100 text-blue-800",
+  ACTIVE: "bg-green-100 text-green-800",
+  SUSPENDED: "bg-yellow-100 text-yellow-800",
+  TERMINATED: "bg-red-100 text-red-800",
+  EXPIRED: "bg-orange-100 text-orange-800",
+  CANCELLED: "bg-gray-100 text-gray-600",
 };
 
 const CONTRACT_STATUS_LABELS = {
-  DRAFT: 'Brouillon',
-  PENDING_SIGNATURE: 'En attente',
-  ACTIVE: 'Actif',
-  SUSPENDED: 'Suspendu',
-  TERMINATED: 'Résilié',
-  EXPIRED: 'Expiré',
-  CANCELLED: 'Annulé',
+  DRAFT: "Brouillon",
+  PENDING_SIGNATURE: "En attente",
+  ACTIVE: "Actif",
+  SUSPENDED: "Suspendu",
+  TERMINATED: "Résilié",
+  EXPIRED: "Expiré",
+  CANCELLED: "Annulé",
 };
 
 const CONTRACT_TYPE_LABELS = {
-  STANDARD: 'Standard',
-  PREMIUM: 'Premium',
-  PARTNER: 'Partenaire',
-  TRIAL: 'Essai',
-  CUSTOM: 'Personnalisé',
+  STANDARD: "Standard",
+  PREMIUM: "Premium",
+  PARTNER: "Partenaire",
+  TRIAL: "Essai",
+  CUSTOM: "Personnalisé",
 };
 
 export function ContractsList({
@@ -135,7 +135,9 @@ export function ContractsList({
   onGeneratePdf,
 }: ContractsListProps) {
   const [deleteContractId, setDeleteContractId] = useState<string | null>(null);
-  const [suspendContractId, setSuspendContractId] = useState<string | null>(null);
+  const [suspendContractId, setSuspendContractId] = useState<string | null>(
+    null,
+  );
 
   const handleDeleteConfirm = () => {
     if (deleteContractId) {
@@ -152,22 +154,24 @@ export function ContractsList({
   };
 
   const formatCurrency = (amount?: number) => {
-    if (!amount) return '-';
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    if (!amount) return "-";
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   const formatPercentage = (rate?: number) => {
-    if (!rate) return '-';
+    if (!rate) return "-";
     return `${(rate * 100).toFixed(1)}%`;
   };
 
   const isExpiringSoon = (expiresAt?: Date) => {
     if (!expiresAt) return false;
     const now = new Date();
-    const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const thirtyDaysFromNow = new Date(
+      now.getTime() + 30 * 24 * 60 * 60 * 1000,
+    );
     return expiresAt <= thirtyDaysFromNow;
   };
 
@@ -206,8 +210,8 @@ export function ContractsList({
           <FileText className="h-16 w-16 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">Aucun contrat trouvé</h3>
           <p className="text-muted-foreground text-center max-w-md">
-            Aucun contrat ne correspond à vos critères de recherche. Essayez de modifier les filtres
-            ou de créer un nouveau contrat.
+            Aucun contrat ne correspond à vos critères de recherche. Essayez de
+            modifier les filtres ou de créer un nouveau contrat.
           </p>
         </CardContent>
       </Card>
@@ -238,17 +242,22 @@ export function ContractsList({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contracts.map(contract => (
+                {contracts.map((contract) => (
                   <TableRow key={contract.id}>
                     {/* Contrat */}
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="font-medium text-sm">{contract.contractNumber}</div>
-                        <div className="text-sm text-muted-foreground">{contract.title}</div>
+                        <div className="font-medium text-sm">
+                          {contract.contractNumber}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {contract.title}
+                        </div>
                         {contract.template && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <FileText className="h-3 w-3" />
-                            {contract.template.name} v{contract.template.version}
+                            {contract.template.name} v
+                            {contract.template.version}
                           </div>
                         )}
                       </div>
@@ -257,7 +266,9 @@ export function ContractsList({
                     {/* Commerçant */}
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="font-medium text-sm">{contract.merchant.companyName}</div>
+                        <div className="font-medium text-sm">
+                          {contract.merchant.companyName}
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           {contract.merchant.businessType}
                         </div>
@@ -297,12 +308,13 @@ export function ContractsList({
                             contract.status as keyof typeof CONTRACT_STATUS_LABELS
                           ] || contract.status}
                         </Badge>
-                        {contract.expiresAt && isExpiringSoon(contract.expiresAt) && (
-                          <div className="flex items-center gap-1 text-xs text-orange-600">
-                            <Clock className="h-3 w-3" />
-                            Expire bientôt
-                          </div>
-                        )}
+                        {contract.expiresAt &&
+                          isExpiringSoon(contract.expiresAt) && (
+                            <div className="flex items-center gap-1 text-xs text-orange-600">
+                              <Clock className="h-3 w-3" />
+                              Expire bientôt
+                            </div>
+                          )}
                       </div>
                     </TableCell>
 
@@ -329,16 +341,24 @@ export function ContractsList({
                       <div className="space-y-1 text-sm">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {format(contract.createdAt, 'dd/MM/yyyy', { locale: fr })}
+                          {format(contract.createdAt, "dd/MM/yyyy", {
+                            locale: fr,
+                          })}
                         </div>
                         {contract.effectiveDate && (
                           <div className="text-xs text-muted-foreground">
-                            Effectif: {format(contract.effectiveDate, 'dd/MM/yyyy', { locale: fr })}
+                            Effectif:{" "}
+                            {format(contract.effectiveDate, "dd/MM/yyyy", {
+                              locale: fr,
+                            })}
                           </div>
                         )}
                         {contract.expiresAt && (
                           <div className="text-xs text-muted-foreground">
-                            Expire: {format(contract.expiresAt, 'dd/MM/yyyy', { locale: fr })}
+                            Expire:{" "}
+                            {format(contract.expiresAt, "dd/MM/yyyy", {
+                              locale: fr,
+                            })}
                           </div>
                         )}
                       </div>
@@ -358,22 +378,28 @@ export function ContractsList({
                             Modifier
                           </DropdownMenuItem>
 
-                          <DropdownMenuItem onClick={() => onGeneratePdf(contract.id)}>
+                          <DropdownMenuItem
+                            onClick={() => onGeneratePdf(contract.id)}
+                          >
                             <Download className="h-4 w-4 mr-2" />
                             Télécharger PDF
                           </DropdownMenuItem>
 
                           <DropdownMenuSeparator />
 
-                          {contract.status === 'DRAFT' && (
-                            <DropdownMenuItem onClick={() => onActivate(contract.id)}>
+                          {contract.status === "DRAFT" && (
+                            <DropdownMenuItem
+                              onClick={() => onActivate(contract.id)}
+                            >
                               <CheckCircle className="h-4 w-4 mr-2" />
                               Activer
                             </DropdownMenuItem>
                           )}
 
-                          {contract.status === 'ACTIVE' && (
-                            <DropdownMenuItem onClick={() => setSuspendContractId(contract.id)}>
+                          {contract.status === "ACTIVE" && (
+                            <DropdownMenuItem
+                              onClick={() => setSuspendContractId(contract.id)}
+                            >
                               <Pause className="h-4 w-4 mr-2" />
                               Suspendre
                             </DropdownMenuItem>
@@ -381,7 +407,7 @@ export function ContractsList({
 
                           <DropdownMenuSeparator />
 
-                          {contract.status !== 'ACTIVE' && (
+                          {contract.status !== "ACTIVE" && (
                             <DropdownMenuItem
                               onClick={() => setDeleteContractId(contract.id)}
                               className="text-red-600"
@@ -429,12 +455,16 @@ export function ContractsList({
       )}
 
       {/* Dialogs de confirmation */}
-      <AlertDialog open={!!deleteContractId} onOpenChange={() => setDeleteContractId(null)}>
+      <AlertDialog
+        open={!!deleteContractId}
+        onOpenChange={() => setDeleteContractId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer ce contrat ? Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer ce contrat ? Cette action est
+              irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -449,7 +479,10 @@ export function ContractsList({
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!suspendContractId} onOpenChange={() => setSuspendContractId(null)}>
+      <AlertDialog
+        open={!!suspendContractId}
+        onOpenChange={() => setSuspendContractId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmer la suspension</AlertDialogTitle>

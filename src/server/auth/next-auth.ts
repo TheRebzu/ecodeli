@@ -1,19 +1,19 @@
-import { NextAuthOptions } from 'next-auth';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import GoogleProvider from 'next-auth/providers/google';
-import { compare } from 'bcryptjs';
-import { db } from '@/server/db';
-import { UserRole, UserStatus } from '@/server/db/enums';
-import { authenticator } from 'otplib';
-import { GetServerSidePropsContext } from 'next';
-import { getServerSession } from 'next-auth/next';
+import { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import { compare } from "bcryptjs";
+import { db } from "@/server/db";
+import { UserRole, UserStatus } from "@/server/db/enums";
+import { authenticator } from "otplib";
+import { GetServerSidePropsContext } from "next";
+import { getServerSession } from "next-auth/next";
 
 // Ensure we have a stable and consistent secret
 const getAuthSecret = () => {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) {
-    throw new Error('NEXTAUTH_SECRET is not set in environment variables');
+    throw new Error("NEXTAUTH_SECRET is not set in environment variables");
   }
   return secret;
 };
@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as any,
   secret: getAuthSecret(),
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 jours
   },
   jwt: {
@@ -30,22 +30,22 @@ export const authOptions: NextAuthOptions = {
     maxAge: 60 * 60 * 24 * 30, // 30 days
   },
   pages: {
-    signIn: '/login',
-    error: '/login',
-    verifyRequest: '/verify-email',
-    newUser: '/welcome',
+    signIn: "/login",
+    error: "/login",
+    verifyRequest: "/verify-email",
+    newUser: "/welcome",
   },
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Mot de passe', type: 'password' },
-        totp: { label: "Code d'authentification", type: 'text' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Mot de passe", type: "password" },
+        totp: { label: "Code d'authentification", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email et mot de passe requis');
+          throw new Error("Email et mot de passe requis");
         }
 
         // Rechercher l'utilisateur par email
@@ -71,27 +71,35 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          throw new Error('Utilisateur non trouvé');
+          throw new Error("Utilisateur non trouvé");
         }
 
         // Vérifier si l'email est vérifié
         if (!user.emailVerified) {
-          throw new Error('Veuillez vérifier votre email avant de vous connecter');
+          throw new Error(
+            "Veuillez vérifier votre email avant de vous connecter",
+          );
         }
 
         // Vérifier si l'utilisateur est actif
         // Seuls les livreurs peuvent se connecter en état PENDING_VERIFICATION
         if (
           user.status !== UserStatus.ACTIVE &&
-          !(user.status === UserStatus.PENDING_VERIFICATION && user.role === UserRole.DELIVERER)
+          !(
+            user.status === UserStatus.PENDING_VERIFICATION &&
+            user.role === UserRole.DELIVERER
+          )
         ) {
-          throw new Error('Votre compte est ' + user.status.toLowerCase());
+          throw new Error("Votre compte est " + user.status.toLowerCase());
         }
 
         // Vérifier le mot de passe
-        const isPasswordValid = await compare(credentials.password, user.password);
+        const isPasswordValid = await compare(
+          credentials.password,
+          user.password,
+        );
         if (!isPasswordValid) {
-          throw new Error('Mot de passe incorrect');
+          throw new Error("Mot de passe incorrect");
         }
 
         // Vérifier la 2FA si activée
@@ -103,7 +111,7 @@ export const authOptions: NextAuthOptions = {
           // Vérification du code TOTP avec otplib
           const isValidTotp = authenticator.verify({
             token: credentials.totp,
-            secret: user.twoFactorSecret || '',
+            secret: user.twoFactorSecret || "",
           });
 
           if (!isValidTotp) {
@@ -191,20 +199,24 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Lors d'une mise à jour de session
-      if (trigger === 'update' && session) {
+      if (trigger === "update" && session) {
         Object.assign(token, session);
       }
 
       // Vérifier dynamiquement si l'utilisateur est vérifié à chaque requête pour les rôles qui nécessitent une vérification
-      if (token.role === 'DELIVERER' || token.role === 'PROVIDER' || token.role === 'MERCHANT') {
+      if (
+        token.role === "DELIVERER" ||
+        token.role === "PROVIDER" ||
+        token.role === "MERCHANT"
+      ) {
         try {
           // Obtenir le statut actuel de l'utilisateur depuis la base de données
           const currentUser = await db.user.findUnique({
             where: { id: token.id as string },
             include: {
-              deliverer: token.role === 'DELIVERER' ? true : undefined,
-              provider: token.role === 'PROVIDER' ? true : undefined,
-              merchant: token.role === 'MERCHANT' ? true : undefined,
+              deliverer: token.role === "DELIVERER" ? true : undefined,
+              provider: token.role === "PROVIDER" ? true : undefined,
+              merchant: token.role === "MERCHANT" ? true : undefined,
             },
           });
 
@@ -214,20 +226,23 @@ export const authOptions: NextAuthOptions = {
             token.isVerified = currentUser.isVerified;
 
             // Mettre à jour également les informations spécifiques au rôle
-            if (token.role === 'DELIVERER' && currentUser.deliverer) {
+            if (token.role === "DELIVERER" && currentUser.deliverer) {
               token.isVerified = currentUser.deliverer.isVerified;
-            } else if (token.role === 'PROVIDER' && currentUser.provider) {
+            } else if (token.role === "PROVIDER" && currentUser.provider) {
               token.isVerified = currentUser.provider.isVerified;
-            } else if (token.role === 'MERCHANT' && currentUser.merchant) {
+            } else if (token.role === "MERCHANT" && currentUser.merchant) {
               token.isVerified = currentUser.merchant.isVerified;
             }
 
             console.log(
-              `Session mise à jour pour ${currentUser.email}: status=${token.status}, isVerified=${token.isVerified}`
+              `Session mise à jour pour ${currentUser.email}: status=${token.status}, isVerified=${token.isVerified}`,
             );
           }
         } catch (error) {
-          console.error('Erreur lors de la mise à jour dynamique de la session:', error);
+          console.error(
+            "Erreur lors de la mise à jour dynamique de la session:",
+            error,
+          );
           // Ne pas bloquer le processus en cas d'erreur
         }
       }
@@ -255,8 +270,8 @@ export const authOptions: NextAuthOptions = {
  * Compatible avec les deux approches (Pages Router et App Router)
  */
 export const getServerAuthSession = (ctx?: {
-  req: GetServerSidePropsContext['req'];
-  res: GetServerSidePropsContext['res'];
+  req: GetServerSidePropsContext["req"];
+  res: GetServerSidePropsContext["res"];
 }) => {
   if (ctx?.req && ctx?.res) {
     // Pages Router: utilisation des objets req et res

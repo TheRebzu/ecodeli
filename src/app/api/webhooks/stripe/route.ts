@@ -1,16 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
-import { headers } from 'next/headers';
-import { buffer } from 'node:stream/consumers';
-import { db } from '@/server/db';
-import { PaymentStatus, InvoiceStatus, SubscriptionStatus } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
-import { sendNotification } from '@/lib/services/notification.service';
-import { paymentService } from '@/server/services/shared/payment.service';
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { headers } from "next/headers";
+import { buffer } from "node:stream/consumers";
+import { db } from "@/server/db";
+import {
+  PaymentStatus,
+  InvoiceStatus,
+  SubscriptionStatus,
+} from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
+import { sendNotification } from "@/lib/services/notification.service";
+import { paymentService } from "@/server/services/shared/payment.service";
 
 // Initialiser Stripe avec la clé secrète
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil',
+  apiVersion: "2025-04-30.basil",
 });
 
 // Secret pour vérifier la signature du webhook
@@ -25,7 +29,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.text();
     const headersList = headers();
-    const signature = headersList.get('stripe-signature')!;
+    const signature = headersList.get("stripe-signature")!;
 
     let event: Stripe.Event;
 
@@ -33,8 +37,11 @@ export async function POST(req: NextRequest) {
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err) {
-      console.error('Erreur de signature webhook:', err);
-      return NextResponse.json({ error: 'Signature invalide' }, { status: 400 });
+      console.error("Erreur de signature webhook:", err);
+      return NextResponse.json(
+        { error: "Signature invalide" },
+        { status: 400 },
+      );
     }
 
     // Traiter l'événement selon son type
@@ -42,10 +49,10 @@ export async function POST(req: NextRequest) {
       // Journal d'audit pour traçabilité
       await db.auditLog.create({
         data: {
-          entityType: 'STRIPE_WEBHOOK',
+          entityType: "STRIPE_WEBHOOK",
           entityId: event.id,
           action: event.type,
-          performedById: 'system',
+          performedById: "system",
           changes: {
             eventType: event.type,
             eventId: event.id,
@@ -58,11 +65,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     } catch (error) {
       console.error("Erreur lors du traitement de l'événement:", error);
-      return NextResponse.json({ error: 'Erreur lors du traitement' }, { status: 500 });
+      return NextResponse.json(
+        { error: "Erreur lors du traitement" },
+        { status: 500 },
+      );
     }
   } catch (error) {
-    console.error('Erreur interne du webhook:', error);
-    return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
+    console.error("Erreur interne du webhook:", error);
+    return NextResponse.json(
+      { error: "Erreur interne du serveur" },
+      { status: 500 },
+    );
   }
 }
 
@@ -74,51 +87,55 @@ async function handleStripeEvent(event: Stripe.Event) {
 
   switch (event.type) {
     // Événements liés aux PaymentIntent
-    case 'payment_intent.succeeded':
-      await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+    case "payment_intent.succeeded":
+      await handlePaymentIntentSucceeded(
+        event.data.object as Stripe.PaymentIntent,
+      );
       break;
-    case 'payment_intent.payment_failed':
-      await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
+    case "payment_intent.payment_failed":
+      await handlePaymentIntentFailed(
+        event.data.object as Stripe.PaymentIntent,
+      );
       break;
 
     // Événements liés aux abonnements
-    case 'customer.subscription.created':
+    case "customer.subscription.created":
       await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
       break;
-    case 'customer.subscription.updated':
+    case "customer.subscription.updated":
       await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
       break;
-    case 'customer.subscription.deleted':
+    case "customer.subscription.deleted":
       await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
       break;
-    case 'invoice.payment_succeeded':
+    case "invoice.payment_succeeded":
       await handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
       break;
-    case 'invoice.payment_failed':
+    case "invoice.payment_failed":
       await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
       break;
 
     // Événements liés aux comptes Connect
-    case 'account.updated':
+    case "account.updated":
       await handleConnectAccountUpdated(event.data.object as Stripe.Account);
       break;
-    case 'payout.created':
+    case "payout.created":
       await handlePayoutCreated(event.data.object as Stripe.Payout);
       break;
-    case 'payout.failed':
+    case "payout.failed":
       await handlePayoutFailed(event.data.object as Stripe.Payout);
       break;
 
     // Événements liés aux disputes (contestations)
-    case 'charge.dispute.created':
+    case "charge.dispute.created":
       await handleDisputeCreated(event.data.object as Stripe.Dispute);
       break;
-    case 'charge.dispute.closed':
+    case "charge.dispute.closed":
       await handleDisputeClosed(event.data.object as Stripe.Dispute);
       break;
 
     // Événements liés aux remboursements
-    case 'charge.refunded':
+    case "charge.refunded":
       await handleChargeRefunded(event.data.object as Stripe.Charge);
       break;
 
@@ -130,7 +147,9 @@ async function handleStripeEvent(event: Stripe.Event) {
 /**
  * Gère un PaymentIntent réussi
  */
-async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentIntentSucceeded(
+  paymentIntent: Stripe.PaymentIntent,
+) {
   const { id, metadata, amount, currency } = paymentIntent;
 
   // Récupérer les métadonnées
@@ -140,7 +159,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   const subscriptionId = metadata?.subscriptionId;
 
   if (!userId) {
-    console.error('UserId manquant dans les métadonnées du payment intent');
+    console.error("UserId manquant dans les métadonnées du payment intent");
     return;
   }
 
@@ -170,9 +189,9 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       // Notifier le client que le paiement a été accepté
       await sendNotification({
         userId,
-        title: 'Paiement de livraison accepté',
+        title: "Paiement de livraison accepté",
         message: `Votre paiement de ${amount / 100}${currency.toUpperCase()} pour la livraison a été accepté.`,
-        type: 'PAYMENT_CONFIRMED',
+        type: "PAYMENT_CONFIRMED",
         link: `/client/deliveries/${deliveryId}`,
       });
     }
@@ -185,7 +204,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
           bookings: {
             updateMany: {
               where: { serviceId, paymentId: existingPayment.id },
-              data: { status: 'CONFIRMED' },
+              data: { status: "CONFIRMED" },
             },
           },
         },
@@ -194,9 +213,9 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       // Notifier le client que le service a été confirmé
       await sendNotification({
         userId,
-        title: 'Réservation de service confirmée',
+        title: "Réservation de service confirmée",
         message: `Votre paiement de ${amount / 100}${currency.toUpperCase()} a été accepté. Votre réservation est confirmée.`,
-        type: 'PAYMENT_CONFIRMED',
+        type: "PAYMENT_CONFIRMED",
         link: `/client/services/bookings`,
       });
     }
@@ -205,9 +224,9 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     if (subscriptionId) {
       await sendNotification({
         userId,
-        title: 'Abonnement renouvelé',
+        title: "Abonnement renouvelé",
         message: `Votre abonnement a été renouvelé avec succès pour un montant de ${amount / 100}${currency.toUpperCase()}.`,
-        type: 'PAYMENT_CONFIRMED',
+        type: "PAYMENT_CONFIRMED",
         link: `/client/subscription`,
       });
     }
@@ -231,9 +250,9 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     // Notifier l'utilisateur du nouveau paiement
     await sendNotification({
       userId,
-      title: 'Paiement effectué',
+      title: "Paiement effectué",
       message: `Votre paiement de ${amount / 100}${currency.toUpperCase()} a été traité avec succès.`,
-      type: 'PAYMENT_CONFIRMED',
+      type: "PAYMENT_CONFIRMED",
       link: `/payments/${newPayment.id}`,
     });
   }
@@ -256,16 +275,17 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
       data: {
         status: PaymentStatus.FAILED,
         updatedAt: new Date(),
-        errorMessage: paymentIntent.last_payment_error?.message || 'Paiement refusé',
+        errorMessage:
+          paymentIntent.last_payment_error?.message || "Paiement refusé",
       },
     });
 
     // Notifier l'utilisateur de l'échec du paiement
     await sendNotification({
       userId: existingPayment.userId,
-      title: 'Échec de paiement',
+      title: "Échec de paiement",
       message: `Le paiement de ${existingPayment.amount}${existingPayment.currency} a échoué. Veuillez vérifier votre moyen de paiement.`,
-      type: 'ERROR',
+      type: "ERROR",
       link: `/payments/${existingPayment.id}`,
     });
 
@@ -279,9 +299,9 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
       if (delivery) {
         await sendNotification({
           userId: existingPayment.userId,
-          title: 'Problème de paiement pour votre livraison',
+          title: "Problème de paiement pour votre livraison",
           message: `Votre paiement pour la livraison a échoué. Veuillez mettre à jour votre moyen de paiement pour poursuivre.`,
-          type: 'DELIVERY_PROBLEM',
+          type: "DELIVERY_PROBLEM",
           link: `/client/deliveries/${delivery.id}`,
         });
       }
@@ -306,7 +326,9 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   }
 
   // Déterminer le type de plan (FREE, STARTER, PREMIUM)
-  const planType = getPlanTypeFromStripePriceId(subscription.items.data[0]?.price.id);
+  const planType = getPlanTypeFromStripePriceId(
+    subscription.items.data[0]?.price.id,
+  );
 
   // Créer l'abonnement dans notre base de données
   const newSubscription = await db.subscription.create({
@@ -327,9 +349,9 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   // Notifier l'utilisateur de la création de l'abonnement
   await sendNotification({
     userId: user.id,
-    title: 'Abonnement créé',
+    title: "Abonnement créé",
     message: `Votre abonnement ${planType} a été créé avec succès.`,
-    type: 'PAYMENT_CONFIRMED',
+    type: "PAYMENT_CONFIRMED",
     link: `/client/subscription`,
   });
 }
@@ -352,7 +374,9 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
   // Déterminer le statut et le type de plan
   const status = getSubscriptionStatus(subscription.status);
-  const planType = getPlanTypeFromStripePriceId(subscription.items.data[0]?.price.id);
+  const planType = getPlanTypeFromStripePriceId(
+    subscription.items.data[0]?.price.id,
+  );
 
   // Mettre à jour l'abonnement
   await db.subscription.update({
@@ -364,7 +388,9 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      cancelledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+      cancelledAt: subscription.canceled_at
+        ? new Date(subscription.canceled_at * 1000)
+        : null,
       stripePriceId: subscription.items.data[0]?.price.id,
     },
   });
@@ -401,7 +427,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   await db.subscription.create({
     data: {
       userId: existingSubscription.userId,
-      planType: 'FREE',
+      planType: "FREE",
       status: SubscriptionStatus.ACTIVE,
       startDate: new Date(),
       autoRenew: true,
@@ -440,13 +466,15 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   // Créer une facture dans notre base de données
   const dbInvoice = await db.invoice.create({
     data: {
-      number: `INV-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${id.substring(0, 8)}`,
+      number: `INV-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${id.substring(0, 8)}`,
       userId: user.id,
       subscriptionId: existingSubscription.id,
       amount: new Decimal(invoice.total / 100),
       currency: invoice.currency.toUpperCase(),
       status: InvoiceStatus.PAID,
-      dueDate: new Date(invoice.due_date ? invoice.due_date * 1000 : Date.now()),
+      dueDate: new Date(
+        invoice.due_date ? invoice.due_date * 1000 : Date.now(),
+      ),
       issuedDate: new Date(invoice.created * 1000),
       paidDate: new Date(),
       stripeInvoiceId: id,
@@ -459,13 +487,16 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     const amount = item.amount / 100;
     // Pour la France, TVA à 20%
     const taxRate = new Decimal(20);
-    const preTaxAmount = new Decimal(amount).div(new Decimal(1).add(taxRate.div(100)));
+    const preTaxAmount = new Decimal(amount).div(
+      new Decimal(1).add(taxRate.div(100)),
+    );
     const taxAmount = new Decimal(amount).sub(preTaxAmount);
 
     await db.invoiceItem.create({
       data: {
         invoiceId: dbInvoice.id,
-        description: item.description || `Abonnement ${existingSubscription.planType}`,
+        description:
+          item.description || `Abonnement ${existingSubscription.planType}`,
         quantity: item.quantity || 1,
         unitPrice: preTaxAmount,
         taxRate,
@@ -518,7 +549,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
       userId: user.id,
       title: "Paiement d'abonnement échoué",
       content: `Le paiement de votre abonnement ${existingSubscription.planType} a échoué. Veuillez mettre à jour votre méthode de paiement pour éviter l'interruption de service.`,
-      type: 'SUBSCRIPTION_PAYMENT_FAILED',
+      type: "SUBSCRIPTION_PAYMENT_FAILED",
       isRead: false,
     },
   });
@@ -542,7 +573,8 @@ async function handleConnectAccountUpdated(account: Stripe.Account) {
   await db.wallet.update({
     where: { id: wallet.id },
     data: {
-      accountVerified: account.details_submitted && !account.requirements?.disabled_reason,
+      accountVerified:
+        account.details_submitted && !account.requirements?.disabled_reason,
       accountType: account.type,
     },
   });
@@ -556,10 +588,10 @@ async function handleConnectAccountUpdated(account: Stripe.Account) {
     await db.notification.create({
       data: {
         userId: wallet.userId,
-        title: 'Compte de paiement vérifié',
+        title: "Compte de paiement vérifié",
         content:
-          'Votre compte de paiement a été vérifié avec succès. Vous pouvez maintenant recevoir des paiements.',
-        type: 'WALLET_VERIFIED',
+          "Votre compte de paiement a été vérifié avec succès. Vous pouvez maintenant recevoir des paiements.",
+        type: "WALLET_VERIFIED",
         isRead: false,
       },
     });
@@ -580,7 +612,7 @@ async function handlePayoutCreated(payout: Stripe.Payout) {
     await db.withdrawalRequest.update({
       where: { id: withdrawalRequestId },
       data: {
-        status: 'PROCESSING',
+        status: "PROCESSING",
         stripePayoutId: id,
       },
     });
@@ -597,9 +629,9 @@ async function handlePayoutCreated(payout: Stripe.Payout) {
           walletId: wallet.id,
           amount: new Decimal((-1 * amount) / 100), // Montant négatif car c'est un retrait
           currency: currency.toUpperCase(),
-          type: 'WITHDRAWAL',
-          status: 'PENDING',
-          description: 'Retrait automatique via Stripe',
+          type: "WITHDRAWAL",
+          status: "PENDING",
+          description: "Retrait automatique via Stripe",
           stripeTransferId: id,
         },
       });
@@ -619,7 +651,7 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
     await db.withdrawalRequest.update({
       where: { id: withdrawalRequestId },
       data: {
-        status: 'FAILED',
+        status: "FAILED",
         rejectionReason: `${failure_code}: ${failure_message}`,
       },
     });
@@ -635,9 +667,9 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
       await db.notification.create({
         data: {
           userId: request.wallet.userId,
-          title: 'Échec du virement',
+          title: "Échec du virement",
           content: `Votre demande de virement de ${request.amount} ${request.currency} a échoué: ${failure_message}`,
-          type: 'WITHDRAWAL_FAILED',
+          type: "WITHDRAWAL_FAILED",
           isRead: false,
         },
       });
@@ -653,7 +685,7 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
       await db.withdrawalRequest.update({
         where: { id: withdrawalRequest.id },
         data: {
-          status: 'FAILED',
+          status: "FAILED",
           rejectionReason: `${failure_code}: ${failure_message}`,
         },
       });
@@ -662,9 +694,9 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
       await db.notification.create({
         data: {
           userId: withdrawalRequest.wallet.userId,
-          title: 'Échec du virement',
+          title: "Échec du virement",
           content: `Votre demande de virement de ${withdrawalRequest.amount} ${withdrawalRequest.currency} a échoué: ${failure_message}`,
-          type: 'WITHDRAWAL_FAILED',
+          type: "WITHDRAWAL_FAILED",
           isRead: false,
         },
       });
@@ -677,15 +709,15 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
  */
 function getSubscriptionStatus(stripeStatus: string): SubscriptionStatus {
   switch (stripeStatus) {
-    case 'active':
+    case "active":
       return SubscriptionStatus.ACTIVE;
-    case 'past_due':
+    case "past_due":
       return SubscriptionStatus.PAST_DUE;
-    case 'unpaid':
+    case "unpaid":
       return SubscriptionStatus.UNPAID;
-    case 'canceled':
+    case "canceled":
       return SubscriptionStatus.CANCELLED;
-    case 'trialing':
+    case "trialing":
       return SubscriptionStatus.TRIAL;
     default:
       return SubscriptionStatus.ACTIVE;
@@ -696,15 +728,15 @@ function getSubscriptionStatus(stripeStatus: string): SubscriptionStatus {
  * Détermine le type de plan à partir de l'ID de prix Stripe
  */
 function getPlanTypeFromStripePriceId(priceId?: string) {
-  if (!priceId) return 'FREE';
+  if (!priceId) return "FREE";
 
   if (priceId === process.env.STRIPE_PRICE_STARTER) {
-    return 'STARTER';
+    return "STARTER";
   } else if (priceId === process.env.STRIPE_PRICE_PREMIUM) {
-    return 'PREMIUM';
+    return "PREMIUM";
   }
 
-  return 'FREE';
+  return "FREE";
 }
 
 /**
@@ -715,7 +747,7 @@ async function handleDisputeCreated(dispute: any) {
   const paymentIntentId = dispute.payment_intent;
 
   if (!paymentIntentId) {
-    console.error('PaymentIntent manquant dans le litige');
+    console.error("PaymentIntent manquant dans le litige");
     return;
   }
 
@@ -734,7 +766,7 @@ async function handleDisputeCreated(dispute: any) {
   await db.payment.update({
     where: { id: payment.id },
     data: {
-      status: 'DISPUTED',
+      status: "DISPUTED",
       metadata: {
         ...payment.metadata,
         disputeId: dispute.id,
@@ -749,23 +781,23 @@ async function handleDisputeCreated(dispute: any) {
   // Notifier l'utilisateur du litige
   await sendNotification({
     userId: payment.userId,
-    title: 'Paiement contesté',
+    title: "Paiement contesté",
     message: `Votre paiement de ${payment.amount}${payment.currency} fait l'objet d'une contestation. Notre équipe étudie le dossier.`,
-    type: 'WARNING',
+    type: "WARNING",
     link: `/payments/${payment.id}`,
   });
 
   // Notifier également les administrateurs
   const admins = await db.user.findMany({
-    where: { role: 'ADMIN' },
+    where: { role: "ADMIN" },
   });
 
   for (const admin of admins) {
     await sendNotification({
       userId: admin.id,
-      title: 'Litige de paiement',
-      message: `Un paiement de ${payment.amount}${payment.currency} a été contesté. Raison: ${dispute.reason || 'Non spécifiée'}`,
-      type: 'ADMIN_ALERT',
+      title: "Litige de paiement",
+      message: `Un paiement de ${payment.amount}${payment.currency} a été contesté. Raison: ${dispute.reason || "Non spécifiée"}`,
+      type: "ADMIN_ALERT",
       link: `/admin/payments/${payment.id}`,
     });
   }
@@ -779,7 +811,7 @@ async function handleDisputeClosed(dispute: any) {
   const paymentIntentId = dispute.payment_intent;
 
   if (!paymentIntentId) {
-    console.error('PaymentIntent manquant dans le litige');
+    console.error("PaymentIntent manquant dans le litige");
     return;
   }
 
@@ -795,7 +827,7 @@ async function handleDisputeClosed(dispute: any) {
   }
 
   // Déterminer le statut final en fonction du résultat du litige
-  const finalStatus = dispute.status === 'lost' ? 'REFUNDED' : 'COMPLETED';
+  const finalStatus = dispute.status === "lost" ? "REFUNDED" : "COMPLETED";
 
   // Mettre à jour le paiement avec le statut final
   await db.payment.update({
@@ -816,12 +848,14 @@ async function handleDisputeClosed(dispute: any) {
   await sendNotification({
     userId: payment.userId,
     title:
-      dispute.status === 'lost' ? 'Remboursement effectué suite à litige' : 'Paiement confirmé',
+      dispute.status === "lost"
+        ? "Remboursement effectué suite à litige"
+        : "Paiement confirmé",
     message:
-      dispute.status === 'lost'
+      dispute.status === "lost"
         ? `Suite à votre contestation, le paiement de ${payment.amount}${payment.currency} a été remboursé.`
         : `La contestation concernant votre paiement de ${payment.amount}${payment.currency} a été résolue en notre faveur. Le paiement est confirmé.`,
-    type: dispute.status === 'lost' ? 'PAYMENT_REFUNDED' : 'PAYMENT_CONFIRMED',
+    type: dispute.status === "lost" ? "PAYMENT_REFUNDED" : "PAYMENT_CONFIRMED",
     link: `/payments/${payment.id}`,
   });
 }
@@ -848,13 +882,13 @@ async function handleChargeRefunded(charge: any) {
   await db.payment.update({
     where: { id: payment.id },
     data: {
-      status: isFullRefund ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
+      status: isFullRefund ? "REFUNDED" : "PARTIALLY_REFUNDED",
       refundedAmount: new Decimal(charge.amount_refunded / 100),
       metadata: {
         ...payment.metadata,
         refundId: charge.refunds?.data[0]?.id,
         refundedAt: new Date().toISOString(),
-        refundReason: charge.refunds?.data[0]?.reason || 'Demande client',
+        refundReason: charge.refunds?.data[0]?.reason || "Demande client",
         isFullRefund: isFullRefund,
       },
     },
@@ -863,11 +897,11 @@ async function handleChargeRefunded(charge: any) {
   // Notifier l'utilisateur du remboursement
   await sendNotification({
     userId: payment.userId,
-    title: 'Remboursement effectué',
+    title: "Remboursement effectué",
     message: isFullRefund
       ? `Votre paiement de ${payment.amount}${payment.currency} a été intégralement remboursé.`
       : `Un remboursement partiel de ${charge.amount_refunded / 100}${charge.currency.toUpperCase()} a été effectué sur votre paiement.`,
-    type: 'PAYMENT_REFUNDED',
+    type: "PAYMENT_REFUNDED",
     link: `/payments/${payment.id}`,
   });
 
@@ -875,17 +909,17 @@ async function handleChargeRefunded(charge: any) {
   if (payment.deliveryId) {
     await sendNotification({
       userId: payment.userId,
-      title: 'Livraison remboursée',
+      title: "Livraison remboursée",
       message: `Votre livraison a été remboursée. Consultez votre compte pour plus d'informations.`,
-      type: 'DELIVERY_PROBLEM',
+      type: "DELIVERY_PROBLEM",
       link: `/client/deliveries/${payment.deliveryId}`,
     });
   } else if (payment.serviceId) {
     await sendNotification({
       userId: payment.userId,
-      title: 'Service remboursé',
+      title: "Service remboursé",
       message: `Votre réservation de service a été remboursée. Consultez votre compte pour plus d'informations.`,
-      type: 'INFO',
+      type: "INFO",
       link: `/client/services/bookings`,
     });
   }

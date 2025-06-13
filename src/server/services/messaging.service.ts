@@ -1,4 +1,4 @@
-import { db } from '@/server/db';
+import { db } from "@/server/db";
 
 export const MessagingService = {
   async getConversations(userId: string) {
@@ -13,7 +13,11 @@ export const MessagingService = {
     // Envoyer un message
   },
 
-  async createConversation(userId: string, recipientId: string, initialMessage?: string) {
+  async createConversation(
+    userId: string,
+    recipientId: string,
+    initialMessage?: string,
+  ) {
     // Créer une nouvelle conversation
   },
 };

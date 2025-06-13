@@ -1,7 +1,12 @@
-import { PrismaClient, UserRole, BookingStatus } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+import { PrismaClient, UserRole, BookingStatus } from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import {
+  SeedResult,
+  SeedOptions,
+  getRandomElement,
+  getRandomDate,
+} from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Interface pour définir une évaluation
@@ -25,12 +30,12 @@ interface RatingData {
 export async function seedServiceRatings(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('SERVICE_RATINGS');
+  logger.startSeed("SERVICE_RATINGS");
 
   const result: SeedResult = {
-    entity: 'service_ratings',
+    entity: "service_ratings",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -49,8 +54,8 @@ export async function seedServiceRatings(
 
   if (completedBookings.length === 0) {
     logger.warning(
-      'SERVICE_RATINGS',
-      "Aucune réservation terminée trouvée - exécuter d'abord service-bookings-seed"
+      "SERVICE_RATINGS",
+      "Aucune réservation terminée trouvée - exécuter d'abord service-bookings-seed",
     );
     return result;
   }
@@ -60,8 +65,8 @@ export async function seedServiceRatings(
 
   if (existingRatings > 0 && !options.force) {
     logger.warning(
-      'SERVICE_RATINGS',
-      `${existingRatings} évaluations déjà présentes - utiliser force:true pour recréer`
+      "SERVICE_RATINGS",
+      `${existingRatings} évaluations déjà présentes - utiliser force:true pour recréer`,
     );
     result.skipped = existingRatings;
     return result;
@@ -70,7 +75,7 @@ export async function seedServiceRatings(
   // Nettoyer si force activé
   if (options.force) {
     await prisma.serviceRating.deleteMany({});
-    logger.database('NETTOYAGE', 'évaluations', 0);
+    logger.database("NETTOYAGE", "évaluations", 0);
   }
 
   // Distribution réaliste des notes (pondérée vers les bonnes notes)
@@ -85,64 +90,64 @@ export async function seedServiceRatings(
   // Commentaires par note
   const COMMENTS_BY_RATING = {
     5: [
-      'Service exceptionnel ! Très professionnel et ponctuel.',
-      'Travail impeccable, je recommande vivement !',
+      "Service exceptionnel ! Très professionnel et ponctuel.",
+      "Travail impeccable, je recommande vivement !",
       "Prestataire à l'écoute et très compétent.",
-      'Excellent rapport qualité/prix, parfait !',
-      'Service au top, résultat dépassé mes attentes.',
-      'Très satisfait, prestataire sérieux et efficace.',
-      'Travail soigné et dans les délais, parfait !',
-      'Je referai appel à ce prestataire sans hésiter.',
-      'Service de qualité professionnelle excellente.',
-      'Prestation remarquable, artisan passionné.',
+      "Excellent rapport qualité/prix, parfait !",
+      "Service au top, résultat dépassé mes attentes.",
+      "Très satisfait, prestataire sérieux et efficace.",
+      "Travail soigné et dans les délais, parfait !",
+      "Je referai appel à ce prestataire sans hésiter.",
+      "Service de qualité professionnelle excellente.",
+      "Prestation remarquable, artisan passionné.",
     ],
     4: [
-      'Très bon service, satisfait du résultat.',
-      'Prestataire compétent, travail bien réalisé.',
-      'Bonne prestation, conforme à mes attentes.',
-      'Service correct, prestataire sympathique.',
-      'Travail de qualité, recommandé.',
-      'Bon rapport qualité/prix, content du service.',
-      'Prestation satisfaisante, professionnelle.',
-      'Résultat convenable, délai respecté.',
-      'Service fiable, prestataire ponctuel.',
+      "Très bon service, satisfait du résultat.",
+      "Prestataire compétent, travail bien réalisé.",
+      "Bonne prestation, conforme à mes attentes.",
+      "Service correct, prestataire sympathique.",
+      "Travail de qualité, recommandé.",
+      "Bon rapport qualité/prix, content du service.",
+      "Prestation satisfaisante, professionnelle.",
+      "Résultat convenable, délai respecté.",
+      "Service fiable, prestataire ponctuel.",
       "Bien dans l'ensemble, quelques détails à peaufiner.",
     ],
     3: [
-      'Service correct sans plus.',
-      'Travail acceptable mais pourrait être mieux.',
-      'Prestation moyenne, conforme au prix.',
-      'Correct mais pas exceptionnel.',
+      "Service correct sans plus.",
+      "Travail acceptable mais pourrait être mieux.",
+      "Prestation moyenne, conforme au prix.",
+      "Correct mais pas exceptionnel.",
       "Service standard, rien d'extraordinaire.",
       "Résultat satisfaisant dans l'ensemble.",
-      'Prestataire correct, travail convenable.',
-      'Acceptable pour le prix demandé.',
-      'Service moyen, peut mieux faire.',
-      'Prestation correcte malgré quelques défauts.',
+      "Prestataire correct, travail convenable.",
+      "Acceptable pour le prix demandé.",
+      "Service moyen, peut mieux faire.",
+      "Prestation correcte malgré quelques défauts.",
     ],
     2: [
-      'Service décevant, attendais mieux.',
-      'Quelques problèmes mais finalement résolu.',
-      'Travail bâclé, qualité insuffisante.',
-      'Retard important, peu communicant.',
-      'Résultat en dessous de mes attentes.',
-      'Prestataire peu professionnel.',
-      'Problèmes de finition, travail à revoir.',
-      'Service moyen, déçu du résultat.',
-      'Difficultés de communication, travail correct.',
-      'Prix élevé pour la qualité fournie.',
+      "Service décevant, attendais mieux.",
+      "Quelques problèmes mais finalement résolu.",
+      "Travail bâclé, qualité insuffisante.",
+      "Retard important, peu communicant.",
+      "Résultat en dessous de mes attentes.",
+      "Prestataire peu professionnel.",
+      "Problèmes de finition, travail à revoir.",
+      "Service moyen, déçu du résultat.",
+      "Difficultés de communication, travail correct.",
+      "Prix élevé pour la qualité fournie.",
     ],
     1: [
-      'Service très décevant, à éviter.',
-      'Travail bâclé, inacceptable.',
-      'Prestataire non professionnel.',
-      'Résultat catastrophique, très déçu.',
+      "Service très décevant, à éviter.",
+      "Travail bâclé, inacceptable.",
+      "Prestataire non professionnel.",
+      "Résultat catastrophique, très déçu.",
       "Service inexistant, n'honore pas ses engagements.",
-      'Travail non conforme, problème majeur.',
-      'Très mauvaise expérience, à fuir.',
-      'Prestataire peu fiable, résultat nul.',
-      'Service désastreux, perte de temps.',
-      'Incompétent, travail à refaire entièrement.',
+      "Travail non conforme, problème majeur.",
+      "Très mauvaise expérience, à fuir.",
+      "Prestataire peu fiable, résultat nul.",
+      "Service désastreux, perte de temps.",
+      "Incompétent, travail à refaire entièrement.",
     ],
   };
 
@@ -151,43 +156,45 @@ export async function seedServiceRatings(
     positive: [
       "Merci beaucoup pour votre retour positif ! C'était un plaisir de travailler pour vous.",
       "Ravi que vous soyez satisfait de ma prestation ! N'hésitez pas à me recontacter.",
-      'Merci pour cette évaluation ! Toujours à votre service pour vos futurs projets.',
-      'Très content que le résultat vous plaise ! Merci pour votre confiance.',
+      "Merci pour cette évaluation ! Toujours à votre service pour vos futurs projets.",
+      "Très content que le résultat vous plaise ! Merci pour votre confiance.",
       "Merci pour ces mots encourageants ! À bientôt pour d'autres projets.",
-      'Votre satisfaction est ma priorité, merci pour ce retour !',
+      "Votre satisfaction est ma priorité, merci pour ce retour !",
       "Merci ! C'est toujours gratifiant de savoir que nos clients sont contents.",
       "Ravi d'avoir pu vous aider ! Merci pour cette belle évaluation.",
     ],
     neutral: [
-      'Merci pour votre retour, je prends note de vos remarques.',
-      'Merci pour cette évaluation, toujours en amélioration continue.',
+      "Merci pour votre retour, je prends note de vos remarques.",
+      "Merci pour cette évaluation, toujours en amélioration continue.",
       "Merci, j'en tiendrai compte pour mes prochaines interventions.",
-      'Merci pour vos commentaires constructifs.',
+      "Merci pour vos commentaires constructifs.",
       "Merci, je note vos suggestions pour m'améliorer.",
       "Merci pour ce retour, cela m'aide à progresser.",
     ],
     negative: [
-      'Je suis désolé que ma prestation ne vous ait pas entièrement satisfait. Je prends note de vos remarques.',
+      "Je suis désolé que ma prestation ne vous ait pas entièrement satisfait. Je prends note de vos remarques.",
       "Merci pour ce retour. Je vais tenir compte de vos observations pour m'améliorer.",
       "Je regrette que vous n'ayez pas été pleinement satisfait. N'hésitez pas à me recontacter pour rectifier.",
-      'Désolé pour cette déception. Je prends vos remarques très au sérieux.',
-      'Merci pour ce retour franc. Je vais travailler sur les points que vous mentionnez.',
-      'Je vous présente mes excuses et vais améliorer mes prestations.',
+      "Désolé pour cette déception. Je prends vos remarques très au sérieux.",
+      "Merci pour ce retour franc. Je vais travailler sur les points que vous mentionnez.",
+      "Je vous présente mes excuses et vais améliorer mes prestations.",
     ],
   };
 
   let totalRatings = 0;
 
   // 80% des prestations terminées reçoivent une évaluation
-  const bookingsToRate = completedBookings.filter(() => faker.datatype.boolean(0.8));
+  const bookingsToRate = completedBookings.filter(() =>
+    faker.datatype.boolean(0.8),
+  );
 
   for (const booking of bookingsToRate) {
     try {
       logger.progress(
-        'SERVICE_RATINGS',
+        "SERVICE_RATINGS",
         totalRatings + 1,
         bookingsToRate.length,
-        `Création évaluation: ${booking.service.name}`
+        `Création évaluation: ${booking.service.name}`,
       );
 
       // Générer une note selon la distribution
@@ -195,7 +202,7 @@ export async function seedServiceRatings(
 
       // Sélectionner un commentaire approprié
       const comment = getRandomElement(
-        COMMENTS_BY_RATING[rating as keyof typeof COMMENTS_BY_RATING]
+        COMMENTS_BY_RATING[rating as keyof typeof COMMENTS_BY_RATING],
       );
 
       // Générer des photos avant/après (30% des évaluations)
@@ -204,7 +211,8 @@ export async function seedServiceRatings(
         : [];
 
       // Déterminer si recommandé (corrélé à la note)
-      const isRecommended = rating >= 4 || (rating === 3 && faker.datatype.boolean(0.3));
+      const isRecommended =
+        rating >= 4 || (rating === 3 && faker.datatype.boolean(0.3));
 
       // Générer une réponse du prestataire (60% des évaluations)
       let providerResponse: string | undefined;
@@ -221,21 +229,26 @@ export async function seedServiceRatings(
       // Critères d'évaluation détaillés
       const qualityRating = Math.max(
         1,
-        Math.min(5, rating + faker.number.int({ min: -1, max: 1 }))
+        Math.min(5, rating + faker.number.int({ min: -1, max: 1 })),
       );
       const punctualityRating = Math.max(
         1,
-        Math.min(5, rating + faker.number.int({ min: -1, max: 1 }))
+        Math.min(5, rating + faker.number.int({ min: -1, max: 1 })),
       );
       const communicationRating = Math.max(
         1,
-        Math.min(5, rating + faker.number.int({ min: -1, max: 1 }))
+        Math.min(5, rating + faker.number.int({ min: -1, max: 1 })),
       );
-      const valueRating = Math.max(1, Math.min(5, rating + faker.number.int({ min: -1, max: 1 })));
+      const valueRating = Math.max(
+        1,
+        Math.min(5, rating + faker.number.int({ min: -1, max: 1 })),
+      );
 
       // Date d'évaluation (1-7 jours après la prestation)
       const reviewDate = new Date(booking.completedDate!);
-      reviewDate.setDate(reviewDate.getDate() + faker.number.int({ min: 1, max: 7 }));
+      reviewDate.setDate(
+        reviewDate.getDate() + faker.number.int({ min: 1, max: 7 }),
+      );
 
       // Créer l'évaluation
       const serviceRating = await prisma.serviceRating.create({
@@ -256,7 +269,8 @@ export async function seedServiceRatings(
           providerResponse: providerResponse,
           providerResponseDate: providerResponse
             ? new Date(
-                reviewDate.getTime() + faker.number.int({ min: 1, max: 3 }) * 24 * 60 * 60 * 1000
+                reviewDate.getTime() +
+                  faker.number.int({ min: 1, max: 3 }) * 24 * 60 * 60 * 1000,
               )
             : null,
           createdAt: reviewDate,
@@ -273,7 +287,10 @@ export async function seedServiceRatings(
       totalRatings++;
       result.created++;
     } catch (error: any) {
-      logger.error('SERVICE_RATINGS', `❌ Erreur création évaluation: ${error.message}`);
+      logger.error(
+        "SERVICE_RATINGS",
+        `❌ Erreur création évaluation: ${error.message}`,
+      );
       result.errors++;
     }
   }
@@ -293,35 +310,50 @@ export async function seedServiceRatings(
 
   if (finalRatings.length >= totalRatings - result.errors) {
     logger.validation(
-      'SERVICE_RATINGS',
-      'PASSED',
-      `${finalRatings.length} évaluations créées avec succès`
+      "SERVICE_RATINGS",
+      "PASSED",
+      `${finalRatings.length} évaluations créées avec succès`,
     );
   } else {
     logger.validation(
-      'SERVICE_RATINGS',
-      'FAILED',
-      `Attendu: ${totalRatings}, Créé: ${finalRatings.length}`
+      "SERVICE_RATINGS",
+      "FAILED",
+      `Attendu: ${totalRatings}, Créé: ${finalRatings.length}`,
     );
   }
 
   // Statistiques par note
-  const ratingsByScore = finalRatings.reduce((acc: Record<number, number>, rating) => {
-    acc[rating.overallRating] = (acc[rating.overallRating] || 0) + 1;
-    return acc;
-  }, {});
+  const ratingsByScore = finalRatings.reduce(
+    (acc: Record<number, number>, rating) => {
+      acc[rating.overallRating] = (acc[rating.overallRating] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
-  logger.info('SERVICE_RATINGS', `⭐ Distribution des notes: ${JSON.stringify(ratingsByScore)}`);
+  logger.info(
+    "SERVICE_RATINGS",
+    `⭐ Distribution des notes: ${JSON.stringify(ratingsByScore)}`,
+  );
 
   // Note moyenne globale
   const averageRating =
-    finalRatings.reduce((sum, rating) => sum + rating.overallRating, 0) / finalRatings.length;
-  logger.info('SERVICE_RATINGS', `📊 Note moyenne globale: ${averageRating.toFixed(2)}/5`);
+    finalRatings.reduce((sum, rating) => sum + rating.overallRating, 0) /
+    finalRatings.length;
+  logger.info(
+    "SERVICE_RATINGS",
+    `📊 Note moyenne globale: ${averageRating.toFixed(2)}/5`,
+  );
 
   // Taux de recommandation
-  const recommendedCount = finalRatings.filter(rating => rating.isRecommended).length;
+  const recommendedCount = finalRatings.filter(
+    (rating) => rating.isRecommended,
+  ).length;
   const recommendationRate = (recommendedCount / finalRatings.length) * 100;
-  logger.info('SERVICE_RATINGS', `👍 Taux de recommandation: ${recommendationRate.toFixed(1)}%`);
+  logger.info(
+    "SERVICE_RATINGS",
+    `👍 Taux de recommandation: ${recommendationRate.toFixed(1)}%`,
+  );
 
   // Statistiques par catégorie
   const ratingsByCategory = finalRatings.reduce(
@@ -332,25 +364,39 @@ export async function seedServiceRatings(
       acc[category].sum += rating.overallRating;
       return acc;
     },
-    {}
+    {},
   );
 
   const categoryAverages = Object.entries(ratingsByCategory).map(
-    ([category, stats]) => `${category}: ${(stats.sum / stats.total).toFixed(2)}/5`
+    ([category, stats]) =>
+      `${category}: ${(stats.sum / stats.total).toFixed(2)}/5`,
   );
 
-  logger.info('SERVICE_RATINGS', `🏷️ Notes par catégorie: ${categoryAverages.join(', ')}`);
+  logger.info(
+    "SERVICE_RATINGS",
+    `🏷️ Notes par catégorie: ${categoryAverages.join(", ")}`,
+  );
 
   // Évaluations avec photos
-  const ratingsWithPhotos = finalRatings.filter(rating => rating.photos.length > 0);
-  logger.info('SERVICE_RATINGS', `📸 Évaluations avec photos: ${ratingsWithPhotos.length}`);
+  const ratingsWithPhotos = finalRatings.filter(
+    (rating) => rating.photos.length > 0,
+  );
+  logger.info(
+    "SERVICE_RATINGS",
+    `📸 Évaluations avec photos: ${ratingsWithPhotos.length}`,
+  );
 
   // Réponses des prestataires
-  const ratingsWithResponse = finalRatings.filter(rating => rating.providerResponse);
+  const ratingsWithResponse = finalRatings.filter(
+    (rating) => rating.providerResponse,
+  );
   const responseRate = (ratingsWithResponse.length / finalRatings.length) * 100;
-  logger.info('SERVICE_RATINGS', `💬 Taux de réponse prestataires: ${responseRate.toFixed(1)}%`);
+  logger.info(
+    "SERVICE_RATINGS",
+    `💬 Taux de réponse prestataires: ${responseRate.toFixed(1)}%`,
+  );
 
-  logger.endSeed('SERVICE_RATINGS', result);
+  logger.endSeed("SERVICE_RATINGS", result);
   return result;
 }
 
@@ -375,11 +421,11 @@ function getWeightedRandomRating(distribution: Record<number, number>): number {
  * Génère des URLs de photos pour une évaluation
  */
 function generateRatingPhotos(serviceName: string, rating: number): string[] {
-  const baseUrl = '/uploads/ratings/';
+  const baseUrl = "/uploads/ratings/";
   const serviceSlug = serviceName
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-+/g, '-')
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-")
     .trim();
 
   const photoCount = faker.number.int({ min: 1, max: rating >= 4 ? 4 : 2 });
@@ -387,9 +433,13 @@ function generateRatingPhotos(serviceName: string, rating: number): string[] {
 
   for (let i = 0; i < photoCount; i++) {
     if (i === 0 && rating >= 4) {
-      photos.push(`${baseUrl}${serviceSlug}-avant-apres-${faker.string.alphanumeric(6)}.jpg`);
+      photos.push(
+        `${baseUrl}${serviceSlug}-avant-apres-${faker.string.alphanumeric(6)}.jpg`,
+      );
     } else {
-      photos.push(`${baseUrl}${serviceSlug}-resultat-${i + 1}-${faker.string.alphanumeric(6)}.jpg`);
+      photos.push(
+        `${baseUrl}${serviceSlug}-resultat-${i + 1}-${faker.string.alphanumeric(6)}.jpg`,
+      );
     }
   }
 
@@ -403,14 +453,14 @@ async function createFeaturedRatings(
   prisma: PrismaClient,
   logger: SeedLogger,
   result: SeedResult,
-  completedBookings: any[]
+  completedBookings: any[],
 ): Promise<void> {
-  logger.info('SERVICE_RATINGS', '🌟 Création évaluations exceptionnelles...');
+  logger.info("SERVICE_RATINGS", "🌟 Création évaluations exceptionnelles...");
 
   // Sélectionner quelques prestations pour des évaluations détaillées
   const featuredBookings = faker.helpers.arrayElements(
     completedBookings,
-    Math.min(5, completedBookings.length)
+    Math.min(5, completedBookings.length),
   );
 
   const FEATURED_COMMENTS = {
@@ -423,8 +473,8 @@ async function createFeaturedRatings(
       "Dépannage électrique d'urgence résolu rapidement. Diagnostic précis, intervention propre et tarif correct. Le prestataire a même donné des conseils pour éviter que le problème se reproduise. Service exemplaire !",
     ],
     ménage: [
-      'Service de ménage régulier depuis 6 mois. Travail minutieux, ponctualité parfaite et discrétion appréciable. Mon appartement est toujours impeccable. Je recommande cette personne de confiance !',
-      'Grand ménage après travaux, résultat exceptionnel ! Tous les résidus de poussière éliminés, finitions nickel. Matériel professionnel et méthode efficace. Prestation irréprochable !',
+      "Service de ménage régulier depuis 6 mois. Travail minutieux, ponctualité parfaite et discrétion appréciable. Mon appartement est toujours impeccable. Je recommande cette personne de confiance !",
+      "Grand ménage après travaux, résultat exceptionnel ! Tous les résidus de poussière éliminés, finitions nickel. Matériel professionnel et méthode efficace. Prestation irréprochable !",
     ],
   };
 
@@ -434,11 +484,11 @@ async function createFeaturedRatings(
       let detailedComment: string;
 
       // Sélectionner un commentaire détaillé selon la catégorie
-      if (categoryName.includes('plomberie')) {
+      if (categoryName.includes("plomberie")) {
         detailedComment = getRandomElement(FEATURED_COMMENTS.plomberie);
-      } else if (categoryName.includes('électricité')) {
+      } else if (categoryName.includes("électricité")) {
         detailedComment = getRandomElement(FEATURED_COMMENTS.électricité);
-      } else if (categoryName.includes('ménage')) {
+      } else if (categoryName.includes("ménage")) {
         detailedComment = getRandomElement(FEATURED_COMMENTS.ménage);
       } else {
         // Commentaire générique détaillé
@@ -455,7 +505,9 @@ async function createFeaturedRatings(
 
       // Date d'évaluation
       const reviewDate = new Date(booking.completedDate!);
-      reviewDate.setDate(reviewDate.getDate() + faker.number.int({ min: 2, max: 5 }));
+      reviewDate.setDate(
+        reviewDate.getDate() + faker.number.int({ min: 2, max: 5 }),
+      );
 
       // Créer l'évaluation exceptionnelle
       await prisma.serviceRating.create({
@@ -478,7 +530,9 @@ async function createFeaturedRatings(
           helpfulVotes: faker.number.int({ min: 3, max: 15 }),
           providerResponse:
             "Merci énormément pour ce retour exceptionnel ! C'était un réel plaisir de travailler sur ce projet. Votre satisfaction est ma plus belle récompense. N'hésitez pas à me recontacter pour vos futurs besoins !",
-          providerResponseDate: new Date(reviewDate.getTime() + 24 * 60 * 60 * 1000),
+          providerResponseDate: new Date(
+            reviewDate.getTime() + 24 * 60 * 60 * 1000,
+          ),
           createdAt: reviewDate,
           updatedAt: reviewDate,
         },
@@ -486,7 +540,10 @@ async function createFeaturedRatings(
 
       result.created++;
     } catch (error: any) {
-      logger.error('SERVICE_RATINGS', `❌ Erreur évaluation exceptionnelle: ${error.message}`);
+      logger.error(
+        "SERVICE_RATINGS",
+        `❌ Erreur évaluation exceptionnelle: ${error.message}`,
+      );
       result.errors++;
     }
   }
@@ -497,9 +554,9 @@ async function createFeaturedRatings(
  */
 export async function validateServiceRatings(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des évaluations...');
+  logger.info("VALIDATION", "🔍 Validation des évaluations...");
 
   let isValid = true;
 
@@ -514,15 +571,15 @@ export async function validateServiceRatings(
   });
 
   if (ratings.length === 0) {
-    logger.error('VALIDATION', '❌ Aucune évaluation trouvée');
+    logger.error("VALIDATION", "❌ Aucune évaluation trouvée");
     isValid = false;
   } else {
-    logger.success('VALIDATION', `✅ ${ratings.length} évaluations trouvées`);
+    logger.success("VALIDATION", `✅ ${ratings.length} évaluations trouvées`);
   }
 
   // Vérifier les notes valides (1-5)
   const ratingsWithInvalidScore = ratings.filter(
-    rating =>
+    (rating) =>
       rating.overallRating < 1 ||
       rating.overallRating > 5 ||
       rating.qualityRating < 1 ||
@@ -532,76 +589,92 @@ export async function validateServiceRatings(
       rating.communicationRating < 1 ||
       rating.communicationRating > 5 ||
       rating.valueRating < 1 ||
-      rating.valueRating > 5
+      rating.valueRating > 5,
   );
 
   if (ratingsWithInvalidScore.length === 0) {
-    logger.success('VALIDATION', '✅ Toutes les notes sont valides (1-5)');
+    logger.success("VALIDATION", "✅ Toutes les notes sont valides (1-5)");
   } else {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${ratingsWithInvalidScore.length} évaluations avec notes invalides`
+      "VALIDATION",
+      `⚠️ ${ratingsWithInvalidScore.length} évaluations avec notes invalides`,
     );
   }
 
   // Vérifier la cohérence avec les réservations
   const ratingsWithInvalidBooking = ratings.filter(
-    rating => rating.booking.status !== BookingStatus.COMPLETED
+    (rating) => rating.booking.status !== BookingStatus.COMPLETED,
   );
 
   if (ratingsWithInvalidBooking.length === 0) {
     logger.success(
-      'VALIDATION',
-      '✅ Toutes les évaluations correspondent à des prestations terminées'
+      "VALIDATION",
+      "✅ Toutes les évaluations correspondent à des prestations terminées",
     );
   } else {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${ratingsWithInvalidBooking.length} évaluations sur prestations non terminées`
+      "VALIDATION",
+      `⚠️ ${ratingsWithInvalidBooking.length} évaluations sur prestations non terminées`,
     );
   }
 
   // Vérifier la distribution des notes (doit être pondérée vers les bonnes notes)
   const averageRating =
-    ratings.reduce((sum, rating) => sum + rating.overallRating, 0) / ratings.length;
+    ratings.reduce((sum, rating) => sum + rating.overallRating, 0) /
+    ratings.length;
 
   if (averageRating >= 3.5 && averageRating <= 4.5) {
-    logger.success('VALIDATION', `✅ Note moyenne réaliste: ${averageRating.toFixed(2)}/5`);
+    logger.success(
+      "VALIDATION",
+      `✅ Note moyenne réaliste: ${averageRating.toFixed(2)}/5`,
+    );
   } else {
-    logger.warning('VALIDATION', `⚠️ Note moyenne anormale: ${averageRating.toFixed(2)}/5`);
+    logger.warning(
+      "VALIDATION",
+      `⚠️ Note moyenne anormale: ${averageRating.toFixed(2)}/5`,
+    );
   }
 
   // Vérifier le taux de recommandation
-  const recommendedCount = ratings.filter(rating => rating.isRecommended).length;
+  const recommendedCount = ratings.filter(
+    (rating) => rating.isRecommended,
+  ).length;
   const recommendationRate = (recommendedCount / ratings.length) * 100;
 
   if (recommendationRate >= 60 && recommendationRate <= 90) {
     logger.success(
-      'VALIDATION',
-      `✅ Taux de recommandation réaliste: ${recommendationRate.toFixed(1)}%`
+      "VALIDATION",
+      `✅ Taux de recommandation réaliste: ${recommendationRate.toFixed(1)}%`,
     );
   } else {
     logger.warning(
-      'VALIDATION',
-      `⚠️ Taux de recommandation anormal: ${recommendationRate.toFixed(1)}%`
+      "VALIDATION",
+      `⚠️ Taux de recommandation anormal: ${recommendationRate.toFixed(1)}%`,
     );
   }
 
   // Vérifier les évaluations avec photos
-  const ratingsWithPhotos = ratings.filter(rating => rating.photos.length > 0);
+  const ratingsWithPhotos = ratings.filter(
+    (rating) => rating.photos.length > 0,
+  );
   const photoRate = (ratingsWithPhotos.length / ratings.length) * 100;
 
-  logger.info('VALIDATION', `📸 ${photoRate.toFixed(1)}% des évaluations ont des photos`);
+  logger.info(
+    "VALIDATION",
+    `📸 ${photoRate.toFixed(1)}% des évaluations ont des photos`,
+  );
 
   // Vérifier les réponses des prestataires
-  const ratingsWithResponse = ratings.filter(rating => rating.providerResponse);
+  const ratingsWithResponse = ratings.filter(
+    (rating) => rating.providerResponse,
+  );
   const responseRate = (ratingsWithResponse.length / ratings.length) * 100;
 
   logger.info(
-    'VALIDATION',
-    `💬 ${responseRate.toFixed(1)}% des évaluations ont une réponse prestataire`
+    "VALIDATION",
+    `💬 ${responseRate.toFixed(1)}% des évaluations ont une réponse prestataire`,
   );
 
-  logger.success('VALIDATION', '✅ Validation des évaluations terminée');
+  logger.success("VALIDATION", "✅ Validation des évaluations terminée");
   return isValid;
 }

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   Card,
   CardContent,
@@ -11,7 +11,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -27,21 +27,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Star,
   MoreVertical,
@@ -57,11 +57,15 @@ import {
   Search,
   Euro,
   Loader,
-} from 'lucide-react';
-import { cn } from '@/lib/utils/common';
+} from "lucide-react";
+import { cn } from "@/lib/utils/common";
 
 // Types pour le composant
-type DelivererProposalStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
+type DelivererProposalStatus =
+  | "PENDING"
+  | "ACCEPTED"
+  | "REJECTED"
+  | "CANCELLED";
 
 interface DelivererProposal {
   id: string;
@@ -115,29 +119,33 @@ export default function DelivererProposalsList({
   isLoading = false,
   error,
 }: DelivererProposalsListProps) {
-  const t = useTranslations('announcements');
-  const [sortBy, setSortBy] = useState<string>('proposedPrice');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedDeliverer, setSelectedDeliverer] = useState<DelivererProposal | null>(null);
+  const t = useTranslations("announcements");
+  const [sortBy, setSortBy] = useState<string>("proposedPrice");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedDeliverer, setSelectedDeliverer] =
+    useState<DelivererProposal | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [processingProposalId, setProcessingProposalId] = useState<string | null>(null);
+  const [processingProposalId, setProcessingProposalId] = useState<
+    string | null
+  >(null);
 
   // Trier les propositions
   const sortedProposals = [...proposals].sort((a, b) => {
     let comparison = 0;
 
     switch (sortBy) {
-      case 'proposedPrice':
+      case "proposedPrice":
         comparison = a.proposedPrice - b.proposedPrice;
         break;
-      case 'delivererRating':
+      case "delivererRating":
         comparison = (b.deliverer.rating || 0) - (a.deliverer.rating || 0);
         break;
-      case 'createdAt':
-        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case "createdAt":
+        comparison =
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         break;
-      case 'estimatedDeliveryTime':
+      case "estimatedDeliveryTime":
         if (a.estimatedDeliveryTime && b.estimatedDeliveryTime) {
           comparison =
             new Date(a.estimatedDeliveryTime).getTime() -
@@ -148,11 +156,11 @@ export default function DelivererProposalsList({
         comparison = a.proposedPrice - b.proposedPrice;
     }
 
-    return sortOrder === 'asc' ? comparison : -comparison;
+    return sortOrder === "asc" ? comparison : -comparison;
   });
 
   // Filtrer les propositions par recherche
-  const filteredProposals = sortedProposals.filter(proposal => {
+  const filteredProposals = sortedProposals.filter((proposal) => {
     if (!searchQuery.trim()) return true;
 
     const searchLower = searchQuery.toLowerCase();
@@ -165,10 +173,10 @@ export default function DelivererProposalsList({
   // Changer le tri
   const handleSortChange = (criteria: string) => {
     if (sortBy === criteria) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortBy(criteria);
-      setSortOrder('asc');
+      setSortOrder("asc");
     }
   };
 
@@ -202,22 +210,27 @@ export default function DelivererProposalsList({
 
   // Formatter une date pour l'affichage
   const formatDateTime = (date?: Date | string) => {
-    if (!date) return t('notSpecified');
-    return format(new Date(date), 'Pp', { locale: fr });
+    if (!date) return t("notSpecified");
+    return format(new Date(date), "Pp", { locale: fr });
   };
 
   // Afficher les étoiles de rating
   const renderStars = (rating?: number) => {
-    if (!rating) return <span className="text-xs text-muted-foreground">{t('noRating')}</span>;
+    if (!rating)
+      return (
+        <span className="text-xs text-muted-foreground">{t("noRating")}</span>
+      );
 
     return (
       <div className="flex items-center">
-        {[1, 2, 3, 4, 5].map(star => (
+        {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
             className={cn(
-              'h-3.5 w-3.5',
-              star <= rating ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted'
+              "h-3.5 w-3.5",
+              star <= rating
+                ? "fill-yellow-400 text-yellow-400"
+                : "fill-muted text-muted",
             )}
           />
         ))}
@@ -229,22 +242,24 @@ export default function DelivererProposalsList({
   // Badge de statut pour une proposition
   const getStatusBadge = (status: DelivererProposalStatus) => {
     switch (status) {
-      case 'PENDING':
-        return <Badge variant="outline">{t('pending')}</Badge>;
-      case 'ACCEPTED':
-        return <Badge variant="default">{t('accepted')}</Badge>;
-      case 'REJECTED':
-        return <Badge variant="destructive">{t('rejected')}</Badge>;
-      case 'CANCELLED':
-        return <Badge variant="secondary">{t('cancelled')}</Badge>;
+      case "PENDING":
+        return <Badge variant="outline">{t("pending")}</Badge>;
+      case "ACCEPTED":
+        return <Badge variant="default">{t("accepted")}</Badge>;
+      case "REJECTED":
+        return <Badge variant="destructive">{t("rejected")}</Badge>;
+      case "CANCELLED":
+        return <Badge variant="secondary">{t("cancelled")}</Badge>;
     }
   };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>{t('proposalsTitle')}</CardTitle>
-        <CardDescription>{t('proposalsDescription', { title: announcementTitle })}</CardDescription>
+        <CardTitle>{t("proposalsTitle")}</CardTitle>
+        <CardDescription>
+          {t("proposalsDescription", { title: announcementTitle })}
+        </CardDescription>
       </CardHeader>
 
       <CardContent>
@@ -254,10 +269,10 @@ export default function DelivererProposalsList({
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder={t('searchDeliverers')}
+              placeholder={t("searchDeliverers")}
               className="pl-9 w-full sm:w-[300px]"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
@@ -265,28 +280,39 @@ export default function DelivererProposalsList({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
                 <Filter className="mr-2 h-4 w-4" />
-                {t('sortBy')}
+                {t("sortBy")}
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleSortChange('proposedPrice')}>
+              <DropdownMenuItem
+                onClick={() => handleSortChange("proposedPrice")}
+              >
                 <Euro className="mr-2 h-4 w-4" />
-                {t('sortByPrice')} {sortBy === 'proposedPrice' && (sortOrder === 'asc' ? '↑' : '↓')}
+                {t("sortByPrice")}{" "}
+                {sortBy === "proposedPrice" &&
+                  (sortOrder === "asc" ? "↑" : "↓")}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSortChange('delivererRating')}>
+              <DropdownMenuItem
+                onClick={() => handleSortChange("delivererRating")}
+              >
                 <Star className="mr-2 h-4 w-4" />
-                {t('sortByRating')}{' '}
-                {sortBy === 'delivererRating' && (sortOrder === 'asc' ? '↑' : '↓')}
+                {t("sortByRating")}{" "}
+                {sortBy === "delivererRating" &&
+                  (sortOrder === "asc" ? "↑" : "↓")}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSortChange('createdAt')}>
+              <DropdownMenuItem onClick={() => handleSortChange("createdAt")}>
                 <Clock className="mr-2 h-4 w-4" />
-                {t('sortByDate')} {sortBy === 'createdAt' && (sortOrder === 'asc' ? '↑' : '↓')}
+                {t("sortByDate")}{" "}
+                {sortBy === "createdAt" && (sortOrder === "asc" ? "↑" : "↓")}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSortChange('estimatedDeliveryTime')}>
+              <DropdownMenuItem
+                onClick={() => handleSortChange("estimatedDeliveryTime")}
+              >
                 <Calendar className="mr-2 h-4 w-4" />
-                {t('sortByDeliveryTime')}{' '}
-                {sortBy === 'estimatedDeliveryTime' && (sortOrder === 'asc' ? '↑' : '↓')}
+                {t("sortByDeliveryTime")}{" "}
+                {sortBy === "estimatedDeliveryTime" &&
+                  (sortOrder === "asc" ? "↑" : "↓")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -306,27 +332,27 @@ export default function DelivererProposalsList({
           </div>
         ) : filteredProposals.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            {searchQuery ? t('noProposalsMatch') : t('noProposalsYet')}
+            {searchQuery ? t("noProposalsMatch") : t("noProposalsYet")}
           </div>
         ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('deliverer')}</TableHead>
+                  <TableHead>{t("deliverer")}</TableHead>
                   <TableHead className="text-right">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSortChange('proposedPrice')}
+                      onClick={() => handleSortChange("proposedPrice")}
                       className="flex items-center"
                     >
-                      {t('proposedPrice')}
-                      {sortBy === 'proposedPrice' && (
+                      {t("proposedPrice")}
+                      {sortBy === "proposedPrice" && (
                         <ChevronDown
                           className={cn(
-                            'ml-1 h-4 w-4 transition-transform',
-                            sortOrder === 'desc' && 'rotate-180'
+                            "ml-1 h-4 w-4 transition-transform",
+                            sortOrder === "desc" && "rotate-180",
                           )}
                         />
                       )}
@@ -336,26 +362,28 @@ export default function DelivererProposalsList({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSortChange('estimatedDeliveryTime')}
+                      onClick={() => handleSortChange("estimatedDeliveryTime")}
                       className="flex items-center"
                     >
-                      {t('estimatedDelivery')}
-                      {sortBy === 'estimatedDeliveryTime' && (
+                      {t("estimatedDelivery")}
+                      {sortBy === "estimatedDeliveryTime" && (
                         <ChevronDown
                           className={cn(
-                            'ml-1 h-4 w-4 transition-transform',
-                            sortOrder === 'desc' && 'rotate-180'
+                            "ml-1 h-4 w-4 transition-transform",
+                            sortOrder === "desc" && "rotate-180",
                           )}
                         />
                       )}
                     </Button>
                   </TableHead>
-                  <TableHead className="hidden sm:table-cell">{t('status')}</TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    {t("status")}
+                  </TableHead>
                   <TableHead className="w-[80px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProposals.map(proposal => (
+                {filteredProposals.map((proposal) => (
                   <TableRow
                     key={proposal.id}
                     className="cursor-pointer hover:bg-muted/50"
@@ -365,95 +393,108 @@ export default function DelivererProposalsList({
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage
-                            src={proposal.deliverer.image || ''}
+                            src={proposal.deliverer.image || ""}
                             alt={proposal.deliverer.name}
                           />
                           <AvatarFallback>
-                            {proposal.deliverer.name.substring(0, 2).toUpperCase()}
+                            {proposal.deliverer.name
+                              .substring(0, 2)
+                              .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{proposal.deliverer.name}</div>
-                          <div className="text-xs">{renderStars(proposal.deliverer.rating)}</div>
+                          <div className="font-medium">
+                            {proposal.deliverer.name}
+                          </div>
+                          <div className="text-xs">
+                            {renderStars(proposal.deliverer.rating)}
+                          </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {proposal.proposedPrice.toLocaleString('fr-FR', {
-                        style: 'currency',
-                        currency: 'EUR',
+                      {proposal.proposedPrice.toLocaleString("fr-FR", {
+                        style: "currency",
+                        currency: "EUR",
                       })}
                       {proposal.proposedPrice < suggestedPrice ? (
-                        <div className="text-xs text-yellow-600">{t('belowSuggested')}</div>
+                        <div className="text-xs text-yellow-600">
+                          {t("belowSuggested")}
+                        </div>
                       ) : proposal.proposedPrice > suggestedPrice ? (
-                        <div className="text-xs text-red-600">{t('aboveSuggested')}</div>
+                        <div className="text-xs text-red-600">
+                          {t("aboveSuggested")}
+                        </div>
                       ) : null}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {proposal.estimatedDeliveryTime
                         ? formatDateTime(proposal.estimatedDeliveryTime)
-                        : t('notSpecified')}
+                        : t("notSpecified")}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       {getStatusBadge(proposal.status)}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                        <DropdownMenuTrigger
+                          asChild
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Button variant="ghost" size="icon">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={e => {
+                            onClick={(e) => {
                               e.stopPropagation();
                               openProposalDetails(proposal);
                             }}
                           >
-                            {t('viewDetails')}
+                            {t("viewDetails")}
                           </DropdownMenuItem>
-                          {proposal.status === 'PENDING' && (
+                          {proposal.status === "PENDING" && (
                             <>
                               <DropdownMenuItem
-                                onClick={e => {
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedDeliverer(proposal);
                                   handleAccept(proposal);
                                 }}
                               >
                                 <ThumbsUp className="mr-2 h-4 w-4" />
-                                {t('accept')}
+                                {t("accept")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={e => {
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedDeliverer(proposal);
                                   handleReject(proposal);
                                 }}
                               >
                                 <ThumbsDown className="mr-2 h-4 w-4" />
-                                {t('reject')}
+                                {t("reject")}
                               </DropdownMenuItem>
                             </>
                           )}
                           <DropdownMenuItem
-                            onClick={e => {
+                            onClick={(e) => {
                               e.stopPropagation();
                               onSendMessage?.(proposal.deliverer.id);
                             }}
                           >
                             <MessageSquare className="mr-2 h-4 w-4" />
-                            {t('sendMessage')}
+                            {t("sendMessage")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={e => {
+                            onClick={(e) => {
                               e.stopPropagation();
                               onViewDelivererProfile?.(proposal.deliverer.id);
                             }}
                           >
                             <User className="mr-2 h-4 w-4" />
-                            {t('viewProfile')}
+                            {t("viewProfile")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -471,9 +512,9 @@ export default function DelivererProposalsList({
         {selectedDeliverer && (
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{t('proposalDetails')}</DialogTitle>
+              <DialogTitle>{t("proposalDetails")}</DialogTitle>
               <DialogDescription>
-                {t('proposalFrom')} {selectedDeliverer.deliverer.name}
+                {t("proposalFrom")} {selectedDeliverer.deliverer.name}
               </DialogDescription>
             </DialogHeader>
 
@@ -481,22 +522,28 @@ export default function DelivererProposalsList({
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
                   <AvatarImage
-                    src={selectedDeliverer.deliverer.image || ''}
+                    src={selectedDeliverer.deliverer.image || ""}
                     alt={selectedDeliverer.deliverer.name}
                   />
                   <AvatarFallback>
-                    {selectedDeliverer.deliverer.name.substring(0, 2).toUpperCase()}
+                    {selectedDeliverer.deliverer.name
+                      .substring(0, 2)
+                      .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium text-lg">{selectedDeliverer.deliverer.name}</div>
+                  <div className="font-medium text-lg">
+                    {selectedDeliverer.deliverer.name}
+                  </div>
                   <div className="flex items-center">
                     {renderStars(selectedDeliverer.deliverer.rating)}
 
-                    {selectedDeliverer.deliverer.completedDeliveries !== undefined && (
+                    {selectedDeliverer.deliverer.completedDeliveries !==
+                      undefined && (
                       <div className="text-xs text-muted-foreground ml-2">
-                        {t('completedDeliveries', {
-                          count: selectedDeliverer.deliverer.completedDeliveries,
+                        {t("completedDeliveries", {
+                          count:
+                            selectedDeliverer.deliverer.completedDeliveries,
                         })}
                       </div>
                     )}
@@ -508,37 +555,39 @@ export default function DelivererProposalsList({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-muted-foreground">{t('proposedPrice')}</Label>
+                  <Label className="text-muted-foreground">
+                    {t("proposedPrice")}
+                  </Label>
                   <div className="font-medium text-lg">
-                    {selectedDeliverer.proposedPrice.toLocaleString('fr-FR', {
-                      style: 'currency',
-                      currency: 'EUR',
+                    {selectedDeliverer.proposedPrice.toLocaleString("fr-FR", {
+                      style: "currency",
+                      currency: "EUR",
                     })}
                   </div>
                   {selectedDeliverer.proposedPrice !== suggestedPrice && (
                     <div
                       className={cn(
-                        'text-xs',
+                        "text-xs",
                         selectedDeliverer.proposedPrice < suggestedPrice
-                          ? 'text-yellow-600'
-                          : 'text-red-600'
+                          ? "text-yellow-600"
+                          : "text-red-600",
                       )}
                     >
                       {selectedDeliverer.proposedPrice < suggestedPrice
-                        ? t('priceLowerBy', {
+                        ? t("priceLowerBy", {
                             amount: (
                               suggestedPrice - selectedDeliverer.proposedPrice
-                            ).toLocaleString('fr-FR', {
-                              style: 'currency',
-                              currency: 'EUR',
+                            ).toLocaleString("fr-FR", {
+                              style: "currency",
+                              currency: "EUR",
                             }),
                           })
-                        : t('priceHigherBy', {
+                        : t("priceHigherBy", {
                             amount: (
                               selectedDeliverer.proposedPrice - suggestedPrice
-                            ).toLocaleString('fr-FR', {
-                              style: 'currency',
-                              currency: 'EUR',
+                            ).toLocaleString("fr-FR", {
+                              style: "currency",
+                              currency: "EUR",
                             }),
                           })}
                     </div>
@@ -546,17 +595,19 @@ export default function DelivererProposalsList({
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-muted-foreground">{t('estimatedDelivery')}</Label>
+                  <Label className="text-muted-foreground">
+                    {t("estimatedDelivery")}
+                  </Label>
                   <div className="font-medium">
                     {selectedDeliverer.estimatedDeliveryTime
                       ? formatDateTime(selectedDeliverer.estimatedDeliveryTime)
-                      : t('notSpecified')}
+                      : t("notSpecified")}
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-muted-foreground">{t('message')}</Label>
+                <Label className="text-muted-foreground">{t("message")}</Label>
                 <p className="text-sm border rounded-md p-3 bg-muted/50">
                   {selectedDeliverer.message}
                 </p>
@@ -573,7 +624,7 @@ export default function DelivererProposalsList({
                     htmlFor="hasEquipment"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {t('hasRequiredEquipment')}
+                    {t("hasRequiredEquipment")}
                   </label>
                 </div>
 
@@ -587,13 +638,13 @@ export default function DelivererProposalsList({
                     htmlFor="canPickup"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {t('canPickupAtScheduledTime')}
+                    {t("canPickupAtScheduledTime")}
                   </label>
                 </div>
               </div>
 
               <div className="text-xs text-muted-foreground">
-                {t('proposedAt')}: {formatDateTime(selectedDeliverer.createdAt)}
+                {t("proposedAt")}: {formatDateTime(selectedDeliverer.createdAt)}
               </div>
             </div>
 
@@ -602,14 +653,16 @@ export default function DelivererProposalsList({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onSendMessage?.(selectedDeliverer.deliverer.id)}
+                  onClick={() =>
+                    onSendMessage?.(selectedDeliverer.deliverer.id)
+                  }
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />
-                  {t('sendMessage')}
+                  {t("sendMessage")}
                 </Button>
               </div>
 
-              {selectedDeliverer.status === 'PENDING' && (
+              {selectedDeliverer.status === "PENDING" && (
                 <div className="flex space-x-2">
                   <Button
                     variant="destructive"
@@ -622,7 +675,7 @@ export default function DelivererProposalsList({
                     ) : (
                       <ThumbsDown className="mr-2 h-4 w-4" />
                     )}
-                    {t('reject')}
+                    {t("reject")}
                   </Button>
 
                   <Button
@@ -635,7 +688,7 @@ export default function DelivererProposalsList({
                     ) : (
                       <ThumbsUp className="mr-2 h-4 w-4" />
                     )}
-                    {t('accept')}
+                    {t("accept")}
                   </Button>
                 </div>
               )}

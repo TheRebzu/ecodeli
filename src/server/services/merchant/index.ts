@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export * from './billing-merchant.service';
-export * from './contract-merchant.service';
-export * from './merchant-announcement.service';
-export * from './merchant-catalog.service';
-export * from './merchant-delivery.service';
-export * from './merchant.service';
+export * from "./billing-merchant.service";
+export * from "./contract-merchant.service";
+export * from "./merchant-announcement.service";
+export * from "./merchant-catalog.service";
+export * from "./merchant-delivery.service";
+export * from "./merchant.service";

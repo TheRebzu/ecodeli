@@ -10,7 +10,10 @@ export interface EmailService {
   /**
    * Envoie un email de vérification pour confirmer l'adresse email
    */
-  sendVerificationEmail(email: string, verificationToken: string): Promise<void>;
+  sendVerificationEmail(
+    email: string,
+    verificationToken: string,
+  ): Promise<void>;
 
   /**
    * Envoie un email de réinitialisation de mot de passe
@@ -23,7 +26,7 @@ export interface EmailService {
   sendDocumentApprovedEmail(
     email: string,
     documentName: string,
-    documentType: string
+    documentType: string,
   ): Promise<void>;
 
   /**
@@ -33,7 +36,7 @@ export interface EmailService {
     email: string,
     documentName: string,
     documentType: string,
-    reason: string
+    reason: string,
   ): Promise<void>;
 
   /**
@@ -44,5 +47,9 @@ export interface EmailService {
   /**
    * Envoie une facture par email
    */
-  sendInvoiceEmail(to: string, invoiceId: string, pdfBuffer: Buffer): Promise<void>;
+  sendInvoiceEmail(
+    to: string,
+    invoiceId: string,
+    pdfBuffer: Buffer,
+  ): Promise<void>;
 }

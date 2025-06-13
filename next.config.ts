@@ -1,57 +1,57 @@
 // next.config.ts
-import { NextConfig } from 'next';
-import withNextIntl from 'next-intl/plugin';
-import path from 'path';
+import { NextConfig } from "next";
+import withNextIntl from "next-intl/plugin";
+import path from "path";
 
 const nextConfig: NextConfig = {
   // Configurer le serveur de fichiers statiques
-  output: 'standalone',
-  
+  output: "standalone",
+
   // Optimisations de build (swcMinify est maintenant par défaut dans Next.js 15+)
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
   },
-  
+
   // Temporairement ignorer les erreurs ESLint durant le build
   eslint: {
     ignoreDuringBuilds: true,
   },
-  
+
   // Ignorer aussi les warnings TypeScript non critiques
   typescript: {
     ignoreBuildErrors: false, // Garder les erreurs TS critiques
   },
-  
+
   // Turbopack configuration (stable)
   turbopack: {
     rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
       },
     },
   },
-  
+
   // Optimisation expérimentale
   experimental: {
-    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+    optimizePackageImports: ["@radix-ui/react-icons", "lucide-react"],
     ppr: false, // Partial Prerendering
     optimizeCss: true,
   },
-  
+
   // Activer les images externes avec la nouvelle configuration
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: '/uploads/**',
+        protocol: "http",
+        hostname: "localhost",
+        port: "3000",
+        pathname: "/uploads/**",
       },
       {
-        protocol: 'https',
-        hostname: 'localhost',
-        pathname: '/uploads/**',
+        protocol: "https",
+        hostname: "localhost",
+        pathname: "/uploads/**",
       },
     ],
   },
@@ -59,7 +59,7 @@ const nextConfig: NextConfig = {
     // Configurer les alias pour s'assurer que @/ pointe vers src/
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     };
 
     // Optimisations de performance
@@ -67,18 +67,18 @@ const nextConfig: NextConfig = {
       config.optimization = {
         ...config.optimization,
         splitChunks: {
-          chunks: 'all',
+          chunks: "all",
           cacheGroups: {
             vendor: {
               test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
+              name: "vendors",
+              chunks: "all",
               priority: 10,
             },
             common: {
-              name: 'common',
+              name: "common",
               minChunks: 2,
-              chunks: 'all',
+              chunks: "all",
               priority: 5,
               reuseExistingChunk: true,
             },
@@ -110,14 +110,14 @@ const nextConfig: NextConfig = {
         dns: false,
         dgram: false,
         worker_threads: false,
-        events: require.resolve('events/'),
+        events: require.resolve("events/"),
       };
 
       // Ajouter socket.io-client au client uniquement
       config.externals = [
         ...(config.externals || []),
         // Exclure socket.io du bundle client (on n'utilise que socket.io-client)
-        { 'socket.io': 'commonjs socket.io' },
+        { "socket.io": "commonjs socket.io" },
       ];
     }
 

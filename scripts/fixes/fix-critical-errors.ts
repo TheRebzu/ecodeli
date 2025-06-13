@@ -1,14 +1,14 @@
 #!/usr/bin/env tsx
 // scripts/scripts/fix-critical-errors.ts
 
-import { execSync } from 'child_process';
-import chalk from 'chalk';
-import fs from 'fs/promises';
-import path from 'path';
+import { execSync } from "child_process";
+import chalk from "chalk";
+import fs from "fs/promises";
+import path from "path";
 
 interface CriticalError {
   file: string;
-  type: 'empty-module' | 'missing-export' | 'invalid-import' | 'type-error';
+  type: "empty-module" | "missing-export" | "invalid-import" | "type-error";
   line?: number;
   message: string;
 }
@@ -18,65 +18,69 @@ class CriticalErrorFixer {
   private errors: CriticalError[] = [];
 
   constructor() {
-    console.log(chalk.bold.cyan('🔧 EcoDeli - Correcteur d\'erreurs critiques\n'));
+    console.log(
+      chalk.bold.cyan("🔧 EcoDeli - Correcteur d'erreurs critiques\n"),
+    );
   }
 
   async run(): Promise<void> {
     // Analyser les erreurs critiques
     await this.analyzeCriticalErrors();
-    
+
     // Corriger les fichiers vides sans modules
     await this.fixEmptyModules();
-    
+
     // Corriger les types manquants
     await this.fixMissingTypes();
-    
+
     // Rapport final
     await this.generateReport();
   }
 
   private async analyzeCriticalErrors(): Promise<void> {
-    console.log(chalk.blue('📋 Analyse des erreurs critiques...'));
-    
+    console.log(chalk.blue("📋 Analyse des erreurs critiques..."));
+
     // Lister les fichiers problématiques identifiés dans le typecheck
     const emptyModules = [
-      'src/types/planning/schedule.ts',
-      'src/types/services/airport-transfer.ts',
-      'src/types/services/evaluation.ts',
-      'src/types/services/home-services.ts',
-      'src/types/services/international-purchase.ts',
-      'src/types/services/pet-sitting.ts',
-      'src/types/services/service-base.ts',
-      'src/types/services/shopping.ts',
-      'src/types/services/transport.ts',
-      'src/types/tutorial/overlay.ts',
-      'src/types/tutorial/progress.ts',
-      'src/types/tutorial/steps.ts',
-      'src/types/tutorial/tutorial.ts',
-      'src/types/users/preferences.ts',
-      'src/types/users/roles.ts',
-      'src/types/warehouses/inventory.ts',
-      'src/types/warehouses/location.ts',
-      'src/types/warehouses/reservation.ts',
-      'src/types/warehouses/transfer.ts',
+      "src/types/planning/schedule.ts",
+      "src/types/services/airport-transfer.ts",
+      "src/types/services/evaluation.ts",
+      "src/types/services/home-services.ts",
+      "src/types/services/international-purchase.ts",
+      "src/types/services/pet-sitting.ts",
+      "src/types/services/service-base.ts",
+      "src/types/services/shopping.ts",
+      "src/types/services/transport.ts",
+      "src/types/tutorial/overlay.ts",
+      "src/types/tutorial/progress.ts",
+      "src/types/tutorial/steps.ts",
+      "src/types/tutorial/tutorial.ts",
+      "src/types/users/preferences.ts",
+      "src/types/users/roles.ts",
+      "src/types/warehouses/inventory.ts",
+      "src/types/warehouses/location.ts",
+      "src/types/warehouses/reservation.ts",
+      "src/types/warehouses/transfer.ts",
     ];
 
     for (const file of emptyModules) {
       this.errors.push({
         file,
-        type: 'empty-module',
-        message: 'Fichier vide sans exports'
+        type: "empty-module",
+        message: "Fichier vide sans exports",
       });
     }
 
-    console.log(chalk.green(`✅ ${this.errors.length} erreurs critiques identifiées`));
+    console.log(
+      chalk.green(`✅ ${this.errors.length} erreurs critiques identifiées`),
+    );
   }
 
   private async fixEmptyModules(): Promise<void> {
-    console.log(chalk.blue('\n🔧 Correction des modules vides...'));
+    console.log(chalk.blue("\n🔧 Correction des modules vides..."));
 
     const moduleTemplates: Record<string, string> = {
-      'schedule': `// Types pour la planification
+      schedule: `// Types pour la planification
 export interface Schedule {
   id: string;
   title: string;
@@ -104,7 +108,7 @@ export interface SchedulePreferences {
   timeZone: string;
 }`,
 
-      'airport-transfer': `// Types pour les transferts aéroport
+      "airport-transfer": `// Types pour les transferts aéroport
 export interface AirportTransfer {
   id: string;
   origin: string;
@@ -124,7 +128,7 @@ export interface AirportInfo {
   terminals: string[];
 }`,
 
-      'evaluation': `// Types pour les évaluations
+      evaluation: `// Types pour les évaluations
 export interface ServiceEvaluation {
   id: string;
   serviceId: string;
@@ -148,7 +152,7 @@ export interface EvaluationStats {
   distribution: Record<number, number>;
 }`,
 
-      'home-services': `// Types pour les services à domicile
+      "home-services": `// Types pour les services à domicile
 export interface HomeService {
   id: string;
   title: string;
@@ -177,7 +181,7 @@ export interface HomeServiceBooking extends HomeService {
   status: 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 }`,
 
-      'international-purchase': `// Types pour les achats internationaux
+      "international-purchase": `// Types pour les achats internationaux
 export interface InternationalPurchase {
   id: string;
   clientId: string;
@@ -210,7 +214,7 @@ export interface CustomsInfo {
   hsCode?: string;
 }`,
 
-      'pet-sitting': `// Types pour la garde d'animaux
+      "pet-sitting": `// Types pour la garde d'animaux
 export interface PetSittingService {
   id: string;
   providerId: string;
@@ -251,7 +255,7 @@ export interface Pet {
   specialNeeds?: string[];
 }`,
 
-      'service-base': `// Types de base pour les services
+      "service-base": `// Types de base pour les services
 export interface BaseService {
   id: string;
   title: string;
@@ -312,13 +316,13 @@ export interface ServiceLocation {
   };
 }`,
 
-      'shopping': `// Types pour les services de shopping
+      shopping: `// Types pour les services de shopping
 export interface ShoppingService {
   id: string;
   providerId: string;
   specialties: ShoppingSp<remaining_args_truncated>`,
 
-      'transport': `// Types pour les services de transport
+      transport: `// Types pour les services de transport
 export interface TransportService {
   id: string;
   providerId: string;
@@ -364,7 +368,7 @@ export interface Location {
   type: 'RESIDENTIAL' | 'COMMERCIAL' | 'TRANSPORT_HUB' | 'OTHER';
 }`,
 
-      'overlay': `// Types pour les overlays de tutoriel
+      overlay: `// Types pour les overlays de tutoriel
 export interface TutorialOverlay {
   id: string;
   target: string;
@@ -404,7 +408,7 @@ export interface OverlayProps {
   onSkip?: () => void;
 }`,
 
-      'progress': `// Types pour le progrès du tutoriel
+      progress: `// Types pour le progrès du tutoriel
 export interface TutorialProgress {
   userId: string;
   tutorialId: string;
@@ -435,7 +439,7 @@ export interface UserTutorialHistory {
   preferredLearningStyle?: 'VISUAL' | 'TEXTUAL' | 'INTERACTIVE';
 }`,
 
-      'steps': `// Types pour les étapes de tutoriel
+      steps: `// Types pour les étapes de tutoriel
 export interface TutorialStep {
   id: string;
   tutorialId: string;
@@ -480,7 +484,7 @@ export interface StepNavigation {
   previousStepId?: string;
 }`,
 
-      'tutorial': `// Types principaux pour les tutoriaux
+      tutorial: `// Types principaux pour les tutoriaux
 export interface Tutorial {
   id: string;
   title: string;
@@ -526,7 +530,7 @@ export interface TutorialContext {
   isPaused: boolean;
 }`,
 
-      'preferences': `// Types pour les préférences utilisateur
+      preferences: `// Types pour les préférences utilisateur
 export interface UserPreferences {
   userId: string;
   language: string;
@@ -574,7 +578,7 @@ export interface AccessibilityPreferences {
   keyboardNavigation: boolean;
 }`,
 
-      'roles': `// Types pour les rôles utilisateur
+      roles: `// Types pour les rôles utilisateur
 export type UserRole = 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER' | 'ADMIN';
 
 export type UserStatus = 
@@ -621,7 +625,7 @@ export interface RoleTransition {
   processingTime: number; // en jours
 }`,
 
-      'inventory': `// Types pour l'inventaire des entrepôts
+      inventory: `// Types pour l'inventaire des entrepôts
 export interface WarehouseInventory {
   warehouseId: string;
   items: InventoryItem[];
@@ -680,7 +684,7 @@ export interface InventoryCapacity {
   availableVolume: number;
 }`,
 
-      'location': `// Types pour les emplacements d'entrepôts
+      location: `// Types pour les emplacements d'entrepôts
 export interface WarehouseLocation {
   id: string;
   name: string;
@@ -776,7 +780,7 @@ export interface ContactInfo {
 
 export type LocationStatus = 'ACTIVE' | 'MAINTENANCE' | 'CLOSED' | 'FULL';`,
 
-      'reservation': `// Types pour les réservations d'entrepôts
+      reservation: `// Types pour les réservations d'entrepôts
 export interface BoxReservation {
   id: string;
   clientId: string;
@@ -863,7 +867,7 @@ export interface AccessRule {
   value: string;
 }`,
 
-      'transfer': `// Types pour les transferts entre entrepôts
+      transfer: `// Types pour les transferts entre entrepôts
 export interface WarehouseTransfer {
   id: string;
   clientId: string;
@@ -970,29 +974,31 @@ export interface TrackingUpdate {
   location: LocationPoint;
   message: string;
   type: 'INFO' | 'WARNING' | 'ERROR';
-}`
+}`,
     };
 
     let fixedCount = 0;
-    for (const error of this.errors.filter(e => e.type === 'empty-module')) {
+    for (const error of this.errors.filter((e) => e.type === "empty-module")) {
       try {
         const filePath = path.join(this.projectRoot, error.file);
-        const fileName = path.basename(error.file, '.ts');
-        
+        const fileName = path.basename(error.file, ".ts");
+
         // Créer le répertoire si nécessaire
         await fs.mkdir(path.dirname(filePath), { recursive: true });
-        
+
         // Obtenir le template approprié
-        const template = moduleTemplates[fileName] || `// Types pour ${fileName}
+        const template =
+          moduleTemplates[fileName] ||
+          `// Types pour ${fileName}
 export interface ${fileName.charAt(0).toUpperCase() + fileName.slice(1)} {
   id: string;
   // TODO: Définir les propriétés
 }`;
 
         // Écrire le fichier
-        await fs.writeFile(filePath, template, 'utf-8');
+        await fs.writeFile(filePath, template, "utf-8");
         fixedCount++;
-        
+
         console.log(chalk.green(`✅ ${error.file} corrigé`));
       } catch (err) {
         console.log(chalk.red(`❌ Erreur correction ${error.file}: ${err}`));
@@ -1003,15 +1009,18 @@ export interface ${fileName.charAt(0).toUpperCase() + fileName.slice(1)} {
   }
 
   private async fixMissingTypes(): Promise<void> {
-    console.log(chalk.blue('\n🔧 Correction des types manquants...'));
+    console.log(chalk.blue("\n🔧 Correction des types manquants..."));
 
     // Corriger UserRole et UserStatus dans base.ts
-    const baseTypesFile = path.join(this.projectRoot, 'src/types/users/base.ts');
+    const baseTypesFile = path.join(
+      this.projectRoot,
+      "src/types/users/base.ts",
+    );
     try {
-      let content = await fs.readFile(baseTypesFile, 'utf-8');
-      
+      let content = await fs.readFile(baseTypesFile, "utf-8");
+
       // Ajouter les imports des types manquants
-      if (!content.includes('UserRole') || !content.includes('UserStatus')) {
+      if (!content.includes("UserRole") || !content.includes("UserStatus")) {
         const imports = `// Types de base pour les utilisateurs
 export type UserRole = 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER' | 'ADMIN';
 
@@ -1025,8 +1034,10 @@ export type UserStatus =
 
 `;
         content = imports + content;
-        await fs.writeFile(baseTypesFile, content, 'utf-8');
-        console.log(chalk.green(`✅ Types UserRole et UserStatus ajoutés à base.ts`));
+        await fs.writeFile(baseTypesFile, content, "utf-8");
+        console.log(
+          chalk.green(`✅ Types UserRole et UserStatus ajoutés à base.ts`),
+        );
       }
     } catch (err) {
       console.log(chalk.red(`❌ Erreur correction base.ts: ${err}`));
@@ -1034,16 +1045,16 @@ export type UserStatus =
   }
 
   private async generateReport(): Promise<void> {
-    console.log(chalk.blue('\n📊 Rapport des corrections:'));
+    console.log(chalk.blue("\n📊 Rapport des corrections:"));
     console.log(chalk.green(`✅ ${this.errors.length} corrections appliquées`));
-    
-    console.log(chalk.blue('\n💡 Prochaines étapes:'));
-    console.log('  1. Exécutez pnpm typecheck pour vérifier les corrections');
-    console.log('  2. Exécutez pnpm fix:imports pour optimiser les imports'); 
-    console.log('  3. Exécutez pnpm build pour tester le build complet');
+
+    console.log(chalk.blue("\n💡 Prochaines étapes:"));
+    console.log("  1. Exécutez pnpm typecheck pour vérifier les corrections");
+    console.log("  2. Exécutez pnpm fix:imports pour optimiser les imports");
+    console.log("  3. Exécutez pnpm build pour tester le build complet");
   }
 }
 
 // Exécution du script
 const fixer = new CriticalErrorFixer();
-fixer.run().catch(console.error); 
+fixer.run().catch(console.error);

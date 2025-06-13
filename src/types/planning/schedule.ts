@@ -5,8 +5,8 @@ export interface Schedule {
   startTime: Date;
   endTime: Date;
   userId: string;
-  type: 'DELIVERY' | 'APPOINTMENT' | 'MAINTENANCE';
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  type: "DELIVERY" | "APPOINTMENT" | "MAINTENANCE";
+  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 }
 
 export interface TimeSlot {

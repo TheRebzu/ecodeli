@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { formatDate, formatCurrency } from '@/utils/document-utils';
+import React from "react";
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { formatDate, formatCurrency } from "@/utils/document-utils";
 import {
   Package,
   ShoppingBag,
@@ -17,25 +17,33 @@ import {
   Info,
   Tag,
   User,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface AnnouncementDetailsProps {
   announcement: any; // Replace with proper type
 }
 
-export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) {
-  const t = useTranslations('announcements');
+export function AnnouncementDetails({
+  announcement,
+}: AnnouncementDetailsProps) {
+  const t = useTranslations("announcements");
 
   if (!announcement) {
-    return <div className="py-8 text-center text-muted-foreground">{t('noAnnouncementFound')}</div>;
+    return (
+      <div className="py-8 text-center text-muted-foreground">
+        {t("noAnnouncementFound")}
+      </div>
+    );
   }
 
   return (
     <Card className="mb-6">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>{t('details.title')}</CardTitle>
-          <Badge variant={announcement.status === 'ACTIVE' ? 'success' : 'secondary'}>
+          <CardTitle>{t("details.title")}</CardTitle>
+          <Badge
+            variant={announcement.status === "ACTIVE" ? "success" : "secondary"}
+          >
             {t(`status.${announcement.status.toLowerCase()}`)}
           </Badge>
         </div>
@@ -46,25 +54,21 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
             <div className="flex items-start gap-3">
               <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-medium">{t('details.itemType')}</div>
-                <div className="text-muted-foreground">{announcement.itemType}</div>
+                <div className="text-sm font-medium">
+                  {t("details.itemType")}
+                </div>
+                <div className="text-muted-foreground">
+                  {announcement.itemType}
+                </div>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
               <ShoppingBag className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-medium">{t('details.weight')}</div>
-                <div className="text-muted-foreground">{announcement.weight} kg</div>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div>
-                <div className="text-sm font-medium">{t('details.pickupLocation')}</div>
+                <div className="text-sm font-medium">{t("details.weight")}</div>
                 <div className="text-muted-foreground">
-                  {announcement.pickup?.formattedAddress || t('notSpecified')}
+                  {announcement.weight} kg
                 </div>
               </div>
             </div>
@@ -72,9 +76,23 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
             <div className="flex items-start gap-3">
               <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-medium">{t('details.deliveryLocation')}</div>
+                <div className="text-sm font-medium">
+                  {t("details.pickupLocation")}
+                </div>
                 <div className="text-muted-foreground">
-                  {announcement.delivery?.formattedAddress || t('notSpecified')}
+                  {announcement.pickup?.formattedAddress || t("notSpecified")}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <div className="text-sm font-medium">
+                  {t("details.deliveryLocation")}
+                </div>
+                <div className="text-muted-foreground">
+                  {announcement.delivery?.formattedAddress || t("notSpecified")}
                 </div>
               </div>
             </div>
@@ -82,9 +100,13 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
             <div className="flex items-start gap-3">
               <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-medium">{t('details.pickupDate')}</div>
+                <div className="text-sm font-medium">
+                  {t("details.pickupDate")}
+                </div>
                 <div className="text-muted-foreground">
-                  {announcement.pickupDate ? formatDate(announcement.pickupDate) : t('flexible')}
+                  {announcement.pickupDate
+                    ? formatDate(announcement.pickupDate)
+                    : t("flexible")}
                 </div>
               </div>
             </div>
@@ -92,9 +114,11 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
             <div className="flex items-start gap-3">
               <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-medium">{t('details.pickupWindow')}</div>
+                <div className="text-sm font-medium">
+                  {t("details.pickupWindow")}
+                </div>
                 <div className="text-muted-foreground">
-                  {announcement.pickupTimeWindow || t('flexible')}
+                  {announcement.pickupTimeWindow || t("flexible")}
                 </div>
               </div>
             </div>
@@ -102,11 +126,13 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
             <div className="flex items-start gap-3">
               <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-medium">{t('details.deliveryDate')}</div>
+                <div className="text-sm font-medium">
+                  {t("details.deliveryDate")}
+                </div>
                 <div className="text-muted-foreground">
                   {announcement.deliveryDate
                     ? formatDate(announcement.deliveryDate)
-                    : t('flexible')}
+                    : t("flexible")}
                 </div>
               </div>
             </div>
@@ -114,9 +140,11 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
             <div className="flex items-start gap-3">
               <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-medium">{t('details.deliveryWindow')}</div>
+                <div className="text-sm font-medium">
+                  {t("details.deliveryWindow")}
+                </div>
                 <div className="text-muted-foreground">
-                  {announcement.deliveryTimeWindow || t('flexible')}
+                  {announcement.deliveryTimeWindow || t("flexible")}
                 </div>
               </div>
             </div>
@@ -128,7 +156,7 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
             <div className="flex items-start gap-3">
               <CircleDollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-medium">{t('details.price')}</div>
+                <div className="text-sm font-medium">{t("details.price")}</div>
                 <div className="text-lg font-bold text-primary">
                   {formatCurrency(announcement.price)}
                 </div>
@@ -138,7 +166,9 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
             <div className="flex items-start gap-3">
               <Truck className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-medium">{t('details.deliveryType')}</div>
+                <div className="text-sm font-medium">
+                  {t("details.deliveryType")}
+                </div>
                 <div className="text-muted-foreground">
                   {t(`deliveryType.${announcement.deliveryType.toLowerCase()}`)}
                 </div>
@@ -152,7 +182,9 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
               <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <div className="text-sm font-medium">{t('details.description')}</div>
+                  <div className="text-sm font-medium">
+                    {t("details.description")}
+                  </div>
                   <div className="text-muted-foreground whitespace-pre-wrap">
                     {announcement.description}
                   </div>
@@ -167,7 +199,7 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
               <div className="flex items-start gap-3">
                 <Tag className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <div className="text-sm font-medium">{t('details.tags')}</div>
+                  <div className="text-sm font-medium">{t("details.tags")}</div>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {announcement.tags.map((tag: string) => (
                       <Badge key={tag} variant="outline">
@@ -184,8 +216,12 @@ export function AnnouncementDetails({ announcement }: AnnouncementDetailsProps) 
           <div className="flex items-start gap-3">
             <User className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
-              <div className="text-sm font-medium">{t('details.createdAt')}</div>
-              <div className="text-muted-foreground">{formatDate(announcement.createdAt)}</div>
+              <div className="text-sm font-medium">
+                {t("details.createdAt")}
+              </div>
+              <div className="text-muted-foreground">
+                {formatDate(announcement.createdAt)}
+              </div>
             </div>
           </div>
         </div>

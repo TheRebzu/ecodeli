@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import chalk from "chalk";
 
 /**
  * Utilitaires pour la gestion des clés de traduction
@@ -11,7 +11,7 @@ import chalk from 'chalk';
  */
 export function normalizeKeys(obj: Record<string, any>): Record<string, any> {
   // Si ce n'est pas un objet, le retourner tel quel
-  if (typeof obj !== 'object' || obj === null) {
+  if (typeof obj !== "object" || obj === null) {
     return obj;
   }
 
@@ -24,7 +24,7 @@ export function normalizeKeys(obj: Record<string, any>): Record<string, any> {
   // Ajouter les propriétés triées
   for (const key of sortedKeys) {
     // Normaliser récursivement les objets imbriqués
-    if (typeof obj[key] === 'object' && obj[key] !== null) {
+    if (typeof obj[key] === "object" && obj[key] !== null) {
       result[key] = normalizeKeys(obj[key]);
     } else {
       result[key] = obj[key];
@@ -41,8 +41,8 @@ export function normalizeKeys(obj: Record<string, any>): Record<string, any> {
  */
 export function validateSimpleJsonStructure(obj: Record<string, any>): boolean {
   // Vérifier que l'objet est bien un objet
-  if (typeof obj !== 'object' || obj === null) {
-    throw new Error('La structure de traduction doit être un objet');
+  if (typeof obj !== "object" || obj === null) {
+    throw new Error("La structure de traduction doit être un objet");
   }
 
   // Vérifier récursivement les objets imbriqués
@@ -51,7 +51,7 @@ export function validateSimpleJsonStructure(obj: Record<string, any>): boolean {
 
     // Vérifier que la clé n'est pas vide
     if (!key.trim()) {
-      throw new Error('Les clés de traduction ne peuvent pas être vides');
+      throw new Error("Les clés de traduction ne peuvent pas être vides");
     }
 
     // Vérifier que la clé ne contient pas de caractères spéciaux
@@ -60,11 +60,13 @@ export function validateSimpleJsonStructure(obj: Record<string, any>): boolean {
     }
 
     // Vérifier récursivement les objets imbriqués
-    if (typeof value === 'object' && value !== null) {
+    if (typeof value === "object" && value !== null) {
       validateSimpleJsonStructure(value);
-    } else if (typeof value !== 'string') {
+    } else if (typeof value !== "string") {
       // Les valeurs doivent être des chaînes
-      throw new Error(`La valeur de la clé "${key}" doit être une chaîne de caractères`);
+      throw new Error(
+        `La valeur de la clé "${key}" doit être une chaîne de caractères`,
+      );
     }
   }
 
@@ -74,9 +76,11 @@ export function validateSimpleJsonStructure(obj: Record<string, any>): boolean {
 /**
  * Supprime les doublons simples dans un objet de traduction
  */
-export function removeSimpleDuplicates(obj: Record<string, any>): Record<string, any> {
+export function removeSimpleDuplicates(
+  obj: Record<string, any>,
+): Record<string, any> {
   // Si ce n'est pas un objet, le retourner tel quel
-  if (typeof obj !== 'object' || obj === null) {
+  if (typeof obj !== "object" || obj === null) {
     return obj;
   }
 
@@ -88,9 +92,9 @@ export function removeSimpleDuplicates(obj: Record<string, any>): Record<string,
     const value = obj[key];
 
     // Si c'est un objet imbriqué, appliquer récursivement
-    if (typeof value === 'object' && value !== null) {
+    if (typeof value === "object" && value !== null) {
       result[key] = removeSimpleDuplicates(value);
-    } else if (typeof value === 'string') {
+    } else if (typeof value === "string") {
       // Vérifier si cette valeur existe déjà
       if (valueToKey[value]) {
         // Doublons trouvés, conserver la clé la plus courte
@@ -121,7 +125,9 @@ export function removeSimpleDuplicates(obj: Record<string, any>): Record<string,
 /**
  * Valide la structure JSON des traductions
  */
-export function validateJsonStructure(translations: Record<string, any>): boolean {
+export function validateJsonStructure(
+  translations: Record<string, any>,
+): boolean {
   try {
     // Vérifier que toutes les valeurs sont des chaînes de caractères ou des objets
     validateObjectStructure(translations);
@@ -135,7 +141,10 @@ export function validateJsonStructure(translations: Record<string, any>): boolea
 /**
  * Valide récursivement la structure d'un objet de traductions
  */
-function validateObjectStructure(obj: Record<string, any>, path: string = ''): void {
+function validateObjectStructure(
+  obj: Record<string, any>,
+  path: string = "",
+): void {
   for (const [key, value] of Object.entries(obj)) {
     const currentPath = path ? `${path}.${key}` : key;
 
@@ -145,11 +154,11 @@ function validateObjectStructure(obj: Record<string, any>, path: string = ''): v
     }
 
     // Vérifier le type de la valeur
-    if (typeof value === 'object' && value !== null) {
+    if (typeof value === "object" && value !== null) {
       validateObjectStructure(value, currentPath);
-    } else if (typeof value !== 'string') {
+    } else if (typeof value !== "string") {
       throw new Error(
-        `Type invalide: "${typeof value}" pour la clé "${currentPath}". Seuls les objets et les chaînes sont autorisés.`
+        `Type invalide: "${typeof value}" pour la clé "${currentPath}". Seuls les objets et les chaînes sont autorisés.`,
       );
     }
   }
@@ -158,20 +167,24 @@ function validateObjectStructure(obj: Record<string, any>, path: string = ''): v
 /**
  * Supprime les clés en double dans les traductions
  */
-export function removeDuplicates(translations: Record<string, any>): Record<string, any> {
+export function removeDuplicates(
+  translations: Record<string, any>,
+): Record<string, any> {
   const result: Record<string, any> = {};
   const seen = new Map<string, string>();
 
   // Première passe: collecter toutes les valeurs et leurs chemins
-  collectValues(translations, '', seen);
+  collectValues(translations, "", seen);
 
   // Deuxième passe: reconstruire l'objet en supprimant les doublons
   for (const [namespace, values] of Object.entries(translations)) {
     result[namespace] = {};
 
-    if (typeof values === 'object' && values !== null) {
-      for (const [key, value] of Object.entries(values as Record<string, any>)) {
-        if (typeof value === 'object' && value !== null) {
+    if (typeof values === "object" && values !== null) {
+      for (const [key, value] of Object.entries(
+        values as Record<string, any>,
+      )) {
+        if (typeof value === "object" && value !== null) {
           // Récursion pour les sous-objets
           result[namespace][key] = removeDuplicates({ temp: value }).temp;
         } else {
@@ -183,8 +196,8 @@ export function removeDuplicates(translations: Record<string, any>): Record<stri
           if (existingPath && existingPath !== currentPath) {
             console.warn(
               chalk.yellow(
-                `⚠️ Valeur en double détectée: "${valueStr}" aux chemins "${existingPath}" et "${currentPath}". Conservé à "${existingPath}".`
-              )
+                `⚠️ Valeur en double détectée: "${valueStr}" aux chemins "${existingPath}" et "${currentPath}". Conservé à "${existingPath}".`,
+              ),
             );
           } else {
             result[namespace][key] = value;
@@ -200,11 +213,15 @@ export function removeDuplicates(translations: Record<string, any>): Record<stri
 /**
  * Collecte récursivement toutes les valeurs dans une Map
  */
-function collectValues(obj: Record<string, any>, path: string, seen: Map<string, string>): void {
+function collectValues(
+  obj: Record<string, any>,
+  path: string,
+  seen: Map<string, string>,
+): void {
   for (const [key, value] of Object.entries(obj)) {
     const currentPath = path ? `${path}.${key}` : key;
 
-    if (typeof value === 'object' && value !== null) {
+    if (typeof value === "object" && value !== null) {
       collectValues(value, currentPath, seen);
     } else {
       const valueStr = String(value);
@@ -233,16 +250,19 @@ function isValidKey(key: string): boolean {
 export function toCamelCase(str: string): string {
   return str
     .trim()
-    .replace(/[^\w\s]/g, '') // Supprimer les caractères spéciaux
+    .replace(/[^\w\s]/g, "") // Supprimer les caractères spéciaux
     .replace(/\s+(.)/g, (_, char) => char.toUpperCase()) // Majuscule après espace
-    .replace(/\s/g, '') // Supprimer les espaces
+    .replace(/\s/g, "") // Supprimer les espaces
     .replace(/^(.)/, (_, char) => char.toLowerCase()); // Première lettre en minuscule
 }
 
 /**
  * Génère un identifiant unique pour une clé
  */
-export function generateUniqueKey(base: string, existingKeys: Set<string>): string {
+export function generateUniqueKey(
+  base: string,
+  existingKeys: Set<string>,
+): string {
   let key = base;
   let counter = 1;
 

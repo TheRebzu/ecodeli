@@ -1,7 +1,7 @@
 // src/server/api/routers/wallet.router.ts
-import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
+import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import {
   getOrCreateWallet,
   getWallet,
@@ -9,12 +9,15 @@ import {
   listWalletTransactions,
   createWalletTransaction,
   calculateEarnings,
-} from '@/server/services/shared/wallet.service';
-import { TransactionType, UserRole } from '@prisma/client';
-import { isRoleAllowed } from '@/lib/auth/auth-helpers';
-import { db } from '@/server/db';
-import { WalletConfigSchema, requestWithdrawalSchema } from '@/schemas/payment/wallet.schema';
-import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
+} from "@/server/services/shared/wallet.service";
+import { TransactionType, UserRole } from "@prisma/client";
+import { isRoleAllowed } from "@/lib/auth/auth-helpers";
+import { db } from "@/server/db";
+import {
+  WalletConfigSchema,
+  requestWithdrawalSchema,
+} from "@/schemas/payment/wallet.schema";
+import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 /**
  * Router tRPC pour la gestion des portefeuilles électroniques
@@ -43,7 +46,7 @@ export const walletRouter = router({
       const pendingWithdrawals = await ctx.db.withdrawalRequest.findMany({
         where: {
           walletId: wallet.id,
-          status: 'PENDING',
+          status: "PENDING",
         },
         select: {
           id: true,
@@ -76,8 +79,9 @@ export const walletRouter = router({
       };
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la récupération du portefeuille',
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          error.message || "Erreur lors de la récupération du portefeuille",
         cause: error,
       });
     }
@@ -101,32 +105,32 @@ export const walletRouter = router({
       const monthlyTransactions = await ctx.db.walletTransaction.findMany({
         where: {
           walletId: wallet.id,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           createdAt: {
             gte: firstDayOfMonth,
             lte: lastDayOfMonth,
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 5, // Dernières 5 transactions pour l'activité récente
       });
 
       // Calculer les entrées et sorties du mois
       const monthlyIncoming = monthlyTransactions
-        .filter(tx => Number(tx.amount) > 0)
+        .filter((tx) => Number(tx.amount) > 0)
         .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
       const monthlyOutgoing = Math.abs(
         monthlyTransactions
-          .filter(tx => Number(tx.amount) < 0)
-          .reduce((sum, tx) => sum + Number(tx.amount), 0)
+          .filter((tx) => Number(tx.amount) < 0)
+          .reduce((sum, tx) => sum + Number(tx.amount), 0),
       );
 
       // Calculer le solde en attente (demandes de retrait en cours)
       const pendingWithdrawals = await ctx.db.withdrawalRequest.aggregate({
         where: {
           walletId: wallet.id,
-          status: 'PENDING',
+          status: "PENDING",
         },
         _sum: {
           amount: true,
@@ -134,10 +138,11 @@ export const walletRouter = router({
       });
 
       // Activité récente pour le graphique
-      const recentActivity = monthlyTransactions.map(tx => ({
+      const recentActivity = monthlyTransactions.map((tx) => ({
         date: tx.createdAt,
         amount: Number(tx.amount),
-        type: Number(tx.amount) > 0 ? ('INCOMING' as const) : ('OUTGOING' as const),
+        type:
+          Number(tx.amount) > 0 ? ("INCOMING" as const) : ("OUTGOING" as const),
       }));
 
       return {
@@ -150,8 +155,10 @@ export const walletRouter = router({
       };
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la récupération du résumé du portefeuille',
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          error.message ||
+          "Erreur lors de la récupération du résumé du portefeuille",
         cause: error,
       });
     }
@@ -167,8 +174,8 @@ export const walletRouter = router({
       return walletBalance;
     } catch (error: any) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la récupération du solde',
+        code: "INTERNAL_SERVER_ERROR",
+        message: error.message || "Erreur lors de la récupération du solde",
         cause: error,
       });
     }
@@ -183,12 +190,19 @@ export const walletRouter = router({
         page: z.number().int().positive().default(1),
         limit: z.number().int().positive().max(100).default(10),
         type: z
-          .enum(['ALL', 'EARNING', 'WITHDRAWAL', 'PLATFORM_FEE', 'COMMISSION', 'ADJUSTMENT'])
+          .enum([
+            "ALL",
+            "EARNING",
+            "WITHDRAWAL",
+            "PLATFORM_FEE",
+            "COMMISSION",
+            "ADJUSTMENT",
+          ])
           .optional(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
-        sortOrder: z.enum(['asc', 'desc']).default('desc'),
-      })
+        sortOrder: z.enum(["asc", "desc"]).default("desc"),
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -199,7 +213,9 @@ export const walletRouter = router({
 
         // Définir les filtres
         const transactionType =
-          input.type !== 'ALL' && input.type ? (input.type as TransactionType) : undefined;
+          input.type !== "ALL" && input.type
+            ? (input.type as TransactionType)
+            : undefined;
 
         const transactions = await listWalletTransactions(wallet.id, {
           page: input.page,
@@ -213,9 +229,10 @@ export const walletRouter = router({
         return transactions;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message:
-            error.message || "Erreur lors de la récupération de l'historique des transactions",
+            error.message ||
+            "Erreur lors de la récupération de l'historique des transactions",
           cause: error,
         });
       }
@@ -227,10 +244,12 @@ export const walletRouter = router({
   getWalletStats: protectedProcedure
     .input(
       z.object({
-        period: z.enum(['daily', 'weekly', 'monthly', 'yearly']).default('monthly'),
+        period: z
+          .enum(["daily", "weekly", "monthly", "yearly"])
+          .default("monthly"),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -238,35 +257,36 @@ export const walletRouter = router({
         const wallet = await getOrCreateWallet(userId);
 
         // Calculer les statistiques de base
-        const [totalEarnings, totalWithdrawals, pendingWithdrawals] = await Promise.all([
-          calculateEarnings(wallet.id, {
-            startDate: input.startDate,
-            endDate: input.endDate,
-          }),
-          ctx.db.walletTransaction.aggregate({
-            where: {
-              walletId: wallet.id,
-              type: 'WITHDRAWAL',
-              createdAt: {
-                gte: input.startDate,
-                lte: input.endDate,
+        const [totalEarnings, totalWithdrawals, pendingWithdrawals] =
+          await Promise.all([
+            calculateEarnings(wallet.id, {
+              startDate: input.startDate,
+              endDate: input.endDate,
+            }),
+            ctx.db.walletTransaction.aggregate({
+              where: {
+                walletId: wallet.id,
+                type: "WITHDRAWAL",
+                createdAt: {
+                  gte: input.startDate,
+                  lte: input.endDate,
+                },
               },
-            },
-            _sum: {
-              amount: true,
-            },
-          }),
-          ctx.db.withdrawalRequest.aggregate({
-            where: {
-              walletId: wallet.id,
-              status: 'PENDING',
-            },
-            _sum: {
-              amount: true,
-            },
-            _count: true,
-          }),
-        ]);
+              _sum: {
+                amount: true,
+              },
+            }),
+            ctx.db.withdrawalRequest.aggregate({
+              where: {
+                walletId: wallet.id,
+                status: "PENDING",
+              },
+              _sum: {
+                amount: true,
+              },
+              _count: true,
+            }),
+          ]);
 
         // Calculer les statistiques par période
         const periodStats = await calculateEarnings(wallet.id, {
@@ -286,8 +306,9 @@ export const walletRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération des statistiques',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la récupération des statistiques",
           cause: error,
         });
       }
@@ -317,15 +338,17 @@ export const walletRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'WALLET',
+            entityType: "WALLET",
             entityId: wallet.id,
             performedById: userId,
-            action: 'UPDATE_WALLET_CONFIG',
+            action: "UPDATE_WALLET_CONFIG",
             changes: {
               minimumWithdrawalAmount: input.minimumWithdrawalAmount.toString(),
               automaticWithdrawal: input.automaticWithdrawal.toString(),
-              withdrawalThreshold: (input.withdrawalThreshold || 100).toString(),
-              withdrawalDay: input.withdrawalDay?.toString() || 'null',
+              withdrawalThreshold: (
+                input.withdrawalThreshold || 100
+              ).toString(),
+              withdrawalDay: input.withdrawalDay?.toString() || "null",
             },
           },
         });
@@ -333,8 +356,10 @@ export const walletRouter = router({
         return updatedWallet;
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la mise à jour de la configuration',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la mise à jour de la configuration",
           cause: error,
         });
       }
@@ -350,8 +375,10 @@ export const walletRouter = router({
         bic: z.string().min(8).max(11),
         bankName: z.string().min(2).max(100),
         accountHolder: z.string().min(2).max(100),
-        accountHolderType: z.enum(['individual', 'company']).default('individual'),
-      })
+        accountHolderType: z
+          .enum(["individual", "company"])
+          .default("individual"),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -374,10 +401,10 @@ export const walletRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'WALLET',
+            entityType: "WALLET",
             entityId: wallet.id,
             performedById: userId,
-            action: 'UPDATE_BANK_INFORMATION',
+            action: "UPDATE_BANK_INFORMATION",
             changes: {
               iban: `${input.iban.substring(0, 2)}...${input.iban.substring(input.iban.length - 4)}`,
               bic: input.bic,
@@ -391,13 +418,15 @@ export const walletRouter = router({
         return {
           success: true,
           wallet: updatedWallet,
-          message: 'Informations bancaires mises à jour avec succès',
+          message: "Informations bancaires mises à jour avec succès",
           requiresVerification: true,
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la mise à jour des informations bancaires',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors de la mise à jour des informations bancaires",
           cause: error,
         });
       }
@@ -410,7 +439,7 @@ export const walletRouter = router({
     .input(
       z.object({
         userId: z.string(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -420,7 +449,7 @@ export const walletRouter = router({
         const pendingWithdrawals = await ctx.db.withdrawalRequest.findMany({
           where: {
             walletId: wallet.id,
-            status: 'PENDING',
+            status: "PENDING",
           },
           select: {
             id: true,
@@ -443,8 +472,8 @@ export const walletRouter = router({
 
         if (!user) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Utilisateur non trouvé',
+            code: "NOT_FOUND",
+            message: "Utilisateur non trouvé",
           });
         }
 
@@ -455,8 +484,9 @@ export const walletRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération du portefeuille',
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la récupération du portefeuille",
           cause: error,
         });
       }
@@ -472,7 +502,7 @@ export const walletRouter = router({
         amount: z.number(),
         description: z.string().min(5).max(200),
         reason: z.string().min(5).max(200),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -482,7 +512,7 @@ export const walletRouter = router({
         // Créer la transaction d'ajustement
         const transaction = await createWalletTransaction(wallet.id, {
           amount: input.amount,
-          type: 'ADJUSTMENT',
+          type: "ADJUSTMENT",
           description: input.description,
           reference: `ADJ-${Date.now()}`,
           metadata: {
@@ -495,10 +525,10 @@ export const walletRouter = router({
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
           data: {
-            entityType: 'WALLET_TRANSACTION',
+            entityType: "WALLET_TRANSACTION",
             entityId: transaction.id,
             performedById: adminId,
-            action: 'CREATE_ADJUSTMENT',
+            action: "CREATE_ADJUSTMENT",
             changes: {
               userId: input.userId,
               amount: input.amount.toString(),
@@ -515,8 +545,9 @@ export const walletRouter = router({
         };
       } catch (error: any) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || "Erreur lors de la création de l'ajustement",
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message || "Erreur lors de la création de l'ajustement",
           cause: error,
         });
       }

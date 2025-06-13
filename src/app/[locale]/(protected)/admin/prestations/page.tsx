@@ -1,13 +1,13 @@
-﻿'use client';
+﻿"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useAdminServices } from '@/hooks/admin/use-admin-services';
-import { useServiceCategories } from '@/hooks/admin/use-service-categories';
-import { ServicesStats } from '@/components/admin/services/services-stats';
-import { ServicesFilters } from '@/components/admin/services/services-filters';
-import { ServicesList } from '@/components/admin/services/services-list';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useAdminServices } from "@/hooks/admin/use-admin-services";
+import { useServiceCategories } from "@/hooks/admin/use-service-categories";
+import { ServicesStats } from "@/components/admin/services/services-stats";
+import { ServicesFilters } from "@/components/admin/services/services-filters";
+import { ServicesList } from "@/components/admin/services/services-list";
 
 export default function PrestationsPage() {
   const [selectedService, setSelectedService] = useState(null);
@@ -54,7 +54,9 @@ export default function PrestationsPage() {
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gestion des Prestations</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Gestion des Prestations
+          </h1>
           <p className="text-muted-foreground">
             Gérez les services et prestations disponibles sur la plateforme
           </p>

@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   DownloadIcon,
   PlusIcon,
@@ -17,10 +23,10 @@ import {
   RefreshCcwIcon,
   Store,
   Package,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
-import { Input } from '@/components/ui/input';
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -28,41 +34,41 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { api } from '@/trpc/react';
+} from "@/components/ui/select";
+import { api } from "@/trpc/react";
 
 // Fonctions de formatage
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
   }).format(amount);
 };
 
 const formatDate = (date: Date | string) => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('fr-FR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return new Intl.DateTimeFormat("fr-FR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).format(dateObj);
 };
 
 export default function AdminMerchantsPage() {
-  const t = useTranslations('Admin.merchants');
+  const t = useTranslations("Admin.merchants");
   const [selectedMerchantIds, setSelectedMerchantIds] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('list');
+  const [activeTab, setActiveTab] = useState<string>("list");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [filters, setFilters] = useState({
-    search: '',
+    search: "",
     status: undefined as string | undefined,
   });
 
@@ -78,12 +84,17 @@ export default function AdminMerchantsPage() {
   });
 
   // DEBUG: Afficher les données reçues
-  console.log('🔍 DEBUG MERCHANTS - usersData:', usersData);
-  console.log('🔍 DEBUG MERCHANTS - usersData?.json?.users:', usersData?.json?.users);
+  console.log("🔍 DEBUG MERCHANTS - usersData:", usersData);
+  console.log(
+    "🔍 DEBUG MERCHANTS - usersData?.json?.users:",
+    usersData?.json?.users,
+  );
 
   // Filtrer les marchands depuis les données reçues
   const allUsers = usersData?.json?.users || [];
-  const merchantUsers = allUsers.filter((user: any) => user.role === 'MERCHANT');
+  const merchantUsers = allUsers.filter(
+    (user: any) => user.role === "MERCHANT",
+  );
 
   // Appliquer les filtres côté frontend
   let filteredMerchants = merchantUsers;
@@ -93,13 +104,13 @@ export default function AdminMerchantsPage() {
     filteredMerchants = filteredMerchants.filter(
       (merchant: any) =>
         merchant.name?.toLowerCase().includes(searchLower) ||
-        merchant.email?.toLowerCase().includes(searchLower)
+        merchant.email?.toLowerCase().includes(searchLower),
     );
   }
 
   if (filters.status) {
     filteredMerchants = filteredMerchants.filter(
-      (merchant: any) => merchant.status === filters.status
+      (merchant: any) => merchant.status === filters.status,
     );
   }
 
@@ -129,10 +140,10 @@ export default function AdminMerchantsPage() {
       id: `merchant-${merchant.id}`, // ID du profil marchand simulé
       companyName: merchant.name,
       address: null,
-      city: 'Paris', // Données simulées
-      postalCode: '75000',
-      country: 'France',
-      businessType: 'Commerce',
+      city: "Paris", // Données simulées
+      postalCode: "75000",
+      country: "France",
+      businessType: "Commerce",
     },
     stats: {
       totalProducts: 0,
@@ -146,13 +157,17 @@ export default function AdminMerchantsPage() {
   // Statistiques des marchands
   const stats = {
     totalMerchants: merchantUsers.length,
-    activeMerchants: merchantUsers.filter((m: any) => m.status === 'ACTIVE').length,
-    suspendedMerchants: merchantUsers.filter((m: any) => m.status === 'SUSPENDED').length,
+    activeMerchants: merchantUsers.filter((m: any) => m.status === "ACTIVE")
+      .length,
+    suspendedMerchants: merchantUsers.filter(
+      (m: any) => m.status === "SUSPENDED",
+    ).length,
     newMerchantsThisMonth: merchantUsers.filter((m: any) => {
       const createdAt = new Date(m.createdAt);
       const now = new Date();
       return (
-        createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear()
+        createdAt.getMonth() === now.getMonth() &&
+        createdAt.getFullYear() === now.getFullYear()
       );
     }).length,
   };
@@ -160,9 +175,9 @@ export default function AdminMerchantsPage() {
   // Gérer la sélection des marchands
   const handleMerchantSelection = (merchantId: string, selected: boolean) => {
     if (selected) {
-      setSelectedMerchantIds(prev => [...prev, merchantId]);
+      setSelectedMerchantIds((prev) => [...prev, merchantId]);
     } else {
-      setSelectedMerchantIds(prev => prev.filter(id => id !== merchantId));
+      setSelectedMerchantIds((prev) => prev.filter((id) => id !== merchantId));
     }
   };
 
@@ -176,18 +191,18 @@ export default function AdminMerchantsPage() {
 
   // Gestion des filtres
   const handleSearchChange = (search: string) => {
-    setFilters(prev => ({ ...prev, search }));
+    setFilters((prev) => ({ ...prev, search }));
     setCurrentPage(1);
   };
 
   const handleStatusChange = (status: string) => {
-    const statusValue = status === 'all' ? undefined : status;
-    setFilters(prev => ({ ...prev, status: statusValue }));
+    const statusValue = status === "all" ? undefined : status;
+    setFilters((prev) => ({ ...prev, status: statusValue }));
     setCurrentPage(1);
   };
 
   const clearFilters = () => {
-    setFilters({ search: '', status: undefined });
+    setFilters({ search: "", status: undefined });
     setCurrentPage(1);
   };
 
@@ -196,7 +211,9 @@ export default function AdminMerchantsPage() {
       <div className="container mx-auto py-6">
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-red-600 mb-4">Erreur lors du chargement des marchands</p>
+            <p className="text-red-600 mb-4">
+              Erreur lors du chargement des marchands
+            </p>
             <Button onClick={() => refetch()} variant="outline">
               <RefreshCcwIcon className="mr-2 h-4 w-4" />
               Réessayer
@@ -211,7 +228,9 @@ export default function AdminMerchantsPage() {
     <div className="container mx-auto py-6 space-y-8">
       <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gestion des Marchands</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Gestion des Marchands
+          </h1>
           <p className="text-muted-foreground">
             Administrez et supervisez tous les marchands de la plateforme
           </p>
@@ -255,21 +274,33 @@ export default function AdminMerchantsPage() {
             <CardContent className="p-4 pt-0">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="flex flex-col space-y-1">
-                  <span className="text-sm text-muted-foreground">Total marchands</span>
-                  <span className="text-2xl font-bold">{stats.totalMerchants}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Total marchands
+                  </span>
+                  <span className="text-2xl font-bold">
+                    {stats.totalMerchants}
+                  </span>
                 </div>
                 <div className="flex flex-col space-y-1">
-                  <span className="text-sm text-muted-foreground">Marchands actifs</span>
-                  <span className="text-2xl font-bold text-green-600">{stats.activeMerchants}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Marchands actifs
+                  </span>
+                  <span className="text-2xl font-bold text-green-600">
+                    {stats.activeMerchants}
+                  </span>
                 </div>
                 <div className="flex flex-col space-y-1">
-                  <span className="text-sm text-muted-foreground">Marchands suspendus</span>
+                  <span className="text-sm text-muted-foreground">
+                    Marchands suspendus
+                  </span>
                   <span className="text-2xl font-bold text-red-600">
                     {stats.suspendedMerchants}
                   </span>
                 </div>
                 <div className="flex flex-col space-y-1">
-                  <span className="text-sm text-muted-foreground">Nouveaux ce mois</span>
+                  <span className="text-sm text-muted-foreground">
+                    Nouveaux ce mois
+                  </span>
                   <span className="text-2xl font-bold text-blue-600">
                     {stats.newMerchantsThisMonth}
                   </span>
@@ -285,19 +316,24 @@ export default function AdminMerchantsPage() {
                 <div className="flex-1">
                   <Input
                     placeholder="Rechercher par nom, email ou entreprise..."
-                    value={filters.search || ''}
-                    onChange={e => handleSearchChange(e.target.value)}
+                    value={filters.search || ""}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                   />
                 </div>
                 <div className="w-48">
-                  <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
+                  <Select
+                    value={filters.status || "all"}
+                    onValueChange={handleStatusChange}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Filtrer par statut" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tous les statuts</SelectItem>
                       <SelectItem value="ACTIVE">Actifs</SelectItem>
-                      <SelectItem value="PENDING_VERIFICATION">En attente</SelectItem>
+                      <SelectItem value="PENDING_VERIFICATION">
+                        En attente
+                      </SelectItem>
                       <SelectItem value="SUSPENDED">Suspendus</SelectItem>
                       <SelectItem value="INACTIVE">Inactifs</SelectItem>
                     </SelectContent>
@@ -350,9 +386,10 @@ export default function AdminMerchantsPage() {
                         <input
                           type="checkbox"
                           checked={
-                            selectedMerchantIds.length === merchants.length && merchants.length > 0
+                            selectedMerchantIds.length === merchants.length &&
+                            merchants.length > 0
                           }
-                          onChange={e => handleSelectAll(e.target.checked)}
+                          onChange={(e) => handleSelectAll(e.target.checked)}
                         />
                       </TableHead>
                       <TableHead>Marchand</TableHead>
@@ -368,7 +405,10 @@ export default function AdminMerchantsPage() {
                   <TableBody>
                     {merchants.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center p-8 text-muted-foreground">
+                        <TableCell
+                          colSpan={9}
+                          className="text-center p-8 text-muted-foreground"
+                        >
                           Aucun marchand trouvé
                         </TableCell>
                       </TableRow>
@@ -378,20 +418,32 @@ export default function AdminMerchantsPage() {
                           <TableCell>
                             <input
                               type="checkbox"
-                              checked={selectedMerchantIds.includes(merchant.id)}
-                              onChange={e => handleMerchantSelection(merchant.id, e.target.checked)}
+                              checked={selectedMerchantIds.includes(
+                                merchant.id,
+                              )}
+                              onChange={(e) =>
+                                handleMerchantSelection(
+                                  merchant.id,
+                                  e.target.checked,
+                                )
+                              }
                             />
                           </TableCell>
                           <TableCell>
                             <div className="font-medium">{merchant.name}</div>
-                            <div className="text-sm text-muted-foreground">{merchant.email}</div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">{merchant.phoneNumber || 'Non renseigné'}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {merchant.email}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              {merchant.merchant?.city}, {merchant.merchant?.postalCode}
+                              {merchant.phoneNumber || "Non renseigné"}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              {merchant.merchant?.city},{" "}
+                              {merchant.merchant?.postalCode}
                               <br />
                               <span className="text-muted-foreground">
                                 {merchant.merchant?.country}
@@ -400,15 +452,19 @@ export default function AdminMerchantsPage() {
                           </TableCell>
                           <TableCell>
                             <Badge
-                              variant={merchant.status === 'ACTIVE' ? 'default' : 'destructive'}
+                              variant={
+                                merchant.status === "ACTIVE"
+                                  ? "default"
+                                  : "destructive"
+                              }
                             >
-                              {merchant.status === 'ACTIVE'
-                                ? 'Actif'
-                                : merchant.status === 'PENDING_VERIFICATION'
-                                  ? 'En attente'
-                                  : merchant.status === 'SUSPENDED'
-                                    ? 'Suspendu'
-                                    : 'Inactif'}
+                              {merchant.status === "ACTIVE"
+                                ? "Actif"
+                                : merchant.status === "PENDING_VERIFICATION"
+                                  ? "En attente"
+                                  : merchant.status === "SUSPENDED"
+                                    ? "Suspendu"
+                                    : "Inactif"}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -421,11 +477,15 @@ export default function AdminMerchantsPage() {
                           </TableCell>
                           <TableCell>
                             <div className="font-medium">
-                              {formatCurrency(merchant.stats?.totalRevenue || 0)}
+                              {formatCurrency(
+                                merchant.stats?.totalRevenue || 0,
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm">{formatDate(merchant.createdAt)}</div>
+                            <div className="text-sm">
+                              {formatDate(merchant.createdAt)}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-1">
@@ -434,7 +494,9 @@ export default function AdminMerchantsPage() {
                                   <EyeIcon className="h-4 w-4" />
                                 </Button>
                               </Link>
-                              <Link href={`/fr/admin/users/${merchant.id}/edit`}>
+                              <Link
+                                href={`/fr/admin/users/${merchant.id}/edit`}
+                              >
                                 <Button variant="ghost" size="sm">
                                   <EditIcon className="h-4 w-4" />
                                 </Button>
@@ -457,8 +519,8 @@ export default function AdminMerchantsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Affichage de {merchants.length} marchand(s) sur {totalMerchants} au total (Page{' '}
-                {currentPage} sur {totalPages})
+                Affichage de {merchants.length} marchand(s) sur {totalMerchants}{" "}
+                au total (Page {currentPage} sur {totalPages})
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -486,7 +548,9 @@ export default function AdminMerchantsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Statistiques Détaillées</CardTitle>
-              <CardDescription>Analyse complète des marchands et de leur activité</CardDescription>
+              <CardDescription>
+                Analyse complète des marchands et de leur activité
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2">
@@ -508,7 +572,9 @@ export default function AdminMerchantsPage() {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Répartition par Secteur</h3>
+                  <h3 className="text-lg font-semibold">
+                    Répartition par Secteur
+                  </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Alimentation:</span>

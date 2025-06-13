@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 import {
   Card,
   CardContent,
@@ -8,9 +8,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { cn } from '@/lib/utils/common';
-import Image from 'next/image';
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils/common";
+import Image from "next/image";
 
 type TutorialStepProps = {
   title: string;
@@ -30,7 +30,7 @@ export function TutorialStep({
   className,
 }: TutorialStepProps) {
   return (
-    <Card className={cn('w-full', className)}>
+    <Card className={cn("w-full", className)}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -39,12 +39,21 @@ export function TutorialStep({
       <CardContent className="flex flex-col items-center space-y-6">
         {image && (
           <div className="relative w-full aspect-video">
-            {image.startsWith('/') || image.startsWith('http') ? (
+            {image.startsWith("/") || image.startsWith("http") ? (
               // Utiliser Image pour les images statiques ou externes
-              <Image src={image} alt={title} fill className="rounded-md object-contain" />
+              <Image
+                src={image}
+                alt={title}
+                fill
+                className="rounded-md object-contain"
+              />
             ) : (
               // Fallback pour les images dynamiques
-              <img src={image} alt={title} className="rounded-md object-contain w-full h-full" />
+              <img
+                src={image}
+                alt={title}
+                className="rounded-md object-contain w-full h-full"
+              />
             )}
           </div>
         )}

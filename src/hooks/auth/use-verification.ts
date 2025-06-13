@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
-import type { UserDocument } from '@/types/users/verification';
-import { useAuthStore } from '@/store/use-auth-store';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
+import type { UserDocument } from "@/types/users/verification";
+import { useAuthStore } from "@/store/use-auth-store";
 
 /**
  * Hook personnalisé pour gérer les fonctionnalités de vérification
@@ -13,10 +13,11 @@ export function useVerification() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
-  const userRole = useAuthStore(state => state.role);
+  const userRole = useAuthStore((state) => state.role);
 
   // Mutations tRPC
-  const submitVerificationMutation = api.verification.submitVerification.useMutation();
+  const submitVerificationMutation =
+    api.verification.submitVerification.useMutation();
   const uploadDocumentMutation = api.verification.uploadDocument.useMutation();
   const deleteDocumentMutation = api.verification.deleteDocument.useMutation();
 
@@ -27,13 +28,17 @@ export function useVerification() {
   /**
    * Soumet une demande de vérification avec les documents associés
    */
-  const submitVerification = async (type: string, userId: string, documents: UserDocument[]) => {
+  const submitVerification = async (
+    type: string,
+    userId: string,
+    documents: UserDocument[],
+  ) => {
     setIsSubmitting(true);
 
     try {
       // Simuler un progrès d'upload pour l'UX (à remplacer par un vrai système de suivi de progression)
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
+        setUploadProgress((prev) => {
           if (prev >= 95) {
             clearInterval(progressInterval);
             return 95;
@@ -53,17 +58,17 @@ export function useVerification() {
       setUploadProgress(100);
 
       toast({
-        title: 'Demande envoyée',
-        variant: 'success',
+        title: "Demande envoyée",
+        variant: "success",
       });
 
       return result;
     } catch (error) {
       toast({
-        title: 'Erreur',
-        variant: 'destructive',
+        title: "Erreur",
+        variant: "destructive",
       });
-      console.error('Erreur de vérification:', error);
+      console.error("Erreur de vérification:", error);
       return null;
     } finally {
       setIsSubmitting(false);
@@ -79,7 +84,7 @@ export function useVerification() {
     file: File,
     userId: string,
     documentType: string,
-    userRoleArg?: string
+    userRoleArg?: string,
   ) => {
     try {
       const result = await api.document.uploadDocument.mutateAsync({
@@ -91,8 +96,8 @@ export function useVerification() {
 
       if (result) {
         toast({
-          title: 'Document téléchargé',
-          variant: 'success',
+          title: "Document téléchargé",
+          variant: "success",
         });
 
         return {
@@ -101,13 +106,13 @@ export function useVerification() {
         };
       }
 
-      throw new Error('Échec du téléchargement');
+      throw new Error("Échec du téléchargement");
     } catch (error) {
       toast({
-        title: 'Erreur',
-        variant: 'destructive',
+        title: "Erreur",
+        variant: "destructive",
       });
-      console.error('Erreur de téléchargement:', error);
+      console.error("Erreur de téléchargement:", error);
       return null;
     }
   };
@@ -120,17 +125,17 @@ export function useVerification() {
       await deleteDocumentMutation.mutateAsync({ documentId });
 
       toast({
-        title: 'Document supprimé',
-        variant: 'success',
+        title: "Document supprimé",
+        variant: "success",
       });
 
       return true;
     } catch (error) {
       toast({
-        title: 'Erreur',
-        variant: 'destructive',
+        title: "Erreur",
+        variant: "destructive",
       });
-      console.error('Erreur de suppression:', error);
+      console.error("Erreur de suppression:", error);
       return false;
     }
   };

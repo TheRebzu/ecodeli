@@ -1,9 +1,12 @@
-import { db } from '@/server/db';
-import { TRPCError } from '@trpc/server';
-import { ContractStatus, ContractType } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
-import { addDays, addMonths, isBefore, format } from 'date-fns';
-import { contractService, ContractService } from '@/server/services/shared/contract.service';
+import { db } from "@/server/db";
+import { TRPCError } from "@trpc/server";
+import { ContractStatus, ContractType } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
+import { addDays, addMonths, isBefore, format } from "date-fns";
+import {
+  contractService,
+  ContractService,
+} from "@/server/services/shared/contract.service";
 
 export interface MerchantContractCreateInput {
   merchantId: string;
@@ -97,7 +100,9 @@ export class MerchantContractService extends ContractService {
 
         // Données financières
         monthlyFee: data.monthlyFee ? new Decimal(data.monthlyFee) : null,
-        commissionRate: data.commissionRate ? new Decimal(data.commissionRate) : null,
+        commissionRate: data.commissionRate
+          ? new Decimal(data.commissionRate)
+          : null,
         minimumVolume: data.minimumVolume,
 
         // Extensions merchant
@@ -114,8 +119,12 @@ export class MerchantContractService extends ContractService {
         penaltyClause: data.penaltyClause,
         bonusStructure: data.bonusStructure,
         insuranceRequired: data.insuranceRequired,
-        insuranceAmount: data.insuranceAmount ? new Decimal(data.insuranceAmount) : null,
-        securityDeposit: data.securityDeposit ? new Decimal(data.securityDeposit) : null,
+        insuranceAmount: data.insuranceAmount
+          ? new Decimal(data.insuranceAmount)
+          : null,
+        securityDeposit: data.securityDeposit
+          ? new Decimal(data.securityDeposit)
+          : null,
         autoRenewal: data.autoRenewal,
         renewalNotice: data.renewalNotice,
 
@@ -151,16 +160,21 @@ export class MerchantContractService extends ContractService {
 
     if (!contract) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Contrat non trouvé',
+        code: "NOT_FOUND",
+        message: "Contrat non trouvé",
       });
     }
 
     // Vérifier que la négociation est possible
-    if (![ContractStatus.DRAFT, ContractStatus.PENDING_SIGNATURE].includes(contract.status)) {
+    if (
+      ![ContractStatus.DRAFT, ContractStatus.PENDING_SIGNATURE].includes(
+        contract.status,
+      )
+    ) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: "Les négociations ne sont possibles qu'en brouillon ou en attente de signature",
+        code: "BAD_REQUEST",
+        message:
+          "Les négociations ne sont possibles qu'en brouillon ou en attente de signature",
       });
     }
 
@@ -177,7 +191,7 @@ export class MerchantContractService extends ContractService {
         proposedChanges: data.proposedChanges,
         reason: data.reason,
         notes: data.notes,
-        status: 'PENDING',
+        status: "PENDING",
       },
       include: {
         initiator: true,
@@ -201,9 +215,9 @@ export class MerchantContractService extends ContractService {
   async respondToNegotiation(
     negotiationId: string,
     respondedBy: string,
-    status: 'ACCEPTED' | 'REJECTED' | 'COUNTER_PROPOSED',
+    status: "ACCEPTED" | "REJECTED" | "COUNTER_PROPOSED",
     response: string,
-    counterProposal?: Record<string, any>
+    counterProposal?: Record<string, any>,
   ) {
     const negotiation = await db.contractNegotiation.findUnique({
       where: { id: negotiationId },
@@ -218,8 +232,8 @@ export class MerchantContractService extends ContractService {
 
     if (!negotiation) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Négociation non trouvée',
+        code: "NOT_FOUND",
+        message: "Négociation non trouvée",
       });
     }
 
@@ -234,17 +248,20 @@ export class MerchantContractService extends ContractService {
     });
 
     // Si accepté, appliquer les changements au contrat
-    if (status === 'ACCEPTED') {
-      await this.applyNegotiationChanges(negotiation.contractId, negotiation.proposedChanges);
+    if (status === "ACCEPTED") {
+      await this.applyNegotiationChanges(
+        negotiation.contractId,
+        negotiation.proposedChanges,
+      );
     }
 
     // Si contre-proposition, créer une nouvelle négociation
-    if (status === 'COUNTER_PROPOSED' && counterProposal) {
+    if (status === "COUNTER_PROPOSED" && counterProposal) {
       await this.initiateNegotiation({
         contractId: negotiation.contractId,
         initiatedBy: respondedBy,
         proposedChanges: counterProposal,
-        reason: 'Contre-proposition suite à négociation',
+        reason: "Contre-proposition suite à négociation",
         notes: `En réponse à la négociation #${negotiation.negotiationRound}`,
       });
     }
@@ -255,7 +272,11 @@ export class MerchantContractService extends ContractService {
   /**
    * Calcule et enregistre les performances d'un contrat
    */
-  async calculateContractPerformance(contractId: string, periodStart: Date, periodEnd: Date) {
+  async calculateContractPerformance(
+    contractId: string,
+    periodStart: Date,
+    periodEnd: Date,
+  ) {
     const contract = await db.contract.findUnique({
       where: { id: contractId },
       include: { merchant: true },
@@ -263,8 +284,8 @@ export class MerchantContractService extends ContractService {
 
     if (!contract) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Contrat non trouvé',
+        code: "NOT_FOUND",
+        message: "Contrat non trouvé",
       });
     }
 
@@ -292,7 +313,7 @@ export class MerchantContractService extends ContractService {
       db.payment.findMany({
         where: {
           userId: contract.merchant.userId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           createdAt: {
             gte: periodStart,
             lte: periodEnd,
@@ -310,7 +331,10 @@ export class MerchantContractService extends ContractService {
 
     // Calculer les métriques
     const deliveryCount = deliveries.length;
-    const totalRevenue = payments.reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+    const totalRevenue = payments.reduce(
+      (sum, p) => sum + parseFloat(p.amount.toString()),
+      0,
+    );
     const avgOrderValue = deliveryCount > 0 ? totalRevenue / deliveryCount : 0;
 
     // Calculer la conformité SLA
@@ -325,7 +349,10 @@ export class MerchantContractService extends ContractService {
     });
 
     // Calculer bonus/pénalités
-    const { bonusEarned, penaltiesApplied } = this.calculateBonusAndPenalties(contract, targetsMet);
+    const { bonusEarned, penaltiesApplied } = this.calculateBonusAndPenalties(
+      contract,
+      targetsMet,
+    );
 
     // Enregistrer les performances
     return await db.contractPerformance.create({
@@ -339,8 +366,10 @@ export class MerchantContractService extends ContractService {
         slaCompliance,
         targetsMet,
         bonusEarned: bonusEarned ? new Decimal(bonusEarned) : null,
-        penaltiesApplied: penaltiesApplied ? new Decimal(penaltiesApplied) : null,
-        notes: `Performance calculée automatiquement pour la période ${format(periodStart, 'dd/MM/yyyy')} - ${format(periodEnd, 'dd/MM/yyyy')}`,
+        penaltiesApplied: penaltiesApplied
+          ? new Decimal(penaltiesApplied)
+          : null,
+        notes: `Performance calculée automatiquement pour la période ${format(periodStart, "dd/MM/yyyy")} - ${format(periodEnd, "dd/MM/yyyy")}`,
       },
     });
   }
@@ -367,12 +396,16 @@ export class MerchantContractService extends ContractService {
     for (const contract of expiringContracts) {
       try {
         const renewed = await this.autoRenewContract(contract.id);
-        renewalResults.push({ contractId: contract.id, status: 'success', renewed });
+        renewalResults.push({
+          contractId: contract.id,
+          status: "success",
+          renewed,
+        });
       } catch (error) {
         renewalResults.push({
           contractId: contract.id,
-          status: 'error',
-          error: error instanceof Error ? error.message : 'Erreur inconnue',
+          status: "error",
+          error: error instanceof Error ? error.message : "Erreur inconnue",
         });
       }
     }
@@ -392,28 +425,30 @@ export class MerchantContractService extends ContractService {
 
     if (!merchant) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Commerçant non trouvé',
+        code: "NOT_FOUND",
+        message: "Commerçant non trouvé",
       });
     }
 
     if (!merchant.isVerified) {
       throw new TRPCError({
-        code: 'PRECONDITION_FAILED',
-        message: 'Le commerçant doit être vérifié avant de signer un contrat',
+        code: "PRECONDITION_FAILED",
+        message: "Le commerçant doit être vérifié avant de signer un contrat",
       });
     }
 
     return merchant;
   }
 
-  private async validateContractPrerequisites(data: MerchantContractCreateInput) {
+  private async validateContractPrerequisites(
+    data: MerchantContractCreateInput,
+  ) {
     // Vérifier les prérequis spécifiques au type de contrat
     if (data.type === ContractType.PREMIUM) {
       // Vérifications spécifiques au premium
       if (!data.insuranceRequired) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
+          code: "BAD_REQUEST",
           message: "L'assurance est requise pour les contrats premium",
         });
       }
@@ -422,7 +457,9 @@ export class MerchantContractService extends ContractService {
     // Autres validations...
   }
 
-  private generateAutoTerms(data: MerchantContractCreateInput): Record<string, any> {
+  private generateAutoTerms(
+    data: MerchantContractCreateInput,
+  ): Record<string, any> {
     return {
       generatedAt: new Date().toISOString(),
       merchantCategory: data.merchantCategory,
@@ -444,7 +481,7 @@ export class MerchantContractService extends ContractService {
         periodStart: monthStart,
         periodEnd: monthEnd,
         deliveryCount: 0,
-        notes: 'Suivi initialisé lors de la création du contrat',
+        notes: "Suivi initialisé lors de la création du contrat",
       },
     });
   }
@@ -464,7 +501,10 @@ export class MerchantContractService extends ContractService {
     });
   }
 
-  private async applyNegotiationChanges(contractId: string, changes: Record<string, any>) {
+  private async applyNegotiationChanges(
+    contractId: string,
+    changes: Record<string, any>,
+  ) {
     // Appliquer les changements négociés au contrat
     await db.contract.update({
       where: { id: contractId },
@@ -476,12 +516,27 @@ export class MerchantContractService extends ContractService {
   }
 
   private calculateSLACompliance(contract: any, deliveries: any[]): number {
-    // Calculer le pourcentage de respect du SLA
-    // À implémenter selon vos métriques SLA
-    return 95.0; // Placeholder
+    // Calculer le pourcentage de respect du SLA basé sur les livraisons réelles
+    if (!deliveries.length) return 100;
+    
+    const slaTargets = contract.serviceLevelAgreement || {};
+    const targetDeliveryTime = slaTargets.maxDeliveryTime || 48; // heures par défaut
+    
+    const onTimeDeliveries = deliveries.filter(delivery => {
+      const orderTime = new Date(delivery.createdAt).getTime();
+      const deliveryTime = new Date(delivery.deliveredAt || delivery.updatedAt).getTime();
+      const hoursDifference = (deliveryTime - orderTime) / (1000 * 60 * 60);
+      
+      return hoursDifference <= targetDeliveryTime;
+    });
+    
+    return Math.round((onTimeDeliveries.length / deliveries.length) * 100);
   }
 
-  private checkPerformanceTargets(contract: any, metrics: any): Record<string, boolean> {
+  private checkPerformanceTargets(
+    contract: any,
+    metrics: any,
+  ): Record<string, boolean> {
     // Vérifier si les objectifs de performance sont atteints
     const targets = contract.performanceTargets || {};
     const results: Record<string, boolean> = {};
@@ -493,7 +548,10 @@ export class MerchantContractService extends ContractService {
     return results;
   }
 
-  private calculateBonusAndPenalties(contract: any, targetsMet: Record<string, boolean>) {
+  private calculateBonusAndPenalties(
+    contract: any,
+    targetsMet: Record<string, boolean>,
+  ) {
     // Calculer les bonus et pénalités selon les résultats
     let bonusEarned = 0;
     let penaltiesApplied = 0;
@@ -526,7 +584,7 @@ export class MerchantContractService extends ContractService {
   }
 
   private async generateContractNumber(): Promise<string> {
-    const date = format(new Date(), 'yyyyMM');
+    const date = format(new Date(), "yyyyMM");
     const count = await db.contract.count({
       where: {
         createdAt: {
@@ -535,7 +593,7 @@ export class MerchantContractService extends ContractService {
       },
     });
 
-    return `MCONT-${date}-${(count + 1).toString().padStart(4, '0')}`;
+    return `MCONT-${date}-${(count + 1).toString().padStart(4, "0")}`;
   }
 }
 

@@ -4,5 +4,5 @@
  */
 
 // Exports des fichiers locaux
-export { default as PaymentDemo } from './payment-demo';
-export * from './payment-demo';
+export { default as PaymentDemo } from "./payment-demo";
+export * from "./payment-demo";

@@ -1,9 +1,9 @@
-import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { InvoiceStatus, BillingCycle } from '@prisma/client';
-import { addMonths, format, startOfMonth, endOfMonth } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { z } from "zod";
+import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { InvoiceStatus, BillingCycle } from "@prisma/client";
+import { addMonths, format, startOfMonth, endOfMonth } from "date-fns";
+import { fr } from "date-fns/locale";
 
 /**
  * Router pour la facturation automatique des commerçants
@@ -32,7 +32,7 @@ const manualInvoiceSchema = z.object({
         quantity: z.number().min(1),
         unitPrice: z.number().min(0),
         total: z.number().min(0),
-      })
+      }),
     )
     .optional(),
   notes: z.string().max(500).optional(),
@@ -53,86 +53,90 @@ export const merchantInvoicesRouter = router({
   /**
    * Récupérer les factures du commerçant
    */
-  getMyInvoices: protectedProcedure.input(invoiceFiltersSchema).query(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  getMyInvoices: protectedProcedure
+    .input(invoiceFiltersSchema)
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'MERCHANT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les commerçants peuvent consulter leurs factures',
-      });
-    }
-
-    try {
-      const where: any = {
-        userId: user.id,
-      };
-
-      if (input.status) where.status = input.status;
-
-      if (input.dateFrom || input.dateTo) {
-        where.issuedDate = {};
-        if (input.dateFrom) where.issuedDate.gte = input.dateFrom;
-        if (input.dateTo) where.issuedDate.lte = input.dateTo;
+      if (user.role !== "MERCHANT") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent consulter leurs factures",
+        });
       }
 
-      if (input.month && input.year) {
-        const monthStart = startOfMonth(new Date(input.year, input.month - 1));
-        const monthEnd = endOfMonth(new Date(input.year, input.month - 1));
-        where.issuedDate = {
-          gte: monthStart,
-          lte: monthEnd,
+      try {
+        const where: any = {
+          userId: user.id,
         };
+
+        if (input.status) where.status = input.status;
+
+        if (input.dateFrom || input.dateTo) {
+          where.issuedDate = {};
+          if (input.dateFrom) where.issuedDate.gte = input.dateFrom;
+          if (input.dateTo) where.issuedDate.lte = input.dateTo;
+        }
+
+        if (input.month && input.year) {
+          const monthStart = startOfMonth(
+            new Date(input.year, input.month - 1),
+          );
+          const monthEnd = endOfMonth(new Date(input.year, input.month - 1));
+          where.issuedDate = {
+            gte: monthStart,
+            lte: monthEnd,
+          };
+        }
+
+        const invoices = await ctx.db.invoice.findMany({
+          where,
+          include: {
+            billingCycle: {
+              select: {
+                cycle: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
+            payments: {
+              select: {
+                id: true,
+                amount: true,
+                status: true,
+                paidAt: true,
+                paymentMethod: true,
+              },
+              orderBy: { paidAt: "desc" },
+            },
+          },
+          orderBy: { issuedDate: "desc" },
+          skip: input.offset,
+          take: input.limit,
+        });
+
+        const totalCount = await ctx.db.invoice.count({ where });
+
+        // Calculer les statistiques
+        const stats = await calculateInvoiceStats(user.id, ctx.db);
+
+        return {
+          invoices,
+          stats,
+          pagination: {
+            total: totalCount,
+            offset: input.offset,
+            limit: input.limit,
+            hasMore: input.offset + input.limit < totalCount,
+          },
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des factures",
+        });
       }
-
-      const invoices = await ctx.db.invoice.findMany({
-        where,
-        include: {
-          billingCycle: {
-            select: {
-              cycle: true,
-              startDate: true,
-              endDate: true,
-            },
-          },
-          payments: {
-            select: {
-              id: true,
-              amount: true,
-              status: true,
-              paidAt: true,
-              paymentMethod: true,
-            },
-            orderBy: { paidAt: 'desc' },
-          },
-        },
-        orderBy: { issuedDate: 'desc' },
-        skip: input.offset,
-        take: input.limit,
-      });
-
-      const totalCount = await ctx.db.invoice.count({ where });
-
-      // Calculer les statistiques
-      const stats = await calculateInvoiceStats(user.id, ctx.db);
-
-      return {
-        invoices,
-        stats,
-        pagination: {
-          total: totalCount,
-          offset: input.offset,
-          limit: input.limit,
-          hasMore: input.offset + input.limit < totalCount,
-        },
-      };
-    } catch (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des factures',
-      });
-    }
-  }),
+    }),
 
   /**
    * Obtenir les détails d'une facture
@@ -142,10 +146,10 @@ export const merchantInvoicesRouter = router({
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent consulter leurs factures',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent consulter leurs factures",
         });
       }
 
@@ -158,7 +162,7 @@ export const merchantInvoicesRouter = router({
           include: {
             billingCycle: true,
             payments: {
-              orderBy: { paidAt: 'desc' },
+              orderBy: { paidAt: "desc" },
             },
             lineItems: true,
           },
@@ -166,8 +170,8 @@ export const merchantInvoicesRouter = router({
 
         if (!invoice) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Facture non trouvée',
+            code: "NOT_FOUND",
+            message: "Facture non trouvée",
           });
         }
 
@@ -175,8 +179,8 @@ export const merchantInvoicesRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération de la facture',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération de la facture",
         });
       }
     }),
@@ -189,10 +193,10 @@ export const merchantInvoicesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -223,8 +227,8 @@ export const merchantInvoicesRouter = router({
 
         if (!invoice) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Facture non trouvée',
+            code: "NOT_FOUND",
+            message: "Facture non trouvée",
           });
         }
 
@@ -239,8 +243,8 @@ export const merchantInvoicesRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la génération du PDF',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la génération du PDF",
         });
       }
     }),
@@ -251,10 +255,10 @@ export const merchantInvoicesRouter = router({
   getBillingConfig: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'MERCHANT') {
+    if (user.role !== "MERCHANT") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les commerçants peuvent consulter leur configuration',
+        code: "FORBIDDEN",
+        message: "Seuls les commerçants peuvent consulter leur configuration",
       });
     }
 
@@ -269,7 +273,7 @@ export const merchantInvoicesRouter = router({
           data: {
             merchantId: user.id,
             enableAutoInvoicing: true,
-            billingCycle: 'MONTHLY',
+            billingCycle: "MONTHLY",
             billingDay: 1,
             gracePeriodDays: 7,
             lateFeePercent: 0,
@@ -282,8 +286,8 @@ export const merchantInvoicesRouter = router({
       return { config };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération de la configuration',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération de la configuration",
       });
     }
   }),
@@ -296,10 +300,10 @@ export const merchantInvoicesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent modifier leur configuration',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent modifier leur configuration",
         });
       }
 
@@ -319,12 +323,12 @@ export const merchantInvoicesRouter = router({
         return {
           success: true,
           config,
-          message: 'Configuration mise à jour avec succès',
+          message: "Configuration mise à jour avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la mise à jour de la configuration',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour de la configuration",
         });
       }
     }),
@@ -337,15 +341,15 @@ export const merchantInvoicesRouter = router({
       z.object({
         month: z.number().min(1).max(12).optional(),
         year: z.number().min(2020).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent déclencher la facturation',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent déclencher la facturation",
         });
       }
 
@@ -361,30 +365,35 @@ export const merchantInvoicesRouter = router({
               gte: startOfMonth(new Date(year, month - 1)),
               lte: endOfMonth(new Date(year, month - 1)),
             },
-            type: 'SUBSCRIPTION',
+            type: "SUBSCRIPTION",
           },
         });
 
         if (existingInvoice) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Une facture existe déjà pour cette période',
+            code: "BAD_REQUEST",
+            message: "Une facture existe déjà pour cette période",
           });
         }
 
         // Générer la facture automatique
-        const invoice = await generateAutomaticInvoice(user.id, month, year, ctx.db);
+        const invoice = await generateAutomaticInvoice(
+          user.id,
+          month,
+          year,
+          ctx.db,
+        );
 
         return {
           success: true,
           invoice,
-          message: 'Facture générée avec succès',
+          message: "Facture générée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la génération de la facture',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la génération de la facture",
         });
       }
     }),
@@ -398,15 +407,15 @@ export const merchantInvoicesRouter = router({
         invoiceId: z.string().cuid(),
         reason: z.string().min(10).max(1000),
         supportingDocuments: z.array(z.string().url()).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent contester leurs factures',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent contester leurs factures",
         });
       }
 
@@ -415,14 +424,14 @@ export const merchantInvoicesRouter = router({
           where: {
             id: input.invoiceId,
             userId: user.id,
-            status: { in: ['PENDING', 'OVERDUE'] },
+            status: { in: ["PENDING", "OVERDUE"] },
           },
         });
 
         if (!invoice) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Facture non trouvée ou ne peut pas être contestée',
+            code: "NOT_FOUND",
+            message: "Facture non trouvée ou ne peut pas être contestée",
           });
         }
 
@@ -430,7 +439,7 @@ export const merchantInvoicesRouter = router({
         await ctx.db.invoice.update({
           where: { id: input.invoiceId },
           data: {
-            status: 'DISPUTED',
+            status: "DISPUTED",
             disputeReason: input.reason,
             disputedAt: new Date(),
             metadata: {
@@ -449,13 +458,14 @@ export const merchantInvoicesRouter = router({
 
         return {
           success: true,
-          message: 'Contestation enregistrée. Notre équipe va examiner votre demande.',
+          message:
+            "Contestation enregistrée. Notre équipe va examiner votre demande.",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la contestation',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la contestation",
         });
       }
     }),
@@ -466,26 +476,30 @@ export const merchantInvoicesRouter = router({
   getBillingStats: protectedProcedure
     .input(
       z.object({
-        period: z.enum(['month', 'quarter', 'year']).default('year'),
-      })
+        period: z.enum(["month", "quarter", "year"]).default("year"),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
       try {
-        const stats = await calculateDetailedBillingStats(user.id, input.period, ctx.db);
+        const stats = await calculateDetailedBillingStats(
+          user.id,
+          input.period,
+          ctx.db,
+        );
         return { stats };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors du calcul des statistiques',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du calcul des statistiques",
         });
       }
     }),
@@ -505,14 +519,14 @@ export const merchantInvoicesRouter = router({
         const merchant = await ctx.db.user.findFirst({
           where: {
             id: merchantId,
-            role: 'MERCHANT',
+            role: "MERCHANT",
           },
         });
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Commerçant non trouvé",
           });
         }
 
@@ -524,8 +538,8 @@ export const merchantInvoicesRouter = router({
           data: {
             userId: merchantId,
             invoiceNumber,
-            type: 'MANUAL',
-            status: 'PENDING',
+            type: "MANUAL",
+            status: "PENDING",
             totalAmount: invoiceData.amount,
             issuedDate: new Date(),
             dueDate: invoiceData.dueDate,
@@ -553,13 +567,13 @@ export const merchantInvoicesRouter = router({
         return {
           success: true,
           invoice,
-          message: 'Facture manuelle créée avec succès',
+          message: "Facture manuelle créée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la création de la facture',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de la facture",
         });
       }
     }),
@@ -596,7 +610,7 @@ async function calculateInvoiceStats(userId: string, db: any) {
     db.invoice.aggregate({
       where: {
         userId,
-        status: 'PENDING',
+        status: "PENDING",
       },
       _sum: { totalAmount: true },
       _count: true,
@@ -604,7 +618,7 @@ async function calculateInvoiceStats(userId: string, db: any) {
     db.invoice.aggregate({
       where: {
         userId,
-        status: 'OVERDUE',
+        status: "OVERDUE",
       },
       _sum: { totalAmount: true },
       _count: true,
@@ -631,33 +645,38 @@ async function calculateInvoiceStats(userId: string, db: any) {
   };
 }
 
-async function generateAutomaticInvoice(merchantId: string, month: number, year: number, db: any) {
+async function generateAutomaticInvoice(
+  merchantId: string,
+  month: number,
+  year: number,
+  db: any,
+) {
   // Récupérer la configuration de facturation
   const config = await db.merchantBillingConfig.findUnique({
     where: { merchantId },
   });
 
   if (!config || !config.enableAutoInvoicing) {
-    throw new Error('Facturation automatique désactivée');
+    throw new Error("Facturation automatique désactivée");
   }
 
   // Calculer les frais selon le contrat et l'usage
   const contract = await db.contract.findFirst({
     where: {
       merchantId,
-      status: 'ACTIVE',
+      status: "ACTIVE",
     },
   });
 
   if (!contract) {
-    throw new Error('Aucun contrat actif trouvé');
+    throw new Error("Aucun contrat actif trouvé");
   }
 
   // Calculer les frais mensuels et commissions
   const monthlyFee = contract.monthlyFee || 0;
 
-  // TODO: Calculer les commissions sur les ventes
-  const commissions = 0; // Placeholder
+  // Calculer les commissions sur les ventes du mois
+  const commissions = await calculateMonthlyCommissions(merchantId, month, year, db);
 
   const totalAmount = monthlyFee + commissions;
 
@@ -667,12 +686,12 @@ async function generateAutomaticInvoice(merchantId: string, month: number, year:
     data: {
       userId: merchantId,
       invoiceNumber,
-      type: 'SUBSCRIPTION',
-      status: 'PENDING',
+      type: "SUBSCRIPTION",
+      status: "PENDING",
       totalAmount,
       issuedDate: new Date(),
       dueDate: addMonths(new Date(), 1),
-      description: `Facturation automatique - ${format(new Date(year, month - 1), 'MMMM yyyy', { locale: fr })}`,
+      description: `Facturation automatique - ${format(new Date(year, month - 1), "MMMM yyyy", { locale: fr })}`,
       metadata: {
         period: { month, year },
         breakdown: {
@@ -697,7 +716,7 @@ async function generateAutomaticInvoice(merchantId: string, month: number, year:
 
   if (commissions > 0) {
     lineItems.push({
-      description: 'Commissions sur ventes',
+      description: "Commissions sur ventes",
       quantity: 1,
       unitPrice: commissions,
       total: commissions,
@@ -719,23 +738,163 @@ async function generateAutomaticInvoice(merchantId: string, month: number, year:
 
 async function generateInvoiceNumber(): Promise<string> {
   const year = new Date().getFullYear();
-  const month = String(new Date().getMonth() + 1).padStart(2, '0');
+  const month = String(new Date().getMonth() + 1).padStart(2, "0");
   const timestamp = Date.now();
   return `INV-${year}${month}-${timestamp.toString().slice(-6)}`;
 }
 
 async function generateInvoicePdf(invoice: any): Promise<string> {
-  // TODO: Implémenter la génération PDF avec jsPDF ou Puppeteer
-  // Pour l'instant, retourner une URL placeholder
-  return `/api/pdf/invoice/${invoice.id}`;
+  // Générer le PDF de facture avec Puppeteer ou jsPDF
+  try {
+    // Utiliser le service de génération PDF
+    const pdfService = await import('@/server/services/shared/pdf.service');
+    const pdfBuffer = await pdfService.generateInvoicePdf(invoice);
+    
+    // Sauvegarder le PDF et retourner l'URL
+    const fileName = `invoice-${invoice.invoiceNumber}.pdf`;
+    const filePath = await pdfService.savePdfFile(pdfBuffer, fileName);
+    
+    return filePath;
+  } catch (error) {
+    console.error('Erreur lors de la génération PDF:', error);
+    throw new Error('Impossible de générer le PDF de la facture');
+  }
 }
 
-async function calculateDetailedBillingStats(userId: string, period: string, db: any) {
-  // TODO: Implémenter le calcul détaillé des statistiques
+async function calculateDetailedBillingStats(
+  userId: string,
+  period: string,
+  db: any,
+) {
+  // Calculer les statistiques détaillées de facturation
+  const [startDate, endDate] = getPeriodDates(period);
+  
+  const stats = await db.invoice.aggregate({
+    where: {
+      userId,
+      issuedDate: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    _sum: { totalAmount: true },
+    _avg: { totalAmount: true },
+    _count: true,
+  });
+
+  const paidInvoices = await db.invoice.count({
+    where: {
+      userId,
+      status: 'PAID',
+      issuedDate: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+  });
+
+  const paymentRate = stats._count > 0 ? Math.round((paidInvoices / stats._count) * 100) : 0;
+
+  // Calculer les tendances mensuelles
+  const trends = await calculateMonthlyTrends(userId, startDate, endDate, db);
+
   return {
-    totalRevenue: 0,
-    averageInvoiceAmount: 0,
-    paymentRate: 100,
-    trends: [],
+    totalRevenue: stats._sum.totalAmount || 0,
+    averageInvoiceAmount: stats._avg.totalAmount || 0,
+    paymentRate,
+    trends,
   };
+}
+
+// Fonctions helper additionnelles
+async function calculateMonthlyCommissions(
+  merchantId: string,
+  month: number,
+  year: number,
+  db: any,
+): Promise<number> {
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 0);
+  
+  const deliveries = await db.delivery.findMany({
+    where: {
+      merchantId,
+      completedAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+      status: 'COMPLETED',
+    },
+    select: {
+      price: true,
+    },
+  });
+
+  const totalSales = deliveries.reduce((sum, delivery) => sum + delivery.price, 0);
+  const commissionRate = 0.15; // 15% de commission par défaut
+  
+  return Math.round(totalSales * commissionRate * 100) / 100;
+}
+
+function getPeriodDates(period: string): [Date, Date] {
+  const now = new Date();
+  
+  switch (period) {
+    case 'thisMonth':
+      return [
+        new Date(now.getFullYear(), now.getMonth(), 1),
+        new Date(now.getFullYear(), now.getMonth() + 1, 0),
+      ];
+    case 'lastMonth':
+      return [
+        new Date(now.getFullYear(), now.getMonth() - 1, 1),
+        new Date(now.getFullYear(), now.getMonth(), 0),
+      ];
+    case 'thisYear':
+      return [
+        new Date(now.getFullYear(), 0, 1),
+        new Date(now.getFullYear(), 11, 31),
+      ];
+    default:
+      // Par défaut, ce mois
+      return [
+        new Date(now.getFullYear(), now.getMonth(), 1),
+        new Date(now.getFullYear(), now.getMonth() + 1, 0),
+      ];
+  }
+}
+
+async function calculateMonthlyTrends(
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+  db: any,
+): Promise<Array<{ month: string; revenue: number; count: number }>> {
+  const trends = [];
+  const monthsBetween = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+  
+  for (let i = 0; i < monthsBetween; i++) {
+    const monthStart = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+    const monthEnd = new Date(startDate.getFullYear(), startDate.getMonth() + i + 1, 0);
+    
+    const monthStats = await db.invoice.aggregate({
+      where: {
+        userId,
+        issuedDate: {
+          gte: monthStart,
+          lte: monthEnd,
+        },
+      },
+      _sum: { totalAmount: true },
+      _count: true,
+    });
+    
+    trends.push({
+      month: monthStart.toISOString().slice(0, 7), // YYYY-MM
+      revenue: monthStats._sum.totalAmount || 0,
+      count: monthStats._count,
+    });
+  }
+  
+  return trends;
 }

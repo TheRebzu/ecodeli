@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
   Bar,
@@ -20,10 +20,10 @@ import {
   Scatter,
   Area,
   AreaChart,
-} from 'recharts';
-import { Clock, TrendingUp, Map, AlertTriangle } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "recharts";
+import { Clock, TrendingUp, Map, AlertTriangle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Types pour les données de performance
 interface DeliveryPerformanceData {
@@ -76,11 +76,11 @@ export function DeliveryPerformanceReport({
   isError,
   dateRange,
 }: DeliveryPerformanceReportProps) {
-  const t = useTranslations('admin.reports');
+  const t = useTranslations("admin.reports");
 
   // Format pourcentage
   const formatPercentage = (value: number) => {
-    return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
+    return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
   };
 
   // Format du temps
@@ -90,7 +90,7 @@ export function DeliveryPerformanceReport({
     }
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = Math.round(minutes % 60);
-    return `${hours}h ${remainingMinutes > 0 ? remainingMinutes + 'min' : ''}`;
+    return `${hours}h ${remainingMinutes > 0 ? remainingMinutes + "min" : ""}`;
   };
 
   if (isLoading) {
@@ -143,15 +143,24 @@ export function DeliveryPerformanceReport({
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <h3 className="text-lg font-medium text-destructive mb-2">{t('errors.loadFailed')}</h3>
-          <p className="text-muted-foreground">{t('errors.tryAgain')}</p>
+          <h3 className="text-lg font-medium text-destructive mb-2">
+            {t("errors.loadFailed")}
+          </h3>
+          <p className="text-muted-foreground">{t("errors.tryAgain")}</p>
         </div>
       </div>
     );
   }
 
   // Couleurs pour les graphiques
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
+  const COLORS = [
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+    "#ff8042",
+    "#0088FE",
+    "#00C49F",
+  ];
 
   // Changement de la ponctualité
   const onTimeChange = data.performanceSummary.percentChange;
@@ -162,55 +171,71 @@ export function DeliveryPerformanceReport({
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('delivery.onTimeRate')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("delivery.onTimeRate")}
+            </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {`${data.performanceSummary.onTimePercentage.toFixed(2)}%`}
             </div>
-            <p className={`text-xs ${onTimeChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {formatPercentage(onTimeChange)} {t('delivery.vsPrevious')}
+            <p
+              className={`text-xs ${onTimeChange >= 0 ? "text-green-500" : "text-red-500"}`}
+            >
+              {formatPercentage(onTimeChange)} {t("delivery.vsPrevious")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('delivery.avgDeliveryTime')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("delivery.avgDeliveryTime")}
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {formatTime(data.performanceSummary.averageDeliveryTime)}
             </div>
-            <p className="text-xs text-muted-foreground">{t('delivery.fromPickupToDelivery')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("delivery.fromPickupToDelivery")}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('delivery.issueRate')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("delivery.issueRate")}
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {`${data.performanceSummary.issueRate.toFixed(2)}%`}
             </div>
-            <p className="text-xs text-muted-foreground">{t('delivery.ofTotalDeliveries')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("delivery.ofTotalDeliveries")}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('delivery.totalDeliveries')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("delivery.totalDeliveries")}
+            </CardTitle>
             <Map className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {data.performanceSummary.totalDeliveries.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">{t('delivery.duringPeriod')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("delivery.duringPeriod")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -218,15 +243,17 @@ export function DeliveryPerformanceReport({
       {/* Graphiques */}
       <Tabs defaultValue="performance">
         <TabsList className="mb-4">
-          <TabsTrigger value="performance">{t('delivery.tabs.performance')}</TabsTrigger>
-          <TabsTrigger value="issues">{t('delivery.tabs.issues')}</TabsTrigger>
-          <TabsTrigger value="zones">{t('delivery.tabs.zones')}</TabsTrigger>
+          <TabsTrigger value="performance">
+            {t("delivery.tabs.performance")}
+          </TabsTrigger>
+          <TabsTrigger value="issues">{t("delivery.tabs.issues")}</TabsTrigger>
+          <TabsTrigger value="zones">{t("delivery.tabs.zones")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="performance" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('delivery.charts.onTimeRate')}</CardTitle>
+              <CardTitle>{t("delivery.charts.onTimeRate")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-80 w-full pt-4">
@@ -243,21 +270,31 @@ export function DeliveryPerformanceReport({
                       height={70}
                       tick={{ fontSize: 12 }}
                     />
-                    <YAxis tickFormatter={value => `${value}%`} domain={[0, 100]} />
-                    <Tooltip formatter={value => [`${value}%`, t('delivery.onTimeRate')]} />
+                    <YAxis
+                      tickFormatter={(value) => `${value}%`}
+                      domain={[0, 100]}
+                    />
+                    <Tooltip
+                      formatter={(value) => [
+                        `${value}%`,
+                        t("delivery.onTimeRate"),
+                      ]}
+                    />
                     <Legend />
                     <Line
                       type="monotone"
                       dataKey="rate"
-                      name={t('delivery.onTimeRate')}
+                      name={t("delivery.onTimeRate")}
                       stroke="#8884d8"
                       activeDot={{ r: 8 }}
                     />
-                    {data.onTimeDeliveryRate.some(d => d.previousRate !== undefined) && (
+                    {data.onTimeDeliveryRate.some(
+                      (d) => d.previousRate !== undefined,
+                    ) && (
                       <Line
                         type="monotone"
                         dataKey="previousRate"
-                        name={t('delivery.previousPeriod')}
+                        name={t("delivery.previousPeriod")}
                         stroke="#82ca9d"
                         strokeDasharray="5 5"
                       />
@@ -270,7 +307,7 @@ export function DeliveryPerformanceReport({
 
           <Card>
             <CardHeader>
-              <CardTitle>{t('delivery.charts.timeByHour')}</CardTitle>
+              <CardTitle>{t("delivery.charts.timeByHour")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-80 w-full pt-4">
@@ -280,23 +317,43 @@ export function DeliveryPerformanceReport({
                     margin={{ top: 10, right: 30, left: 30, bottom: 30 }}
                   >
                     <defs>
-                      <linearGradient id="colorTime" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                      <linearGradient
+                        id="colorTime"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#8884d8"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#8884d8"
+                          stopOpacity={0}
+                        />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="hour" tickFormatter={hour => `${hour}h`} />
-                    <YAxis tickFormatter={min => formatTime(min)} />
+                    <XAxis
+                      dataKey="hour"
+                      tickFormatter={(hour) => `${hour}h`}
+                    />
+                    <YAxis tickFormatter={(min) => formatTime(min)} />
                     <Tooltip
-                      formatter={value => [formatTime(value as number), t('delivery.avgTime')]}
-                      labelFormatter={hour => `${hour}h00 - ${hour}h59`}
+                      formatter={(value) => [
+                        formatTime(value as number),
+                        t("delivery.avgTime"),
+                      ]}
+                      labelFormatter={(hour) => `${hour}h00 - ${hour}h59`}
                     />
                     <Legend />
                     <Area
                       type="monotone"
                       dataKey="time"
-                      name={t('delivery.avgTime')}
+                      name={t("delivery.avgTime")}
                       stroke="#8884d8"
                       fillOpacity={1}
                       fill="url(#colorTime)"
@@ -312,7 +369,7 @@ export function DeliveryPerformanceReport({
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>{t('delivery.charts.issueTypes')}</CardTitle>
+                <CardTitle>{t("delivery.charts.issueTypes")}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-80 w-full pt-4">
@@ -341,7 +398,7 @@ export function DeliveryPerformanceReport({
                       <Tooltip
                         formatter={(value, name, props) => [
                           `${value} (${props.payload.percentage.toFixed(1)}%)`,
-                          t('delivery.issues'),
+                          t("delivery.issues"),
                         ]}
                       />
                       <Legend />
@@ -353,7 +410,7 @@ export function DeliveryPerformanceReport({
 
             <Card>
               <CardHeader>
-                <CardTitle>{t('delivery.charts.deliveryStatus')}</CardTitle>
+                <CardTitle>{t("delivery.charts.deliveryStatus")}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-80 w-full pt-4">
@@ -366,9 +423,15 @@ export function DeliveryPerformanceReport({
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
                       <YAxis type="category" dataKey="status" width={100} />
-                      <Tooltip formatter={value => [`${value}`, t('delivery.count')]} />
+                      <Tooltip
+                        formatter={(value) => [`${value}`, t("delivery.count")]}
+                      />
                       <Legend />
-                      <Bar dataKey="count" name={t('delivery.deliveries')} fill="#8884d8">
+                      <Bar
+                        dataKey="count"
+                        name={t("delivery.deliveries")}
+                        fill="#8884d8"
+                      >
                         {data.deliveriesByStatus.map((entry, index) => (
                           <Cell
                             key={`cell-${index}`}
@@ -387,7 +450,7 @@ export function DeliveryPerformanceReport({
         <TabsContent value="zones" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('delivery.charts.timeByZone')}</CardTitle>
+              <CardTitle>{t("delivery.charts.timeByZone")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-80 w-full pt-4">
@@ -399,19 +462,26 @@ export function DeliveryPerformanceReport({
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="zone" />
                     <YAxis
-                      tickFormatter={min => formatTime(min)}
+                      tickFormatter={(min) => formatTime(min)}
                       label={{
-                        value: t('delivery.avgDeliveryTime'),
+                        value: t("delivery.avgDeliveryTime"),
                         angle: -90,
-                        position: 'insideLeft',
-                        style: { textAnchor: 'middle' },
+                        position: "insideLeft",
+                        style: { textAnchor: "middle" },
                       }}
                     />
                     <Tooltip
-                      formatter={value => [formatTime(value as number), t('delivery.avgTime')]}
+                      formatter={(value) => [
+                        formatTime(value as number),
+                        t("delivery.avgTime"),
+                      ]}
                     />
                     <Legend />
-                    <Bar dataKey="averageTime" name={t('delivery.avgTime')} fill="#8884d8">
+                    <Bar
+                      dataKey="averageTime"
+                      name={t("delivery.avgTime")}
+                      fill="#8884d8"
+                    >
                       {data.deliveryTimesByZone.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
@@ -420,7 +490,7 @@ export function DeliveryPerformanceReport({
                       ))}
                     </Bar>
                     <Scatter
-                      name={t('delivery.target')}
+                      name={t("delivery.target")}
                       dataKey="targetTime"
                       fill="#ff7300"
                       shape="star"

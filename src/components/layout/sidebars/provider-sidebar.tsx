@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Home,
   Calendar,
@@ -41,8 +41,11 @@ import {
   Calendar as CalendarIcon,
   Handshake,
   Banknote,
-} from 'lucide-react';
-import { BaseSidebar, type SidebarSection } from '@/components/layout/sidebars/base-sidebar';
+} from "lucide-react";
+import {
+  BaseSidebar,
+  type SidebarSection,
+} from "@/components/layout/sidebars/base-sidebar";
 
 interface ProviderSidebarProps {
   locale: string;
@@ -54,10 +57,10 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
   const sections: SidebarSection[] = [
     // Section principale - Dashboard
     {
-      title: 'Accueil',
+      title: "Accueil",
       items: [
         {
-          label: 'Tableau de bord',
+          label: "Tableau de bord",
           href: `/${locale}/provider`,
           icon: Home,
           badge: 3,
@@ -67,16 +70,16 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
     // Section Rendez-vous et interventions
     {
-      title: 'Planning',
+      title: "Planning",
       items: [
         {
-          label: 'Mes rendez-vous',
+          label: "Mes rendez-vous",
           href: `/${locale}/provider/appointments`,
           icon: Calendar,
           badge: 2,
         },
         {
-          label: 'Mon planning',
+          label: "Mon planning",
           href: `/${locale}/provider/schedule`,
           icon: CalendarIcon,
         },
@@ -85,30 +88,30 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
     // Section Services et compétences
     {
-      title: 'Services',
+      title: "Services",
       items: [
         {
-          label: 'Mes services',
+          label: "Mes services",
           href: `/${locale}/provider/services`,
           icon: Briefcase,
         },
         {
-          label: 'Créer service',
+          label: "Créer service",
           href: `/${locale}/provider/services/create`,
           icon: Plus,
         },
         {
-          label: 'Mes compétences',
+          label: "Mes compétences",
           href: `/${locale}/provider/skills`,
           icon: Award,
         },
         {
-          label: 'Ajouter compétence',
+          label: "Ajouter compétence",
           href: `/${locale}/provider/skills/add`,
           icon: Plus,
         },
         {
-          label: 'Certifications',
+          label: "Certifications",
           href: `/${locale}/provider/skills/certifications`,
           icon: Certificate,
         },
@@ -117,25 +120,25 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
     // Section Documents et contrats
     {
-      title: 'Documents',
+      title: "Documents",
       items: [
         {
-          label: 'Mes documents',
+          label: "Mes documents",
           href: `/${locale}/provider/documents`,
           icon: FileText,
         },
         {
-          label: 'Contrats',
+          label: "Contrats",
           href: `/${locale}/provider/contracts`,
           icon: FileText,
         },
         {
-          label: 'Négociation',
+          label: "Négociation",
           href: `/${locale}/provider/contracts/negotiation`,
           icon: Handshake,
         },
         {
-          label: 'Vérification',
+          label: "Vérification",
           href: `/${locale}/provider/verification`,
           icon: CheckCircle,
         },
@@ -144,20 +147,20 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
     // Section Facturation
     {
-      title: 'Finance',
+      title: "Finance",
       items: [
         {
-          label: 'Mes factures',
+          label: "Mes factures",
           href: `/${locale}/provider/invoices`,
           icon: Receipt,
         },
         {
-          label: 'Facturation',
+          label: "Facturation",
           href: `/${locale}/provider/billing`,
           icon: Receipt,
         },
         {
-          label: 'Factures automatiques',
+          label: "Factures automatiques",
           href: `/${locale}/provider/billing/automatic-invoices`,
           icon: Zap,
         },
@@ -166,10 +169,10 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
     // Section Évaluations
     {
-      title: 'Évaluations',
+      title: "Évaluations",
       items: [
         {
-          label: 'Mes évaluations',
+          label: "Mes évaluations",
           href: `/${locale}/provider/ratings`,
           icon: Star,
         },
@@ -178,15 +181,15 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
     // Section Statistiques
     {
-      title: 'Performance',
+      title: "Performance",
       items: [
         {
-          label: 'Mes statistiques',
+          label: "Mes statistiques",
           href: `/${locale}/provider/stats`,
           icon: BarChart3,
         },
         {
-          label: 'Rapport mensuel',
+          label: "Rapport mensuel",
           href: `/${locale}/provider/stats/monthly-report`,
           icon: FileBarChart,
         },
@@ -195,10 +198,10 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
     // Section Communication
     {
-      title: 'Communication',
+      title: "Communication",
       items: [
         {
-          label: 'Messages',
+          label: "Messages",
           href: `/${locale}/provider/messages`,
           icon: MessageSquare,
           badge: 1,
@@ -208,10 +211,10 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
     // Section Profil
     {
-      title: 'Mon compte',
+      title: "Mon compte",
       items: [
         {
-          label: 'Mon profil',
+          label: "Mon profil",
           href: `/${locale}/provider/profile`,
           icon: User,
         },
@@ -220,13 +223,13 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
   ];
 
   const userInfo = {
-    name: 'Prestataire EcoDeli',
-    email: 'provider@ecodeli.me',
-    avatar: '',
+    name: "Prestataire EcoDeli",
+    email: "provider@ecodeli.me",
+    avatar: "",
   };
 
   const quickAction = {
-    label: 'Nouveau service',
+    label: "Nouveau service",
     icon: Briefcase,
     href: `/${locale}/provider/services/create`,
   };

@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { DeliveryStatus } from '@prisma/client';
+import React from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { api } from "@/trpc/react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { DeliveryStatus } from "@prisma/client";
 import {
   ArrowLeft,
   Calendar,
@@ -25,30 +31,30 @@ import {
   InfoIcon,
   ClipboardList,
   QrCode,
-} from 'lucide-react';
-import { formatDate, formatTime, formatCurrency } from '@/utils/document-utils';
-import { DeliveryStatusBadge } from '@/components/shared/deliveries/delivery-status-badge';
-import { DeliveryMap } from '@/components/merchant/deliveries/delivery-map';
-import { DeliveryTimeline } from '@/components/merchant/announcements/delivery-timeline';
-import { DeliveryNotes } from '@/components/deliverer/deliveries/delivery-notes';
-import { DeliveryStatusUpdate } from '@/components/deliverer/deliveries/delivery-status-update';
-import { DeliveryContact } from '@/components/deliverer/deliveries/delivery-contact';
-import { useLocalStorage } from '@/hooks/common/use-storage';
+} from "lucide-react";
+import { formatDate, formatTime, formatCurrency } from "@/utils/document-utils";
+import { DeliveryStatusBadge } from "@/components/shared/deliveries/delivery-status-badge";
+import { DeliveryMap } from "@/components/merchant/deliveries/delivery-map";
+import { DeliveryTimeline } from "@/components/merchant/announcements/delivery-timeline";
+import { DeliveryNotes } from "@/components/deliverer/deliveries/delivery-notes";
+import { DeliveryStatusUpdate } from "@/components/deliverer/deliveries/delivery-status-update";
+import { DeliveryContact } from "@/components/deliverer/deliveries/delivery-contact";
+import { useLocalStorage } from "@/hooks/common/use-storage";
 
 export default function DeliveryDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const t = useTranslations('deliveries');
+  const t = useTranslations("deliveries");
   const id = params.id as string;
-  const [userLocation, setUserLocation] = useLocalStorage<{ lat: number; lng: number } | null>(
-    'user-location',
-    null
-  );
+  const [userLocation, setUserLocation] = useLocalStorage<{
+    lat: number;
+    lng: number;
+  } | null>("user-location", null);
 
   // Récupérer la position de l'utilisateur si disponible
   React.useEffect(() => {
     if (navigator.geolocation && !userLocation) {
-      navigator.geolocation.getCurrentPosition(position => {
+      navigator.geolocation.getCurrentPosition((position) => {
         setUserLocation({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
@@ -66,12 +72,13 @@ export default function DeliveryDetailPage() {
   } = trpc.deliveries.getDeliveryById.useQuery({ id });
 
   // Mettre à jour le statut de la livraison
-  const updateDeliveryStatusMutation = trpc.deliveries.updateDeliveryStatus.useMutation({
-    onSuccess: () => {
-      // Invalider le cache pour recharger les données
-      utils.deliveries.getDeliveryById.invalidate({ id });
-    },
-  });
+  const updateDeliveryStatusMutation =
+    trpc.deliveries.updateDeliveryStatus.useMutation({
+      onSuccess: () => {
+        // Invalider le cache pour recharger les données
+        utils.deliveries.getDeliveryById.invalidate({ id });
+      },
+    });
 
   const utils = trpc.useContext();
 
@@ -106,32 +113,44 @@ export default function DeliveryDetailPage() {
   if (isError || !delivery) {
     return (
       <div className="container py-6 max-w-md mx-auto">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="mb-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.back()}
+          className="mb-4"
+        >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('error.title')}</AlertTitle>
-          <AlertDescription>{error?.message || t('error.fetchFailed')}</AlertDescription>
+          <AlertTitle>{t("error.title")}</AlertTitle>
+          <AlertDescription>
+            {error?.message || t("error.fetchFailed")}
+          </AlertDescription>
         </Alert>
-        <Button onClick={() => router.push('/deliverer/deliveries')} className="mt-4">
-          {t('actions.backToList')}
+        <Button
+          onClick={() => router.push("/deliverer/deliveries")}
+          className="mt-4"
+        >
+          {t("actions.backToList")}
         </Button>
       </div>
     );
   }
 
   // Déterminer les actions disponibles en fonction du statut
-  const canStartDelivery = delivery.status === 'ACCEPTED';
-  const canCompleteDelivery = delivery.status === 'IN_TRANSIT';
-  const canReportIssue = ['ACCEPTED', 'IN_TRANSIT'].includes(delivery.status);
-  const isCompleted = ['DELIVERED', 'FAILED', 'CANCELLED'].includes(delivery.status);
+  const canStartDelivery = delivery.status === "ACCEPTED";
+  const canCompleteDelivery = delivery.status === "IN_TRANSIT";
+  const canReportIssue = ["ACCEPTED", "IN_TRANSIT"].includes(delivery.status);
+  const isCompleted = ["DELIVERED", "FAILED", "CANCELLED"].includes(
+    delivery.status,
+  );
 
   // Fonction pour démarrer la livraison
   const handleStartDelivery = () => {
     updateDeliveryStatusMutation.mutate({
       id: delivery.id,
-      status: 'IN_TRANSIT',
+      status: "IN_TRANSIT",
     });
     // Rediriger vers la page de livraison active
     router.push(`/deliverer/deliveries/active?id=${delivery.id}`);
@@ -139,7 +158,9 @@ export default function DeliveryDetailPage() {
 
   // Fonction pour marquer comme livrée
   const handleCompleteDelivery = () => {
-    router.push(`/deliverer/deliveries/active?id=${delivery.id}&action=complete`);
+    router.push(
+      `/deliverer/deliveries/active?id=${delivery.id}&action=complete`,
+    );
   };
 
   // Fonction pour signaler un problème
@@ -152,7 +173,7 @@ export default function DeliveryDetailPage() {
     if (delivery.recipient.coordinates) {
       // Ouvrir Google Maps avec les coordonnées
       const url = `https://www.google.com/maps/dir/?api=1&destination=${delivery.recipient.coordinates.lat},${delivery.recipient.coordinates.lng}`;
-      window.open(url, '_blank');
+      window.open(url, "_blank");
     }
   };
 
@@ -163,8 +184,10 @@ export default function DeliveryDetailPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">{t('detail.title')}</h1>
-          <p className="text-sm text-muted-foreground">#{delivery.trackingNumber}</p>
+          <h1 className="text-2xl font-bold">{t("detail.title")}</h1>
+          <p className="text-sm text-muted-foreground">
+            #{delivery.trackingNumber}
+          </p>
         </div>
       </div>
 
@@ -176,7 +199,7 @@ export default function DeliveryDetailPage() {
               <Package2 className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-medium">{t('detail.status')}</p>
+              <p className="text-sm font-medium">{t("detail.status")}</p>
               <DeliveryStatusBadge status={delivery.status} className="mt-1" />
             </div>
           </div>
@@ -189,7 +212,7 @@ export default function DeliveryDetailPage() {
                 onClick={handleStartDelivery}
               >
                 <Truck className="h-4 w-4 mr-2" />
-                {t('actions.startDelivery')}
+                {t("actions.startDelivery")}
               </Button>
             )}
             {canCompleteDelivery && (
@@ -199,7 +222,7 @@ export default function DeliveryDetailPage() {
                 onClick={handleCompleteDelivery}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                {t('actions.completeDelivery')}
+                {t("actions.completeDelivery")}
               </Button>
             )}
             {canReportIssue && (
@@ -209,7 +232,7 @@ export default function DeliveryDetailPage() {
                 onClick={handleReportIssue}
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
-                {t('actions.reportIssue')}
+                {t("actions.reportIssue")}
               </Button>
             )}
           </div>
@@ -233,10 +256,14 @@ export default function DeliveryDetailPage() {
               <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">{delivery.recipient.name}</p>
-                <p className="text-sm text-muted-foreground">{delivery.recipient.address}</p>
+                <p className="text-sm text-muted-foreground">
+                  {delivery.recipient.address}
+                </p>
                 {delivery.recipient.accessCodes && (
                   <p className="text-xs mt-1">
-                    <span className="font-medium">{t('detail.accessCodes')}:</span>{' '}
+                    <span className="font-medium">
+                      {t("detail.accessCodes")}:
+                    </span>{" "}
                     {delivery.recipient.accessCodes}
                   </p>
                 )}
@@ -263,7 +290,7 @@ export default function DeliveryDetailPage() {
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm">
-                  {formatDate(delivery.scheduledDelivery)}{' '}
+                  {formatDate(delivery.scheduledDelivery)}{" "}
                   <span className="text-muted-foreground">
                     • {formatTime(delivery.scheduledDelivery)}
                   </span>
@@ -276,8 +303,12 @@ export default function DeliveryDetailPage() {
               <div className="flex items-start gap-3 mt-2">
                 <InfoIcon className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">{t('detail.instructions')}</p>
-                  <p className="text-sm text-muted-foreground">{delivery.deliveryInstructions}</p>
+                  <p className="text-sm font-medium">
+                    {t("detail.instructions")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {delivery.deliveryInstructions}
+                  </p>
                 </div>
               </div>
             )}
@@ -286,24 +317,28 @@ export default function DeliveryDetailPage() {
             <div className="flex items-start gap-3 mt-2">
               <Package2 className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium">{t('detail.packageInfo')}</p>
+                <p className="text-sm font-medium">{t("detail.packageInfo")}</p>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 mt-1">
                   <div>
-                    <p className="text-xs text-muted-foreground">{t('detail.weight')}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("detail.weight")}
+                    </p>
                     <p className="text-sm">{delivery.packageWeight} kg</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">{t('detail.dimensions')}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("detail.dimensions")}
+                    </p>
                     <p className="text-sm">
-                      {delivery.packageDimensions?.length || '–'} ×{' '}
-                      {delivery.packageDimensions?.width || '–'} ×{' '}
-                      {delivery.packageDimensions?.height || '–'} cm
+                      {delivery.packageDimensions?.length || "–"} ×{" "}
+                      {delivery.packageDimensions?.width || "–"} ×{" "}
+                      {delivery.packageDimensions?.height || "–"} cm
                     </p>
                   </div>
                   {delivery.requiresSignature && (
                     <div className="col-span-2">
                       <p className="text-xs font-medium text-amber-600">
-                        {t('detail.requiresSignature')}
+                        {t("detail.requiresSignature")}
                       </p>
                     </div>
                   )}
@@ -317,9 +352,13 @@ export default function DeliveryDetailPage() {
           {/* Boutons d'action secondaires */}
           <div className="flex gap-2 w-full">
             {delivery.recipient.coordinates && (
-              <Button variant="outline" className="flex-1" onClick={handleNavigate}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleNavigate}
+              >
                 <Navigation className="h-4 w-4 mr-2" />
-                {t('actions.navigate')}
+                {t("actions.navigate")}
               </Button>
             )}
             <Button
@@ -328,14 +367,16 @@ export default function DeliveryDetailPage() {
               onClick={() => router.push(`/deliverer/messages/${delivery.id}`)}
             >
               <MessageSquare className="h-4 w-4 mr-2" />
-              {t('actions.contact')}
+              {t("actions.contact")}
             </Button>
           </div>
           {canStartDelivery && (
             <Alert className="mt-2">
               <InfoIcon className="h-4 w-4" />
-              <AlertTitle>{t('detail.tips.title')}</AlertTitle>
-              <AlertDescription>{t('detail.tips.beforeStarting')}</AlertDescription>
+              <AlertTitle>{t("detail.tips.title")}</AlertTitle>
+              <AlertDescription>
+                {t("detail.tips.beforeStarting")}
+              </AlertDescription>
             </Alert>
           )}
         </CardFooter>
@@ -346,22 +387,22 @@ export default function DeliveryDetailPage() {
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="timeline">
             <Clock className="h-4 w-4 mr-2" />
-            {t('tabs.timeline')}
+            {t("tabs.timeline")}
           </TabsTrigger>
           <TabsTrigger value="notes">
             <ClipboardList className="h-4 w-4 mr-2" />
-            {t('tabs.notes')}
+            {t("tabs.notes")}
           </TabsTrigger>
           <TabsTrigger value="verification">
             <QrCode className="h-4 w-4 mr-2" />
-            {t('tabs.verification')}
+            {t("tabs.verification")}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="timeline" className="pt-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">{t('timeline.title')}</CardTitle>
+              <CardTitle className="text-lg">{t("timeline.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <DeliveryTimeline events={delivery.statusHistory || []} />
@@ -372,7 +413,7 @@ export default function DeliveryDetailPage() {
         <TabsContent value="notes" className="pt-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">{t('notes.title')}</CardTitle>
+              <CardTitle className="text-lg">{t("notes.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <DeliveryNotes deliveryId={delivery.id} />
@@ -383,13 +424,19 @@ export default function DeliveryDetailPage() {
         <TabsContent value="verification" className="pt-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">{t('verification.title')}</CardTitle>
+              <CardTitle className="text-lg">
+                {t("verification.title")}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">{t('verification.description')}</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {t("verification.description")}
+              </p>
               {delivery.verificationCode ? (
                 <div className="border rounded-lg p-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-1">{t('verification.code')}</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {t("verification.code")}
+                  </p>
                   <p className="text-2xl font-mono font-bold tracking-widest">
                     {delivery.verificationCode}
                   </p>
@@ -397,8 +444,10 @@ export default function DeliveryDetailPage() {
               ) : (
                 <Alert>
                   <InfoIcon className="h-4 w-4" />
-                  <AlertTitle>{t('verification.noCode.title')}</AlertTitle>
-                  <AlertDescription>{t('verification.noCode.description')}</AlertDescription>
+                  <AlertTitle>{t("verification.noCode.title")}</AlertTitle>
+                  <AlertDescription>
+                    {t("verification.noCode.description")}
+                  </AlertDescription>
                 </Alert>
               )}
             </CardContent>
@@ -412,9 +461,13 @@ export default function DeliveryDetailPage() {
           <div className="container max-w-md mx-auto md:max-w-2xl">
             <div className="flex gap-2">
               {canStartDelivery ? (
-                <Button className="flex-1" size="lg" onClick={handleStartDelivery}>
+                <Button
+                  className="flex-1"
+                  size="lg"
+                  onClick={handleStartDelivery}
+                >
                   <Truck className="h-5 w-5 mr-2" />
-                  {t('actions.startDelivery')}
+                  {t("actions.startDelivery")}
                 </Button>
               ) : canCompleteDelivery ? (
                 <>
@@ -425,11 +478,15 @@ export default function DeliveryDetailPage() {
                     onClick={handleReportIssue}
                   >
                     <AlertCircle className="h-5 w-5 mr-2" />
-                    {t('actions.reportIssue')}
+                    {t("actions.reportIssue")}
                   </Button>
-                  <Button className="flex-1" size="lg" onClick={handleCompleteDelivery}>
+                  <Button
+                    className="flex-1"
+                    size="lg"
+                    onClick={handleCompleteDelivery}
+                  >
                     <CheckCircle className="h-5 w-5 mr-2" />
-                    {t('actions.completeDelivery')}
+                    {t("actions.completeDelivery")}
                   </Button>
                 </>
               ) : null}

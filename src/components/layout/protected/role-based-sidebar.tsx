@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { UserRole } from '@prisma/client';
-import { AdminSidebar } from '@/components/layout/sidebars/admin-sidebar';
-import { ClientSidebar } from '@/components/layout/sidebars/client-sidebar';
-import { DelivererSidebar } from '@/components/layout/sidebars/deliverer-sidebar';
-import { MerchantSidebar } from '@/components/layout/sidebars/merchant-sidebar';
-import { ProviderSidebar } from '@/components/layout/sidebars/provider-sidebar';
+import { UserRole } from "@prisma/client";
+import { AdminSidebar } from "@/components/layout/sidebars/admin-sidebar";
+import { ClientSidebar } from "@/components/layout/sidebars/client-sidebar";
+import { DelivererSidebar } from "@/components/layout/sidebars/deliverer-sidebar";
+import { MerchantSidebar } from "@/components/layout/sidebars/merchant-sidebar";
+import { ProviderSidebar } from "@/components/layout/sidebars/provider-sidebar";
 
 interface RoleBasedSidebarProps {
   locale: string;
@@ -20,7 +20,11 @@ interface RoleBasedSidebarProps {
   };
 }
 
-export function RoleBasedSidebar({ locale, userRole, user }: RoleBasedSidebarProps) {
+export function RoleBasedSidebar({
+  locale,
+  userRole,
+  user,
+}: RoleBasedSidebarProps) {
   switch (userRole) {
     case UserRole.ADMIN:
       return <AdminSidebar locale={locale} />;

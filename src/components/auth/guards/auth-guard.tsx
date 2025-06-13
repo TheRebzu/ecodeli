@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Spinner } from '@/components/ui/spinner';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -14,15 +14,15 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return; // Encore en cours de chargement
+    if (status === "loading") return; // Encore en cours de chargement
 
     if (!session) {
-      router.push('/fr/login'); // Rediriger vers la page de connexion
+      router.push("/fr/login"); // Rediriger vers la page de connexion
       return;
     }
   }, [session, status, router]);
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <div className="flex h-screen items-center justify-center">
         <Spinner size="lg" />

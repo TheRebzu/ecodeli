@@ -235,6 +235,9 @@ metrics/
 webhook-test.*
 api-test.*
 
+# API Test environment files
+scripts/api-test/.env.test
+
 # Fichiers de configuration d'API locaux
 stripe-local.*
 onesignal-local.*

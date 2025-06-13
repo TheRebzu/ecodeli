@@ -8,9 +8,16 @@ import {
   ToastViewport,
   useToast as useToastOriginal,
   type ToastProps,
-} from '@/components/ui/toast';
+} from "@/components/ui/toast";
 
-export { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose };
+export {
+  ToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+};
 export { useToastOriginal as useToast };
 
 // Singleton toast pour usage global
@@ -25,6 +32,8 @@ export function toast(props: ToastProps) {
   if (globalToast) {
     return globalToast(props);
   }
-  console.warn('Toast not initialized. Please use useToast hook in a React component.');
-  return '';
+  console.warn(
+    "Toast not initialized. Please use useToast hook in a React component.",
+  );
+  return "";
 }

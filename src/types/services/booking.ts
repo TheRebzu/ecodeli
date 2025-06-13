@@ -5,64 +5,64 @@
 
 // Types d'énumérations - seront générés par Prisma après migration
 export enum AppointmentStatus {
-  PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
-  RESCHEDULED = 'RESCHEDULED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-  NO_SHOW = 'NO_SHOW',
-  PROVIDER_ABSENT = 'PROVIDER_ABSENT',
+  PENDING = "PENDING",
+  CONFIRMED = "CONFIRMED",
+  RESCHEDULED = "RESCHEDULED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+  NO_SHOW = "NO_SHOW",
+  PROVIDER_ABSENT = "PROVIDER_ABSENT",
 }
 
 export enum RescheduleReason {
-  CLIENT_REQUEST = 'CLIENT_REQUEST',
-  PROVIDER_REQUEST = 'PROVIDER_REQUEST',
-  WEATHER_CONDITION = 'WEATHER_CONDITION',
-  EMERGENCY = 'EMERGENCY',
-  ILLNESS = 'ILLNESS',
-  TECHNICAL_ISSUE = 'TECHNICAL_ISSUE',
-  TRAFFIC_DELAY = 'TRAFFIC_DELAY',
-  DOUBLE_BOOKING = 'DOUBLE_BOOKING',
-  LOCATION_ISSUE = 'LOCATION_ISSUE',
-  OTHER = 'OTHER',
+  CLIENT_REQUEST = "CLIENT_REQUEST",
+  PROVIDER_REQUEST = "PROVIDER_REQUEST",
+  WEATHER_CONDITION = "WEATHER_CONDITION",
+  EMERGENCY = "EMERGENCY",
+  ILLNESS = "ILLNESS",
+  TECHNICAL_ISSUE = "TECHNICAL_ISSUE",
+  TRAFFIC_DELAY = "TRAFFIC_DELAY",
+  DOUBLE_BOOKING = "DOUBLE_BOOKING",
+  LOCATION_ISSUE = "LOCATION_ISSUE",
+  OTHER = "OTHER",
 }
 
 export enum CancellationReason {
-  CLIENT_CANCELLED = 'CLIENT_CANCELLED',
-  PROVIDER_CANCELLED = 'PROVIDER_CANCELLED',
-  SYSTEM_CANCELLED = 'SYSTEM_CANCELLED',
-  NO_PAYMENT = 'NO_PAYMENT',
-  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-  LOCATION_INACCESSIBLE = 'LOCATION_INACCESSIBLE',
-  WEATHER_CONDITION = 'WEATHER_CONDITION',
-  EMERGENCY = 'EMERGENCY',
-  ILLNESS = 'ILLNESS',
-  MUTUAL_AGREEMENT = 'MUTUAL_AGREEMENT',
-  POLICY_VIOLATION = 'POLICY_VIOLATION',
-  OTHER = 'OTHER',
+  CLIENT_CANCELLED = "CLIENT_CANCELLED",
+  PROVIDER_CANCELLED = "PROVIDER_CANCELLED",
+  SYSTEM_CANCELLED = "SYSTEM_CANCELLED",
+  NO_PAYMENT = "NO_PAYMENT",
+  SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE",
+  LOCATION_INACCESSIBLE = "LOCATION_INACCESSIBLE",
+  WEATHER_CONDITION = "WEATHER_CONDITION",
+  EMERGENCY = "EMERGENCY",
+  ILLNESS = "ILLNESS",
+  MUTUAL_AGREEMENT = "MUTUAL_AGREEMENT",
+  POLICY_VIOLATION = "POLICY_VIOLATION",
+  OTHER = "OTHER",
 }
 
 export enum AppointmentNotificationType {
-  REMINDER_24H = 'REMINDER_24H',
-  REMINDER_2H = 'REMINDER_2H',
-  REMINDER_30MIN = 'REMINDER_30MIN',
-  CONFIRMATION = 'CONFIRMATION',
-  RESCHEDULE = 'RESCHEDULE',
-  CANCELLATION = 'CANCELLATION',
-  PROVIDER_EN_ROUTE = 'PROVIDER_EN_ROUTE',
-  ARRIVAL = 'ARRIVAL',
-  COMPLETION = 'COMPLETION',
+  REMINDER_24H = "REMINDER_24H",
+  REMINDER_2H = "REMINDER_2H",
+  REMINDER_30MIN = "REMINDER_30MIN",
+  CONFIRMATION = "CONFIRMATION",
+  RESCHEDULE = "RESCHEDULE",
+  CANCELLATION = "CANCELLATION",
+  PROVIDER_EN_ROUTE = "PROVIDER_EN_ROUTE",
+  ARRIVAL = "ARRIVAL",
+  COMPLETION = "COMPLETION",
 }
 
 export enum ExceptionType {
-  VACATION = 'VACATION',
-  SICK_LEAVE = 'SICK_LEAVE',
-  UNAVAILABLE = 'UNAVAILABLE',
-  MAINTENANCE = 'MAINTENANCE',
-  EMERGENCY = 'EMERGENCY',
-  PERSONAL = 'PERSONAL',
-  CLOSED = 'CLOSED',
+  VACATION = "VACATION",
+  SICK_LEAVE = "SICK_LEAVE",
+  UNAVAILABLE = "UNAVAILABLE",
+  MAINTENANCE = "MAINTENANCE",
+  EMERGENCY = "EMERGENCY",
+  PERSONAL = "PERSONAL",
+  CLOSED = "CLOSED",
 }
 
 // ===== TYPES DE BASE =====
@@ -221,7 +221,7 @@ export interface AppointmentNotification {
   title: string;
   message: string;
   recipientId: string;
-  recipientType: 'CLIENT' | 'PROVIDER';
+  recipientType: "CLIENT" | "PROVIDER";
   sent: boolean;
   sentAt?: Date;
   deliveredAt?: Date;
@@ -445,8 +445,8 @@ export interface AppointmentFilters {
  * Options de tri pour les rendez-vous
  */
 export interface AppointmentSortOptions {
-  field: 'startTime' | 'endTime' | 'createdAt' | 'status' | 'title';
-  order: 'asc' | 'desc';
+  field: "startTime" | "endTime" | "createdAt" | "status" | "title";
+  order: "asc" | "desc";
 }
 
 /**
@@ -514,7 +514,7 @@ export interface DailyAppointmentSummary {
  */
 export interface ReminderConfiguration {
   enabled: boolean;
-  channels: ('EMAIL' | 'SMS' | 'PUSH')[];
+  channels: ("EMAIL" | "SMS" | "PUSH")[];
   timings: Array<{
     minutes: number;
     type: AppointmentNotificationType;
@@ -528,7 +528,7 @@ export interface SendNotificationInput {
   appointmentId: string;
   type: AppointmentNotificationType;
   recipientId: string;
-  recipientType: 'CLIENT' | 'PROVIDER';
+  recipientType: "CLIENT" | "PROVIDER";
   channels: string[];
   customMessage?: string;
   scheduledFor?: Date;
@@ -572,7 +572,7 @@ export interface AppointmentLoadingState {
  * Options d'affichage pour le calendrier
  */
 export interface AppointmentCalendarViewOptions {
-  view: 'month' | 'week' | 'day' | 'list';
+  view: "month" | "week" | "day" | "list";
   startDate: Date;
   showWeekends: boolean;
   showCancelled: boolean;
@@ -599,9 +599,13 @@ export interface AvailableSlot {
  * Informations de conflit de créneaux
  */
 export interface SlotConflict {
-  type: 'DOUBLE_BOOKING' | 'INSUFFICIENT_BREAK' | 'OUTSIDE_AVAILABILITY' | 'PAST_DEADLINE';
+  type:
+    | "DOUBLE_BOOKING"
+    | "INSUFFICIENT_BREAK"
+    | "OUTSIDE_AVAILABILITY"
+    | "PAST_DEADLINE";
   message: string;
-  severity: 'ERROR' | 'WARNING' | 'INFO';
+  severity: "ERROR" | "WARNING" | "INFO";
   conflictingAppointmentId?: string;
 }
 

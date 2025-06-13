@@ -1,1 +1,1 @@
-const basePrice = booking.service.basePrice.toNumber() 
+const basePrice = booking.service.basePrice.toNumber();

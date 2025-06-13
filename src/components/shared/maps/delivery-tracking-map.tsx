@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useSocket } from '@/hooks/system/use-socket';
-import { api } from '@/trpc/react';
+import { useState, useEffect, useRef } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useSocket } from "@/hooks/system/use-socket";
+import { api } from "@/trpc/react";
 import {
   MapPin,
   Navigation,
@@ -22,13 +22,13 @@ import {
   AlertTriangle,
   Target,
   Navigation2,
-} from 'lucide-react';
-import { cn } from '@/lib/utils/common';
+} from "lucide-react";
+import { cn } from "@/lib/utils/common";
 
 interface DeliveryLocation {
   lat: number;
   lng: number;
-  type: 'pickup' | 'delivery' | 'current';
+  type: "pickup" | "delivery" | "current";
   address?: string;
   timestamp?: Date;
 }
@@ -59,7 +59,7 @@ const MapContainer = ({
   locations,
   currentPosition,
   onLocationClick,
-  height = '100%',
+  height = "100%",
   autoCenter = false,
 }: {
   locations: DeliveryLocation[];
@@ -95,20 +95,29 @@ const MapContainer = ({
             <div
               key={index}
               className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-lg backdrop-blur-sm cursor-pointer transition-all hover:scale-105',
-                location.type === 'pickup' && 'bg-blue-100/80 dark:bg-blue-900/50',
-                location.type === 'delivery' && 'bg-green-100/80 dark:bg-green-900/50',
-                location.type === 'current' && 'bg-red-100/80 dark:bg-red-900/50'
+                "flex items-center gap-2 px-3 py-2 rounded-lg backdrop-blur-sm cursor-pointer transition-all hover:scale-105",
+                location.type === "pickup" &&
+                  "bg-blue-100/80 dark:bg-blue-900/50",
+                location.type === "delivery" &&
+                  "bg-green-100/80 dark:bg-green-900/50",
+                location.type === "current" &&
+                  "bg-red-100/80 dark:bg-red-900/50",
               )}
               onClick={() => onLocationClick?.(location)}
             >
-              {location.type === 'pickup' && <MapPin className="h-4 w-4 text-blue-600" />}
-              {location.type === 'delivery' && <Navigation className="h-4 w-4 text-green-600" />}
-              {location.type === 'current' && <Truck className="h-4 w-4 text-red-600" />}
+              {location.type === "pickup" && (
+                <MapPin className="h-4 w-4 text-blue-600" />
+              )}
+              {location.type === "delivery" && (
+                <Navigation className="h-4 w-4 text-green-600" />
+              )}
+              {location.type === "current" && (
+                <Truck className="h-4 w-4 text-red-600" />
+              )}
               <span className="text-xs font-medium">
-                {location.type === 'pickup' && 'Récupération'}
-                {location.type === 'delivery' && 'Livraison'}
-                {location.type === 'current' && 'Position actuelle'}
+                {location.type === "pickup" && "Récupération"}
+                {location.type === "delivery" && "Livraison"}
+                {location.type === "current" && "Position actuelle"}
               </span>
             </div>
           ))}
@@ -119,8 +128,8 @@ const MapContainer = ({
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div
               className={cn(
-                'relative flex items-center justify-center w-8 h-8 bg-red-500 rounded-full border-2 border-white shadow-lg transition-all duration-300',
-                isSimulating && 'animate-pulse scale-110'
+                "relative flex items-center justify-center w-8 h-8 bg-red-500 rounded-full border-2 border-white shadow-lg transition-all duration-300",
+                isSimulating && "animate-pulse scale-110",
               )}
             >
               <Truck className="h-4 w-4 text-white" />
@@ -141,7 +150,12 @@ const MapContainer = ({
         {/* Trajet (ligne pointillée) */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none">
           <defs>
-            <pattern id="dashed" patternUnits="userSpaceOnUse" width="8" height="8">
+            <pattern
+              id="dashed"
+              patternUnits="userSpaceOnUse"
+              width="8"
+              height="8"
+            >
               <line
                 x1="0"
                 y1="4"
@@ -184,15 +198,17 @@ const MapContainer = ({
 
 export default function DeliveryTrackingMap({
   deliveryId,
-  height = '400px',
+  height = "400px",
   showControls = true,
   showEta = true,
   autoCenter = true,
   className,
 }: DeliveryTrackingMapProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<DeliveryLocation | null>(null);
-  const [currentPosition, setCurrentPosition] = useState<DeliveryPosition | null>(null);
+  const [selectedLocation, setSelectedLocation] =
+    useState<DeliveryLocation | null>(null);
+  const [currentPosition, setCurrentPosition] =
+    useState<DeliveryPosition | null>(null);
   const { socket } = useSocket();
 
   // Récupération des données de livraison
@@ -204,7 +220,7 @@ export default function DeliveryTrackingMap({
     { deliveryId },
     {
       refetchInterval: 30000, // Actualisation toutes les 30 secondes
-    }
+    },
   );
 
   // Écoute des mises à jour temps réel via Socket.io
@@ -221,16 +237,16 @@ export default function DeliveryTrackingMap({
       refetch();
     };
 
-    socket.on('delivery:position:update', handlePositionUpdate);
-    socket.on('delivery:status:update', handleDeliveryStatusUpdate);
+    socket.on("delivery:position:update", handlePositionUpdate);
+    socket.on("delivery:status:update", handleDeliveryStatusUpdate);
 
     // Rejoindre la room de tracking
-    socket.emit('delivery:join_tracking', { deliveryId });
+    socket.emit("delivery:join_tracking", { deliveryId });
 
     return () => {
-      socket.off('delivery:position:update', handlePositionUpdate);
-      socket.off('delivery:status:update', handleDeliveryStatusUpdate);
-      socket.emit('delivery:leave_tracking', { deliveryId });
+      socket.off("delivery:position:update", handlePositionUpdate);
+      socket.off("delivery:status:update", handleDeliveryStatusUpdate);
+      socket.emit("delivery:leave_tracking", { deliveryId });
     };
   }, [socket, deliveryId, refetch]);
 
@@ -256,7 +272,11 @@ export default function DeliveryTrackingMap({
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
           Impossible de charger les informations de suivi pour cette livraison.
-          <Button variant="link" className="p-0 h-auto ml-2" onClick={() => refetch()}>
+          <Button
+            variant="link"
+            className="p-0 h-auto ml-2"
+            onClick={() => refetch()}
+          >
             <RefreshCw className="h-3 w-3 mr-1" />
             Réessayer
           </Button>
@@ -270,13 +290,13 @@ export default function DeliveryTrackingMap({
     {
       lat: delivery.pickupLatitude || 0,
       lng: delivery.pickupLongitude || 0,
-      type: 'pickup',
+      type: "pickup",
       address: delivery.pickupAddress,
     },
     {
       lat: delivery.deliveryLatitude || 0,
       lng: delivery.deliveryLongitude || 0,
-      type: 'delivery',
+      type: "delivery",
       address: delivery.deliveryAddress,
     },
   ];
@@ -285,44 +305,48 @@ export default function DeliveryTrackingMap({
     locations.push({
       lat: currentPosition.position.lat,
       lng: currentPosition.position.lng,
-      type: 'current',
+      type: "current",
       timestamp: currentPosition.timestamp,
     });
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'ACCEPTED':
-        return 'bg-blue-100 text-blue-800';
-      case 'PICKED_UP':
-        return 'bg-purple-100 text-purple-800';
-      case 'IN_TRANSIT':
-        return 'bg-orange-100 text-orange-800';
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "ACCEPTED":
+        return "bg-blue-100 text-blue-800";
+      case "PICKED_UP":
+        return "bg-purple-100 text-purple-800";
+      case "IN_TRANSIT":
+        return "bg-orange-100 text-orange-800";
+      case "DELIVERED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      PENDING: 'En attente',
-      ACCEPTED: 'Acceptée',
-      PICKED_UP: 'Récupérée',
-      IN_TRANSIT: 'En transit',
-      DELIVERED: 'Livrée',
-      CANCELLED: 'Annulée',
+      PENDING: "En attente",
+      ACCEPTED: "Acceptée",
+      PICKED_UP: "Récupérée",
+      IN_TRANSIT: "En transit",
+      DELIVERED: "Livrée",
+      CANCELLED: "Annulée",
     };
     return labels[status] || status;
   };
 
   const calculateETA = () => {
-    if (!currentPosition || !delivery.deliveryLatitude || !delivery.deliveryLongitude) {
+    if (
+      !currentPosition ||
+      !delivery.deliveryLatitude ||
+      !delivery.deliveryLongitude
+    ) {
       return null;
     }
 
@@ -330,7 +354,10 @@ export default function DeliveryTrackingMap({
     const distanceKm =
       Math.sqrt(
         Math.pow(delivery.deliveryLatitude - currentPosition.position.lat, 2) +
-          Math.pow(delivery.deliveryLongitude - currentPosition.position.lng, 2)
+          Math.pow(
+            delivery.deliveryLongitude - currentPosition.position.lng,
+            2,
+          ),
       ) * 111; // Approximation en km
 
     const speed = currentPosition.speed || 30; // 30 km/h par défaut
@@ -342,7 +369,12 @@ export default function DeliveryTrackingMap({
   const eta = calculateETA();
 
   return (
-    <Card className={cn(className, isFullscreen && 'fixed inset-0 z-50 rounded-none')}>
+    <Card
+      className={cn(
+        className,
+        isFullscreen && "fixed inset-0 z-50 rounded-none",
+      )}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -402,7 +434,8 @@ export default function DeliveryTrackingMap({
               <div className="flex items-center gap-1">
                 <Target className="h-4 w-4" />
                 <span>
-                  Dernière position: {new Date(currentPosition.timestamp).toLocaleTimeString()}
+                  Dernière position:{" "}
+                  {new Date(currentPosition.timestamp).toLocaleTimeString()}
                 </span>
               </div>
             )}
@@ -422,12 +455,12 @@ export default function DeliveryTrackingMap({
           locations={locations}
           currentPosition={currentPosition}
           onLocationClick={setSelectedLocation}
-          height={isFullscreen ? 'calc(100vh - 180px)' : height}
+          height={isFullscreen ? "calc(100vh - 180px)" : height}
           autoCenter={autoCenter}
         />
 
         {/* Actions de contact (si en transit) */}
-        {delivery.status === 'IN_TRANSIT' && delivery.deliverer && (
+        {delivery.status === "IN_TRANSIT" && delivery.deliverer && (
           <div className="p-4 border-t bg-muted/20">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Contact livreur</span>
@@ -451,13 +484,15 @@ export default function DeliveryTrackingMap({
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-10">
           <div className="bg-background rounded-lg p-4 max-w-sm w-full">
             <h3 className="font-medium mb-2">
-              {selectedLocation.type === 'pickup' && 'Point de récupération'}
-              {selectedLocation.type === 'delivery' && 'Point de livraison'}
-              {selectedLocation.type === 'current' && 'Position actuelle'}
+              {selectedLocation.type === "pickup" && "Point de récupération"}
+              {selectedLocation.type === "delivery" && "Point de livraison"}
+              {selectedLocation.type === "current" && "Position actuelle"}
             </h3>
 
             {selectedLocation.address && (
-              <p className="text-sm text-muted-foreground mb-3">{selectedLocation.address}</p>
+              <p className="text-sm text-muted-foreground mb-3">
+                {selectedLocation.address}
+              </p>
             )}
 
             {selectedLocation.timestamp && (
@@ -471,7 +506,11 @@ export default function DeliveryTrackingMap({
                 <Navigation2 className="h-4 w-4 mr-2" />
                 Itinéraire
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setSelectedLocation(null)}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSelectedLocation(null)}
+              >
                 Fermer
               </Button>
             </div>

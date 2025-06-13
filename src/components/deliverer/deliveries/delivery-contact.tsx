@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -21,33 +21,40 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { ButtonWithLoading } from '@/app/[locale]/(public)/loading';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { AlertCircle, CheckCircle2, Phone, MessageSquare, Send, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils/common';
+} from "@/components/ui/select";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Phone,
+  MessageSquare,
+  Send,
+  ChevronRight,
+} from "lucide-react";
+import { cn } from "@/lib/utils/common";
 
 // Schéma de validation
 const contactSchema = z.object({
   subject: z.string({
-    required_error: 'Veuillez sélectionner un sujet',
+    required_error: "Veuillez sélectionner un sujet",
   }),
   message: z
     .string()
-    .min(5, { message: 'Le message doit contenir au moins 5 caractères' })
-    .max(500, { message: 'Le message ne doit pas dépasser 500 caractères' }),
-  preferredContact: z.enum(['app', 'phone', 'either'], {
-    required_error: 'Veuillez sélectionner une méthode de contact préférée',
+    .min(5, { message: "Le message doit contenir au moins 5 caractères" })
+    .max(500, { message: "Le message ne doit pas dépasser 500 caractères" }),
+  preferredContact: z.enum(["app", "phone", "either"], {
+    required_error: "Veuillez sélectionner une méthode de contact préférée",
   }),
 });
 
@@ -66,9 +73,9 @@ export default function DeliveryContact({
   delivererName,
   delivererPhone,
   onClose,
-  className = '',
+  className = "",
 }: DeliveryContactProps) {
-  const t = useTranslations('deliveries.contact');
+  const t = useTranslations("deliveries.contact");
   const [showSuccess, setShowSuccess] = useState(false);
 
   // État pour la gestion du contact
@@ -76,15 +83,19 @@ export default function DeliveryContact({
   const [error, setError] = useState<string | null>(null);
 
   // Fonctions pour l'envoi de message et appel
-  const sendMessage = async (data: { subject: string; message: string; preferredContact: string }) => {
+  const sendMessage = async (data: {
+    subject: string;
+    message: string;
+    preferredContact: string;
+  }) => {
     setIsLoading(true);
     setError(null);
     try {
       // Simuler l'envoi du message
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Message sent:', data);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("Message sent:", data);
     } catch (err) {
-      setError('Erreur lors de l\'envoi du message');
+      setError("Erreur lors de l'envoi du message");
       throw err;
     } finally {
       setIsLoading(false);
@@ -96,10 +107,10 @@ export default function DeliveryContact({
     setError(null);
     try {
       // Simuler l'appel
-      await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('Call initiated');
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      console.log("Call initiated");
     } catch (err) {
-      setError('Erreur lors de l\'appel');
+      setError("Erreur lors de l'appel");
       throw err;
     } finally {
       setIsLoading(false);
@@ -110,26 +121,26 @@ export default function DeliveryContact({
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
-      subject: '',
-      message: '',
-      preferredContact: 'app',
+      subject: "",
+      message: "",
+      preferredContact: "app",
     },
   });
 
   // Sujets prédéfinis pour aider les utilisateurs
   const subjectOptions = [
-    { value: 'update', label: t('subjects.update') },
-    { value: 'address', label: t('subjects.address') },
-    { value: 'delay', label: t('subjects.delay') },
-    { value: 'issue', label: t('subjects.issue') },
-    { value: 'other', label: t('subjects.other') },
+    { value: "update", label: t("subjects.update") },
+    { value: "address", label: t("subjects.address") },
+    { value: "delay", label: t("subjects.delay") },
+    { value: "issue", label: t("subjects.issue") },
+    { value: "other", label: t("subjects.other") },
   ];
 
   // Contact préféré options
   const contactOptions = [
-    { value: 'app', label: t('contactMethods.app') },
-    { value: 'phone', label: t('contactMethods.phone') },
-    { value: 'either', label: t('contactMethods.either') },
+    { value: "app", label: t("contactMethods.app") },
+    { value: "phone", label: t("contactMethods.phone") },
+    { value: "either", label: t("contactMethods.either") },
   ];
 
   // Traitement du formulaire
@@ -162,16 +173,19 @@ export default function DeliveryContact({
 
   // Messages prédéfinis pour accélérer la communication
   const quickMessages = [
-    { id: 'eta', message: t('quickMessages.eta') },
-    { id: 'doorCode', message: t('quickMessages.doorCode') },
-    { id: 'parking', message: t('quickMessages.parking') },
-    { id: 'wait', message: t('quickMessages.wait') },
+    { id: "eta", message: t("quickMessages.eta") },
+    { id: "doorCode", message: t("quickMessages.doorCode") },
+    { id: "parking", message: t("quickMessages.parking") },
+    { id: "wait", message: t("quickMessages.wait") },
   ];
 
   // Ajouter un message prédéfini
   const addQuickMessage = (message: string) => {
-    const currentMessage = form.getValues('message');
-    form.setValue('message', currentMessage ? `${currentMessage} ${message}` : message);
+    const currentMessage = form.getValues("message");
+    form.setValue(
+      "message",
+      currentMessage ? `${currentMessage} ${message}` : message,
+    );
   };
 
   // Afficher l'écran de succès
@@ -181,20 +195,24 @@ export default function DeliveryContact({
         <CardHeader>
           <CardTitle className="text-center text-green-600 flex items-center justify-center">
             <CheckCircle2 className="mr-2 h-6 w-6" />
-            {t('successTitle')}
+            {t("successTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center">
-          <p className="text-center mb-6">{t('successMessage')}</p>
+          <p className="text-center mb-6">{t("successMessage")}</p>
           <div className="flex flex-col sm:flex-row gap-3">
             {delivererPhone && (
-              <Button variant="outline" onClick={handlePhoneCall} className="flex items-center">
+              <Button
+                variant="outline"
+                onClick={handlePhoneCall}
+                className="flex items-center"
+              >
                 <Phone className="mr-2 h-4 w-4" />
-                {t('callDeliverer')}
+                {t("callDeliverer")}
               </Button>
             )}
             <Button onClick={onClose}>
-              {t('backButton')}
+              {t("backButton")}
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -208,17 +226,19 @@ export default function DeliveryContact({
       <CardHeader>
         <CardTitle className="flex items-center">
           <MessageSquare className="mr-2 h-5 w-5" />
-          {t('title')}
+          {t("title")}
         </CardTitle>
         <CardDescription>
-          {delivererName ? t('descriptionWithName', { name: delivererName }) : t('description')}
+          {delivererName
+            ? t("descriptionWithName", { name: delivererName })
+            : t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('errorTitle')}</AlertTitle>
+            <AlertTitle>{t("errorTitle")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -230,7 +250,7 @@ export default function DeliveryContact({
               name="subject"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('subjectLabel')}</FormLabel>
+                  <FormLabel>{t("subjectLabel")}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -238,18 +258,18 @@ export default function DeliveryContact({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('selectSubject')} />
+                        <SelectValue placeholder={t("selectSubject")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {subjectOptions.map(option => (
+                      {subjectOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>{t('subjectHelp')}</FormDescription>
+                  <FormDescription>{t("subjectHelp")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -257,10 +277,10 @@ export default function DeliveryContact({
 
             <div>
               <div className="mb-2">
-                <FormLabel>{t('quickMessagesLabel')}</FormLabel>
+                <FormLabel>{t("quickMessagesLabel")}</FormLabel>
               </div>
               <div className="flex flex-wrap gap-2 mb-4">
-                {quickMessages.map(msg => (
+                {quickMessages.map((msg) => (
                   <Button
                     key={msg.id}
                     type="button"
@@ -280,16 +300,16 @@ export default function DeliveryContact({
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('messageLabel')}</FormLabel>
+                  <FormLabel>{t("messageLabel")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder={t('messagePlaceholder')}
+                      placeholder={t("messagePlaceholder")}
                       className="min-h-[120px]"
                       {...field}
                       disabled={isLoading}
                     />
                   </FormControl>
-                  <FormDescription>{t('messageHelp')}</FormDescription>
+                  <FormDescription>{t("messageHelp")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -300,7 +320,7 @@ export default function DeliveryContact({
               name="preferredContact"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('preferredContactLabel')}</FormLabel>
+                  <FormLabel>{t("preferredContactLabel")}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -308,18 +328,20 @@ export default function DeliveryContact({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('selectPreferredContact')} />
+                        <SelectValue
+                          placeholder={t("selectPreferredContact")}
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {contactOptions.map(option => (
+                      {contactOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>{t('preferredContactHelp')}</FormDescription>
+                  <FormDescription>{t("preferredContactHelp")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -329,7 +351,7 @@ export default function DeliveryContact({
 
         {delivererPhone && (
           <div className="mt-6 border-t pt-6">
-            <p className="text-sm font-medium mb-3">{t('orCallDirectly')}</p>
+            <p className="text-sm font-medium mb-3">{t("orCallDirectly")}</p>
             <Button
               variant="outline"
               onClick={handlePhoneCall}
@@ -337,14 +359,14 @@ export default function DeliveryContact({
               disabled={isLoading}
             >
               <Phone className="mr-2 h-4 w-4" />
-              {t('callDeliverer')}
+              {t("callDeliverer")}
             </Button>
           </div>
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onClose} disabled={isLoading}>
-          {t('cancelButton')}
+          {t("cancelButton")}
         </Button>
         <ButtonWithLoading
           onClick={form.handleSubmit(onSubmit)}
@@ -352,7 +374,7 @@ export default function DeliveryContact({
           loading={isLoading}
         >
           <Send className="mr-2 h-4 w-4" />
-          {t('sendButton')}
+          {t("sendButton")}
         </ButtonWithLoading>
       </CardFooter>
     </Card>

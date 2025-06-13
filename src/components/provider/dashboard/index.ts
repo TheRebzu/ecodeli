@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export { default as BookingsWidget } from './bookings-widget';
-export * from './bookings-widget';
-export { default as ProviderDashboard } from './provider-dashboard';
-export * from './provider-dashboard';
-export { default as RatingsWidget } from './ratings-widget';
-export * from './ratings-widget';
+export { default as BookingsWidget } from "./bookings-widget";
+export * from "./bookings-widget";
+export { default as ProviderDashboard } from "./provider-dashboard";
+export * from "./provider-dashboard";
+export { default as RatingsWidget } from "./ratings-widget";
+export * from "./ratings-widget";

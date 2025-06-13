@@ -21,6 +21,6 @@ export interface User extends UserBanInfo {
 
 // Enum pour l'action de bannissement
 export enum UserBanAction {
-  BAN = 'BAN',
-  UNBAN = 'UNBAN',
+  BAN = "BAN",
+  UNBAN = "UNBAN",
 }

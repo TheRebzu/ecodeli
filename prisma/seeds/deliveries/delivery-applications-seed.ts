@@ -1,6 +1,6 @@
-import { PrismaClient, UserRole, ApplicationStatus } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomDate } from '../utils/seed-helpers';
+import { PrismaClient, UserRole, ApplicationStatus } from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import { SeedResult, SeedOptions, getRandomDate } from "../utils/seed-helpers";
 
 /**
  * Seed des candidatures de livraison EcoDeli
@@ -8,12 +8,12 @@ import { SeedResult, SeedOptions, getRandomDate } from '../utils/seed-helpers';
 export async function seedDeliveryApplications(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('DELIVERY_APPLICATIONS');
+  logger.startSeed("DELIVERY_APPLICATIONS");
 
   const result: SeedResult = {
-    entity: 'delivery_applications',
+    entity: "delivery_applications",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -21,18 +21,18 @@ export async function seedDeliveryApplications(
 
   // Récupérer les utilisateurs clés
   const jeanDupont = await prisma.user.findUnique({
-    where: { email: 'jean.dupont@orange.fr' },
+    where: { email: "jean.dupont@orange.fr" },
   });
 
   const marieLaurent = await prisma.user.findUnique({
-    where: { email: 'marie.laurent@orange.fr' },
+    where: { email: "marie.laurent@orange.fr" },
     include: { deliverer: true },
   });
 
   if (!jeanDupont || !marieLaurent) {
     logger.warning(
-      'DELIVERY_APPLICATIONS',
-      'Utilisateurs Jean Dupont ou Marie Laurent non trouvés'
+      "DELIVERY_APPLICATIONS",
+      "Utilisateurs Jean Dupont ou Marie Laurent non trouvés",
     );
     return result;
   }
@@ -41,14 +41,16 @@ export async function seedDeliveryApplications(
   const jeanAnnouncement = await prisma.announcement.findFirst({
     where: {
       clientId: jeanDupont.id,
-      title: { contains: "Livraison urgente d'un ordinateur portable vers Marseille" },
+      title: {
+        contains: "Livraison urgente d'un ordinateur portable vers Marseille",
+      },
     },
   });
 
   if (!jeanAnnouncement) {
     logger.warning(
-      'DELIVERY_APPLICATIONS',
-      "Annonce de Jean Dupont non trouvée - exécuter d'abord les seeds d'annonces"
+      "DELIVERY_APPLICATIONS",
+      "Annonce de Jean Dupont non trouvée - exécuter d'abord les seeds d'annonces",
     );
     return result;
   }
@@ -58,8 +60,8 @@ export async function seedDeliveryApplications(
 
   if (existingApplications > 0 && !options.force) {
     logger.warning(
-      'DELIVERY_APPLICATIONS',
-      `${existingApplications} candidatures déjà présentes - utiliser force:true pour recréer`
+      "DELIVERY_APPLICATIONS",
+      `${existingApplications} candidatures déjà présentes - utiliser force:true pour recréer`,
     );
     result.skipped = existingApplications;
     return result;
@@ -68,11 +70,16 @@ export async function seedDeliveryApplications(
   // Nettoyer si force activé
   if (options.force) {
     await prisma.deliveryApplication.deleteMany({});
-    logger.database('NETTOYAGE', 'delivery applications', 0);
+    logger.database("NETTOYAGE", "delivery applications", 0);
   }
 
   try {
-    logger.progress('DELIVERY_APPLICATIONS', 1, 1, 'Création candidature Marie Laurent');
+    logger.progress(
+      "DELIVERY_APPLICATIONS",
+      1,
+      1,
+      "Création candidature Marie Laurent",
+    );
 
     // Créer la candidature de Marie Laurent sur l'annonce de Jean Dupont
     await prisma.deliveryApplication.create({
@@ -96,9 +103,15 @@ export async function seedDeliveryApplications(
     });
 
     result.created++;
-    logger.success('DELIVERY_APPLICATIONS', '✅ Candidature Marie Laurent créée et acceptée');
+    logger.success(
+      "DELIVERY_APPLICATIONS",
+      "✅ Candidature Marie Laurent créée et acceptée",
+    );
   } catch (error: any) {
-    logger.error('DELIVERY_APPLICATIONS', `❌ Erreur création candidature: ${error.message}`);
+    logger.error(
+      "DELIVERY_APPLICATIONS",
+      `❌ Erreur création candidature: ${error.message}`,
+    );
     result.errors++;
   }
 
@@ -112,28 +125,28 @@ export async function seedDeliveryApplications(
 
   if (finalApplications.length >= result.created) {
     logger.validation(
-      'DELIVERY_APPLICATIONS',
-      'PASSED',
-      `${finalApplications.length} candidature(s) créée(s) avec succès`
+      "DELIVERY_APPLICATIONS",
+      "PASSED",
+      `${finalApplications.length} candidature(s) créée(s) avec succès`,
     );
   } else {
     logger.validation(
-      'DELIVERY_APPLICATIONS',
-      'FAILED',
-      `Attendu: ${result.created}, Créé: ${finalApplications.length}`
+      "DELIVERY_APPLICATIONS",
+      "FAILED",
+      `Attendu: ${result.created}, Créé: ${finalApplications.length}`,
     );
   }
 
   // Statistiques
   const acceptedApplications = finalApplications.filter(
-    app => app.status === ApplicationStatus.ACCEPTED
+    (app) => app.status === ApplicationStatus.ACCEPTED,
   );
   logger.info(
-    'DELIVERY_APPLICATIONS',
-    `📊 Candidatures acceptées: ${acceptedApplications.length}/${finalApplications.length}`
+    "DELIVERY_APPLICATIONS",
+    `📊 Candidatures acceptées: ${acceptedApplications.length}/${finalApplications.length}`,
   );
 
-  logger.endSeed('DELIVERY_APPLICATIONS', result);
+  logger.endSeed("DELIVERY_APPLICATIONS", result);
   return result;
 }
 
@@ -142,9 +155,9 @@ export async function seedDeliveryApplications(
  */
 export async function validateDeliveryApplications(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des candidatures de livraison...');
+  logger.info("VALIDATION", "🔍 Validation des candidatures de livraison...");
 
   const applications = await prisma.deliveryApplication.findMany({
     include: {
@@ -156,45 +169,53 @@ export async function validateDeliveryApplications(
   let isValid = true;
 
   // Vérifier que toutes les candidatures ont une annonce et un livreur valides
-  const incompleteApplications = applications.filter(app => !app.announcement || !app.deliverer);
+  const incompleteApplications = applications.filter(
+    (app) => !app.announcement || !app.deliverer,
+  );
 
   if (incompleteApplications.length > 0) {
     logger.error(
-      'VALIDATION',
-      `❌ ${incompleteApplications.length} candidatures avec données manquantes`
+      "VALIDATION",
+      `❌ ${incompleteApplications.length} candidatures avec données manquantes`,
     );
     isValid = false;
   } else {
-    logger.success('VALIDATION', '✅ Toutes les candidatures ont des données complètes');
+    logger.success(
+      "VALIDATION",
+      "✅ Toutes les candidatures ont des données complètes",
+    );
   }
 
   // Vérifier la cohérence des prix proposés
   const applicationsWithInvalidPrice = applications.filter(
-    app => !app.proposedPrice || app.proposedPrice <= 0
+    (app) => !app.proposedPrice || app.proposedPrice <= 0,
   );
 
   if (applicationsWithInvalidPrice.length > 0) {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${applicationsWithInvalidPrice.length} candidatures avec prix invalide`
+      "VALIDATION",
+      `⚠️ ${applicationsWithInvalidPrice.length} candidatures avec prix invalide`,
     );
   } else {
-    logger.success('VALIDATION', '✅ Tous les prix proposés sont valides');
+    logger.success("VALIDATION", "✅ Tous les prix proposés sont valides");
   }
 
   // Vérifier les dates de candidature
   const applicationsWithInvalidDates = applications.filter(
-    app => app.rejectedAt && app.createdAt && app.rejectedAt < app.createdAt
+    (app) => app.rejectedAt && app.createdAt && app.rejectedAt < app.createdAt,
   );
 
   if (applicationsWithInvalidDates.length > 0) {
     logger.error(
-      'VALIDATION',
-      `❌ ${applicationsWithInvalidDates.length} candidatures avec dates incohérentes`
+      "VALIDATION",
+      `❌ ${applicationsWithInvalidDates.length} candidatures avec dates incohérentes`,
     );
     isValid = false;
   } else {
-    logger.success('VALIDATION', '✅ Toutes les dates de candidature sont cohérentes');
+    logger.success(
+      "VALIDATION",
+      "✅ Toutes les dates de candidature sont cohérentes",
+    );
   }
 
   return isValid;

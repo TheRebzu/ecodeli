@@ -27,133 +27,60 @@ export const adminLogsRouter = router({
         // TODO: Vérifier les permissions admin
         const { user } = ctx.session;
 
-        // Mock data pour les logs
-        const mockLogs = [
-          {
-            id: '1',
-            timestamp: new Date('2024-01-20T10:30:00Z'),
-            level: 'ERROR' as const,
-            category: 'AUTH' as const,
-            message: "Tentative de connexion échouée pour l'utilisateur john@example.com",
-            details: {
-              userId: 'user123',
-              ip: '192.168.1.100',
-              userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-              error: 'Invalid credentials',
-            },
-            source: 'auth.service.ts:45',
-          },
-          {
-            id: '2',
-            timestamp: new Date('2024-01-20T10:25:00Z'),
-            level: 'WARN' as const,
-            category: 'PAYMENT' as const,
-            message: 'Paiement en attente depuis plus de 10 minutes',
-            details: {
-              paymentId: 'pay_123456',
-              amount: 29.99,
-              currency: 'EUR',
-              userId: 'user456',
-            },
-            source: 'payment.service.ts:128',
-          },
-          {
-            id: '3',
-            timestamp: new Date('2024-01-20T10:20:00Z'),
-            level: 'INFO' as const,
-            category: 'DELIVERY' as const,
-            message: 'Nouvelle livraison créée avec succès',
-            details: {
-              deliveryId: 'del_789',
-              clientId: 'client123',
-              delivererId: 'deliverer456',
-              address: '123 Rue de la Paix, Paris',
-            },
-            source: 'delivery.service.ts:67',
-          },
-          {
-            id: '4',
-            timestamp: new Date('2024-01-20T10:15:00Z'),
-            level: 'DEBUG' as const,
-            category: 'API' as const,
-            message: 'Requête API traitée avec succès',
-            details: {
-              endpoint: '/api/trpc/admin.users.getAll',
-              method: 'POST',
-              duration: '245ms',
-              userId: 'admin123',
-            },
-            source: 'trpc.middleware.ts:23',
-          },
-          {
-            id: '5',
-            timestamp: new Date('2024-01-20T10:10:00Z'),
-            level: 'ERROR' as const,
-            category: 'DATABASE' as const,
-            message: 'Erreur de connexion à la base de données',
-            details: {
-              error: 'Connection timeout',
-              database: 'ecodeli_prod',
-              retryAttempt: 3,
-            },
-            source: 'db.connection.ts:89',
-          },
-          {
-            id: '6',
-            timestamp: new Date('2024-01-20T10:05:00Z'),
-            level: 'INFO' as const,
-            category: 'USER' as const,
-            message: 'Nouvel utilisateur inscrit',
-            details: {
-              userId: 'user789',
-              email: 'marie@example.com',
-              role: 'CLIENT',
-              registrationMethod: 'EMAIL',
-            },
-            source: 'user.service.ts:156',
-          },
-        ];
-
-        // Filtrer selon les critères
-        let filteredLogs = mockLogs;
+        // Récupérer les logs depuis la base de données
+        const whereClause: any = {};
 
         if (input.level) {
-          filteredLogs = filteredLogs.filter(log => log.level === input.level);
+          whereClause.level = input.level;
         }
 
         if (input.category) {
-          filteredLogs = filteredLogs.filter(log => log.category === input.category);
+          whereClause.category = input.category;
         }
 
         if (input.search) {
-          filteredLogs = filteredLogs.filter(
-            log =>
-              log.message.toLowerCase().includes(input.search!.toLowerCase()) ||
-              log.source.toLowerCase().includes(input.search!.toLowerCase())
-          );
+          whereClause.OR = [
+            { message: { contains: input.search, mode: 'insensitive' } },
+            { source: { contains: input.search, mode: 'insensitive' } },
+          ];
         }
 
-        if (input.startDate) {
-          filteredLogs = filteredLogs.filter(log => log.timestamp >= input.startDate!);
+        if (input.startDate || input.endDate) {
+          whereClause.timestamp = {};
+          if (input.startDate) {
+            whereClause.timestamp.gte = input.startDate;
+          }
+          if (input.endDate) {
+            whereClause.timestamp.lte = input.endDate;
+          }
         }
 
-        if (input.endDate) {
-          filteredLogs = filteredLogs.filter(log => log.timestamp <= input.endDate!);
-        }
+        // Compter le total pour la pagination
+        const total = await ctx.db.systemLog.count({ where: whereClause });
 
-        // Trier par timestamp décroissant
-        filteredLogs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-        // Pagination
-        const startIndex = (input.page - 1) * input.limit;
-        const paginatedLogs = filteredLogs.slice(startIndex, startIndex + input.limit);
+        // Récupérer les logs avec pagination
+        const logs = await ctx.db.systemLog.findMany({
+          where: whereClause,
+          orderBy: { timestamp: 'desc' },
+          skip: (input.page - 1) * input.limit,
+          take: input.limit,
+          select: {
+            id: true,
+            timestamp: true,
+            level: true,
+            category: true,
+            message: true,
+            details: true,
+            source: true,
+          },
+        });
 
         return {
-          logs: paginatedLogs,
-          total: filteredLogs.length,
+          logs,
+          total,
           page: input.page,
           limit: input.limit,
-          totalPages: Math.ceil(filteredLogs.length / input.limit),
+          totalPages: Math.ceil(total / input.limit),
         };
       } catch (error) {
         throw new TRPCError({
@@ -172,34 +99,29 @@ export const adminLogsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        // Mock data pour un log détaillé
-        const mockLog = {
-          id: input.id,
-          timestamp: new Date('2024-01-20T10:30:00Z'),
-          level: 'ERROR' as const,
-          category: 'AUTH' as const,
-          message: "Tentative de connexion échouée pour l'utilisateur john@example.com",
-          details: {
-            userId: 'user123',
-            ip: '192.168.1.100',
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            error: 'Invalid credentials',
-            stackTrace:
-              'Error: Invalid credentials\n    at AuthService.login (auth.service.ts:45:12)\n    at AuthController.login (auth.controller.ts:23:8)',
-            requestId: 'req_abc123',
-            sessionId: 'sess_def456',
+        // Récupérer le log depuis la base de données
+        const log = await ctx.db.systemLog.findUnique({
+          where: { id: input.id },
+          select: {
+            id: true,
+            timestamp: true,
+            level: true,
+            category: true,
+            message: true,
+            details: true,
+            source: true,
+            context: true,
           },
-          source: 'auth.service.ts:45',
-          context: {
-            environment: 'production',
-            version: '1.2.3',
-            nodeVersion: '18.17.0',
-            memoryUsage: '245MB',
-            cpuUsage: '12%',
-          },
-        };
+        });
 
-        return mockLog;
+        if (!log) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Log non trouvé',
+          });
+        }
+
+        return log;
       } catch (error) {
         throw new TRPCError({
           code: 'NOT_FOUND',
@@ -217,45 +139,117 @@ export const adminLogsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        // Mock data pour les statistiques
-        const mockStats = {
-          totalLogs: 1247,
-          byLevel: {
-            ERROR: 23,
-            WARN: 156,
-            INFO: 892,
-            DEBUG: 176,
-          },
-          byCategory: {
-            AUTH: 89,
-            API: 445,
-            DATABASE: 67,
-            PAYMENT: 234,
-            DELIVERY: 312,
-            SYSTEM: 78,
-            USER: 22,
-          },
-          recentErrors: [
-            {
-              timestamp: new Date('2024-01-20T10:30:00Z'),
-              message: 'Tentative de connexion échouée',
-              count: 5,
+        // Calculer la période de temps
+        const now = new Date();
+        let startDate: Date;
+        
+        switch (input.period) {
+          case '1h':
+            startDate = new Date(now.getTime() - 60 * 60 * 1000);
+            break;
+          case '24h':
+            startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            break;
+          case '7d':
+            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case '30d':
+            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            break;
+          default:
+            startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        }
+
+        // Compter le total des logs
+        const totalLogs = await ctx.db.systemLog.count({
+          where: {
+            timestamp: {
+              gte: startDate,
             },
-            {
-              timestamp: new Date('2024-01-20T10:25:00Z'),
-              message: 'Erreur de connexion à la base de données',
-              count: 3,
+          },
+        });
+
+        // Statistiques par niveau
+        const byLevel = await ctx.db.systemLog.groupBy({
+          by: ['level'],
+          where: {
+            timestamp: {
+              gte: startDate,
             },
-          ],
+          },
+          _count: {
+            id: true,
+          },
+        });
+
+        // Statistiques par catégorie
+        const byCategory = await ctx.db.systemLog.groupBy({
+          by: ['category'],
+          where: {
+            timestamp: {
+              gte: startDate,
+            },
+          },
+          _count: {
+            id: true,
+          },
+        });
+
+        // Erreurs récentes
+        const recentErrors = await ctx.db.systemLog.findMany({
+          where: {
+            level: 'ERROR',
+            timestamp: {
+              gte: startDate,
+            },
+          },
+          orderBy: {
+            timestamp: 'desc',
+          },
+          take: 5,
+          select: {
+            timestamp: true,
+            message: true,
+          },
+        });
+
+        // Tendances horaires (simplifié)
+        const hourlyTrends = await ctx.db.systemLog.groupBy({
+          by: ['timestamp'],
+          where: {
+            timestamp: {
+              gte: startDate,
+            },
+          },
+          _count: {
+            id: true,
+          },
+        });
+
+        const stats = {
+          totalLogs,
+          byLevel: byLevel.reduce((acc, item) => {
+            acc[item.level] = item._count.id;
+            return acc;
+          }, {} as Record<string, number>),
+          byCategory: byCategory.reduce((acc, item) => {
+            acc[item.category] = item._count.id;
+            return acc;
+          }, {} as Record<string, number>),
+          recentErrors: recentErrors.map(error => ({
+            timestamp: error.timestamp,
+            message: error.message,
+            count: 1, // Simplifié pour l'instant
+          })),
           trends: {
-            hourly: Array.from({ length: 24 }, (_, i) => ({
-              hour: i,
-              count: Math.floor(Math.random() * 50) + 10,
+            hourly: hourlyTrends.map((trend, index) => ({
+              hour: index,
+              count: trend._count.id,
             })),
           },
         };
 
-        return mockStats;
+        return stats;
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -277,12 +271,25 @@ export const adminLogsRouter = router({
         // TODO: Vérifier les permissions super admin
         // TODO: Implémenter le nettoyage en base
 
-        const deletedCount = Math.floor(Math.random() * 100) + 50; // Mock
+        // Supprimer les logs selon les critères
+        const whereClause: any = {
+          createdAt: {
+            lt: input.olderThan,
+          },
+        };
+
+        if (input.level) {
+          whereClause.level = input.level;
+        }
+
+        const deletedCount = await ctx.db.systemLog.deleteMany({
+          where: whereClause,
+        });
 
         return {
           success: true,
-          deletedCount,
-          message: `${deletedCount} logs supprimés avec succès`,
+          deletedCount: deletedCount.count,
+          message: `${deletedCount.count} logs supprimés avec succès`,
         };
       } catch (error) {
         throw new TRPCError({

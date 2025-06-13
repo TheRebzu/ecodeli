@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Bell,
   Search,
@@ -14,8 +14,8 @@ import {
   CreditCard,
   HelpCircle,
   Shield,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,13 +23,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { LanguageSwitcher } from '@/components/layout/common/language-switcher';
-import { ThemeToggle } from '@/components/layout/common/theme-toggle';
-import { useAuth } from '@/hooks/auth/use-auth';
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { LanguageSwitcher } from "@/components/layout/common/language-switcher";
+import { ThemeToggle } from "@/components/layout/common/theme-toggle";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 interface ProtectedHeaderProps {
   locale: string;
@@ -46,22 +46,22 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
   };
 
   const getUserInitials = (name?: string | null) => {
-    if (!name) return 'U';
+    if (!name) return "U";
     return name
-      .split(' ')
-      .map(part => part.charAt(0))
-      .join('')
+      .split(" ")
+      .map((part) => part.charAt(0))
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
 
   const getRoleLabel = (role: string) => {
     const roleLabels = {
-      ADMIN: 'Administrateur',
-      CLIENT: 'Client',
-      DELIVERER: 'Livreur',
-      MERCHANT: 'Commerçant',
-      PROVIDER: 'Prestataire',
+      ADMIN: "Administrateur",
+      CLIENT: "Client",
+      DELIVERER: "Livreur",
+      MERCHANT: "Commerçant",
+      PROVIDER: "Prestataire",
     };
     return roleLabels[role as keyof typeof roleLabels] || role;
   };
@@ -114,18 +114,24 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
               <DropdownMenuItem>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">Nouvelle commande</p>
-                  <p className="text-xs text-muted-foreground">Il y a 5 minutes</p>
+                  <p className="text-xs text-muted-foreground">
+                    Il y a 5 minutes
+                  </p>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">Livraison confirmée</p>
-                  <p className="text-xs text-muted-foreground">Il y a 1 heure</p>
+                  <p className="text-xs text-muted-foreground">
+                    Il y a 1 heure
+                  </p>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={`/${locale}/notifications`}>Voir toutes les notifications</Link>
+                <Link href={`/${locale}/notifications`}>
+                  Voir toutes les notifications
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -146,9 +152,15 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
           {/* Menu utilisateur */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Button
+                variant="ghost"
+                className="relative h-10 w-10 rounded-full"
+              >
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={user?.image || undefined} alt={user?.name || ''} />
+                  <AvatarImage
+                    src={user?.image || undefined}
+                    alt={user?.name || ""}
+                  />
                   <AvatarFallback>{getUserInitials(user?.name)}</AvatarFallback>
                 </Avatar>
               </Button>
@@ -156,10 +168,14 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name || 'Utilisateur'}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name || "Utilisateur"}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.email}
+                  </p>
                   <Badge variant="secondary" className="w-fit text-xs">
-                    {getRoleLabel(user?.role || '')}
+                    {getRoleLabel(user?.role || "")}
                   </Badge>
                 </div>
               </DropdownMenuLabel>
@@ -193,7 +209,7 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
                 </Link>
               </DropdownMenuItem>
 
-              {user?.role === 'ADMIN' && (
+              {user?.role === "ADMIN" && (
                 <DropdownMenuItem asChild>
                   <Link href={`/${locale}/admin`}>
                     <Shield className="mr-2 h-4 w-4" />
@@ -218,7 +234,12 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
         <div className="border-t px-4 py-3 md:hidden">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Rechercher..." className="pl-8" autoFocus />
+            <Input
+              type="search"
+              placeholder="Rechercher..."
+              className="pl-8"
+              autoFocus
+            />
           </div>
         </div>
       )}

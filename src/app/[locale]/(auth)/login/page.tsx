@@ -1,25 +1,29 @@
-import { Metadata } from 'next';
-import { LoginForm } from '@/components/auth/login/login-form';
-import { getServerSession } from 'next-auth';
-import { redirect, notFound } from 'next/navigation';
-import { authOptions } from '@/server/auth/next-auth';
-import { getTranslations } from 'next-intl/server';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
+import { Metadata } from "next";
+import { LoginForm } from "@/components/auth/login/login-form";
+import { getServerSession } from "next-auth";
+import { redirect, notFound } from "next/navigation";
+import { authOptions } from "@/server/auth/next-auth";
+import { getTranslations } from "next-intl/server";
+import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 
 // Utiliser le type correct pour les paramètres
-export async function generateMetadata({ params, searchParams }: MetadataProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: MetadataProps): Promise<Metadata> {
   // Attendre la résolution des paramètres
   const resolvedParams = await params;
   const locale = resolvedParams.locale;
 
   // Vérifier si la locale est valide
-  if (!['en', 'fr'].includes(locale)) notFound();
+  if (!["en", "fr"].includes(locale)) notFound();
 
-  const t = await getTranslations({ locale, namespace: 'auth.login' });
+  const t = await getTranslations({ locale, namespace: "auth.login" });
 
   return {
-    title: t('pageTitle') || 'Connexion | EcoDeli',
-    description: t('pageDescription') || 'Connectez-vous à votre compte EcoDeli',
+    title: t("pageTitle") || "Connexion | EcoDeli",
+    description:
+      t("pageDescription") || "Connectez-vous à votre compte EcoDeli",
   };
 }
 
@@ -29,7 +33,7 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
   const locale = resolvedParams.locale;
 
   // Vérifier si la locale est valide
-  if (!['en', 'fr'].includes(locale)) notFound();
+  if (!["en", "fr"].includes(locale)) notFound();
 
   // Récupérer la session utilisateur
   const session = await getServerSession(authOptions);
@@ -40,13 +44,15 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
   }
 
   // Récupérer les traductions
-  const t = await getTranslations({ locale, namespace: 'auth.login' });
+  const t = await getTranslations({ locale, namespace: "auth.login" });
 
   return (
     <div className="max-w-md w-full">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-3">{t('welcome')}</h1>
-        <p className="text-muted-foreground">{t('connectToAccount')}</p>
+        <h1 className="text-3xl font-bold tracking-tight mb-3">
+          {t("welcome")}
+        </h1>
+        <p className="text-muted-foreground">{t("connectToAccount")}</p>
       </div>
 
       <LoginForm locale={locale} />

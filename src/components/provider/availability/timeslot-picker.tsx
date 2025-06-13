@@ -1,17 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Clock, ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils/common';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Clock, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils/common";
 
 interface TimeslotPickerProps {
   value?: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  mode?: 'start' | 'end';
+  mode?: "start" | "end";
   minTime?: string;
   maxTime?: string;
   disabled?: boolean;
@@ -24,8 +28,8 @@ interface TimeslotPickerProps {
 export function TimeslotPicker({
   value,
   onChange,
-  placeholder = 'Sélectionner une heure',
-  mode = 'start',
+  placeholder = "Sélectionner une heure",
+  mode = "start",
   minTime,
   maxTime,
   disabled = false,
@@ -42,7 +46,7 @@ export function TimeslotPicker({
 
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += interval) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
 
         // Filtrer selon minTime et maxTime si définis
         if (minTime && timeString <= minTime) continue;
@@ -64,7 +68,7 @@ export function TimeslotPicker({
 
   const formatDisplayTime = (timeString: string) => {
     if (!timeString) return placeholder;
-    const [hour, minute] = timeString.split(':');
+    const [hour, minute] = timeString.split(":");
     return `${hour}:${minute}`;
   };
 
@@ -76,15 +80,15 @@ export function TimeslotPicker({
           role="combobox"
           aria-expanded={isOpen}
           className={cn(
-            'w-full justify-between text-left font-normal',
-            !value && 'text-muted-foreground',
-            className
+            "w-full justify-between text-left font-normal",
+            !value && "text-muted-foreground",
+            className,
           )}
           disabled={disabled}
         >
           <div className="flex items-center">
             <Clock className="mr-2 h-4 w-4" />
-            {formatDisplayTime(value || '')}
+            {formatDisplayTime(value || "")}
           </div>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -94,14 +98,14 @@ export function TimeslotPicker({
         <div className="max-h-[300px] overflow-y-auto">
           <div className="p-2">
             <div className="text-sm font-medium text-muted-foreground mb-2">
-              {mode === 'start' ? 'Début' : 'Fin'}
+              {mode === "start" ? "Début" : "Fin"}
             </div>
 
             <div className="grid gap-1">
-              {timeSlots.map(time => (
+              {timeSlots.map((time) => (
                 <Button
                   key={time}
-                  variant={value === time ? 'default' : 'ghost'}
+                  variant={value === time ? "default" : "ghost"}
                   className="justify-start text-sm h-8"
                   onClick={() => handleTimeSelect(time)}
                 >

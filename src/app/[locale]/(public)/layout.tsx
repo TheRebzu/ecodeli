@@ -1,15 +1,18 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import ThemeProvider from '@/components/providers/theme-provider';
-import { PublicHeader } from '@/components/layout/public/header';
-import { MainFooter } from '@/components/layout/public/footer';
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import ThemeProvider from "@/components/providers/theme-provider";
+import { PublicHeader } from "@/components/layout/public/header";
+import { MainFooter } from "@/components/layout/public/footer";
 
 interface PublicLayoutProps {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }
 
-export default async function PublicLayout({ children, params }: PublicLayoutProps) {
+export default async function PublicLayout({
+  children,
+  params,
+}: PublicLayoutProps) {
   // Safely extract locale using await
   const { locale } = await params;
 

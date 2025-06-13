@@ -1,15 +1,16 @@
-import { calculateDistance, calculateETA } from '@/lib/utils/index';
+import { calculateDistance, calculateETA } from "@/lib/utils/index";
 
 export const mapService = {
   // Créer une carte centrée sur une position
   initializeMap(elementId, center, zoom = 13) {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
 
     const L = window.L;
     const map = L.map(elementId).setView(center, zoom);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
     }).addTo(map);
 
@@ -21,7 +22,7 @@ export const mapService = {
     const L = window.L;
 
     const delivererIcon = L.icon({
-      iconUrl: '/images/deliverer-marker.png',
+      iconUrl: "/images/deliverer-marker.png",
       iconSize: [32, 32],
       iconAnchor: [16, 32],
       popupAnchor: [0, -32],
@@ -41,7 +42,7 @@ export const mapService = {
     const response = await fetch(
       `https://router.project-osrm.org/route/v1/driving/` +
         `${startPosition[1]},${startPosition[0]};${endPosition[1]},${endPosition[0]}` +
-        `?overview=full&geometries=geojson`
+        `?overview=full&geometries=geojson`,
     );
 
     const data = await response.json();

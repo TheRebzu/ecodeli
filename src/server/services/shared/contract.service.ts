@@ -1,9 +1,9 @@
-import { db } from '@/server/db';
-import { TRPCError } from '@trpc/server';
-import { ContractStatus, ContractType } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
-import { format, addMonths, parseISO } from 'date-fns';
-import crypto from 'crypto';
+import { db } from "@/server/db";
+import { TRPCError } from "@trpc/server";
+import { ContractStatus, ContractType } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
+import { format, addMonths, parseISO } from "date-fns";
+import crypto from "crypto";
 
 export interface ContractCreateInput {
   merchantId: string;
@@ -58,7 +58,7 @@ export class ContractService {
    * Génère un numéro de contrat unique
    */
   private async generateContractNumber(): Promise<string> {
-    const date = format(new Date(), 'yyyyMM');
+    const date = format(new Date(), "yyyyMM");
     const count = await db.contract.count({
       where: {
         createdAt: {
@@ -67,7 +67,7 @@ export class ContractService {
       },
     });
 
-    return `CONT-${date}-${(count + 1).toString().padStart(4, '0')}`;
+    return `CONT-${date}-${(count + 1).toString().padStart(4, "0")}`;
   }
 
   /**
@@ -84,8 +84,8 @@ export class ContractService {
 
     if (!merchant) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Commerçant non trouvé',
+        code: "NOT_FOUND",
+        message: "Commerçant non trouvé",
       });
     }
 
@@ -98,8 +98,8 @@ export class ContractService {
 
       if (!templateData) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Template de contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Template de contrat non trouvé",
         });
       }
     }
@@ -115,7 +115,9 @@ export class ContractService {
         type: data.type,
         status: ContractStatus.DRAFT,
         monthlyFee: data.monthlyFee ? new Decimal(data.monthlyFee) : null,
-        commissionRate: data.commissionRate ? new Decimal(data.commissionRate) : null,
+        commissionRate: data.commissionRate
+          ? new Decimal(data.commissionRate)
+          : null,
         minimumVolume: data.minimumVolume,
         effectiveDate: data.effectiveDate,
         expiresAt: data.expiresAt,
@@ -147,8 +149,8 @@ export class ContractService {
 
     if (!contract) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Contrat non trouvé',
+        code: "NOT_FOUND",
+        message: "Contrat non trouvé",
       });
     }
 
@@ -158,8 +160,9 @@ export class ContractService {
       (data.content || data.monthlyFee || data.commissionRate)
     ) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Les modifications de contenu ne sont autorisées que sur les brouillons',
+        code: "BAD_REQUEST",
+        message:
+          "Les modifications de contenu ne sont autorisées que sur les brouillons",
       });
     }
 
@@ -169,7 +172,9 @@ export class ContractService {
         title: data.title,
         content: data.content,
         monthlyFee: data.monthlyFee ? new Decimal(data.monthlyFee) : undefined,
-        commissionRate: data.commissionRate ? new Decimal(data.commissionRate) : undefined,
+        commissionRate: data.commissionRate
+          ? new Decimal(data.commissionRate)
+          : undefined,
         minimumVolume: data.minimumVolume,
         effectiveDate: data.effectiveDate,
         expiresAt: data.expiresAt,
@@ -201,8 +206,8 @@ export class ContractService {
 
     if (!contract) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Contrat non trouvé',
+        code: "NOT_FOUND",
+        message: "Contrat non trouvé",
       });
     }
 
@@ -211,8 +216,8 @@ export class ContractService {
       contract.status !== ContractStatus.PENDING_SIGNATURE
     ) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Ce contrat ne peut plus être signé',
+        code: "BAD_REQUEST",
+        message: "Ce contrat ne peut plus être signé",
       });
     }
 
@@ -258,7 +263,7 @@ export class ContractService {
       status?: ContractStatus;
       page?: number;
       limit?: number;
-    } = {}
+    } = {},
   ) {
     const { status, page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
@@ -271,13 +276,13 @@ export class ContractService {
     const [contracts, total] = await Promise.all([
       db.contract.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: limit,
         include: {
           template: true,
           amendments: {
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             take: 3,
           },
         },
@@ -311,7 +316,7 @@ export class ContractService {
         template: true,
         amendments: {
           where: { status: ContractStatus.ACTIVE },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         },
       },
     });
@@ -327,15 +332,15 @@ export class ContractService {
 
     if (!contract) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Contrat non trouvé',
+        code: "NOT_FOUND",
+        message: "Contrat non trouvé",
       });
     }
 
     if (contract.status !== ContractStatus.ACTIVE) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Seuls les contrats actifs peuvent être résiliés',
+        code: "BAD_REQUEST",
+        message: "Seuls les contrats actifs peuvent être résiliés",
       });
     }
 
@@ -343,7 +348,9 @@ export class ContractService {
       where: { id: contractId },
       data: {
         status: ContractStatus.TERMINATED,
-        notes: reason ? `${contract.notes || ''}\nRésilié: ${reason}` : contract.notes,
+        notes: reason
+          ? `${contract.notes || ""}\nRésilié: ${reason}`
+          : contract.notes,
       },
     });
   }
@@ -358,15 +365,15 @@ export class ContractService {
 
     if (!contract) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Contrat non trouvé',
+        code: "NOT_FOUND",
+        message: "Contrat non trouvé",
       });
     }
 
     if (contract.status !== ContractStatus.ACTIVE) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Seuls les contrats actifs peuvent être renouvelés',
+        code: "BAD_REQUEST",
+        message: "Seuls les contrats actifs peuvent être renouvelés",
       });
     }
 
@@ -393,7 +400,9 @@ export class ContractService {
         description: data.description,
         content: data.content,
         defaultType: data.defaultType,
-        defaultMonthlyFee: data.defaultMonthlyFee ? new Decimal(data.defaultMonthlyFee) : null,
+        defaultMonthlyFee: data.defaultMonthlyFee
+          ? new Decimal(data.defaultMonthlyFee)
+          : null,
         defaultCommissionRate: data.defaultCommissionRate
           ? new Decimal(data.defaultCommissionRate)
           : null,
@@ -418,7 +427,7 @@ export class ContractService {
   async getActiveTemplates() {
     return await db.contractTemplate.findMany({
       where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         createdBy: {
           select: {
@@ -433,22 +442,27 @@ export class ContractService {
   /**
    * Crée un amendement à un contrat
    */
-  async createAmendment(contractId: string, title: string, description: string, content: string) {
+  async createAmendment(
+    contractId: string,
+    title: string,
+    description: string,
+    content: string,
+  ) {
     const contract = await db.contract.findUnique({
       where: { id: contractId },
     });
 
     if (!contract) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Contrat non trouvé',
+        code: "NOT_FOUND",
+        message: "Contrat non trouvé",
       });
     }
 
     if (contract.status !== ContractStatus.ACTIVE) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Seuls les contrats actifs peuvent être amendés',
+        code: "BAD_REQUEST",
+        message: "Seuls les contrats actifs peuvent être amendés",
       });
     }
 
@@ -467,17 +481,24 @@ export class ContractService {
    * Récupère les statistiques des contrats
    */
   async getContractStats(adminOnly = true) {
-    const [totalContracts, activeContracts, pendingContracts, expiredContracts, contractsByType] =
-      await Promise.all([
-        db.contract.count(),
-        db.contract.count({ where: { status: ContractStatus.ACTIVE } }),
-        db.contract.count({ where: { status: ContractStatus.PENDING_SIGNATURE } }),
-        db.contract.count({ where: { status: ContractStatus.EXPIRED } }),
-        db.contract.groupBy({
-          by: ['type'],
-          _count: { _all: true },
-        }),
-      ]);
+    const [
+      totalContracts,
+      activeContracts,
+      pendingContracts,
+      expiredContracts,
+      contractsByType,
+    ] = await Promise.all([
+      db.contract.count(),
+      db.contract.count({ where: { status: ContractStatus.ACTIVE } }),
+      db.contract.count({
+        where: { status: ContractStatus.PENDING_SIGNATURE },
+      }),
+      db.contract.count({ where: { status: ContractStatus.EXPIRED } }),
+      db.contract.groupBy({
+        by: ["type"],
+        _count: { _all: true },
+      }),
+    ]);
 
     return {
       total: totalContracts,
@@ -489,7 +510,7 @@ export class ContractService {
           acc[item.type] = item._count._all;
           return acc;
         },
-        {} as Record<string, number>
+        {} as Record<string, number>,
       ),
     };
   }
@@ -514,7 +535,7 @@ export class ContractService {
           include: { user: true },
         },
       },
-      orderBy: { expiresAt: 'asc' },
+      orderBy: { expiresAt: "asc" },
     });
   }
 
@@ -555,17 +576,17 @@ export class ContractService {
 
     if (!contract) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Contrat non trouvé',
+        code: "NOT_FOUND",
+        message: "Contrat non trouvé",
       });
     }
 
     // Générer le PDF du contrat avec les vraies données
     const contractPdf = await generateContractPDF(contract);
-    
+
     // Sauvegarder le PDF
     const pdfPath = await saveContractPDF(contract.id, contractPdf);
-    
+
     return {
       contract,
       pdfUrl: pdfPath,

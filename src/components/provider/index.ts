@@ -4,10 +4,10 @@
  */
 
 // Exports des sous-dossiers
-export * from './availability';
-export * from './billing';
-export * from './bookings';
-export * from './dashboard';
-export * from './interventions';
-export * from './profile';
-export * from './ratings';
+export * from "./availability";
+export * from "./billing";
+export * from "./bookings";
+export * from "./dashboard";
+export * from "./interventions";
+export * from "./profile";
+export * from "./ratings";

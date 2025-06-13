@@ -1,18 +1,18 @@
-import { DocumentType, UserRole } from '@prisma/client';
+import { DocumentType, UserRole } from "@prisma/client";
 
 /**
  * Mapping des types de documents vers leur nom en français
  */
 export const documentTypeNames: Record<DocumentType, string> = {
   ID_CARD: "Carte d'identité",
-  DRIVING_LICENSE: 'Permis de conduire',
-  VEHICLE_REGISTRATION: 'Carte grise',
-  INSURANCE: 'Assurance',
-  QUALIFICATION_CERTIFICATE: 'Certification professionnelle',
-  PROOF_OF_ADDRESS: 'Justificatif de domicile',
-  BUSINESS_REGISTRATION: 'Extrait K-bis',
-  SELFIE: 'Photo de profil',
-  OTHER: 'Autre document',
+  DRIVING_LICENSE: "Permis de conduire",
+  VEHICLE_REGISTRATION: "Carte grise",
+  INSURANCE: "Assurance",
+  QUALIFICATION_CERTIFICATE: "Certification professionnelle",
+  PROOF_OF_ADDRESS: "Justificatif de domicile",
+  BUSINESS_REGISTRATION: "Extrait K-bis",
+  SELFIE: "Photo de profil",
+  OTHER: "Autre document",
 };
 
 /**
@@ -21,13 +21,16 @@ export const documentTypeNames: Record<DocumentType, string> = {
  * @param t Fonction optionnelle de traduction
  * @returns Le nom du type de document formaté pour l'affichage
  */
-export function getDocumentTypeName(type: DocumentType, t?: (key: string) => string): string {
+export function getDocumentTypeName(
+  type: DocumentType,
+  t?: (key: string) => string,
+): string {
   // Si une fonction de traduction est fournie, essayer de l'utiliser d'abord
   if (t) {
     try {
       const translated = t(`documents.types.${type.toLowerCase()}`);
       // Si la traduction n'est pas une clé (ne contient pas de points), on l'utilise
-      if (!translated.includes('.')) {
+      if (!translated.includes(".")) {
         return translated;
       }
     } catch (error) {
@@ -44,13 +47,15 @@ export function getDocumentTypeName(type: DocumentType, t?: (key: string) => str
  * @param role Rôle de l'utilisateur (UserRole de Prisma ou string)
  * @returns Tableau des types de documents requis pour ce rôle
  */
-export function getRequiredDocumentTypesByRole(role: UserRole | string): DocumentType[] {
+export function getRequiredDocumentTypesByRole(
+  role: UserRole | string,
+): DocumentType[] {
   // Normaliser le rôle pour accepter à la fois les strings et l'enum UserRole
-  const normalizedRole = typeof role === 'string' ? role.toUpperCase() : role;
+  const normalizedRole = typeof role === "string" ? role.toUpperCase() : role;
 
   switch (normalizedRole) {
     case UserRole.DELIVERER:
-    case 'DELIVERER':
+    case "DELIVERER":
       return [
         DocumentType.ID_CARD,
         DocumentType.DRIVING_LICENSE,
@@ -58,14 +63,14 @@ export function getRequiredDocumentTypesByRole(role: UserRole | string): Documen
         DocumentType.INSURANCE,
       ];
     case UserRole.MERCHANT:
-    case 'MERCHANT':
+    case "MERCHANT":
       return [
         DocumentType.ID_CARD,
         DocumentType.BUSINESS_REGISTRATION,
         DocumentType.PROOF_OF_ADDRESS,
       ];
     case UserRole.PROVIDER:
-    case 'PROVIDER':
+    case "PROVIDER":
       return [
         DocumentType.ID_CARD,
         DocumentType.QUALIFICATION_CERTIFICATE,
@@ -80,9 +85,12 @@ export function getRequiredDocumentTypesByRole(role: UserRole | string): Documen
  * Utilitaires centralisés pour la validation cohérente des documents
  * Ce fichier résout les incohérences entre les différents services
  */
-import { db } from '@/server/db';
-import { UserRole } from '@prisma/client';
-import { seedTypeToPrismaType, doesSeedTypeMatchPrismaType } from '@/types/documents/document';
+import { db } from "@/server/db";
+import { UserRole } from "@prisma/client";
+import {
+  seedTypeToPrismaType,
+  doesSeedTypeMatchPrismaType,
+} from "@/types/documents/document";
 
 /**
  * Vérifie si un document est expiré
@@ -99,16 +107,16 @@ export function isDocumentExpired(document: any): boolean {
 export function getEffectiveDocumentStatus(document: any): string {
   // Si le document est expiré, retourner EXPIRED indépendamment du statut de vérification
   if (isDocumentExpired(document)) {
-    return 'EXPIRED';
+    return "EXPIRED";
   }
 
   // Si le document n'est pas vérifié, retourner le statut de vérification
   if (!document.isVerified) {
-    return document.verificationStatus || 'PENDING';
+    return document.verificationStatus || "PENDING";
   }
 
   // Si vérifié et non expiré, retourner APPROVED
-  return 'APPROVED';
+  return "APPROVED";
 }
 
 /**
@@ -116,7 +124,7 @@ export function getEffectiveDocumentStatus(document: any): string {
  * Cette fonction remplace toutes les vérifications doc.status === 'APPROVED'
  */
 export function isDocumentEffectivelyApproved(document: any): boolean {
-  return getEffectiveDocumentStatus(document) === 'APPROVED';
+  return getEffectiveDocumentStatus(document) === "APPROVED";
 }
 
 /**
@@ -124,23 +132,31 @@ export function isDocumentEffectivelyApproved(document: any): boolean {
  * IMPORTANT: Ces types correspondent aux types créés dans les seeds
  */
 export const REQUIRED_DOCUMENTS_BY_ROLE: Record<UserRole, readonly string[]> = {
-  DELIVERER: ['IDENTITY_CARD', 'DRIVING_LICENSE', 'VEHICLE_REGISTRATION', 'INSURANCE_CERTIFICATE'],
-  PROVIDER: [
-    'IDENTITY_CARD',
-    'PROFESSIONAL_DIPLOMA',
-    'INSURANCE_CERTIFICATE',
-    'BANK_RIB',
-    'CRIMINAL_RECORD',
+  DELIVERER: [
+    "IDENTITY_CARD",
+    "DRIVING_LICENSE",
+    "VEHICLE_REGISTRATION",
+    "INSURANCE_CERTIFICATE",
   ],
-  MERCHANT: ['IDENTITY_CARD', 'KBIS', 'BANK_RIB'], // Types correspondant aux seeds
-  CLIENT: ['IDENTITY_CARD'],
+  PROVIDER: [
+    "IDENTITY_CARD",
+    "PROFESSIONAL_DIPLOMA",
+    "INSURANCE_CERTIFICATE",
+    "BANK_RIB",
+    "CRIMINAL_RECORD",
+  ],
+  MERCHANT: ["IDENTITY_CARD", "KBIS", "BANK_RIB"], // Types correspondant aux seeds
+  CLIENT: ["IDENTITY_CARD"],
   ADMIN: [], // Les admins n'ont pas de documents requis
 } as const;
 
 /**
  * Vérifie si un document correspond à un type requis (gère la compatibilité seeds/Prisma)
  */
-function doesDocumentMatchRequiredType(documentType: string, requiredType: string): boolean {
+function doesDocumentMatchRequiredType(
+  documentType: string,
+  requiredType: string,
+): boolean {
   // Correspondance directe
   if (documentType === requiredType) {
     return true;
@@ -156,7 +172,7 @@ function doesDocumentMatchRequiredType(documentType: string, requiredType: strin
  */
 export async function areAllRequiredDocumentsApproved(
   userId: string,
-  userRole: UserRole
+  userRole: UserRole,
 ): Promise<boolean> {
   const requiredDocumentTypes = REQUIRED_DOCUMENTS_BY_ROLE[userRole] || [];
 
@@ -175,9 +191,10 @@ export async function areAllRequiredDocumentsApproved(
   // Vérifier que chaque type de document requis a au moins un document effectivement approuvé
   return requiredDocumentTypes.every((requiredType: any) =>
     userDocuments.some(
-      doc =>
-        doesDocumentMatchRequiredType(doc.type, requiredType) && isDocumentEffectivelyApproved(doc)
-    )
+      (doc) =>
+        doesDocumentMatchRequiredType(doc.type, requiredType) &&
+        isDocumentEffectivelyApproved(doc),
+    ),
   );
 }
 
@@ -187,14 +204,19 @@ export async function areAllRequiredDocumentsApproved(
  */
 export async function getUserDocumentVerificationStatus(
   userId: string,
-  userRole: UserRole
+  userRole: UserRole,
 ): Promise<{
   isComplete: boolean;
   hasExpiredDocuments: boolean;
   hasRejectedDocuments: boolean;
   hasPendingDocuments: boolean;
   missingDocuments: string[];
-  verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'NOT_SUBMITTED';
+  verificationStatus:
+    | "PENDING"
+    | "APPROVED"
+    | "REJECTED"
+    | "EXPIRED"
+    | "NOT_SUBMITTED";
 }> {
   const requiredDocumentTypes = REQUIRED_DOCUMENTS_BY_ROLE[userRole] || [];
 
@@ -205,7 +227,7 @@ export async function getUserDocumentVerificationStatus(
       hasRejectedDocuments: false,
       hasPendingDocuments: false,
       missingDocuments: [],
-      verificationStatus: 'APPROVED',
+      verificationStatus: "APPROVED",
     };
   }
 
@@ -218,43 +240,50 @@ export async function getUserDocumentVerificationStatus(
   });
 
   // Analyser le statut de chaque document
-  const documentStatuses = userDocuments.map(doc => getEffectiveDocumentStatus(doc));
+  const documentStatuses = userDocuments.map((doc) =>
+    getEffectiveDocumentStatus(doc),
+  );
 
   // Identifier les documents approuvés avec correspondance flexible
-  const approvedRequiredTypes = requiredDocumentTypes.filter((requiredType: any) =>
-    userDocuments.some(
-      doc =>
-        doesDocumentMatchRequiredType(doc.type, requiredType) &&
-        getEffectiveDocumentStatus(doc) === 'APPROVED'
-    )
+  const approvedRequiredTypes = requiredDocumentTypes.filter(
+    (requiredType: any) =>
+      userDocuments.some(
+        (doc) =>
+          doesDocumentMatchRequiredType(doc.type, requiredType) &&
+          getEffectiveDocumentStatus(doc) === "APPROVED",
+      ),
   );
 
   const missingDocuments = requiredDocumentTypes.filter(
-    (type: any) => !approvedRequiredTypes.includes(type)
+    (type: any) => !approvedRequiredTypes.includes(type),
   );
 
   // Analyser les statuts
-  const hasExpiredDocuments = documentStatuses.includes('EXPIRED');
-  const hasRejectedDocuments = documentStatuses.includes('REJECTED');
-  const hasPendingDocuments = documentStatuses.includes('PENDING');
+  const hasExpiredDocuments = documentStatuses.includes("EXPIRED");
+  const hasRejectedDocuments = documentStatuses.includes("REJECTED");
+  const hasPendingDocuments = documentStatuses.includes("PENDING");
   const isComplete = missingDocuments.length === 0;
 
   // Déterminer le statut global
-  let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'NOT_SUBMITTED' =
-    'NOT_SUBMITTED';
+  let verificationStatus:
+    | "PENDING"
+    | "APPROVED"
+    | "REJECTED"
+    | "EXPIRED"
+    | "NOT_SUBMITTED" = "NOT_SUBMITTED";
 
   if (userDocuments.length === 0) {
-    verificationStatus = 'NOT_SUBMITTED';
+    verificationStatus = "NOT_SUBMITTED";
   } else if (isComplete) {
-    verificationStatus = 'APPROVED';
+    verificationStatus = "APPROVED";
   } else if (hasExpiredDocuments) {
-    verificationStatus = 'EXPIRED';
+    verificationStatus = "EXPIRED";
   } else if (hasRejectedDocuments) {
-    verificationStatus = 'REJECTED';
+    verificationStatus = "REJECTED";
   } else if (hasPendingDocuments) {
-    verificationStatus = 'PENDING';
+    verificationStatus = "PENDING";
   } else {
-    verificationStatus = 'PENDING';
+    verificationStatus = "PENDING";
   }
 
   return {
@@ -273,23 +302,26 @@ export async function getUserDocumentVerificationStatus(
  */
 export async function updateUserVerificationStatusConsistently(
   userId: string,
-  userRole: UserRole
+  userRole: UserRole,
 ): Promise<boolean> {
   try {
-    const isAllApproved = await areAllRequiredDocumentsApproved(userId, userRole);
+    const isAllApproved = await areAllRequiredDocumentsApproved(
+      userId,
+      userRole,
+    );
 
     if (isAllApproved) {
       // Mettre à jour le statut utilisateur
       await db.user.update({
         where: { id: userId },
         data: {
-          status: 'ACTIVE',
+          status: "ACTIVE",
           isVerified: true,
         },
       });
 
       // Mettre à jour le profil spécifique selon le rôle
-      if (userRole === 'DELIVERER') {
+      if (userRole === "DELIVERER") {
         await db.deliverer.update({
           where: { userId },
           data: {
@@ -297,7 +329,7 @@ export async function updateUserVerificationStatusConsistently(
             verificationDate: new Date(),
           },
         });
-      } else if (userRole === 'PROVIDER') {
+      } else if (userRole === "PROVIDER") {
         await db.provider.update({
           where: { userId },
           data: {
@@ -305,7 +337,7 @@ export async function updateUserVerificationStatusConsistently(
             verificationDate: new Date(),
           },
         });
-      } else if (userRole === 'MERCHANT') {
+      } else if (userRole === "MERCHANT") {
         await db.merchant.update({
           where: { userId },
           data: {
@@ -320,40 +352,53 @@ export async function updateUserVerificationStatusConsistently(
 
     return false;
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du statut de vérification:', error);
+    console.error(
+      "Erreur lors de la mise à jour du statut de vérification:",
+      error,
+    );
     return false;
   }
 }
-import { DocumentType } from '@prisma/client';
-import { VerificationDocumentType } from '@/types/documents/verification';
+import { DocumentType } from "@prisma/client";
+import { VerificationDocumentType } from "@/types/documents/verification";
 
 /**
  * Mapping entre les types de documents de vérification et les types de documents Prisma
  */
-export const documentTypeMapping: Record<VerificationDocumentType, DocumentType> = {
+export const documentTypeMapping: Record<
+  VerificationDocumentType,
+  DocumentType
+> = {
   [VerificationDocumentType.ID_CARD]: DocumentType.ID_CARD,
   [VerificationDocumentType.PASSPORT]: DocumentType.OTHER,
   [VerificationDocumentType.DRIVERS_LICENSE]: DocumentType.DRIVING_LICENSE,
   [VerificationDocumentType.PROOF_OF_ADDRESS]: DocumentType.PROOF_OF_ADDRESS,
   [VerificationDocumentType.BUSINESS_LICENSE]: DocumentType.OTHER,
   [VerificationDocumentType.TAX_CERTIFICATE]: DocumentType.OTHER,
-  [VerificationDocumentType.BUSINESS_REGISTRATION]: DocumentType.BUSINESS_REGISTRATION,
+  [VerificationDocumentType.BUSINESS_REGISTRATION]:
+    DocumentType.BUSINESS_REGISTRATION,
   [VerificationDocumentType.VAT_REGISTRATION]: DocumentType.OTHER,
   [VerificationDocumentType.INSURANCE_CERTIFICATE]: DocumentType.INSURANCE,
-  [VerificationDocumentType.PROFESSIONAL_QUALIFICATION]: DocumentType.QUALIFICATION_CERTIFICATE,
+  [VerificationDocumentType.PROFESSIONAL_QUALIFICATION]:
+    DocumentType.QUALIFICATION_CERTIFICATE,
 };
 
 /**
  * Mapping entre les types de documents Prisma et les types de vérification
  */
-export const reverseDocumentTypeMapping: Record<DocumentType, VerificationDocumentType> = {
+export const reverseDocumentTypeMapping: Record<
+  DocumentType,
+  VerificationDocumentType
+> = {
   [DocumentType.ID_CARD]: VerificationDocumentType.ID_CARD,
   [DocumentType.DRIVING_LICENSE]: VerificationDocumentType.DRIVERS_LICENSE,
   [DocumentType.VEHICLE_REGISTRATION]: VerificationDocumentType.DRIVERS_LICENSE,
   [DocumentType.INSURANCE]: VerificationDocumentType.INSURANCE_CERTIFICATE,
-  [DocumentType.QUALIFICATION_CERTIFICATE]: VerificationDocumentType.PROFESSIONAL_QUALIFICATION,
+  [DocumentType.QUALIFICATION_CERTIFICATE]:
+    VerificationDocumentType.PROFESSIONAL_QUALIFICATION,
   [DocumentType.PROOF_OF_ADDRESS]: VerificationDocumentType.PROOF_OF_ADDRESS,
-  [DocumentType.BUSINESS_REGISTRATION]: VerificationDocumentType.BUSINESS_REGISTRATION,
+  [DocumentType.BUSINESS_REGISTRATION]:
+    VerificationDocumentType.BUSINESS_REGISTRATION,
   [DocumentType.SELFIE]: VerificationDocumentType.ID_CARD,
   [DocumentType.OTHER]: VerificationDocumentType.ID_CARD,
 };
@@ -368,6 +413,8 @@ export function toDbDocumentType(type: VerificationDocumentType): DocumentType {
 /**
  * Convertit un DocumentType Prisma en VerificationDocumentType
  */
-export function toVerificationDocumentType(type: DocumentType): VerificationDocumentType {
+export function toVerificationDocumentType(
+  type: DocumentType,
+): VerificationDocumentType {
   return reverseDocumentTypeMapping[type] || VerificationDocumentType.ID_CARD;
 }

@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export { default as DelivererDashboard } from './deliverer-dashboard';
-export * from './deliverer-dashboard';
-export { default as DeliveryStatsWidget } from './delivery-stats-widget';
-export * from './delivery-stats-widget';
-export { default as EarningsWidget } from './earnings-widget';
-export * from './earnings-widget';
+export { default as DelivererDashboard } from "./deliverer-dashboard";
+export * from "./deliverer-dashboard";
+export { default as DeliveryStatsWidget } from "./delivery-stats-widget";
+export * from "./delivery-stats-widget";
+export { default as EarningsWidget } from "./earnings-widget";
+export * from "./earnings-widget";

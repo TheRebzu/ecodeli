@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 // Configuration du transporteur d'email (à remplacer par votre service réel)
 const transporter = nodemailer.createTransport({
@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_SERVER_USER,
     pass: process.env.EMAIL_SERVER_PASSWORD,
   },
-  secure: process.env.NODE_ENV === 'production',
+  secure: process.env.NODE_ENV === "production",
 });
 
 /**
@@ -18,14 +18,14 @@ export async function sendVerificationEmail(
   email: string,
   name: string,
   token: string,
-  locale: string = 'fr'
+  locale: string = "fr",
 ): Promise<void> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const verificationUrl = `${baseUrl}/${locale}/verify-email?token=${token}`;
 
   await transporter.sendMail({
     to: email,
-    subject: 'Vérifiez votre adresse email - EcoDeli',
+    subject: "Vérifiez votre adresse email - EcoDeli",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Vérifiez votre adresse email</h1>
@@ -44,12 +44,15 @@ export async function sendVerificationEmail(
 /**
  * Envoie un email de réinitialisation de mot de passe
  */
-export async function sendPasswordResetEmail(email: string, token: string): Promise<void> {
+export async function sendPasswordResetEmail(
+  email: string,
+  token: string,
+): Promise<void> {
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
 
   await transporter.sendMail({
     to: email,
-    subject: 'Réinitialisation de votre mot de passe - EcoDeli',
+    subject: "Réinitialisation de votre mot de passe - EcoDeli",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Réinitialisation de votre mot de passe</h1>
@@ -67,10 +70,13 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
 /**
  * Envoie un email de bienvenue après l'inscription
  */
-export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
+export async function sendWelcomeEmail(
+  email: string,
+  name: string,
+): Promise<void> {
   await transporter.sendMail({
     to: email,
-    subject: 'Bienvenue sur EcoDeli !',
+    subject: "Bienvenue sur EcoDeli !",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Bienvenue sur EcoDeli, ${name} !</h1>

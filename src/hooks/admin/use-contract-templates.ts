@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface TemplateFormData {
   name: string;
@@ -38,91 +38,99 @@ export const useContractTemplates = () => {
     api.admin.contracts.getActiveTemplates.useQuery();
 
   // Mutations
-  const createTemplateMutation = api.admin.contracts.createTemplate.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Template créé',
-        description: 'Le template de contrat a été créé avec succès.',
-      });
-      refetchTemplates();
-      setIsCreateModalOpen(false);
+  const createTemplateMutation = api.admin.contracts.createTemplate.useMutation(
+    {
+      onSuccess: () => {
+        toast({
+          title: "Template créé",
+          description: "Le template de contrat a été créé avec succès.",
+        });
+        refetchTemplates();
+        setIsCreateModalOpen(false);
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: `Erreur lors de la création : ${error.message}`,
+          variant: "destructive",
+        });
+      },
     },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: `Erreur lors de la création : ${error.message}`,
-        variant: 'destructive',
-      });
-    },
-  });
+  );
 
-  const updateTemplateMutation = api.admin.contracts.updateTemplate.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Template mis à jour',
-        description: 'Le template de contrat a été mis à jour avec succès.',
-      });
-      refetchTemplates();
+  const updateTemplateMutation = api.admin.contracts.updateTemplate.useMutation(
+    {
+      onSuccess: () => {
+        toast({
+          title: "Template mis à jour",
+          description: "Le template de contrat a été mis à jour avec succès.",
+        });
+        refetchTemplates();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: `Erreur lors de la mise à jour : ${error.message}`,
+          variant: "destructive",
+        });
+      },
     },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: `Erreur lors de la mise à jour : ${error.message}`,
-        variant: 'destructive',
-      });
-    },
-  });
+  );
 
-  const deleteTemplateMutation = api.admin.contracts.deleteTemplate.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Template supprimé',
-        description: 'Le template de contrat a été supprimé avec succès.',
-      });
-      refetchTemplates();
+  const deleteTemplateMutation = api.admin.contracts.deleteTemplate.useMutation(
+    {
+      onSuccess: () => {
+        toast({
+          title: "Template supprimé",
+          description: "Le template de contrat a été supprimé avec succès.",
+        });
+        refetchTemplates();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: `Erreur lors de la suppression : ${error.message}`,
+          variant: "destructive",
+        });
+      },
     },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: `Erreur lors de la suppression : ${error.message}`,
-        variant: 'destructive',
-      });
-    },
-  });
+  );
 
-  const activateTemplateMutation = api.admin.contracts.activateTemplate.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Template activé',
-        description: 'Le template de contrat a été activé avec succès.',
-      });
-      refetchTemplates();
-    },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: `Erreur lors de l'activation : ${error.message}`,
-        variant: 'destructive',
-      });
-    },
-  });
+  const activateTemplateMutation =
+    api.admin.contracts.activateTemplate.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Template activé",
+          description: "Le template de contrat a été activé avec succès.",
+        });
+        refetchTemplates();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: `Erreur lors de l'activation : ${error.message}`,
+          variant: "destructive",
+        });
+      },
+    });
 
-  const deactivateTemplateMutation = api.admin.contracts.deactivateTemplate.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Template désactivé',
-        description: 'Le template de contrat a été désactivé avec succès.',
-      });
-      refetchTemplates();
-    },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: `Erreur lors de la désactivation : ${error.message}`,
-        variant: 'destructive',
-      });
-    },
-  });
+  const deactivateTemplateMutation =
+    api.admin.contracts.deactivateTemplate.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Template désactivé",
+          description: "Le template de contrat a été désactivé avec succès.",
+        });
+        refetchTemplates();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: `Erreur lors de la désactivation : ${error.message}`,
+          variant: "destructive",
+        });
+      },
+    });
 
   // Actions
   const createTemplate = (data: TemplateFormData) => {

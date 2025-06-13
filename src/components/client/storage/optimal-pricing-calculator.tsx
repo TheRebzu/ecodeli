@@ -1,14 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Euro, Calculator, Percent, Calendar, TrendingDown, Gift, Info, Check } from 'lucide-react';
-import { api } from '@/trpc/react';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+  Euro,
+  Calculator,
+  Percent,
+  Calendar,
+  TrendingDown,
+  Gift,
+  Info,
+  Check,
+} from "lucide-react";
+import { api } from "@/trpc/react";
 
 type OptimalPricingCalculatorProps = {
   boxId: string;
@@ -23,7 +38,7 @@ export function OptimalPricingCalculator({
   startDate,
   endDate,
   onPriceCalculated,
-  className = '',
+  className = "",
 }: OptimalPricingCalculatorProps) {
   const { data: session } = useSession();
 
@@ -41,7 +56,7 @@ export function OptimalPricingCalculator({
     {
       enabled: !!session?.user?.id && !!boxId && !!startDate && !!endDate,
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   useEffect(() => {
@@ -54,7 +69,9 @@ export function OptimalPricingCalculator({
     return (
       <Card className={className}>
         <CardContent className="flex items-center justify-center py-8">
-          <p className="text-muted-foreground">Connectez-vous pour voir le calcul de prix</p>
+          <p className="text-muted-foreground">
+            Connectez-vous pour voir le calcul de prix
+          </p>
         </CardContent>
       </Card>
     );
@@ -96,7 +113,8 @@ export function OptimalPricingCalculator({
 
   const hasDiscounts = pricing.discounts && pricing.discounts.length > 0;
   const totalSavings = pricing.totalDiscounts || 0;
-  const savingsPercentage = pricing.basePrice > 0 ? (totalSavings / pricing.basePrice) * 100 : 0;
+  const savingsPercentage =
+    pricing.basePrice > 0 ? (totalSavings / pricing.basePrice) * 100 : 0;
 
   return (
     <Card className={className}>
@@ -105,7 +123,9 @@ export function OptimalPricingCalculator({
           <Calculator className="h-5 w-5" />
           Calcul du prix optimal
         </CardTitle>
-        <CardDescription>Prix personnalisé basé sur votre profil client</CardDescription>
+        <CardDescription>
+          Prix personnalisé basé sur votre profil client
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Résumé principal */}
@@ -118,14 +138,16 @@ export function OptimalPricingCalculator({
               </span>
             </div>
             <div className="text-sm text-muted-foreground">
-              Prix total TTC pour {pricing.days} jour{pricing.days > 1 ? 's' : ''}
+              Prix total TTC pour {pricing.days} jour
+              {pricing.days > 1 ? "s" : ""}
             </div>
 
             {hasDiscounts && (
               <div className="flex items-center justify-center gap-2 text-green-600">
                 <TrendingDown className="h-4 w-4" />
                 <span className="font-medium">
-                  Vous économisez {totalSavings.toFixed(2)}€ ({savingsPercentage.toFixed(0)}%)
+                  Vous économisez {totalSavings.toFixed(2)}€ (
+                  {savingsPercentage.toFixed(0)}%)
                 </span>
               </div>
             )}
@@ -149,7 +171,10 @@ export function OptimalPricingCalculator({
                   Remises appliquées
                 </div>
                 {pricing.discounts.map((discount: any, index: number) => (
-                  <div key={index} className="flex justify-between items-center text-sm">
+                  <div
+                    key={index}
+                    className="flex justify-between items-center text-sm"
+                  >
                     <div className="flex items-center gap-2">
                       <Check className="h-3 w-3 text-green-500" />
                       <span>{discount.description}</span>
@@ -167,7 +192,9 @@ export function OptimalPricingCalculator({
           {/* Sous-total et TVA */}
           <div className="flex justify-between items-center">
             <span>Prix HT</span>
-            <span className="font-medium">{pricing.priceBeforeVat.toFixed(2)}€</span>
+            <span className="font-medium">
+              {pricing.priceBeforeVat.toFixed(2)}€
+            </span>
           </div>
 
           <div className="flex justify-between items-center text-sm text-muted-foreground">
@@ -189,17 +216,17 @@ export function OptimalPricingCalculator({
             <Info className="h-4 w-4 text-muted-foreground mt-0.5" />
             <div className="space-y-1 text-sm">
               <div>
-                <span className="font-medium">Prix par jour :</span>{' '}
+                <span className="font-medium">Prix par jour :</span>{" "}
                 {pricing.pricePerDay.toFixed(2)}€
               </div>
               <div>
                 <span className="font-medium">Durée :</span> {pricing.days} jour
-                {pricing.days > 1 ? 's' : ''}
+                {pricing.days > 1 ? "s" : ""}
               </div>
               {hasDiscounts && (
                 <div className="text-green-600">
-                  <span className="font-medium">Économies totales :</span> {totalSavings.toFixed(2)}
-                  €
+                  <span className="font-medium">Économies totales :</span>{" "}
+                  {totalSavings.toFixed(2)}€
                 </div>
               )}
             </div>
@@ -212,12 +239,16 @@ export function OptimalPricingCalculator({
             <div className="flex items-start gap-2">
               <Percent className="h-4 w-4 text-blue-500 mt-0.5" />
               <div className="space-y-1 text-sm">
-                <div className="font-medium text-blue-700">Comment économiser davantage ?</div>
+                <div className="font-medium text-blue-700">
+                  Comment économiser davantage ?
+                </div>
                 <ul className="text-blue-600 space-y-1">
                   <li>• Réservez 14 jours à l'avance (5% de remise)</li>
                   <li>• Réservez pour 14+ jours (5% de remise)</li>
                   <li>• Réservez pour 30+ jours (10% de remise)</li>
-                  <li>• Effectuez plus de réservations (jusqu'à 15% de fidélité)</li>
+                  <li>
+                    • Effectuez plus de réservations (jusqu'à 15% de fidélité)
+                  </li>
                 </ul>
               </div>
             </div>
@@ -226,14 +257,18 @@ export function OptimalPricingCalculator({
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={() => window.print()}>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => window.print()}
+          >
             Imprimer le devis
           </Button>
           <Button
             className="flex-1"
             onClick={() => {
               // Action de réservation
-              console.log('Procéder à la réservation avec le prix:', pricing);
+              console.log("Procéder à la réservation avec le prix:", pricing);
             }}
           >
             Réserver maintenant

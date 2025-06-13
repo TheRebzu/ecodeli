@@ -1,31 +1,36 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Énumérations Zod correspondant aux énumérations Prisma
 export const AnnouncementStatusEnum = z.enum([
-  'DRAFT',
-  'PUBLISHED',
-  'IN_APPLICATION',
-  'ASSIGNED',
-  'IN_PROGRESS',
-  'DELIVERED',
-  'COMPLETED',
-  'PAID',
-  'PROBLEM',
-  'DISPUTE',
-  'CANCELLED',
+  "DRAFT",
+  "PUBLISHED",
+  "IN_APPLICATION",
+  "ASSIGNED",
+  "IN_PROGRESS",
+  "DELIVERED",
+  "COMPLETED",
+  "PAID",
+  "PROBLEM",
+  "DISPUTE",
+  "CANCELLED",
 ]);
 
 export const AnnouncementTypeEnum = z.enum([
-  'PACKAGE_DELIVERY',
-  'GROCERY_SHOPPING',
-  'PERSON_TRANSPORT',
-  'AIRPORT_TRANSFER',
-  'FOREIGN_PURCHASE',
-  'PET_CARE',
-  'HOME_SERVICES',
+  "PACKAGE_DELIVERY",
+  "GROCERY_SHOPPING",
+  "PERSON_TRANSPORT",
+  "AIRPORT_TRANSFER",
+  "FOREIGN_PURCHASE",
+  "PET_CARE",
+  "HOME_SERVICES",
 ]);
 
-export const AnnouncementPriorityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']);
+export const AnnouncementPriorityEnum = z.enum([
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "URGENT",
+]);
 
 // Type pour l'export (à utiliser dans les autres fichiers)
 export type AnnouncementStatus = z.infer<typeof AnnouncementStatusEnum>;
@@ -38,22 +43,24 @@ const gpsCoordinateSchema = z.number().min(-180).max(180);
 // Validation de la date (pas de dates passées)
 const futureDateSchema = z
   .date()
-  .refine(date => date >= new Date(new Date().setHours(0, 0, 0, 0)), {
+  .refine((date) => date >= new Date(new Date().setHours(0, 0, 0, 0)), {
     message: "La date doit être dans le futur ou aujourd'hui",
   });
 
 // Schéma pour les photos
-const photoSchema = z.string().url('URL de photo invalide');
+const photoSchema = z.string().url("URL de photo invalide");
 
 // Schéma de base pour une annonce
 const announcementBaseSchema = z.object({
   title: z
     .string()
-    .min(5, 'Le titre doit contenir au moins 5 caractères')
-    .max(100, 'Le titre ne peut pas dépasser 100 caractères'),
-  description: z.string().min(10, 'La description doit contenir au moins 10 caractères'),
+    .min(5, "Le titre doit contenir au moins 5 caractères")
+    .max(100, "Le titre ne peut pas dépasser 100 caractères"),
+  description: z
+    .string()
+    .min(10, "La description doit contenir au moins 10 caractères"),
   type: AnnouncementTypeEnum,
-  priority: AnnouncementPriorityEnum.optional().default('MEDIUM'),
+  priority: AnnouncementPriorityEnum.optional().default("MEDIUM"),
   pickupAddress: z.string().min(5, "L'adresse de collecte est requise"),
   pickupLongitude: z.number().optional(),
   pickupLatitude: z.number().optional(),
@@ -71,7 +78,10 @@ const announcementBaseSchema = z.object({
   deliveryDate: z.string().datetime().optional(),
   deliveryTimeWindow: z.string().optional(),
   isFlexible: z.boolean().default(false),
-  suggestedPrice: z.number().positive('Le prix proposé doit être supérieur à 0').optional(),
+  suggestedPrice: z
+    .number()
+    .positive("Le prix proposé doit être supérieur à 0")
+    .optional(),
   isNegotiable: z.boolean().default(true),
   tags: z.array(z.string()).default([]),
   photos: z.array(z.string().url("Format d'URL invalide")).default([]),
@@ -83,10 +93,10 @@ const announcementBaseSchema = z.object({
 // Schéma pour la création d'une annonce
 export const createAnnouncementSchema = announcementBaseSchema
   .extend({
-    clientId: z.string().cuid('ID client invalide'),
+    clientId: z.string().cuid("ID client invalide"),
   })
   .refine(
-    data => {
+    (data) => {
       // Vérifier que si pickupDate est fourni, il est dans le futur
       if (data.pickupDate) {
         return new Date(data.pickupDate) > new Date();
@@ -94,12 +104,12 @@ export const createAnnouncementSchema = announcementBaseSchema
       return true;
     },
     {
-      message: 'La date de collecte doit être dans le futur',
-      path: ['pickupDate'],
-    }
+      message: "La date de collecte doit être dans le futur",
+      path: ["pickupDate"],
+    },
   )
   .refine(
-    data => {
+    (data) => {
       // Vérifier que la date de livraison est après la date de collecte
       if (data.pickupDate && data.deliveryDate) {
         return new Date(data.deliveryDate) > new Date(data.pickupDate);
@@ -107,20 +117,23 @@ export const createAnnouncementSchema = announcementBaseSchema
       return true;
     },
     {
-      message: 'La date de livraison doit être postérieure à la date de collecte',
-      path: ['deliveryDate'],
-    }
+      message:
+        "La date de livraison doit être postérieure à la date de collecte",
+      path: ["deliveryDate"],
+    },
   );
 
 // Schéma pour la mise à jour d'une annonce
-export const updateAnnouncementSchema = announcementBaseSchema.partial().extend({
-  id: z.string().cuid("ID d'annonce invalide"),
-  status: AnnouncementStatusEnum.optional(),
-  finalPrice: z.number().positive().optional(),
-  delivererId: z.string().cuid('ID de livreur invalide').optional(),
-  cancelReason: z.string().optional(),
-  notes: z.string().optional(),
-});
+export const updateAnnouncementSchema = announcementBaseSchema
+  .partial()
+  .extend({
+    id: z.string().cuid("ID d'annonce invalide"),
+    status: AnnouncementStatusEnum.optional(),
+    finalPrice: z.number().positive().optional(),
+    delivererId: z.string().cuid("ID de livreur invalide").optional(),
+    cancelReason: z.string().optional(),
+    notes: z.string().optional(),
+  });
 
 // Schéma pour le changement de statut d'une annonce
 export const updateAnnouncementStatusSchema = z
@@ -131,17 +144,17 @@ export const updateAnnouncementStatusSchema = z
     cancelReason: z.string().optional(),
   })
   .refine(
-    data => {
+    (data) => {
       // Une raison d'annulation est requise lors de l'annulation
-      if (data.status === 'CANCELLED' && !data.cancelReason) {
+      if (data.status === "CANCELLED" && !data.cancelReason) {
         return false;
       }
       return true;
     },
     {
       message: "La raison d'annulation est requise lors de l'annulation",
-      path: ['cancelReason'],
-    }
+      path: ["cancelReason"],
+    },
   );
 
 // Schéma pour la recherche et le filtrage des annonces
@@ -162,9 +175,15 @@ export const searchAnnouncementSchema = z.object({
   requiresSignature: z.boolean().optional(),
   requiresId: z.boolean().optional(),
   orderBy: z
-    .enum(['createdAt', 'pickupDate', 'deliveryDate', 'suggestedPrice', 'applicationsCount'])
+    .enum([
+      "createdAt",
+      "pickupDate",
+      "deliveryDate",
+      "suggestedPrice",
+      "applicationsCount",
+    ])
     .optional(),
-  orderDirection: z.enum(['asc', 'desc']).optional(),
+  orderDirection: z.enum(["asc", "desc"]).optional(),
   page: z.number().int().positive().default(1),
   limit: z.number().int().min(1).max(100).default(20),
 });
@@ -172,8 +191,8 @@ export const searchAnnouncementSchema = z.object({
 // Schéma pour l'attribution d'une annonce à un livreur
 export const assignDelivererSchema = z.object({
   announcementId: z.string().cuid("ID d'annonce invalide"),
-  delivererId: z.string().cuid('ID de livreur invalide'),
-  finalPrice: z.number().positive('Le prix final doit être supérieur à 0'),
+  delivererId: z.string().cuid("ID de livreur invalide"),
+  finalPrice: z.number().positive("Le prix final doit être supérieur à 0"),
   notes: z.string().optional(),
 });
 
@@ -181,8 +200,8 @@ export const assignDelivererSchema = z.object({
 export const announcementStatsSchema = z.object({
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
-  clientId: z.string().cuid('ID client invalide').optional(),
-  delivererId: z.string().cuid('ID de livreur invalide').optional(),
+  clientId: z.string().cuid("ID client invalide").optional(),
+  delivererId: z.string().cuid("ID de livreur invalide").optional(),
   type: AnnouncementTypeEnum.optional(),
 });
 
@@ -211,8 +230,8 @@ export const announcementFilterSchema = z.object({
       radius: z.number().positive(),
     })
     .optional(),
-  sortBy: z.enum(['date', 'price', 'distance', 'rating']).optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional(),
+  sortBy: z.enum(["date", "price", "distance", "rating"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   page: z.number().int().positive().default(1),
   limit: z.number().int().min(1).max(100).default(10),
 });
@@ -220,13 +239,13 @@ export const announcementFilterSchema = z.object({
 // Schéma pour les candidatures de livreurs
 export const createAnnouncementApplicationSchema = z.object({
   announcementId: z.string().cuid("ID d'annonce invalide"),
-  delivererId: z.string().cuid('ID de livreur invalide'),
-  proposedPrice: z.number().positive('Le prix proposé doit être supérieur à 0'),
+  delivererId: z.string().cuid("ID de livreur invalide"),
+  proposedPrice: z.number().positive("Le prix proposé doit être supérieur à 0"),
   estimatedDeliveryTime: z.string().datetime().optional(),
   message: z
     .string()
     .min(10, "Veuillez fournir un message d'au moins 10 caractères")
-    .max(500, 'Le message ne peut pas dépasser 500 caractères'),
+    .max(500, "Le message ne peut pas dépasser 500 caractères"),
   hasRequiredEquipment: z.boolean().default(true),
   canPickupAtScheduledTime: z.boolean().default(true),
 });
@@ -234,13 +253,13 @@ export const createAnnouncementApplicationSchema = z.object({
 // Schéma pour le retrait de candidature
 export const withdrawApplicationSchema = z.object({
   announcementId: z.string().cuid("ID d'annonce invalide"),
-  applicationId: z.string().cuid('ID de candidature invalide'),
+  applicationId: z.string().cuid("ID de candidature invalide"),
 });
 
 // Schéma pour l'attribution d'un livreur à une annonce (version simplifiée pour le store)
 export const assignDelivererSimpleSchema = z.object({
   announcementId: z.string().cuid("ID d'annonce invalide"),
-  applicationId: z.string().cuid('ID de candidature invalide'),
+  applicationId: z.string().cuid("ID de candidature invalide"),
 });
 
 // Schéma pour la publication d'une annonce
@@ -257,16 +276,26 @@ export const cancelAnnouncementSchema = z.object({
 // Type pour l'export
 export type CreateAnnouncementInput = z.infer<typeof createAnnouncementSchema>;
 export type UpdateAnnouncementInput = z.infer<typeof updateAnnouncementSchema>;
-export type UpdateAnnouncementStatusInput = z.infer<typeof updateAnnouncementStatusSchema>;
+export type UpdateAnnouncementStatusInput = z.infer<
+  typeof updateAnnouncementStatusSchema
+>;
 export type SearchAnnouncementInput = z.infer<typeof searchAnnouncementSchema>;
 export type AssignDelivererInput = z.infer<typeof assignDelivererSchema>;
 export type AnnouncementStatsInput = z.infer<typeof announcementStatsSchema>;
-export type GetAnnouncementDetailInput = z.infer<typeof getAnnouncementDetailSchema>;
+export type GetAnnouncementDetailInput = z.infer<
+  typeof getAnnouncementDetailSchema
+>;
 export type AnnouncementFilterInput = z.infer<typeof announcementFilterSchema>;
 export type CreateAnnouncementApplicationInput = z.infer<
   typeof createAnnouncementApplicationSchema
 >;
-export type WithdrawApplicationInput = z.infer<typeof withdrawApplicationSchema>;
-export type AssignDelivererSimpleInput = z.infer<typeof assignDelivererSimpleSchema>;
-export type PublishAnnouncementInput = z.infer<typeof publishAnnouncementSchema>;
+export type WithdrawApplicationInput = z.infer<
+  typeof withdrawApplicationSchema
+>;
+export type AssignDelivererSimpleInput = z.infer<
+  typeof assignDelivererSimpleSchema
+>;
+export type PublishAnnouncementInput = z.infer<
+  typeof publishAnnouncementSchema
+>;
 export type CancelAnnouncementInput = z.infer<typeof cancelAnnouncementSchema>;

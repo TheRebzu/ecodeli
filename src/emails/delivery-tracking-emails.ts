@@ -523,7 +523,7 @@ export const deliveryCompletedTemplate = `
 // Fonction helper pour remplacer les variables dans les templates
 export const renderTemplate = (
   template: string,
-  data: Record<string, string | number | undefined>
+  data: Record<string, string | number | undefined>,
 ) => {
   // Ajouter l'année courante si non fournie
   if (!data.year) {
@@ -532,23 +532,23 @@ export const renderTemplate = (
 
   // Ajouter l'URL de base de l'application si non fournie
   if (!data.appUrl) {
-    data.appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ecodeli.me';
+    data.appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ecodeli.me";
   }
 
   // Remplacer les variables {{var}} dans le template
   let renderedTemplate = template;
   for (const [key, value] of Object.entries(data)) {
     if (value !== undefined) {
-      const regex = new RegExp(`{{${key}}}`, 'g');
+      const regex = new RegExp(`{{${key}}}`, "g");
       renderedTemplate = renderedTemplate.replace(regex, String(value));
     }
   }
 
   // Traitement des conditionnels {{#if var}}...{{/if}}
-  Object.keys(data).forEach(key => {
-    const ifRegex = new RegExp(`{{#if ${key}}}([\\s\\S]*?){{/if}}`, 'g');
+  Object.keys(data).forEach((key) => {
+    const ifRegex = new RegExp(`{{#if ${key}}}([\\s\\S]*?){{/if}}`, "g");
     renderedTemplate = renderedTemplate.replace(ifRegex, (match, content) => {
-      return data[key] ? content : '';
+      return data[key] ? content : "";
     });
   });
 

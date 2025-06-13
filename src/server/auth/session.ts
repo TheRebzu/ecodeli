@@ -1,8 +1,8 @@
-import { PrismaClient } from '@prisma/client';
-import { TRPCError } from '@trpc/server';
-import { db } from '@/server/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
+import { PrismaClient } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { db } from "@/server/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/auth/next-auth";
 
 const prisma = db;
 
@@ -15,8 +15,8 @@ export async function verifyToken(token: string) {
   try {
     // Si le token est un token nextauth (utilisé pour les sockets),
     // vérifier la session directement
-    if (token.startsWith('nextauth:')) {
-      const sessionToken = token.replace('nextauth:', '');
+    if (token.startsWith("nextauth:")) {
+      const sessionToken = token.replace("nextauth:", "");
       const session = await db.session.findUnique({
         where: { sessionToken },
         include: {
@@ -41,7 +41,7 @@ export async function verifyToken(token: string) {
     // Mais pour l'instant, on refuse les autres types de tokens
     return null;
   } catch (error) {
-    console.error('Erreur lors de la vérification du token socket:', error);
+    console.error("Erreur lors de la vérification du token socket:", error);
     return null;
   }
 }

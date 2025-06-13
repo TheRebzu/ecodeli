@@ -1,27 +1,43 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
-import { UserFilters } from '@/types/actors/admin';
-import UserStatsAdvanced from '@/components/admin/users/user-stats-advanced';
-import UserBulkActions from '@/components/admin/users/user-bulk-actions';
-import UserTable from '@/components/admin/users/user-table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { AlertCircleIcon, DownloadIcon, PlusIcon, UsersIcon } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { api } from "@/trpc/react";
+import { UserFilters } from "@/types/actors/admin";
+import UserStatsAdvanced from "@/components/admin/users/user-stats-advanced";
+import UserBulkActions from "@/components/admin/users/user-bulk-actions";
+import UserTable from "@/components/admin/users/user-table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  AlertCircleIcon,
+  DownloadIcon,
+  PlusIcon,
+  UsersIcon,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AdminUsersPage() {
-  const t = useTranslations('Admin.verification.users');
+  const t = useTranslations("Admin.verification.users");
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('list');
+  const [activeTab, setActiveTab] = useState<string>("list");
   const [filters, setFilters] = useState<UserFilters>({});
 
   // Test : désactiver statsQuery temporairement
-  const statsQuery = { data: null, isLoading: false, isError: false, error: null };
+  const statsQuery = {
+    data: null,
+    isLoading: false,
+    isError: false,
+    error: null,
+  };
 
   // Récupération des utilisateurs avec filtres - ISOLÉE
   const usersQuery = api.adminUser.getUsers.useQuery({
@@ -32,7 +48,7 @@ export default function AdminUsersPage() {
 
   // Debugging léger pour monitoring
   useEffect(() => {
-    console.log('🔍 [CLIENT] usersQuery.data:', usersQuery.data);
+    console.log("🔍 [CLIENT] usersQuery.data:", usersQuery.data);
   }, [usersQuery.data]);
 
   // Gérer la sélection des utilisateurs
@@ -51,8 +67,8 @@ export default function AdminUsersPage() {
     <div className="container mx-auto py-6 space-y-8">
       <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground">{t('subtitle')}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
@@ -83,9 +99,9 @@ export default function AdminUsersPage() {
           <TabsList>
             <TabsTrigger value="list" className="flex items-center">
               <UsersIcon className="mr-2 h-4 w-4" />
-              {t('tabs.all')}
+              {t("tabs.all")}
             </TabsTrigger>
-            <TabsTrigger value="stats">{t('stats.title')}</TabsTrigger>
+            <TabsTrigger value="stats">{t("stats.title")}</TabsTrigger>
           </TabsList>
         </div>
 
@@ -93,12 +109,14 @@ export default function AdminUsersPage() {
           {statsQuery.isLoading || usersQuery.isLoading ? (
             <Card>
               <CardHeader>
-                <CardTitle>{t('title')}</CardTitle>
-                <CardDescription>{t('subtitle')}</CardDescription>
+                <CardTitle>{t("title")}</CardTitle>
+                <CardDescription>{t("subtitle")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex h-[400px] items-center justify-center">
-                  <p className="text-sm text-muted-foreground">Chargement des utilisateurs...</p>
+                  <p className="text-sm text-muted-foreground">
+                    Chargement des utilisateurs...
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -107,45 +125,66 @@ export default function AdminUsersPage() {
               <AlertCircleIcon className="h-4 w-4" />
               <AlertTitle>Erreur</AlertTitle>
               <AlertDescription>
-                Impossible de charger les utilisateurs. Veuillez réessayer ultérieurement.
-                {statsQuery.error && <div className="mt-2 text-xs">{statsQuery.error.message}</div>}
-                {usersQuery.error && <div className="mt-2 text-xs">{usersQuery.error.message}</div>}
+                Impossible de charger les utilisateurs. Veuillez réessayer
+                ultérieurement.
+                {statsQuery.error && (
+                  <div className="mt-2 text-xs">{statsQuery.error.message}</div>
+                )}
+                {usersQuery.error && (
+                  <div className="mt-2 text-xs">{usersQuery.error.message}</div>
+                )}
               </AlertDescription>
             </Alert>
           ) : (
             <div className="space-y-4">
               <Card>
                 <CardHeader className="p-4">
-                  <CardTitle className="text-xl">{t('quickStats')}</CardTitle>
+                  <CardTitle className="text-xl">{t("quickStats")}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">Total utilisateurs</span>
+                      <span className="text-sm text-muted-foreground">
+                        Total utilisateurs
+                      </span>
                       <span className="text-2xl font-bold">
-                        {usersQuery.data?.json?.total || usersQuery.data?.total || 0}
+                        {usersQuery.data?.json?.total ||
+                          usersQuery.data?.total ||
+                          0}
                       </span>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">Utilisateurs actifs</span>
+                      <span className="text-sm text-muted-foreground">
+                        Utilisateurs actifs
+                      </span>
                       <span className="text-2xl font-bold">
                         {
-                          (usersQuery.data?.json?.users || usersQuery.data?.users || []).filter(
-                            u => u.status === 'ACTIVE'
-                          ).length
+                          (
+                            usersQuery.data?.json?.users ||
+                            usersQuery.data?.users ||
+                            []
+                          ).filter((u) => u.status === "ACTIVE").length
                         }
                       </span>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">Page actuelle</span>
+                      <span className="text-sm text-muted-foreground">
+                        Page actuelle
+                      </span>
                       <span className="text-2xl font-bold">
-                        {usersQuery.data?.json?.page || usersQuery.data?.page || 1}
+                        {usersQuery.data?.json?.page ||
+                          usersQuery.data?.page ||
+                          1}
                       </span>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">Pages totales</span>
+                      <span className="text-sm text-muted-foreground">
+                        Pages totales
+                      </span>
                       <span className="text-2xl font-bold">
-                        {usersQuery.data?.json?.totalPages || usersQuery.data?.totalPages || 1}
+                        {usersQuery.data?.json?.totalPages ||
+                          usersQuery.data?.totalPages ||
+                          1}
                       </span>
                     </div>
                   </div>
@@ -154,7 +193,9 @@ export default function AdminUsersPage() {
 
               {/* Table des utilisateurs */}
               <UserTable
-                users={usersQuery.data?.json?.users || usersQuery.data?.users || []}
+                users={
+                  usersQuery.data?.json?.users || usersQuery.data?.users || []
+                }
                 selectedUserIds={selectedUserIds}
                 onSelectionChange={handleUserSelection}
                 isLoading={usersQuery.isLoading}
@@ -164,16 +205,21 @@ export default function AdminUsersPage() {
               <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-xs">
                 <strong>🔍 DEBUG - Données passées au UserTable:</strong>
                 <br />
-                <strong>Raw usersQuery.data:</strong> {JSON.stringify(usersQuery.data)}
+                <strong>Raw usersQuery.data:</strong>{" "}
+                {JSON.stringify(usersQuery.data)}
                 <br />
                 <strong>Type:</strong> {typeof usersQuery.data}
                 <br />
-                <strong>Keys:</strong>{' '}
-                {usersQuery.data ? Object.keys(usersQuery.data).join(', ') : 'null'}
+                <strong>Keys:</strong>{" "}
+                {usersQuery.data
+                  ? Object.keys(usersQuery.data).join(", ")
+                  : "null"}
                 <br />
-                <strong>users property:</strong> {JSON.stringify(usersQuery.data?.users)}
+                <strong>users property:</strong>{" "}
+                {JSON.stringify(usersQuery.data?.users)}
                 <br />
-                <strong>users length:</strong> {usersQuery.data?.users?.length || 'undefined'}
+                <strong>users length:</strong>{" "}
+                {usersQuery.data?.users?.length || "undefined"}
                 <br />
                 isLoading: {usersQuery.isLoading.toString()}
                 <br />
@@ -186,7 +232,7 @@ export default function AdminUsersPage() {
         <TabsContent value="stats">
           <UserStatsAdvanced
             initialFilters={{
-              period: 'MONTH',
+              period: "MONTH",
               compareWithPrevious: true,
               breakdownByRole: true,
               breakdownByStatus: true,

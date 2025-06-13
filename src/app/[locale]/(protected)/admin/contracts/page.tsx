@@ -1,18 +1,18 @@
-﻿'use client';
+﻿"use client";
 
-import { useState } from 'react';
-import { Metadata } from 'next';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Plus, FileText, Loader2 } from 'lucide-react';
-import { useAdminContracts } from '@/hooks/admin/use-admin-contracts';
+import { useState } from "react";
+import { Metadata } from "next";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Plus, FileText, Loader2 } from "lucide-react";
+import { useAdminContracts } from "@/hooks/admin/use-admin-contracts";
 import {
   ContractsStats,
   ContractsFilters,
   ContractsList,
   ContractFormModal,
-} from '@/components/admin/contracts';
+} from "@/components/admin/contracts";
 
 // export const metadata: Metadata = {
 //   title: 'Gestion des Contrats - Administration EcoDeli',
@@ -70,9 +70,12 @@ export default function AdminContractsPage() {
       {/* En-tête de la page */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">Gestion des Contrats</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Gestion des Contrats
+          </h1>
           <p className="text-muted-foreground">
-            Gérez les contrats commerçants, négociations et conditions commerciales
+            Gérez les contrats commerçants, négociations et conditions
+            commerciales
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -134,10 +137,10 @@ export default function AdminContractsPage() {
             <CardContent className="flex items-center justify-center p-6">
               <Loader2 className="h-6 w-6 animate-spin mr-3" />
               <span className="text-sm">
-                {isDeleting && 'Suppression en cours...'}
-                {isActivating && 'Activation en cours...'}
-                {isSuspending && 'Suspension en cours...'}
-                {isGeneratingPdf && 'Génération du PDF...'}
+                {isDeleting && "Suppression en cours..."}
+                {isActivating && "Activation en cours..."}
+                {isSuspending && "Suspension en cours..."}
+                {isGeneratingPdf && "Génération du PDF..."}
               </span>
             </CardContent>
           </Card>
@@ -158,7 +161,7 @@ export default function AdminContractsPage() {
       />
 
       {/* Informations de debug en mode développement */}
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <Card className="border-dashed">
           <CardHeader>
             <CardTitle className="text-sm text-muted-foreground">
@@ -172,14 +175,25 @@ export default function AdminContractsPage() {
             </div>
             <div>Filtres actifs: {Object.keys(filters).length}</div>
             <div>
-              Statistiques: {stats ? `Chargées (total: ${stats.totalContracts})` : 'En cours...'}
+              Statistiques:{" "}
+              {stats
+                ? `Chargées (total: ${stats.totalContracts})`
+                : "En cours..."}
             </div>
             <div>Commerçants: {merchants.length} disponibles</div>
             <div>États de chargement:</div>
-            <div className="ml-2">- Contrats: {isLoadingContracts ? 'Chargement...' : 'OK'}</div>
-            <div className="ml-2">- Stats: {isLoadingStats ? 'Chargement...' : 'OK'}</div>
-            <div className="ml-2">- Commerçants: {isLoadingMerchants ? 'Chargement...' : 'OK'}</div>
-            {editingContract && <div>Édition: {editingContract.contractNumber}</div>}
+            <div className="ml-2">
+              - Contrats: {isLoadingContracts ? "Chargement..." : "OK"}
+            </div>
+            <div className="ml-2">
+              - Stats: {isLoadingStats ? "Chargement..." : "OK"}
+            </div>
+            <div className="ml-2">
+              - Commerçants: {isLoadingMerchants ? "Chargement..." : "OK"}
+            </div>
+            {editingContract && (
+              <div>Édition: {editingContract.contractNumber}</div>
+            )}
           </CardContent>
         </Card>
       )}

@@ -4,8 +4,8 @@
  */
 
 // Exports des fichiers locaux
-export * from './contract-base';
-export * from './merchant-contract';
-export * from './negotiation';
-export * from './provider-contract';
-export * from './terms';
+export * from "./contract-base";
+export * from "./merchant-contract";
+export * from "./negotiation";
+export * from "./provider-contract";
+export * from "./terms";

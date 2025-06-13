@@ -1,15 +1,18 @@
-import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import type { UserRole } from '@prisma/client';
-import { useAuth } from '@/hooks/auth/use-auth';
-import { useToast } from '@/components/ui/use-toast';
+import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import type { UserRole } from "@prisma/client";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { useToast } from "@/components/ui/use-toast";
 
 /**
  * Hook pour protéger les routes basées sur les rôles d'utilisateur
  * @param allowedRoles Tableau des rôles autorisés à accéder à la route
  * @param redirectTo Chemin de redirection en cas d'accès non autorisé (par défaut: / ou dashboard approprié)
  */
-export function useRoleProtection(allowedRoles: UserRole[] = [], redirectTo?: string) {
+export function useRoleProtection(
+  allowedRoles: UserRole[] = [],
+  redirectTo?: string,
+) {
   const { user, role, status, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -17,10 +20,10 @@ export function useRoleProtection(allowedRoles: UserRole[] = [], redirectTo?: st
 
   useEffect(() => {
     // Ne rien faire pendant le chargement
-    if (isLoading || status === 'loading') return;
+    if (isLoading || status === "loading") return;
 
     // Si l'utilisateur n'est pas authentifié, rediriger vers la page de connexion
-    if (status === 'unauthenticated') {
+    if (status === "unauthenticated") {
       router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
       return;
     }
@@ -29,9 +32,10 @@ export function useRoleProtection(allowedRoles: UserRole[] = [], redirectTo?: st
     if (allowedRoles.length > 0 && role && !allowedRoles.includes(role)) {
       // Afficher une notification
       toast({
-        title: 'Accès refusé',
-        description: "Vous n'avez pas les autorisations nécessaires pour accéder à cette page.",
-        variant: 'destructive',
+        title: "Accès refusé",
+        description:
+          "Vous n'avez pas les autorisations nécessaires pour accéder à cette page.",
+        variant: "destructive",
       });
 
       // Rediriger vers la page spécifiée ou le dashboard approprié
@@ -41,16 +45,26 @@ export function useRoleProtection(allowedRoles: UserRole[] = [], redirectTo?: st
         const dashboardPath = getDashboardByRole(role);
         router.push(dashboardPath);
       } else {
-        router.push('/');
+        router.push("/");
       }
     }
-  }, [role, isLoading, status, allowedRoles, router, pathname, redirectTo, toast]);
+  }, [
+    role,
+    isLoading,
+    status,
+    allowedRoles,
+    router,
+    pathname,
+    redirectTo,
+    toast,
+  ]);
 
   // Retourner les informations utiles au composant
   return {
     role,
     isLoading,
-    isAuthorized: !role || allowedRoles.length === 0 || allowedRoles.includes(role),
+    isAuthorized:
+      !role || allowedRoles.length === 0 || allowedRoles.includes(role),
     user,
   };
 }
@@ -60,17 +74,17 @@ export function useRoleProtection(allowedRoles: UserRole[] = [], redirectTo?: st
  */
 function getDashboardByRole(role: UserRole): string {
   switch (role) {
-    case 'CLIENT':
-      return '/client';
-    case 'DELIVERER':
-      return '/deliverer';
-    case 'MERCHANT':
-      return '/merchant';
-    case 'PROVIDER':
-      return '/provider';
-    case 'ADMIN':
-      return '/admin';
+    case "CLIENT":
+      return "/client";
+    case "DELIVERER":
+      return "/deliverer";
+    case "MERCHANT":
+      return "/merchant";
+    case "PROVIDER":
+      return "/provider";
+    case "ADMIN":
+      return "/admin";
     default:
-      return '/';
+      return "/";
   }
 }

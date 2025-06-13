@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSocket } from '@/hooks/system/use-socket';
-import { api } from '@/trpc/react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSocket } from "@/hooks/system/use-socket";
+import { api } from "@/trpc/react";
 
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LineChart,
   Line,
@@ -22,7 +22,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 
 // Icons
 import {
@@ -51,7 +51,7 @@ import {
   Target,
   Bell,
   MessageSquare,
-} from 'lucide-react';
+} from "lucide-react";
 
 // Types
 interface ProviderStats {
@@ -75,7 +75,7 @@ interface Appointment {
   duration: number;
   price: number;
   address: string;
-  status: 'SCHEDULED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: "SCHEDULED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   isUrgent: boolean;
   notes?: string;
 }
@@ -95,7 +95,7 @@ type ProviderDashboardProps = {
 
 // Utilitaire pour les classes CSS
 function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(" ");
 }
 
 // Composant de carte de statistique
@@ -106,8 +106,8 @@ const StatCard = ({
   trend,
   isLoading = false,
   onClick,
-  color = 'text-primary',
-  bgColor = 'bg-primary/10',
+  color = "text-primary",
+  bgColor = "bg-primary/10",
   subtitle,
 }: {
   title: string;
@@ -122,11 +122,15 @@ const StatCard = ({
 }) => {
   if (isLoading) {
     return (
-      <Card className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}>
+      <Card
+        className={
+          onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+        }
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className={cn('p-3 rounded-full', bgColor)}>
+              <div className={cn("p-3 rounded-full", bgColor)}>
                 <div className="h-5 w-5 bg-gray-300 animate-pulse rounded" />
               </div>
               <div>
@@ -143,26 +147,32 @@ const StatCard = ({
 
   return (
     <Card
-      className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
+      className={
+        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+      }
       onClick={onClick}
     >
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className={cn('p-3 rounded-full', bgColor)}>
+            <div className={cn("p-3 rounded-full", bgColor)}>
               <div className={color}>{icon}</div>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {title}
+              </p>
               <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
-              {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+              {subtitle && (
+                <p className="text-xs text-muted-foreground">{subtitle}</p>
+              )}
             </div>
           </div>
           {trend && (
             <div className="text-right">
               <p
                 className={`text-xs flex items-center gap-1 ${
-                  trend.value >= 0 ? 'text-green-600' : 'text-red-600'
+                  trend.value >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {trend.value >= 0 ? (
@@ -170,7 +180,7 @@ const StatCard = ({
                 ) : (
                   <TrendingDown className="h-3 w-3" />
                 )}
-                {trend.value >= 0 ? '+' : ''}
+                {trend.value >= 0 ? "+" : ""}
                 {trend.value}%
               </p>
               <p className="text-xs text-muted-foreground">{trend.label}</p>
@@ -192,26 +202,26 @@ const AppointmentCard = ({
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'SCHEDULED':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200';
-      case 'CONFIRMED':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200';
-      case 'IN_PROGRESS':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200';
-      case 'COMPLETED':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200';
+      case "SCHEDULED":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200";
+      case "CONFIRMED":
+        return "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200";
+      case "IN_PROGRESS":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200";
+      case "COMPLETED":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200";
     }
   };
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      SCHEDULED: 'Planifié',
-      CONFIRMED: 'Confirmé',
-      IN_PROGRESS: 'En cours',
-      COMPLETED: 'Terminé',
-      CANCELLED: 'Annulé',
+      SCHEDULED: "Planifié",
+      CONFIRMED: "Confirmé",
+      IN_PROGRESS: "En cours",
+      COMPLETED: "Terminé",
+      CANCELLED: "Annulé",
     };
     return labels[status] || status;
   };
@@ -232,14 +242,20 @@ const AppointmentCard = ({
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">{appointment.serviceName}</p>
-            <Badge className={cn('text-xs mt-1', getStatusColor(appointment.status))}>
+            <p className="text-xs text-muted-foreground">
+              {appointment.serviceName}
+            </p>
+            <Badge
+              className={cn("text-xs mt-1", getStatusColor(appointment.status))}
+            >
               {getStatusLabel(appointment.status)}
             </Badge>
           </div>
           <div className="text-right">
             <p className="font-bold text-sm">{appointment.price}€</p>
-            <p className="text-xs text-muted-foreground">{appointment.duration}min</p>
+            <p className="text-xs text-muted-foreground">
+              {appointment.duration}min
+            </p>
           </div>
         </div>
 
@@ -272,15 +288,19 @@ const EvaluationCard = ({ evaluation }: { evaluation: RecentEvaluation }) => {
         <div className="flex items-start justify-between mb-2">
           <div>
             <h4 className="font-medium text-sm">{evaluation.clientName}</h4>
-            <p className="text-xs text-muted-foreground">{evaluation.serviceName}</p>
+            <p className="text-xs text-muted-foreground">
+              {evaluation.serviceName}
+            </p>
           </div>
           <div className="flex items-center gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
                 className={cn(
-                  'h-3 w-3',
-                  i < evaluation.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                  "h-3 w-3",
+                  i < evaluation.rating
+                    ? "fill-yellow-400 text-yellow-400"
+                    : "text-gray-300",
                 )}
               />
             ))}
@@ -308,31 +328,31 @@ const QuickActionsSection = () => {
   const quickActions = [
     {
       icon: <Calendar className="h-5 w-5" />,
-      label: 'Planning',
-      description: 'Gérer les créneaux',
-      action: () => router.push('/provider/schedule'),
-      color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/50',
+      label: "Planning",
+      description: "Gérer les créneaux",
+      action: () => router.push("/provider/schedule"),
+      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50",
     },
     {
       icon: <Plus className="h-5 w-5" />,
-      label: 'Nouveau service',
-      description: 'Ajouter une prestation',
-      action: () => router.push('/provider/services/create'),
-      color: 'text-green-600 bg-green-100 dark:bg-green-900/50',
+      label: "Nouveau service",
+      description: "Ajouter une prestation",
+      action: () => router.push("/provider/services/create"),
+      color: "text-green-600 bg-green-100 dark:bg-green-900/50",
     },
     {
       icon: <BarChart3 className="h-5 w-5" />,
-      label: 'Statistiques',
-      description: 'Voir les performances',
-      action: () => router.push('/provider/stats'),
-      color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/50',
+      label: "Statistiques",
+      description: "Voir les performances",
+      action: () => router.push("/provider/stats"),
+      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50",
     },
     {
       icon: <FileText className="h-5 w-5" />,
-      label: 'Factures',
-      description: 'Gestion facturation',
-      action: () => router.push('/provider/invoices'),
-      color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/50',
+      label: "Factures",
+      description: "Gestion facturation",
+      action: () => router.push("/provider/invoices"),
+      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50",
     },
   ];
 
@@ -353,10 +373,14 @@ const QuickActionsSection = () => {
               className="h-auto flex-col p-4 space-y-2"
               onClick={action.action}
             >
-              <div className={cn('p-2 rounded-lg', action.color)}>{action.icon}</div>
+              <div className={cn("p-2 rounded-lg", action.color)}>
+                {action.icon}
+              </div>
               <div className="text-center">
                 <p className="font-medium text-sm">{action.label}</p>
-                <p className="text-xs text-muted-foreground">{action.description}</p>
+                <p className="text-xs text-muted-foreground">
+                  {action.description}
+                </p>
               </div>
             </Button>
           ))}
@@ -369,7 +393,8 @@ const QuickActionsSection = () => {
 export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
   const router = useRouter();
   const { socket } = useSocket();
-  const [realtimeStats, setRealtimeStats] = useState<Partial<ProviderStats> | null>(null);
+  const [realtimeStats, setRealtimeStats] =
+    useState<Partial<ProviderStats> | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   // Récupérer les données du dashboard
@@ -382,41 +407,42 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
   const { data: upcomingAppointments, isLoading: isLoadingAppointments } =
     api.provider.getUpcomingAppointments.useQuery({ limit: 5 });
 
-  const { data: recentEvaluations } = api.provider.getRecentEvaluations.useQuery({ limit: 3 });
+  const { data: recentEvaluations } =
+    api.provider.getRecentEvaluations.useQuery({ limit: 3 });
 
   const { data: performanceChart } = api.provider.getPerformanceChart.useQuery({
-    period: 'month',
+    period: "month",
   });
 
   // Socket.io pour les mises à jour temps réel
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('disconnect', () => setIsConnected(false));
+    socket.on("connect", () => setIsConnected(true));
+    socket.on("disconnect", () => setIsConnected(false));
 
     // Écouter les nouveaux rendez-vous
-    socket.on('provider:new:appointment', appointment => {
+    socket.on("provider:new:appointment", (appointment) => {
       refetchStats();
       // Afficher notification
     });
 
     // Écouter les mises à jour de stats
-    socket.on('provider:stats:update', data => {
+    socket.on("provider:stats:update", (data) => {
       setRealtimeStats(data);
     });
 
     // Écouter les évaluations
-    socket.on('provider:new:evaluation', evaluation => {
+    socket.on("provider:new:evaluation", (evaluation) => {
       // Afficher notification d'évaluation
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('provider:new:appointment');
-      socket.off('provider:stats:update');
-      socket.off('provider:new:evaluation');
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("provider:new:appointment");
+      socket.off("provider:stats:update");
+      socket.off("provider:new:evaluation");
     };
   }, [socket, refetchStats]);
 
@@ -424,68 +450,17 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
     router.push(`/provider/appointments/${appointmentId}`);
   };
 
-  // Données mockées pour la démonstration
-  const mockStats: ProviderStats = {
-    weekAppointments: stats?.weekAppointments || 5,
-    monthlyRevenue: stats?.monthlyRevenue || 2340,
-    clientsServed: stats?.clientsServed || 18,
-    averageRating: stats?.averageRating || 4.8,
-    completionRate: stats?.completionRate || 96,
-    nextWeekBookings: stats?.nextWeekBookings || 8,
-    pendingInterventions: stats?.pendingInterventions || 2,
-    unreadMessages: stats?.unreadMessages || 3,
-  };
-
-  const mockAppointments: Appointment[] = upcomingAppointments || [
-    {
-      id: '1',
-      clientName: 'Jean Dupont',
-      clientPhone: '+33 6 12 34 56 78',
-      serviceName: 'Plomberie',
-      serviceDescription: 'Réparation fuite robinet',
-      scheduledDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-      duration: 90,
-      price: 85,
-      address: '123 Rue de la Paix, 75001 Paris',
-      status: 'CONFIRMED',
-      isUrgent: true,
-      notes: 'Fuite importante, intervention urgente',
-    },
-    {
-      id: '2',
-      clientName: 'Marie Laurent',
-      clientPhone: '+33 6 98 76 54 32',
-      serviceName: 'Électricité',
-      serviceDescription: 'Installation luminaire',
-      scheduledDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      duration: 60,
-      price: 120,
-      address: '456 Avenue Victor Hugo, 75016 Paris',
-      status: 'SCHEDULED',
-      isUrgent: false,
-    },
-  ];
-
-  const mockEvaluations: RecentEvaluation[] = recentEvaluations || [
-    {
-      id: '1',
-      clientName: 'Sophie Martin',
-      serviceName: 'Plomberie',
-      rating: 5,
-      comment: 'Travail excellent, très professionnel. Je recommande !',
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '2',
-      clientName: 'Pierre Dubois',
-      serviceName: 'Électricité',
-      rating: 4,
-      comment: 'Bon travail, ponctuel et efficace.',
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ];
-
-  const currentStats = realtimeStats || mockStats;
+  const currentStats = realtimeStats ||
+    stats || {
+      weekAppointments: 0,
+      monthlyRevenue: 0,
+      clientsServed: 0,
+      averageRating: 0,
+      completionRate: 0,
+      nextWeekBookings: 0,
+      pendingInterventions: 0,
+      unreadMessages: 0,
+    };
   const isLoading = isLoadingStats || isLoadingAppointments;
 
   return (
@@ -496,11 +471,12 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Interventions en attente</AlertTitle>
           <AlertDescription>
-            {currentStats.pendingInterventions} intervention(s) nécessitent votre attention.
+            {currentStats.pendingInterventions} intervention(s) nécessitent
+            votre attention.
             <Button
               variant="link"
               className="p-0 h-auto ml-2"
-              onClick={() => router.push('/provider/appointments')}
+              onClick={() => router.push("/provider/appointments")}
             >
               Voir les détails
             </Button>
@@ -516,7 +492,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
           subtitle="rendez-vous planifiés"
           icon={<Calendar className="h-5 w-5" />}
           isLoading={isLoading}
-          onClick={() => router.push('/provider/schedule')}
+          onClick={() => router.push("/provider/schedule")}
           color="text-blue-600"
           bgColor="bg-blue-100 dark:bg-blue-900/50"
         />
@@ -526,9 +502,9 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
           value={`${currentStats.monthlyRevenue}€`}
           subtitle="facturation en cours"
           icon={<Euro className="h-5 w-5" />}
-          trend={{ value: 15, label: 'vs mois dernier' }}
+          trend={{ value: 15, label: "vs mois dernier" }}
           isLoading={isLoading}
-          onClick={() => router.push('/provider/billing')}
+          onClick={() => router.push("/provider/billing")}
           color="text-green-600"
           bgColor="bg-green-100 dark:bg-green-900/50"
         />
@@ -539,7 +515,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
           subtitle="évaluations clients"
           icon={<Star className="h-5 w-5" />}
           isLoading={isLoading}
-          onClick={() => router.push('/provider/ratings')}
+          onClick={() => router.push("/provider/ratings")}
           color="text-yellow-600"
           bgColor="bg-yellow-100 dark:bg-yellow-900/50"
         />
@@ -578,7 +554,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => router.push('/provider/appointments')}
+                      onClick={() => router.push("/provider/appointments")}
                     >
                       Voir tout
                     </Button>
@@ -588,13 +564,14 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                   <ScrollArea className="h-[400px] pr-4">
                     {isLoading ? (
                       <div className="space-y-3">
-                        {[1, 2, 3].map(i => (
+                        {[1, 2, 3].map((i) => (
                           <Skeleton key={i} className="h-32 w-full" />
                         ))}
                       </div>
-                    ) : mockAppointments.length > 0 ? (
+                    ) : upcomingAppointments &&
+                      upcomingAppointments.length > 0 ? (
                       <div className="space-y-3">
-                        {mockAppointments.map(appointment => (
+                        {upcomingAppointments.map((appointment) => (
                           <AppointmentCard
                             key={appointment.id}
                             appointment={appointment}
@@ -605,11 +582,13 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                     ) : (
                       <div className="text-center py-8">
                         <Calendar className="h-12 w-12 mx-auto text-muted-foreground opacity-25 mb-2" />
-                        <p className="text-muted-foreground">Aucun rendez-vous à venir</p>
+                        <p className="text-muted-foreground">
+                          Aucun rendez-vous à venir
+                        </p>
                         <Button
                           variant="outline"
                           className="mt-4"
-                          onClick={() => router.push('/provider/schedule')}
+                          onClick={() => router.push("/provider/schedule")}
                         >
                           Gérer le planning
                         </Button>
@@ -632,22 +611,35 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Clients servis</span>
-                    <span className="font-medium">{currentStats.clientsServed}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Clients servis
+                    </span>
+                    <span className="font-medium">
+                      {currentStats.clientsServed}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Taux de réussite</span>
-                    <span className="font-medium">{currentStats.completionRate}%</span>
+                    <span className="text-sm text-muted-foreground">
+                      Taux de réussite
+                    </span>
+                    <span className="font-medium">
+                      {currentStats.completionRate}%
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Note moyenne</span>
+                    <span className="text-sm text-muted-foreground">
+                      Note moyenne
+                    </span>
                     <span className="font-medium flex items-center gap-1">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                       {currentStats.averageRating}/5
                     </span>
                   </div>
 
-                  <Progress value={currentStats.completionRate} className="mt-4" />
+                  <Progress
+                    value={currentStats.completionRate}
+                    className="mt-4"
+                  />
                   <p className="text-xs text-center text-muted-foreground">
                     Excellent taux de satisfaction client
                   </p>
@@ -663,18 +655,21 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                         <MessageSquare className="h-5 w-5" />
                         Messages
                       </span>
-                      <Badge variant="destructive">{currentStats.unreadMessages}</Badge>
+                      <Badge variant="destructive">
+                        {currentStats.unreadMessages}
+                      </Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Vous avez {currentStats.unreadMessages} message(s) non lu(s)
+                      Vous avez {currentStats.unreadMessages} message(s) non
+                      lu(s)
                     </p>
                     <Button
                       variant="outline"
                       size="sm"
                       className="w-full"
-                      onClick={() => router.push('/provider/messages')}
+                      onClick={() => router.push("/provider/messages")}
                     >
                       Voir les messages
                     </Button>
@@ -705,7 +700,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
 
         <TabsContent value="appointments" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mockAppointments.map(appointment => (
+            {upcomingAppointments?.map((appointment) => (
               <AppointmentCard
                 key={appointment.id}
                 appointment={appointment}
@@ -717,7 +712,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
 
         <TabsContent value="evaluations" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mockEvaluations.map(evaluation => (
+            {recentEvaluations?.map((evaluation) => (
               <EvaluationCard key={evaluation.id} evaluation={evaluation} />
             ))}
           </div>
@@ -739,13 +734,20 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                         <XAxis dataKey="date" />
                         <YAxis />
                         <Tooltip />
-                        <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} />
+                        <Line
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="#3b82f6"
+                          strokeWidth={2}
+                        />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
                 ) : (
                   <div className="h-[300px] flex items-center justify-center">
-                    <p className="text-muted-foreground">Données non disponibles</p>
+                    <p className="text-muted-foreground">
+                      Données non disponibles
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -759,27 +761,44 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{currentStats.clientsServed}</p>
-                    <p className="text-sm text-muted-foreground">Clients servis</p>
+                    <p className="text-2xl font-bold">
+                      {currentStats.clientsServed}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Clients servis
+                    </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{currentStats.completionRate}%</p>
-                    <p className="text-sm text-muted-foreground">Taux réussite</p>
+                    <p className="text-2xl font-bold">
+                      {currentStats.completionRate}%
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Taux réussite
+                    </p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold flex items-center justify-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       {currentStats.averageRating}
                     </p>
-                    <p className="text-sm text-muted-foreground">Note moyenne</p>
+                    <p className="text-sm text-muted-foreground">
+                      Note moyenne
+                    </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{currentStats.nextWeekBookings}</p>
-                    <p className="text-sm text-muted-foreground">Semaine prochaine</p>
+                    <p className="text-2xl font-bold">
+                      {currentStats.nextWeekBookings}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Semaine prochaine
+                    </p>
                   </div>
                 </div>
 
-                <Button className="w-full" onClick={() => router.push('/provider/stats')}>
+                <Button
+                  className="w-full"
+                  onClick={() => router.push("/provider/stats")}
+                >
                   Voir le rapport complet
                 </Button>
               </CardContent>

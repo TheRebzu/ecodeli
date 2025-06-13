@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createBookingSchema } from '@/schemas/service/service.schema';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createBookingSchema } from "@/schemas/service/service.schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -15,22 +15,29 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import Link from 'next/link';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+} from "@/components/ui/form";
+import Link from "next/link";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { ClockIcon, CreditCardIcon, CheckCircleIcon, Calendar, User, MapPin } from 'lucide-react';
-import { formatPrice, formatDate } from '@/lib/i18n/formatters';
-import { useServiceBooking } from '@/hooks/features/use-service-booking';
-import { TimeslotPicker } from '@/components/schedule/timeslot-picker';
-import { CalendarView } from '@/components/schedule/calendar-view';
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import {
+  ClockIcon,
+  CreditCardIcon,
+  CheckCircleIcon,
+  Calendar,
+  User,
+  MapPin,
+} from "lucide-react";
+import { formatPrice, formatDate } from "@/lib/i18n/formatters";
+import { useServiceBooking } from "@/hooks/features/use-service-booking";
+import { TimeslotPicker } from "@/components/schedule/timeslot-picker";
+import { CalendarView } from "@/components/schedule/calendar-view";
 
 interface BookingFormProps {
   service: {
@@ -61,7 +68,7 @@ export function BookingForm({
   onCancel,
   showAdvancedOptions = true,
 }: BookingFormProps) {
-  const t = useTranslations('services.booking');
+  const t = useTranslations("services.booking");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showServiceDetails, setShowServiceDetails] = useState(false);
   const [participantCount, setParticipantCount] = useState(1);
@@ -84,10 +91,10 @@ export function BookingForm({
     defaultValues: {
       serviceId: service.id,
       providerId: service.provider.id,
-      date: selectedDate ? formatDate(selectedDate) : '',
-      startTime: selectedTimeSlot || '',
+      date: selectedDate ? formatDate(selectedDate) : "",
+      startTime: selectedTimeSlot || "",
       notes: notes,
-      paymentMethod: 'card',
+      paymentMethod: "card",
     },
   });
 
@@ -98,7 +105,7 @@ export function BookingForm({
       await createBooking();
       // La redirection est gérée dans le hook useServiceBooking
     } catch (error) {
-      console.error('Booking error:', error);
+      console.error("Booking error:", error);
       setIsSubmitting(false);
     }
   };
@@ -106,9 +113,9 @@ export function BookingForm({
   if (!selectedDate) {
     return (
       <div className="text-center py-4">
-        <p className="text-red-500">{t('form.selectDateFirst')}</p>
+        <p className="text-red-500">{t("form.selectDateFirst")}</p>
         <Button onClick={onCancel} variant="outline" className="mt-2">
-          {t('form.back')}
+          {t("form.back")}
         </Button>
       </div>
     );
@@ -120,7 +127,7 @@ export function BookingForm({
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-semibold">{t('form.title')}</h2>
+            <h2 className="text-xl font-semibold">{t("form.title")}</h2>
             <p className="text-muted-foreground">{service.name}</p>
           </div>
           <Button
@@ -129,7 +136,7 @@ export function BookingForm({
             size="sm"
             onClick={() => setShowServiceDetails(!showServiceDetails)}
           >
-            {showServiceDetails ? t('form.hideDetails') : t('form.showDetails')}
+            {showServiceDetails ? t("form.hideDetails") : t("form.showDetails")}
           </Button>
         </div>
 
@@ -138,12 +145,14 @@ export function BookingForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Informations du service */}
               <div>
-                <h4 className="font-medium mb-2">{t('form.serviceInfo')}</h4>
+                <h4 className="font-medium mb-2">{t("form.serviceInfo")}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <ClockIcon className="h-4 w-4" />
                     <span>
-                      {service.duration ? `${service.duration} min` : t('form.durationVariable')}
+                      {service.duration
+                        ? `${service.duration} min`
+                        : t("form.durationVariable")}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -151,18 +160,20 @@ export function BookingForm({
                     <span>{formatPrice(service.price)}</span>
                   </div>
                   {service.description && (
-                    <p className="text-muted-foreground">{service.description}</p>
+                    <p className="text-muted-foreground">
+                      {service.description}
+                    </p>
                   )}
                 </div>
               </div>
 
               {/* Informations du prestataire */}
               <div>
-                <h4 className="font-medium mb-2">{t('form.providerInfo')}</h4>
+                <h4 className="font-medium mb-2">{t("form.providerInfo")}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4" />
-                    <span>{service.provider.name || t('form.provider')}</span>
+                    <span>{service.provider.name || t("form.provider")}</span>
                   </div>
                   {service.provider.city && (
                     <div className="flex items-center gap-2">
@@ -183,7 +194,7 @@ export function BookingForm({
           <div className="space-y-4">
             <h3 className="font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              {t('form.appointment')}
+              {t("form.appointment")}
             </h3>
 
             <FormField
@@ -191,9 +202,13 @@ export function BookingForm({
               name="date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('form.date')}</FormLabel>
+                  <FormLabel>{t("form.date")}</FormLabel>
                   <FormControl>
-                    <Input {...field} disabled value={formatDate(selectedDate)} />
+                    <Input
+                      {...field}
+                      disabled
+                      value={formatDate(selectedDate)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -205,15 +220,15 @@ export function BookingForm({
               name="startTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('form.time')}</FormLabel>
+                  <FormLabel>{t("form.time")}</FormLabel>
                   <FormControl>
                     <TimeslotPicker
                       value={field.value}
-                      onChange={value => {
+                      onChange={(value) => {
                         field.onChange(value);
                         handleTimeSlotChange(value);
                       }}
-                      placeholder={t('form.selectTime')}
+                      placeholder={t("form.selectTime")}
                       mode="start"
                       minTime="06:00"
                       maxTime="22:00"
@@ -223,7 +238,9 @@ export function BookingForm({
                   </FormControl>
                   <FormMessage />
                   {availableTimeSlots.length === 0 && (
-                    <p className="text-sm text-muted-foreground">{t('form.noAvailableSlots')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("form.noAvailableSlots")}
+                    </p>
                   )}
                 </FormItem>
               )}
@@ -235,7 +252,7 @@ export function BookingForm({
           {/* Options avancées */}
           {showAdvancedOptions && (
             <div className="space-y-4">
-              <h3 className="font-medium">{t('form.advancedOptions')}</h3>
+              <h3 className="font-medium">{t("form.advancedOptions")}</h3>
 
               {/* Nombre de participants */}
               <FormField
@@ -243,7 +260,7 @@ export function BookingForm({
                 name="participantCount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('form.participantCount')}</FormLabel>
+                    <FormLabel>{t("form.participantCount")}</FormLabel>
                     <FormControl>
                       <div className="flex items-center gap-3">
                         <Button
@@ -259,7 +276,9 @@ export function BookingForm({
                         >
                           -
                         </Button>
-                        <span className="w-16 text-center">{participantCount}</span>
+                        <span className="w-16 text-center">
+                          {participantCount}
+                        </span>
                         <Button
                           type="button"
                           variant="outline"
@@ -289,13 +308,13 @@ export function BookingForm({
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('form.notes')}</FormLabel>
+                <FormLabel>{t("form.notes")}</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
-                    placeholder={t('form.notesPlaceholder')}
+                    placeholder={t("form.notesPlaceholder")}
                     rows={3}
-                    onChange={e => {
+                    onChange={(e) => {
                       field.onChange(e);
                       handleNotesChange(e.target.value);
                     }}
@@ -314,7 +333,7 @@ export function BookingForm({
             name="paymentMethod"
             render={({ field }) => (
               <FormItem className="space-y-3">
-                <FormLabel>{t('form.paymentMethod')}</FormLabel>
+                <FormLabel>{t("form.paymentMethod")}</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -327,7 +346,7 @@ export function BookingForm({
                       </FormControl>
                       <FormLabel className="font-normal cursor-pointer flex items-center">
                         <CreditCardIcon className="w-4 h-4 mr-2" />
-                        {t('form.creditCard')}
+                        {t("form.creditCard")}
                       </FormLabel>
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
@@ -335,14 +354,16 @@ export function BookingForm({
                         <RadioGroupItem value="appWallet" />
                       </FormControl>
                       <FormLabel className="font-normal cursor-pointer">
-                        {t('form.appWallet')}
+                        {t("form.appWallet")}
                       </FormLabel>
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
                         <RadioGroupItem value="paypal" />
                       </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">PayPal</FormLabel>
+                      <FormLabel className="font-normal cursor-pointer">
+                        PayPal
+                      </FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -353,17 +374,17 @@ export function BookingForm({
 
           {/* Récapitulatif amélioré */}
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-medium mb-3">{t('form.summary')}</h3>
+            <h3 className="font-medium mb-3">{t("form.summary")}</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span>{t('form.servicePrice')}</span>
+                <span>{t("form.servicePrice")}</span>
                 <span>{formatPrice(service.price)}</span>
               </div>
 
               {showAdvancedOptions && participantCount > 1 && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>
-                    {t('form.participants')} (x{participantCount})
+                    {t("form.participants")} (x{participantCount})
                   </span>
                   <span>{formatPrice(service.price * participantCount)}</span>
                 </div>
@@ -372,9 +393,12 @@ export function BookingForm({
               <Separator />
 
               <div className="flex justify-between font-medium text-base">
-                <span>{t('form.total')}</span>
+                <span>{t("form.total")}</span>
                 <span className="text-primary">
-                  {formatPrice(service.price * (showAdvancedOptions ? participantCount : 1))}
+                  {formatPrice(
+                    service.price *
+                      (showAdvancedOptions ? participantCount : 1),
+                  )}
                 </span>
               </div>
 
@@ -404,14 +428,17 @@ export function BookingForm({
                       type="checkbox"
                       required
                       className="w-4 h-4"
-                      onChange={e => field.onChange(e.target.checked)}
+                      onChange={(e) => field.onChange(e.target.checked)}
                     />
                   </div>
                 </FormControl>
                 <div className="text-sm">
-                  {t.rich('form.termsAndConditions', {
-                    link: chunks => (
-                      <Link href="/terms" className="text-primary hover:underline">
+                  {t.rich("form.termsAndConditions", {
+                    link: (chunks) => (
+                      <Link
+                        href="/terms"
+                        className="text-primary hover:underline"
+                      >
                         {chunks}
                       </Link>
                     ),
@@ -423,22 +450,30 @@ export function BookingForm({
 
           {/* Boutons d'action */}
           <div className="flex gap-4">
-            <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
-              {t('form.cancel')}
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onCancel}
+            >
+              {t("form.cancel")}
             </Button>
             <Button
               type="submit"
               className="flex-1"
-              disabled={isSubmitting || !form.formState.isValid || !selectedTimeSlot}
+              disabled={
+                isSubmitting || !form.formState.isValid || !selectedTimeSlot
+              }
             >
               {isSubmitting ? (
                 <span className="flex items-center">
-                  <span className="animate-spin mr-2">⏳</span> {t('form.processing')}
+                  <span className="animate-spin mr-2">⏳</span>{" "}
+                  {t("form.processing")}
                 </span>
               ) : (
                 <span className="flex items-center">
                   <CheckCircleIcon className="w-4 h-4 mr-2" />
-                  {t('form.confirmBooking')}
+                  {t("form.confirmBooking")}
                   {showAdvancedOptions && participantCount > 1 && (
                     <span className="ml-1">({participantCount})</span>
                   )}

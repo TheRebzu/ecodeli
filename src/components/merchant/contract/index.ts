@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export { default as ContractSignature } from './contract-signature';
-export * from './contract-signature';
-export { default as ContractStatus } from './contract-status';
-export * from './contract-status';
-export { default as ContractViewer } from './contract-viewer';
-export * from './contract-viewer';
+export { default as ContractSignature } from "./contract-signature";
+export * from "./contract-signature";
+export { default as ContractStatus } from "./contract-status";
+export * from "./contract-status";
+export { default as ContractViewer } from "./contract-viewer";
+export * from "./contract-viewer";

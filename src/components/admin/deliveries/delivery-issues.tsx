@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -13,8 +19,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+} from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertTriangle,
   CheckCircle,
@@ -24,29 +30,29 @@ import {
   Phone,
   Search,
   User,
-} from 'lucide-react';
-import { Input } from '@/components/ui/input';
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/select";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Issue = {
   id: string;
   deliveryId: string;
   trackingNumber: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED';
-  type: 'DELAY' | 'DAMAGED' | 'LOST' | 'WRONG_ADDRESS' | 'OTHER';
+  status: "PENDING" | "IN_PROGRESS" | "RESOLVED";
+  type: "DELAY" | "DAMAGED" | "LOST" | "WRONG_ADDRESS" | "OTHER";
   description: string;
   createdAt: Date;
   updatedAt: Date;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  priority: "LOW" | "MEDIUM" | "HIGH";
   assignedTo?: string;
   client: {
     id: string;
@@ -61,11 +67,11 @@ type Issue = {
 };
 
 export function DeliveryIssues() {
-  const t = useTranslations('admin.deliveries');
-  const [activeTab, setActiveTab] = useState('pending');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  const t = useTranslations("admin.deliveries");
+  const [activeTab, setActiveTab] = useState("pending");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
   const { toast } = useToast();
 
   // Récupérer les incidents depuis l'API
@@ -76,47 +82,49 @@ export function DeliveryIssues() {
   } = api.deliveryIssue.getAll.useQuery(
     {
       status:
-        activeTab === 'pending'
-          ? 'PENDING'
-          : activeTab === 'in-progress'
-            ? 'IN_PROGRESS'
-            : 'RESOLVED',
+        activeTab === "pending"
+          ? "PENDING"
+          : activeTab === "in-progress"
+            ? "IN_PROGRESS"
+            : "RESOLVED",
     },
     {
-      onError: err => {
+      onError: (err) => {
         toast({
-          title: 'Erreur',
+          title: "Erreur",
           description: `Impossible de charger les incidents: ${err.message}`,
-          variant: 'destructive',
+          variant: "destructive",
         });
       },
-    }
+    },
   );
 
   // Utilisation de la mutation pour mettre à jour le statut d'un incident
   const updateIssueMutation = api.deliveryIssue.updateStatus.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Succès',
+        title: "Succès",
         description: "Le statut de l'incident a été mis à jour",
       });
     },
-    onError: err => {
+    onError: (err) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: `Impossible de mettre à jour l'incident: ${err.message}`,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
 
   // Filtrer les incidents
   const filteredIssues =
-    issues?.filter(issue => {
+    issues?.filter((issue) => {
       // Filtre par recherche
       if (
         searchTerm &&
-        !issue.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !issue.trackingNumber
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) &&
         !issue.description.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !issue.client.name.toLowerCase().includes(searchTerm.toLowerCase())
       ) {
@@ -134,11 +142,11 @@ export function DeliveryIssues() {
 
   const renderPriorityBadge = (priority: string) => {
     switch (priority) {
-      case 'LOW':
+      case "LOW":
         return <Badge variant="outline">Basse</Badge>;
-      case 'MEDIUM':
+      case "MEDIUM":
         return <Badge variant="secondary">Moyenne</Badge>;
-      case 'HIGH':
+      case "HIGH":
         return <Badge variant="destructive">Haute</Badge>;
       default:
         return <Badge variant="outline">{priority}</Badge>;
@@ -147,11 +155,11 @@ export function DeliveryIssues() {
 
   const renderStatusBadge = (status: string) => {
     switch (status) {
-      case 'PENDING':
+      case "PENDING":
         return <Badge variant="outline">En attente</Badge>;
-      case 'IN_PROGRESS':
+      case "IN_PROGRESS":
         return <Badge variant="secondary">En traitement</Badge>;
-      case 'RESOLVED':
+      case "RESOLVED":
         return <Badge variant="success">Résolu</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
@@ -160,33 +168,48 @@ export function DeliveryIssues() {
 
   const renderTypeBadge = (type: string) => {
     switch (type) {
-      case 'DELAY':
+      case "DELAY":
         return (
-          <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+          <Badge
+            variant="outline"
+            className="bg-amber-100 text-amber-800 hover:bg-amber-100"
+          >
             Retard
           </Badge>
         );
-      case 'DAMAGED':
+      case "DAMAGED":
         return (
-          <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-100">
+          <Badge
+            variant="outline"
+            className="bg-red-100 text-red-800 hover:bg-red-100"
+          >
             Endommagé
           </Badge>
         );
-      case 'LOST':
+      case "LOST":
         return (
-          <Badge variant="outline" className="bg-purple-100 text-purple-800 hover:bg-purple-100">
+          <Badge
+            variant="outline"
+            className="bg-purple-100 text-purple-800 hover:bg-purple-100"
+          >
             Perdu
           </Badge>
         );
-      case 'WRONG_ADDRESS':
+      case "WRONG_ADDRESS":
         return (
-          <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+          <Badge
+            variant="outline"
+            className="bg-blue-100 text-blue-800 hover:bg-blue-100"
+          >
             Mauvaise adresse
           </Badge>
         );
-      case 'OTHER':
+      case "OTHER":
         return (
-          <Badge variant="outline" className="bg-gray-100 text-gray-800 hover:bg-gray-100">
+          <Badge
+            variant="outline"
+            className="bg-gray-100 text-gray-800 hover:bg-gray-100"
+          >
             Autre
           </Badge>
         );
@@ -198,7 +221,7 @@ export function DeliveryIssues() {
   // Fonction pour changer le statut d'un incident
   const handleStatusChange = (
     issueId: string,
-    newStatus: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED'
+    newStatus: "PENDING" | "IN_PROGRESS" | "RESOLVED",
   ) => {
     updateIssueMutation.mutate({ id: issueId, status: newStatus });
   };
@@ -220,7 +243,7 @@ export function DeliveryIssues() {
                 placeholder="Rechercher par numéro de suivi, description..."
                 className="pl-8 w-full md:w-[300px]"
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -244,7 +267,9 @@ export function DeliveryIssues() {
                   <SelectItem value="DELAY">Retard</SelectItem>
                   <SelectItem value="DAMAGED">Endommagé</SelectItem>
                   <SelectItem value="LOST">Perdu</SelectItem>
-                  <SelectItem value="WRONG_ADDRESS">Mauvaise adresse</SelectItem>
+                  <SelectItem value="WRONG_ADDRESS">
+                    Mauvaise adresse
+                  </SelectItem>
                   <SelectItem value="OTHER">Autre</SelectItem>
                 </SelectContent>
               </Select>
@@ -327,7 +352,10 @@ interface IssuesTableProps {
   renderPriorityBadge: (priority: string) => React.ReactNode;
   renderStatusBadge: (status: string) => React.ReactNode;
   renderTypeBadge: (type: string) => React.ReactNode;
-  onStatusChange: (issueId: string, newStatus: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED') => void;
+  onStatusChange: (
+    issueId: string,
+    newStatus: "PENDING" | "IN_PROGRESS" | "RESOLVED",
+  ) => void;
   isUpdating: boolean;
 }
 
@@ -368,15 +396,22 @@ function IssuesTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {issues.map(issue => (
+          {issues.map((issue) => (
             <TableRow key={issue.id}>
-              <TableCell className="font-medium">{issue.trackingNumber}</TableCell>
+              <TableCell className="font-medium">
+                {issue.trackingNumber}
+              </TableCell>
               <TableCell>{renderTypeBadge(issue.type)}</TableCell>
-              <TableCell className="max-w-[200px] truncate">{issue.description}</TableCell>
+              <TableCell className="max-w-[200px] truncate">
+                {issue.description}
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={issue.client.image} alt={issue.client.name} />
+                    <AvatarImage
+                      src={issue.client.image}
+                      alt={issue.client.name}
+                    />
                     <AvatarFallback>
                       <User className="h-4 w-4" />
                     </AvatarFallback>
@@ -388,7 +423,10 @@ function IssuesTable({
                 {issue.deliverer ? (
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={issue.deliverer.image} alt={issue.deliverer.name} />
+                      <AvatarImage
+                        src={issue.deliverer.image}
+                        alt={issue.deliverer.name}
+                      />
                       <AvatarFallback>
                         <User className="h-4 w-4" />
                       </AvatarFallback>
@@ -396,13 +434,15 @@ function IssuesTable({
                     <span className="text-sm">{issue.deliverer.name}</span>
                   </div>
                 ) : (
-                  <span className="text-muted-foreground text-sm">Non assigné</span>
+                  <span className="text-muted-foreground text-sm">
+                    Non assigné
+                  </span>
                 )}
               </TableCell>
               <TableCell>{renderPriorityBadge(issue.priority)}</TableCell>
               <TableCell>{renderStatusBadge(issue.status)}</TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {new Date(issue.createdAt).toLocaleDateString('fr-FR')}
+                {new Date(issue.createdAt).toLocaleDateString("fr-FR")}
               </TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
@@ -410,8 +450,11 @@ function IssuesTable({
                     <Select
                       disabled={isUpdating}
                       value={issue.status}
-                      onValueChange={value =>
-                        onStatusChange(issue.id, value as 'PENDING' | 'IN_PROGRESS' | 'RESOLVED')
+                      onValueChange={(value) =>
+                        onStatusChange(
+                          issue.id,
+                          value as "PENDING" | "IN_PROGRESS" | "RESOLVED",
+                        )
                       }
                     >
                       <SelectTrigger className="h-8 w-[130px]">
@@ -419,7 +462,9 @@ function IssuesTable({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="PENDING">En attente</SelectItem>
-                        <SelectItem value="IN_PROGRESS">En traitement</SelectItem>
+                        <SelectItem value="IN_PROGRESS">
+                          En traitement
+                        </SelectItem>
                         <SelectItem value="RESOLVED">Résolu</SelectItem>
                       </SelectContent>
                     </Select>
@@ -476,7 +521,9 @@ function ErrorState({ message }: { message: string }) {
   return (
     <div className="border border-destructive/50 bg-destructive/10 rounded-md p-4 text-center">
       <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
-      <h3 className="font-semibold mb-1">Erreur lors du chargement des incidents</h3>
+      <h3 className="font-semibold mb-1">
+        Erreur lors du chargement des incidents
+      </h3>
       <p className="text-sm text-muted-foreground">{message}</p>
     </div>
   );

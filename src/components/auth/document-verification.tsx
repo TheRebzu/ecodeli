@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/auth/use-auth';
-import { useDocumentUpload } from '@/components/deliverer/documents/document-upload';
-import { DocumentType } from '@prisma/client';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { useDocumentUpload } from "@/components/deliverer/documents/document-upload";
+import { DocumentType } from "@prisma/client";
 import {
   Card,
   CardContent,
@@ -11,19 +11,19 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import {
   UploadCloud,
   AlertTriangle,
@@ -34,27 +34,35 @@ import {
   Loader2,
   X,
   CheckCircle2,
-} from 'lucide-react';
-import { api } from '@/hooks/system/use-trpc';
-import Image from 'next/image';
+} from "lucide-react";
+import { api } from "@/hooks/system/use-trpc";
+import Image from "next/image";
 
 // Import de la fonction partagée pour afficher le nom du type de document
-import { getDocumentTypeName } from '@/utils/document-utils';
+import { getDocumentTypeName } from "@/utils/document-utils";
 
 export function DocumentVerification() {
   const { user, role } = useAuth();
-  const { files, addFile, removeFile, uploadAllFiles, clearFiles, isUploading, progress, error } =
-    useDocumentUpload();
-  const [documentType, setDocumentType] = useState<DocumentType>(DocumentType.ID_CARD);
+  const {
+    files,
+    addFile,
+    removeFile,
+    uploadAllFiles,
+    clearFiles,
+    isUploading,
+    progress,
+    error,
+  } = useDocumentUpload();
+  const [documentType, setDocumentType] = useState<DocumentType>(
+    DocumentType.ID_CARD,
+  );
 
   // Récupérer les documents de l'utilisateur
-  const { data: userDocuments, isLoading: isLoadingDocuments } = api.auth.getUserDocuments.useQuery(
-    undefined,
-    {
+  const { data: userDocuments, isLoading: isLoadingDocuments } =
+    api.auth.getUserDocuments.useQuery(undefined, {
       enabled: !!user,
       refetchInterval: 10000, // Rafraîchir toutes les 10 secondes
-    }
-  );
+    });
 
   // Nettoyage lors du démontage du composant
   useEffect(() => {
@@ -78,14 +86,14 @@ export function DocumentVerification() {
   // Déterminer les types de documents requis en fonction du rôle
   const getRequiredDocuments = () => {
     switch (role) {
-      case 'DELIVERER':
+      case "DELIVERER":
         return [
           DocumentType.ID_CARD,
           DocumentType.DRIVER_LICENSE,
           DocumentType.VEHICLE_REGISTRATION,
           DocumentType.INSURANCE,
         ];
-      case 'PROVIDER':
+      case "PROVIDER":
         return [
           DocumentType.ID_CARD,
           DocumentType.QUALIFICATION_CERTIFICATE,
@@ -99,14 +107,14 @@ export function DocumentVerification() {
 
   // Vérifier si un type de document est déjà téléchargé
   const isDocumentUploaded = (type: DocumentType) => {
-    return userDocuments?.some(doc => doc.type === type);
+    return userDocuments?.some((doc) => doc.type === type);
   };
 
   // Rendre l'icône appropriée pour un type de fichier
   const renderFileIcon = (mimeType: string) => {
-    if (mimeType.startsWith('image/')) {
+    if (mimeType.startsWith("image/")) {
       return <FileImage className="h-6 w-6 text-blue-500" />;
-    } else if (mimeType === 'application/pdf') {
+    } else if (mimeType === "application/pdf") {
       return <FileIcon className="h-6 w-6 text-red-500" />;
     } else {
       return <File className="h-6 w-6 text-gray-500" />;
@@ -120,9 +128,9 @@ export function DocumentVerification() {
           <CardTitle>Vérification des documents</CardTitle>
           <CardDescription>
             Téléchargez les documents nécessaires pour valider votre compte.
-            {role === 'DELIVERER' &&
+            {role === "DELIVERER" &&
               " En tant que livreur, vous devez fournir une pièce d'identité, votre permis de conduire, votre carte grise et votre attestation d'assurance."}
-            {role === 'PROVIDER' &&
+            {role === "PROVIDER" &&
               " En tant que prestataire, vous devez fournir une pièce d'identité et vos certifications professionnelles."}
           </CardDescription>
         </CardHeader>
@@ -169,14 +177,14 @@ export function DocumentVerification() {
                   />
                   <Button
                     variant="outline"
-                    onClick={() => document.getElementById('file')?.click()}
+                    onClick={() => document.getElementById("file")?.click()}
                     disabled={isUploading || isDocumentUploaded(documentType)}
                     className="w-full"
                   >
                     <UploadCloud className="mr-2 h-4 w-4" />
                     {isDocumentUploaded(documentType)
-                      ? 'Document déjà téléchargé'
-                      : 'Sélectionner un fichier'}
+                      ? "Document déjà téléchargé"
+                      : "Sélectionner un fichier"}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -195,7 +203,7 @@ export function DocumentVerification() {
                       className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
                     >
                       <div className="flex items-center space-x-2">
-                        {file.file.type.startsWith('image/') ? (
+                        {file.file.type.startsWith("image/") ? (
                           <div className="h-10 w-10 relative overflow-hidden rounded-md">
                             <Image
                               src={file.preview}
@@ -208,7 +216,9 @@ export function DocumentVerification() {
                           <FileText className="h-10 w-10 text-blue-500" />
                         )}
                         <div>
-                          <p className="text-sm font-medium truncate max-w-xs">{file.name}</p>
+                          <p className="text-sm font-medium truncate max-w-xs">
+                            {file.name}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {documentTypeLabels[file.type]}
                           </p>
@@ -229,16 +239,24 @@ export function DocumentVerification() {
                 {isUploading && (
                   <div className="space-y-1">
                     <Progress value={progress} />
-                    <p className="text-xs text-center">{progress}% téléchargé</p>
+                    <p className="text-xs text-center">
+                      {progress}% téléchargé
+                    </p>
                   </div>
                 )}
 
                 <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={clearFiles} disabled={isUploading}>
+                  <Button
+                    variant="outline"
+                    onClick={clearFiles}
+                    disabled={isUploading}
+                  >
                     Annuler
                   </Button>
                   <Button onClick={uploadAllFiles} disabled={isUploading}>
-                    {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isUploading && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     Télécharger
                   </Button>
                 </div>
@@ -263,7 +281,7 @@ export function DocumentVerification() {
             </div>
           ) : userDocuments && userDocuments.length > 0 ? (
             <div className="space-y-2">
-              {userDocuments.map(doc => (
+              {userDocuments.map((doc) => (
                 <div
                   key={doc.id}
                   className="flex items-center justify-between p-3 border rounded-md"
@@ -271,25 +289,28 @@ export function DocumentVerification() {
                   <div className="flex items-center space-x-3">
                     {renderFileIcon(doc.mimeType)}
                     <div>
-                      <p className="font-medium">{documentTypeLabels[doc.type as DocumentType]}</p>
+                      <p className="font-medium">
+                        {documentTypeLabels[doc.type as DocumentType]}
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        Téléchargé le {new Date(doc.uploadedAt).toLocaleDateString()}
+                        Téléchargé le{" "}
+                        {new Date(doc.uploadedAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center">
-                    {doc.status === 'PENDING' && (
+                    {doc.status === "PENDING" && (
                       <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
                         En attente
                       </span>
                     )}
-                    {doc.status === 'APPROVED' && (
+                    {doc.status === "APPROVED" && (
                       <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 flex items-center">
                         <CheckCircle2 className="mr-1 h-3 w-3" />
                         Approuvé
                       </span>
                     )}
-                    {doc.status === 'REJECTED' && (
+                    {doc.status === "REJECTED" && (
                       <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 flex items-center">
                         <X className="mr-1 h-3 w-3" />
                         Rejeté
@@ -303,7 +324,9 @@ export function DocumentVerification() {
             <div className="text-center py-6 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-2 text-muted-foreground/50" />
               <p>Aucun document téléchargé</p>
-              <p className="text-sm">Veuillez télécharger les documents requis pour votre compte</p>
+              <p className="text-sm">
+                Veuillez télécharger les documents requis pour votre compte
+              </p>
             </div>
           )}
         </CardContent>
@@ -316,15 +339,18 @@ export function DocumentVerification() {
           </div>
           {/* Résumé de l'état de vérification du compte */}
           <div className="flex items-center space-x-2">
-            {getRequiredDocuments().every(type => {
-              const doc = userDocuments?.find(d => d.type === type);
-              return doc && doc.status === 'APPROVED';
+            {getRequiredDocuments().every((type) => {
+              const doc = userDocuments?.find((d) => d.type === type);
+              return doc && doc.status === "APPROVED";
             }) ? (
               <span className="px-3 py-1 text-sm rounded-full bg-green-100 text-green-800">
                 Vérifié
               </span>
-            ) : userDocuments && userDocuments.some(doc => doc.status === 'REJECTED') ? (
-              <span className="px-3 py-1 text-sm rounded-full bg-red-100 text-red-800">Rejeté</span>
+            ) : userDocuments &&
+              userDocuments.some((doc) => doc.status === "REJECTED") ? (
+              <span className="px-3 py-1 text-sm rounded-full bg-red-100 text-red-800">
+                Rejeté
+              </span>
             ) : (
               <span className="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-800">
                 En attente

@@ -1,9 +1,15 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { ReportDashboard } from '@/components/admin/reports/report-dashboard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { ReportDashboard } from "@/components/admin/reports/report-dashboard";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CalendarRange,
   Download,
@@ -13,22 +19,22 @@ import {
   TrendingUp,
   Truck,
   Users,
-} from 'lucide-react';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
-import { api } from '@/trpc/server';
-import { formatDate, getCurrentDateRange } from '@/utils/document-utils';
+} from "lucide-react";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { api } from "@/trpc/server";
+import { formatDate, getCurrentDateRange } from "@/utils/document-utils";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('admin.reports');
+  const t = await getTranslations("admin.reports");
 
   return {
-    title: t('metadata.title'),
-    description: t('metadata.description'),
+    title: t("metadata.title"),
+    description: t("metadata.description"),
   };
 }
 
 export default async function AdminReportsPage() {
-  const t = await getTranslations('admin.reports');
+  const t = await getTranslations("admin.reports");
 
   // Obtenir la plage de dates par défaut (30 derniers jours)
   const { startDate, endDate } = getCurrentDateRange(30);
@@ -37,21 +43,22 @@ export default async function AdminReportsPage() {
   const salesReport = await api.adminDashboard.getSalesReport.query({
     startDate,
     endDate,
-    granularity: 'day',
+    granularity: "day",
     comparison: true,
   });
 
-  const deliveryPerformance = await api.adminDashboard.getDeliveryPerformanceReport.query({
-    startDate,
-    endDate,
-    granularity: 'day',
-    comparison: true,
-  });
+  const deliveryPerformance =
+    await api.adminDashboard.getDeliveryPerformanceReport.query({
+      startDate,
+      endDate,
+      granularity: "day",
+      comparison: true,
+    });
 
   const userActivity = await api.adminDashboard.getUserActivityReport.query({
     startDate,
     endDate,
-    granularity: 'day',
+    granularity: "day",
     comparison: true,
   });
 
@@ -59,7 +66,9 @@ export default async function AdminReportsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Rapports et Statistiques</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Rapports et Statistiques
+          </h1>
           <p className="text-muted-foreground">
             Analysez les données de la plateforme et téléchargez des rapports
           </p>
@@ -114,17 +123,23 @@ export default async function AdminReportsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total des Livraisons</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total des Livraisons
+            </CardTitle>
             <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {deliveryPerformance.performanceSummary.totalDeliveries.toLocaleString('fr-FR')}
+              {deliveryPerformance.performanceSummary.totalDeliveries.toLocaleString(
+                "fr-FR",
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
-              {deliveryPerformance.performanceSummary.percentChange > 0 ? '+' : ''}
-              {deliveryPerformance.performanceSummary.percentChange.toFixed(1)}% par rapport à la
-              période précédente
+              {deliveryPerformance.performanceSummary.percentChange > 0
+                ? "+"
+                : ""}
+              {deliveryPerformance.performanceSummary.percentChange.toFixed(1)}%
+              par rapport à la période précédente
             </p>
             <div className="mt-4 h-1 w-full bg-muted-foreground/20 rounded-full overflow-hidden">
               <div
@@ -160,19 +175,25 @@ export default async function AdminReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(deliveryPerformance.performanceSummary.averageDeliveryTime)} minutes
+              {Math.round(
+                deliveryPerformance.performanceSummary.averageDeliveryTime,
+              )}{" "}
+              minutes
             </div>
             <p className="text-xs text-muted-foreground">
-              {deliveryPerformance.performanceSummary.previousAverageDeliveryTime &&
+              {deliveryPerformance.performanceSummary
+                .previousAverageDeliveryTime &&
               deliveryPerformance.performanceSummary.averageDeliveryTime <
-                deliveryPerformance.performanceSummary.previousAverageDeliveryTime
-                ? '-'
-                : '+'}
+                deliveryPerformance.performanceSummary
+                  .previousAverageDeliveryTime
+                ? "-"
+                : "+"}
               {Math.abs(
                 Math.round(
                   deliveryPerformance.performanceSummary.averageDeliveryTime -
-                    (deliveryPerformance.performanceSummary.previousAverageDeliveryTime || 0)
-                )
+                    (deliveryPerformance.performanceSummary
+                      .previousAverageDeliveryTime || 0),
+                ),
               )}
               m par rapport à la période précédente
             </p>
@@ -180,19 +201,28 @@ export default async function AdminReportsPage() {
               <div className="flex items-center justify-between text-xs">
                 <span>Temps total de livraison</span>
                 <span className="font-medium">
-                  {Math.round(deliveryPerformance.performanceSummary.averageDeliveryTime)}m
+                  {Math.round(
+                    deliveryPerformance.performanceSummary.averageDeliveryTime,
+                  )}
+                  m
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs mt-1">
                 <span>Taux de livraison à temps</span>
                 <span className="font-medium">
-                  {Math.round(deliveryPerformance.performanceSummary.onTimePercentage)}%
+                  {Math.round(
+                    deliveryPerformance.performanceSummary.onTimePercentage,
+                  )}
+                  %
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs mt-1">
                 <span>Taux d'annulation</span>
                 <span className="font-medium">
-                  {Math.round(deliveryPerformance.performanceSummary.cancelRate)}%
+                  {Math.round(
+                    deliveryPerformance.performanceSummary.cancelRate,
+                  )}
+                  %
                 </span>
               </div>
             </div>
@@ -201,7 +231,9 @@ export default async function AdminReportsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Satisfaction Client</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Satisfaction Client
+            </CardTitle>
             <PieChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -225,9 +257,10 @@ export default async function AdminReportsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('analytics')}</CardTitle>
+          <CardTitle>{t("analytics")}</CardTitle>
           <CardDescription>
-            Données pour la période du {formatDate(startDate)} au {formatDate(endDate)}
+            Données pour la période du {formatDate(startDate)} au{" "}
+            {formatDate(endDate)}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">

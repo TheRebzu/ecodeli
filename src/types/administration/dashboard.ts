@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from "@prisma/client";
 
 // Types pour les statistiques d'utilisateurs
 export interface UserStats {
@@ -121,10 +121,10 @@ export type ActivityDetails =
 export interface RecentActivity {
   id: string;
   type:
-    | 'user_registration'
-    | 'document_submission'
-    | 'delivery_completed'
-    | 'transaction_completed';
+    | "user_registration"
+    | "document_submission"
+    | "delivery_completed"
+    | "transaction_completed";
   timestamp: Date;
   user?: {
     id: string;
@@ -169,7 +169,7 @@ export interface DashboardData {
 
 // Type pour les filtres du dashboard
 export interface DashboardFilters {
-  timeRange: 'today' | 'week' | 'month' | 'year';
+  timeRange: "today" | "week" | "month" | "year";
   userRole?: UserRole;
-  view: 'overview' | 'users' | 'finances' | 'operations';
+  view: "overview" | "users" | "finances" | "operations";
 }

@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Routeur pour les données du dashboard client
@@ -21,33 +21,37 @@ export const clientDataRouter = createTRPCRouter({
 
       if (!client) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil client introuvable',
+          code: "NOT_FOUND",
+          message: "Profil client introuvable",
         });
       }
 
       // Calculer les statistiques
-      const [totalAnnouncements, activeDeliveries, completedDeliveries, totalServices] =
-        await Promise.all([
-          ctx.db.announcement.count({
-            where: { clientId: client.id },
-          }),
-          ctx.db.delivery.count({
-            where: {
-              clientId: client.id,
-              status: { in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
-            },
-          }),
-          ctx.db.delivery.count({
-            where: {
-              clientId: client.id,
-              status: 'DELIVERED',
-            },
-          }),
-          ctx.db.serviceBooking.count({
-            where: { clientId: client.id },
-          }),
-        ]);
+      const [
+        totalAnnouncements,
+        activeDeliveries,
+        completedDeliveries,
+        totalServices,
+      ] = await Promise.all([
+        ctx.db.announcement.count({
+          where: { clientId: client.id },
+        }),
+        ctx.db.delivery.count({
+          where: {
+            clientId: client.id,
+            status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
+          },
+        }),
+        ctx.db.delivery.count({
+          where: {
+            clientId: client.id,
+            status: "DELIVERED",
+          },
+        }),
+        ctx.db.serviceBooking.count({
+          where: { clientId: client.id },
+        }),
+      ]);
 
       return {
         totalAnnouncements,
@@ -56,14 +60,18 @@ export const clientDataRouter = createTRPCRouter({
         totalServices,
         successRate:
           completedDeliveries > 0
-            ? Math.round((completedDeliveries / (completedDeliveries + activeDeliveries)) * 100)
+            ? Math.round(
+                (completedDeliveries /
+                  (completedDeliveries + activeDeliveries)) *
+                  100,
+              )
             : 0,
       };
     } catch (error) {
-      console.error('Erreur lors du calcul des statistiques:', error);
+      console.error("Erreur lors du calcul des statistiques:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors du calcul des statistiques',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du calcul des statistiques",
       });
     }
   }),
@@ -82,51 +90,52 @@ export const clientDataRouter = createTRPCRouter({
 
       if (!client) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil client introuvable',
+          code: "NOT_FOUND",
+          message: "Profil client introuvable",
         });
       }
 
       // Récupérer les dernières activités
-      const [recentDeliveries, recentBookings, recentAnnouncements] = await Promise.all([
-        ctx.db.delivery.findMany({
-          where: { clientId: client.id },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          select: {
-            id: true,
-            status: true,
-            createdAt: true,
-            trackingCode: true,
-          },
-        }),
-        ctx.db.serviceBooking.findMany({
-          where: { clientId: client.id },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          select: {
-            id: true,
-            status: true,
-            createdAt: true,
-            service: {
-              select: {
-                name: true,
+      const [recentDeliveries, recentBookings, recentAnnouncements] =
+        await Promise.all([
+          ctx.db.delivery.findMany({
+            where: { clientId: client.id },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            select: {
+              id: true,
+              status: true,
+              createdAt: true,
+              trackingCode: true,
+            },
+          }),
+          ctx.db.serviceBooking.findMany({
+            where: { clientId: client.id },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            select: {
+              id: true,
+              status: true,
+              createdAt: true,
+              service: {
+                select: {
+                  name: true,
+                },
               },
             },
-          },
-        }),
-        ctx.db.announcement.findMany({
-          where: { clientId: client.id },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          select: {
-            id: true,
-            status: true,
-            createdAt: true,
-            title: true,
-          },
-        }),
-      ]);
+          }),
+          ctx.db.announcement.findMany({
+            where: { clientId: client.id },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            select: {
+              id: true,
+              status: true,
+              createdAt: true,
+              title: true,
+            },
+          }),
+        ]);
 
       return {
         recentDeliveries,
@@ -134,9 +143,12 @@ export const clientDataRouter = createTRPCRouter({
         recentAnnouncements,
       };
     } catch (error) {
-      console.error("Erreur lors de la récupération de l'activité récente:", error);
+      console.error(
+        "Erreur lors de la récupération de l'activité récente:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération de l'activité récente",
       });
     }
@@ -156,8 +168,8 @@ export const clientDataRouter = createTRPCRouter({
 
       if (!client) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil client introuvable',
+          code: "NOT_FOUND",
+          message: "Profil client introuvable",
         });
       }
 
@@ -166,7 +178,7 @@ export const clientDataRouter = createTRPCRouter({
         ctx.db.payment.aggregate({
           where: {
             userId: userId,
-            status: 'COMPLETED',
+            status: "COMPLETED",
           },
           _sum: {
             amount: true,
@@ -175,7 +187,7 @@ export const clientDataRouter = createTRPCRouter({
         ctx.db.payment.aggregate({
           where: {
             userId: userId,
-            status: 'PENDING',
+            status: "PENDING",
           },
           _sum: {
             amount: true,
@@ -184,7 +196,7 @@ export const clientDataRouter = createTRPCRouter({
         ctx.db.payment.aggregate({
           where: {
             userId: userId,
-            status: 'COMPLETED',
+            status: "COMPLETED",
             createdAt: {
               gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
             },
@@ -206,15 +218,15 @@ export const clientDataRouter = createTRPCRouter({
                 await ctx.db.announcement.count({
                   where: { clientId: client.id },
                 }),
-                1
+                1,
               )
             : 0,
       };
     } catch (error) {
-      console.error('Erreur lors du calcul des métriques financières:', error);
+      console.error("Erreur lors du calcul des métriques financières:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors du calcul des métriques financières',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du calcul des métriques financières",
       });
     }
   }),
@@ -233,57 +245,58 @@ export const clientDataRouter = createTRPCRouter({
 
       if (!client) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil client introuvable',
+          code: "NOT_FOUND",
+          message: "Profil client introuvable",
         });
       }
 
       // Récupérer les éléments actifs
-      const [activeAnnouncements, activeDeliveries, activeBookings] = await Promise.all([
-        ctx.db.announcement.findMany({
-          where: {
-            clientId: client.id,
-            status: { in: ['DRAFT', 'PUBLISHED', 'IN_APPLICATION'] },
-          },
-          select: {
-            id: true,
-            title: true,
-            status: true,
-            createdAt: true,
-          },
-          orderBy: { createdAt: 'desc' },
-        }),
-        ctx.db.delivery.findMany({
-          where: {
-            clientId: client.id,
-            status: { in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
-          },
-          select: {
-            id: true,
-            trackingCode: true,
-            status: true,
-            createdAt: true,
-          },
-          orderBy: { createdAt: 'desc' },
-        }),
-        ctx.db.serviceBooking.findMany({
-          where: {
-            clientId: client.id,
-            status: { in: ['CONFIRMED', 'PENDING'] },
-          },
-          select: {
-            id: true,
-            status: true,
-            createdAt: true,
-            service: {
-              select: {
-                name: true,
+      const [activeAnnouncements, activeDeliveries, activeBookings] =
+        await Promise.all([
+          ctx.db.announcement.findMany({
+            where: {
+              clientId: client.id,
+              status: { in: ["DRAFT", "PUBLISHED", "IN_APPLICATION"] },
+            },
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: "desc" },
+          }),
+          ctx.db.delivery.findMany({
+            where: {
+              clientId: client.id,
+              status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
+            },
+            select: {
+              id: true,
+              trackingCode: true,
+              status: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: "desc" },
+          }),
+          ctx.db.serviceBooking.findMany({
+            where: {
+              clientId: client.id,
+              status: { in: ["CONFIRMED", "PENDING"] },
+            },
+            select: {
+              id: true,
+              status: true,
+              createdAt: true,
+              service: {
+                select: {
+                  name: true,
+                },
               },
             },
-          },
-          orderBy: { createdAt: 'desc' },
-        }),
-      ]);
+            orderBy: { createdAt: "desc" },
+          }),
+        ]);
 
       return {
         activeAnnouncements,
@@ -291,10 +304,13 @@ export const clientDataRouter = createTRPCRouter({
         activeBookings,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des éléments actifs:', error);
+      console.error(
+        "Erreur lors de la récupération des éléments actifs:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des éléments actifs',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des éléments actifs",
       });
     }
   }),

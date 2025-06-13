@@ -1,37 +1,47 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Calendar as CalendarIcon, Search, X, Filter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Calendar as CalendarIcon, Search, X, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils/common';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Card, CardContent } from '@/components/ui/card';
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils/common";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Card, CardContent } from "@/components/ui/card";
 
 const DeliveryStatus = {
-  PENDING: 'PENDING',
-  ASSIGNED: 'ASSIGNED',
-  IN_PROGRESS: 'IN_PROGRESS',
-  DELIVERED: 'DELIVERED',
-  COMPLETED: 'COMPLETED',
-  CANCELLED: 'CANCELLED',
-  PROBLEM: 'PROBLEM',
+  PENDING: "PENDING",
+  ASSIGNED: "ASSIGNED",
+  IN_PROGRESS: "IN_PROGRESS",
+  DELIVERED: "DELIVERED",
+  COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
+  PROBLEM: "PROBLEM",
 } as const;
 
 const deliveryFilterSchema = z.object({
@@ -49,21 +59,29 @@ interface DeliveryFiltersProps {
   initialFilters?: Partial<DeliveryFilterValues>;
 }
 
-export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: DeliveryFiltersProps) {
-  const t = useTranslations('merchant.deliveries.filters');
+export function DeliveryFilters({
+  onFilter,
+  onClear,
+  initialFilters = {},
+}: DeliveryFiltersProps) {
+  const t = useTranslations("merchant.deliveries.filters");
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [activeFiltersCount, setActiveFiltersCount] = useState(
-    Object.values(initialFilters).filter(Boolean).length
+    Object.values(initialFilters).filter(Boolean).length,
   );
 
   // Initialize form with provided values
   const form = useForm<DeliveryFilterValues>({
     resolver: zodResolver(deliveryFilterSchema),
     defaultValues: {
-      status: initialFilters.status || '',
-      searchTerm: initialFilters.searchTerm || '',
-      startDate: initialFilters.startDate ? new Date(initialFilters.startDate) : undefined,
-      endDate: initialFilters.endDate ? new Date(initialFilters.endDate) : undefined,
+      status: initialFilters.status || "",
+      searchTerm: initialFilters.searchTerm || "",
+      startDate: initialFilters.startDate
+        ? new Date(initialFilters.startDate)
+        : undefined,
+      endDate: initialFilters.endDate
+        ? new Date(initialFilters.endDate)
+        : undefined,
     },
   });
 
@@ -81,8 +99,8 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
 
   const handleClear = () => {
     form.reset({
-      status: '',
-      searchTerm: '',
+      status: "",
+      searchTerm: "",
       startDate: undefined,
       endDate: undefined,
     });
@@ -101,23 +119,23 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder={t('search.placeholder')}
+            placeholder={t("search.placeholder")}
             className="pl-9"
-            value={form.watch('searchTerm')}
-            onChange={e => {
-              form.setValue('searchTerm', e.target.value);
+            value={form.watch("searchTerm")}
+            onChange={(e) => {
+              form.setValue("searchTerm", e.target.value);
               handleSubmit(form.getValues());
             }}
           />
         </div>
 
         <Button
-          variant={activeFiltersCount > 0 ? 'default' : 'outline'}
+          variant={activeFiltersCount > 0 ? "default" : "outline"}
           onClick={toggleFilters}
           className="flex gap-2"
         >
           <Filter className="h-4 w-4" />
-          {t('filterButton')}
+          {t("filterButton")}
           {activeFiltersCount > 0 && (
             <Badge variant="secondary" className="ml-1">
               {activeFiltersCount}
@@ -130,42 +148,52 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
         <Card>
           <CardContent className="pt-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(handleSubmit)}
+                className="space-y-4"
+              >
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
                   <FormField
                     control={form.control}
                     name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('fields.status')}</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <FormLabel>{t("fields.status")}</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('fields.allStatuses')} />
+                              <SelectValue
+                                placeholder={t("fields.allStatuses")}
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">{t('fields.allStatuses')}</SelectItem>
+                            <SelectItem value="">
+                              {t("fields.allStatuses")}
+                            </SelectItem>
                             <SelectItem value={DeliveryStatus.PENDING}>
-                              {t('statuses.pending')}
+                              {t("statuses.pending")}
                             </SelectItem>
                             <SelectItem value={DeliveryStatus.ASSIGNED}>
-                              {t('statuses.assigned')}
+                              {t("statuses.assigned")}
                             </SelectItem>
                             <SelectItem value={DeliveryStatus.IN_PROGRESS}>
-                              {t('statuses.inProgress')}
+                              {t("statuses.inProgress")}
                             </SelectItem>
                             <SelectItem value={DeliveryStatus.DELIVERED}>
-                              {t('statuses.delivered')}
+                              {t("statuses.delivered")}
                             </SelectItem>
                             <SelectItem value={DeliveryStatus.COMPLETED}>
-                              {t('statuses.completed')}
+                              {t("statuses.completed")}
                             </SelectItem>
                             <SelectItem value={DeliveryStatus.CANCELLED}>
-                              {t('statuses.cancelled')}
+                              {t("statuses.cancelled")}
                             </SelectItem>
                             <SelectItem value={DeliveryStatus.PROBLEM}>
-                              {t('statuses.problem')}
+                              {t("statuses.problem")}
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -178,21 +206,21 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
                     name="startDate"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t('fields.startDate')}</FormLabel>
+                        <FormLabel>{t("fields.startDate")}</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                variant={'outline'}
+                                variant={"outline"}
                                 className={cn(
-                                  'w-full pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground",
                                 )}
                               >
                                 {field.value ? (
-                                  format(field.value, 'PPP', { locale: fr })
+                                  format(field.value, "PPP", { locale: fr })
                                 ) : (
-                                  <span>{t('fields.pickDate')}</span>
+                                  <span>{t("fields.pickDate")}</span>
                                 )}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
@@ -203,10 +231,10 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={date =>
+                              disabled={(date) =>
                                 date > new Date() ||
-                                (form.getValues('endDate')
-                                  ? date > form.getValues('endDate')
+                                (form.getValues("endDate")
+                                  ? date > form.getValues("endDate")
                                   : false)
                               }
                               initialFocus
@@ -218,10 +246,12 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
                             variant="ghost"
                             size="sm"
                             className="absolute right-0 top-8 h-7 w-7 p-0"
-                            onClick={() => form.setValue('startDate', undefined)}
+                            onClick={() =>
+                              form.setValue("startDate", undefined)
+                            }
                           >
                             <X className="h-3 w-3" />
-                            <span className="sr-only">{t('clear')}</span>
+                            <span className="sr-only">{t("clear")}</span>
                           </Button>
                         )}
                       </FormItem>
@@ -233,21 +263,21 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
                     name="endDate"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t('fields.endDate')}</FormLabel>
+                        <FormLabel>{t("fields.endDate")}</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                variant={'outline'}
+                                variant={"outline"}
                                 className={cn(
-                                  'w-full pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground",
                                 )}
                               >
                                 {field.value ? (
-                                  format(field.value, 'PPP', { locale: fr })
+                                  format(field.value, "PPP", { locale: fr })
                                 ) : (
-                                  <span>{t('fields.pickDate')}</span>
+                                  <span>{t("fields.pickDate")}</span>
                                 )}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
@@ -258,10 +288,10 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={date =>
+                              disabled={(date) =>
                                 date > new Date() ||
-                                (form.getValues('startDate')
-                                  ? date < form.getValues('startDate')
+                                (form.getValues("startDate")
+                                  ? date < form.getValues("startDate")
                                   : false)
                               }
                               initialFocus
@@ -273,10 +303,10 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
                             variant="ghost"
                             size="sm"
                             className="absolute right-0 top-8 h-7 w-7 p-0"
-                            onClick={() => form.setValue('endDate', undefined)}
+                            onClick={() => form.setValue("endDate", undefined)}
                           >
                             <X className="h-3 w-3" />
-                            <span className="sr-only">{t('clear')}</span>
+                            <span className="sr-only">{t("clear")}</span>
                           </Button>
                         )}
                       </FormItem>
@@ -286,9 +316,9 @@ export function DeliveryFilters({ onFilter, onClear, initialFilters = {} }: Deli
 
                 <div className="flex justify-between pt-4">
                   <Button type="button" variant="outline" onClick={handleClear}>
-                    {t('clearFilters')}
+                    {t("clearFilters")}
                   </Button>
-                  <Button type="submit">{t('applyFilters')}</Button>
+                  <Button type="submit">{t("applyFilters")}</Button>
                 </div>
               </form>
             </Form>

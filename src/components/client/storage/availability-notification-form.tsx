@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { boxAvailabilitySubscriptionSchema } from '@/schemas/storage/storage.schema';
-import { BoxType } from '@/server/services/shared/storage.service';
-import { useStorage } from '@/hooks/common/use-storage';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { boxAvailabilitySubscriptionSchema } from "@/schemas/storage/storage.schema";
+import { BoxType } from "@/server/services/shared/storage.service";
+import { useStorage } from "@/hooks/common/use-storage";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   Form,
   FormControl,
@@ -15,22 +15,32 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Loader2, Calendar as CalendarIcon, BellRing, Mail, MessageSquare } from 'lucide-react';
-import { cn } from '@/lib/utils/common';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import {
+  Loader2,
+  Calendar as CalendarIcon,
+  BellRing,
+  Mail,
+  MessageSquare,
+} from "lucide-react";
+import { cn } from "@/lib/utils/common";
+import { toast } from "sonner";
 
 type FormValues = {
   warehouseId?: string;
@@ -45,22 +55,22 @@ type FormValues = {
 };
 
 export function AvailabilityNotificationForm() {
-  const t = useTranslations('storage');
-  const [warehouses, setWarehouses] = useState<{ id: string; name: string; location: string }[]>(
-    []
-  );
+  const t = useTranslations("storage");
+  const [warehouses, setWarehouses] = useState<
+    { id: string; name: string; location: string }[]
+  >([]);
   const { subscribeToAvailability, getWarehouses } = useStorage();
 
   // Récupérer la liste des entrepôts au chargement du composant
   useState(() => {
     getWarehouses()
-      .then(data => {
+      .then((data) => {
         if (data) {
           setWarehouses(data);
         }
       })
       .catch(() => {
-        toast.error(t('warehouses.error'));
+        toast.error(t("warehouses.error"));
       });
   });
 
@@ -95,12 +105,13 @@ export function AvailabilityNotificationForm() {
       });
 
       form.reset();
-      toast.success(t('subscription.success'), {
-        description: t('subscription.successDescription'),
+      toast.success(t("subscription.success"), {
+        description: t("subscription.successDescription"),
       });
     } catch (error) {
-      toast.error(t('subscription.error'), {
-        description: error instanceof Error ? error.message : t('errors.general'),
+      toast.error(t("subscription.error"), {
+        description:
+          error instanceof Error ? error.message : t("errors.general"),
       });
     }
   };
@@ -116,22 +127,24 @@ export function AvailabilityNotificationForm() {
               name="warehouseId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('form.warehouse')}</FormLabel>
+                  <FormLabel>{t("form.warehouse")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('form.selectWarehouse')} />
+                        <SelectValue placeholder={t("form.selectWarehouse")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {warehouses.map(warehouse => (
+                      {warehouses.map((warehouse) => (
                         <SelectItem key={warehouse.id} value={warehouse.id}>
                           {warehouse.name} - {warehouse.location}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>{t('subscription.warehouseDescription')}</FormDescription>
+                  <FormDescription>
+                    {t("subscription.warehouseDescription")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -143,22 +156,24 @@ export function AvailabilityNotificationForm() {
               name="boxType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('form.boxType')}</FormLabel>
+                  <FormLabel>{t("form.boxType")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('form.selectBoxType')} />
+                        <SelectValue placeholder={t("form.selectBoxType")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values(BoxType).map(type => (
+                      {Object.values(BoxType).map((type) => (
                         <SelectItem key={type} value={type}>
                           {t(`boxTypes.${type.toLowerCase()}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>{t('subscription.boxTypeDescription')}</FormDescription>
+                  <FormDescription>
+                    {t("subscription.boxTypeDescription")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -170,21 +185,21 @@ export function AvailabilityNotificationForm() {
               name="startDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>{t('form.startDate')}</FormLabel>
+                  <FormLabel>{t("form.startDate")}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          variant={'outline'}
+                          variant={"outline"}
                           className={cn(
-                            'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
-                            format(field.value, 'PPP', { locale: fr })
+                            format(field.value, "PPP", { locale: fr })
                           ) : (
-                            <span>{t('form.pickDate')}</span>
+                            <span>{t("form.pickDate")}</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -195,12 +210,14 @@ export function AvailabilityNotificationForm() {
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={date => date < new Date()}
+                        disabled={(date) => date < new Date()}
                         initialFocus
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>{t('subscription.startDateDescription')}</FormDescription>
+                  <FormDescription>
+                    {t("subscription.startDateDescription")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -212,21 +229,21 @@ export function AvailabilityNotificationForm() {
               name="endDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>{t('form.endDate')}</FormLabel>
+                  <FormLabel>{t("form.endDate")}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          variant={'outline'}
+                          variant={"outline"}
                           className={cn(
-                            'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
-                            format(field.value, 'PPP', { locale: fr })
+                            format(field.value, "PPP", { locale: fr })
                           ) : (
-                            <span>{t('form.pickDate')}</span>
+                            <span>{t("form.pickDate")}</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -237,12 +254,14 @@ export function AvailabilityNotificationForm() {
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={date => date < form.getValues('startDate')}
+                        disabled={(date) => date < form.getValues("startDate")}
                         initialFocus
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>{t('subscription.endDateDescription')}</FormDescription>
+                  <FormDescription>
+                    {t("subscription.endDateDescription")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -257,7 +276,7 @@ export function AvailabilityNotificationForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t('form.priceRange')}: {field.value}€ {t('form.perDay')}
+                    {t("form.priceRange")}: {field.value}€ {t("form.perDay")}
                   </FormLabel>
                   <FormControl>
                     <Slider
@@ -265,10 +284,12 @@ export function AvailabilityNotificationForm() {
                       min={5}
                       max={100}
                       step={1}
-                      onValueChange={value => field.onChange(value[0])}
+                      onValueChange={(value) => field.onChange(value[0])}
                     />
                   </FormControl>
-                  <FormDescription>{t('subscription.priceDescription')}</FormDescription>
+                  <FormDescription>
+                    {t("subscription.priceDescription")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -281,7 +302,7 @@ export function AvailabilityNotificationForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t('form.minSize')}: {field.value} m³
+                    {t("form.minSize")}: {field.value} m³
                   </FormLabel>
                   <FormControl>
                     <Slider
@@ -289,17 +310,21 @@ export function AvailabilityNotificationForm() {
                       min={1}
                       max={20}
                       step={1}
-                      onValueChange={value => field.onChange(value[0])}
+                      onValueChange={(value) => field.onChange(value[0])}
                     />
                   </FormControl>
-                  <FormDescription>{t('subscription.sizeDescription')}</FormDescription>
+                  <FormDescription>
+                    {t("subscription.sizeDescription")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
             <div className="space-y-4 pt-4">
-              <h3 className="text-lg font-medium">{t('subscription.notificationPreferences')}</h3>
+              <h3 className="text-lg font-medium">
+                {t("subscription.notificationPreferences")}
+              </h3>
 
               {/* Notifications email */}
               <FormField
@@ -310,12 +335,17 @@ export function AvailabilityNotificationForm() {
                     <div className="space-y-0.5">
                       <FormLabel className="flex items-center gap-2">
                         <Mail className="h-4 w-4" />
-                        {t('subscription.emailNotifications')}
+                        {t("subscription.emailNotifications")}
                       </FormLabel>
-                      <FormDescription>{t('subscription.emailDescription')}</FormDescription>
+                      <FormDescription>
+                        {t("subscription.emailDescription")}
+                      </FormDescription>
                     </div>
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -330,12 +360,17 @@ export function AvailabilityNotificationForm() {
                     <div className="space-y-0.5">
                       <FormLabel className="flex items-center gap-2">
                         <BellRing className="h-4 w-4" />
-                        {t('subscription.pushNotifications')}
+                        {t("subscription.pushNotifications")}
                       </FormLabel>
-                      <FormDescription>{t('subscription.pushDescription')}</FormDescription>
+                      <FormDescription>
+                        {t("subscription.pushDescription")}
+                      </FormDescription>
                     </div>
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -350,12 +385,17 @@ export function AvailabilityNotificationForm() {
                     <div className="space-y-0.5">
                       <FormLabel className="flex items-center gap-2">
                         <MessageSquare className="h-4 w-4" />
-                        {t('subscription.smsNotifications')}
+                        {t("subscription.smsNotifications")}
                       </FormLabel>
-                      <FormDescription>{t('subscription.smsDescription')}</FormDescription>
+                      <FormDescription>
+                        {t("subscription.smsDescription")}
+                      </FormDescription>
                     </div>
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -364,9 +404,15 @@ export function AvailabilityNotificationForm() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full" disabled={subscribeToAvailability.isPending}>
-          {subscribeToAvailability.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {t('subscription.subscribe')}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={subscribeToAvailability.isPending}
+        >
+          {subscribeToAvailability.isPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {t("subscription.subscribe")}
         </Button>
       </form>
     </Form>

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { format } from 'date-fns';
+import { useState } from "react";
+import { format } from "date-fns";
 import {
   Calendar,
   Clock,
@@ -12,10 +12,16 @@ import {
   ExternalLink,
   Shield,
   Check,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -23,21 +29,25 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Pagination } from '@/components/ui/pagination';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { DatePicker } from '@/components/ui/date-picker';
-import { ActivityType, UserActivityLogItem } from '@/types/actors/admin';
+} from "@/components/ui/select";
+import { Pagination } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { DatePicker } from "@/components/ui/date-picker";
+import { ActivityType, UserActivityLogItem } from "@/types/actors/admin";
 import {
   Dialog,
   DialogClose,
@@ -47,115 +57,118 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 // Mapping des types d'activité vers des libellés et couleurs
-const activityTypeLabels: Record<ActivityType, { label: string; color: string; icon: any }> = {
+const activityTypeLabels: Record<
+  ActivityType,
+  { label: string; color: string; icon: any }
+> = {
   [ActivityType.LOGIN]: {
-    label: 'Connexion',
-    color: 'bg-green-500',
+    label: "Connexion",
+    color: "bg-green-500",
     icon: <Shield className="h-4 w-4" />,
   },
   [ActivityType.LOGOUT]: {
-    label: 'Déconnexion',
-    color: 'bg-blue-500',
+    label: "Déconnexion",
+    color: "bg-blue-500",
     icon: <ExternalLink className="h-4 w-4" />,
   },
   [ActivityType.PROFILE_UPDATE]: {
-    label: 'Mise à jour du profil',
-    color: 'bg-orange-500',
+    label: "Mise à jour du profil",
+    color: "bg-orange-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.PASSWORD_CHANGE]: {
-    label: 'Changement de mot de passe',
-    color: 'bg-amber-500',
+    label: "Changement de mot de passe",
+    color: "bg-amber-500",
     icon: <Shield className="h-4 w-4" />,
   },
   [ActivityType.STATUS_CHANGE]: {
-    label: 'Changement de statut',
-    color: 'bg-purple-500',
+    label: "Changement de statut",
+    color: "bg-purple-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.ROLE_CHANGE]: {
-    label: 'Changement de rôle',
-    color: 'bg-indigo-500',
+    label: "Changement de rôle",
+    color: "bg-indigo-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.VERIFICATION_SUBMIT]: {
-    label: 'Soumission de vérification',
-    color: 'bg-lime-500',
+    label: "Soumission de vérification",
+    color: "bg-lime-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.VERIFICATION_REVIEW]: {
-    label: 'Revue de vérification',
-    color: 'bg-cyan-500',
+    label: "Revue de vérification",
+    color: "bg-cyan-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.DOCUMENT_UPLOAD]: {
-    label: 'Téléchargement de document',
-    color: 'bg-emerald-500',
+    label: "Téléchargement de document",
+    color: "bg-emerald-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.ACCOUNT_CREATION]: {
-    label: 'Création de compte',
-    color: 'bg-sky-500',
+    label: "Création de compte",
+    color: "bg-sky-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.EMAIL_VERIFIED]: {
-    label: 'Email vérifié',
-    color: 'bg-green-500',
+    label: "Email vérifié",
+    color: "bg-green-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.PHONE_VERIFIED]: {
-    label: 'Téléphone vérifié',
-    color: 'bg-green-500',
+    label: "Téléphone vérifié",
+    color: "bg-green-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.PASSWORD_RESET]: {
-    label: 'Réinitialisation de mot de passe',
-    color: 'bg-amber-500',
+    label: "Réinitialisation de mot de passe",
+    color: "bg-amber-500",
     icon: <Shield className="h-4 w-4" />,
   },
   [ActivityType.PASSWORD_RESET_REQUEST]: {
-    label: 'Demande de réinitialisation',
-    color: 'bg-amber-500',
+    label: "Demande de réinitialisation",
+    color: "bg-amber-500",
     icon: <Shield className="h-4 w-4" />,
   },
   [ActivityType.ACCOUNT_LOCKED]: {
-    label: 'Compte verrouillé',
-    color: 'bg-red-500',
+    label: "Compte verrouillé",
+    color: "bg-red-500",
     icon: <Shield className="h-4 w-4" />,
   },
   [ActivityType.ACCOUNT_UNLOCKED]: {
-    label: 'Compte déverrouillé',
-    color: 'bg-green-500',
+    label: "Compte déverrouillé",
+    color: "bg-green-500",
     icon: <Shield className="h-4 w-4" />,
   },
   [ActivityType.FAILED_LOGIN_ATTEMPT]: {
-    label: 'Tentative échouée',
-    color: 'bg-red-500',
+    label: "Tentative échouée",
+    color: "bg-red-500",
     icon: <Shield className="h-4 w-4" />,
   },
   [ActivityType.PERMISSION_CHANGE]: {
-    label: 'Changement de permissions',
-    color: 'bg-indigo-500',
+    label: "Changement de permissions",
+    color: "bg-indigo-500",
     icon: <Shield className="h-4 w-4" />,
   },
   [ActivityType.SUBSCRIPTION_CHANGE]: {
     label: "Changement d'abonnement",
-    color: 'bg-emerald-500',
+    color: "bg-emerald-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.PAYMENT_METHOD_ADDED]: {
-    label: 'Méthode de paiement ajoutée',
-    color: 'bg-emerald-500',
+    label: "Méthode de paiement ajoutée",
+    color: "bg-emerald-500",
     icon: <Activity className="h-4 w-4" />,
   },
   [ActivityType.OTHER]: {
-    label: 'Autre',
-    color: 'bg-gray-500',
+    label: "Autre",
+    color: "bg-gray-500",
     icon: <Activity className="h-4 w-4" />,
   },
 };
@@ -173,7 +186,7 @@ interface UserActivityLogsProps {
     searchTerm?: string;
     dateFrom?: Date;
     dateTo?: Date;
-    sortDirection?: 'asc' | 'desc';
+    sortDirection?: "asc" | "desc";
   }) => void;
   onRefresh: () => void;
   onExport: () => void;
@@ -197,14 +210,18 @@ export function UserActivityLogs({
     searchTerm?: string;
     dateFrom?: Date;
     dateTo?: Date;
-    sortDirection?: 'asc' | 'desc';
+    sortDirection?: "asc" | "desc";
   }>({
-    sortDirection: 'desc',
+    sortDirection: "desc",
   });
 
-  const [selectedActivityTypes, setSelectedActivityTypes] = useState<ActivityType[]>([]);
-  const [newLogDetails, setNewLogDetails] = useState('');
-  const [newLogType, setNewLogType] = useState<ActivityType>(ActivityType.OTHER);
+  const [selectedActivityTypes, setSelectedActivityTypes] = useState<
+    ActivityType[]
+  >([]);
+  const [newLogDetails, setNewLogDetails] = useState("");
+  const [newLogType, setNewLogType] = useState<ActivityType>(
+    ActivityType.OTHER,
+  );
 
   const handleFilterChange = (newFilters: any) => {
     const updatedFilters = { ...activeFilters, ...newFilters };
@@ -226,14 +243,14 @@ export function UserActivityLogs({
         activityType: newLogType,
         details: newLogDetails,
       });
-      setNewLogDetails('');
+      setNewLogDetails("");
       setNewLogType(ActivityType.OTHER);
     }
   };
 
   const handleTypeSelect = (type: ActivityType) => {
     if (selectedActivityTypes.includes(type)) {
-      setSelectedActivityTypes(selectedActivityTypes.filter(t => t !== type));
+      setSelectedActivityTypes(selectedActivityTypes.filter((t) => t !== type));
     } else {
       setSelectedActivityTypes([...selectedActivityTypes, type]);
     }
@@ -241,12 +258,14 @@ export function UserActivityLogs({
 
   const applyTypeFilter = () => {
     handleFilterChange({
-      types: selectedActivityTypes.length > 0 ? selectedActivityTypes : undefined,
+      types:
+        selectedActivityTypes.length > 0 ? selectedActivityTypes : undefined,
     });
   };
 
   const getActivityBadge = (type: ActivityType) => {
-    const config = activityTypeLabels[type] || activityTypeLabels[ActivityType.OTHER];
+    const config =
+      activityTypeLabels[type] || activityTypeLabels[ActivityType.OTHER];
     return (
       <Badge className={`${config.color} flex items-center gap-1`}>
         {config.icon}
@@ -286,7 +305,8 @@ export function UserActivityLogs({
                   <DialogHeader>
                     <DialogTitle>Ajouter une entrée d'activité</DialogTitle>
                     <DialogDescription>
-                      Créer une nouvelle entrée dans le journal d'activité de cet utilisateur
+                      Créer une nouvelle entrée dans le journal d'activité de
+                      cet utilisateur
                     </DialogDescription>
                   </DialogHeader>
 
@@ -295,7 +315,9 @@ export function UserActivityLogs({
                       <Label htmlFor="activity-type">Type d'activité</Label>
                       <Select
                         value={newLogType}
-                        onValueChange={value => setNewLogType(value as ActivityType)}
+                        onValueChange={(value) =>
+                          setNewLogType(value as ActivityType)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un type" />
@@ -316,7 +338,7 @@ export function UserActivityLogs({
                         id="details"
                         placeholder="Entrez les détails de l'activité"
                         value={newLogDetails}
-                        onChange={e => setNewLogDetails(e.target.value)}
+                        onChange={(e) => setNewLogDetails(e.target.value)}
                         rows={4}
                       />
                     </div>
@@ -326,7 +348,10 @@ export function UserActivityLogs({
                     <DialogClose asChild>
                       <Button variant="outline">Annuler</Button>
                     </DialogClose>
-                    <Button onClick={handleAddActivityLog} disabled={!newLogDetails.trim()}>
+                    <Button
+                      onClick={handleAddActivityLog}
+                      disabled={!newLogDetails.trim()}
+                    >
                       Ajouter l'entrée
                     </Button>
                   </DialogFooter>
@@ -344,14 +369,20 @@ export function UserActivityLogs({
             <Input
               placeholder="Rechercher..."
               className="pl-8 w-[250px]"
-              value={activeFilters.searchTerm || ''}
-              onChange={e => handleFilterChange({ searchTerm: e.target.value })}
+              value={activeFilters.searchTerm || ""}
+              onChange={(e) =>
+                handleFilterChange({ searchTerm: e.target.value })
+              }
             />
           </div>
 
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+              >
                 <Filter className="w-4 h-4" />
                 Types d'activité
                 {activeFilters.types && activeFilters.types.length > 0 && (
@@ -363,7 +394,9 @@ export function UserActivityLogs({
             </PopoverTrigger>
             <PopoverContent className="w-[300px] p-0" align="start">
               <div className="p-4 border-b">
-                <h4 className="font-medium mb-2">Filtrer par type d'activité</h4>
+                <h4 className="font-medium mb-2">
+                  Filtrer par type d'activité
+                </h4>
                 <div className="space-y-2 max-h-[300px] overflow-y-auto">
                   {Object.entries(ActivityType).map(([key, value]) => (
                     <div key={key} className="flex items-center space-x-2">
@@ -374,14 +407,21 @@ export function UserActivityLogs({
                         onChange={() => handleTypeSelect(value)}
                         className="rounded border-gray-300"
                       />
-                      <label htmlFor={`type-${key}`} className="text-sm flex items-center">
+                      <label
+                        htmlFor={`type-${key}`}
+                        className="text-sm flex items-center"
+                      >
                         {activityTypeLabels[value]?.label || value}
                       </label>
                     </div>
                   ))}
                 </div>
                 <div className="flex justify-between mt-4">
-                  <Button variant="outline" size="sm" onClick={() => setSelectedActivityTypes([])}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedActivityTypes([])}
+                  >
                     Effacer
                   </Button>
                   <Button size="sm" onClick={applyTypeFilter}>
@@ -413,7 +453,9 @@ export function UserActivityLogs({
                       <label htmlFor="from">Du</label>
                       <DatePicker
                         value={activeFilters.dateFrom}
-                        onChange={date => handleFilterChange({ dateFrom: date })}
+                        onChange={(date) =>
+                          handleFilterChange({ dateFrom: date })
+                        }
                       />
                     </div>
                   </div>
@@ -422,7 +464,9 @@ export function UserActivityLogs({
                       <label htmlFor="to">Au</label>
                       <DatePicker
                         value={activeFilters.dateTo}
-                        onChange={date => handleFilterChange({ dateTo: date })}
+                        onChange={(date) =>
+                          handleFilterChange({ dateTo: date })
+                        }
                       />
                     </div>
                   </div>
@@ -432,8 +476,8 @@ export function UserActivityLogs({
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      clearFilter('dateFrom');
-                      clearFilter('dateTo');
+                      clearFilter("dateFrom");
+                      clearFilter("dateTo");
                     }}
                   >
                     Effacer les dates
@@ -444,8 +488,10 @@ export function UserActivityLogs({
           </Popover>
 
           <Select
-            value={activeFilters.sortDirection || 'desc'}
-            onValueChange={value => handleFilterChange({ sortDirection: value })}
+            value={activeFilters.sortDirection || "desc"}
+            onValueChange={(value) =>
+              handleFilterChange({ sortDirection: value })
+            }
           >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Tri" />
@@ -469,7 +515,7 @@ export function UserActivityLogs({
                     variant="ghost"
                     size="icon"
                     className="h-4 w-4 p-0"
-                    onClick={() => clearFilter('types')}
+                    onClick={() => clearFilter("types")}
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -482,7 +528,7 @@ export function UserActivityLogs({
                     variant="ghost"
                     size="icon"
                     className="h-4 w-4 p-0"
-                    onClick={() => clearFilter('searchTerm')}
+                    onClick={() => clearFilter("searchTerm")}
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -496,8 +542,8 @@ export function UserActivityLogs({
                     size="icon"
                     className="h-4 w-4 p-0"
                     onClick={() => {
-                      clearFilter('dateFrom');
-                      clearFilter('dateTo');
+                      clearFilter("dateFrom");
+                      clearFilter("dateTo");
                     }}
                   >
                     <X className="h-3 w-3" />
@@ -509,8 +555,12 @@ export function UserActivityLogs({
                 size="sm"
                 className="text-xs"
                 onClick={() => {
-                  setActiveFilters({ sortDirection: activeFilters.sortDirection });
-                  onFilterChange({ sortDirection: activeFilters.sortDirection });
+                  setActiveFilters({
+                    sortDirection: activeFilters.sortDirection,
+                  });
+                  onFilterChange({
+                    sortDirection: activeFilters.sortDirection,
+                  });
                 }}
               >
                 Effacer tous les filtres
@@ -544,21 +594,25 @@ export function UserActivityLogs({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.map(log => (
+                {logs.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="font-mono text-xs">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3 text-muted-foreground" />
-                        {format(new Date(log.createdAt), 'dd/MM/yyyy')}
+                        {format(new Date(log.createdAt), "dd/MM/yyyy")}
                       </div>
                       <div className="flex items-center gap-1 mt-1">
                         <Clock className="h-3 w-3 text-muted-foreground" />
-                        {format(new Date(log.createdAt), 'HH:mm:ss')}
+                        {format(new Date(log.createdAt), "HH:mm:ss")}
                       </div>
                     </TableCell>
                     <TableCell>{getActivityBadge(log.activityType)}</TableCell>
-                    <TableCell className="text-sm">{log.details || '-'}</TableCell>
-                    <TableCell className="font-mono text-xs">{log.ipAddress || '-'}</TableCell>
+                    <TableCell className="text-sm">
+                      {log.details || "-"}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {log.ipAddress || "-"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

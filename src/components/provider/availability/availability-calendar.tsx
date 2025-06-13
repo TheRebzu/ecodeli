@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createAvailabilitySchema } from '@/schemas/service/service.schema';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createAvailabilitySchema } from "@/schemas/service/service.schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Form,
   FormControl,
@@ -17,21 +17,27 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Clock, CalendarDays, Plus, X, AlertCircle } from 'lucide-react';
-import { api } from '@/trpc/react';
-import { toast } from 'sonner';
-import { TimeslotPicker } from '@/components/provider/availability/timeslot-picker';
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Clock, CalendarDays, Plus, X, AlertCircle } from "lucide-react";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { TimeslotPicker } from "@/components/provider/availability/timeslot-picker";
 
 interface AvailabilityFormProps {
   onSuccess?: () => void;
@@ -54,52 +60,52 @@ export function AvailabilityForm({
   initialData,
   showBulkMode = true,
 }: AvailabilityFormProps) {
-  const t = useTranslations('services.availability');
+  const t = useTranslations("services.availability");
   const utils = api.useUtils();
 
   const [isBulkMode, setIsBulkMode] = useState(false);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [useTemplate, setUseTemplate] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
 
   // Modèles prédéfinis de disponibilité
   const templates = {
-    'weekdays-9-17': {
-      name: t('templates.weekdays'),
-      description: t('templates.weekdaysDesc'),
+    "weekdays-9-17": {
+      name: t("templates.weekdays"),
+      description: t("templates.weekdaysDesc"),
       slots: [
-        { dayOfWeek: 1, startTime: '09:00', endTime: '17:00' },
-        { dayOfWeek: 2, startTime: '09:00', endTime: '17:00' },
-        { dayOfWeek: 3, startTime: '09:00', endTime: '17:00' },
-        { dayOfWeek: 4, startTime: '09:00', endTime: '17:00' },
-        { dayOfWeek: 5, startTime: '09:00', endTime: '17:00' },
+        { dayOfWeek: 1, startTime: "09:00", endTime: "17:00" },
+        { dayOfWeek: 2, startTime: "09:00", endTime: "17:00" },
+        { dayOfWeek: 3, startTime: "09:00", endTime: "17:00" },
+        { dayOfWeek: 4, startTime: "09:00", endTime: "17:00" },
+        { dayOfWeek: 5, startTime: "09:00", endTime: "17:00" },
       ],
     },
-    'weekend-10-16': {
-      name: t('templates.weekend'),
-      description: t('templates.weekendDesc'),
+    "weekend-10-16": {
+      name: t("templates.weekend"),
+      description: t("templates.weekendDesc"),
       slots: [
-        { dayOfWeek: 6, startTime: '10:00', endTime: '16:00' },
-        { dayOfWeek: 0, startTime: '10:00', endTime: '16:00' },
+        { dayOfWeek: 6, startTime: "10:00", endTime: "16:00" },
+        { dayOfWeek: 0, startTime: "10:00", endTime: "16:00" },
       ],
     },
-    'full-week-8-20': {
-      name: t('templates.fullWeek'),
-      description: t('templates.fullWeekDesc'),
+    "full-week-8-20": {
+      name: t("templates.fullWeek"),
+      description: t("templates.fullWeekDesc"),
       slots: Array.from({ length: 7 }, (_, i) => ({
         dayOfWeek: i,
-        startTime: '08:00',
-        endTime: '20:00',
+        startTime: "08:00",
+        endTime: "20:00",
       })),
     },
     flexible: {
-      name: t('templates.flexible'),
-      description: t('templates.flexibleDesc'),
+      name: t("templates.flexible"),
+      description: t("templates.flexibleDesc"),
       slots: [
-        { dayOfWeek: 1, startTime: '14:00', endTime: '18:00' },
-        { dayOfWeek: 3, startTime: '14:00', endTime: '18:00' },
-        { dayOfWeek: 5, startTime: '14:00', endTime: '18:00' },
-        { dayOfWeek: 6, startTime: '09:00', endTime: '12:00' },
+        { dayOfWeek: 1, startTime: "14:00", endTime: "18:00" },
+        { dayOfWeek: 3, startTime: "14:00", endTime: "18:00" },
+        { dayOfWeek: 5, startTime: "14:00", endTime: "18:00" },
+        { dayOfWeek: 6, startTime: "09:00", endTime: "12:00" },
       ],
     },
   };
@@ -109,36 +115,38 @@ export function AvailabilityForm({
     resolver: zodResolver(createAvailabilitySchema),
     defaultValues: {
       dayOfWeek: initialData?.dayOfWeek ?? 1,
-      startTime: initialData?.startTime ?? '09:00',
-      endTime: initialData?.endTime ?? '17:00',
+      startTime: initialData?.startTime ?? "09:00",
+      endTime: initialData?.endTime ?? "17:00",
     },
   });
 
   // Mutation pour créer une disponibilité
-  const createAvailabilityMutation = api.service.createAvailability.useMutation({
-    onSuccess: () => {
-      toast.success(t('added'));
-      utils.service.getMyAvailabilities.invalidate();
-      form.reset();
-      onSuccess?.();
+  const createAvailabilityMutation = api.service.createAvailability.useMutation(
+    {
+      onSuccess: () => {
+        toast.success(t("added"));
+        utils.service.getMyAvailabilities.invalidate();
+        form.reset();
+        onSuccess?.();
+      },
+      onError: (error) => {
+        toast.error(error.message || t("addFailed"));
+      },
     },
-    onError: error => {
-      toast.error(error.message || t('addFailed'));
-    },
-  });
+  );
 
   // Récupérer les disponibilités existantes
   const availabilitiesQuery = api.service.getMyAvailabilities.useQuery();
 
   // Jours de la semaine
   const weekDays = [
-    { value: 1, label: t('days.monday'), short: 'Lun' },
-    { value: 2, label: t('days.tuesday'), short: 'Mar' },
-    { value: 3, label: t('days.wednesday'), short: 'Mer' },
-    { value: 4, label: t('days.thursday'), short: 'Jeu' },
-    { value: 5, label: t('days.friday'), short: 'Ven' },
-    { value: 6, label: t('days.saturday'), short: 'Sam' },
-    { value: 0, label: t('days.sunday'), short: 'Dim' },
+    { value: 1, label: t("days.monday"), short: "Lun" },
+    { value: 2, label: t("days.tuesday"), short: "Mar" },
+    { value: 3, label: t("days.wednesday"), short: "Mer" },
+    { value: 4, label: t("days.thursday"), short: "Jeu" },
+    { value: 5, label: t("days.friday"), short: "Ven" },
+    { value: 6, label: t("days.saturday"), short: "Sam" },
+    { value: 0, label: t("days.sunday"), short: "Dim" },
   ];
 
   // Soumission du formulaire
@@ -166,8 +174,10 @@ export function AvailabilityForm({
 
   // Basculer la sélection d'un jour
   const toggleDaySelection = (dayOfWeek: number) => {
-    setSelectedDays(prev =>
-      prev.includes(dayOfWeek) ? prev.filter(d => d !== dayOfWeek) : [...prev, dayOfWeek]
+    setSelectedDays((prev) =>
+      prev.includes(dayOfWeek)
+        ? prev.filter((d) => d !== dayOfWeek)
+        : [...prev, dayOfWeek],
     );
   };
 
@@ -181,41 +191,45 @@ export function AvailabilityForm({
 
   // Vérifier si un jour a déjà des disponibilités
   const hasExistingAvailability = (dayOfWeek: number) => {
-    return availabilitiesQuery.data?.some(av => av.dayOfWeek === dayOfWeek);
+    return availabilitiesQuery.data?.some((av) => av.dayOfWeek === dayOfWeek);
   };
 
   return (
     <div className="space-y-6">
       {/* En-tête */}
       <div>
-        <h2 className="text-xl font-semibold">{t('formTitle')}</h2>
-        <p className="text-muted-foreground">{t('formDescription')}</p>
+        <h2 className="text-xl font-semibold">{t("formTitle")}</h2>
+        <p className="text-muted-foreground">{t("formDescription")}</p>
       </div>
 
       {/* Options de mode */}
       {showBulkMode && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t('mode.title')}</CardTitle>
-            <CardDescription>{t('mode.description')}</CardDescription>
+            <CardTitle className="text-base">{t("mode.title")}</CardTitle>
+            <CardDescription>{t("mode.description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-2">
-              <Switch id="useTemplate" checked={useTemplate} onCheckedChange={setUseTemplate} />
-              <Label htmlFor="useTemplate">{t('mode.useTemplate')}</Label>
+              <Switch
+                id="useTemplate"
+                checked={useTemplate}
+                onCheckedChange={setUseTemplate}
+              />
+              <Label htmlFor="useTemplate">{t("mode.useTemplate")}</Label>
             </div>
 
             {useTemplate && (
               <div className="space-y-3">
-                <Label>{t('mode.selectTemplate')}</Label>
+                <Label>{t("mode.selectTemplate")}</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {Object.entries(templates).map(([key, template]) => (
                     <div
                       key={key}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                         selectedTemplate === key
-                          ? 'border-primary bg-primary/5'
-                          : 'border-muted hover:border-primary/50'
+                          ? "border-primary bg-primary/5"
+                          : "border-muted hover:border-primary/50"
                       }`}
                       onClick={() => setSelectedTemplate(key)}
                     >
@@ -231,8 +245,13 @@ export function AvailabilityForm({
                 </div>
 
                 {selectedTemplate && (
-                  <Button onClick={applyTemplate} disabled={createAvailabilityMutation.isPending}>
-                    {createAvailabilityMutation.isPending ? t('applying') : t('applyTemplate')}
+                  <Button
+                    onClick={applyTemplate}
+                    disabled={createAvailabilityMutation.isPending}
+                  >
+                    {createAvailabilityMutation.isPending
+                      ? t("applying")
+                      : t("applyTemplate")}
                   </Button>
                 )}
               </div>
@@ -240,8 +259,12 @@ export function AvailabilityForm({
 
             {!useTemplate && (
               <div className="flex items-center space-x-2">
-                <Switch id="bulkMode" checked={isBulkMode} onCheckedChange={setIsBulkMode} />
-                <Label htmlFor="bulkMode">{t('mode.bulkMode')}</Label>
+                <Switch
+                  id="bulkMode"
+                  checked={isBulkMode}
+                  onCheckedChange={setIsBulkMode}
+                />
+                <Label htmlFor="bulkMode">{t("mode.bulkMode")}</Label>
               </div>
             )}
           </CardContent>
@@ -254,25 +277,31 @@ export function AvailabilityForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{t('schedule.title')}</CardTitle>
-                <CardDescription>{t('schedule.description')}</CardDescription>
+                <CardTitle className="text-base">
+                  {t("schedule.title")}
+                </CardTitle>
+                <CardDescription>{t("schedule.description")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Sélection des jours */}
                 {isBulkMode ? (
                   <div>
-                    <Label className="text-base">{t('selectDays')}</Label>
+                    <Label className="text-base">{t("selectDays")}</Label>
                     <div className="grid grid-cols-7 gap-2 mt-2">
-                      {weekDays.map(day => (
+                      {weekDays.map((day) => (
                         <Button
                           key={day.value}
                           type="button"
-                          variant={selectedDays.includes(day.value) ? 'default' : 'outline'}
+                          variant={
+                            selectedDays.includes(day.value)
+                              ? "default"
+                              : "outline"
+                          }
                           size="sm"
                           className={`h-16 flex flex-col ${
                             hasExistingAvailability(day.value)
-                              ? 'border-orange-300 bg-orange-50'
-                              : ''
+                              ? "border-orange-300 bg-orange-50"
+                              : ""
                           }`}
                           onClick={() => toggleDaySelection(day.value)}
                         >
@@ -283,10 +312,12 @@ export function AvailabilityForm({
                         </Button>
                       ))}
                     </div>
-                    {selectedDays.some(day => hasExistingAvailability(day)) && (
+                    {selectedDays.some((day) =>
+                      hasExistingAvailability(day),
+                    ) && (
                       <p className="text-sm text-orange-600 mt-2">
                         <AlertCircle className="h-3 w-3 inline mr-1" />
-                        {t('warnings.existingAvailability')}
+                        {t("warnings.existingAvailability")}
                       </p>
                     )}
                   </div>
@@ -296,19 +327,24 @@ export function AvailabilityForm({
                     name="dayOfWeek"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('day')}</FormLabel>
+                        <FormLabel>{t("day")}</FormLabel>
                         <Select
                           value={field.value.toString()}
-                          onValueChange={value => field.onChange(parseInt(value))}
+                          onValueChange={(value) =>
+                            field.onChange(parseInt(value))
+                          }
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('selectDay')} />
+                              <SelectValue placeholder={t("selectDay")} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {weekDays.map(day => (
-                              <SelectItem key={day.value} value={day.value.toString()}>
+                            {weekDays.map((day) => (
+                              <SelectItem
+                                key={day.value}
+                                value={day.value.toString()}
+                              >
                                 <div className="flex items-center justify-between w-full">
                                   <span>{day.label}</span>
                                   {hasExistingAvailability(day.value) && (
@@ -336,12 +372,12 @@ export function AvailabilityForm({
                     name="startTime"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('startTime')}</FormLabel>
+                        <FormLabel>{t("startTime")}</FormLabel>
                         <FormControl>
                           <TimeslotPicker
                             value={field.value}
                             onChange={field.onChange}
-                            placeholder={t('selectStartTime')}
+                            placeholder={t("selectStartTime")}
                             mode="start"
                           />
                         </FormControl>
@@ -355,14 +391,14 @@ export function AvailabilityForm({
                     name="endTime"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('endTime')}</FormLabel>
+                        <FormLabel>{t("endTime")}</FormLabel>
                         <FormControl>
                           <TimeslotPicker
                             value={field.value}
                             onChange={field.onChange}
-                            placeholder={t('selectEndTime')}
+                            placeholder={t("selectEndTime")}
                             mode="end"
-                            minTime={form.watch('startTime')}
+                            minTime={form.watch("startTime")}
                           />
                         </FormControl>
                         <FormMessage />
@@ -372,24 +408,33 @@ export function AvailabilityForm({
                 </div>
 
                 {/* Aperçu de la disponibilité */}
-                {form.watch('startTime') && form.watch('endTime') && (
+                {form.watch("startTime") && form.watch("endTime") && (
                   <div className="p-3 bg-muted rounded-lg">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      <span className="font-medium">{t('preview')}</span>
+                      <span className="font-medium">{t("preview")}</span>
                     </div>
                     <div className="mt-1 text-sm">
                       {isBulkMode && selectedDays.length > 0 ? (
                         <span>
                           {selectedDays
-                            .map(day => weekDays.find(wd => wd.value === day)?.short)
-                            .join(', ')}{' '}
-                          {t('from')} {form.watch('startTime')} {t('to')} {form.watch('endTime')}
+                            .map(
+                              (day) =>
+                                weekDays.find((wd) => wd.value === day)?.short,
+                            )
+                            .join(", ")}{" "}
+                          {t("from")} {form.watch("startTime")} {t("to")}{" "}
+                          {form.watch("endTime")}
                         </span>
                       ) : (
                         <span>
-                          {weekDays.find(d => d.value === form.watch('dayOfWeek'))?.label}{' '}
-                          {t('from')} {form.watch('startTime')} {t('to')} {form.watch('endTime')}
+                          {
+                            weekDays.find(
+                              (d) => d.value === form.watch("dayOfWeek"),
+                            )?.label
+                          }{" "}
+                          {t("from")} {form.watch("startTime")} {t("to")}{" "}
+                          {form.watch("endTime")}
                         </span>
                       )}
                     </div>
@@ -402,27 +447,28 @@ export function AvailabilityForm({
             <div className="flex gap-3">
               {onCancel && (
                 <Button type="button" variant="outline" onClick={onCancel}>
-                  {t('cancel')}
+                  {t("cancel")}
                 </Button>
               )}
               <Button
                 type="submit"
                 disabled={
-                  createAvailabilityMutation.isPending || (isBulkMode && selectedDays.length === 0)
+                  createAvailabilityMutation.isPending ||
+                  (isBulkMode && selectedDays.length === 0)
                 }
                 className="flex-1"
               >
                 {createAvailabilityMutation.isPending ? (
                   <span className="flex items-center gap-2">
                     <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                    {t('adding')}
+                    {t("adding")}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
                     {isBulkMode && selectedDays.length > 1
-                      ? t('addMultiple', { count: selectedDays.length })
-                      : t('add')}
+                      ? t("addMultiple", { count: selectedDays.length })
+                      : t("add")}
                   </span>
                 )}
               </Button>

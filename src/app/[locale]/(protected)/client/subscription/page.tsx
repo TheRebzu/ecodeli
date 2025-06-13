@@ -1,26 +1,32 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { useSession } from 'next-auth/react';
-import { Package, CreditCard, FileText, HelpCircle, Zap } from 'lucide-react';
+import React from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
+import { Package, CreditCard, FileText, HelpCircle, Zap } from "lucide-react";
 
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { SubscriptionManager } from '@/components/client/payments/subscription-manager';
-import { SubscriptionPlans } from '@/components/shared/payments/subscription-plans';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { SubscriptionManager } from "@/components/client/payments/subscription-manager";
+import { SubscriptionPlans } from "@/components/shared/payments/subscription-plans";
 
 export default function SubscriptionPage() {
-  const t = useTranslations('subscription');
+  const t = useTranslations("subscription");
   const router = useRouter();
   const { data: session } = useSession();
   const { toast } = useToast();
@@ -37,17 +43,17 @@ export default function SubscriptionPage() {
     // ou mettre à jour l'abonnement
     if (subscription) {
       toast({
-        variant: 'default',
-        title: t('changePlanTitle'),
-        description: t('changePlanDescription'),
+        variant: "default",
+        title: t("changePlanTitle"),
+        description: t("changePlanDescription"),
       });
 
       router.push(`/client/payments?plan=${planId}`);
     } else {
       toast({
-        variant: 'default',
-        title: t('selectPlanTitle'),
-        description: t('selectPlanDescription'),
+        variant: "default",
+        title: t("selectPlanTitle"),
+        description: t("selectPlanDescription"),
       });
 
       router.push(`/client/payments?plan=${planId}`);
@@ -56,12 +62,12 @@ export default function SubscriptionPage() {
 
   // Fonction pour voir les factures
   const handleViewInvoices = () => {
-    router.push('/client/invoices');
+    router.push("/client/invoices");
   };
 
   // Fonction pour voir l'historique des paiements
   const handleViewPayments = () => {
-    router.push('/client/payments');
+    router.push("/client/payments");
   };
 
   return (
@@ -70,26 +76,26 @@ export default function SubscriptionPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <Package className="h-7 w-7" />
-            {t('pageTitle')}
+            {t("pageTitle")}
           </h1>
-          <p className="text-muted-foreground">{t('pageDescription')}</p>
+          <p className="text-muted-foreground">{t("pageDescription")}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button variant="outline" size="sm" onClick={handleViewInvoices}>
             <FileText className="h-4 w-4 mr-2" />
-            {t('viewInvoices')}
+            {t("viewInvoices")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleViewPayments}>
             <CreditCard className="h-4 w-4 mr-2" />
-            {t('viewPayments')}
+            {t("viewPayments")}
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="current">
         <TabsList>
-          <TabsTrigger value="current">{t('currentSubscription')}</TabsTrigger>
-          <TabsTrigger value="plans">{t('availablePlans')}</TabsTrigger>
+          <TabsTrigger value="current">{t("currentSubscription")}</TabsTrigger>
+          <TabsTrigger value="plans">{t("availablePlans")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="current" className="mt-6">
@@ -98,22 +104,33 @@ export default function SubscriptionPage() {
           ) : (
             <>
               {subscription ? (
-                <SubscriptionManager userId={session?.user?.id} isDemo={false} />
+                <SubscriptionManager
+                  userId={session?.user?.id}
+                  isDemo={false}
+                />
               ) : (
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t('noActiveSubscription')}</CardTitle>
-                    <CardDescription>{t('noActiveSubscriptionDescription')}</CardDescription>
+                    <CardTitle>{t("noActiveSubscription")}</CardTitle>
+                    <CardDescription>
+                      {t("noActiveSubscriptionDescription")}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <Alert>
                       <HelpCircle className="h-4 w-4" />
-                      <AlertTitle>{t('subscriptionRequired')}</AlertTitle>
-                      <AlertDescription>{t('subscriptionRequiredDescription')}</AlertDescription>
+                      <AlertTitle>{t("subscriptionRequired")}</AlertTitle>
+                      <AlertDescription>
+                        {t("subscriptionRequiredDescription")}
+                      </AlertDescription>
                     </Alert>
 
-                    <Button onClick={() => document.querySelector('[data-value="plans"]')?.click()}>
-                      {t('browsePlans')}
+                    <Button
+                      onClick={() =>
+                        document.querySelector('[data-value="plans"]')?.click()
+                      }
+                    >
+                      {t("browsePlans")}
                     </Button>
                   </CardContent>
                 </Card>
@@ -122,7 +139,9 @@ export default function SubscriptionPage() {
               <Separator className="my-6" />
 
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold">{t('subscriptionBenefits')}</h2>
+                <h2 className="text-xl font-semibold">
+                  {t("subscriptionBenefits")}
+                </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Card>
                     <CardHeader>
@@ -130,10 +149,14 @@ export default function SubscriptionPage() {
                         variant="outline"
                         className="w-fit mb-2 bg-blue-50 text-blue-700 border-blue-200"
                       >
-                        {t('featureDeliveries')}
+                        {t("featureDeliveries")}
                       </Badge>
-                      <CardTitle className="text-lg">{t('unlimitedDeliveries')}</CardTitle>
-                      <CardDescription>{t('unlimitedDeliveriesDescription')}</CardDescription>
+                      <CardTitle className="text-lg">
+                        {t("unlimitedDeliveries")}
+                      </CardTitle>
+                      <CardDescription>
+                        {t("unlimitedDeliveriesDescription")}
+                      </CardDescription>
                     </CardHeader>
                   </Card>
                   <Card>
@@ -142,10 +165,14 @@ export default function SubscriptionPage() {
                         variant="outline"
                         className="w-fit mb-2 bg-green-50 text-green-700 border-green-200"
                       >
-                        {t('featureSupport')}
+                        {t("featureSupport")}
                       </Badge>
-                      <CardTitle className="text-lg">{t('prioritySupport')}</CardTitle>
-                      <CardDescription>{t('prioritySupportDescription')}</CardDescription>
+                      <CardTitle className="text-lg">
+                        {t("prioritySupport")}
+                      </CardTitle>
+                      <CardDescription>
+                        {t("prioritySupportDescription")}
+                      </CardDescription>
                     </CardHeader>
                   </Card>
                   <Card>
@@ -154,10 +181,14 @@ export default function SubscriptionPage() {
                         variant="outline"
                         className="w-fit mb-2 bg-purple-50 text-purple-700 border-purple-200"
                       >
-                        {t('featureAnalytics')}
+                        {t("featureAnalytics")}
                       </Badge>
-                      <CardTitle className="text-lg">{t('advancedAnalytics')}</CardTitle>
-                      <CardDescription>{t('advancedAnalyticsDescription')}</CardDescription>
+                      <CardTitle className="text-lg">
+                        {t("advancedAnalytics")}
+                      </CardTitle>
+                      <CardDescription>
+                        {t("advancedAnalyticsDescription")}
+                      </CardDescription>
                     </CardHeader>
                   </Card>
                 </div>
@@ -182,13 +213,16 @@ export default function SubscriptionPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-amber-500" />
-              <CardTitle className="text-base">{t('demoMode')}</CardTitle>
+              <CardTitle className="text-base">{t("demoMode")}</CardTitle>
             </div>
-            <CardDescription>{t('demoModeDescription')}</CardDescription>
+            <CardDescription>{t("demoModeDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" onClick={() => router.push('/client/subscription/demo')}>
-              {t('viewDemoSubscription')}
+            <Button
+              variant="outline"
+              onClick={() => router.push("/client/subscription/demo")}
+            >
+              {t("viewDemoSubscription")}
             </Button>
           </CardContent>
         </Card>

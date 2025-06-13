@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { useWarehouse } from '@/hooks/common/use-warehouse';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useTranslations } from "next-intl";
+import { useWarehouse } from "@/hooks/common/use-warehouse";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -11,7 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Card,
   CardContent,
@@ -19,13 +19,13 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Pagination } from '@/components/ui/pagination';
-import { Progress } from '@/components/ui/progress';
-import { Search, Plus, Edit, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Pagination } from "@/components/ui/pagination";
+import { Progress } from "@/components/ui/progress";
+import { Search, Plus, Edit, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,15 +35,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { toast } from 'sonner';
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export function WarehouseList() {
-  const t = useTranslations('admin.warehouses');
+  const t = useTranslations("admin.warehouses");
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [warehouseToDelete, setWarehouseToDelete] = useState<string | null>(null);
+  const [warehouseToDelete, setWarehouseToDelete] = useState<string | null>(
+    null,
+  );
 
   const {
     warehouses,
@@ -65,7 +67,7 @@ export function WarehouseList() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
@@ -75,7 +77,7 @@ export function WarehouseList() {
   };
 
   const handleCreateWarehouse = () => {
-    router.push('/admin/warehouses/create');
+    router.push("/admin/warehouses/create");
   };
 
   const handleEditWarehouse = (id: string) => {
@@ -92,10 +94,10 @@ export function WarehouseList() {
 
     try {
       await deleteWarehouse({ id: warehouseToDelete });
-      toast.success(t('deleteSuccess'));
+      toast.success(t("deleteSuccess"));
     } catch (error) {
-      console.error('Error deleting warehouse:', error);
-      toast.error(t('deleteError'));
+      console.error("Error deleting warehouse:", error);
+      toast.error(t("deleteError"));
     } finally {
       setIsDeleteDialogOpen(false);
       setWarehouseToDelete(null);
@@ -108,11 +110,11 @@ export function WarehouseList() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>{t('title')}</CardTitle>
-              <CardDescription>{t('subtitle')}</CardDescription>
+              <CardTitle>{t("title")}</CardTitle>
+              <CardDescription>{t("subtitle")}</CardDescription>
             </div>
             <Button onClick={handleCreateWarehouse}>
-              <Plus className="mr-2 h-4 w-4" /> {t('create')}
+              <Plus className="mr-2 h-4 w-4" /> {t("create")}
             </Button>
           </div>
         </CardHeader>
@@ -121,7 +123,7 @@ export function WarehouseList() {
             <div className="relative flex-1">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('search')}
+                placeholder={t("search")}
                 className="pl-8"
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -129,7 +131,7 @@ export function WarehouseList() {
               />
             </div>
             <Button variant="outline" className="ml-2" onClick={handleSearch}>
-              {t('searchButton')}
+              {t("searchButton")}
             </Button>
           </div>
 
@@ -137,31 +139,33 @@ export function WarehouseList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('name')}</TableHead>
-                  <TableHead>{t('location')}</TableHead>
-                  <TableHead>{t('capacity')}</TableHead>
-                  <TableHead>{t('occupied')}</TableHead>
-                  <TableHead>{t('status')}</TableHead>
-                  <TableHead className="text-right">{t('actions')}</TableHead>
+                  <TableHead>{t("name")}</TableHead>
+                  <TableHead>{t("location")}</TableHead>
+                  <TableHead>{t("capacity")}</TableHead>
+                  <TableHead>{t("occupied")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {warehousesLoading ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
-                      {t('loading')}
+                      {t("loading")}
                     </TableCell>
                   </TableRow>
                 ) : warehouses.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
-                      {t('noWarehouses')}
+                      {t("noWarehouses")}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  warehouses.map(warehouse => (
+                  warehouses.map((warehouse) => (
                     <TableRow key={warehouse.id}>
-                      <TableCell className="font-medium">{warehouse.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {warehouse.name}
+                      </TableCell>
                       <TableCell>{warehouse.location}</TableCell>
                       <TableCell>{warehouse.capacity}</TableCell>
                       <TableCell>
@@ -170,12 +174,17 @@ export function WarehouseList() {
                             <span>{warehouse.occupied}</span>
                             <span>{warehouse.occupiedPercentage}%</span>
                           </div>
-                          <Progress value={warehouse.occupiedPercentage} className="h-2" />
+                          <Progress
+                            value={warehouse.occupiedPercentage}
+                            className="h-2"
+                          />
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={warehouse.isActive ? 'default' : 'secondary'}>
-                          {warehouse.isActive ? t('active') : t('inactive')}
+                        <Badge
+                          variant={warehouse.isActive ? "default" : "secondary"}
+                        >
+                          {warehouse.isActive ? t("active") : t("inactive")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -183,9 +192,11 @@ export function WarehouseList() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => router.push(`/admin/warehouses/${warehouse.id}`)}
+                            onClick={() =>
+                              router.push(`/admin/warehouses/${warehouse.id}`)
+                            }
                           >
-                            {t('view')}
+                            {t("view")}
                           </Button>
                           <Button
                             variant="outline"
@@ -213,10 +224,16 @@ export function WarehouseList() {
         <CardFooter>
           <div className="flex items-center justify-between w-full">
             <div className="text-sm text-muted-foreground">
-              {t('showing')}{' '}
-              {warehousesCount > 0 ? (warehousesCurrentPage - 1) * warehouseFilters.limit! + 1 : 0}{' '}
-              - {Math.min(warehousesCurrentPage * warehouseFilters.limit!, warehousesCount)}{' '}
-              {t('of')} {warehousesCount} {t('warehouses')}
+              {t("showing")}{" "}
+              {warehousesCount > 0
+                ? (warehousesCurrentPage - 1) * warehouseFilters.limit! + 1
+                : 0}{" "}
+              -{" "}
+              {Math.min(
+                warehousesCurrentPage * warehouseFilters.limit!,
+                warehousesCount,
+              )}{" "}
+              {t("of")} {warehousesCount} {t("warehouses")}
             </div>
             <Pagination
               currentPage={warehousesCurrentPage}
@@ -227,16 +244,24 @@ export function WarehouseList() {
         </CardFooter>
       </Card>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('deleteDescription')}</AlertDialogDescription>
+            <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteDescription")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive">
-              {t('confirm')}
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive"
+            >
+              {t("confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

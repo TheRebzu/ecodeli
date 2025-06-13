@@ -1,18 +1,21 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { api } from '@/trpc/react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import { useSocket } from '@/hooks/system/use-socket';
+import { useState, useCallback, useEffect, useRef } from "react";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useSocket } from "@/hooks/system/use-socket";
 
-import { DeliveryPosition, DeliveryTracker } from '@/socket/delivery-tracking-client';
-import { DeliveryStatus as PrismaDeliveryStatus } from '@prisma/client';
+import {
+  DeliveryPosition,
+  DeliveryTracker,
+} from "@/socket/delivery-tracking-client";
+import { DeliveryStatus as PrismaDeliveryStatus } from "@prisma/client";
 import {
   useDeliveryTrackingStore,
   useDeliveryInfo,
   useCurrentPosition,
-} from '@/store/use-delivery-tracking-store';
+} from "@/store/use-delivery-tracking-store";
 
 // Types pour le suivi des livraisons
 export type TrackingLocation = {
@@ -25,7 +28,7 @@ export type TrackingLocation = {
 export type TrackingEvent = {
   id: string;
   deliveryId: string;
-  type: 'PICKUP' | 'DROPOFF' | 'PROBLEM' | 'STATUS_CHANGE' | 'LOCATION_UPDATE';
+  type: "PICKUP" | "DROPOFF" | "PROBLEM" | "STATUS_CHANGE" | "LOCATION_UPDATE";
   data: any;
   location?: TrackingLocation;
   createdAt: Date;
@@ -33,16 +36,16 @@ export type TrackingEvent = {
 
 // Définir notre propre type DeliveryStatus pour éviter les conflits
 export type DeliveryStatus =
-  | 'PENDING'
-  | 'ASSIGNED'
-  | 'EN_ROUTE_TO_PICKUP'
-  | 'AT_PICKUP'
-  | 'PICKED_UP'
-  | 'EN_ROUTE_TO_DROPOFF'
-  | 'AT_DROPOFF'
-  | 'DELIVERED'
-  | 'PROBLEM'
-  | 'CANCELLED';
+  | "PENDING"
+  | "ASSIGNED"
+  | "EN_ROUTE_TO_PICKUP"
+  | "AT_PICKUP"
+  | "PICKED_UP"
+  | "EN_ROUTE_TO_DROPOFF"
+  | "AT_DROPOFF"
+  | "DELIVERED"
+  | "PROBLEM"
+  | "CANCELLED";
 
 export type TrackingInfo = {
   deliveryId: string;
@@ -126,13 +129,16 @@ export function useDeliveryTrackingRealtime({
     const startTracking = async () => {
       try {
         await tracker.trackDelivery(deliveryId);
-        setState(prev => ({ ...prev, isTracking: true, error: null }));
+        setState((prev) => ({ ...prev, isTracking: true, error: null }));
       } catch (error) {
-        console.error('Erreur de suivi:', error);
-        setState(prev => ({
+        console.error("Erreur de suivi:", error);
+        setState((prev) => ({
           ...prev,
           isTracking: false,
-          error: error instanceof Error ? error : new Error('Erreur de suivi de livraison'),
+          error:
+            error instanceof Error
+              ? error
+              : new Error("Erreur de suivi de livraison"),
         }));
       }
     };
@@ -149,14 +155,14 @@ export function useDeliveryTrackingRealtime({
     if (!tracker || !state.isTracking) return;
 
     // S'abonner aux mises à jour de position
-    const unsubPosition = tracker.onLocationUpdate(deliveryId, position => {
-      setState(prev => ({
+    const unsubPosition = tracker.onLocationUpdate(deliveryId, (position) => {
+      setState((prev) => ({
         ...prev,
         position: {
           ...position,
           // Convertir le timestamp de nombre à Date si nécessaire
           timestamp:
-            typeof position.timestamp === 'number'
+            typeof position.timestamp === "number"
               ? position.timestamp
               : position.timestamp instanceof Date
                 ? position.timestamp.getTime()
@@ -167,17 +173,20 @@ export function useDeliveryTrackingRealtime({
 
     // S'abonner aux mises à jour de statut
     const unsubStatus = tracker.onStatusUpdate(deliveryId, ({ status }) => {
-      setState(prev => ({ ...prev, status }));
+      setState((prev) => ({ ...prev, status }));
     });
 
     // S'abonner aux mises à jour d'ETA
-    const unsubETA = tracker.onETAUpdate(deliveryId, ({ estimatedTime, distanceRemaining }) => {
-      setState(prev => ({
-        ...prev,
-        eta: estimatedTime,
-        distanceRemaining: distanceRemaining ?? prev.distanceRemaining,
-      }));
-    });
+    const unsubETA = tracker.onETAUpdate(
+      deliveryId,
+      ({ estimatedTime, distanceRemaining }) => {
+        setState((prev) => ({
+          ...prev,
+          eta: estimatedTime,
+          distanceRemaining: distanceRemaining ?? prev.distanceRemaining,
+        }));
+      },
+    );
 
     return () => {
       unsubPosition();
@@ -189,20 +198,23 @@ export function useDeliveryTrackingRealtime({
   // Fonction pour commencer le suivi manuellement
   const startTracking = async () => {
     if (!tracker) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: new Error('Socket non disponible'),
+        error: new Error("Socket non disponible"),
       }));
       return;
     }
 
     try {
       await tracker.trackDelivery(deliveryId);
-      setState(prev => ({ ...prev, isTracking: true, error: null }));
+      setState((prev) => ({ ...prev, isTracking: true, error: null }));
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: error instanceof Error ? error : new Error('Erreur de suivi de livraison'),
+        error:
+          error instanceof Error
+            ? error
+            : new Error("Erreur de suivi de livraison"),
       }));
     }
   };
@@ -213,7 +225,7 @@ export function useDeliveryTrackingRealtime({
 
     try {
       await tracker.untrackDelivery(deliveryId);
-      setState(prev => ({ ...prev, isTracking: false }));
+      setState((prev) => ({ ...prev, isTracking: false }));
     } catch (error) {
       console.error("Erreur lors de l'arrêt du suivi:", error);
     }
@@ -230,14 +242,17 @@ export function useDeliveryTrackingRealtime({
         timestamp:
           position.timestamp instanceof Date
             ? position.timestamp.getTime()
-            : typeof position.timestamp === 'number'
+            : typeof position.timestamp === "number"
               ? position.timestamp
               : Date.now(),
       };
 
-      await tracker.updateDeliveryPosition(deliveryId, positionWithNumberTimestamp);
+      await tracker.updateDeliveryPosition(
+        deliveryId,
+        positionWithNumberTimestamp,
+      );
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de position:', error);
+      console.error("Erreur lors de la mise à jour de position:", error);
       throw error;
     }
   };
@@ -248,7 +263,7 @@ export function useDeliveryTrackingRealtime({
     try {
       await tracker.updateDeliveryStatus(deliveryId, status, notes);
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de statut:', error);
+      console.error("Erreur lors de la mise à jour de statut:", error);
       throw error;
     }
   };
@@ -265,7 +280,9 @@ export function useDeliveryTrackingRealtime({
 /**
  * Hook pour suivre une livraison en temps réel
  */
-export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) => {
+export const useDeliveryTracking = (
+  options: UseDeliveryTrackingOptions = {},
+) => {
   const {
     enableRealTimeUpdates = true,
     updateInterval = 10000, // 10 secondes par défaut
@@ -283,7 +300,7 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
   const router = useRouter();
 
   // Connexion au socket pour les mises à jour en temps réel
-  const { socket, isConnected } = useSocket('tracking');
+  const { socket, isConnected } = useSocket("tracking");
 
   /**
    * Initialise le suivi d'une livraison
@@ -319,26 +336,27 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
               deliveryId: deliveries[0].id,
             });
           } else {
-            throw new Error('Aucune livraison associée à cette annonce');
+            throw new Error("Aucune livraison associée à cette annonce");
           }
         }
 
         if (!trackingData) {
-          throw new Error('Impossible de suivre cette livraison');
+          throw new Error("Impossible de suivre cette livraison");
         }
 
         setTrackingInfo(trackingData);
 
         // Récupérer également l'historique des coordonnées
-        const coordinatesHistory = await api.deliveryTracking.getDeliveryCoordinatesHistory.query({
-          deliveryId: trackingData.deliveryId,
-        });
+        const coordinatesHistory =
+          await api.deliveryTracking.getDeliveryCoordinatesHistory.query({
+            deliveryId: trackingData.deliveryId,
+          });
 
         // Transformer l'historique en événements
-        const coordinateEvents = coordinatesHistory.map(coord => ({
+        const coordinateEvents = coordinatesHistory.map((coord) => ({
           id: coord.id,
           deliveryId: trackingData.deliveryId,
-          type: 'LOCATION_UPDATE' as const,
+          type: "LOCATION_UPDATE" as const,
           data: {},
           location: {
             latitude: coord.latitude,
@@ -353,18 +371,18 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
 
         // Souscrire aux mises à jour via socket si activé
         if (enableRealTimeUpdates && socket && isConnected) {
-          socket.emit('joinDeliveryTracking', {
+          socket.emit("joinDeliveryTracking", {
             deliveryId: trackingData.deliveryId,
           });
 
           // Écouter les événements de tracking
-          socket.on('deliveryCoordinatesUpdate', (data: any) => {
+          socket.on("deliveryCoordinatesUpdate", (data: any) => {
             if (data.deliveryId === trackingData.deliveryId) {
               handleCoordinatesUpdate(data);
             }
           });
 
-          socket.on('deliveryStatusUpdate', (data: any) => {
+          socket.on("deliveryStatusUpdate", (data: any) => {
             if (data.deliveryId === trackingData.deliveryId) {
               handleStatusUpdate(data);
             }
@@ -374,7 +392,9 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         return trackingData;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Erreur lors de l'initialisation du suivi";
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de l'initialisation du suivi";
         setError(message);
         toast.error(message);
         return null;
@@ -382,7 +402,7 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         setIsLoading(false);
       }
     },
-    [deliveryId, announcementId, enableRealTimeUpdates, socket, isConnected]
+    [deliveryId, announcementId, enableRealTimeUpdates, socket, isConnected],
   );
 
   /**
@@ -393,7 +413,7 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
       const newEvent: TrackingEvent = {
         id: `loc-${Date.now()}`,
         deliveryId: data.deliveryId,
-        type: 'LOCATION_UPDATE',
+        type: "LOCATION_UPDATE",
         data: {},
         location: {
           latitude: data.latitude,
@@ -403,9 +423,9 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         createdAt: new Date(),
       };
 
-      setEvents(prev => [newEvent, ...prev]);
+      setEvents((prev) => [newEvent, ...prev]);
 
-      setTrackingInfo(prev => {
+      setTrackingInfo((prev) => {
         if (!prev) return prev;
 
         return {
@@ -418,37 +438,40 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         };
       });
     },
-    []
+    [],
   );
 
   /**
    * Gère les mises à jour de statut reçues via socket
    */
-  const handleStatusUpdate = useCallback((data: { status: DeliveryStatus; deliveryId: string }) => {
-    const newEvent: TrackingEvent = {
-      id: `status-${Date.now()}`,
-      deliveryId: data.deliveryId,
-      type: 'STATUS_CHANGE',
-      data: {
-        status: data.status,
-      },
-      createdAt: new Date(),
-    };
-
-    setEvents(prev => [newEvent, ...prev]);
-
-    setTrackingInfo(prev => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        status: data.status,
+  const handleStatusUpdate = useCallback(
+    (data: { status: DeliveryStatus; deliveryId: string }) => {
+      const newEvent: TrackingEvent = {
+        id: `status-${Date.now()}`,
+        deliveryId: data.deliveryId,
+        type: "STATUS_CHANGE",
+        data: {
+          status: data.status,
+        },
+        createdAt: new Date(),
       };
-    });
 
-    // Rafraîchir les données complètes
-    refreshTracking();
-  }, []);
+      setEvents((prev) => [newEvent, ...prev]);
+
+      setTrackingInfo((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          status: data.status,
+        };
+      });
+
+      // Rafraîchir les données complètes
+      refreshTracking();
+    },
+    [],
+  );
 
   /**
    * Rafraîchit les données de tracking
@@ -463,15 +486,16 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
 
       setTrackingInfo(updatedData);
 
-      const coordinatesHistory = await api.deliveryTracking.getDeliveryCoordinatesHistory.query({
-        deliveryId: trackingInfo.deliveryId,
-      });
+      const coordinatesHistory =
+        await api.deliveryTracking.getDeliveryCoordinatesHistory.query({
+          deliveryId: trackingInfo.deliveryId,
+        });
 
       // Transformer l'historique en événements
-      const coordinateEvents = coordinatesHistory.map(coord => ({
+      const coordinateEvents = coordinatesHistory.map((coord) => ({
         id: coord.id,
         deliveryId: trackingInfo.deliveryId,
-        type: 'LOCATION_UPDATE' as const,
+        type: "LOCATION_UPDATE" as const,
         data: {},
         location: {
           latitude: coord.latitude,
@@ -485,7 +509,10 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
 
       return updatedData;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erreur lors de la mise à jour du suivi';
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Erreur lors de la mise à jour du suivi";
       setError(message);
       return null;
     }
@@ -508,12 +535,12 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         // Mettre à jour le statut de la livraison vers PROBLEM
         const result = await api.deliveryTracking.updateStatus.mutate({
           deliveryId: trackingInfo.deliveryId,
-          status: 'PROBLEM',
+          status: "PROBLEM",
           notes: problem.description,
           location: problem.location,
         });
 
-        toast.success('Problème signalé avec succès');
+        toast.success("Problème signalé avec succès");
 
         // Rafraîchir les données de tracking
         await refreshTracking();
@@ -521,7 +548,9 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         return true;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'Erreur lors du signalement du problème';
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du signalement du problème";
         setError(message);
         toast.error(message);
         return false;
@@ -529,7 +558,7 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         setIsLoading(false);
       }
     },
-    [trackingInfo, refreshTracking]
+    [trackingInfo, refreshTracking],
   );
 
   /**
@@ -546,7 +575,7 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         const result = await api.deliveryTracking.confirmDelivery.mutate({
           deliveryId: trackingInfo.deliveryId,
           signature,
-          code: '', // Le code peut être vide s'il y a une signature
+          code: "", // Le code peut être vide s'il y a une signature
         });
 
         // Ajouter une évaluation si disponible
@@ -554,26 +583,28 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
           await api.deliveryTracking.rateDelivery.mutate({
             deliveryId: trackingInfo.deliveryId,
             rating,
-            comment: comment || '',
+            comment: comment || "",
           });
         }
 
-        toast.success('Livraison confirmée avec succès');
+        toast.success("Livraison confirmée avec succès");
 
         // Mettre à jour le statut en local
-        setTrackingInfo(prev =>
+        setTrackingInfo((prev) =>
           prev
             ? {
                 ...prev,
-                status: 'DELIVERED' as DeliveryStatus,
+                status: "DELIVERED" as DeliveryStatus,
               }
-            : null
+            : null,
         );
 
         return true;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'Erreur lors de la confirmation de la livraison';
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la confirmation de la livraison";
         setError(message);
         toast.error(message);
         return false;
@@ -581,14 +612,18 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         setIsLoading(false);
       }
     },
-    [trackingInfo]
+    [trackingInfo],
   );
 
   /**
    * Livreur: Met à jour sa position actuelle
    */
   const updateDelivererLocation = useCallback(
-    async (location: { latitude: number; longitude: number; accuracy?: number }) => {
+    async (location: {
+      latitude: number;
+      longitude: number;
+      accuracy?: number;
+    }) => {
       if (!trackingInfo) return false;
 
       try {
@@ -602,12 +637,14 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         return true;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'Erreur lors de la mise à jour de la position';
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la mise à jour de la position";
         console.error(message);
         return false;
       }
     },
-    [trackingInfo]
+    [trackingInfo],
   );
 
   /**
@@ -619,7 +656,7 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
       additionalData?: {
         notes?: string;
         location?: { latitude: number; longitude: number };
-      }
+      },
     ) => {
       if (!trackingInfo) return false;
 
@@ -634,26 +671,26 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         });
 
         // Mettre à jour le statut en local
-        setTrackingInfo(prev =>
+        setTrackingInfo((prev) =>
           prev
             ? {
                 ...prev,
                 status,
               }
-            : null
+            : null,
         );
 
         const statusMessages: Record<DeliveryStatus, string> = {
-          PENDING: 'Livraison en attente',
-          ASSIGNED: 'Livraison assignée',
-          EN_ROUTE_TO_PICKUP: 'En route vers le point de ramassage',
-          AT_PICKUP: 'Arrivé au point de ramassage',
-          PICKED_UP: 'Colis pris en charge',
-          EN_ROUTE_TO_DROPOFF: 'En route vers la destination',
-          AT_DROPOFF: 'Arrivé à destination',
-          DELIVERED: 'Livraison effectuée',
-          PROBLEM: 'Problème signalé',
-          CANCELLED: 'Livraison annulée',
+          PENDING: "Livraison en attente",
+          ASSIGNED: "Livraison assignée",
+          EN_ROUTE_TO_PICKUP: "En route vers le point de ramassage",
+          AT_PICKUP: "Arrivé au point de ramassage",
+          PICKED_UP: "Colis pris en charge",
+          EN_ROUTE_TO_DROPOFF: "En route vers la destination",
+          AT_DROPOFF: "Arrivé à destination",
+          DELIVERED: "Livraison effectuée",
+          PROBLEM: "Problème signalé",
+          CANCELLED: "Livraison annulée",
         };
 
         toast.success(`Statut mis à jour: ${statusMessages[status]}`);
@@ -661,7 +698,9 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         return true;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'Erreur lors de la mise à jour du statut';
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la mise à jour du statut";
         setError(message);
         toast.error(message);
         return false;
@@ -669,7 +708,7 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
         setIsLoading(false);
       }
     },
-    [trackingInfo]
+    [trackingInfo],
   );
 
   /**
@@ -681,13 +720,18 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
     try {
       setIsLoading(true);
 
-      const result = await api.deliveryTracking.generateConfirmationCode.mutate({
-        deliveryId: trackingInfo.deliveryId,
-      });
+      const result = await api.deliveryTracking.generateConfirmationCode.mutate(
+        {
+          deliveryId: trackingInfo.deliveryId,
+        },
+      );
 
       return result.code;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erreur lors de la génération du code';
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Erreur lors de la génération du code";
       setError(message);
       toast.error(message);
       return null;
@@ -710,11 +754,11 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
 
     // Se désabonner des événements socket
     if (socket && trackingInfo) {
-      socket.emit('leaveDeliveryTracking', {
+      socket.emit("leaveDeliveryTracking", {
         deliveryId: trackingInfo.deliveryId,
       });
-      socket.off('deliveryCoordinatesUpdate');
-      socket.off('deliveryStatusUpdate');
+      socket.off("deliveryCoordinatesUpdate");
+      socket.off("deliveryStatusUpdate");
     }
   }, [socket, trackingInfo]);
 
@@ -743,7 +787,14 @@ export const useDeliveryTracking = (options: UseDeliveryTrackingOptions = {}) =>
       // Nettoyage lors du démontage
       stopTracking();
     };
-  }, [deliveryId, announcementId, isTracking, isLoading, initTracking, stopTracking]);
+  }, [
+    deliveryId,
+    announcementId,
+    isTracking,
+    isLoading,
+    initTracking,
+    stopTracking,
+  ]);
 
   return {
     // États
@@ -788,7 +839,7 @@ export function useDeliveryLiveTracking(deliveryId?: string) {
     currentDeliveryId,
     connectionState,
     connectionError,
-  } = useDeliveryTrackingStore(state => ({
+  } = useDeliveryTrackingStore((state) => ({
     startTracking: state.startTracking,
     stopTracking: state.stopTracking,
     refreshDeliveryState: state.refreshDeliveryState,
@@ -808,7 +859,7 @@ export function useDeliveryLiveTracking(deliveryId?: string) {
     error: deliveryError,
     refetch: refetchDelivery,
   } = useQuery({
-    queryKey: ['delivery', deliveryId],
+    queryKey: ["delivery", deliveryId],
     queryFn: async () => {
       if (!deliveryId) return null;
       const result = await api.delivery.getById.query({ id: deliveryId });
@@ -824,7 +875,7 @@ export function useDeliveryLiveTracking(deliveryId?: string) {
 
     try {
       // Si déjà en train de suivre cette livraison
-      if (currentDeliveryId === deliveryId && connectionState === 'connected') {
+      if (currentDeliveryId === deliveryId && connectionState === "connected") {
         setIsReady(true);
         return true;
       }
@@ -836,12 +887,12 @@ export function useDeliveryLiveTracking(deliveryId?: string) {
         setIsReady(true);
         return true;
       } else {
-        toast.error('Impossible de suivre cette livraison');
+        toast.error("Impossible de suivre cette livraison");
         return false;
       }
     } catch (error) {
-      console.error('Erreur lors du suivi en temps réel:', error);
-      toast.error('Une erreur est survenue lors du suivi');
+      console.error("Erreur lors du suivi en temps réel:", error);
+      toast.error("Une erreur est survenue lors du suivi");
       return false;
     }
   }, [deliveryId, currentDeliveryId, connectionState, startTracking]);
@@ -865,7 +916,7 @@ export function useDeliveryLiveTracking(deliveryId?: string) {
 
       return true;
     } catch (error) {
-      console.error('Erreur lors du rafraîchissement des données:', error);
+      console.error("Erreur lors du rafraîchissement des données:", error);
       return false;
     }
   }, [deliveryId, isReady, refetchDelivery, refreshDeliveryState]);
@@ -891,7 +942,7 @@ export function useDeliveryLiveTracking(deliveryId?: string) {
     currentPosition: position, // Position actuelle
 
     // États
-    isLoading: isLoadingDelivery || connectionState === 'connecting',
+    isLoading: isLoadingDelivery || connectionState === "connecting",
     isReady,
     connectionState,
     error: deliveryError || connectionError,
@@ -915,7 +966,7 @@ export function useDeliveryHistory(deliveryId?: string) {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['delivery-history', deliveryId],
+    queryKey: ["delivery-history", deliveryId],
     queryFn: async () => {
       if (!deliveryId) return null;
       return await api.delivery.getHistory.query({ id: deliveryId });
@@ -929,16 +980,16 @@ export function useDeliveryHistory(deliveryId?: string) {
     (type: string) => {
       if (!history?.events) return [];
 
-      return history.events.filter(event => event.type === type);
+      return history.events.filter((event) => event.type === type);
     },
-    [history]
+    [history],
   );
 
   // Obtenir les positions pour afficher sur une carte
   const getPositionsForMap = useCallback(() => {
     if (!history?.positions) return [];
 
-    return history.positions.map(pos => ({
+    return history.positions.map((pos) => ({
       lat: pos.latitude,
       lng: pos.longitude,
       timestamp: pos.timestamp,
@@ -990,9 +1041,12 @@ export function useNearbyDeliveries(
     includeAssigned?: boolean;
     onlyUnassigned?: boolean;
     statusFilter?: DeliveryStatus[];
-  } = {}
+  } = {},
 ) {
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   // Valeurs par défaut
   const {
@@ -1013,16 +1067,16 @@ export function useNearbyDeliveries(
     } else {
       // Essayer de récupérer la position de l'utilisateur
       navigator.geolocation.getCurrentPosition(
-        position => {
+        (position) => {
           setUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
         },
-        error => {
-          console.error('Erreur de géolocalisation:', error);
+        (error) => {
+          console.error("Erreur de géolocalisation:", error);
         },
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true },
       );
     }
   }, [options.latitude, options.longitude]);
@@ -1035,7 +1089,7 @@ export function useNearbyDeliveries(
     refetch,
   } = useQuery({
     queryKey: [
-      'nearby-deliveries',
+      "nearby-deliveries",
       userLocation,
       radius,
       maxResults,
@@ -1068,19 +1122,24 @@ export function useNearbyDeliveries(
       return await api.delivery.acceptDelivery.mutate({ id: deliveryId });
     },
     onSuccess: () => {
-      toast.success('Livraison acceptée avec succès');
-      queryClient.invalidateQueries({ queryKey: ['nearby-deliveries'] });
-      queryClient.invalidateQueries({ queryKey: ['my-deliveries'] });
+      toast.success("Livraison acceptée avec succès");
+      queryClient.invalidateQueries({ queryKey: ["nearby-deliveries"] });
+      queryClient.invalidateQueries({ queryKey: ["my-deliveries"] });
     },
-    onError: error => {
-      toast.error(`Erreur lors de l'acceptation de la livraison: ${error.message}`);
+    onError: (error) => {
+      toast.error(
+        `Erreur lors de l'acceptation de la livraison: ${error.message}`,
+      );
     },
   });
 
   // Mettre à jour l'emplacement de l'utilisateur manuellement
-  const updateUserLocation = useCallback((latitude: number, longitude: number) => {
-    setUserLocation({ lat: latitude, lng: longitude });
-  }, []);
+  const updateUserLocation = useCallback(
+    (latitude: number, longitude: number) => {
+      setUserLocation({ lat: latitude, lng: longitude });
+    },
+    [],
+  );
 
   return {
     nearbyDeliveries: nearbyDeliveries || [],
@@ -1098,15 +1157,14 @@ export function useNearbyDeliveries(
   };
 }
 
-
 // Hook pour noter une livraison
 export function useDeliveryRating(deliveryId: string) {
   const rateMutation = api.delivery.rate.useMutation();
-  
+
   const rateDelivery = async (rating: number, comment?: string) => {
     return rateMutation.mutateAsync({ deliveryId, rating, comment });
   };
-  
+
   return {
     rateDelivery,
     isRating: rateMutation.isLoading,

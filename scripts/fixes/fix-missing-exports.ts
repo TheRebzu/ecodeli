@@ -1,16 +1,16 @@
 #!/usr/bin/env tsx
 // scripts/scripts/fix-missing-exports.ts
 
-import { execSync } from 'child_process';
-import chalk from 'chalk';
-import fs from 'fs/promises';
-import path from 'path';
+import { execSync } from "child_process";
+import chalk from "chalk";
+import fs from "fs/promises";
+import path from "path";
 
 interface MissingExport {
   exportName: string;
   expectedFile: string;
   importingFile: string;
-  type: 'component' | 'hook' | 'type' | 'function';
+  type: "component" | "hook" | "type" | "function";
 }
 
 class ExportFixer {
@@ -18,79 +18,85 @@ class ExportFixer {
   private fixes: MissingExport[] = [];
 
   constructor() {
-    console.log(chalk.bold.cyan('🔧 EcoDeli - Correcteur d\'exports manquants\n'));
+    console.log(
+      chalk.bold.cyan("🔧 EcoDeli - Correcteur d'exports manquants\n"),
+    );
   }
 
   async run(): Promise<void> {
     // Analyser les erreurs d'import depuis le build
     await this.analyzeBuildErrors();
-    
+
     // Corriger les exports manquants
     await this.fixMissingExports();
-    
+
     // Rapport final
     this.displayReport();
   }
 
   private async analyzeBuildErrors(): Promise<void> {
-    console.log(chalk.blue('📋 Analyse des erreurs d\'import...\n'));
+    console.log(chalk.blue("📋 Analyse des erreurs d'import...\n"));
 
     // Définir les corrections connues depuis les erreurs de build
     this.fixes = [
       // Hook useUserBan
       {
-        exportName: 'useUserBan',
-        expectedFile: 'src/hooks/common/use-user-preferences.ts',
-        importingFile: 'src/app/[locale]/(auth)/account-suspended/page.tsx',
-        type: 'hook'
+        exportName: "useUserBan",
+        expectedFile: "src/hooks/common/use-user-preferences.ts",
+        importingFile: "src/app/[locale]/(auth)/account-suspended/page.tsx",
+        type: "hook",
       },
-      
+
       // DashboardHeader component
       {
-        exportName: 'DashboardHeader', 
-        expectedFile: 'src/components/layout/protected/page-header.tsx',
-        importingFile: 'src/app/[locale]/(protected)/admin/audit/page.tsx',
-        type: 'component'
+        exportName: "DashboardHeader",
+        expectedFile: "src/components/layout/protected/page-header.tsx",
+        importingFile: "src/app/[locale]/(protected)/admin/audit/page.tsx",
+        type: "component",
       },
-      
+
       // AnnouncementForm component (multiple files need it)
       {
-        exportName: 'AnnouncementForm',
-        expectedFile: 'src/components/ui/form.tsx',
-        importingFile: 'src/app/[locale]/(protected)/client/announcements/[id]/edit/page.tsx',
-        type: 'component'
+        exportName: "AnnouncementForm",
+        expectedFile: "src/components/ui/form.tsx",
+        importingFile:
+          "src/app/[locale]/(protected)/client/announcements/[id]/edit/page.tsx",
+        type: "component",
       },
-      
+
       // ButtonWithLoading component
       {
-        exportName: 'ButtonWithLoading',
-        expectedFile: 'src/app/[locale]/(public)/loading.tsx',
-        importingFile: 'src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx',
-        type: 'component'
+        exportName: "ButtonWithLoading",
+        expectedFile: "src/app/[locale]/(public)/loading.tsx",
+        importingFile:
+          "src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx",
+        type: "component",
       },
-      
+
       // Toast export
       {
-        exportName: 'toast',
-        expectedFile: 'src/components/ui/use-toast.ts',
-        importingFile: 'src/hooks/payment/use-wallet.ts',
-        type: 'function'
+        exportName: "toast",
+        expectedFile: "src/components/ui/use-toast.ts",
+        importingFile: "src/hooks/payment/use-wallet.ts",
+        type: "function",
       },
-      
+
       // ProfileInfoCard component
       {
-        exportName: 'ProfileInfoCard',
-        expectedFile: 'src/components/ui/card.tsx',
-        importingFile: 'src/app/[locale]/(protected)/client/profile/page.tsx',
-        type: 'component'
-      }
+        exportName: "ProfileInfoCard",
+        expectedFile: "src/components/ui/card.tsx",
+        importingFile: "src/app/[locale]/(protected)/client/profile/page.tsx",
+        type: "component",
+      },
     ];
 
-    console.log(chalk.green(`✅ ${this.fixes.length} corrections identifiées\n`));
+    console.log(
+      chalk.green(`✅ ${this.fixes.length} corrections identifiées\n`),
+    );
   }
 
   private async fixMissingExports(): Promise<void> {
-    console.log(chalk.blue('🔧 Application des corrections...\n'));
+    console.log(chalk.blue("🔧 Application des corrections...\n"));
 
     for (const fix of this.fixes) {
       await this.applyFix(fix);
@@ -99,68 +105,82 @@ class ExportFixer {
 
   private async applyFix(fix: MissingExport): Promise<void> {
     const filePath = path.join(this.projectRoot, fix.expectedFile);
-    
+
     try {
       switch (fix.exportName) {
-        case 'useUserBan':
+        case "useUserBan":
           await this.fixUserBanImport();
           break;
-          
-        case 'DashboardHeader':
+
+        case "DashboardHeader":
           await this.fixDashboardHeader();
           break;
-          
-        case 'toast':
+
+        case "toast":
           await this.fixToastExport();
           break;
-          
-        case 'ButtonWithLoading':
+
+        case "ButtonWithLoading":
           await this.createButtonWithLoading();
           break;
-          
-        case 'ProfileInfoCard':
+
+        case "ProfileInfoCard":
           await this.createProfileInfoCard();
           break;
-          
-        case 'AnnouncementForm':
+
+        case "AnnouncementForm":
           await this.createAnnouncementForm();
           break;
-          
+
         default:
-          console.log(chalk.yellow(`⚠️  Fix non défini pour: ${fix.exportName}`));
+          console.log(
+            chalk.yellow(`⚠️  Fix non défini pour: ${fix.exportName}`),
+          );
       }
-      
+
       console.log(chalk.green(`✅ ${fix.exportName} corrigé`));
-      
     } catch (error) {
-      console.log(chalk.red(`❌ Erreur lors de la correction de ${fix.exportName}: ${error}`));
+      console.log(
+        chalk.red(
+          `❌ Erreur lors de la correction de ${fix.exportName}: ${error}`,
+        ),
+      );
     }
   }
 
   // Corriger l'import useUserBan
   private async fixUserBanImport(): Promise<void> {
-    const suspendedPagePath = path.join(this.projectRoot, 'src/app/[locale]/(auth)/account-suspended/page.tsx');
-    
-    let content = await fs.readFile(suspendedPagePath, 'utf-8');
-    
+    const suspendedPagePath = path.join(
+      this.projectRoot,
+      "src/app/[locale]/(auth)/account-suspended/page.tsx",
+    );
+
+    let content = await fs.readFile(suspendedPagePath, "utf-8");
+
     // Remplacer l'import incorrect
     content = content.replace(
       "import { useUserBan } from '@/hooks/common/use-user-preferences';",
-      "import { useUserBan } from '@/hooks/use-user-ban';"
+      "import { useUserBan } from '@/hooks/use-user-ban';",
     );
-    
+
     await fs.writeFile(suspendedPagePath, content);
   }
 
   // Créer ou corriger DashboardHeader
   private async fixDashboardHeader(): Promise<void> {
-    const pageHeaderPath = path.join(this.projectRoot, 'src/components/layout/protected/page-header.tsx');
-    
+    const pageHeaderPath = path.join(
+      this.projectRoot,
+      "src/components/layout/protected/page-header.tsx",
+    );
+
     try {
-      let content = await fs.readFile(pageHeaderPath, 'utf-8');
-      
+      let content = await fs.readFile(pageHeaderPath, "utf-8");
+
       // Vérifier si DashboardHeader existe déjà
-      if (!content.includes('export function DashboardHeader') && !content.includes('export const DashboardHeader')) {
+      if (
+        !content.includes("export function DashboardHeader") &&
+        !content.includes("export const DashboardHeader")
+      ) {
         // Ajouter l'export DashboardHeader
         const dashboardHeaderComponent = `
 
@@ -189,7 +209,7 @@ export function DashboardHeader({
   );
 }
 `;
-        
+
         content += dashboardHeaderComponent;
         await fs.writeFile(pageHeaderPath, content);
       }
@@ -222,22 +242,28 @@ export function DashboardHeader({
   );
 }
 `;
-      
+
       await fs.writeFile(pageHeaderPath, newContent);
     }
   }
 
   // Corriger l'export toast
   private async fixToastExport(): Promise<void> {
-    const toastPath = path.join(this.projectRoot, 'src/components/ui/use-toast.ts');
-    
+    const toastPath = path.join(
+      this.projectRoot,
+      "src/components/ui/use-toast.ts",
+    );
+
     try {
-      let content = await fs.readFile(toastPath, 'utf-8');
-      
+      let content = await fs.readFile(toastPath, "utf-8");
+
       // Vérifier si toast est exporté
-      if (!content.includes('export { toast }') && !content.includes('export const toast')) {
+      if (
+        !content.includes("export { toast }") &&
+        !content.includes("export const toast")
+      ) {
         // Ajouter l'export toast
-        content += '\n\n// Export pour compatibilité\nexport { toast };\n';
+        content += "\n\n// Export pour compatibilité\nexport { toast };\n";
         await fs.writeFile(toastPath, content);
       }
     } catch (error) {
@@ -247,12 +273,15 @@ export function DashboardHeader({
 
   // Créer ButtonWithLoading
   private async createButtonWithLoading(): Promise<void> {
-    const loadingPath = path.join(this.projectRoot, 'src/app/[locale]/(public)/loading.tsx');
-    
+    const loadingPath = path.join(
+      this.projectRoot,
+      "src/app/[locale]/(public)/loading.tsx",
+    );
+
     try {
-      let content = await fs.readFile(loadingPath, 'utf-8');
-      
-      if (!content.includes('ButtonWithLoading')) {
+      let content = await fs.readFile(loadingPath, "utf-8");
+
+      if (!content.includes("ButtonWithLoading")) {
         // Ajouter le composant ButtonWithLoading
         const buttonComponent = `
 
@@ -275,7 +304,7 @@ export function ButtonWithLoading({
   );
 }
 `;
-        
+
         content += buttonComponent;
         await fs.writeFile(loadingPath, content);
       }
@@ -286,12 +315,12 @@ export function ButtonWithLoading({
 
   // Créer ProfileInfoCard
   private async createProfileInfoCard(): Promise<void> {
-    const cardPath = path.join(this.projectRoot, 'src/components/ui/card.tsx');
-    
+    const cardPath = path.join(this.projectRoot, "src/components/ui/card.tsx");
+
     try {
-      let content = await fs.readFile(cardPath, 'utf-8');
-      
-      if (!content.includes('ProfileInfoCard')) {
+      let content = await fs.readFile(cardPath, "utf-8");
+
+      if (!content.includes("ProfileInfoCard")) {
         // Ajouter le composant ProfileInfoCard
         const profileCardComponent = `
 
@@ -316,7 +345,7 @@ export function ProfileInfoCard({
   );
 }
 `;
-        
+
         content += profileCardComponent;
         await fs.writeFile(cardPath, content);
       }
@@ -327,12 +356,12 @@ export function ProfileInfoCard({
 
   // Créer AnnouncementForm
   private async createAnnouncementForm(): Promise<void> {
-    const formPath = path.join(this.projectRoot, 'src/components/ui/form.tsx');
-    
+    const formPath = path.join(this.projectRoot, "src/components/ui/form.tsx");
+
     try {
-      let content = await fs.readFile(formPath, 'utf-8');
-      
-      if (!content.includes('AnnouncementForm')) {
+      let content = await fs.readFile(formPath, "utf-8");
+
+      if (!content.includes("AnnouncementForm")) {
         // Ajouter le composant AnnouncementForm
         const announcementFormComponent = `
 
@@ -355,7 +384,7 @@ export function AnnouncementForm({
 // Export par défaut pour compatibilité
 export default AnnouncementForm;
 `;
-        
+
         content += announcementFormComponent;
         await fs.writeFile(formPath, content);
       }
@@ -365,15 +394,19 @@ export default AnnouncementForm;
   }
 
   private displayReport(): void {
-    console.log(chalk.bold.cyan('\n📊 Rapport des corrections:'));
+    console.log(chalk.bold.cyan("\n📊 Rapport des corrections:"));
     console.log(chalk.green(`✅ ${this.fixes.length} corrections appliquées`));
-    console.log(chalk.blue('\n💡 Prochaines étapes:'));
-    console.log(chalk.gray('  1. Exécutez pnpm typecheck pour vérifier les types'));
-    console.log(chalk.gray('  2. Exécutez pnpm build pour tester le build'));
-    console.log(chalk.gray('  3. Créez les composants manquants si nécessaire'));
+    console.log(chalk.blue("\n💡 Prochaines étapes:"));
+    console.log(
+      chalk.gray("  1. Exécutez pnpm typecheck pour vérifier les types"),
+    );
+    console.log(chalk.gray("  2. Exécutez pnpm build pour tester le build"));
+    console.log(
+      chalk.gray("  3. Créez les composants manquants si nécessaire"),
+    );
   }
 }
 
 // Exécution du script
 const fixer = new ExportFixer();
-fixer.run().catch(console.error); 
+fixer.run().catch(console.error);

@@ -1,7 +1,17 @@
-import { PrismaClient, UserRole, DocumentType, VerificationStatus } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+import {
+  PrismaClient,
+  UserRole,
+  DocumentType,
+  VerificationStatus,
+} from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import {
+  SeedResult,
+  SeedOptions,
+  getRandomElement,
+  getRandomDate,
+} from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Interface pour définir un document de prestataire
@@ -24,12 +34,12 @@ interface ProviderDocumentData {
 export async function seedProviderDocuments(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('PROVIDER_DOCUMENTS');
+  logger.startSeed("PROVIDER_DOCUMENTS");
 
   const result: SeedResult = {
-    entity: 'provider_documents',
+    entity: "provider_documents",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -43,8 +53,8 @@ export async function seedProviderDocuments(
 
   if (providers.length === 0) {
     logger.warning(
-      'PROVIDER_DOCUMENTS',
-      "Aucun prestataire trouvé - exécuter d'abord les seeds utilisateurs"
+      "PROVIDER_DOCUMENTS",
+      "Aucun prestataire trouvé - exécuter d'abord les seeds utilisateurs",
     );
     return result;
   }
@@ -56,8 +66,8 @@ export async function seedProviderDocuments(
 
   if (existingDocuments > 0 && !options.force) {
     logger.warning(
-      'PROVIDER_DOCUMENTS',
-      `${existingDocuments} documents prestataires déjà présents - utiliser force:true pour recréer`
+      "PROVIDER_DOCUMENTS",
+      `${existingDocuments} documents prestataires déjà présents - utiliser force:true pour recréer`,
     );
     result.skipped = existingDocuments;
     return result;
@@ -68,7 +78,7 @@ export async function seedProviderDocuments(
     await prisma.document.deleteMany({
       where: { userRole: UserRole.PROVIDER },
     });
-    logger.database('NETTOYAGE', 'provider documents', 0);
+    logger.database("NETTOYAGE", "provider documents", 0);
   }
 
   // Documents selon le type de service
@@ -115,25 +125,26 @@ export async function seedProviderDocuments(
   for (const provider of providers) {
     try {
       logger.progress(
-        'PROVIDER_DOCUMENTS',
+        "PROVIDER_DOCUMENTS",
         totalDocuments + 1,
         providers.length * 5,
-        `Traitement documents: ${provider.name}`
+        `Traitement documents: ${provider.name}`,
       );
 
       const isVerified = provider.provider?.isVerified || false;
-      const isActive = provider.status === 'ACTIVE';
-      const serviceType = provider.provider?.serviceType || 'Nettoyage';
+      const isActive = provider.status === "ACTIVE";
+      const serviceType = provider.provider?.serviceType || "Nettoyage";
 
       // Sélectionner les documents selon le type de service
-      const documentsForService = serviceDocuments[serviceType] || serviceDocuments['Nettoyage'];
+      const documentsForService =
+        serviceDocuments[serviceType] || serviceDocuments["Nettoyage"];
 
       // Déterminer combien de documents créer
       const documentsToCreate = isVerified
         ? documentsForService
         : faker.helpers.arrayElements(
             documentsForService,
-            faker.number.int({ min: 3, max: documentsForService.length })
+            faker.number.int({ min: 3, max: documentsForService.length }),
           );
 
       for (const docType of documentsToCreate) {
@@ -205,16 +216,16 @@ export async function seedProviderDocuments(
           result.created++;
         } catch (error: any) {
           logger.error(
-            'PROVIDER_DOCUMENTS',
-            `❌ Erreur création document ${docType} pour ${provider.name}: ${error.message}`
+            "PROVIDER_DOCUMENTS",
+            `❌ Erreur création document ${docType} pour ${provider.name}: ${error.message}`,
           );
           result.errors++;
         }
       }
     } catch (error: any) {
       logger.error(
-        'PROVIDER_DOCUMENTS',
-        `❌ Erreur traitement prestataire ${provider.name}: ${error.message}`
+        "PROVIDER_DOCUMENTS",
+        `❌ Erreur traitement prestataire ${provider.name}: ${error.message}`,
       );
       result.errors++;
     }
@@ -227,15 +238,15 @@ export async function seedProviderDocuments(
 
   if (finalDocuments.length >= totalDocuments - result.errors) {
     logger.validation(
-      'PROVIDER_DOCUMENTS',
-      'PASSED',
-      `${finalDocuments.length} documents prestataires créés avec succès`
+      "PROVIDER_DOCUMENTS",
+      "PASSED",
+      `${finalDocuments.length} documents prestataires créés avec succès`,
     );
   } else {
     logger.validation(
-      'PROVIDER_DOCUMENTS',
-      'FAILED',
-      `Attendu: ${totalDocuments}, Créé: ${finalDocuments.length}`
+      "PROVIDER_DOCUMENTS",
+      "FAILED",
+      `Attendu: ${totalDocuments}, Créé: ${finalDocuments.length}`,
     );
   }
 
@@ -245,7 +256,10 @@ export async function seedProviderDocuments(
     return acc;
   }, {});
 
-  logger.info('PROVIDER_DOCUMENTS', `📋 Documents par type: ${JSON.stringify(byType)}`);
+  logger.info(
+    "PROVIDER_DOCUMENTS",
+    `📋 Documents par type: ${JSON.stringify(byType)}`,
+  );
 
   // Statistiques par statut
   const byStatus = finalDocuments.reduce((acc: Record<string, number>, doc) => {
@@ -253,19 +267,24 @@ export async function seedProviderDocuments(
     return acc;
   }, {});
 
-  logger.info('PROVIDER_DOCUMENTS', `📊 Documents par statut: ${JSON.stringify(byStatus)}`);
+  logger.info(
+    "PROVIDER_DOCUMENTS",
+    `📊 Documents par statut: ${JSON.stringify(byStatus)}`,
+  );
 
   // Taux de vérification
   const approvedDocs = finalDocuments.filter(
-    d => d.verificationStatus === VerificationStatus.APPROVED
+    (d) => d.verificationStatus === VerificationStatus.APPROVED,
   );
-  const verificationRate = Math.round((approvedDocs.length / finalDocuments.length) * 100);
+  const verificationRate = Math.round(
+    (approvedDocs.length / finalDocuments.length) * 100,
+  );
   logger.info(
-    'PROVIDER_DOCUMENTS',
-    `✅ Taux de vérification: ${verificationRate}% (${approvedDocs.length}/${finalDocuments.length})`
+    "PROVIDER_DOCUMENTS",
+    `✅ Taux de vérification: ${verificationRate}% (${approvedDocs.length}/${finalDocuments.length})`,
   );
 
-  logger.endSeed('PROVIDER_DOCUMENTS', result);
+  logger.endSeed("PROVIDER_DOCUMENTS", result);
   return result;
 }
 
@@ -274,7 +293,7 @@ export async function seedProviderDocuments(
  */
 function generateProviderDocumentMetadata(
   docType: DocumentType,
-  serviceType: string
+  serviceType: string,
 ): {
   filename: string;
   fileUrl: string;
@@ -290,60 +309,62 @@ function generateProviderDocumentMetadata(
   switch (docType) {
     case DocumentType.ID_CARD:
       filename = `carte_identite_prestataire_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 200000, max: 800000 });
-      expiryDate = faker.date.future({ years: faker.number.int({ min: 2, max: 10 }) });
+      expiryDate = faker.date.future({
+        years: faker.number.int({ min: 2, max: 10 }),
+      });
       break;
 
     case DocumentType.QUALIFICATION_CERTIFICATE:
       const certType =
-        serviceType === 'Électricité'
-          ? 'habilitation_electrique'
-          : serviceType === 'Plomberie'
-            ? 'certificat_plomberie'
-            : serviceType === 'Informatique'
-              ? 'diplome_informatique'
-              : 'certification';
+        serviceType === "Électricité"
+          ? "habilitation_electrique"
+          : serviceType === "Plomberie"
+            ? "certificat_plomberie"
+            : serviceType === "Informatique"
+              ? "diplome_informatique"
+              : "certification";
       filename = `${certType}_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 500000, max: 1500000 });
       expiryDate =
-        serviceType === 'Électricité'
+        serviceType === "Électricité"
           ? faker.date.future({ years: 3 }) // Habilitation électrique 3 ans
           : faker.date.future({ years: 5 }); // Autres certifications 5 ans
       break;
 
     case DocumentType.BUSINESS_REGISTRATION:
       filename = `kbis_auto_entrepreneur_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 300000, max: 700000 });
       expiryDate = faker.date.future({ years: 1 }); // Kbis valide 1 an
       break;
 
     case DocumentType.INSURANCE:
       filename = `assurance_professionnelle_${serviceType.toLowerCase()}_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 400000, max: 900000 });
       expiryDate = faker.date.future({ years: 1 }); // Assurance annuelle
       break;
 
     case DocumentType.PROOF_OF_ADDRESS:
       filename = `justificatif_domicile_prestataire_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 80000, max: 400000 });
       expiryDate = faker.date.soon({ days: 90 }); // Valide 3 mois
       break;
 
     case DocumentType.OTHER: // Portfolio ou autres documents
       filename = `portfolio_${serviceType.toLowerCase()}_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 1000000, max: 5000000 }); // Portfolio plus volumineux
       // Portfolio sans expiration
       break;
 
     default:
       filename = `document_prestataire_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 100000, max: 1000000 });
   }
 
@@ -355,145 +376,158 @@ function generateProviderDocumentMetadata(
 /**
  * Génère des notes spécifiques selon le type de document et service
  */
-function generateProviderDocumentNotes(docType: DocumentType, serviceType: string): string {
+function generateProviderDocumentNotes(
+  docType: DocumentType,
+  serviceType: string,
+): string {
   const notesMap: { [key: string]: { [service: string]: string } } = {
     [DocumentType.ID_CARD]: {
       default: "Carte d'identité prestataire de services",
     },
     [DocumentType.QUALIFICATION_CERTIFICATE]: {
-      Électricité: 'Habilitation électrique BR/B2V obligatoire',
-      Plomberie: 'Certificat de qualification plombier-chauffagiste',
-      Informatique: 'Diplôme ou certification en informatique/télécommunications',
-      default: 'Certificat de qualification professionnelle',
+      Électricité: "Habilitation électrique BR/B2V obligatoire",
+      Plomberie: "Certificat de qualification plombier-chauffagiste",
+      Informatique:
+        "Diplôme ou certification en informatique/télécommunications",
+      default: "Certificat de qualification professionnelle",
     },
     [DocumentType.BUSINESS_REGISTRATION]: {
-      default: 'Extrait Kbis auto-entrepreneur ou micro-entreprise',
+      default: "Extrait Kbis auto-entrepreneur ou micro-entreprise",
     },
     [DocumentType.INSURANCE]: {
-      Électricité: 'Assurance décennale obligatoire + responsabilité civile professionnelle',
-      Plomberie: 'Assurance décennale obligatoire + responsabilité civile professionnelle',
-      default: 'Assurance responsabilité civile professionnelle',
+      Électricité:
+        "Assurance décennale obligatoire + responsabilité civile professionnelle",
+      Plomberie:
+        "Assurance décennale obligatoire + responsabilité civile professionnelle",
+      default: "Assurance responsabilité civile professionnelle",
     },
     [DocumentType.PROOF_OF_ADDRESS]: {
-      default: 'Justificatif de domicile prestataire de moins de 3 mois',
+      default: "Justificatif de domicile prestataire de moins de 3 mois",
     },
     [DocumentType.OTHER]: {
-      Nettoyage: 'Portfolio de références clients avec avant/après',
-      Jardinage: 'Portfolio de réalisations paysagères et entretien',
-      default: 'Portfolio de réalisations professionnelles',
+      Nettoyage: "Portfolio de références clients avec avant/après",
+      Jardinage: "Portfolio de réalisations paysagères et entretien",
+      default: "Portfolio de réalisations professionnelles",
     },
   };
 
   const typeNotes = notesMap[docType];
   if (typeNotes) {
-    return typeNotes[serviceType] || typeNotes['default'] || 'Document prestataire requis';
+    return (
+      typeNotes[serviceType] ||
+      typeNotes["default"] ||
+      "Document prestataire requis"
+    );
   }
-  return 'Document prestataire requis pour vérification';
+  return "Document prestataire requis pour vérification";
 }
 
 /**
  * Génère des motifs de rejet réalistes selon le type de document et service
  */
-function getProviderRejectionReason(docType: DocumentType, serviceType: string): string {
+function getProviderRejectionReason(
+  docType: DocumentType,
+  serviceType: string,
+): string {
   const reasonsMap: { [key: string]: { [service: string]: string[] } } = {
     [DocumentType.ID_CARD]: {
       default: [
-        'Document expiré',
-        'Photo illisible',
-        'Document partiellement masqué',
+        "Document expiré",
+        "Photo illisible",
+        "Document partiellement masqué",
         "Mauvaise qualité de l'image",
       ],
     },
     [DocumentType.QUALIFICATION_CERTIFICATE]: {
       Électricité: [
-        'Habilitation électrique expirée',
+        "Habilitation électrique expirée",
         "Niveau d'habilitation insuffisant (BR requis minimum)",
-        'Organisme formateur non agréé',
-        'Document incomplet ou illisible',
+        "Organisme formateur non agréé",
+        "Document incomplet ou illisible",
       ],
       Plomberie: [
-        'Certificat expiré',
-        'Qualification non reconnue',
+        "Certificat expiré",
+        "Qualification non reconnue",
         "Document non signé par l'organisme",
-        'Spécialisation insuffisante',
+        "Spécialisation insuffisante",
       ],
       Informatique: [
-        'Diplôme non reconnu',
-        'Spécialisation inadaptée au service proposé',
-        'Document trop ancien',
-        'Certification expirée',
+        "Diplôme non reconnu",
+        "Spécialisation inadaptée au service proposé",
+        "Document trop ancien",
+        "Certification expirée",
       ],
       default: [
-        'Qualification non reconnue',
-        'Document expiré',
-        'Niveau insuffisant pour le service',
-        'Organisme non certifié',
+        "Qualification non reconnue",
+        "Document expiré",
+        "Niveau insuffisant pour le service",
+        "Organisme non certifié",
       ],
     },
     [DocumentType.BUSINESS_REGISTRATION]: {
       default: [
-        'Kbis expiré (> 3 mois)',
-        'Activité déclarée non conforme',
-        'Statut juridique inapproprié',
-        'Document illisible',
+        "Kbis expiré (> 3 mois)",
+        "Activité déclarée non conforme",
+        "Statut juridique inapproprié",
+        "Document illisible",
       ],
     },
     [DocumentType.INSURANCE]: {
       Électricité: [
-        'Assurance décennale manquante',
-        'Couverture insuffisante pour activité électrique',
-        'Exclusions importantes non mentionnées',
-        'Attestation expirée',
+        "Assurance décennale manquante",
+        "Couverture insuffisante pour activité électrique",
+        "Exclusions importantes non mentionnées",
+        "Attestation expirée",
       ],
       Plomberie: [
-        'Assurance décennale manquante',
-        'Couverture insuffisante pour plomberie',
-        'Activité non couverte',
-        'Montant de garantie trop faible',
+        "Assurance décennale manquante",
+        "Couverture insuffisante pour plomberie",
+        "Activité non couverte",
+        "Montant de garantie trop faible",
       ],
       default: [
-        'Assurance expirée',
-        'Couverture insuffisante',
-        'Activité non couverte',
-        'Montant de garantie inadéquat',
+        "Assurance expirée",
+        "Couverture insuffisante",
+        "Activité non couverte",
+        "Montant de garantie inadéquat",
       ],
     },
     [DocumentType.PROOF_OF_ADDRESS]: {
       default: [
-        'Document trop ancien (> 3 mois)',
+        "Document trop ancien (> 3 mois)",
         "Nom différent de l'identité",
-        'Type de justificatif non accepté',
-        'Document illisible',
+        "Type de justificatif non accepté",
+        "Document illisible",
       ],
     },
     [DocumentType.OTHER]: {
       Nettoyage: [
-        'Portfolio insuffisant (< 3 références)',
-        'Qualité des références douteuse',
-        'Photos avant/après manquantes',
-        'Références non vérifiables',
+        "Portfolio insuffisant (< 3 références)",
+        "Qualité des références douteuse",
+        "Photos avant/après manquantes",
+        "Références non vérifiables",
       ],
       Jardinage: [
-        'Réalisations non représentatives',
-        'Portfolio trop limité',
-        'Absence de références récentes',
-        'Qualité des travaux insuffisante',
+        "Réalisations non représentatives",
+        "Portfolio trop limité",
+        "Absence de références récentes",
+        "Qualité des travaux insuffisante",
       ],
       default: [
-        'Portfolio insuffisant',
-        'Références non vérifiables',
-        'Qualité des réalisations douteuse',
-        'Document non pertinent',
+        "Portfolio insuffisant",
+        "Références non vérifiables",
+        "Qualité des réalisations douteuse",
+        "Document non pertinent",
       ],
     },
   };
 
   const typeReasons = reasonsMap[docType];
   if (typeReasons) {
-    const serviceReasons = typeReasons[serviceType] || typeReasons['default'];
-    return getRandomElement(serviceReasons || ['Document non conforme']);
+    const serviceReasons = typeReasons[serviceType] || typeReasons["default"];
+    return getRandomElement(serviceReasons || ["Document non conforme"]);
   }
-  return 'Document non conforme aux exigences';
+  return "Document non conforme aux exigences";
 }
 
 /**
@@ -501,9 +535,9 @@ function getProviderRejectionReason(docType: DocumentType, serviceType: string):
  */
 export async function validateProviderDocuments(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des documents prestataires...');
+  logger.info("VALIDATION", "🔍 Validation des documents prestataires...");
 
   let isValid = true;
 
@@ -518,12 +552,12 @@ export async function validateProviderDocuments(
   });
 
   if (providerDocuments.length === 0) {
-    logger.error('VALIDATION', '❌ Aucun document prestataire trouvé');
+    logger.error("VALIDATION", "❌ Aucun document prestataire trouvé");
     isValid = false;
   } else {
     logger.success(
-      'VALIDATION',
-      `✅ ${providerDocuments.length} documents prestataires trouvés pour ${providersCount} prestataires`
+      "VALIDATION",
+      `✅ ${providerDocuments.length} documents prestataires trouvés pour ${providersCount} prestataires`,
     );
   }
 
@@ -537,45 +571,54 @@ export async function validateProviderDocuments(
   });
 
   const verifiedWithoutQualifications = verifiedProviders.filter(
-    provider =>
+    (provider) =>
       !provider.documents.some(
-        doc =>
+        (doc) =>
           doc.type === DocumentType.QUALIFICATION_CERTIFICATE &&
-          doc.verificationStatus === VerificationStatus.APPROVED
-      )
+          doc.verificationStatus === VerificationStatus.APPROVED,
+      ),
   );
 
   if (verifiedWithoutQualifications.length > 0) {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${verifiedWithoutQualifications.length} prestataires vérifiés sans qualifications approuvées`
+      "VALIDATION",
+      `⚠️ ${verifiedWithoutQualifications.length} prestataires vérifiés sans qualifications approuvées`,
     );
   }
 
   // Vérifier les documents expirés
   const expiredDocuments = providerDocuments.filter(
-    doc =>
+    (doc) =>
       doc.expiryDate &&
       doc.expiryDate < new Date() &&
-      doc.verificationStatus === VerificationStatus.APPROVED
+      doc.verificationStatus === VerificationStatus.APPROVED,
   );
 
   if (expiredDocuments.length > 0) {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${expiredDocuments.length} documents prestataires expirés à traiter`
+      "VALIDATION",
+      `⚠️ ${expiredDocuments.length} documents prestataires expirés à traiter`,
     );
   }
 
   // Statistiques par type de service
-  const serviceStats = providerDocuments.reduce((acc: Record<string, number>, doc) => {
-    const serviceType = (doc.user as any).provider?.serviceType || 'Autre';
-    acc[serviceType] = (acc[serviceType] || 0) + 1;
-    return acc;
-  }, {});
+  const serviceStats = providerDocuments.reduce(
+    (acc: Record<string, number>, doc) => {
+      const serviceType = (doc.user as any).provider?.serviceType || "Autre";
+      acc[serviceType] = (acc[serviceType] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
-  logger.info('VALIDATION', `🔧 Documents par service: ${JSON.stringify(serviceStats)}`);
+  logger.info(
+    "VALIDATION",
+    `🔧 Documents par service: ${JSON.stringify(serviceStats)}`,
+  );
 
-  logger.success('VALIDATION', '✅ Validation des documents prestataires terminée');
+  logger.success(
+    "VALIDATION",
+    "✅ Validation des documents prestataires terminée",
+  );
   return isValid;
 }

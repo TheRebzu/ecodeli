@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -8,12 +8,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { StarIcon, MapPinIcon, ClockIcon, EuroIcon } from 'lucide-react';
-import { formatPrice, formatDuration } from '@/lib/i18n/formatters';
-import { useRouter } from 'next/navigation';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { StarIcon, MapPinIcon, ClockIcon, EuroIcon } from "lucide-react";
+import { formatPrice, formatDuration } from "@/lib/i18n/formatters";
+import { useRouter } from "next/navigation";
 
 interface ServiceCardProps {
   service: {
@@ -37,14 +37,17 @@ interface ServiceCardProps {
  * Carte de présentation d'un service
  */
 export function ServiceCard({ service }: ServiceCardProps) {
-  const t = useTranslations('services');
+  const t = useTranslations("services");
   const router = useRouter();
 
-  const { id, name, description, price, duration, category, provider } = service;
+  const { id, name, description, price, duration, category, provider } =
+    service;
 
   // Troncature de la description si trop longue
   const truncatedDescription =
-    description.length > 120 ? `${description.substring(0, 120)}...` : description;
+    description.length > 120
+      ? `${description.substring(0, 120)}...`
+      : description;
 
   // Génération des étoiles pour la notation
   const renderRating = () => {
@@ -57,15 +60,17 @@ export function ServiceCard({ service }: ServiceCardProps) {
       stars.push(
         <StarIcon
           key={i}
-          className={`h-4 w-4 ${i <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-        />
+          className={`h-4 w-4 ${i <= rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+        />,
       );
     }
 
     return (
       <div className="flex items-center space-x-1">
         <div className="flex">{stars}</div>
-        <span className="text-sm text-gray-600">({provider.rating.toFixed(1)})</span>
+        <span className="text-sm text-gray-600">
+          ({provider.rating.toFixed(1)})
+        </span>
       </div>
     );
   };
@@ -102,7 +107,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
             <div className="flex items-center gap-1 text-gray-600">
               <MapPinIcon className="w-4 h-4" />
               <span className="truncate" title={provider.providerAddress}>
-                {provider.providerAddress.split(',')[0]}
+                {provider.providerAddress.split(",")[0]}
               </span>
             </div>
           )}
@@ -115,7 +120,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
       </CardContent>
       <CardFooter className="pt-1">
         <Button onClick={handleViewDetails} className="w-full">
-          {t('card.viewDetails')}
+          {t("card.viewDetails")}
         </Button>
       </CardFooter>
     </Card>

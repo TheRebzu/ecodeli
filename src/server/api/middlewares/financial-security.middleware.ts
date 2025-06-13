@@ -1,8 +1,8 @@
-import { TRPCError } from '@trpc/server';
-import { UserRole } from '@prisma/client';
-import { db } from '@/server/db';
-import { type Context } from '@/server/api/trpc';
-import { z } from 'zod';
+import { TRPCError } from "@trpc/server";
+import { UserRole } from "@prisma/client";
+import { db } from "@/server/db";
+import { type Context } from "@/server/api/trpc";
+import { z } from "zod";
 
 /**
  * Middleware de sécurité financière pour les routes tRPC
@@ -15,7 +15,7 @@ import { z } from 'zod';
 export const isOwnerOrAdmin = async (
   ctx: Context,
   resourceType: string,
-  resourceId: string
+  resourceId: string,
 ): Promise<boolean> => {
   const { session, db } = ctx;
 
@@ -33,31 +33,31 @@ export const isOwnerOrAdmin = async (
 
   // Vérifier si l'utilisateur est le propriétaire
   switch (resourceType) {
-    case 'payment':
+    case "payment":
       const payment = await db.payment.findUnique({
         where: { id: resourceId },
       });
       return payment?.userId === userId;
 
-    case 'wallet':
+    case "wallet":
       const wallet = await db.wallet.findUnique({
         where: { id: resourceId },
       });
       return wallet?.userId === userId;
 
-    case 'invoice':
+    case "invoice":
       const invoice = await db.invoice.findUnique({
         where: { id: resourceId },
       });
       return invoice?.userId === userId;
 
-    case 'subscription':
+    case "subscription":
       const subscription = await db.subscription.findUnique({
         where: { id: resourceId },
       });
       return subscription?.userId === userId;
 
-    case 'walletTransaction':
+    case "walletTransaction":
       const transaction = await db.walletTransaction.findUnique({
         where: { id: resourceId },
         include: { wallet: true },
@@ -80,8 +80,8 @@ export const financialProtect = (allowedRoles: UserRole[] = []) => {
     // Vérifier si l'utilisateur est connecté
     if (!session?.user) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Vous devez être connecté pour accéder à cette ressource.',
+        code: "UNAUTHORIZED",
+        message: "Vous devez être connecté pour accéder à cette ressource.",
       });
     }
 
@@ -90,13 +90,13 @@ export const financialProtect = (allowedRoles: UserRole[] = []) => {
     // Vérifier si l'utilisateur a le rôle requis
     if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'avez pas les droits nécessaires pour cette opération.",
       });
     }
 
     // Journaliser les opérations financières sensibles
-    if (path.includes('financial.')) {
+    if (path.includes("financial.")) {
       await _logFinancialOperation(ctx, path, rawInput);
     }
 
@@ -108,15 +108,15 @@ export const financialProtect = (allowedRoles: UserRole[] = []) => {
  * Middleware de validation des montants financiers
  */
 export const validateFinancialAmount = (
-  amountKey: string = 'amount',
-  options: { min?: number; max?: number; allowZero?: boolean } = {}
+  amountKey: string = "amount",
+  options: { min?: number; max?: number; allowZero?: boolean } = {},
 ) => {
   return async ({ ctx, next, rawInput }: any) => {
     const input = rawInput as Record<string, any>;
 
-    if (typeof input[amountKey] !== 'number') {
+    if (typeof input[amountKey] !== "number") {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
+        code: "BAD_REQUEST",
         message: `Le montant doit être un nombre valide.`,
       });
     }
@@ -126,22 +126,22 @@ export const validateFinancialAmount = (
     // Vérifier que le montant est positif, sauf si allowZero est true
     if (amount < 0 || (amount === 0 && !options.allowZero)) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: `Le montant doit être ${options.allowZero ? 'positif ou nul' : 'strictement positif'}.`,
+        code: "BAD_REQUEST",
+        message: `Le montant doit être ${options.allowZero ? "positif ou nul" : "strictement positif"}.`,
       });
     }
 
     // Vérifier les limites min/max si définies
     if (options.min !== undefined && amount < options.min) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
+        code: "BAD_REQUEST",
         message: `Le montant minimum autorisé est ${options.min}.`,
       });
     }
 
     if (options.max !== undefined && amount > options.max) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
+        code: "BAD_REQUEST",
         message: `Le montant maximum autorisé est ${options.max}.`,
       });
     }
@@ -168,15 +168,18 @@ export const validateWithdrawal = () => {
 
     if (!wallet) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Portefeuille non trouvé.',
+        code: "NOT_FOUND",
+        message: "Portefeuille non trouvé.",
       });
     }
 
     // Vérifier que l'utilisateur est propriétaire du portefeuille
-    if (wallet.userId !== session?.user?.id && session?.user?.role !== UserRole.ADMIN) {
+    if (
+      wallet.userId !== session?.user?.id &&
+      session?.user?.role !== UserRole.ADMIN
+    ) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à effectuer cette opération.",
       });
     }
@@ -184,15 +187,18 @@ export const validateWithdrawal = () => {
     // Vérifier que le portefeuille a un solde suffisant
     if (Number(wallet.balance) < input.amount) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Solde insuffisant pour effectuer ce retrait.',
+        code: "BAD_REQUEST",
+        message: "Solde insuffisant pour effectuer ce retrait.",
       });
     }
 
     // Vérifier le montant minimum de retrait si défini
-    if (wallet.minimumWithdrawalAmount && input.amount < Number(wallet.minimumWithdrawalAmount)) {
+    if (
+      wallet.minimumWithdrawalAmount &&
+      input.amount < Number(wallet.minimumWithdrawalAmount)
+    ) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
+        code: "BAD_REQUEST",
         message: `Le montant minimum de retrait est de ${wallet.minimumWithdrawalAmount}.`,
       });
     }
@@ -223,8 +229,8 @@ export const preventDoubleInvoicing = () => {
 
       if (existingInvoice) {
         throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Une facture avec cette référence existe déjà.',
+          code: "CONFLICT",
+          message: "Une facture avec cette référence existe déjà.",
         });
       }
     }
@@ -238,14 +244,14 @@ export const preventDoubleInvoicing = () => {
               serviceId: input.serviceId,
             },
           },
-          status: { not: 'CANCELLED' },
+          status: { not: "CANCELLED" },
         },
       });
 
       if (existingInvoice) {
         throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Ce service a déjà été facturé.',
+          code: "CONFLICT",
+          message: "Ce service a déjà été facturé.",
         });
       }
     }
@@ -258,14 +264,14 @@ export const preventDoubleInvoicing = () => {
               deliveryId: input.deliveryId,
             },
           },
-          status: { not: 'CANCELLED' },
+          status: { not: "CANCELLED" },
         },
       });
 
       if (existingInvoice) {
         throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Cette livraison a déjà été facturée.',
+          code: "CONFLICT",
+          message: "Cette livraison a déjà été facturée.",
         });
       }
     }
@@ -278,7 +284,11 @@ export const preventDoubleInvoicing = () => {
  * Enregistre une opération financière sensible dans les logs
  * @private
  */
-const _logFinancialOperation = async (ctx: Context, path: string, input: any) => {
+const _logFinancialOperation = async (
+  ctx: Context,
+  path: string,
+  input: any,
+) => {
   try {
     const { session, db } = ctx;
 
@@ -290,13 +300,13 @@ const _logFinancialOperation = async (ctx: Context, path: string, input: any) =>
           input: JSON.stringify(input),
           timestamp: new Date().toISOString(),
           userRole: session?.user?.role,
-          demoMode: true,
+          environment: process.env.NODE_ENV || "development",
         },
-        severity: 'INFO',
-        category: 'FINANCIAL',
+        severity: "INFO",
+        category: "FINANCIAL",
       },
     });
   } catch (error) {
-    console.error('Erreur lors de la journalisation financière:', error);
+    console.error("Erreur lors de la journalisation financière:", error);
   }
 };

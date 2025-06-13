@@ -1,14 +1,17 @@
-import React from 'react';
-import { ProtectedHeader } from '@/components/layout/protected/header';
-import { ProtectedFooter } from '@/components/layout/protected/footer';
-import { ProviderSidebar } from '@/components/layout/sidebars/provider-sidebar';
+import React from "react";
+import { ProtectedHeader } from "@/components/layout/protected/header";
+import { ProtectedFooter } from "@/components/layout/protected/footer";
+import { ProviderSidebar } from "@/components/layout/sidebars/provider-sidebar";
 
 interface ProviderLayoutProps {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }
 
-export default async function ProviderLayout({ children, params }: ProviderLayoutProps) {
+export default async function ProviderLayout({
+  children,
+  params,
+}: ProviderLayoutProps) {
   const { locale } = await params;
 
   return (
@@ -23,7 +26,9 @@ export default async function ProviderLayout({ children, params }: ProviderLayou
         </div>
 
         <main className="flex-1 overflow-x-hidden bg-muted/10">
-          <div className="container max-w-7xl mx-auto p-4 md:p-8">{children}</div>
+          <div className="container max-w-7xl mx-auto p-4 md:p-8">
+            {children}
+          </div>
         </main>
       </div>
 

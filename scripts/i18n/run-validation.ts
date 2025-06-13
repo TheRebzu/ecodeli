@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-import fs from 'fs/promises';
-import path from 'path';
-import chalk from 'chalk';
-import config from './extraction.config';
-import { fileURLToPath } from 'url';
+import fs from "fs/promises";
+import path from "path";
+import chalk from "chalk";
+import config from "./extraction.config";
+import { fileURLToPath } from "url";
 
 // Pour remplacer __dirname dans les modules ES
 const __filename = fileURLToPath(import.meta.url);
@@ -12,15 +12,19 @@ const __dirname = path.dirname(__filename);
 /**
  * Charge un fichier de traduction
  */
-async function loadTranslationFile(language: string): Promise<Record<string, any>> {
+async function loadTranslationFile(
+  language: string,
+): Promise<Record<string, any>> {
   const filePath = path.join(config.extraction.outputDir, `${language}.json`);
 
   try {
-    const content = await fs.readFile(filePath, 'utf-8');
+    const content = await fs.readFile(filePath, "utf-8");
     return JSON.parse(content);
   } catch (error) {
     console.error(
-      chalk.red(`❌ Erreur lors du chargement du fichier de traduction ${language}: ${error}`)
+      chalk.red(
+        `❌ Erreur lors du chargement du fichier de traduction ${language}: ${error}`,
+      ),
     );
     return {};
   }
@@ -29,11 +33,14 @@ async function loadTranslationFile(language: string): Promise<Record<string, any
 /**
  * Transforme un objet imbriqué en paires clé-valeur à plat
  */
-function flattenObject(obj: Record<string, any>, prefix: string = ''): Record<string, string> {
+function flattenObject(
+  obj: Record<string, any>,
+  prefix: string = "",
+): Record<string, string> {
   return Object.keys(obj).reduce((acc: Record<string, string>, key: string) => {
     const prefixedKey = prefix ? `${prefix}.${key}` : key;
 
-    if (typeof obj[key] === 'object' && obj[key] !== null) {
+    if (typeof obj[key] === "object" && obj[key] !== null) {
       Object.assign(acc, flattenObject(obj[key], prefixedKey));
     } else {
       acc[prefixedKey] = obj[key];
@@ -48,7 +55,9 @@ function flattenObject(obj: Record<string, any>, prefix: string = ''): Record<st
  */
 async function validateTranslations() {
   try {
-    console.log(chalk.blue('🔍 Vérification de la cohérence des traductions...'));
+    console.log(
+      chalk.blue("🔍 Vérification de la cohérence des traductions..."),
+    );
 
     // Charger les fichiers de traduction
     const { sourceLanguage, supportedLanguages } = config.languages;
@@ -75,7 +84,9 @@ async function validateTranslations() {
     for (const lang of supportedLanguages) {
       if (lang === sourceLanguage) continue;
 
-      console.log(chalk.blue(`\n📋 Vérification des traductions pour ${lang}:`));
+      console.log(
+        chalk.blue(`\n📋 Vérification des traductions pour ${lang}:`),
+      );
 
       const flatLang = flatLanguages[lang];
       let missingKeys = 0;
@@ -87,13 +98,20 @@ async function validateTranslations() {
           console.log(chalk.red(`❌ Clé manquante: ${key}`));
           missingKeys++;
           hasErrors = true;
-        } else if (flatLang[key] === flatSource[key] && lang !== sourceLanguage) {
-          console.log(chalk.yellow(`⚠️ Valeur non traduite: ${key} = "${flatLang[key]}"`));
+        } else if (
+          flatLang[key] === flatSource[key] &&
+          lang !== sourceLanguage
+        ) {
+          console.log(
+            chalk.yellow(`⚠️ Valeur non traduite: ${key} = "${flatLang[key]}"`),
+          );
           untranslatedKeys++;
           hasWarnings = true;
-        } else if (flatLang[key].includes('[TO_TRANSLATE]')) {
+        } else if (flatLang[key].includes("[TO_TRANSLATE]")) {
           console.log(
-            chalk.yellow(`⚠️ Traduction automatique non vérifiée: ${key} = "${flatLang[key]}"`)
+            chalk.yellow(
+              `⚠️ Traduction automatique non vérifiée: ${key} = "${flatLang[key]}"`,
+            ),
           );
           untranslatedKeys++;
           hasWarnings = true;
@@ -104,7 +122,9 @@ async function validateTranslations() {
       let orphanedKeys = 0;
       for (const key in flatLang) {
         if (!flatSource[key]) {
-          console.log(chalk.yellow(`⚠️ Clé orpheline: ${key} = "${flatLang[key]}"`));
+          console.log(
+            chalk.yellow(`⚠️ Clé orpheline: ${key} = "${flatLang[key]}"`),
+          );
           orphanedKeys++;
           hasWarnings = true;
         }
@@ -121,19 +141,23 @@ async function validateTranslations() {
 
     // Conclusion
     if (hasErrors) {
-      console.log(chalk.red('\n❌ Des problèmes critiques ont été détectés.'));
-      if (process.argv.includes('--strict')) {
+      console.log(chalk.red("\n❌ Des problèmes critiques ont été détectés."));
+      if (process.argv.includes("--strict")) {
         process.exit(1);
       }
     } else if (hasWarnings) {
       console.log(
-        chalk.yellow('\n⚠️ Des avertissements ont été détectés, mais aucun problème critique.')
+        chalk.yellow(
+          "\n⚠️ Des avertissements ont été détectés, mais aucun problème critique.",
+        ),
       );
     } else {
-      console.log(chalk.green('\n✅ Les traductions sont cohérentes!'));
+      console.log(chalk.green("\n✅ Les traductions sont cohérentes!"));
     }
   } catch (error) {
-    console.error(chalk.red(`❌ Erreur lors de la validation des traductions: ${error}`));
+    console.error(
+      chalk.red(`❌ Erreur lors de la validation des traductions: ${error}`),
+    );
     process.exit(1);
   }
 }

@@ -4,4 +4,4 @@
  */
 
 // Exports des fichiers locaux
-export * from './onesignal';
+export * from "./onesignal";

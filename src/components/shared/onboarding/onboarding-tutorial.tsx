@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 import {
   Dialog,
   DialogContent,
@@ -10,12 +10,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import {
   ChevronLeft,
   ChevronRight,
@@ -38,9 +44,9 @@ import {
   FileText,
   Wallet,
   BarChart3,
-} from 'lucide-react';
-import { cn } from '@/lib/utils/common';
-import { api } from '@/trpc/react';
+} from "lucide-react";
+import { cn } from "@/lib/utils/common";
+import { api } from "@/trpc/react";
 
 interface OnboardingStep {
   id: string;
@@ -61,7 +67,7 @@ interface OnboardingStep {
 }
 
 interface OnboardingTutorialProps {
-  userRole: 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER' | 'ADMIN';
+  userRole: "CLIENT" | "DELIVERER" | "MERCHANT" | "PROVIDER" | "ADMIN";
   onComplete?: () => void;
   onSkip?: () => void;
 }
@@ -71,16 +77,16 @@ export default function OnboardingTutorial({
   onComplete,
   onSkip,
 }: OnboardingTutorialProps) {
-  const t = useTranslations('onboarding');
+  const t = useTranslations("onboarding");
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
-  // Mutation pour marquer le tutorial comme terminé
+  // Mutation pour marquer le tutorial comme terminï¿½
   const completeTutorialMutation = api.user.completeTutorial.useMutation();
 
-  // Vérifier si l'utilisateur a déjà vu le tutorial
+  // Vï¿½rifier si l'utilisateur a dï¿½jï¿½ vu le tutorial
   const { data: userPreferences } = api.user.getPreferences.useQuery();
 
   useEffect(() => {
@@ -90,36 +96,42 @@ export default function OnboardingTutorial({
     }
   }, [userPreferences]);
 
-  // Définir les étapes du tutorial selon le rôle
+  // Dï¿½finir les ï¿½tapes du tutorial selon le rï¿½le
   const getStepsForRole = (role: string): OnboardingStep[] => {
     switch (role) {
-      case 'CLIENT':
+      case "CLIENT":
         return [
           {
-            id: 'welcome-client',
-            title: t('client.welcome.title'),
-            description: t('client.welcome.description'),
+            id: "welcome-client",
+            title: t("client.welcome.title"),
+            description: t("client.welcome.description"),
             icon: <Package className="h-8 w-8 text-blue-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('client.welcome.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("client.welcome.content")}
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <Card className="p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Truck className="h-5 w-5 text-green-500" />
-                      <span className="font-medium">{t('client.features.deliveries')}</span>
+                      <span className="font-medium">
+                        {t("client.features.deliveries")}
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {t('client.features.deliveriesDesc')}
+                      {t("client.features.deliveriesDesc")}
                     </p>
                   </Card>
                   <Card className="p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Home className="h-5 w-5 text-purple-500" />
-                      <span className="font-medium">{t('client.features.services')}</span>
+                      <span className="font-medium">
+                        {t("client.features.services")}
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {t('client.features.servicesDesc')}
+                      {t("client.features.servicesDesc")}
                     </p>
                   </Card>
                 </div>
@@ -127,22 +139,26 @@ export default function OnboardingTutorial({
             ),
           },
           {
-            id: 'create-announcement',
-            title: t('client.announcement.title'),
-            description: t('client.announcement.description'),
+            id: "create-announcement",
+            title: t("client.announcement.title"),
+            description: t("client.announcement.description"),
             icon: <Package className="h-8 w-8 text-green-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('client.announcement.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("client.announcement.content")}
+                </p>
                 <div className="bg-muted/40 p-4 rounded-lg">
                   <div className="flex items-start gap-3">
                     <div className="bg-blue-100 p-2 rounded-full">
                       <MapPin className="h-4 w-4 text-blue-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium">{t('client.announcement.step1')}</h4>
+                      <h4 className="font-medium">
+                        {t("client.announcement.step1")}
+                      </h4>
                       <p className="text-sm text-muted-foreground">
-                        {t('client.announcement.step1Desc')}
+                        {t("client.announcement.step1Desc")}
                       </p>
                     </div>
                   </div>
@@ -153,9 +169,11 @@ export default function OnboardingTutorial({
                       <Calendar className="h-4 w-4 text-green-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium">{t('client.announcement.step2')}</h4>
+                      <h4 className="font-medium">
+                        {t("client.announcement.step2")}
+                      </h4>
                       <p className="text-sm text-muted-foreground">
-                        {t('client.announcement.step2Desc')}
+                        {t("client.announcement.step2Desc")}
                       </p>
                     </div>
                   </div>
@@ -164,61 +182,76 @@ export default function OnboardingTutorial({
             ),
             actions: {
               primary: {
-                label: t('client.announcement.createFirst'),
-                action: () => window.open('/client/announcements/create', '_blank'),
+                label: t("client.announcement.createFirst"),
+                action: () =>
+                  window.open("/client/announcements/create", "_blank"),
               },
             },
           },
           {
-            id: 'track-deliveries',
-            title: t('client.tracking.title'),
-            description: t('client.tracking.description'),
+            id: "track-deliveries",
+            title: t("client.tracking.title"),
+            description: t("client.tracking.description"),
             icon: <MapPin className="h-8 w-8 text-orange-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('client.tracking.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("client.tracking.content")}
+                </p>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                     <Bell className="h-5 w-5 text-blue-500" />
-                    <span className="text-sm font-medium">{t('client.tracking.notifications')}</span>
+                    <span className="text-sm font-medium">
+                      {t("client.tracking.notifications")}
+                    </span>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                     <MapPin className="h-5 w-5 text-green-500" />
-                    <span className="text-sm font-medium">{t('client.tracking.realtime')}</span>
+                    <span className="text-sm font-medium">
+                      {t("client.tracking.realtime")}
+                    </span>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
                     <MessageCircle className="h-5 w-5 text-purple-500" />
-                    <span className="text-sm font-medium">{t('client.tracking.communication')}</span>
+                    <span className="text-sm font-medium">
+                      {t("client.tracking.communication")}
+                    </span>
                   </div>
                 </div>
               </div>
             ),
           },
           {
-            id: 'payments-tips',
-            title: t('client.payments.title'),
-            description: t('client.payments.description'),
+            id: "payments-tips",
+            title: t("client.payments.title"),
+            description: t("client.payments.description"),
             icon: <CreditCard className="h-8 w-8 text-purple-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('client.payments.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("client.payments.content")}
+                </p>
                 <div className="grid grid-cols-1 gap-3">
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">{t('client.payments.secure')}</span>
+                      <span className="text-sm font-medium">
+                        {t("client.payments.secure")}
+                      </span>
                     </div>
                     <Badge variant="outline" className="text-green-600">
-                      {t('client.payments.encrypted')}
+                      {t("client.payments.encrypted")}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-2">
                       <Star className="h-4 w-4 text-yellow-500" />
-                      <span className="text-sm font-medium">{t('client.payments.rating')}</span>
+                      <span className="text-sm font-medium">
+                        {t("client.payments.rating")}
+                      </span>
                     </div>
                     <Badge variant="outline" className="text-yellow-600">
-                      {t('client.payments.optional')}
+                      {t("client.payments.optional")}
                     </Badge>
                   </div>
                 </div>
@@ -227,44 +260,53 @@ export default function OnboardingTutorial({
           },
         ];
 
-      case 'DELIVERER':
+      case "DELIVERER":
         return [
           {
-            id: 'welcome-deliverer',
-            title: t('deliverer.welcome.title'),
-            description: t('deliverer.welcome.description'),
+            id: "welcome-deliverer",
+            title: t("deliverer.welcome.title"),
+            description: t("deliverer.welcome.description"),
             icon: <Truck className="h-8 w-8 text-blue-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('deliverer.welcome.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("deliverer.welcome.content")}
+                </p>
                 <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Wallet className="h-5 w-5 text-green-500" />
-                    <span className="font-medium">{t('deliverer.welcome.earnings')}</span>
+                    <span className="font-medium">
+                      {t("deliverer.welcome.earnings")}
+                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {t('deliverer.welcome.earningsDesc')}
+                    {t("deliverer.welcome.earningsDesc")}
                   </p>
                 </div>
               </div>
             ),
           },
           {
-            id: 'documents-verification',
-            title: t('deliverer.documents.title'),
-            description: t('deliverer.documents.description'),
+            id: "documents-verification",
+            title: t("deliverer.documents.title"),
+            description: t("deliverer.documents.description"),
             icon: <FileText className="h-8 w-8 text-orange-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('deliverer.documents.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("deliverer.documents.content")}
+                </p>
                 <div className="space-y-2">
                   {[
-                    t('deliverer.documents.identity'),
-                    t('deliverer.documents.license'),
-                    t('deliverer.documents.insurance'),
-                    t('deliverer.documents.background'),
+                    t("deliverer.documents.identity"),
+                    t("deliverer.documents.license"),
+                    t("deliverer.documents.insurance"),
+                    t("deliverer.documents.background"),
                   ].map((doc, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 p-2 border rounded"
+                    >
                       <Check className="h-4 w-4 text-green-500" />
                       <span className="text-sm">{doc}</span>
                     </div>
@@ -274,32 +316,38 @@ export default function OnboardingTutorial({
             ),
             actions: {
               primary: {
-                label: t('deliverer.documents.upload'),
-                action: () => window.open('/deliverer/documents', '_blank'),
+                label: t("deliverer.documents.upload"),
+                action: () => window.open("/deliverer/documents", "_blank"),
               },
             },
           },
           {
-            id: 'accept-deliveries',
-            title: t('deliverer.deliveries.title'),
-            description: t('deliverer.deliveries.description'),
+            id: "accept-deliveries",
+            title: t("deliverer.deliveries.title"),
+            description: t("deliverer.deliveries.description"),
             icon: <Package className="h-8 w-8 text-green-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('deliverer.deliveries.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("deliverer.deliveries.content")}
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <MapPin className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                    <div className="text-sm font-medium">{t('deliverer.deliveries.matching')}</div>
+                    <div className="text-sm font-medium">
+                      {t("deliverer.deliveries.matching")}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {t('deliverer.deliveries.matchingDesc')}
+                      {t("deliverer.deliveries.matchingDesc")}
                     </div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <Truck className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                    <div className="text-sm font-medium">{t('deliverer.deliveries.tracking')}</div>
+                    <div className="text-sm font-medium">
+                      {t("deliverer.deliveries.tracking")}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {t('deliverer.deliveries.trackingDesc')}
+                      {t("deliverer.deliveries.trackingDesc")}
                     </div>
                   </div>
                 </div>
@@ -307,53 +355,63 @@ export default function OnboardingTutorial({
             ),
           },
           {
-            id: 'earnings-wallet',
-            title: t('deliverer.wallet.title'),
-            description: t('deliverer.wallet.description'),
+            id: "earnings-wallet",
+            title: t("deliverer.wallet.title"),
+            description: t("deliverer.wallet.description"),
             icon: <Wallet className="h-8 w-8 text-purple-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('deliverer.wallet.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("deliverer.wallet.content")}
+                </p>
                 <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 mb-1">¬15-25</div>
+                  <div className="text-2xl font-bold text-green-600 mb-1">
+                    ï¿½15-25
+                  </div>
                   <div className="text-sm text-muted-foreground">
-                    {t('deliverer.wallet.averagePerDelivery')}
+                    {t("deliverer.wallet.averagePerDelivery")}
                   </div>
                 </div>
               </div>
             ),
             actions: {
               primary: {
-                label: t('deliverer.wallet.viewWallet'),
-                action: () => window.open('/deliverer/wallet', '_blank'),
+                label: t("deliverer.wallet.viewWallet"),
+                action: () => window.open("/deliverer/wallet", "_blank"),
               },
             },
           },
         ];
 
-      case 'MERCHANT':
+      case "MERCHANT":
         return [
           {
-            id: 'welcome-merchant',
-            title: t('merchant.welcome.title'),
-            description: t('merchant.welcome.description'),
+            id: "welcome-merchant",
+            title: t("merchant.welcome.title"),
+            description: t("merchant.welcome.description"),
             icon: <ShoppingBag className="h-8 w-8 text-blue-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('merchant.welcome.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("merchant.welcome.content")}
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <Card className="p-4">
                     <BarChart3 className="h-6 w-6 text-green-500 mb-2" />
-                    <div className="font-medium">{t('merchant.features.analytics')}</div>
+                    <div className="font-medium">
+                      {t("merchant.features.analytics")}
+                    </div>
                     <div className="text-sm text-muted-foreground">
-                      {t('merchant.features.analyticsDesc')}
+                      {t("merchant.features.analyticsDesc")}
                     </div>
                   </Card>
                   <Card className="p-4">
                     <Users className="h-6 w-6 text-purple-500 mb-2" />
-                    <div className="font-medium">{t('merchant.features.customers')}</div>
+                    <div className="font-medium">
+                      {t("merchant.features.customers")}
+                    </div>
                     <div className="text-sm text-muted-foreground">
-                      {t('merchant.features.customersDesc')}
+                      {t("merchant.features.customersDesc")}
                     </div>
                   </Card>
                 </div>
@@ -361,84 +419,102 @@ export default function OnboardingTutorial({
             ),
           },
           {
-            id: 'catalog-management',
-            title: t('merchant.catalog.title'),
-            description: t('merchant.catalog.description'),
+            id: "catalog-management",
+            title: t("merchant.catalog.title"),
+            description: t("merchant.catalog.description"),
             icon: <Package className="h-8 w-8 text-green-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('merchant.catalog.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("merchant.catalog.content")}
+                </p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 p-3 border rounded">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm">{t('merchant.catalog.step1')}</span>
+                    <span className="text-sm">
+                      {t("merchant.catalog.step1")}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 p-3 border rounded">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm">{t('merchant.catalog.step2')}</span>
+                    <span className="text-sm">
+                      {t("merchant.catalog.step2")}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 p-3 border rounded">
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <span className="text-sm">{t('merchant.catalog.step3')}</span>
+                    <span className="text-sm">
+                      {t("merchant.catalog.step3")}
+                    </span>
                   </div>
                 </div>
               </div>
             ),
             actions: {
               primary: {
-                label: t('merchant.catalog.createProduct'),
-                action: () => window.open('/merchant/catalog/create', '_blank'),
+                label: t("merchant.catalog.createProduct"),
+                action: () => window.open("/merchant/catalog/create", "_blank"),
               },
             },
           },
         ];
 
-      case 'PROVIDER':
+      case "PROVIDER":
         return [
           {
-            id: 'welcome-provider',
-            title: t('provider.welcome.title'),
-            description: t('provider.welcome.description'),
+            id: "welcome-provider",
+            title: t("provider.welcome.title"),
+            description: t("provider.welcome.description"),
             icon: <Users className="h-8 w-8 text-blue-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('provider.welcome.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("provider.welcome.content")}
+                </p>
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Star className="h-5 w-5 text-yellow-500" />
-                    <span className="font-medium">{t('provider.welcome.expertise')}</span>
+                    <span className="font-medium">
+                      {t("provider.welcome.expertise")}
+                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {t('provider.welcome.expertiseDesc')}
+                    {t("provider.welcome.expertiseDesc")}
                   </p>
                 </div>
               </div>
             ),
           },
           {
-            id: 'services-skills',
-            title: t('provider.services.title'),
-            description: t('provider.services.description'),
+            id: "services-skills",
+            title: t("provider.services.title"),
+            description: t("provider.services.description"),
             icon: <Settings className="h-8 w-8 text-green-500" />,
             content: (
               <div className="space-y-4">
-                <p className="text-muted-foreground">{t('provider.services.content')}</p>
+                <p className="text-muted-foreground">
+                  {t("provider.services.content")}
+                </p>
                 <div className="grid grid-cols-1 gap-3">
                   <div className="flex items-center gap-3 p-3 border rounded">
                     <Home className="h-5 w-5 text-blue-500" />
                     <div>
-                      <div className="font-medium">{t('provider.services.home')}</div>
+                      <div className="font-medium">
+                        {t("provider.services.home")}
+                      </div>
                       <div className="text-sm text-muted-foreground">
-                        {t('provider.services.homeDesc')}
+                        {t("provider.services.homeDesc")}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 border rounded">
                     <Settings className="h-5 w-5 text-green-500" />
                     <div>
-                      <div className="font-medium">{t('provider.services.maintenance')}</div>
+                      <div className="font-medium">
+                        {t("provider.services.maintenance")}
+                      </div>
                       <div className="text-sm text-muted-foreground">
-                        {t('provider.services.maintenanceDesc')}
+                        {t("provider.services.maintenanceDesc")}
                       </div>
                     </div>
                   </div>
@@ -447,8 +523,9 @@ export default function OnboardingTutorial({
             ),
             actions: {
               primary: {
-                label: t('provider.services.create'),
-                action: () => window.open('/provider/services/create', '_blank'),
+                label: t("provider.services.create"),
+                action: () =>
+                  window.open("/provider/services/create", "_blank"),
               },
             },
           },
@@ -483,7 +560,7 @@ export default function OnboardingTutorial({
       setIsOpen(false);
       onComplete?.();
     } catch (error) {
-      console.error('Error completing tutorial:', error);
+      console.error("Error completing tutorial:", error);
     }
   };
 
@@ -493,7 +570,7 @@ export default function OnboardingTutorial({
       setIsOpen(false);
       onSkip?.();
     } catch (error) {
-      console.error('Error skipping tutorial:', error);
+      console.error("Error skipping tutorial:", error);
     }
   };
 
@@ -511,7 +588,9 @@ export default function OnboardingTutorial({
             <div className="flex items-center gap-3">
               {currentStepData.icon}
               <div>
-                <DialogTitle className="text-xl">{currentStepData.title}</DialogTitle>
+                <DialogTitle className="text-xl">
+                  {currentStepData.title}
+                </DialogTitle>
                 <DialogDescription className="text-base">
                   {currentStepData.description}
                 </DialogDescription>
@@ -531,7 +610,7 @@ export default function OnboardingTutorial({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>
-                {t('step')} {currentStep + 1} {t('of')} {steps.length}
+                {t("step")} {currentStep + 1} {t("of")} {steps.length}
               </span>
               <span>{Math.round(progress)}%</span>
             </div>
@@ -557,7 +636,10 @@ export default function OnboardingTutorial({
                 </Button>
               )}
               {currentStepData.actions.primary && (
-                <Button onClick={currentStepData.actions.primary.action} className="flex-1">
+                <Button
+                  onClick={currentStepData.actions.primary.action}
+                  className="flex-1"
+                >
                   <Play className="h-4 w-4 mr-2" />
                   {currentStepData.actions.primary.label}
                 </Button>
@@ -571,7 +653,7 @@ export default function OnboardingTutorial({
         <DialogFooter className="flex justify-between items-center">
           <div className="flex gap-2">
             <Button variant="ghost" onClick={handleSkip}>
-              {t('skipTutorial')}
+              {t("skipTutorial")}
             </Button>
           </div>
 
@@ -583,17 +665,17 @@ export default function OnboardingTutorial({
               className="min-w-24"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              {t('previous')}
+              {t("previous")}
             </Button>
             <Button onClick={handleNext} className="min-w-24">
               {currentStep === steps.length - 1 ? (
                 <>
                   <Check className="h-4 w-4 mr-2" />
-                  {t('finish')}
+                  {t("finish")}
                 </>
               ) : (
                 <>
-                  {t('next')}
+                  {t("next")}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </>
               )}

@@ -1,5 +1,5 @@
-import { vi, expect } from 'vitest';
-import * as React from 'react';
+import { vi, expect } from "vitest";
+import * as React from "react";
 
 // Custom matchers
 expect.extend({
@@ -7,7 +7,8 @@ expect.extend({
     const pass = received !== null && received !== undefined;
     return {
       pass,
-      message: () => `expected ${received} ${pass ? 'not to be' : 'to be'} in the document`,
+      message: () =>
+        `expected ${received} ${pass ? "not to be" : "to be"} in the document`,
     };
   },
   toHaveClass(received, className) {
@@ -15,20 +16,21 @@ expect.extend({
     return {
       pass,
       message: () =>
-        `expected ${received} ${pass ? 'not to have' : 'to have'} class "${className}"`,
+        `expected ${received} ${pass ? "not to have" : "to have"} class "${className}"`,
     };
   },
   toHaveValue(received, value) {
     const pass = (received as HTMLInputElement).value === value;
     return {
       pass,
-      message: () => `expected ${received} ${pass ? 'not to have' : 'to have'} value "${value}"`,
+      message: () =>
+        `expected ${received} ${pass ? "not to have" : "to have"} value "${value}"`,
     };
   },
 });
 
 // Mock Next.js navigation
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -44,10 +46,10 @@ vi.mock('next/navigation', () => ({
 const originalConsoleError = console.error;
 console.error = (...args) => {
   if (
-    typeof args[0] === 'string' &&
-    (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
-      args[0].includes('Warning: React.createFactory is deprecated') ||
-      args[0].includes('Warning: Using UNSAFE_'))
+    typeof args[0] === "string" &&
+    (args[0].includes("Warning: ReactDOM.render is no longer supported") ||
+      args[0].includes("Warning: React.createFactory is deprecated") ||
+      args[0].includes("Warning: Using UNSAFE_"))
   ) {
     return;
   }

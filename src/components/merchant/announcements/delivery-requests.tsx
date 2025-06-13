@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -14,11 +14,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { api } from '@/trpc/react';
-import { formatDate, formatCurrency } from '@/utils/document-utils';
-import { Info, Star, Check, X, User, MapPin, Calendar, FileText } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/dialog";
+import { api } from "@/trpc/react";
+import { formatDate, formatCurrency } from "@/utils/document-utils";
+import {
+  Info,
+  Star,
+  Check,
+  X,
+  User,
+  MapPin,
+  Calendar,
+  FileText,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface DeliveryRequest {
   id: string;
@@ -49,31 +58,33 @@ export function DeliveryRequests({
   requests = [],
   isLoading = false,
 }: DeliveryRequestsProps) {
-  const t = useTranslations('announcements');
-  const [selectedRequest, setSelectedRequest] = useState<DeliveryRequest | null>(null);
+  const t = useTranslations("announcements");
+  const [selectedRequest, setSelectedRequest] =
+    useState<DeliveryRequest | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
 
   // Mutation pour accepter une candidature
   const assignDelivererMutation = api.announcement.assignDeliverer.useMutation({
     onSuccess: () => {
-      toast.success(t('requestAccepted'));
+      toast.success(t("requestAccepted"));
       setOpenDialog(false);
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(error.message);
     },
   });
 
   // Mutation pour refuser une candidature
-  const rejectApplicationMutation = api.announcement.updateApplicationStatus.useMutation({
-    onSuccess: () => {
-      toast.success(t('requestRejected'));
-      setOpenDialog(false);
-    },
-    onError: error => {
-      toast.error(error.message);
-    },
-  });
+  const rejectApplicationMutation =
+    api.announcement.updateApplicationStatus.useMutation({
+      onSuccess: () => {
+        toast.success(t("requestRejected"));
+        setOpenDialog(false);
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    });
 
   const handleAccept = async (applicationId: string) => {
     try {
@@ -90,7 +101,7 @@ export function DeliveryRequests({
     try {
       await rejectApplicationMutation.mutateAsync({
         applicationId,
-        status: 'REJECTED',
+        status: "REJECTED",
       });
     } catch (err) {
       // Error is handled in onError
@@ -118,8 +129,10 @@ export function DeliveryRequests({
         <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
           <FileText className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-medium">{t('noRequests')}</h3>
-        <p className="text-sm text-muted-foreground mt-2">{t('noRequestsDescription')}</p>
+        <h3 className="text-lg font-medium">{t("noRequests")}</h3>
+        <p className="text-sm text-muted-foreground mt-2">
+          {t("noRequestsDescription")}
+        </p>
       </div>
     );
   }
@@ -127,7 +140,7 @@ export function DeliveryRequests({
   return (
     <>
       <div className="space-y-4">
-        {requests.map(request => (
+        {requests.map((request) => (
           <Card key={request.id} className="overflow-hidden">
             <CardContent className="p-0">
               <div className="p-6">
@@ -136,7 +149,7 @@ export function DeliveryRequests({
                     <Avatar>
                       <AvatarImage
                         src={request.deliverer?.image || undefined}
-                        alt={request.deliverer?.name || ''}
+                        alt={request.deliverer?.name || ""}
                       />
                       <AvatarFallback>
                         <User className="h-5 w-5" />
@@ -144,7 +157,7 @@ export function DeliveryRequests({
                     </Avatar>
                     <div>
                       <div className="font-medium">
-                        {request.deliverer?.name || t('unknownDeliverer')}
+                        {request.deliverer?.name || t("unknownDeliverer")}
                       </div>
                       {request.deliverer?.rating !== undefined && (
                         <div className="flex items-center text-sm text-muted-foreground">
@@ -163,11 +176,11 @@ export function DeliveryRequests({
                   <div className="flex items-center gap-2">
                     <Badge
                       variant={
-                        request.status === 'PENDING'
-                          ? 'outline'
-                          : request.status === 'ACCEPTED'
-                            ? 'success'
-                            : 'destructive'
+                        request.status === "PENDING"
+                          ? "outline"
+                          : request.status === "ACCEPTED"
+                            ? "success"
+                            : "destructive"
                       }
                     >
                       {t(`status.${request.status.toLowerCase()}`)}
@@ -175,7 +188,7 @@ export function DeliveryRequests({
                     <div className="font-semibold">
                       {request.proposedPrice !== undefined
                         ? formatCurrency(request.proposedPrice)
-                        : ''}
+                        : ""}
                     </div>
                   </div>
                 </div>
@@ -183,7 +196,7 @@ export function DeliveryRequests({
                 {request.message && (
                   <div className="mt-4 text-sm text-muted-foreground">
                     {request.message.length > 100
-                      ? request.message.substring(0, 100) + '...'
+                      ? request.message.substring(0, 100) + "..."
                       : request.message}
                   </div>
                 )}
@@ -194,31 +207,47 @@ export function DeliveryRequests({
                 </div>
               </div>
 
-              {request.status === 'PENDING' && (
+              {request.status === "PENDING" && (
                 <CardFooter className="border-t bg-muted/50 px-6 py-4">
                   <div className="flex justify-end gap-2 w-full">
-                    <Button variant="outline" size="sm" onClick={() => handleReject(request.id)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReject(request.id)}
+                    >
                       <X className="h-4 w-4 mr-1" />
-                      {t('decline')}
+                      {t("decline")}
                     </Button>
-                    <Button variant="default" size="sm" onClick={() => handleAccept(request.id)}>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleAccept(request.id)}
+                    >
                       <Check className="h-4 w-4 mr-1" />
-                      {t('accept')}
+                      {t("accept")}
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleViewDetails(request)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewDetails(request)}
+                    >
                       <Info className="h-4 w-4 mr-1" />
-                      {t('details')}
+                      {t("details")}
                     </Button>
                   </div>
                 </CardFooter>
               )}
 
-              {request.status !== 'PENDING' && (
+              {request.status !== "PENDING" && (
                 <CardFooter className="border-t bg-muted/50 px-6 py-4">
                   <div className="flex justify-end w-full">
-                    <Button variant="ghost" size="sm" onClick={() => handleViewDetails(request)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewDetails(request)}
+                    >
                       <Info className="h-4 w-4 mr-1" />
-                      {t('details')}
+                      {t("details")}
                     </Button>
                   </div>
                 </CardFooter>
@@ -231,8 +260,10 @@ export function DeliveryRequests({
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('delivererDetails')}</DialogTitle>
-            <DialogDescription>{t('delivererDetailsDescription')}</DialogDescription>
+            <DialogTitle>{t("delivererDetails")}</DialogTitle>
+            <DialogDescription>
+              {t("delivererDetailsDescription")}
+            </DialogDescription>
           </DialogHeader>
 
           {selectedRequest && selectedRequest.deliverer && (
@@ -240,7 +271,7 @@ export function DeliveryRequests({
               <div className="flex items-center gap-4">
                 <Avatar className="h-14 w-14">
                   <AvatarImage
-                    src={selectedRequest.deliverer.image || ''}
+                    src={selectedRequest.deliverer.image || ""}
                     alt={selectedRequest.deliverer.name}
                   />
                   <AvatarFallback>
@@ -248,10 +279,12 @@ export function DeliveryRequests({
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-medium text-lg">{selectedRequest.deliverer.name}</h3>
+                  <h3 className="font-medium text-lg">
+                    {selectedRequest.deliverer.name}
+                  </h3>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Star className="h-3.5 w-3.5 mr-1 fill-yellow-400 text-yellow-400" />
-                    {selectedRequest.deliverer.rating?.toFixed(1) || 'N/A'}
+                    {selectedRequest.deliverer.rating?.toFixed(1) || "N/A"}
                   </div>
                 </div>
               </div>
@@ -259,16 +292,22 @@ export function DeliveryRequests({
               <div className="grid gap-2">
                 {selectedRequest.deliverer.yearsOfExperience !== undefined && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{t('experience')}</span>
+                    <span className="text-muted-foreground">
+                      {t("experience")}
+                    </span>
                     <span className="font-medium">
-                      {selectedRequest.deliverer.yearsOfExperience} {t('years')}
+                      {selectedRequest.deliverer.yearsOfExperience} {t("years")}
                     </span>
                   </div>
                 )}
                 {selectedRequest.deliverer.totalDeliveries !== undefined && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{t('totalDeliveries')}</span>
-                    <span className="font-medium">{selectedRequest.deliverer.totalDeliveries}</span>
+                    <span className="text-muted-foreground">
+                      {t("totalDeliveries")}
+                    </span>
+                    <span className="font-medium">
+                      {selectedRequest.deliverer.totalDeliveries}
+                    </span>
                   </div>
                 )}
               </div>
@@ -276,33 +315,38 @@ export function DeliveryRequests({
               <Separator />
 
               <div className="space-y-2">
-                <h4 className="font-medium">{t('message')}</h4>
+                <h4 className="font-medium">{t("message")}</h4>
                 <div className="text-sm rounded-md bg-muted p-4">
-                  {selectedRequest.message || t('noMessage')}
+                  {selectedRequest.message || t("noMessage")}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-medium">{t('pricing')}</h4>
+                <h4 className="font-medium">{t("pricing")}</h4>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">{t('proposedPrice')}</span>
+                  <span className="text-muted-foreground">
+                    {t("proposedPrice")}
+                  </span>
                   <span className="text-lg font-semibold">
                     {selectedRequest.proposedPrice !== undefined
                       ? formatCurrency(selectedRequest.proposedPrice)
-                      : t('noPriceProvided')}
+                      : t("noPriceProvided")}
                   </span>
                 </div>
               </div>
 
-              {selectedRequest.status === 'PENDING' && (
+              {selectedRequest.status === "PENDING" && (
                 <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => handleReject(selectedRequest.id)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleReject(selectedRequest.id)}
+                  >
                     <X className="h-4 w-4 mr-1" />
-                    {t('decline')}
+                    {t("decline")}
                   </Button>
                   <Button onClick={() => handleAccept(selectedRequest.id)}>
                     <Check className="h-4 w-4 mr-1" />
-                    {t('accept')}
+                    {t("accept")}
                   </Button>
                 </div>
               )}

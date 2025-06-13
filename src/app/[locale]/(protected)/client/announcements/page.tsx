@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Plus, Filter, RefreshCw, AlertCircle } from 'lucide-react';
-import { Link } from '@/navigation';
-import { useClientAnnouncements } from '@/hooks/delivery/use-announcement';
-import AnnouncementList from '@/components/client/announcements/announcement-list';
-import { AnnouncementFilter } from '@/components/shared/announcements/announcement-filters';
-import { ClientStatusDashboard } from '@/components/client/announcements/client-status-dashboard';
-import { DeliveryStatus, UserRole } from '@prisma/client';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AlertDescription, AlertTitle, Alert } from '@/components/ui/alert';
-import { useRoleProtection } from '@/hooks/auth/use-role-protection';
-import { Separator } from '@/components/ui/separator';
-import { type Announcement } from '@/types/announcements/announcement';
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Plus, Filter, RefreshCw, AlertCircle } from "lucide-react";
+import { Link } from "@/navigation";
+import { useClientAnnouncements } from "@/hooks/delivery/use-announcement";
+import AnnouncementList from "@/components/client/announcements/announcement-list";
+import { AnnouncementFilter } from "@/components/shared/announcements/announcement-filters";
+import { ClientStatusDashboard } from "@/components/client/announcements/client-status-dashboard";
+import { DeliveryStatus, UserRole } from "@prisma/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertDescription, AlertTitle, Alert } from "@/components/ui/alert";
+import { useRoleProtection } from "@/hooks/auth/use-role-protection";
+import { Separator } from "@/components/ui/separator";
+import { type Announcement } from "@/types/announcements/announcement";
 
 export default function ClientAnnouncementsPage() {
-  useRoleProtection(['CLIENT']);
-  const t = useTranslations('announcements');
-  const [activeTab, setActiveTab] = useState('active');
+  useRoleProtection(["CLIENT"]);
+  const t = useTranslations("announcements");
+  const [activeTab, setActiveTab] = useState("active");
   const [showFilters, setShowFilters] = useState(false);
 
   const {
@@ -35,14 +35,14 @@ export default function ClientAnnouncementsPage() {
     initialFilter: {
       limit: 10,
       page: 1,
-      status: ['PUBLISHED', 'IN_APPLICATION', 'ASSIGNED', 'IN_PROGRESS'],
+      status: ["PUBLISHED", "IN_APPLICATION", "ASSIGNED", "IN_PROGRESS"],
     },
   });
 
   // Charger les annonces actives ou historiques selon l'onglet, mais en évitant la boucle infinie
   useEffect(() => {
     const loadAnnouncements = async () => {
-      if (activeTab === 'active') {
+      if (activeTab === "active") {
         await fetchActiveAnnouncements();
       } else {
         await fetchAnnouncementHistory();
@@ -55,7 +55,7 @@ export default function ClientAnnouncementsPage() {
   }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshAnnouncements = () => {
-    if (activeTab === 'active') {
+    if (activeTab === "active") {
       fetchActiveAnnouncements();
     } else {
       fetchAnnouncementHistory();
@@ -64,14 +64,14 @@ export default function ClientAnnouncementsPage() {
 
   // Adapter les données pour les composants
   // Conversion du type AnnouncementWithDetails vers Announcement pour ClientStatusDashboard
-  const announcementsForDashboard = myAnnouncements.map(announcement => {
+  const announcementsForDashboard = myAnnouncements.map((announcement) => {
     return {
       id: announcement.id,
       title: announcement.title,
       description: announcement.description,
       type: announcement.type,
       status: announcement.status,
-      priority: announcement.priority || 'MEDIUM',
+      priority: announcement.priority || "MEDIUM",
       pickupAddress: announcement.pickupAddress,
       deliveryAddress: announcement.deliveryAddress,
       isFragile: announcement.isFragile || false,
@@ -99,25 +99,40 @@ export default function ClientAnnouncementsPage() {
     <div className="container py-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('myAnnouncements')}</h1>
-          <p className="text-muted-foreground mt-1">{t('manageYourAnnouncements')}</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("myAnnouncements")}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {t("manageYourAnnouncements")}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+          >
             <Filter className="h-4 w-4 mr-2" />
-            {t('filter')}
+            {t("filter")}
           </Button>
 
-          <Button variant="outline" size="sm" onClick={refreshAnnouncements} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            {t('refresh')}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshAnnouncements}
+            disabled={isLoading}
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
+            {t("refresh")}
           </Button>
 
           <Button asChild>
             <Link href="/client/announcements/create">
               <Plus className="h-4 w-4 mr-2" />
-              {t('createNew')}
+              {t("createNew")}
             </Link>
           </Button>
         </div>
@@ -131,7 +146,7 @@ export default function ClientAnnouncementsPage() {
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('error')}</AlertTitle>
+          <AlertTitle>{t("error")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -140,9 +155,9 @@ export default function ClientAnnouncementsPage() {
       {showFilters && (
         <div className="mb-6">
           <AnnouncementFilter
-            onFiltersChange={newFilters => {
-              console.log('Filtres appliqués:', newFilters);
-              if (activeTab === 'active') {
+            onFiltersChange={(newFilters) => {
+              console.log("Filtres appliqués:", newFilters);
+              if (activeTab === "active") {
                 fetchActiveAnnouncements();
               } else {
                 fetchAnnouncementHistory();
@@ -153,10 +168,14 @@ export default function ClientAnnouncementsPage() {
         </div>
       )}
 
-      <Tabs defaultValue="active" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        defaultValue="active"
+        value={activeTab}
+        onValueChange={setActiveTab}
+      >
         <TabsList className="mb-6">
-          <TabsTrigger value="active">{t('activeAnnouncements')}</TabsTrigger>
-          <TabsTrigger value="history">{t('announcementHistory')}</TabsTrigger>
+          <TabsTrigger value="active">{t("activeAnnouncements")}</TabsTrigger>
+          <TabsTrigger value="history">{t("announcementHistory")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">
@@ -170,10 +189,16 @@ export default function ClientAnnouncementsPage() {
           ) : myAnnouncements.length === 0 ? (
             // Message quand il n'y a pas d'annonces
             <div className="text-center py-12 bg-muted/50 rounded-lg">
-              <h3 className="text-lg font-medium">{t('noActiveAnnouncements')}</h3>
-              <p className="text-muted-foreground mt-2">{t('createAnnouncementPrompt')}</p>
+              <h3 className="text-lg font-medium">
+                {t("noActiveAnnouncements")}
+              </h3>
+              <p className="text-muted-foreground mt-2">
+                {t("createAnnouncementPrompt")}
+              </p>
               <Button asChild className="mt-4">
-                <Link href="/client/announcements/create">{t('createAnnouncement')}</Link>
+                <Link href="/client/announcements/create">
+                  {t("createAnnouncement")}
+                </Link>
               </Button>
             </div>
           ) : (
@@ -181,13 +206,13 @@ export default function ClientAnnouncementsPage() {
             <AnnouncementList
               announcements={myAnnouncements}
               isLoading={isLoading}
-              userRole={'CLIENT' as UserRole}
+              userRole={"CLIENT" as UserRole}
               totalCount={myAnnouncements.length}
               currentPage={1}
               totalPages={1}
-              onPageChange={page => fetchMyAnnouncements(page)}
-              emptyStateTitle={t('noActiveAnnouncements')}
-              emptyStateMessage={t('createAnnouncementPrompt')}
+              onPageChange={(page) => fetchMyAnnouncements(page)}
+              emptyStateTitle={t("noActiveAnnouncements")}
+              emptyStateMessage={t("createAnnouncementPrompt")}
             />
           )}
         </TabsContent>
@@ -203,9 +228,11 @@ export default function ClientAnnouncementsPage() {
           ) : myAnnouncements.length === 0 ? (
             // Message quand il n'y a pas d'annonces
             <div className="text-center py-12 bg-muted/50 rounded-lg">
-              <h3 className="text-lg font-medium">{t('noAnnouncementHistory')}</h3>
+              <h3 className="text-lg font-medium">
+                {t("noAnnouncementHistory")}
+              </h3>
               <p className="text-muted-foreground mt-2">
-                {t('completedAnnouncementsWillAppearHere')}
+                {t("completedAnnouncementsWillAppearHere")}
               </p>
             </div>
           ) : (
@@ -213,13 +240,13 @@ export default function ClientAnnouncementsPage() {
             <AnnouncementList
               announcements={myAnnouncements}
               isLoading={isLoading}
-              userRole={'CLIENT' as UserRole}
+              userRole={"CLIENT" as UserRole}
               totalCount={myAnnouncements.length}
               currentPage={1}
               totalPages={1}
-              onPageChange={page => fetchMyAnnouncements(page)}
-              emptyStateTitle={t('noAnnouncementHistory')}
-              emptyStateMessage={t('completedAnnouncementsWillAppearHere')}
+              onPageChange={(page) => fetchMyAnnouncements(page)}
+              emptyStateTitle={t("noAnnouncementHistory")}
+              emptyStateMessage={t("completedAnnouncementsWillAppearHere")}
             />
           )}
         </TabsContent>

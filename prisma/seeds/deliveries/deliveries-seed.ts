@@ -6,10 +6,10 @@ import {
   AnnouncementStatus,
   AnnouncementType,
   AnnouncementPriority,
-} from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomDate } from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+} from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import { SeedResult, SeedOptions, getRandomDate } from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Seed des livraisons EcoDeli avec suivi temps réel
@@ -17,12 +17,12 @@ import { faker } from '@faker-js/faker';
 export async function seedDeliveries(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('DELIVERIES');
+  logger.startSeed("DELIVERIES");
 
   const result: SeedResult = {
-    entity: 'deliveries',
+    entity: "deliveries",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -30,16 +30,19 @@ export async function seedDeliveries(
 
   // Récupérer les utilisateurs clés
   const jeanDupont = await prisma.user.findUnique({
-    where: { email: 'jean.dupont@orange.fr' },
+    where: { email: "jean.dupont@orange.fr" },
   });
 
   const marieLaurent = await prisma.user.findUnique({
-    where: { email: 'marie.laurent@orange.fr' },
+    where: { email: "marie.laurent@orange.fr" },
     include: { deliverer: true },
   });
 
   if (!jeanDupont || !marieLaurent) {
-    logger.warning('DELIVERIES', 'Utilisateurs Jean Dupont ou Marie Laurent non trouvés');
+    logger.warning(
+      "DELIVERIES",
+      "Utilisateurs Jean Dupont ou Marie Laurent non trouvés",
+    );
     return result;
   }
 
@@ -47,7 +50,9 @@ export async function seedDeliveries(
   const jeanAnnouncement = await prisma.announcement.findFirst({
     where: {
       clientId: jeanDupont.id,
-      title: { contains: "Livraison urgente d'un ordinateur portable vers Marseille" },
+      title: {
+        contains: "Livraison urgente d'un ordinateur portable vers Marseille",
+      },
     },
   });
 
@@ -55,14 +60,14 @@ export async function seedDeliveries(
     where: {
       announcementId: jeanAnnouncement?.id,
       delivererId: marieLaurent.id,
-      status: 'ACCEPTED',
+      status: "ACCEPTED",
     },
   });
 
   if (!jeanAnnouncement || !acceptedApplication) {
     logger.warning(
-      'DELIVERIES',
-      "Annonce de Jean ou candidature acceptée non trouvée - exécuter d'abord les seeds précédents"
+      "DELIVERIES",
+      "Annonce de Jean ou candidature acceptée non trouvée - exécuter d'abord les seeds précédents",
     );
     return result;
   }
@@ -72,8 +77,8 @@ export async function seedDeliveries(
 
   if (existingDeliveries > 0 && !options.force) {
     logger.warning(
-      'DELIVERIES',
-      `${existingDeliveries} livraisons déjà présentes - utiliser force:true pour recréer`
+      "DELIVERIES",
+      `${existingDeliveries} livraisons déjà présentes - utiliser force:true pour recréer`,
     );
     result.skipped = existingDeliveries;
     return result;
@@ -86,12 +91,17 @@ export async function seedDeliveries(
     await prisma.deliveryProof.deleteMany({});
     await prisma.deliveryRating.deleteMany({});
     await prisma.delivery.deleteMany({});
-    logger.database('NETTOYAGE', 'deliveries et relations', 0);
+    logger.database("NETTOYAGE", "deliveries et relations", 0);
   }
 
   // 1. CRÉER LA LIVRAISON ACTIVE (Jean → Marseille par Marie)
   try {
-    logger.progress('DELIVERIES', 1, 4, 'Création livraison active Jean → Marseille');
+    logger.progress(
+      "DELIVERIES",
+      1,
+      4,
+      "Création livraison active Jean → Marseille",
+    );
 
     const pickupTime = new Date(Date.now() - 3 * 60 * 60 * 1000); // Il y a 3 heures
     const estimatedDeliveryTime = new Date(Date.now() + 2 * 60 * 60 * 1000); // Dans 2 heures
@@ -104,47 +114,56 @@ export async function seedDeliveries(
         status: DeliveryStatus.IN_TRANSIT,
         startTime: pickupTime,
         actualPickupTime: pickupTime,
-        trackingCode: 'ECO-2024-PAR-MAR-001',
+        trackingCode: "ECO-2024-PAR-MAR-001",
         price: 45.0,
-        notes: 'Ordinateur portable neuf 3kg - Manipulation avec précaution - Valeur 1200€',
+        notes:
+          "Ordinateur portable neuf 3kg - Manipulation avec précaution - Valeur 1200€",
         createdAt: getRandomDate(4, 6),
         updatedAt: new Date(),
       },
     });
 
     // Créer les logs d'événements pour cette livraison
-    await createDeliveryTimeline(prisma, activeDelivery.id, 'active', pickupTime);
+    await createDeliveryTimeline(
+      prisma,
+      activeDelivery.id,
+      "active",
+      pickupTime,
+    );
 
     // Créer les coordonnées GPS actuelles (près de Lyon sur A7)
-    await createDeliveryCoordinates(prisma, activeDelivery.id, 'active');
+    await createDeliveryCoordinates(prisma, activeDelivery.id, "active");
 
     result.created++;
-    logger.success('DELIVERIES', '✅ Livraison active créée avec suivi GPS');
+    logger.success("DELIVERIES", "✅ Livraison active créée avec suivi GPS");
   } catch (error: any) {
-    logger.error('DELIVERIES', `❌ Erreur création livraison active: ${error.message}`);
+    logger.error(
+      "DELIVERIES",
+      `❌ Erreur création livraison active: ${error.message}`,
+    );
     result.errors++;
   }
 
   // 2. CRÉER L'HISTORIQUE DES LIVRAISONS DE MARIE (3 dernières)
   const historicalDeliveries = [
     {
-      trackingCode: 'ECO-2024-PAR-LYO-847',
+      trackingCode: "ECO-2024-PAR-LYO-847",
       price: 45.0,
-      route: 'Paris → Lyon',
+      route: "Paris → Lyon",
       rating: 5,
       completedDays: 5,
     },
     {
-      trackingCode: 'ECO-2024-TOU-PAR-623',
+      trackingCode: "ECO-2024-TOU-PAR-623",
       price: 38.0,
-      route: 'Toulouse → Paris',
+      route: "Toulouse → Paris",
       rating: 5,
       completedDays: 12,
     },
     {
-      trackingCode: 'ECO-2024-MAR-NIC-391',
+      trackingCode: "ECO-2024-MAR-NIC-391",
       price: 52.0,
-      route: 'Marseille → Nice',
+      route: "Marseille → Nice",
       rating: 5,
       completedDays: 18,
     },
@@ -153,9 +172,16 @@ export async function seedDeliveries(
   for (let i = 0; i < historicalDeliveries.length; i++) {
     try {
       const histData = historicalDeliveries[i];
-      logger.progress('DELIVERIES', i + 2, 4, `Création livraison historique ${histData.route}`);
+      logger.progress(
+        "DELIVERIES",
+        i + 2,
+        4,
+        `Création livraison historique ${histData.route}`,
+      );
 
-      const completionTime = new Date(Date.now() - histData.completedDays * 24 * 60 * 60 * 1000);
+      const completionTime = new Date(
+        Date.now() - histData.completedDays * 24 * 60 * 60 * 1000,
+      );
       const startTime = new Date(completionTime.getTime() - 6 * 60 * 60 * 1000); // 6h avant
 
       // Créer un client aléatoire pour cette livraison historique
@@ -174,19 +200,22 @@ export async function seedDeliveries(
           status: AnnouncementStatus.COMPLETED,
           type: AnnouncementType.PACKAGE_DELIVERY,
           priority: AnnouncementPriority.MEDIUM,
-          pickupAddress: 'Adresse pickup',
-          pickupCity: histData.route.split(' → ')[0],
-          pickupPostalCode: '75000',
-          pickupCountry: 'France',
-          deliveryAddress: 'Adresse livraison',
-          deliveryCity: histData.route.split(' → ')[1],
-          deliveryPostalCode: '69000',
-          deliveryCountry: 'France',
+          pickupAddress: "Adresse pickup",
+          pickupCity: histData.route.split(" → ")[0],
+          pickupPostalCode: "75000",
+          pickupCountry: "France",
+          deliveryAddress: "Adresse livraison",
+          deliveryCity: histData.route.split(" → ")[1],
+          deliveryPostalCode: "69000",
+          deliveryCountry: "France",
           suggestedPrice: histData.price,
-          priceType: 'fixed',
-          currency: 'EUR',
+          priceType: "fixed",
+          currency: "EUR",
           clientId: randomClient.id,
-          createdAt: getRandomDate(histData.completedDays + 2, histData.completedDays + 5),
+          createdAt: getRandomDate(
+            histData.completedDays + 2,
+            histData.completedDays + 5,
+          ),
         },
       });
 
@@ -203,7 +232,10 @@ export async function seedDeliveries(
           trackingCode: histData.trackingCode,
           price: histData.price,
           notes: `Livraison terminée avec succès - Route ${histData.route}`,
-          createdAt: getRandomDate(histData.completedDays + 1, histData.completedDays + 2),
+          createdAt: getRandomDate(
+            histData.completedDays + 1,
+            histData.completedDays + 2,
+          ),
           updatedAt: completionTime,
         },
       });
@@ -212,13 +244,17 @@ export async function seedDeliveries(
       await createDeliveryTimeline(
         prisma,
         historicalDelivery.id,
-        'completed',
+        "completed",
         startTime,
-        completionTime
+        completionTime,
       );
 
       // Créer les preuves de livraison (photos)
-      await createDeliveryProofs(prisma, historicalDelivery.id, histData.trackingCode);
+      await createDeliveryProofs(
+        prisma,
+        historicalDelivery.id,
+        histData.trackingCode,
+      );
 
       // Créer les évaluations 5 étoiles
       await createDeliveryRatings(
@@ -226,14 +262,14 @@ export async function seedDeliveries(
         historicalDelivery.id,
         randomClient.id,
         marieLaurent.id,
-        histData.rating
+        histData.rating,
       );
 
       result.created++;
     } catch (error: any) {
       logger.error(
-        'DELIVERIES',
-        `❌ Erreur création livraison historique ${i + 1}: ${error.message}`
+        "DELIVERIES",
+        `❌ Erreur création livraison historique ${i + 1}: ${error.message}`,
       );
       result.errors++;
     }
@@ -254,47 +290,56 @@ export async function seedDeliveries(
 
   if (finalDeliveries.length >= result.created) {
     logger.validation(
-      'DELIVERIES',
-      'PASSED',
-      `${finalDeliveries.length} livraison(s) créée(s) avec succès`
+      "DELIVERIES",
+      "PASSED",
+      `${finalDeliveries.length} livraison(s) créée(s) avec succès`,
     );
   } else {
     logger.validation(
-      'DELIVERIES',
-      'FAILED',
-      `Attendu: ${result.created}, Créé: ${finalDeliveries.length}`
+      "DELIVERIES",
+      "FAILED",
+      `Attendu: ${result.created}, Créé: ${finalDeliveries.length}`,
     );
   }
 
   // Statistiques
-  const activeDeliveries = finalDeliveries.filter(d => d.status === DeliveryStatus.IN_TRANSIT);
-  const completedDeliveries = finalDeliveries.filter(d => d.status === DeliveryStatus.DELIVERED);
+  const activeDeliveries = finalDeliveries.filter(
+    (d) => d.status === DeliveryStatus.IN_TRANSIT,
+  );
+  const completedDeliveries = finalDeliveries.filter(
+    (d) => d.status === DeliveryStatus.DELIVERED,
+  );
 
   logger.info(
-    'DELIVERIES',
-    `📊 Livraisons actives: ${activeDeliveries.length}, Terminées: ${completedDeliveries.length}`
+    "DELIVERIES",
+    `📊 Livraisons actives: ${activeDeliveries.length}, Terminées: ${completedDeliveries.length}`,
   );
 
   // Statistiques de Marie Laurent
-  const marieDeliveries = finalDeliveries.filter(d => d.delivererId === marieLaurent.id);
+  const marieDeliveries = finalDeliveries.filter(
+    (d) => d.delivererId === marieLaurent.id,
+  );
   const marieRatings = finalDeliveries
-    .flatMap(d => d.ratings)
-    .filter(r => r.targetId === marieLaurent.id);
+    .flatMap((d) => d.ratings)
+    .filter((r) => r.targetId === marieLaurent.id);
   const avgRating =
     marieRatings.length > 0
       ? marieRatings.reduce((sum, r) => sum + r.rating, 0) / marieRatings.length
       : 0;
 
   logger.info(
-    'DELIVERIES',
-    `⭐ Marie Laurent: ${marieDeliveries.length} livraisons, note moyenne: ${avgRating.toFixed(1)}/5`
+    "DELIVERIES",
+    `⭐ Marie Laurent: ${marieDeliveries.length} livraisons, note moyenne: ${avgRating.toFixed(1)}/5`,
   );
 
   // Vérification tracking codes
-  const trackingCodes = finalDeliveries.map(d => d.trackingCode);
-  logger.info('DELIVERIES', `🔍 Codes de suivi générés: ${trackingCodes.join(', ')}`);
+  const trackingCodes = finalDeliveries.map((d) => d.trackingCode);
+  logger.info(
+    "DELIVERIES",
+    `🔍 Codes de suivi générés: ${trackingCodes.join(", ")}`,
+  );
 
-  logger.endSeed('DELIVERIES', result);
+  logger.endSeed("DELIVERIES", result);
   return result;
 }
 
@@ -304,89 +349,90 @@ export async function seedDeliveries(
 async function createDeliveryTimeline(
   prisma: PrismaClient,
   deliveryId: string,
-  type: 'active' | 'completed',
+  type: "active" | "completed",
   startTime: Date,
-  completionTime?: Date
+  completionTime?: Date,
 ) {
   const events = [];
 
-  if (type === 'completed') {
+  if (type === "completed") {
     // Timeline complète pour livraison terminée
     events.push(
       {
         status: DeliveryStatusEnum.ASSIGNED,
-        message: 'Livraison assignée au livreur',
+        message: "Livraison assignée au livreur",
         time: new Date(startTime.getTime() - 30 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.PENDING_PICKUP,
-        message: 'En attente de récupération',
+        message: "En attente de récupération",
         time: new Date(startTime.getTime() - 15 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.PICKED_UP,
-        message: 'Colis récupéré avec succès',
+        message: "Colis récupéré avec succès",
         time: startTime,
       },
       {
         status: DeliveryStatusEnum.IN_TRANSIT,
-        message: 'En cours de transport',
+        message: "En cours de transport",
         time: new Date(startTime.getTime() + 15 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.NEARBY,
-        message: 'Livreur à proximité',
+        message: "Livreur à proximité",
         time: new Date(completionTime!.getTime() - 10 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.ARRIVED,
-        message: 'Livreur arrivé à destination',
+        message: "Livreur arrivé à destination",
         time: new Date(completionTime!.getTime() - 5 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.DELIVERED,
-        message: 'Livraison effectuée avec succès',
+        message: "Livraison effectuée avec succès",
         time: completionTime!,
-      }
+      },
     );
   } else {
     // Timeline pour livraison active (en cours)
     events.push(
       {
         status: DeliveryStatusEnum.ASSIGNED,
-        message: 'Livraison assignée à Marie Laurent',
+        message: "Livraison assignée à Marie Laurent",
         time: new Date(startTime.getTime() - 45 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.PENDING_PICKUP,
-        message: 'En attente de récupération chez Jean Dupont',
+        message: "En attente de récupération chez Jean Dupont",
         time: new Date(startTime.getTime() - 20 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.PICKED_UP,
-        message: 'Ordinateur portable récupéré - 110 rue de Flandre, Paris 19ème',
+        message:
+          "Ordinateur portable récupéré - 110 rue de Flandre, Paris 19ème",
         time: startTime,
       },
       {
         status: DeliveryStatusEnum.IN_TRANSIT,
-        message: 'En route vers Marseille via A7 - ETA 2h',
+        message: "En route vers Marseille via A7 - ETA 2h",
         time: new Date(startTime.getTime() + 10 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.IN_TRANSIT,
-        message: 'Passage péage Fleury-en-Bière - Trafic fluide',
+        message: "Passage péage Fleury-en-Bière - Trafic fluide",
         time: new Date(startTime.getTime() + 45 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.IN_TRANSIT,
-        message: 'Aire de repos Nemours - Pause sécurité 15min',
+        message: "Aire de repos Nemours - Pause sécurité 15min",
         time: new Date(startTime.getTime() + 75 * 60 * 1000),
       },
       {
         status: DeliveryStatusEnum.IN_TRANSIT,
-        message: 'Contournement Lyon - Position actuelle',
+        message: "Contournement Lyon - Position actuelle",
         time: new Date(startTime.getTime() + 150 * 60 * 1000),
-      }
+      },
     );
   }
 
@@ -397,7 +443,7 @@ async function createDeliveryTimeline(
         deliveryId,
         status: event.status,
         message: event.message,
-        location: type === 'active' ? 'A7 direction Marseille' : undefined,
+        location: type === "active" ? "A7 direction Marseille" : undefined,
         createdAt: event.time,
       },
     });
@@ -410,9 +456,9 @@ async function createDeliveryTimeline(
 async function createDeliveryCoordinates(
   prisma: PrismaClient,
   deliveryId: string,
-  type: 'active' | 'completed'
+  type: "active" | "completed",
 ) {
-  if (type === 'active') {
+  if (type === "active") {
     // Coordonnées actuelles près de Lyon sur A7
     const currentCoords = [
       { lat: 48.8942, lng: 2.3728, time: -180, speed: 0 }, // Paris départ
@@ -429,7 +475,8 @@ async function createDeliveryCoordinates(
         data: {
           deliveryId,
           latitude: coord.lat + faker.number.float({ min: -0.001, max: 0.001 }),
-          longitude: coord.lng + faker.number.float({ min: -0.001, max: 0.001 }),
+          longitude:
+            coord.lng + faker.number.float({ min: -0.001, max: 0.001 }),
           timestamp: new Date(Date.now() + coord.time * 60 * 1000),
           accuracy: faker.number.float({ min: 5, max: 15 }),
           speed: coord.speed,
@@ -445,23 +492,23 @@ async function createDeliveryCoordinates(
 async function createDeliveryProofs(
   prisma: PrismaClient,
   deliveryId: string,
-  trackingCode: string
+  trackingCode: string,
 ) {
   const proofs = [
     {
-      type: 'photo',
+      type: "photo",
       fileUrl: `/uploads/delivery/${trackingCode}/delivery-photo-1.jpg`,
-      notes: 'Photo du colis remis au destinataire',
+      notes: "Photo du colis remis au destinataire",
     },
     {
-      type: 'photo',
+      type: "photo",
       fileUrl: `/uploads/delivery/${trackingCode}/delivery-photo-2.jpg`,
-      notes: 'Photo confirmation livraison',
+      notes: "Photo confirmation livraison",
     },
     {
-      type: 'signature',
+      type: "signature",
       fileUrl: `/uploads/delivery/${trackingCode}/signature.png`,
-      notes: 'Signature numérique du destinataire',
+      notes: "Signature numérique du destinataire",
     },
   ];
 
@@ -471,7 +518,7 @@ async function createDeliveryProofs(
         deliveryId,
         type: proof.type,
         fileUrl: proof.fileUrl,
-        mimeType: proof.type === 'photo' ? 'image/jpeg' : 'image/png',
+        mimeType: proof.type === "photo" ? "image/jpeg" : "image/png",
         notes: proof.notes,
         uploadedAt: new Date(),
       },
@@ -487,14 +534,14 @@ async function createDeliveryRatings(
   deliveryId: string,
   clientId: string,
   delivererId: string,
-  rating: number
+  rating: number,
 ) {
   const comments = [
-    'Livraison parfaite ! Marie est très professionnelle et ponctuelle.',
-    'Excellente communication tout au long du trajet. Colis arrivé en parfait état.',
-    'Service impeccable, je recommande vivement Marie pour vos livraisons.',
-    'Très satisfait de la prestation. Livreur sérieux et fiable.',
-    'Livraison dans les temps, colis bien protégé. Parfait !',
+    "Livraison parfaite ! Marie est très professionnelle et ponctuelle.",
+    "Excellente communication tout au long du trajet. Colis arrivé en parfait état.",
+    "Service impeccable, je recommande vivement Marie pour vos livraisons.",
+    "Très satisfait de la prestation. Livreur sérieux et fiable.",
+    "Livraison dans les temps, colis bien protégé. Parfait !",
   ];
 
   // Évaluation du client vers le livreur
@@ -505,7 +552,9 @@ async function createDeliveryRatings(
       targetId: delivererId,
       rating,
       comment: faker.helpers.arrayElement(comments),
-      createdAt: new Date(Date.now() - faker.number.int({ min: 1, max: 24 }) * 60 * 60 * 1000),
+      createdAt: new Date(
+        Date.now() - faker.number.int({ min: 1, max: 24 }) * 60 * 60 * 1000,
+      ),
     },
   });
 
@@ -518,8 +567,10 @@ async function createDeliveryRatings(
         ratedById: delivererId,
         targetId: clientId,
         rating: faker.number.int({ min: 4, max: 5 }),
-        comment: 'Client très sympathique et disponible pour la réception.',
-        createdAt: new Date(Date.now() - faker.number.int({ min: 1, max: 20 }) * 60 * 60 * 1000),
+        comment: "Client très sympathique et disponible pour la réception.",
+        createdAt: new Date(
+          Date.now() - faker.number.int({ min: 1, max: 20 }) * 60 * 60 * 1000,
+        ),
       },
     });
   }
@@ -530,9 +581,9 @@ async function createDeliveryRatings(
  */
 export async function validateDeliveries(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des livraisons...');
+  logger.info("VALIDATION", "🔍 Validation des livraisons...");
 
   const deliveries = await prisma.delivery.findMany({
     include: {
@@ -549,57 +600,70 @@ export async function validateDeliveries(
   let isValid = true;
 
   // Vérifier que toutes les livraisons ont les relations nécessaires
-  const incompleteDeliveries = deliveries.filter(d => !d.announcement || !d.deliverer || !d.client);
+  const incompleteDeliveries = deliveries.filter(
+    (d) => !d.announcement || !d.deliverer || !d.client,
+  );
 
   if (incompleteDeliveries.length > 0) {
     logger.error(
-      'VALIDATION',
-      `❌ ${incompleteDeliveries.length} livraisons avec relations manquantes`
+      "VALIDATION",
+      `❌ ${incompleteDeliveries.length} livraisons avec relations manquantes`,
     );
     isValid = false;
   } else {
-    logger.success('VALIDATION', '✅ Toutes les livraisons ont des relations complètes');
+    logger.success(
+      "VALIDATION",
+      "✅ Toutes les livraisons ont des relations complètes",
+    );
   }
 
   // Vérifier les codes de suivi uniques
-  const trackingCodes = deliveries.map(d => d.trackingCode);
+  const trackingCodes = deliveries.map((d) => d.trackingCode);
   const uniqueCodes = new Set(trackingCodes);
 
   if (trackingCodes.length !== uniqueCodes.size) {
-    logger.error('VALIDATION', '❌ Codes de suivi dupliqués détectés');
+    logger.error("VALIDATION", "❌ Codes de suivi dupliqués détectés");
     isValid = false;
   } else {
-    logger.success('VALIDATION', '✅ Tous les codes de suivi sont uniques');
+    logger.success("VALIDATION", "✅ Tous les codes de suivi sont uniques");
   }
 
   // Vérifier les livraisons actives avec coordonnées GPS
-  const activeDeliveries = deliveries.filter(d => d.status === DeliveryStatus.IN_TRANSIT);
-  const activeWithCoords = activeDeliveries.filter(d => d.coordinates.length > 0);
+  const activeDeliveries = deliveries.filter(
+    (d) => d.status === DeliveryStatus.IN_TRANSIT,
+  );
+  const activeWithCoords = activeDeliveries.filter(
+    (d) => d.coordinates.length > 0,
+  );
 
   logger.info(
-    'VALIDATION',
-    `📍 Livraisons actives avec GPS: ${activeWithCoords.length}/${activeDeliveries.length}`
+    "VALIDATION",
+    `📍 Livraisons actives avec GPS: ${activeWithCoords.length}/${activeDeliveries.length}`,
   );
 
   // Vérifier les livraisons terminées avec preuves
-  const completedDeliveries = deliveries.filter(d => d.status === DeliveryStatus.DELIVERED);
-  const completedWithProofs = completedDeliveries.filter(d => d.proofs.length > 0);
+  const completedDeliveries = deliveries.filter(
+    (d) => d.status === DeliveryStatus.DELIVERED,
+  );
+  const completedWithProofs = completedDeliveries.filter(
+    (d) => d.proofs.length > 0,
+  );
 
   logger.info(
-    'VALIDATION',
-    `📸 Livraisons terminées avec preuves: ${completedWithProofs.length}/${completedDeliveries.length}`
+    "VALIDATION",
+    `📸 Livraisons terminées avec preuves: ${completedWithProofs.length}/${completedDeliveries.length}`,
   );
 
   // Statistiques des évaluations
-  const allRatings = deliveries.flatMap(d => d.ratings);
+  const allRatings = deliveries.flatMap((d) => d.ratings);
   const avgRating =
     allRatings.length > 0
       ? allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length
       : 0;
 
   logger.info(
-    'VALIDATION',
-    `⭐ Note moyenne globale: ${avgRating.toFixed(2)}/5 (${allRatings.length} évaluations)`
+    "VALIDATION",
+    `⭐ Note moyenne globale: ${avgRating.toFixed(2)}/5 (${allRatings.length} évaluations)`,
   );
 
   return isValid;

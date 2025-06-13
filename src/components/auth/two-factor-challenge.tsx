@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { totpChallengeSchema, TotpChallengeSchemaType } from '@/schemas/auth/login.schema';
-import { useToast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  totpChallengeSchema,
+  TotpChallengeSchemaType,
+} from "@/schemas/auth/login.schema";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,7 +19,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -24,9 +27,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TwoFactorChallengeProps {
   email: string;
@@ -37,9 +40,9 @@ interface TwoFactorChallengeProps {
 export default function TwoFactorChallenge({
   email,
   password,
-  callbackUrl = '/dashboard',
+  callbackUrl = "/dashboard",
 }: TwoFactorChallengeProps) {
-  const t = useTranslations('auth.twoFactorChallenge');
+  const t = useTranslations("auth.twoFactorChallenge");
   const { toast: _toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,16 +51,16 @@ export default function TwoFactorChallenge({
 
   // Determine any error from the URL
   useEffect(() => {
-    const errorMessage = searchParams.get('error');
-    if (errorMessage === 'CredentialsSignin') {
-      setError(t('errors.invalidCode'));
+    const errorMessage = searchParams.get("error");
+    if (errorMessage === "CredentialsSignin") {
+      setError(t("errors.invalidCode"));
     }
   }, [searchParams, t]);
 
   const form = useForm<TotpChallengeSchemaType>({
     resolver: zodResolver(totpChallengeSchema),
     defaultValues: {
-      totp: '',
+      totp: "",
       remember: false,
     },
   });
@@ -67,7 +70,7 @@ export default function TwoFactorChallenge({
     setError(null);
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         email,
         password,
         totp: data.totp,
@@ -77,7 +80,7 @@ export default function TwoFactorChallenge({
       });
 
       if (result?.error) {
-        setError(t('errors.invalidCode'));
+        setError(t("errors.invalidCode"));
         return;
       }
 
@@ -87,8 +90,8 @@ export default function TwoFactorChallenge({
         router.push(callbackUrl);
       }
     } catch (error) {
-      setError(t('errors.generic'));
-      console.error('2FA error:', error);
+      setError(t("errors.generic"));
+      console.error("2FA error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +99,7 @@ export default function TwoFactorChallenge({
 
   // Auto-focus the OTP input field
   useEffect(() => {
-    const inputElement = document.getElementById('totp');
+    const inputElement = document.getElementById("totp");
     if (inputElement) {
       inputElement.focus();
     }
@@ -105,8 +108,8 @@ export default function TwoFactorChallenge({
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
-        <CardDescription>{t('description')}</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -122,7 +125,7 @@ export default function TwoFactorChallenge({
               name="totp"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('codeLabel')}</FormLabel>
+                  <FormLabel>{t("codeLabel")}</FormLabel>
                   <FormControl>
                     <Input
                       id="totp"
@@ -130,9 +133,11 @@ export default function TwoFactorChallenge({
                       autoComplete="one-time-code"
                       maxLength={6}
                       {...field}
-                      onChange={e => {
+                      onChange={(e) => {
                         // Only allow digits and limit to 6 characters
-                        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        const value = e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 6);
                         field.onChange(value);
                       }}
                       className="text-center text-xl tracking-widest font-mono"
@@ -149,10 +154,15 @@ export default function TwoFactorChallenge({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel className="cursor-pointer">{t('rememberMe')}</FormLabel>
+                    <FormLabel className="cursor-pointer">
+                      {t("rememberMe")}
+                    </FormLabel>
                   </div>
                 </FormItem>
               )}
@@ -161,15 +171,15 @@ export default function TwoFactorChallenge({
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || form.watch('totp').length !== 6}
+              disabled={isLoading || form.watch("totp").length !== 6}
             >
-              {isLoading ? t('verifying') : t('verify')}
+              {isLoading ? t("verifying") : t("verify")}
             </Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="flex flex-col text-center text-sm text-muted-foreground">
-        <p>{t('helpText')}</p>
+        <p>{t("helpText")}</p>
       </CardFooter>
     </Card>
   );

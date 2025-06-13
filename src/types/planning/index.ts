@@ -4,8 +4,8 @@
  */
 
 // Exports des fichiers locaux
-export * from './appointment';
-export * from './availability';
-export * from './intervention';
-export * from './route-planning';
-export * from './schedule';
+export * from "./appointment";
+export * from "./availability";
+export * from "./intervention";
+export * from "./route-planning";
+export * from "./schedule";

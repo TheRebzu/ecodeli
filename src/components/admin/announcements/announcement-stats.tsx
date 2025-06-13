@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
+import { useTranslations } from "next-intl";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   BarChart,
   Bar,
@@ -18,8 +24,15 @@ import {
   LineChart,
   Line,
   CartesianGrid,
-} from 'recharts';
-import { Package, Check, AlertTriangle, X, DollarSign, TrendingUp } from 'lucide-react';
+} from "recharts";
+import {
+  Package,
+  Check,
+  AlertTriangle,
+  X,
+  DollarSign,
+  TrendingUp,
+} from "lucide-react";
 
 interface StatsData {
   totalCount: number;
@@ -37,7 +50,7 @@ interface AnnouncementStatsProps {
 }
 
 export function AnnouncementStats({ data }: AnnouncementStatsProps) {
-  const t = useTranslations('admin.announcements');
+  const t = useTranslations("admin.announcements");
 
   const typeDistributionData = data.typeDistribution
     ? Object.entries(data.typeDistribution).map(([key, value]) => ({
@@ -47,30 +60,50 @@ export function AnnouncementStats({ data }: AnnouncementStatsProps) {
     : [];
 
   const statusDistributionData = [
-    { name: t('status.published'), value: data.publishedCount, color: '#6366F1' },
-    { name: t('status.assigned'), value: data.assignedCount, color: '#8B5CF6' },
-    { name: t('status.completed'), value: data.completedCount, color: '#10B981' },
-    { name: t('status.cancelled'), value: data.cancelledCount, color: '#EF4444' },
+    {
+      name: t("status.published"),
+      value: data.publishedCount,
+      color: "#6366F1",
+    },
+    { name: t("status.assigned"), value: data.assignedCount, color: "#8B5CF6" },
+    {
+      name: t("status.completed"),
+      value: data.completedCount,
+      color: "#10B981",
+    },
+    {
+      name: t("status.cancelled"),
+      value: data.cancelledCount,
+      color: "#EF4444",
+    },
   ];
 
-  const COLORS = ['#6366F1', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#EF4444', '#3B82F6'];
+  const COLORS = [
+    "#6366F1",
+    "#8B5CF6",
+    "#EC4899",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#3B82F6",
+  ];
 
   function formatAnnouncementType(type: string, t: any) {
     switch (type) {
-      case 'PACKAGE_DELIVERY':
-        return t('type.packageDelivery');
-      case 'GROCERY_SHOPPING':
-        return t('type.groceryShopping');
-      case 'PERSON_TRANSPORT':
-        return t('type.personTransport');
-      case 'AIRPORT_TRANSFER':
-        return t('type.airportTransfer');
-      case 'FOREIGN_PURCHASE':
-        return t('type.foreignPurchase');
-      case 'PET_CARE':
-        return t('type.petCare');
-      case 'HOME_SERVICES':
-        return t('type.homeServices');
+      case "PACKAGE_DELIVERY":
+        return t("type.packageDelivery");
+      case "GROCERY_SHOPPING":
+        return t("type.groceryShopping");
+      case "PERSON_TRANSPORT":
+        return t("type.personTransport");
+      case "AIRPORT_TRANSFER":
+        return t("type.airportTransfer");
+      case "FOREIGN_PURCHASE":
+        return t("type.foreignPurchase");
+      case "PET_CARE":
+        return t("type.petCare");
+      case "HOME_SERVICES":
+        return t("type.homeServices");
       default:
         return type;
     }
@@ -80,58 +113,76 @@ export function AnnouncementStats({ data }: AnnouncementStatsProps) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('stats.totalAnnouncements')}</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {t("stats.totalAnnouncements")}
+          </CardTitle>
           <Package className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{data.totalCount}</div>
-          <p className="text-xs text-muted-foreground">{t('stats.announcementsRegistered')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("stats.announcementsRegistered")}
+          </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('stats.completedAnnouncements')}</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {t("stats.completedAnnouncements")}
+          </CardTitle>
           <Check className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{data.completedCount}</div>
           <p className="text-xs text-muted-foreground">
             {data.totalCount > 0
-              ? `${Math.round((data.completedCount / data.totalCount) * 100)}% ${t('stats.completionRate')}`
-              : t('stats.noCompletedAnnouncements')}
+              ? `${Math.round((data.completedCount / data.totalCount) * 100)}% ${t("stats.completionRate")}`
+              : t("stats.noCompletedAnnouncements")}
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('stats.averagePrice')}</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {t("stats.averagePrice")}
+          </CardTitle>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.averagePrice.toFixed(2)} €</div>
-          <p className="text-xs text-muted-foreground">{t('stats.perAnnouncement')}</p>
+          <div className="text-2xl font-bold">
+            {data.averagePrice.toFixed(2)} €
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("stats.perAnnouncement")}
+          </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('stats.revenue')}</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {t("stats.revenue")}
+          </CardTitle>
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.totalRevenue.toFixed(2)} €</div>
-          <p className="text-xs text-muted-foreground">{t('stats.totalRevenue')}</p>
+          <div className="text-2xl font-bold">
+            {data.totalRevenue.toFixed(2)} €
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("stats.totalRevenue")}
+          </p>
         </CardContent>
       </Card>
 
       <Card className="col-span-full md:col-span-2">
         <CardHeader>
-          <CardTitle>{t('stats.statusDistribution')}</CardTitle>
+          <CardTitle>{t("stats.statusDistribution")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="h-80 w-full py-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={statusDistributionData.filter(item => item.value > 0)}
+                data={statusDistributionData.filter((item) => item.value > 0)}
                 barSize={60}
                 margin={{
                   top: 20,
@@ -145,7 +196,7 @@ export function AnnouncementStats({ data }: AnnouncementStatsProps) {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="value" name={t('stats.announcements')}>
+                <Bar dataKey="value" name={t("stats.announcements")}>
                   {statusDistributionData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -159,7 +210,7 @@ export function AnnouncementStats({ data }: AnnouncementStatsProps) {
       {data.typeDistribution && (
         <Card className="col-span-full md:col-span-2">
           <CardHeader>
-            <CardTitle>{t('stats.typeDistribution')}</CardTitle>
+            <CardTitle>{t("stats.typeDistribution")}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="h-80 w-full py-4">
@@ -174,10 +225,15 @@ export function AnnouncementStats({ data }: AnnouncementStatsProps) {
                     fill="#8884d8"
                     dataKey="value"
                     nameKey="name"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
                   >
                     {typeDistributionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />

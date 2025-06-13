@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { DeliveryStatus } from '@prisma/client';
-import { Socket } from 'socket.io-client';
+import { DeliveryStatus } from "@prisma/client";
+import { Socket } from "socket.io-client";
 
 // Types d'événements de suivi côté client
 export enum DeliveryTrackingEventType {
-  LOCATION_UPDATE = 'LOCATION_UPDATE',
-  STATUS_UPDATE = 'STATUS_UPDATE',
-  ETA_UPDATE = 'ETA_UPDATE',
-  CHECKPOINT_REACHED = 'CHECKPOINT_REACHED',
-  ISSUE_REPORTED = 'ISSUE_REPORTED',
-  ISSUE_RESOLVED = 'ISSUE_RESOLVED',
+  LOCATION_UPDATE = "LOCATION_UPDATE",
+  STATUS_UPDATE = "STATUS_UPDATE",
+  ETA_UPDATE = "ETA_UPDATE",
+  CHECKPOINT_REACHED = "CHECKPOINT_REACHED",
+  ISSUE_REPORTED = "ISSUE_REPORTED",
+  ISSUE_RESOLVED = "ISSUE_RESOLVED",
 }
 
 // Types pour les positions
@@ -55,16 +55,16 @@ export class DeliveryTracker {
       }
 
       this.socket.emit(
-        'track_delivery',
+        "track_delivery",
         deliveryId,
         (response: { success: boolean; error?: string }) => {
           if (response.success) {
             this.trackingSubscriptions.set(deliveryId, true);
             resolve(true);
           } else {
-            reject(new Error(response.error || 'Échec du suivi de livraison'));
+            reject(new Error(response.error || "Échec du suivi de livraison"));
           }
-        }
+        },
       );
     });
   }
@@ -74,13 +74,17 @@ export class DeliveryTracker {
    * @param deliveryId ID de la livraison à arrêter de suivre
    */
   untrackDelivery(deliveryId: string): Promise<boolean> {
-    return new Promise(resolve => {
-      this.socket.emit('untrack_delivery', deliveryId, (response: { success: boolean }) => {
-        if (response.success) {
-          this.trackingSubscriptions.delete(deliveryId);
-        }
-        resolve(response.success);
-      });
+    return new Promise((resolve) => {
+      this.socket.emit(
+        "untrack_delivery",
+        deliveryId,
+        (response: { success: boolean }) => {
+          if (response.success) {
+            this.trackingSubscriptions.delete(deliveryId);
+          }
+          resolve(response.success);
+        },
+      );
     });
   }
 
@@ -89,7 +93,10 @@ export class DeliveryTracker {
    * @param deliveryId ID de la livraison
    * @param callback Fonction appelée lors des mises à jour
    */
-  onLocationUpdate(deliveryId: string, callback: (position: DeliveryPosition) => void): () => void {
+  onLocationUpdate(
+    deliveryId: string,
+    callback: (position: DeliveryPosition) => void,
+  ): () => void {
     const eventName = `delivery:${deliveryId}:location`;
     this.socket.on(eventName, callback);
     return () => this.socket.off(eventName, callback);
@@ -106,7 +113,7 @@ export class DeliveryTracker {
       status: DeliveryStatus;
       previousStatus?: DeliveryStatus;
       notes?: string;
-    }) => void
+    }) => void,
   ): () => void {
     const eventName = `delivery:${deliveryId}:status`;
     this.socket.on(eventName, callback);
@@ -120,7 +127,10 @@ export class DeliveryTracker {
    */
   onETAUpdate(
     deliveryId: string,
-    callback: (data: { estimatedTime: Date; distanceRemaining?: number }) => void
+    callback: (data: {
+      estimatedTime: Date;
+      distanceRemaining?: number;
+    }) => void,
   ): () => void {
     const eventName = `delivery:${deliveryId}:eta`;
     this.socket.on(eventName, callback);
@@ -132,10 +142,13 @@ export class DeliveryTracker {
    * @param deliveryId ID de la livraison
    * @param position Nouvelle position
    */
-  updateDeliveryPosition(deliveryId: string, position: DeliveryPosition): Promise<boolean> {
+  updateDeliveryPosition(
+    deliveryId: string,
+    position: DeliveryPosition,
+  ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.socket.emit(
-        'update_position',
+        "update_position",
         {
           deliveryId,
           ...position,
@@ -144,9 +157,11 @@ export class DeliveryTracker {
           if (response.success) {
             resolve(true);
           } else {
-            reject(new Error(response.error || 'Échec de mise à jour de position'));
+            reject(
+              new Error(response.error || "Échec de mise à jour de position"),
+            );
           }
-        }
+        },
       );
     });
   }
@@ -160,11 +175,11 @@ export class DeliveryTracker {
   updateDeliveryStatus(
     deliveryId: string,
     status: DeliveryStatus,
-    notes?: string
+    notes?: string,
   ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.socket.emit(
-        'update_status',
+        "update_status",
         {
           deliveryId,
           status,
@@ -174,9 +189,11 @@ export class DeliveryTracker {
           if (response.success) {
             resolve(true);
           } else {
-            reject(new Error(response.error || 'Échec de mise à jour de statut'));
+            reject(
+              new Error(response.error || "Échec de mise à jour de statut"),
+            );
           }
-        }
+        },
       );
     });
   }

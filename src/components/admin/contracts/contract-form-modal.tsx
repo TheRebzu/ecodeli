@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -19,41 +19,48 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Loader2, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { ContractFormData } from '@/hooks/admin/use-admin-contracts';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { CalendarIcon, Loader2, X } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { ContractFormData } from "@/hooks/admin/use-admin-contracts";
 
 const contractFormSchema = z.object({
-  merchantId: z.string().min(1, 'Commerçant requis'),
+  merchantId: z.string().min(1, "Commerçant requis"),
   templateId: z.string().optional(),
-  title: z.string().min(1, 'Titre requis').max(100, 'Titre trop long'),
-  content: z.string().min(10, 'Contenu trop court').max(10000, 'Contenu trop long'),
+  title: z.string().min(1, "Titre requis").max(100, "Titre trop long"),
+  content: z
+    .string()
+    .min(10, "Contenu trop court")
+    .max(10000, "Contenu trop long"),
   status: z.enum([
-    'DRAFT',
-    'PENDING_SIGNATURE',
-    'ACTIVE',
-    'SUSPENDED',
-    'TERMINATED',
-    'EXPIRED',
-    'CANCELLED',
+    "DRAFT",
+    "PENDING_SIGNATURE",
+    "ACTIVE",
+    "SUSPENDED",
+    "TERMINATED",
+    "EXPIRED",
+    "CANCELLED",
   ]),
-  type: z.enum(['STANDARD', 'PREMIUM', 'PARTNER', 'TRIAL', 'CUSTOM']),
+  type: z.enum(["STANDARD", "PREMIUM", "PARTNER", "TRIAL", "CUSTOM"]),
   monthlyFee: z.number().min(0).optional(),
   commissionRate: z.number().min(0).max(1).optional(),
   minimumVolume: z.number().min(0).optional(),
@@ -90,33 +97,33 @@ interface ContractFormModalProps {
 }
 
 const CONTRACT_STATUSES = [
-  { value: 'DRAFT', label: 'Brouillon' },
-  { value: 'PENDING_SIGNATURE', label: 'En attente de signature' },
-  { value: 'ACTIVE', label: 'Actif' },
-  { value: 'SUSPENDED', label: 'Suspendu' },
-  { value: 'TERMINATED', label: 'Résilié' },
-  { value: 'EXPIRED', label: 'Expiré' },
-  { value: 'CANCELLED', label: 'Annulé' },
+  { value: "DRAFT", label: "Brouillon" },
+  { value: "PENDING_SIGNATURE", label: "En attente de signature" },
+  { value: "ACTIVE", label: "Actif" },
+  { value: "SUSPENDED", label: "Suspendu" },
+  { value: "TERMINATED", label: "Résilié" },
+  { value: "EXPIRED", label: "Expiré" },
+  { value: "CANCELLED", label: "Annulé" },
 ];
 
 const CONTRACT_TYPES = [
-  { value: 'STANDARD', label: 'Standard' },
-  { value: 'PREMIUM', label: 'Premium' },
-  { value: 'PARTNER', label: 'Partenaire' },
-  { value: 'TRIAL', label: 'Essai' },
-  { value: 'CUSTOM', label: 'Personnalisé' },
+  { value: "STANDARD", label: "Standard" },
+  { value: "PREMIUM", label: "Premium" },
+  { value: "PARTNER", label: "Partenaire" },
+  { value: "TRIAL", label: "Essai" },
+  { value: "CUSTOM", label: "Personnalisé" },
 ];
 
 const MERCHANT_CATEGORIES = [
-  { value: 'RESTAURANT', label: 'Restaurant' },
-  { value: 'GROCERY', label: 'Épicerie' },
-  { value: 'PHARMACY', label: 'Pharmacie' },
-  { value: 'FASHION', label: 'Mode' },
-  { value: 'ELECTRONICS', label: 'Électronique' },
-  { value: 'BOOKS', label: 'Librairie' },
-  { value: 'BEAUTY', label: 'Beauté' },
-  { value: 'SPORTS', label: 'Sport' },
-  { value: 'OTHER', label: 'Autre' },
+  { value: "RESTAURANT", label: "Restaurant" },
+  { value: "GROCERY", label: "Épicerie" },
+  { value: "PHARMACY", label: "Pharmacie" },
+  { value: "FASHION", label: "Mode" },
+  { value: "ELECTRONICS", label: "Électronique" },
+  { value: "BOOKS", label: "Librairie" },
+  { value: "BEAUTY", label: "Beauté" },
+  { value: "SPORTS", label: "Sport" },
+  { value: "OTHER", label: "Autre" },
 ];
 
 export function ContractFormModal({
@@ -127,29 +134,29 @@ export function ContractFormModal({
   merchants,
   isLoading,
 }: ContractFormModalProps) {
-  const [selectedMerchant, setSelectedMerchant] = useState<string>('');
+  const [selectedMerchant, setSelectedMerchant] = useState<string>("");
 
   const form = useForm<ContractFormSchema>({
     resolver: zodResolver(contractFormSchema),
     defaultValues: {
-      merchantId: '',
-      templateId: '',
-      title: '',
-      content: '',
-      status: 'DRAFT',
-      type: 'STANDARD',
+      merchantId: "",
+      templateId: "",
+      title: "",
+      content: "",
+      status: "DRAFT",
+      type: "STANDARD",
       monthlyFee: 0,
       commissionRate: 0,
       minimumVolume: 0,
-      merchantCategory: '',
-      deliveryZone: '',
+      merchantCategory: "",
+      deliveryZone: "",
       maxDeliveryRadius: 0,
       autoRenewal: false,
       renewalNotice: 30,
       insuranceRequired: false,
       insuranceAmount: 0,
       securityDeposit: 0,
-      notes: '',
+      notes: "",
     },
   });
 
@@ -157,32 +164,36 @@ export function ContractFormModal({
   useEffect(() => {
     if (contract && isOpen) {
       form.reset({
-        merchantId: contract.merchant?.id || '',
-        templateId: contract.template?.id || '',
-        title: contract.title || '',
-        content: contract.content || '',
-        status: contract.status || 'DRAFT',
-        type: contract.type || 'STANDARD',
+        merchantId: contract.merchant?.id || "",
+        templateId: contract.template?.id || "",
+        title: contract.title || "",
+        content: contract.content || "",
+        status: contract.status || "DRAFT",
+        type: contract.type || "STANDARD",
         monthlyFee: contract.monthlyFee || 0,
         commissionRate: contract.commissionRate || 0,
         minimumVolume: contract.minimumVolume || 0,
-        merchantCategory: contract.merchantCategory || '',
-        deliveryZone: contract.deliveryZone || '',
+        merchantCategory: contract.merchantCategory || "",
+        deliveryZone: contract.deliveryZone || "",
         maxDeliveryRadius: contract.maxDeliveryRadius || 0,
-        effectiveDate: contract.effectiveDate ? new Date(contract.effectiveDate) : undefined,
-        expiresAt: contract.expiresAt ? new Date(contract.expiresAt) : undefined,
+        effectiveDate: contract.effectiveDate
+          ? new Date(contract.effectiveDate)
+          : undefined,
+        expiresAt: contract.expiresAt
+          ? new Date(contract.expiresAt)
+          : undefined,
         autoRenewal: contract.autoRenewal || false,
         renewalNotice: contract.renewalNotice || 30,
         insuranceRequired: contract.insuranceRequired || false,
         insuranceAmount: contract.insuranceAmount || 0,
         securityDeposit: contract.securityDeposit || 0,
-        notes: contract.notes || '',
+        notes: contract.notes || "",
       });
-      setSelectedMerchant(contract.merchant?.id || '');
+      setSelectedMerchant(contract.merchant?.id || "");
     } else if (!contract && isOpen) {
       // Reset pour nouveau contrat
       form.reset();
-      setSelectedMerchant('');
+      setSelectedMerchant("");
     }
   }, [contract, isOpen, form]);
 
@@ -192,7 +203,7 @@ export function ContractFormModal({
 
   const handleClose = () => {
     form.reset();
-    setSelectedMerchant('');
+    setSelectedMerchant("");
     onClose();
   };
 
@@ -203,7 +214,7 @@ export function ContractFormModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            {isEditing ? 'Modifier le contrat' : 'Nouveau contrat'}
+            {isEditing ? "Modifier le contrat" : "Nouveau contrat"}
             <Button variant="ghost" size="sm" onClick={handleClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -211,7 +222,10 @@ export function ContractFormModal({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             {/* Section 1: Informations générales */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -227,7 +241,7 @@ export function ContractFormModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {merchants.map(merchant => (
+                        {merchants.map((merchant) => (
                           <SelectItem key={merchant.id} value={merchant.id}>
                             <div className="flex flex-col">
                               <span>{merchant.companyName}</span>
@@ -251,7 +265,10 @@ export function ContractFormModal({
                   <FormItem>
                     <FormLabel>Titre du contrat *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Contrat de partenariat Restaurant ABC" />
+                      <Input
+                        {...field}
+                        placeholder="Ex: Contrat de partenariat Restaurant ABC"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -271,7 +288,7 @@ export function ContractFormModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {CONTRACT_TYPES.map(type => (
+                        {CONTRACT_TYPES.map((type) => (
                           <SelectItem key={type.value} value={type.value}>
                             {type.label}
                           </SelectItem>
@@ -296,7 +313,7 @@ export function ContractFormModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {CONTRACT_STATUSES.map(status => (
+                        {CONTRACT_STATUSES.map((status) => (
                           <SelectItem key={status.value} value={status.value}>
                             {status.label}
                           </SelectItem>
@@ -324,7 +341,9 @@ export function ContractFormModal({
                           type="number"
                           step="0.01"
                           {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -344,11 +363,19 @@ export function ContractFormModal({
                           step="0.01"
                           max="100"
                           {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) / 100 || 0)}
-                          value={field.value ? (field.value * 100).toFixed(2) : ''}
+                          onChange={(e) =>
+                            field.onChange(
+                              parseFloat(e.target.value) / 100 || 0,
+                            )
+                          }
+                          value={
+                            field.value ? (field.value * 100).toFixed(2) : ""
+                          }
                         />
                       </FormControl>
-                      <FormDescription>Pourcentage prélevé sur chaque transaction</FormDescription>
+                      <FormDescription>
+                        Pourcentage prélevé sur chaque transaction
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -365,7 +392,9 @@ export function ContractFormModal({
                           type="number"
                           step="0.01"
                           {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -388,9 +417,12 @@ export function ContractFormModal({
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
-                            <Button variant="outline" className="w-full pl-3 text-left font-normal">
+                            <Button
+                              variant="outline"
+                              className="w-full pl-3 text-left font-normal"
+                            >
                               {field.value ? (
-                                format(field.value, 'PPP', { locale: fr })
+                                format(field.value, "PPP", { locale: fr })
                               ) : (
                                 <span>Sélectionner une date</span>
                               )}
@@ -403,7 +435,7 @@ export function ContractFormModal({
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={date => date < new Date('1900-01-01')}
+                            disabled={(date) => date < new Date("1900-01-01")}
                             initialFocus
                           />
                         </PopoverContent>
@@ -422,9 +454,12 @@ export function ContractFormModal({
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
-                            <Button variant="outline" className="w-full pl-3 text-left font-normal">
+                            <Button
+                              variant="outline"
+                              className="w-full pl-3 text-left font-normal"
+                            >
                               {field.value ? (
-                                format(field.value, 'PPP', { locale: fr })
+                                format(field.value, "PPP", { locale: fr })
                               ) : (
                                 <span>Sélectionner une date</span>
                               )}
@@ -437,7 +472,7 @@ export function ContractFormModal({
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={date => date < new Date()}
+                            disabled={(date) => date < new Date()}
                             initialFocus
                           />
                         </PopoverContent>
@@ -455,19 +490,25 @@ export function ContractFormModal({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Renouvellement automatique</FormLabel>
+                        <FormLabel className="text-base">
+                          Renouvellement automatique
+                        </FormLabel>
                         <FormDescription>
-                          Le contrat sera renouvelé automatiquement à l'expiration
+                          Le contrat sera renouvelé automatiquement à
+                          l'expiration
                         </FormDescription>
                       </div>
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
                       </FormControl>
                     </FormItem>
                   )}
                 />
 
-                {form.watch('autoRenewal') && (
+                {form.watch("autoRenewal") && (
                   <FormField
                     control={form.control}
                     name="renewalNotice"
@@ -478,11 +519,14 @@ export function ContractFormModal({
                           <Input
                             type="number"
                             {...field}
-                            onChange={e => field.onChange(parseInt(e.target.value) || 30)}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 30)
+                            }
                           />
                         </FormControl>
                         <FormDescription>
-                          Nombre de jours avant l'expiration pour notifier le renouvellement
+                          Nombre de jours avant l'expiration pour notifier le
+                          renouvellement
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -507,7 +551,8 @@ export function ContractFormModal({
                     />
                   </FormControl>
                   <FormDescription>
-                    Conditions générales, clauses spéciales, obligations des parties, etc.
+                    Conditions générales, clauses spéciales, obligations des
+                    parties, etc.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -539,7 +584,7 @@ export function ContractFormModal({
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isEditing ? 'Mettre à jour' : 'Créer le contrat'}
+                {isEditing ? "Mettre à jour" : "Créer le contrat"}
               </Button>
             </DialogFooter>
           </form>

@@ -1,9 +1,9 @@
-import { getRequestConfig } from 'next-intl/server';
-import { notFound } from 'next/navigation';
+import { getRequestConfig } from "next-intl/server";
+import { notFound } from "next/navigation";
 
 // Définir les locales supportées
-export const locales = ['en', 'fr'];
-export const defaultLocale = 'fr';
+export const locales = ["en", "fr"];
+export const defaultLocale = "fr";
 
 // Exporter un objet de configuration i18n pour le middleware
 export const i18n = {
@@ -12,7 +12,7 @@ export const i18n = {
   // Ajouter un paramètre pour éviter les erreurs de localisation
   localeDetection: true,
   // Spécifier que les locales doivent être préfixées dans les URL
-  localePrefix: 'always',
+  localePrefix: "always",
 };
 
 /**
@@ -25,7 +25,7 @@ export function normalizeLocale(locale: string): string {
   if (!locale) return defaultLocale;
 
   // Si la locale contient un tiret (fr-FR), prendre la première partie
-  const baseLang = locale.split('-')[0].toLowerCase();
+  const baseLang = locale.split("-")[0].toLowerCase();
 
   // Vérifier si la locale est supportée
   if (locales.includes(baseLang)) {
@@ -49,46 +49,49 @@ export default getRequestConfig(async ({ locale }) => {
     return {
       locale: locale as string,
       messages,
-      timeZone: 'Europe/Paris',
+      timeZone: "Europe/Paris",
       // Ajout de formats par défaut pour dates et nombres
       formats: {
         dateTime: {
           short: {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
+            day: "numeric",
+            month: "short",
+            year: "numeric",
           },
           medium: {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
+            day: "numeric",
+            month: "long",
+            year: "numeric",
           },
           long: {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            hour: "numeric",
+            minute: "numeric",
           },
         },
         number: {
           currency: {
-            style: 'currency',
-            currency: 'EUR',
+            style: "currency",
+            currency: "EUR",
           },
           percent: {
-            style: 'percent',
+            style: "percent",
           },
         },
       },
     };
   } catch (error) {
-    console.warn(`Impossible de charger les messages pour la locale: ${locale}`, error);
+    console.warn(
+      `Impossible de charger les messages pour la locale: ${locale}`,
+      error,
+    );
     // Continuer avec des messages vides
     return {
       locale: locale as string,
       messages: {},
-      timeZone: 'Europe/Paris',
+      timeZone: "Europe/Paris",
     };
   }
 });
@@ -112,7 +115,8 @@ export async function getMessages(locale: string = defaultLocale) {
   } catch (error) {
     console.error(`Failed to load messages for locale ${locale}`, error);
     // Fallback sur la locale par défaut si la locale demandée échoue
-    const defaultMessages = (await import(`../messages/${defaultLocale}.json`)).default;
+    const defaultMessages = (await import(`../messages/${defaultLocale}.json`))
+      .default;
     return {
       locale: defaultLocale,
       messages: defaultMessages,
@@ -137,11 +141,13 @@ export function useTranslations(_namespace: string): TranslationFunction {
   // mais il est conservé pour la compatibilité d'interface avec next-intl
   return (key: string) => {
     // Extraire le dernier segment de la clé pour avoir un texte plus lisible
-    const segments = key.split('.');
+    const segments = key.split(".");
     const lastSegment = segments[segments.length - 1];
 
     // Convertir camelCase vers des espaces
-    return lastSegment.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    return lastSegment
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase());
   };
 }
 
@@ -149,38 +155,38 @@ export function useTranslations(_namespace: string): TranslationFunction {
  * Fonction mock qui remplace useLocale de next-intl
  */
 export function useLocale(): string {
-  return 'fr';
+  return "fr";
 }
-import { User } from '@prisma/client';
+import { User } from "@prisma/client";
 
 // Define supported languages directly
-export type SupportedLanguage = 'en' | 'fr';
+export type SupportedLanguage = "en" | "fr";
 
 /**
  * Gets the user's preferred locale from their preferences or defaults to English
  */
 export function getUserPreferredLocale(user: User): SupportedLanguage {
   // First check the dedicated locale field
-  if (user.locale && (user.locale === 'fr' || user.locale === 'en')) {
+  if (user.locale && (user.locale === "fr" || user.locale === "en")) {
     return user.locale as SupportedLanguage;
   }
 
   // Then check if locale is in preferences JSON
-  if (user.preferences && typeof user.preferences === 'object') {
+  if (user.preferences && typeof user.preferences === "object") {
     try {
       const preferences = user.preferences as Record<string, unknown>;
       if (
         preferences.locale &&
-        typeof preferences.locale === 'string' &&
-        (preferences.locale === 'fr' || preferences.locale === 'en')
+        typeof preferences.locale === "string" &&
+        (preferences.locale === "fr" || preferences.locale === "en")
       ) {
         return preferences.locale as SupportedLanguage;
       }
     } catch (error) {
-      console.error('Error parsing user preferences:', error);
+      console.error("Error parsing user preferences:", error);
     }
   }
 
   // Otherwise, default to English
-  return 'en';
+  return "en";
 }

@@ -1,8 +1,21 @@
-import { format } from 'date-fns';
-import { Calendar, Clock, UserCheck, UserX, Info, MessageSquare } from 'lucide-react';
+import { format } from "date-fns";
+import {
+  Calendar,
+  Clock,
+  UserCheck,
+  UserX,
+  Info,
+  MessageSquare,
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -10,10 +23,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 interface VerificationHistoryItem {
   id: string;
@@ -65,7 +83,9 @@ export function UserVerificationHistory({
     <Card>
       <CardHeader>
         <CardTitle>Verification History</CardTitle>
-        <CardDescription>Track user verification status changes</CardDescription>
+        <CardDescription>
+          Track user verification status changes
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {verificationHistory.length === 0 ? (
@@ -83,15 +103,15 @@ export function UserVerificationHistory({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {verificationHistory.map(item => (
+              {verificationHistory.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
-                    {item.status === 'APPROVED' ? (
+                    {item.status === "APPROVED" ? (
                       <Badge className="bg-green-500">
                         <UserCheck className="mr-1 h-3 w-3" />
                         Approved
                       </Badge>
-                    ) : item.status === 'REJECTED' ? (
+                    ) : item.status === "REJECTED" ? (
                       <Badge className="bg-red-500">
                         <UserX className="mr-1 h-3 w-3" />
                         Rejected
@@ -106,10 +126,10 @@ export function UserVerificationHistory({
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3 text-muted-foreground" />
-                      {format(new Date(item.timestamp), 'MMM d, yyyy')}
+                      {format(new Date(item.timestamp), "MMM d, yyyy")}
                       <span className="mx-1 text-muted-foreground">·</span>
                       <Clock className="h-3 w-3 text-muted-foreground" />
-                      {format(new Date(item.timestamp), 'HH:mm')}
+                      {format(new Date(item.timestamp), "HH:mm")}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -125,7 +145,9 @@ export function UserVerificationHistory({
                         </Tooltip>
                       </TooltipProvider>
                     ) : (
-                      <span className="text-muted-foreground italic">System</span>
+                      <span className="text-muted-foreground italic">
+                        System
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -133,7 +155,11 @@ export function UserVerificationHistory({
                       item.reason.length > 30 ? (
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-6 px-1 text-primary">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-1 text-primary"
+                            >
                               <MessageSquare className="h-3 w-3 mr-1" />
                               View reason
                             </Button>
@@ -141,20 +167,30 @@ export function UserVerificationHistory({
                           <DialogContent>
                             <DialogHeader>
                               <DialogTitle>
-                                {item.status === 'APPROVED' ? 'Approval' : 'Rejection'} Reason
+                                {item.status === "APPROVED"
+                                  ? "Approval"
+                                  : "Rejection"}{" "}
+                                Reason
                               </DialogTitle>
                               <DialogDescription>
-                                {format(new Date(item.timestamp), 'MMM d, yyyy HH:mm')}
+                                {format(
+                                  new Date(item.timestamp),
+                                  "MMM d, yyyy HH:mm",
+                                )}
                               </DialogDescription>
                             </DialogHeader>
-                            <div className="p-4 border rounded-md bg-muted/50">{item.reason}</div>
+                            <div className="p-4 border rounded-md bg-muted/50">
+                              {item.reason}
+                            </div>
                           </DialogContent>
                         </Dialog>
                       ) : (
                         <span>{item.reason}</span>
                       )
                     ) : (
-                      <span className="text-muted-foreground italic">No reason provided</span>
+                      <span className="text-muted-foreground italic">
+                        No reason provided
+                      </span>
                     )}
                   </TableCell>
                 </TableRow>

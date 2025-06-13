@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { api } from '@/trpc/react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { api } from "@/trpc/react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,8 +14,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -24,7 +24,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Loader2,
   AlertCircle,
@@ -39,35 +39,45 @@ import {
   Bank,
   Info,
   RotateCw,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { formatCurrency } from '@/utils/document-utils';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useToast } from '@/components/ui/use-toast';
-import { useWallet } from '@/hooks/payment/use-wallet';
-import { useTranslations } from 'next-intl';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Progress } from '@/components/ui/progress';
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { formatCurrency } from "@/utils/document-utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/use-toast";
+import { useWallet } from "@/hooks/payment/use-wallet";
+import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 
 // Schéma de validation pour le formulaire de retrait
 const withdrawalSchema = z.object({
   amount: z
     .string()
-    .min(1, { message: 'Le montant est requis' })
-    .refine(val => !isNaN(parseFloat(val)), {
-      message: 'Le montant doit être un nombre valide',
+    .min(1, { message: "Le montant est requis" })
+    .refine((val) => !isNaN(parseFloat(val)), {
+      message: "Le montant doit être un nombre valide",
     })
-    .refine(val => parseFloat(val) > 0, {
-      message: 'Le montant doit être supérieur à 0',
+    .refine((val) => parseFloat(val) > 0, {
+      message: "Le montant doit être supérieur à 0",
     }),
   bankDetails: z.object({
-    accountName: z.string().min(1, { message: 'Le nom du titulaire du compte est requis' }),
-    iban: z.string().min(15, { message: 'IBAN invalide' }).max(34, { message: 'IBAN invalide' }),
+    accountName: z
+      .string()
+      .min(1, { message: "Le nom du titulaire du compte est requis" }),
+    iban: z
+      .string()
+      .min(15, { message: "IBAN invalide" })
+      .max(34, { message: "IBAN invalide" }),
     bic: z
       .string()
-      .min(8, { message: 'BIC/SWIFT invalide' })
-      .max(11, { message: 'BIC/SWIFT invalide' }),
+      .min(8, { message: "BIC/SWIFT invalide" })
+      .max(11, { message: "BIC/SWIFT invalide" }),
   }),
   description: z.string().optional(),
 });
@@ -91,7 +101,7 @@ interface WithdrawalFormProps {
 
 export function WithdrawalForm({
   walletBalance,
-  currency = 'EUR',
+  currency = "EUR",
   minimumAmount = 20,
   onSubmit,
   isLoading = false,
@@ -101,8 +111,10 @@ export function WithdrawalForm({
 }: WithdrawalFormProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const t = useTranslations('wallet');
-  const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const t = useTranslations("wallet");
+  const [status, setStatus] = useState<
+    "idle" | "processing" | "success" | "error"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [processingStep, setProcessingStep] = useState<string | null>(null);
@@ -110,13 +122,13 @@ export function WithdrawalForm({
   const form = useForm<WithdrawalFormValues>({
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
-      amount: '',
+      amount: "",
       bankDetails: savedBankDetails || {
-        accountName: '',
-        iban: '',
-        bic: '',
+        accountName: "",
+        iban: "",
+        bic: "",
       },
-      description: '',
+      description: "",
     },
   });
 
@@ -124,76 +136,80 @@ export function WithdrawalForm({
   const simulateProcessing = async () => {
     if (!isDemo) return;
 
-    setStatus('processing');
-    setProcessingStep(t('validatingAmount'));
+    setStatus("processing");
+    setProcessingStep(t("validatingAmount"));
     setProgress(10);
 
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
     setProgress(30);
-    setProcessingStep(t('checkingAccount'));
+    setProcessingStep(t("checkingAccount"));
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setProgress(60);
-    setProcessingStep(t('preparingTransaction'));
+    setProcessingStep(t("preparingTransaction"));
 
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    await new Promise((resolve) => setTimeout(resolve, 1200));
     setProgress(90);
-    setProcessingStep(t('finalizingWithdrawal'));
+    setProcessingStep(t("finalizingWithdrawal"));
 
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
     setProgress(100);
   };
 
   const handleSubmit = async (data: WithdrawalFormValues) => {
     try {
-      setStatus('idle');
+      setStatus("idle");
       setErrorMessage(null);
 
       // Valider que le montant est inférieur au solde
       if (parseFloat(data.amount) > walletBalance) {
-        setStatus('error');
-        setErrorMessage(t('insufficientBalance'));
+        setStatus("error");
+        setErrorMessage(t("insufficientBalance"));
         return;
       }
 
       // Valider que le montant est supérieur au minimum
       if (parseFloat(data.amount) < minimumAmount) {
-        setStatus('error');
-        setErrorMessage(t('belowMinimumAmount', { amount: minimumAmount, currency }));
+        setStatus("error");
+        setErrorMessage(
+          t("belowMinimumAmount", { amount: minimumAmount, currency }),
+        );
         return;
       }
 
       if (isDemo) {
         await simulateProcessing();
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setStatus('success');
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        setStatus("success");
 
         toast({
-          title: t('withdrawalRequestSubmitted'),
-          description: t('withdrawalProcessingTime'),
-          variant: 'success',
+          title: t("withdrawalRequestSubmitted"),
+          description: t("withdrawalProcessingTime"),
+          variant: "success",
         });
 
         return;
       }
 
       await onSubmit(data);
-      setStatus('success');
+      setStatus("success");
       form.reset();
 
       toast({
-        title: t('withdrawalRequestSubmitted'),
-        description: t('withdrawalProcessingTime'),
-        variant: 'success',
+        title: t("withdrawalRequestSubmitted"),
+        description: t("withdrawalProcessingTime"),
+        variant: "success",
       });
     } catch (error) {
-      setStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : t('unknownError'));
+      setStatus("error");
+      setErrorMessage(
+        error instanceof Error ? error.message : t("unknownError"),
+      );
 
       toast({
-        title: t('error'),
-        description: error instanceof Error ? error.message : t('unknownError'),
-        variant: 'destructive',
+        title: t("error"),
+        description: error instanceof Error ? error.message : t("unknownError"),
+        variant: "destructive",
       });
     }
   };
@@ -208,7 +224,7 @@ export function WithdrawalForm({
 
   // Préremplit avec le montant maximum
   const setMaxAmount = () => {
-    form.setValue('amount', walletBalance.toString());
+    form.setValue("amount", walletBalance.toString());
   };
 
   return (
@@ -217,7 +233,7 @@ export function WithdrawalForm({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
-            {t('requestWithdrawal')}
+            {t("requestWithdrawal")}
           </CardTitle>
           {isDemo && (
             <TooltipProvider>
@@ -228,44 +244,52 @@ export function WithdrawalForm({
                     className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
                   >
                     <Zap className="h-3 w-3" />
-                    {t('demoMode')}
+                    {t("demoMode")}
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{t('demoWithdrawalDescription')}</p>
+                  <p>{t("demoWithdrawalDescription")}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}
         </div>
         <CardDescription>
-          {t('currentBalance')}:{' '}
-          <span className="font-bold">{formatCurrency(walletBalance, currency)}</span>
+          {t("currentBalance")}:{" "}
+          <span className="font-bold">
+            {formatCurrency(walletBalance, currency)}
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {status === 'success' && (
+        {status === "success" && (
           <Alert className="mb-4 bg-green-50 text-green-800 border-green-200">
             <Check className="h-4 w-4" />
-            <AlertTitle>{t('success')}</AlertTitle>
-            <AlertDescription>{t('withdrawalRequestSubmitted')}</AlertDescription>
+            <AlertTitle>{t("success")}</AlertTitle>
+            <AlertDescription>
+              {t("withdrawalRequestSubmitted")}
+            </AlertDescription>
           </Alert>
         )}
 
-        {status === 'error' && (
+        {status === "error" && (
           <Alert className="mb-4 bg-red-50 text-red-800 border-red-200">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('error')}</AlertTitle>
-            <AlertDescription>{errorMessage || t('withdrawalRequestFailed')}</AlertDescription>
+            <AlertTitle>{t("error")}</AlertTitle>
+            <AlertDescription>
+              {errorMessage || t("withdrawalRequestFailed")}
+            </AlertDescription>
           </Alert>
         )}
 
-        {status === 'processing' && (
+        {status === "processing" && (
           <div className="mb-6 space-y-2">
             <Alert className="mb-2 bg-blue-50 text-blue-800 border-blue-200">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <AlertTitle>{t('processing')}</AlertTitle>
-              <AlertDescription>{processingStep || t('processingWithdrawal')}</AlertDescription>
+              <AlertTitle>{t("processing")}</AlertTitle>
+              <AlertDescription>
+                {processingStep || t("processingWithdrawal")}
+              </AlertDescription>
             </Alert>
             <Progress value={progress} className="h-2" />
           </div>
@@ -274,21 +298,26 @@ export function WithdrawalForm({
         {walletBalance < minimumAmount && (
           <Alert className="mb-4 bg-amber-50 text-amber-800 border-amber-200">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>{t('insufficientFunds')}</AlertTitle>
+            <AlertTitle>{t("insufficientFunds")}</AlertTitle>
             <AlertDescription>
-              {t('minimumWithdrawalAmount', { amount: formatCurrency(minimumAmount, currency) })}
+              {t("minimumWithdrawalAmount", {
+                amount: formatCurrency(minimumAmount, currency),
+              })}
             </AlertDescription>
           </Alert>
         )}
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('withdrawalAmount')}</FormLabel>
+                  <FormLabel>{t("withdrawalAmount")}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -297,11 +326,17 @@ export function WithdrawalForm({
                         inputMode="decimal"
                         placeholder="0.00"
                         className="pl-8"
-                        disabled={isLoading || status === 'success' || status === 'processing'}
+                        disabled={
+                          isLoading ||
+                          status === "success" ||
+                          status === "processing"
+                        }
                         aria-describedby="withdrawal-amount-desc"
                       />
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <span className="text-gray-500">{currency === 'EUR' ? '€' : currency}</span>
+                        <span className="text-gray-500">
+                          {currency === "EUR" ? "€" : currency}
+                        </span>
                       </div>
                       <Button
                         type="button"
@@ -309,14 +344,19 @@ export function WithdrawalForm({
                         size="sm"
                         className="absolute right-1 top-1/2 -translate-y-1/2 h-6 text-xs px-2"
                         onClick={setMaxAmount}
-                        disabled={isLoading || status === 'success' || status === 'processing'}
+                        disabled={
+                          isLoading ||
+                          status === "success" ||
+                          status === "processing"
+                        }
                       >
                         Max
                       </Button>
                     </div>
                   </FormControl>
                   <FormDescription id="withdrawal-amount-desc">
-                    {t('minimumAmount')}: {formatCurrency(minimumAmount, currency)}
+                    {t("minimumAmount")}:{" "}
+                    {formatCurrency(minimumAmount, currency)}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -328,15 +368,21 @@ export function WithdrawalForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('withdrawalDescription')}</FormLabel>
+                  <FormLabel>{t("withdrawalDescription")}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder={t('withdrawalDescriptionPlaceholder')}
-                      disabled={isLoading || status === 'success' || status === 'processing'}
+                      placeholder={t("withdrawalDescriptionPlaceholder")}
+                      disabled={
+                        isLoading ||
+                        status === "success" ||
+                        status === "processing"
+                      }
                     />
                   </FormControl>
-                  <FormDescription>{t('withdrawalDescriptionHelp')}</FormDescription>
+                  <FormDescription>
+                    {t("withdrawalDescriptionHelp")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -346,7 +392,7 @@ export function WithdrawalForm({
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-sm flex items-center gap-1">
                   <Bank className="h-4 w-4" />
-                  {t('bankDetails')}
+                  {t("bankDetails")}
                 </h3>
                 {isDemo && (
                   <TooltipProvider>
@@ -355,7 +401,7 @@ export function WithdrawalForm({
                         <Info className="h-4 w-4 text-blue-500 cursor-pointer" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="text-xs">{t('demoBankDetailsInfo')}</p>
+                        <p className="text-xs">{t("demoBankDetailsInfo")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -367,12 +413,16 @@ export function WithdrawalForm({
                 name="bankDetails.accountName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('accountName')}</FormLabel>
+                    <FormLabel>{t("accountName")}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        disabled={isLoading || status === 'success' || status === 'processing'}
-                        placeholder={t('accountNamePlaceholder')}
+                        disabled={
+                          isLoading ||
+                          status === "success" ||
+                          status === "processing"
+                        }
+                        placeholder={t("accountNamePlaceholder")}
                       />
                     </FormControl>
                     <FormMessage />
@@ -390,11 +440,17 @@ export function WithdrawalForm({
                       <Input
                         {...field}
                         placeholder="FR76 1234 5678 9123 4567 8912 345"
-                        disabled={isLoading || status === 'success' || status === 'processing'}
+                        disabled={
+                          isLoading ||
+                          status === "success" ||
+                          status === "processing"
+                        }
                         aria-describedby="iban-format-desc"
                       />
                     </FormControl>
-                    <FormDescription id="iban-format-desc">{t('ibanFormat')}</FormDescription>
+                    <FormDescription id="iban-format-desc">
+                      {t("ibanFormat")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -410,11 +466,17 @@ export function WithdrawalForm({
                       <Input
                         {...field}
                         placeholder="CEPAFRPP751"
-                        disabled={isLoading || status === 'success' || status === 'processing'}
+                        disabled={
+                          isLoading ||
+                          status === "success" ||
+                          status === "processing"
+                        }
                         aria-describedby="bic-format-desc"
                       />
                     </FormControl>
-                    <FormDescription id="bic-format-desc">{t('bicFormat')}</FormDescription>
+                    <FormDescription id="bic-format-desc">
+                      {t("bicFormat")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -427,32 +489,32 @@ export function WithdrawalForm({
                 variant="outline"
                 className="w-full sm:w-auto"
                 onClick={handleCancel}
-                disabled={isLoading || status === 'processing'}
+                disabled={isLoading || status === "processing"}
               >
-                {t('cancel')}
+                {t("cancel")}
               </Button>
               <Button
                 type="submit"
                 className="w-full sm:w-auto"
                 disabled={
                   isLoading ||
-                  status === 'success' ||
-                  status === 'processing' ||
+                  status === "success" ||
+                  status === "processing" ||
                   walletBalance < minimumAmount
                 }
               >
-                {isLoading || status === 'processing' ? (
+                {isLoading || status === "processing" ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t('processing')}
+                    {t("processing")}
                   </>
-                ) : status === 'success' ? (
+                ) : status === "success" ? (
                   <>
                     <Check className="mr-2 h-4 w-4" />
-                    {t('requested')}
+                    {t("requested")}
                   </>
                 ) : (
-                  t('requestWithdrawal')
+                  t("requestWithdrawal")
                 )}
               </Button>
             </CardFooter>

@@ -1,30 +1,44 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { UserRole, UserStatus } from '@prisma/client';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, User as UserIcon, Mail, Phone, Shield, Calendar } from 'lucide-react';
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { UserRole, UserStatus } from "@prisma/client";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ArrowLeft,
+  Save,
+  User as UserIcon,
+  Mail,
+  Phone,
+  Shield,
+  Calendar,
+} from "lucide-react";
 
-import { api } from '@/trpc/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { api } from "@/trpc/react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -33,14 +47,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 // import { UserPermissionsForm } from '@/components/admin/users/user-permissions-form';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 // Schema de validation pour l'édition d'utilisateur
 const editUserSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long'),
-  email: z.string().email('Email invalide'),
+  name: z.string().min(1, "Le nom est requis").max(100, "Le nom est trop long"),
+  email: z.string().email("Email invalide"),
   phoneNumber: z.string().optional(),
   role: z.nativeEnum(UserRole),
   status: z.nativeEnum(UserStatus),
@@ -53,10 +67,10 @@ export default function UserEditPage() {
   const router = useRouter();
   const params = useParams();
   const userId = params.id as string;
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState("general");
   const { toast } = useToast();
 
-  // TEMPORAIRE: Récupérer la liste des utilisateurs pour trouver celui avec l'ID correct
+  // API pour récupérer les détails complets de l'utilisateur
   const {
     data: usersData,
     isLoading,
@@ -67,76 +81,80 @@ export default function UserEditPage() {
   });
 
   // DEBUG: Afficher les données reçues
-  console.log('🔍 DEBUG EDIT - usersData:', usersData);
-  console.log('🔍 DEBUG EDIT - userId cherché:', userId);
-  console.log('🔍 DEBUG EDIT - usersData?.json?.users:', usersData?.json?.users);
+  console.log("🔍 DEBUG EDIT - usersData:", usersData);
+  console.log("🔍 DEBUG EDIT - userId cherché:", userId);
+  console.log(
+    "🔍 DEBUG EDIT - usersData?.json?.users:",
+    usersData?.json?.users,
+  );
 
   // Trouver l'utilisateur avec l'ID correct dans la liste (les données sont dans json.users)
   const foundUser = usersData?.json?.users?.find((u: any) => u.id === userId);
-  console.log('🔍 DEBUG EDIT - user trouvé:', foundUser);
+  console.log("🔍 DEBUG EDIT - user trouvé:", foundUser);
 
   // Si l'utilisateur n'est pas trouvé, créer des données par défaut
   const user = foundUser
     ? {
         id: foundUser.id,
-        name: foundUser.name || 'Nom non défini',
+        name: foundUser.name || "Nom non défini",
         email: foundUser.email,
         role: foundUser.role,
         status: foundUser.status,
-        phoneNumber: foundUser.phoneNumber || '',
+        phoneNumber: foundUser.phoneNumber || "",
         createdAt: foundUser.createdAt,
         updatedAt: foundUser.createdAt, // Utiliser createdAt comme updatedAt
       }
     : null;
 
-  // TODO: Remettre l'API réelle quand l'authentification admin sera configurée
-  // const { data: user, isLoading, error } = api.adminUser.getUserDetail.useQuery({
-  //   userId,
-  //   includeDocuments: true,
-  //   includeVerificationHistory: true,
-  //   includeActivityLogs: false,
-  //   includeLoginHistory: false,
-  //   includeNotes: false,
-  //   includePermissions: false,
-  //   includeSubscriptions: false,
-  //   includePaymentMethods: false,
-  //   includeNotificationSettings: false,
-  // });
+  // API réelle pour récupérer les détails utilisateur
+  const { data: user, isLoading, error } = api.admin.users.getUserDetail.useQuery({
+    userId,
+    includeDocuments: true,
+    includeVerificationHistory: true,
+    includeActivityLogs: false,
+    includeLoginHistory: false,
+    includeNotes: false,
+    includePermissions: false,
+    includeSubscriptions: false,
+    includePaymentMethods: false,
+    includeNotificationSettings: false,
+  });
 
   // Debug: Afficher l'erreur dans la console
   if (error) {
-    console.error('❌ Erreur getUserDetail:', error);
+    console.error("❌ Erreur getUserDetail:", error);
   }
 
-  const updateUserStatusMutation = api.adminUser.updateUserStatus.useMutation({
+  const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Statut mis à jour',
+        title: "Statut mis à jour",
         description: "Le statut de l'utilisateur a été mis à jour avec succès.",
       });
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la mise à jour du statut: ' + error.message,
-        variant: 'destructive',
+        title: "Erreur",
+        description:
+          "Erreur lors de la mise à jour du statut: " + error.message,
+        variant: "destructive",
       });
     },
   });
 
-  const updateUserRoleMutation = api.adminUser.updateUserRole.useMutation({
+  const updateUserRoleMutation = api.admin.users.updateUserRole.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Rôle mis à jour',
+        title: "Rôle mis à jour",
         description: "Le rôle de l'utilisateur a été mis à jour avec succès.",
       });
       router.refresh();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la mise à jour du rôle: ' + error.message,
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Erreur lors de la mise à jour du rôle: " + error.message,
+        variant: "destructive",
       });
     },
   });
@@ -144,12 +162,12 @@ export default function UserEditPage() {
   const form = useForm<EditUserFormData>({
     resolver: zodResolver(editUserSchema),
     defaultValues: {
-      name: user?.name || '',
-      email: user?.email || '',
-      phoneNumber: user?.phoneNumber || '',
+      name: user?.name || "",
+      email: user?.email || "",
+      phoneNumber: user?.phoneNumber || "",
       role: user?.role || UserRole.CLIENT,
       status: user?.status || UserStatus.PENDING_VERIFICATION,
-      notes: '',
+      notes: "",
     },
   });
 
@@ -158,10 +176,10 @@ export default function UserEditPage() {
     form.reset({
       name: user.name,
       email: user.email,
-      phoneNumber: user.phoneNumber || '',
+      phoneNumber: user.phoneNumber || "",
       role: user.role,
       status: user.status,
-      notes: '',
+      notes: "",
     });
   }
 
@@ -172,7 +190,7 @@ export default function UserEditPage() {
         await updateUserStatusMutation.mutateAsync({
           userId,
           status: data.status,
-          reason: data.notes || 'Status updated by admin',
+          reason: data.notes || "Status updated by admin",
         });
       }
 
@@ -181,22 +199,23 @@ export default function UserEditPage() {
         await updateUserRoleMutation.mutateAsync({
           userId,
           role: data.role,
-          reason: data.notes || 'Role updated by admin',
+          reason: data.notes || "Role updated by admin",
         });
       }
 
       toast({
-        title: 'Utilisateur mis à jour',
-        description: "Les informations de l'utilisateur ont été mises à jour avec succès.",
+        title: "Utilisateur mis à jour",
+        description:
+          "Les informations de l'utilisateur ont été mises à jour avec succès.",
       });
 
       router.push(`/admin/users/${userId}`);
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error("Error updating user:", error);
       toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors de la mise à jour.',
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour.",
+        variant: "destructive",
       });
     }
   };
@@ -207,7 +226,9 @@ export default function UserEditPage() {
       case UserStatus.ACTIVE:
         return <Badge className="bg-green-500">Actif</Badge>;
       case UserStatus.PENDING_VERIFICATION:
-        return <Badge className="bg-yellow-500">En attente de vérification</Badge>;
+        return (
+          <Badge className="bg-yellow-500">En attente de vérification</Badge>
+        );
       case UserStatus.SUSPENDED:
         return <Badge className="bg-red-500">Suspendu</Badge>;
       case UserStatus.INACTIVE:
@@ -267,27 +288,43 @@ export default function UserEditPage() {
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">Utilisateur introuvable</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Utilisateur introuvable
+          </h1>
         </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-64">
-            <h2 className="text-xl font-semibold mb-4">L'utilisateur demandé est introuvable</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              L'utilisateur demandé est introuvable
+            </h2>
             {/* Debug: Afficher les détails de l'erreur */}
             {error && (
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600 font-medium">Erreur technique:</p>
+                <p className="text-sm text-red-600 font-medium">
+                  Erreur technique:
+                </p>
                 <p className="text-sm text-red-500">{error.message}</p>
-                <p className="text-xs text-gray-500 mt-2">Code: {error.data?.code}</p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Code: {error.data?.code}
+                </p>
               </div>
             )}
             <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-600 font-medium">Debugging info:</p>
+              <p className="text-sm text-blue-600 font-medium">
+                Debugging info:
+              </p>
               <p className="text-xs text-gray-600">User ID: {userId}</p>
-              <p className="text-xs text-gray-600">Loading: {isLoading ? 'Oui' : 'Non'}</p>
-              <p className="text-xs text-gray-600">Error: {error ? 'Oui' : 'Non'}</p>
+              <p className="text-xs text-gray-600">
+                Loading: {isLoading ? "Oui" : "Non"}
+              </p>
+              <p className="text-xs text-gray-600">
+                Error: {error ? "Oui" : "Non"}
+              </p>
             </div>
             <Button asChild>
-              <Link href="/admin/users">Retour à la gestion des utilisateurs</Link>
+              <Link href="/admin/users">
+                Retour à la gestion des utilisateurs
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -301,7 +338,9 @@ export default function UserEditPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-3xl font-bold tracking-tight">Éditer l'utilisateur</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Éditer l'utilisateur
+        </h1>
       </div>
 
       <Card>
@@ -312,7 +351,10 @@ export default function UserEditPage() {
               <CardDescription className="mt-1 flex items-center gap-2 text-base">
                 {getRoleBadge(user.role)}
                 {getStatusBadge(user.status)}
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
+                <Badge
+                  variant="outline"
+                  className="bg-yellow-50 text-yellow-600 border-yellow-200"
+                >
                   🧪 Mode Test
                 </Badge>
               </CardDescription>
@@ -326,10 +368,17 @@ export default function UserEditPage() {
         </CardHeader>
 
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="general">Informations générales</TabsTrigger>
-              <TabsTrigger value="permissions" disabled={user.role !== UserRole.ADMIN}>
+              <TabsTrigger
+                value="permissions"
+                disabled={user.role !== UserRole.ADMIN}
+              >
                 Permissions
               </TabsTrigger>
               <TabsTrigger value="activity">Activité</TabsTrigger>
@@ -337,7 +386,10 @@ export default function UserEditPage() {
 
             <TabsContent value="general" className="space-y-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
@@ -387,14 +439,17 @@ export default function UserEditPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Rôle</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner un rôle" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {Object.values(UserRole).map(role => (
+                              {Object.values(UserRole).map((role) => (
                                 <SelectItem key={role} value={role}>
                                   {role}
                                 </SelectItem>
@@ -412,16 +467,19 @@ export default function UserEditPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Statut</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner un statut" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {Object.values(UserStatus).map(status => (
+                              {Object.values(UserStatus).map((status) => (
                                 <SelectItem key={status} value={status}>
-                                  {status.replace('_', ' ')}
+                                  {status.replace("_", " ")}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -445,7 +503,8 @@ export default function UserEditPage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Ces notes seront enregistrées dans l'historique des modifications.
+                          Ces notes seront enregistrées dans l'historique des
+                          modifications.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -453,19 +512,25 @@ export default function UserEditPage() {
                   />
 
                   <div className="flex justify-end space-x-4">
-                    <Button type="button" variant="outline" onClick={() => router.back()}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.back()}
+                    >
                       Annuler
                     </Button>
                     <Button
                       type="submit"
                       disabled={
-                        updateUserStatusMutation.isPending || updateUserRoleMutation.isPending
+                        updateUserStatusMutation.isPending ||
+                        updateUserRoleMutation.isPending
                       }
                     >
                       <Save className="mr-2 h-4 w-4" />
-                      {updateUserStatusMutation.isPending || updateUserRoleMutation.isPending
-                        ? 'Sauvegarde...'
-                        : 'Sauvegarder'}
+                      {updateUserStatusMutation.isPending ||
+                      updateUserRoleMutation.isPending
+                        ? "Sauvegarde..."
+                        : "Sauvegarder"}
                     </Button>
                   </div>
                 </form>
@@ -495,7 +560,9 @@ export default function UserEditPage() {
                 <CardContent>
                   <div className="text-center text-muted-foreground py-8">
                     <Calendar className="mx-auto h-12 w-12 mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Historique d'activité</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Historique d'activité
+                    </h3>
                     <p>Cette fonctionnalité sera bientôt disponible.</p>
                   </div>
                 </CardContent>

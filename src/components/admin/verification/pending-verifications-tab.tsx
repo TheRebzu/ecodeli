@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
-import { UserRole } from '@prisma/client';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { AlertCircle, Clock, FileText, User } from 'lucide-react';
+import { useTranslations } from "next-intl";
+import { api } from "@/trpc/react";
+import { UserRole } from "@prisma/client";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { AlertCircle, Clock, FileText, User } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,24 +13,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next/navigation';
-import { VerificationFilters } from '@/types/documents/verification';
-import { Pagination } from '@/components/ui/pagination';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
+import { VerificationFilters } from "@/types/documents/verification";
+import { Pagination } from "@/components/ui/pagination";
 
 interface PendingVerificationsTabProps {
   filters: VerificationFilters;
   onPageChange: (page: number) => void;
 }
 
-export function PendingVerificationsTab({ filters, onPageChange }: PendingVerificationsTabProps) {
-  const t = useTranslations('admin.verification');
+export function PendingVerificationsTab({
+  filters,
+  onPageChange,
+}: PendingVerificationsTabProps) {
+  const t = useTranslations("admin.verification");
   const router = useRouter();
 
-  // Utiliser une API mock temporaire pour éviter les erreurs
+  // Utiliser l'API réelle pour récupérer les vérifications en attente
   // const { data, isLoading, isError } = api.admin.getVerificationRequests.useQuery(filters);
   const isLoading = false;
   const isError = false;
@@ -49,12 +52,12 @@ export function PendingVerificationsTab({ filters, onPageChange }: PendingVerifi
 
   // Fonction pour formater la date de manière sécurisée
   const formatSafeDate = (date: Date | string | number | null | undefined) => {
-    if (!date) return '';
+    if (!date) return "";
     try {
-      return format(new Date(date), 'PPP', { locale: fr });
+      return format(new Date(date), "PPP", { locale: fr });
     } catch (error) {
-      console.error('Error formatting date:', error);
-      return '';
+      console.error("Error formatting date:", error);
+      return "";
     }
   };
 
@@ -66,8 +69,10 @@ export function PendingVerificationsTab({ filters, onPageChange }: PendingVerifi
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center">
         <AlertCircle className="h-10 w-10 text-destructive mb-2" />
-        <h3 className="text-lg font-semibold">{t('error.title')}</h3>
-        <p className="text-sm text-muted-foreground">{t('error.description')}</p>
+        <h3 className="text-lg font-semibold">{t("error.title")}</h3>
+        <p className="text-sm text-muted-foreground">
+          {t("error.description")}
+        </p>
       </div>
     );
   }
@@ -80,8 +85,10 @@ export function PendingVerificationsTab({ filters, onPageChange }: PendingVerifi
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center">
         <FileText className="h-10 w-10 text-muted-foreground mb-2" />
-        <h3 className="text-lg font-semibold">{t('pending.empty.title')}</h3>
-        <p className="text-sm text-muted-foreground">{t('pending.empty.description')}</p>
+        <h3 className="text-lg font-semibold">{t("pending.empty.title")}</h3>
+        <p className="text-sm text-muted-foreground">
+          {t("pending.empty.description")}
+        </p>
       </div>
     );
   }
@@ -91,21 +98,23 @@ export function PendingVerificationsTab({ filters, onPageChange }: PendingVerifi
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t('table.user')}</TableHead>
-            <TableHead>{t('table.role')}</TableHead>
-            <TableHead>{t('table.documentType')}</TableHead>
-            <TableHead>{t('table.submitted')}</TableHead>
-            <TableHead className="text-right">{t('table.actions')}</TableHead>
+            <TableHead>{t("table.user")}</TableHead>
+            <TableHead>{t("table.role")}</TableHead>
+            <TableHead>{t("table.documentType")}</TableHead>
+            <TableHead>{t("table.submitted")}</TableHead>
+            <TableHead className="text-right">{t("table.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {verificationRequests.map(verification => (
+          {verificationRequests.map((verification) => (
             <TableRow key={verification.id}>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <div className="font-medium">{verification.submitter?.name || 'Unknown'}</div>
+                    <div className="font-medium">
+                      {verification.submitter?.name || "Unknown"}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       {verification.submitter?.email}
                     </div>
@@ -120,7 +129,7 @@ export function PendingVerificationsTab({ filters, onPageChange }: PendingVerifi
                   <div>{t(`documentTypes.${verification.document?.type}`)}</div>
                   <Badge variant="outline" className="ml-2">
                     <Clock className="mr-1 h-3 w-3" />
-                    {t('status.PENDING')}
+                    {t("status.PENDING")}
                   </Badge>
                 </div>
               </TableCell>
@@ -131,7 +140,7 @@ export function PendingVerificationsTab({ filters, onPageChange }: PendingVerifi
                   size="sm"
                   onClick={() => handleViewVerification(verification.id)}
                 >
-                  {t('actions.view')}
+                  {t("actions.view")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -158,14 +167,14 @@ interface RoleBadgeProps {
 
 function RoleBadge({ role }: RoleBadgeProps) {
   const colors = {
-    [UserRole.ADMIN]: 'bg-purple-500',
-    [UserRole.CLIENT]: 'bg-blue-500',
-    [UserRole.DELIVERER]: 'bg-green-500',
-    [UserRole.MERCHANT]: 'bg-orange-500',
-    [UserRole.PROVIDER]: 'bg-teal-500',
+    [UserRole.ADMIN]: "bg-purple-500",
+    [UserRole.CLIENT]: "bg-blue-500",
+    [UserRole.DELIVERER]: "bg-green-500",
+    [UserRole.MERCHANT]: "bg-orange-500",
+    [UserRole.PROVIDER]: "bg-teal-500",
   };
 
-  const t = useTranslations('admin.verification.roles');
+  const t = useTranslations("admin.verification.roles");
 
   return <Badge className={colors[role]}>{t(role.toLowerCase())}</Badge>;
 }

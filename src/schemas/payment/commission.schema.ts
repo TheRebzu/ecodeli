@@ -1,14 +1,18 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Types de service pour les commissions
  */
-export const CommissionServiceTypeEnum = z.enum(['DELIVERY', 'SERVICE', 'SUBSCRIPTION']);
+export const CommissionServiceTypeEnum = z.enum([
+  "DELIVERY",
+  "SERVICE",
+  "SUBSCRIPTION",
+]);
 
 /**
  * Statuts des commissions
  */
-export const CommissionStatusEnum = z.enum(['PENDING', 'PROCESSED', 'FAILED']);
+export const CommissionStatusEnum = z.enum(["PENDING", "PROCESSED", "FAILED"]);
 
 /**
  * Schéma principal pour les commissions
@@ -21,7 +25,7 @@ export const CommissionSchema = z.object({
   type: CommissionServiceTypeEnum,
   calculatedAt: z.date().default(() => new Date()),
   paidAt: z.date().optional(),
-  status: CommissionStatusEnum.default('PENDING'),
+  status: CommissionStatusEnum.default("PENDING"),
 
   // Détails de la promotion
   promotionId: z.string().optional(),
@@ -51,11 +55,11 @@ export const ApplyCommissionSchema = z.object({
  * Schéma pour la création d'une promotion temporaire
  */
 export const CreatePromotionSchema = z.object({
-  serviceType: z.enum(['DELIVERY', 'SERVICE']),
+  serviceType: z.enum(["DELIVERY", "SERVICE"]),
   promotionRate: z.number().min(0).max(1),
   startDate: z.date(),
-  endDate: z.date().refine(date => date > new Date(), {
-    message: 'La date de fin doit être future',
+  endDate: z.date().refine((date) => date > new Date(), {
+    message: "La date de fin doit être future",
   }),
   description: z.string().optional(),
 });
@@ -68,9 +72,9 @@ export const CommissionReportPeriodSchema = z
     startDate: z.date(),
     endDate: z.date(),
   })
-  .refine(data => data.endDate > data.startDate, {
-    message: 'La date de fin doit être supérieure à la date de début',
-    path: ['endDate'],
+  .refine((data) => data.endDate > data.startDate, {
+    message: "La date de fin doit être supérieure à la date de début",
+    path: ["endDate"],
   });
 
 /**
@@ -91,10 +95,14 @@ export const CommissionSearchSchema = z.object({
 export type CommissionServiceType = z.infer<typeof CommissionServiceTypeEnum>;
 export type CommissionStatus = z.infer<typeof CommissionStatusEnum>;
 export type CommissionSchemaType = z.infer<typeof CommissionSchema>;
-export type CalculateCommissionSchemaType = z.infer<typeof CalculateCommissionSchema>;
+export type CalculateCommissionSchemaType = z.infer<
+  typeof CalculateCommissionSchema
+>;
 export type ApplyCommissionSchemaType = z.infer<typeof ApplyCommissionSchema>;
 export type CreatePromotionSchemaType = z.infer<typeof CreatePromotionSchema>;
-export type CommissionReportPeriodSchemaType = z.infer<typeof CommissionReportPeriodSchema>;
+export type CommissionReportPeriodSchemaType = z.infer<
+  typeof CommissionReportPeriodSchema
+>;
 export type CommissionSearchSchemaType = z.infer<typeof CommissionSearchSchema>;
 
 // Schéma de base pour les commissions
@@ -113,9 +121,13 @@ export const createCommissionSchema = commissionBaseSchema.extend({
   applicableRoles: z.array(z.string()).optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-  currency: z.string().default('EUR'),
-  calculationType: z.enum(['PERCENTAGE', 'FIXED', 'TIERED']).default('PERCENTAGE'),
-  payoutSchedule: z.enum(['IMMEDIATE', 'DAILY', 'WEEKLY', 'MONTHLY']).default('IMMEDIATE'),
+  currency: z.string().default("EUR"),
+  calculationType: z
+    .enum(["PERCENTAGE", "FIXED", "TIERED"])
+    .default("PERCENTAGE"),
+  payoutSchedule: z
+    .enum(["IMMEDIATE", "DAILY", "WEEKLY", "MONTHLY"])
+    .default("IMMEDIATE"),
   tierThresholds: z.record(z.any()).optional(),
   countryCode: z.string().optional(),
   productCategory: z.string().optional(),
@@ -132,8 +144,10 @@ export const updateCommissionSchema = z.object({
   flatFee: z.number().min(0).optional(),
   applicableRoles: z.array(z.string()).optional(),
   endDate: z.date().optional(),
-  calculationType: z.enum(['PERCENTAGE', 'FIXED', 'TIERED']).optional(),
-  payoutSchedule: z.enum(['IMMEDIATE', 'DAILY', 'WEEKLY', 'MONTHLY']).optional(),
+  calculationType: z.enum(["PERCENTAGE", "FIXED", "TIERED"]).optional(),
+  payoutSchedule: z
+    .enum(["IMMEDIATE", "DAILY", "WEEKLY", "MONTHLY"])
+    .optional(),
   tierThresholds: z.record(z.any()).optional(),
 });
 
@@ -153,7 +167,7 @@ export const searchCommissionsSchema = z.object({
   serviceType: z.string().optional(),
   isActive: z.boolean().optional(),
   applicableRole: z.string().optional(),
-  calculationType: z.enum(['PERCENTAGE', 'FIXED', 'TIERED']).optional(),
+  calculationType: z.enum(["PERCENTAGE", "FIXED", "TIERED"]).optional(),
   countryCode: z.string().optional(),
   productCategory: z.string().optional(),
   page: z.number().int().min(1).default(1),
@@ -180,8 +194,8 @@ export const commissionReportSchema = z.object({
   startDate: z.date(),
   endDate: z.date(),
   serviceType: z.string().optional(),
-  groupBy: z.enum(['DAY', 'WEEK', 'MONTH', 'SERVICE_TYPE']).default('MONTH'),
-  format: z.enum(['PDF', 'CSV', 'JSON']).default('PDF'),
+  groupBy: z.enum(["DAY", "WEEK", "MONTH", "SERVICE_TYPE"]).default("MONTH"),
+  format: z.enum(["PDF", "CSV", "JSON"]).default("PDF"),
 });
 
 // Schéma pour la gestion des paliers de commission
@@ -192,14 +206,16 @@ export const commissionTierSchema = z.object({
       threshold: z.number().positive(),
       rate: z.number().min(0).max(100),
       flatFee: z.number().min(0).optional(),
-    })
+    }),
   ),
 });
 
 // Export des types pour TypeScript
 export type CreateCommissionInput = z.infer<typeof createCommissionSchema>;
 export type UpdateCommissionInput = z.infer<typeof updateCommissionSchema>;
-export type CalculateCommissionInput = z.infer<typeof calculateCommissionSchema>;
+export type CalculateCommissionInput = z.infer<
+  typeof calculateCommissionSchema
+>;
 export type SearchCommissionsInput = z.infer<typeof searchCommissionsSchema>;
 export type GetCommissionInput = z.infer<typeof getCommissionSchema>;
 export type CreatePromotionInput = z.infer<typeof createPromotionSchema>;

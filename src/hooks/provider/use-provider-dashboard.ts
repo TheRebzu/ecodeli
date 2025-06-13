@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { api } from '@/trpc/react';
+import { api } from "@/trpc/react";
 
 export function useProviderDashboard() {
   const {
@@ -15,14 +15,16 @@ export function useProviderDashboard() {
   const { data: recentInterventions, isLoading: isLoadingInterventions } =
     api.provider.getRecentInterventions.useQuery({ limit: 10 });
 
-  const { data: revenueChart, isLoading: isLoadingChart } = api.provider.getRevenueChart.useQuery({
-    period: 'month',
-  });
+  const { data: revenueChart, isLoading: isLoadingChart } =
+    api.provider.getRevenueChart.useQuery({
+      period: "month",
+    });
 
   const { data: recentRatings, isLoading: isLoadingRatings } =
     api.provider.getRecentRatings.useQuery({ limit: 5 });
 
-  const isLoading = isLoadingStats || isLoadingAppointments || isLoadingInterventions;
+  const isLoading =
+    isLoadingStats || isLoadingAppointments || isLoadingInterventions;
 
   return {
     stats,

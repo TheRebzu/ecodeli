@@ -2,7 +2,7 @@ import {
   User as PrismaUser,
   UserRole as PrismaUserRole,
   UserStatus as PrismaUserStatus,
-} from '@prisma/client';
+} from "@prisma/client";
 
 // Ré-exporter les types
 export type User = PrismaUser;
@@ -11,84 +11,84 @@ export type UserStatus = PrismaUserStatus;
 
 // Define ActivityType enum locally if not exported from prisma client
 export enum ActivityType {
-  LOGIN = 'LOGIN',
-  LOGOUT = 'LOGOUT',
-  PROFILE_UPDATE = 'PROFILE_UPDATE',
-  PASSWORD_CHANGE = 'PASSWORD_CHANGE',
-  STATUS_CHANGE = 'STATUS_CHANGE',
-  ROLE_CHANGE = 'ROLE_CHANGE',
-  VERIFICATION_SUBMIT = 'VERIFICATION_SUBMIT',
-  VERIFICATION_REVIEW = 'VERIFICATION_REVIEW',
-  DOCUMENT_UPLOAD = 'DOCUMENT_UPLOAD',
-  ACCOUNT_CREATION = 'ACCOUNT_CREATION',
-  EMAIL_VERIFIED = 'EMAIL_VERIFIED',
-  PHONE_VERIFIED = 'PHONE_VERIFIED',
-  PASSWORD_RESET = 'PASSWORD_RESET',
-  PASSWORD_RESET_REQUEST = 'PASSWORD_RESET_REQUEST',
-  ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
-  ACCOUNT_UNLOCKED = 'ACCOUNT_UNLOCKED',
-  FAILED_LOGIN_ATTEMPT = 'FAILED_LOGIN_ATTEMPT',
-  PERMISSION_CHANGE = 'PERMISSION_CHANGE',
-  SUBSCRIPTION_CHANGE = 'SUBSCRIPTION_CHANGE',
-  PAYMENT_METHOD_ADDED = 'PAYMENT_METHOD_ADDED',
-  OTHER = 'OTHER',
+  LOGIN = "LOGIN",
+  LOGOUT = "LOGOUT",
+  PROFILE_UPDATE = "PROFILE_UPDATE",
+  PASSWORD_CHANGE = "PASSWORD_CHANGE",
+  STATUS_CHANGE = "STATUS_CHANGE",
+  ROLE_CHANGE = "ROLE_CHANGE",
+  VERIFICATION_SUBMIT = "VERIFICATION_SUBMIT",
+  VERIFICATION_REVIEW = "VERIFICATION_REVIEW",
+  DOCUMENT_UPLOAD = "DOCUMENT_UPLOAD",
+  ACCOUNT_CREATION = "ACCOUNT_CREATION",
+  EMAIL_VERIFIED = "EMAIL_VERIFIED",
+  PHONE_VERIFIED = "PHONE_VERIFIED",
+  PASSWORD_RESET = "PASSWORD_RESET",
+  PASSWORD_RESET_REQUEST = "PASSWORD_RESET_REQUEST",
+  ACCOUNT_LOCKED = "ACCOUNT_LOCKED",
+  ACCOUNT_UNLOCKED = "ACCOUNT_UNLOCKED",
+  FAILED_LOGIN_ATTEMPT = "FAILED_LOGIN_ATTEMPT",
+  PERMISSION_CHANGE = "PERMISSION_CHANGE",
+  SUBSCRIPTION_CHANGE = "SUBSCRIPTION_CHANGE",
+  PAYMENT_METHOD_ADDED = "PAYMENT_METHOD_ADDED",
+  OTHER = "OTHER",
 }
 
 export enum UserActionType {
-  ACTIVATE = 'ACTIVATE',
-  DEACTIVATE = 'DEACTIVATE',
-  SUSPEND = 'SUSPEND',
-  FORCE_PASSWORD_RESET = 'FORCE_PASSWORD_RESET',
-  SEND_VERIFICATION_EMAIL = 'SEND_VERIFICATION_EMAIL',
-  DELETE = 'DELETE',
-  ADD_TAG = 'ADD_TAG',
-  REMOVE_TAG = 'REMOVE_TAG',
-  ASSIGN_ROLE = 'ASSIGN_ROLE',
-  ASSIGN_PERMISSION = 'ASSIGN_PERMISSION',
-  REVOKE_PERMISSION = 'REVOKE_PERMISSION',
-  SEND_NOTIFICATION = 'SEND_NOTIFICATION',
-  EXPORT_DATA = 'EXPORT_DATA',
+  ACTIVATE = "ACTIVATE",
+  DEACTIVATE = "DEACTIVATE",
+  SUSPEND = "SUSPEND",
+  FORCE_PASSWORD_RESET = "FORCE_PASSWORD_RESET",
+  SEND_VERIFICATION_EMAIL = "SEND_VERIFICATION_EMAIL",
+  DELETE = "DELETE",
+  ADD_TAG = "ADD_TAG",
+  REMOVE_TAG = "REMOVE_TAG",
+  ASSIGN_ROLE = "ASSIGN_ROLE",
+  ASSIGN_PERMISSION = "ASSIGN_PERMISSION",
+  REVOKE_PERMISSION = "REVOKE_PERMISSION",
+  SEND_NOTIFICATION = "SEND_NOTIFICATION",
+  EXPORT_DATA = "EXPORT_DATA",
 }
 
 export enum NoteCategory {
-  GENERAL = 'GENERAL',
-  SUPPORT = 'SUPPORT',
-  VERIFICATION = 'VERIFICATION',
-  BILLING = 'BILLING',
-  SECURITY = 'SECURITY',
+  GENERAL = "GENERAL",
+  SUPPORT = "SUPPORT",
+  VERIFICATION = "VERIFICATION",
+  BILLING = "BILLING",
+  SECURITY = "SECURITY",
 }
 
 export enum NoteVisibility {
-  PUBLIC = 'PUBLIC',
-  PRIVATE = 'PRIVATE',
-  ADMIN_ONLY = 'ADMIN_ONLY',
+  PUBLIC = "PUBLIC",
+  PRIVATE = "PRIVATE",
+  ADMIN_ONLY = "ADMIN_ONLY",
 }
 
 export enum NotificationType {
-  INFO = 'INFO',
-  SUCCESS = 'SUCCESS',
-  WARNING = 'WARNING',
-  ERROR = 'ERROR',
+  INFO = "INFO",
+  SUCCESS = "SUCCESS",
+  WARNING = "WARNING",
+  ERROR = "ERROR",
 }
 
 export enum NotificationChannel {
-  EMAIL = 'EMAIL',
-  PUSH = 'PUSH',
-  SMS = 'SMS',
-  IN_APP = 'IN_APP',
+  EMAIL = "EMAIL",
+  PUSH = "PUSH",
+  SMS = "SMS",
+  IN_APP = "IN_APP",
 }
 
 export enum AuditLogSeverity {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL',
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
 }
 
 export enum AuditLogStatus {
-  SUCCESS = 'SUCCESS',
-  FAILURE = 'FAILURE',
-  ATTEMPTED = 'ATTEMPTED',
+  SUCCESS = "SUCCESS",
+  FAILURE = "FAILURE",
+  ATTEMPTED = "ATTEMPTED",
 }
 
 export type UserWithRoleDetails = User & {
@@ -208,45 +208,45 @@ export type UserFilters = {
 
 export type UserSortOptions = {
   field:
-    | 'name'
-    | 'email'
-    | 'role'
-    | 'status'
-    | 'createdAt'
-    | 'lastLoginAt'
-    | 'lastActivityAt'
-    | 'documentsCount'
-    | 'isVerified'
-    | 'country'
-    | 'subscriptionStatus';
-  direction: 'asc' | 'desc';
+    | "name"
+    | "email"
+    | "role"
+    | "status"
+    | "createdAt"
+    | "lastLoginAt"
+    | "lastActivityAt"
+    | "documentsCount"
+    | "isVerified"
+    | "country"
+    | "subscriptionStatus";
+  direction: "asc" | "desc";
 };
 
 export type AdminPermission =
-  | 'users.view'
-  | 'users.create'
-  | 'users.edit'
-  | 'users.delete'
-  | 'users.manage'
-  | 'users.bulk_actions'
-  | 'users.export'
-  | 'users.permissions'
-  | 'verifications.view'
-  | 'verifications.approve'
-  | 'contracts.view'
-  | 'contracts.manage'
-  | 'finances.view'
-  | 'finances.manage'
-  | 'warehouses.view'
-  | 'warehouses.manage'
-  | 'reports.view'
-  | 'reports.export'
-  | 'system.settings'
-  | 'roles.manage'
-  | 'permissions.manage'
-  | 'audit.view'
-  | 'notifications.manage'
-  | 'security.manage';
+  | "users.view"
+  | "users.create"
+  | "users.edit"
+  | "users.delete"
+  | "users.manage"
+  | "users.bulk_actions"
+  | "users.export"
+  | "users.permissions"
+  | "verifications.view"
+  | "verifications.approve"
+  | "contracts.view"
+  | "contracts.manage"
+  | "finances.view"
+  | "finances.manage"
+  | "warehouses.view"
+  | "warehouses.manage"
+  | "reports.view"
+  | "reports.export"
+  | "system.settings"
+  | "roles.manage"
+  | "permissions.manage"
+  | "audit.view"
+  | "notifications.manage"
+  | "security.manage";
 
 export type UserActivityLogItem = {
   id: string;
@@ -255,7 +255,7 @@ export type UserActivityLogItem = {
   ipAddress?: string;
   userAgent?: string;
   createdAt: Date;
-  importance?: 'LOW' | 'MEDIUM' | 'HIGH';
+  importance?: "LOW" | "MEDIUM" | "HIGH";
   relatedEntityId?: string;
   relatedEntityType?: string;
   performedById?: string;
@@ -395,8 +395,16 @@ export type UserAdvancedStatsData = UserStatsData & {
   growthRate?: number;
   retentionRateByPeriod?: Array<{ period: string; rate: number }>;
   conversionRates?: Record<string, number>;
-  roleDistributionTrend?: Array<{ date: string; role: UserRole; count: number }>;
-  statusDistributionTrend?: Array<{ date: string; status: UserStatus; count: number }>;
+  roleDistributionTrend?: Array<{
+    date: string;
+    role: UserRole;
+    count: number;
+  }>;
+  statusDistributionTrend?: Array<{
+    date: string;
+    status: UserStatus;
+    count: number;
+  }>;
   prevPeriodComparison?: {
     totalUsersDiff: number;
     newUsersDiff: number;
@@ -409,7 +417,7 @@ export type UserAdvancedStatsData = UserStatsData & {
 };
 
 export type UserExportOptions = {
-  format: 'csv' | 'excel' | 'pdf' | 'json';
+  format: "csv" | "excel" | "pdf" | "json";
   fields: string[];
   filters: UserFilters;
   includeSensitiveData?: boolean;
@@ -455,7 +463,7 @@ export type SendUserNotificationOptions = {
 
 export type UserDevicesOptions = {
   userId: string;
-  action: 'LIST' | 'REVOKE' | 'REVOKE_ALL' | 'SEND_VERIFICATION';
+  action: "LIST" | "REVOKE" | "REVOKE_ALL" | "SEND_VERIFICATION";
   deviceId?: string;
   notifyUser?: boolean;
 };

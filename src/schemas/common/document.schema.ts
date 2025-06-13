@@ -1,17 +1,17 @@
-import { z } from 'zod';
-import { DocumentType, VerificationStatus, UserRole } from '@prisma/client';
+import { z } from "zod";
+import { DocumentType, VerificationStatus, UserRole } from "@prisma/client";
 
 // Create a custom document type schema that includes SELFIE
 export const documentTypeSchema = z.enum([
-  'ID_CARD',
-  'DRIVING_LICENSE',
-  'VEHICLE_REGISTRATION',
-  'INSURANCE',
-  'QUALIFICATION_CERTIFICATE',
-  'PROOF_OF_ADDRESS',
-  'BUSINESS_REGISTRATION',
-  'SELFIE',
-  'OTHER',
+  "ID_CARD",
+  "DRIVING_LICENSE",
+  "VEHICLE_REGISTRATION",
+  "INSURANCE",
+  "QUALIFICATION_CERTIFICATE",
+  "PROOF_OF_ADDRESS",
+  "BUSINESS_REGISTRATION",
+  "SELFIE",
+  "OTHER",
 ]);
 
 export const verificationStatusSchema = z.nativeEnum(VerificationStatus);
@@ -20,18 +20,18 @@ export const verificationStatusSchema = z.nativeEnum(VerificationStatus);
 const fileSchema = z.union([
   // Option 1: Une chaîne (URL ou base64)
   z.string().refine(
-    val => {
+    (val) => {
       // Accepte soit une URL, soit une chaîne base64 commençant par "data:"
       return (
-        val.startsWith('http') ||
-        val.startsWith('https') ||
-        val.startsWith('/') ||
-        val.startsWith('data:')
+        val.startsWith("http") ||
+        val.startsWith("https") ||
+        val.startsWith("/") ||
+        val.startsWith("data:")
       );
     },
     {
-      message: 'Veuillez fournir une URL valide ou un fichier encodé en base64',
-    }
+      message: "Veuillez fournir une URL valide ou un fichier encodé en base64",
+    },
   ),
   // Option 2: Un objet (qui représente un File)
   z.object({}).passthrough(),
@@ -70,7 +70,9 @@ export const updateVerificationSchema = z.object({
 
 // Schema pour le filtrage des documents
 export const documentFilterSchema = z.object({
-  status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'EXPIRED', 'ALL']).optional(),
+  status: z
+    .enum(["PENDING", "APPROVED", "REJECTED", "EXPIRED", "ALL"])
+    .optional(),
   type: z.nativeEnum(DocumentType).optional(),
   page: z.number().default(1),
   limit: z.number().default(10),
@@ -80,14 +82,14 @@ export const documentFilterSchema = z.object({
 export const verifyDocumentSchema = z
   .object({
     documentId: z.string(),
-    status: z.enum(['APPROVED', 'REJECTED']),
+    status: z.enum(["APPROVED", "REJECTED"]),
     notes: z.string().optional(),
     rejectionReason: z.string().optional(),
   })
   .refine(
-    data => {
+    (data) => {
       if (
-        data.status === 'REJECTED' &&
+        data.status === "REJECTED" &&
         (!data.rejectionReason || data.rejectionReason.length < 3)
       ) {
         return false;
@@ -95,7 +97,7 @@ export const verifyDocumentSchema = z
       return true;
     },
     {
-      message: 'Une raison est requise pour rejeter un document',
-      path: ['rejectionReason'],
-    }
+      message: "Une raison est requise pour rejeter un document",
+      path: ["rejectionReason"],
+    },
   );

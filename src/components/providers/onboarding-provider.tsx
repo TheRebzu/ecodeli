@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { type ReactNode } from 'react';
-import { OnboardingProvider } from '@/components/shared/onboarding/onboarding-context';
-import { useTranslations } from 'next-intl';
+import { type ReactNode } from "react";
+import { OnboardingProvider } from "@/components/shared/onboarding/onboarding-context";
+import { useTranslations } from "next-intl";
 
 interface OnboardingWrapperProps {
   children: ReactNode;

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createDetailedReviewSchema } from '@/schemas/service/ratings.schema';
-import { RatingStars } from '@/components/client/deliveries/delivery-rating-form';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createDetailedReviewSchema } from "@/schemas/service/ratings.schema";
+import { RatingStars } from "@/components/client/deliveries/delivery-rating-form";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -15,7 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Card,
   CardContent,
@@ -23,17 +23,24 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { StarIcon, Plus, X, ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { api } from '@/trpc/react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+} from "@/components/ui/card";
+import {
+  StarIcon,
+  Plus,
+  X,
+  ThumbsUp,
+  ThumbsDown,
+  MessageCircle,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface RatingFormProps {
   bookingId: string;
@@ -57,13 +64,13 @@ export function RatingForm({
   showDetailedRating = true,
   existingReview,
 }: RatingFormProps) {
-  const t = useTranslations('services.review');
+  const t = useTranslations("services.review");
   const router = useRouter();
   const [hoverRating, setHoverRating] = useState(0);
   const [pros, setPros] = useState<string[]>(existingReview?.pros || []);
   const [cons, setCons] = useState<string[]>(existingReview?.cons || []);
-  const [newPro, setNewPro] = useState('');
-  const [newCon, setNewCon] = useState('');
+  const [newPro, setNewPro] = useState("");
+  const [newCon, setNewCon] = useState("");
   const [showDetailedForm, setShowDetailedForm] = useState(showDetailedRating);
 
   // Initialisation du formulaire
@@ -72,7 +79,7 @@ export function RatingForm({
     defaultValues: {
       bookingId,
       rating: existingReview?.rating || 0,
-      comment: existingReview?.comment || '',
+      comment: existingReview?.comment || "",
       pros: existingReview?.pros || [],
       cons: existingReview?.cons || [],
       wouldRecommend: existingReview?.wouldRecommend,
@@ -87,59 +94,60 @@ export function RatingForm({
   const bookingQuery = api.service.getBookingById.useQuery(
     { id: bookingId },
     {
-      onSuccess: data => {
+      onSuccess: (data) => {
         if (data.review) {
-          form.setValue('rating', data.review.rating);
-          form.setValue('comment', data.review.comment || '');
+          form.setValue("rating", data.review.rating);
+          form.setValue("comment", data.review.comment || "");
         }
       },
-    }
+    },
   );
 
   // Mutation pour créer ou mettre à jour une évaluation
   const createReviewMutation = api.service.createReview.useMutation({
     onSuccess: () => {
-      toast.success(t('success'));
+      toast.success(t("success"));
       if (onSuccess) {
         onSuccess();
       } else {
         router.push(`/[locale]/(protected)/client/services/${serviceId}`);
       }
     },
-    onError: error => {
-      toast.error(error.message || t('error'));
+    onError: (error) => {
+      toast.error(error.message || t("error"));
     },
   });
 
   // Mutation pour créer une évaluation détaillée
-  const createDetailedReviewMutation = api.service.createDetailedReview.useMutation({
-    onSuccess: () => {
-      toast.success(t('success'));
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        router.push(`/[locale]/(protected)/client/services/${serviceId}`);
-      }
-    },
-    onError: error => {
-      toast.error(error.message || t('error'));
-    },
-  });
+  const createDetailedReviewMutation =
+    api.service.createDetailedReview.useMutation({
+      onSuccess: () => {
+        toast.success(t("success"));
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push(`/[locale]/(protected)/client/services/${serviceId}`);
+        }
+      },
+      onError: (error) => {
+        toast.error(error.message || t("error"));
+      },
+    });
 
   // Ajouter/retirer un point positif
   const addPro = () => {
     if (newPro.trim() && pros.length < 5) {
       const updatedPros = [...pros, newPro.trim()];
       setPros(updatedPros);
-      form.setValue('pros', updatedPros);
-      setNewPro('');
+      form.setValue("pros", updatedPros);
+      setNewPro("");
     }
   };
 
   const removePro = (index: number) => {
     const updatedPros = pros.filter((_, i) => i !== index);
     setPros(updatedPros);
-    form.setValue('pros', updatedPros);
+    form.setValue("pros", updatedPros);
   };
 
   // Ajouter/retirer un point négatif
@@ -147,15 +155,15 @@ export function RatingForm({
     if (newCon.trim() && cons.length < 5) {
       const updatedCons = [...cons, newCon.trim()];
       setCons(updatedCons);
-      form.setValue('cons', updatedCons);
-      setNewCon('');
+      form.setValue("cons", updatedCons);
+      setNewCon("");
     }
   };
 
   const removeCon = (index: number) => {
     const updatedCons = cons.filter((_, i) => i !== index);
     setCons(updatedCons);
-    form.setValue('cons', updatedCons);
+    form.setValue("cons", updatedCons);
   };
 
   // Soumettre le formulaire
@@ -189,9 +197,9 @@ export function RatingForm({
   return (
     <Card className="max-w-lg mx-auto">
       <CardHeader>
-        <CardTitle>{hasExistingReview ? t('editTitle') : t('title')}</CardTitle>
+        <CardTitle>{hasExistingReview ? t("editTitle") : t("title")}</CardTitle>
         <CardDescription>
-          {t('subtitle', { service: serviceName, provider: providerName })}
+          {t("subtitle", { service: serviceName, provider: providerName })}
         </CardDescription>
       </CardHeader>
 
@@ -203,7 +211,7 @@ export function RatingForm({
               name="rating"
               render={({ field }) => (
                 <FormItem className="space-y-4">
-                  <FormLabel>{t('ratingLabel')}</FormLabel>
+                  <FormLabel>{t("ratingLabel")}</FormLabel>
                   <FormControl>
                     <div className="flex items-center justify-center">
                       <RatingStars
@@ -222,9 +230,11 @@ export function RatingForm({
             {showDetailedForm ? (
               <Tabs defaultValue="rating" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="rating">{t('generalRating')}</TabsTrigger>
-                  <TabsTrigger value="detailed">{t('detailedRating')}</TabsTrigger>
-                  <TabsTrigger value="feedback">{t('feedback')}</TabsTrigger>
+                  <TabsTrigger value="rating">{t("generalRating")}</TabsTrigger>
+                  <TabsTrigger value="detailed">
+                    {t("detailedRating")}
+                  </TabsTrigger>
+                  <TabsTrigger value="feedback">{t("feedback")}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="rating" className="space-y-4">
@@ -233,10 +243,10 @@ export function RatingForm({
                     name="comment"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('commentLabel')}</FormLabel>
+                        <FormLabel>{t("commentLabel")}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder={t('commentPlaceholder')}
+                            placeholder={t("commentPlaceholder")}
                             className="h-32 resize-none"
                             {...field}
                           />
@@ -251,9 +261,12 @@ export function RatingForm({
                     name="wouldRecommend"
                     render={({ field }) => (
                       <FormItem className="flex items-center justify-between space-y-0">
-                        <FormLabel>{t('wouldRecommend')}</FormLabel>
+                        <FormLabel>{t("wouldRecommend")}</FormLabel>
                         <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
                         </FormControl>
                       </FormItem>
                     )}
@@ -261,31 +274,36 @@ export function RatingForm({
                 </TabsContent>
 
                 <TabsContent value="detailed" className="space-y-4">
-                  {(['punctuality', 'quality', 'communication', 'valueForMoney'] as const).map(
-                    criterion => (
-                      <FormField
-                        key={criterion}
-                        control={form.control}
-                        name={criterion}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t(`criteria.${criterion}`)}</FormLabel>
-                            <FormControl>
-                              <div className="flex items-center space-x-2">
-                                <RatingStars
-                                  rating={field.value || 0}
-                                  onChange={field.onChange}
-                                  size="md"
-                                  showValue
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )
-                  )}
+                  {(
+                    [
+                      "punctuality",
+                      "quality",
+                      "communication",
+                      "valueForMoney",
+                    ] as const
+                  ).map((criterion) => (
+                    <FormField
+                      key={criterion}
+                      control={form.control}
+                      name={criterion}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t(`criteria.${criterion}`)}</FormLabel>
+                          <FormControl>
+                            <div className="flex items-center space-x-2">
+                              <RatingStars
+                                rating={field.value || 0}
+                                onChange={field.onChange}
+                                size="md"
+                                showValue
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
                 </TabsContent>
 
                 <TabsContent value="feedback" className="space-y-4">
@@ -293,14 +311,14 @@ export function RatingForm({
                     <div className="space-y-2">
                       <Label className="flex items-center space-x-2">
                         <ThumbsUp className="h-4 w-4 text-green-500" />
-                        <span>{t('prosLabel')}</span>
+                        <span>{t("prosLabel")}</span>
                       </Label>
                       <div className="flex space-x-2">
                         <Input
-                          placeholder={t('prosPlaceholder')}
+                          placeholder={t("prosPlaceholder")}
                           value={newPro}
-                          onChange={e => setNewPro(e.target.value)}
-                          onKeyPress={e => e.key === 'Enter' && addPro()}
+                          onChange={(e) => setNewPro(e.target.value)}
+                          onKeyPress={(e) => e.key === "Enter" && addPro()}
                         />
                         <Button
                           type="button"
@@ -335,14 +353,14 @@ export function RatingForm({
                     <div className="space-y-2">
                       <Label className="flex items-center space-x-2">
                         <ThumbsDown className="h-4 w-4 text-red-500" />
-                        <span>{t('consLabel')}</span>
+                        <span>{t("consLabel")}</span>
                       </Label>
                       <div className="flex space-x-2">
                         <Input
-                          placeholder={t('consPlaceholder')}
+                          placeholder={t("consPlaceholder")}
                           value={newCon}
-                          onChange={e => setNewCon(e.target.value)}
-                          onKeyPress={e => e.key === 'Enter' && addCon()}
+                          onChange={(e) => setNewCon(e.target.value)}
+                          onKeyPress={(e) => e.key === "Enter" && addCon()}
                         />
                         <Button
                           type="button"
@@ -382,10 +400,10 @@ export function RatingForm({
                 name="comment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('commentLabel')}</FormLabel>
+                    <FormLabel>{t("commentLabel")}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder={t('commentPlaceholder')}
+                        placeholder={t("commentPlaceholder")}
                         className="h-32 resize-none"
                         {...field}
                       />
@@ -399,7 +417,7 @@ export function RatingForm({
 
           <CardFooter className="flex justify-between">
             <Button type="button" variant="ghost" onClick={() => router.back()}>
-              {t('cancel')}
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
@@ -407,14 +425,15 @@ export function RatingForm({
                 createReviewMutation.isPending ||
                 createDetailedReviewMutation.isPending ||
                 !form.formState.isDirty ||
-                !form.getValues('rating')
+                !form.getValues("rating")
               }
             >
-              {createReviewMutation.isPending || createDetailedReviewMutation.isPending
-                ? t('submitting')
+              {createReviewMutation.isPending ||
+              createDetailedReviewMutation.isPending
+                ? t("submitting")
                 : hasExistingReview
-                  ? t('update')
-                  : t('submit')}
+                  ? t("update")
+                  : t("submit")}
             </Button>
           </CardFooter>
         </form>

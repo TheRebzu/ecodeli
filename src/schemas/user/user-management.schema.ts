@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { UserRole, UserStatus } from '@prisma/client';
-import { ActivityType } from '@/types/actors/admin';
+import { z } from "zod";
+import { UserRole, UserStatus } from "@prisma/client";
+import { ActivityType } from "@/types/actors/admin";
 
 // Schema pour filtrer les utilisateurs dans l'interface d'administration
 export const userFiltersSchema = z
@@ -28,20 +28,20 @@ export const userFiltersSchema = z
     limit: z.number().int().min(1).max(100).default(10),
     sortBy: z
       .enum([
-        'name',
-        'email',
-        'role',
-        'status',
-        'createdAt',
-        'lastLoginAt',
-        'lastActivityAt',
-        'documentsCount',
-        'isVerified',
-        'country',
-        'subscriptionStatus',
+        "name",
+        "email",
+        "role",
+        "status",
+        "createdAt",
+        "lastLoginAt",
+        "lastActivityAt",
+        "documentsCount",
+        "isVerified",
+        "country",
+        "subscriptionStatus",
       ])
-      .default('createdAt'),
-    sortDirection: z.enum(['asc', 'desc']).default('desc'),
+      .default("createdAt"),
+    sortDirection: z.enum(["asc", "desc"]).default("desc"),
   })
   .optional()
   .default({});
@@ -102,10 +102,10 @@ export const userActivityLogSchema = z.object({
   dateTo: z.coerce.date().optional(),
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(10),
-  sortDirection: z.enum(['asc', 'desc']).default('desc'),
+  sortDirection: z.enum(["asc", "desc"]).default("desc"),
   includeDetails: z.boolean().default(false),
   ipAddress: z.string().optional(),
-  importance: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  importance: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
   searchTerm: z.string().optional(),
 });
 
@@ -114,9 +114,9 @@ export const userNoteSchema = z.object({
   userId: z.string(),
   note: z.string().min(1).max(1000),
   category: z
-    .enum(['GENERAL', 'SUPPORT', 'VERIFICATION', 'BILLING', 'SECURITY'])
-    .default('GENERAL'),
-  visibility: z.enum(['PUBLIC', 'PRIVATE', 'ADMIN_ONLY']).default('ADMIN_ONLY'),
+    .enum(["GENERAL", "SUPPORT", "VERIFICATION", "BILLING", "SECURITY"])
+    .default("GENERAL"),
+  visibility: z.enum(["PUBLIC", "PRIVATE", "ADMIN_ONLY"]).default("ADMIN_ONLY"),
   pinned: z.boolean().default(false),
   reminderDate: z.coerce.date().optional(),
 });
@@ -128,14 +128,14 @@ export const addUserActivityLogSchema = z.object({
   details: z.string().optional(),
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),
-  importance: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('MEDIUM'),
+  importance: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
   relatedEntityId: z.string().optional(), // ID d'une entité liée (ex: document, paiement)
   relatedEntityType: z.string().optional(), // Type d'entité liée
 });
 
 // Schema pour exporter les utilisateurs
 export const exportUsersSchema = z.object({
-  format: z.enum(['csv', 'excel', 'pdf', 'json']),
+  format: z.enum(["csv", "excel", "pdf", "json"]),
   fields: z.array(z.string()),
   filters: userFiltersSchema.optional(),
   includeSensitiveData: z.boolean().default(false), // Pour les exports avec données sensibles
@@ -160,19 +160,19 @@ export const forcePasswordResetSchema = z.object({
 export const bulkUserActionSchema = z.object({
   userIds: z.array(z.string()).min(1),
   action: z.enum([
-    'ACTIVATE',
-    'DEACTIVATE',
-    'SUSPEND',
-    'FORCE_PASSWORD_RESET',
-    'SEND_VERIFICATION_EMAIL',
-    'DELETE',
-    'ADD_TAG',
-    'REMOVE_TAG',
-    'ASSIGN_ROLE',
-    'ASSIGN_PERMISSION',
-    'REVOKE_PERMISSION',
-    'SEND_NOTIFICATION',
-    'EXPORT_DATA',
+    "ACTIVATE",
+    "DEACTIVATE",
+    "SUSPEND",
+    "FORCE_PASSWORD_RESET",
+    "SEND_VERIFICATION_EMAIL",
+    "DELETE",
+    "ADD_TAG",
+    "REMOVE_TAG",
+    "ASSIGN_ROLE",
+    "ASSIGN_PERMISSION",
+    "REVOKE_PERMISSION",
+    "SEND_NOTIFICATION",
+    "EXPORT_DATA",
   ]),
   reason: z.string().optional(),
   notifyUsers: z.boolean().default(true),
@@ -189,8 +189,8 @@ export const auditLogFiltersSchema = z.object({
   action: z.string().optional(),
   fromDate: z.coerce.date().optional(),
   toDate: z.coerce.date().optional(),
-  severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
-  status: z.enum(['SUCCESS', 'FAILURE', 'ATTEMPTED']).optional(),
+  severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
+  status: z.enum(["SUCCESS", "FAILURE", "ATTEMPTED"]).optional(),
   ipAddress: z.string().optional(),
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(20),
@@ -215,8 +215,8 @@ export const sendUserNotificationSchema = z.object({
   userId: z.string(),
   title: z.string().min(1).max(100),
   message: z.string().min(1).max(1000),
-  type: z.enum(['INFO', 'SUCCESS', 'WARNING', 'ERROR']).default('INFO'),
-  channel: z.enum(['EMAIL', 'PUSH', 'SMS', 'IN_APP']).default('EMAIL'),
+  type: z.enum(["INFO", "SUCCESS", "WARNING", "ERROR"]).default("INFO"),
+  channel: z.enum(["EMAIL", "PUSH", "SMS", "IN_APP"]).default("EMAIL"),
   actionUrl: z.string().url().optional(),
   actionLabel: z.string().max(30).optional(),
   attachmentUrl: z.string().url().optional(),
@@ -228,14 +228,14 @@ export const sendUserNotificationSchema = z.object({
 // Schema pour gérer les périphériques connectés de l'utilisateur
 export const userDevicesSchema = z.object({
   userId: z.string(),
-  action: z.enum(['LIST', 'REVOKE', 'REVOKE_ALL', 'SEND_VERIFICATION']),
+  action: z.enum(["LIST", "REVOKE", "REVOKE_ALL", "SEND_VERIFICATION"]),
   deviceId: z.string().optional(), // Pour l'action sur un appareil spécifique
   notifyUser: z.boolean().default(true),
 });
 
 // Schema pour les statistiques utilisateur avancées
 export const userStatsAdvancedSchema = z.object({
-  period: z.enum(['DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR']).default('MONTH'),
+  period: z.enum(["DAY", "WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
   compareWithPrevious: z.boolean().default(true),
   breakdownByRole: z.boolean().default(true),
   breakdownByStatus: z.boolean().default(true),
@@ -254,7 +254,13 @@ export type UpdateUserRoleSchemaType = z.infer<typeof updateUserRoleSchema>;
 export type UserNoteSchemaType = z.infer<typeof userNoteSchema>;
 export type ExportUsersSchemaType = z.infer<typeof exportUsersSchema>;
 export type BulkUserActionSchemaType = z.infer<typeof bulkUserActionSchema>;
-export type UserNotificationSettingsSchemaType = z.infer<typeof userNotificationSettingsSchema>;
-export type SendUserNotificationSchemaType = z.infer<typeof sendUserNotificationSchema>;
+export type UserNotificationSettingsSchemaType = z.infer<
+  typeof userNotificationSettingsSchema
+>;
+export type SendUserNotificationSchemaType = z.infer<
+  typeof sendUserNotificationSchema
+>;
 export type UserDevicesSchemaType = z.infer<typeof userDevicesSchema>;
-export type UserStatsAdvancedSchemaType = z.infer<typeof userStatsAdvancedSchema>;
+export type UserStatsAdvancedSchemaType = z.infer<
+  typeof userStatsAdvancedSchema
+>;

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -8,11 +8,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { useDeliveryStatus } from '@/hooks/delivery/use-delivery-status';
-import { DeliveryStatus } from '@/types/delivery/delivery';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useDeliveryStatus } from "@/hooks/delivery/use-delivery-status";
+import { DeliveryStatus } from "@/types/delivery/delivery";
 import {
   CheckCircle2,
   Truck,
@@ -21,9 +21,9 @@ import {
   XCircle,
   AlertCircle,
   RefreshCw,
-} from 'lucide-react';
-import { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+} from "lucide-react";
+import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface DeliveryStatusUpdateProps {
   deliveryId: string;
@@ -34,10 +34,10 @@ interface DeliveryStatusUpdateProps {
 export default function DeliveryStatusUpdate({
   deliveryId,
   currentStatus,
-  className = '',
+  className = "",
 }: DeliveryStatusUpdateProps) {
-  const t = useTranslations('deliveries.statusUpdate');
-  const [note, setNote] = useState('');
+  const t = useTranslations("deliveries.statusUpdate");
+  const [note, setNote] = useState("");
 
   // Utiliser le hook personnalisé pour la mise à jour du statut
   const { actions, isUpdating, error } = useDeliveryStatus(deliveryId);
@@ -55,24 +55,31 @@ export default function DeliveryStatusUpdate({
   ].includes(currentStatus);
 
   // Gérer la position actuelle (à implémenter avec la géolocalisation)
-  const getCurrentPosition = (): Promise<{ latitude: number; longitude: number }> => {
+  const getCurrentPosition = (): Promise<{
+    latitude: number;
+    longitude: number;
+  }> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        reject(new Error("La géolocalisation n'est pas prise en charge par votre navigateur"));
+        reject(
+          new Error(
+            "La géolocalisation n'est pas prise en charge par votre navigateur",
+          ),
+        );
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
-        position => {
+        (position) => {
           resolve({
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           });
         },
-        error => {
+        (error) => {
           reject(error);
         },
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true },
       );
     });
   };
@@ -110,32 +117,33 @@ export default function DeliveryStatusUpdate({
     }
   };
 
-  const handleCancel = () => actions.cancelDelivery(note || 'Annulé par le livreur');
+  const handleCancel = () =>
+    actions.cancelDelivery(note || "Annulé par le livreur");
 
   // Détermine l'action principale en fonction de l'état actuel
   const getPrimaryAction = () => {
     if (canAccept)
       return {
         action: handleAccept,
-        label: t('acceptDelivery'),
+        label: t("acceptDelivery"),
         icon: <CheckCircle2 className="h-4 w-4 mr-2" />,
       };
     if (canPickup)
       return {
         action: handlePickup,
-        label: t('startPickup'),
+        label: t("startPickup"),
         icon: <Package className="h-4 w-4 mr-2" />,
       };
     if (canTransit)
       return {
         action: handleTransit,
-        label: t('confirmPickup'),
+        label: t("confirmPickup"),
         icon: <Truck className="h-4 w-4 mr-2" />,
       };
     if (canDeliver)
       return {
         action: handleDeliver,
-        label: t('markAsDelivered'),
+        label: t("markAsDelivered"),
         icon: <MapPin className="h-4 w-4 mr-2" />,
       };
     return null;
@@ -146,16 +154,16 @@ export default function DeliveryStatusUpdate({
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          {t('statusIs')}: {t(`statuses.${currentStatus}`)}
+          {t("statusIs")}: {t(`statuses.${currentStatus}`)}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('errorTitle')}</AlertTitle>
+            <AlertTitle>{t("errorTitle")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -163,12 +171,12 @@ export default function DeliveryStatusUpdate({
         {canCancel && (
           <div className="space-y-2">
             <Textarea
-              placeholder={t('notePlaceholder')}
+              placeholder={t("notePlaceholder")}
               value={note}
-              onChange={e => setNote(e.target.value)}
+              onChange={(e) => setNote(e.target.value)}
               disabled={isUpdating}
             />
-            <p className="text-xs text-muted-foreground">{t('noteHelp')}</p>
+            <p className="text-xs text-muted-foreground">{t("noteHelp")}</p>
           </div>
         )}
 
@@ -187,8 +195,8 @@ export default function DeliveryStatusUpdate({
           {currentStatus === DeliveryStatus.DELIVERED && (
             <Alert>
               <RefreshCw className="h-4 w-4" />
-              <AlertTitle>{t('waitingForConfirmation')}</AlertTitle>
-              <AlertDescription>{t('clientMustConfirm')}</AlertDescription>
+              <AlertTitle>{t("waitingForConfirmation")}</AlertTitle>
+              <AlertDescription>{t("clientMustConfirm")}</AlertDescription>
             </Alert>
           )}
 
@@ -200,7 +208,7 @@ export default function DeliveryStatusUpdate({
               disabled={isUpdating}
             >
               <XCircle className="h-4 w-4 mr-2" />
-              {t('cancelDelivery')}
+              {t("cancelDelivery")}
             </Button>
           )}
         </div>

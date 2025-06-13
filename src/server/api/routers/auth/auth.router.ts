@@ -1,6 +1,11 @@
-import { router, publicProcedure, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { AuthService } from '@/server/services/auth/auth.service';
-import { DocumentService } from '@/server/services/common/document.service';
+import {
+  router,
+  publicProcedure,
+  protectedProcedure,
+  adminProcedure,
+} from "@/server/api/trpc";
+import { AuthService } from "@/server/services/auth/auth.service";
+import { DocumentService } from "@/server/services/common/document.service";
 import {
   registrationSchema,
   forgotPasswordSchema,
@@ -8,32 +13,37 @@ import {
   twoFactorSchema,
   emailSchema,
   passwordSchema,
-} from '@/schemas/validation';
-import { accountVerificationSchema } from '@/schemas/auth/verification.schema';
-import { createAdminSchema } from '@/schemas/admin/admin.schema';
-import { z } from 'zod';
-import { DocumentType, UserRole, VerificationStatus } from '@prisma/client';
-import { DocumentStatus } from '@/server/db/enums';
-import { TRPCError } from '@trpc/server';
-import { authenticator } from 'otplib';
-import { hashPassword, verifyPassword } from '@/lib/security/passwords';
-import { sendEmailNotification } from '@/lib/services/email.service';
-import { generateVerificationToken, generatePasswordResetToken } from '@/lib/security/tokens';
-import { generateTOTPSecret, generateBackupCodes } from '@/lib/security/totp';
-import { format } from 'date-fns';
-import path from 'path';
-import fs from 'fs/promises';
-import { getUserDocumentsWithFullStatus } from '@/utils/document-utils';
+} from "@/schemas/validation";
+import { accountVerificationSchema } from "@/schemas/auth/verification.schema";
+import { createAdminSchema } from "@/schemas/admin/admin.schema";
+import { z } from "zod";
+import { DocumentType, UserRole, VerificationStatus } from "@prisma/client";
+import { DocumentStatus } from "@/server/db/enums";
+import { TRPCError } from "@trpc/server";
+import { authenticator } from "otplib";
+import { hashPassword, verifyPassword } from "@/lib/security/passwords";
+import { sendEmailNotification } from "@/lib/services/email.service";
+import {
+  generateVerificationToken,
+  generatePasswordResetToken,
+} from "@/lib/security/tokens";
+import { generateTOTPSecret, generateBackupCodes } from "@/lib/security/totp";
+import { format } from "date-fns";
+import path from "path";
+import fs from "fs/promises";
+import { getUserDocumentsWithFullStatus } from "@/utils/document-utils";
 
 const authService = new AuthService();
 const documentService = new DocumentService();
 
 // Schéma de validation pour l'inscription
 const registerSchema = z.object({
-  email: z.string().email('Email invalide'),
-  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
-  name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  role: z.enum(['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER']),
+  email: z.string().email("Email invalide"),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  role: z.enum(["CLIENT", "DELIVERER", "MERCHANT", "PROVIDER"]),
   phone: z.string().optional(),
   companyName: z.string().optional(),
   siret: z.string().optional(),
@@ -132,57 +142,59 @@ export const authRouter = router({
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  register: publicProcedure.input(registerSchema).mutation(async ({ ctx, input }) => {
-    const { email, password, name, role } = input;
+  register: publicProcedure
+    .input(registerSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { email, password, name, role } = input;
 
-    try {
-      // Vérification si l'email existe déjà
-      const existingUser = await ctx.db.user.findUnique({
-        where: { email },
-      });
+      try {
+        // Vérification si l'email existe déjà
+        const existingUser = await ctx.db.user.findUnique({
+          where: { email },
+        });
 
-      if (existingUser) {
+        if (existingUser) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Cet email est déjà utilisé",
+          });
+        }
+
+        // Hashage du mot de passe
+        const hashedPassword = await hashPassword(password);
+
+        // Création de l'utilisateur sans les relations pour simplifier
+        const user = await ctx.db.user.create({
+          data: {
+            email,
+            password: hashedPassword,
+            name,
+            role,
+            emailVerified: null,
+          },
+        });
+
+        // Note: En attendant de corriger le modèle Prisma, nous ne créons pas les profils spécifiques
+        // pour chaque rôle. À implémenter une fois le modèle corrigé.
+
+        return {
+          success: true,
+          userId: user.id,
+          role: user.role,
+        };
+      } catch (error) {
+        console.error("Erreur lors de l'inscription:", error);
+
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
         throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Cet email est déjà utilisé',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Une erreur est survenue lors de l'inscription",
         });
       }
-
-      // Hashage du mot de passe
-      const hashedPassword = await hashPassword(password);
-
-      // Création de l'utilisateur sans les relations pour simplifier
-      const user = await ctx.db.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
-          role,
-          emailVerified: null,
-        },
-      });
-
-      // Note: En attendant de corriger le modèle Prisma, nous ne créons pas les profils spécifiques
-      // pour chaque rôle. À implémenter une fois le modèle corrigé.
-
-      return {
-        success: true,
-        userId: user.id,
-        role: user.role,
-      };
-    } catch (error) {
-      console.error("Erreur lors de l'inscription:", error);
-
-      if (error instanceof TRPCError) {
-        throw error;
-      }
-
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: "Une erreur est survenue lors de l'inscription",
-      });
-    }
-  }),
+    }),
 
   // Vérification de l'email
   verifyEmail: publicProcedure
@@ -197,8 +209,8 @@ export const authRouter = router({
 
         if (!success) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Token de vérification invalide ou expiré',
+            code: "NOT_FOUND",
+            message: "Token de vérification invalide ou expiré",
           });
         }
 
@@ -206,8 +218,8 @@ export const authRouter = router({
       } catch (error) {
         console.error("Erreur lors de la vérification de l'email:", error);
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Token de vérification invalide ou expiré',
+          code: "NOT_FOUND",
+          message: "Token de vérification invalide ou expiré",
         });
       }
     }),
@@ -251,7 +263,7 @@ export const authRouter = router({
       z.object({
         token: z.string(),
         password: z.string().min(8),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { token, password } = input;
@@ -271,8 +283,8 @@ export const authRouter = router({
 
       if (!resetToken) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Token invalide ou expiré',
+          code: "NOT_FOUND",
+          message: "Token invalide ou expiré",
         });
       }
 
@@ -320,20 +332,20 @@ export const authRouter = router({
 
         if (!user) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Utilisateur non trouvé',
+            code: "NOT_FOUND",
+            message: "Utilisateur non trouvé",
           });
         }
 
         if (user.emailVerified) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cet email est déjà vérifié',
+            code: "BAD_REQUEST",
+            message: "Cet email est déjà vérifié",
           });
         }
 
         // Générer un nouveau token et envoyer l'email via le service
-        const locale = ctx.locale || 'fr';
+        const locale = ctx.locale || "fr";
         await authService.resendVerificationEmail(email, locale);
 
         return { success: true };
@@ -342,7 +354,7 @@ export const authRouter = router({
           throw error;
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'envoi de l'email de vérification",
         });
       }
@@ -358,43 +370,52 @@ export const authRouter = router({
         mimeType: z.string(),
         expiryDate: z.date().optional(),
         description: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
-      const { type, fileData, fileName, mimeType, expiryDate, description } = input;
+      const { type, fileData, fileName, mimeType, expiryDate, description } =
+        input;
 
       console.log(
-        `Début de l'upload de document: ${type} pour l'utilisateur ${user.id} (${user.role})`
+        `Début de l'upload de document: ${type} pour l'utilisateur ${user.id} (${user.role})`,
       );
       console.log(
-        `Le document a une date d'expiration: ${expiryDate ? format(expiryDate, 'yyyy-MM-dd') : 'Non'}`
+        `Le document a une date d'expiration: ${expiryDate ? format(expiryDate, "yyyy-MM-dd") : "Non"}`,
       );
 
       // Vérifier si l'utilisateur est autorisé à uploader des documents
-      if (!['DELIVERER', 'MERCHANT', 'PROVIDER'].includes(user.role)) {
+      if (!["DELIVERER", "MERCHANT", "PROVIDER"].includes(user.role)) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à uploader des documents",
         });
       }
 
       try {
         // Créer un nom de fichier unique
-        const uniqueFilename = `${user.id}_${Date.now()}_${fileName.replace(/[^a-z0-9.]/gi, '_')}`;
+        const uniqueFilename = `${user.id}_${Date.now()}_${fileName.replace(/[^a-z0-9.]/gi, "_")}`;
 
         // Définir le chemin du répertoire utilisateur
-        const userUploadDir = path.join(process.cwd(), 'public', 'uploads', user.id);
+        const userUploadDir = path.join(
+          process.cwd(),
+          "public",
+          "uploads",
+          user.id,
+        );
 
         // S'assurer que le répertoire utilisateur existe
         try {
           await fs.mkdir(userUploadDir, { recursive: true });
           console.log(`Répertoire créé ou vérifié: ${userUploadDir}`);
         } catch (dirError) {
-          console.error(`Erreur lors de la création du répertoire: ${userUploadDir}`, dirError);
+          console.error(
+            `Erreur lors de la création du répertoire: ${userUploadDir}`,
+            dirError,
+          );
           throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Impossible de créer le répertoire de stockage',
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Impossible de créer le répertoire de stockage",
           });
         }
 
@@ -408,24 +429,26 @@ export const authRouter = router({
         let fileBuffer: Buffer;
         try {
           // Extraire le contenu réel du base64 (supprimer le préfixe data:image/jpeg;base64,)
-          const base64Data = fileData.split(',')[1] || fileData;
-          fileBuffer = Buffer.from(base64Data, 'base64');
+          const base64Data = fileData.split(",")[1] || fileData;
+          fileBuffer = Buffer.from(base64Data, "base64");
         } catch (base64Error) {
-          console.error('Erreur lors du décodage base64:', base64Error);
+          console.error("Erreur lors du décodage base64:", base64Error);
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Format de fichier invalide',
+            code: "BAD_REQUEST",
+            message: "Format de fichier invalide",
           });
         }
 
         // Écrire le fichier sur le disque
         try {
           await fs.writeFile(filePath, fileBuffer);
-          console.log(`Fichier écrit avec succès: ${filePath} (${fileBuffer.length} octets)`);
+          console.log(
+            `Fichier écrit avec succès: ${filePath} (${fileBuffer.length} octets)`,
+          );
         } catch (writeError) {
           console.error("Erreur lors de l'écriture du fichier:", writeError);
           throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
+            code: "INTERNAL_SERVER_ERROR",
             message: "Erreur lors de l'enregistrement du fichier",
           });
         }
@@ -449,7 +472,9 @@ export const authRouter = router({
 
         // Ajouter les champs optionnels si présents
         if (expiryDate) {
-          console.log(`Date d'expiration définie: ${format(expiryDate, 'yyyy-MM-dd')}`);
+          console.log(
+            `Date d'expiration définie: ${format(expiryDate, "yyyy-MM-dd")}`,
+          );
           // @ts-ignore - Ignorer l'erreur TypeScript ici car nous savons que le champ existe
           documentData.expiryDate = expiryDate;
         }
@@ -459,9 +484,9 @@ export const authRouter = router({
           documentData.notes = description;
         }
 
-        console.log('Création du document avec les données:', {
+        console.log("Création du document avec les données:", {
           ...documentData,
-          fileData: '[CONTENU REDACTÉ]',
+          fileData: "[CONTENU REDACTÉ]",
         });
 
         // Créer le document
@@ -484,8 +509,8 @@ export const authRouter = router({
       } catch (error) {
         console.error(`Erreur lors de l'upload du document:`, error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: `Erreur lors de l'upload du document: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erreur lors de l'upload du document: ${error instanceof Error ? error.message : "Unknown error"}`,
         });
       }
     }),
@@ -499,13 +524,15 @@ export const authRouter = router({
 
     // Map uploadedAt to createdAt for frontend compatibility
     // Also handle SELFIE documents stored as OTHER with notes containing "SELFIE"
-    return documents.map(doc => ({
+    return documents.map((doc) => ({
       ...doc,
       createdAt: doc.uploadedAt,
       // If document is OTHER type but has notes containing "SELFIE" (case insensitive), correct the type for frontend
       type:
-        doc.type === 'OTHER' && doc.notes && doc.notes.toLowerCase().includes('selfie')
-          ? 'SELFIE'
+        doc.type === "OTHER" &&
+        doc.notes &&
+        doc.notes.toLowerCase().includes("selfie")
+          ? "SELFIE"
           : doc.type,
     }));
   }),
@@ -515,18 +542,18 @@ export const authRouter = router({
     .input(
       z.object({
         documentId: z.string(),
-        status: z.enum(['APPROVED', 'REJECTED']),
+        status: z.enum(["APPROVED", "REJECTED"]),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
       const { documentId, status, notes } = input;
 
       // Vérifier si l'utilisateur est admin
-      if (user.role !== 'ADMIN') {
+      if (user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à vérifier des documents",
         });
       }
@@ -540,8 +567,8 @@ export const authRouter = router({
 
       if (!document) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Document non trouvé',
+          code: "NOT_FOUND",
+          message: "Document non trouvé",
         });
       }
 
@@ -560,12 +587,12 @@ export const authRouter = router({
         where: { id: documentId },
         data: {
           status,
-          rejectionReason: status === 'REJECTED' ? notes : null,
+          rejectionReason: status === "REJECTED" ? notes : null,
         },
       });
 
       // Si tous les documents requis sont approuvés, mettre à jour le statut du profil
-      if (status === 'APPROVED') {
+      if (status === "APPROVED") {
         const userDocuments = await ctx.db.document.findMany({
           where: {
             userId: document.userId,
@@ -573,47 +600,53 @@ export const authRouter = router({
         });
 
         const requiredDocumentsApproved =
-          document.userRole === 'DELIVERER'
+          document.userRole === "DELIVERER"
             ? userDocuments.filter(
-                doc =>
-                  ['ID_CARD', 'DRIVING_LICENSE', 'VEHICLE_REGISTRATION', 'INSURANCE'].includes(
-                    doc.type
-                  ) && doc.status === 'APPROVED'
+                (doc) =>
+                  [
+                    "ID_CARD",
+                    "DRIVING_LICENSE",
+                    "VEHICLE_REGISTRATION",
+                    "INSURANCE",
+                  ].includes(doc.type) && doc.status === "APPROVED",
               ).length >= 4
-            : document.userRole === 'PROVIDER'
+            : document.userRole === "PROVIDER"
               ? userDocuments.filter(
-                  doc =>
+                  (doc) =>
                     [
-                      'ID_CARD',
-                      'QUALIFICATION_CERTIFICATE',
-                      'PROOF_OF_ADDRESS',
-                      'INSURANCE',
-                    ].includes(doc.type) && doc.status === 'APPROVED'
+                      "ID_CARD",
+                      "QUALIFICATION_CERTIFICATE",
+                      "PROOF_OF_ADDRESS",
+                      "INSURANCE",
+                    ].includes(doc.type) && doc.status === "APPROVED",
                 ).length >= 4
-              : document.userRole === 'MERCHANT'
+              : document.userRole === "MERCHANT"
                 ? userDocuments.filter(
-                    doc =>
-                      ['ID_CARD', 'BUSINESS_REGISTRATION', 'PROOF_OF_ADDRESS'].includes(doc.type) &&
-                      doc.status === 'APPROVED'
+                    (doc) =>
+                      [
+                        "ID_CARD",
+                        "BUSINESS_REGISTRATION",
+                        "PROOF_OF_ADDRESS",
+                      ].includes(doc.type) && doc.status === "APPROVED",
                   ).length >= 3
                 : false;
 
         if (requiredDocumentsApproved) {
           // Mettre à jour le statut de vérification du profil spécifique
-          if (document.userRole === 'DELIVERER') {
+          if (document.userRole === "DELIVERER") {
             await ctx.db.delivererProfile.updateMany({
               where: { profileId: document.profileId },
-              data: { verificationStatus: 'VERIFIED' },
+              data: { verificationStatus: "VERIFIED" },
             });
-          } else if (document.userRole === 'PROVIDER') {
+          } else if (document.userRole === "PROVIDER") {
             await ctx.db.providerProfile.updateMany({
               where: { profileId: document.profileId },
-              data: { verificationStatus: 'VERIFIED' },
+              data: { verificationStatus: "VERIFIED" },
             });
-          } else if (document.userRole === 'MERCHANT') {
+          } else if (document.userRole === "MERCHANT") {
             await ctx.db.merchantProfile.updateMany({
               where: { profileId: document.profileId },
-              data: { verificationStatus: 'VERIFIED' },
+              data: { verificationStatus: "VERIFIED" },
             });
           }
         }
@@ -637,8 +670,8 @@ export const authRouter = router({
 
     if (!userWithTwoFactor) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
@@ -651,13 +684,13 @@ export const authRouter = router({
 
       return {
         isEnabled: true,
-        backupCodes: backupCodes.map(bc => bc.code),
+        backupCodes: backupCodes.map((bc) => bc.code),
       };
     }
 
     // Générer un nouveau secret TOTP
     const secret = generateTOTPSecret();
-    const otpauth = authenticator.keyuri(user.email, 'EcoDeli', secret);
+    const otpauth = authenticator.keyuri(user.email, "EcoDeli", secret);
 
     // Stocker temporairement le secret non vérifié
     await ctx.db.user.update({
@@ -692,8 +725,8 @@ export const authRouter = router({
 
       if (!userWithSecret?.twoFactorSecret) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Secret TOTP non configuré',
+          code: "BAD_REQUEST",
+          message: "Secret TOTP non configuré",
         });
       }
 
@@ -705,8 +738,8 @@ export const authRouter = router({
 
       if (!isValid) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Code de vérification invalide',
+          code: "BAD_REQUEST",
+          message: "Code de vérification invalide",
         });
       }
 
@@ -728,15 +761,15 @@ export const authRouter = router({
 
       // Enregistrer les nouveaux codes de secours
       await Promise.all(
-        backupCodes.map(code =>
+        backupCodes.map((code) =>
           ctx.db.twoFactorBackupCode.create({
             data: {
               userId: user.id,
               code,
               used: false,
             },
-          })
-        )
+          }),
+        ),
       );
 
       return true;
@@ -778,7 +811,7 @@ export const authRouter = router({
     });
 
     if (!profile) {
-      return { isComplete: false, missingFields: ['profile'] };
+      return { isComplete: false, missingFields: ["profile"] };
     }
 
     const missingFields: string[] = [];
@@ -787,36 +820,39 @@ export const authRouter = router({
     const documents = await getUserDocumentsWithFullStatus(user.id, user.role);
 
     // Helper pour vérifier la présence d'un type de document
-    const hasDoc = (type: string) => documents.some(doc => doc.type === type);
+    const hasDoc = (type: string) => documents.some((doc) => doc.type === type);
 
     // Vérifier selon le rôle de l'utilisateur
     switch (user.role) {
-      case 'CLIENT':
-        if (!profile.client?.phone) missingFields.push('phone');
+      case "CLIENT":
+        if (!profile.client?.phone) missingFields.push("phone");
         break;
-      case 'DELIVERER':
-        if (!profile.deliverer?.phone) missingFields.push('phone');
-        if (!hasDoc('ID_CARD')) missingFields.push('ID_CARD');
-        if (!hasDoc('DRIVING_LICENSE')) missingFields.push('DRIVING_LICENSE');
-        if (!hasDoc('VEHICLE_REGISTRATION')) missingFields.push('VEHICLE_REGISTRATION');
-        if (!hasDoc('INSURANCE')) missingFields.push('INSURANCE');
+      case "DELIVERER":
+        if (!profile.deliverer?.phone) missingFields.push("phone");
+        if (!hasDoc("ID_CARD")) missingFields.push("ID_CARD");
+        if (!hasDoc("DRIVING_LICENSE")) missingFields.push("DRIVING_LICENSE");
+        if (!hasDoc("VEHICLE_REGISTRATION"))
+          missingFields.push("VEHICLE_REGISTRATION");
+        if (!hasDoc("INSURANCE")) missingFields.push("INSURANCE");
         break;
-      case 'MERCHANT':
-        if (!profile.merchant?.companyName) missingFields.push('companyName');
-        if (!profile.merchant?.siret) missingFields.push('siret');
-        if (!profile.merchant?.address) missingFields.push('address');
-        if (!hasDoc('ID_CARD')) missingFields.push('ID_CARD');
-        if (!hasDoc('BUSINESS_REGISTRATION')) missingFields.push('BUSINESS_REGISTRATION');
-        if (!hasDoc('PROOF_OF_ADDRESS')) missingFields.push('PROOF_OF_ADDRESS');
+      case "MERCHANT":
+        if (!profile.merchant?.companyName) missingFields.push("companyName");
+        if (!profile.merchant?.siret) missingFields.push("siret");
+        if (!profile.merchant?.address) missingFields.push("address");
+        if (!hasDoc("ID_CARD")) missingFields.push("ID_CARD");
+        if (!hasDoc("BUSINESS_REGISTRATION"))
+          missingFields.push("BUSINESS_REGISTRATION");
+        if (!hasDoc("PROOF_OF_ADDRESS")) missingFields.push("PROOF_OF_ADDRESS");
         break;
-      case 'PROVIDER':
-        if (!profile.provider?.companyName) missingFields.push('companyName');
-        if (!profile.provider?.siret) missingFields.push('siret');
-        if (!profile.provider?.address) missingFields.push('address');
-        if (!hasDoc('ID_CARD')) missingFields.push('ID_CARD');
-        if (!hasDoc('QUALIFICATION_CERTIFICATE')) missingFields.push('QUALIFICATION_CERTIFICATE');
-        if (!hasDoc('PROOF_OF_ADDRESS')) missingFields.push('PROOF_OF_ADDRESS');
-        if (!hasDoc('INSURANCE')) missingFields.push('INSURANCE');
+      case "PROVIDER":
+        if (!profile.provider?.companyName) missingFields.push("companyName");
+        if (!profile.provider?.siret) missingFields.push("siret");
+        if (!profile.provider?.address) missingFields.push("address");
+        if (!hasDoc("ID_CARD")) missingFields.push("ID_CARD");
+        if (!hasDoc("QUALIFICATION_CERTIFICATE"))
+          missingFields.push("QUALIFICATION_CERTIFICATE");
+        if (!hasDoc("PROOF_OF_ADDRESS")) missingFields.push("PROOF_OF_ADDRESS");
+        if (!hasDoc("INSURANCE")) missingFields.push("INSURANCE");
         break;
     }
 
@@ -836,7 +872,7 @@ export const authRouter = router({
         input.profileId,
         adminId,
         input.approved,
-        input.notes
+        input.notes,
       );
     }),
 
@@ -849,7 +885,7 @@ export const authRouter = router({
         input.profileId,
         adminId,
         input.approved,
-        input.notes
+        input.notes,
       );
     }),
 
@@ -862,15 +898,17 @@ export const authRouter = router({
         input.profileId,
         adminId,
         input.approved,
-        input.notes
+        input.notes,
       );
     }),
 
   // Création d'un administrateur (super-admin uniquement)
-  createAdmin: adminProcedure.input(createAdminSchema).mutation(async ({ ctx, input }) => {
-    const superAdminId = ctx.session.user.id;
-    return await authService.createAdmin(superAdminId, input);
-  }),
+  createAdmin: adminProcedure
+    .input(createAdminSchema)
+    .mutation(async ({ ctx, input }) => {
+      const superAdminId = ctx.session.user.id;
+      return await authService.createAdmin(superAdminId, input);
+    }),
 
   // Récupération des informations de session
   getSession: protectedProcedure.query(async ({ ctx }) => {
@@ -881,19 +919,19 @@ export const authRouter = router({
 
 // Fonction pour déterminer le statut de vérification selon le rôle
 function getUserVerificationStatus(userRole: string, profile: any) {
-  if (userRole === 'CLIENT') return 'VERIFIED'; // Les clients n'ont pas besoin de vérification
+  if (userRole === "CLIENT") return "VERIFIED"; // Les clients n'ont pas besoin de vérification
 
-  if (userRole === 'DELIVERER' && profile.deliverer) {
+  if (userRole === "DELIVERER" && profile.deliverer) {
     return profile.deliverer.verificationStatus;
   }
 
-  if (userRole === 'MERCHANT' && profile.merchant) {
+  if (userRole === "MERCHANT" && profile.merchant) {
     return profile.merchant.verificationStatus;
   }
 
-  if (userRole === 'PROVIDER' && profile.provider) {
+  if (userRole === "PROVIDER" && profile.provider) {
     return profile.provider.verificationStatus;
   }
 
-  return 'PENDING';
+  return "PENDING";
 }

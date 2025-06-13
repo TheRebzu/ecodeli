@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import { cn } from '@/lib/utils/common';
-import { ModeToggle } from '@/components/ui/mode-toggle';
-import { Facebook, Instagram, Twitter, Youtube, Phone, Mail } from 'lucide-react';
+import Link from "next/link";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { cn } from "@/lib/utils/common";
+import { ModeToggle } from "@/components/ui/mode-toggle";
+import {
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+  Phone,
+  Mail,
+} from "lucide-react";
 
 interface MainFooterProps {
   locale?: string;
@@ -19,18 +26,18 @@ interface MainFooterProps {
 }
 
 export function MainFooter({
-  locale = 'fr',
+  locale = "fr",
   showSocialLinks = true,
   showContactInfo = true,
   showLegalLinks = true,
   showLanguageSwitcher = true,
   showThemeToggle = true,
   className,
-  companyName = 'EcoDeli',
+  companyName = "EcoDeli",
   year = new Date().getFullYear(),
 }: MainFooterProps) {
   return (
-    <footer className={cn('bg-background border-t py-6', className)}>
+    <footer className={cn("bg-background border-t py-6", className)}>
       <div className="container px-4 mx-auto">
         {/* Contenu principal du footer */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
@@ -44,7 +51,10 @@ export function MainFooter({
               <Link href={`/${locale}/about#team`} className="hover:underline">
                 Notre équipe
               </Link>
-              <Link href={`/${locale}/about#values`} className="hover:underline">
+              <Link
+                href={`/${locale}/about#values`}
+                className="hover:underline"
+              >
                 Nos valeurs
               </Link>
               <Link href={`/${locale}/about#eco`} className="hover:underline">
@@ -57,16 +67,28 @@ export function MainFooter({
           <div>
             <h3 className="font-semibold text-sm mb-3">Services</h3>
             <div className="flex flex-col space-y-2 text-sm text-muted-foreground">
-              <Link href={`/${locale}/services/delivery`} className="hover:underline">
+              <Link
+                href={`/${locale}/services/delivery`}
+                className="hover:underline"
+              >
                 Livraison écologique
               </Link>
-              <Link href={`/${locale}/services/storage`} className="hover:underline">
+              <Link
+                href={`/${locale}/services/storage`}
+                className="hover:underline"
+              >
                 Stockage durable
               </Link>
-              <Link href={`/${locale}/services/recycling`} className="hover:underline">
+              <Link
+                href={`/${locale}/services/recycling`}
+                className="hover:underline"
+              >
                 Solutions de recyclage
               </Link>
-              <Link href={`/${locale}/become-delivery`} className="hover:underline">
+              <Link
+                href={`/${locale}/become-delivery`}
+                className="hover:underline"
+              >
                 Devenir livreur
               </Link>
             </div>
@@ -104,7 +126,10 @@ export function MainFooter({
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      <a href="mailto:contact@ecodeli.fr" className="hover:underline">
+                      <a
+                        href="mailto:contact@ecodeli.fr"
+                        className="hover:underline"
+                      >
                         contact@ecodeli.fr
                       </a>
                     </div>
@@ -165,13 +190,22 @@ export function MainFooter({
 
             {showLegalLinks && (
               <div className="flex flex-wrap gap-4 mt-2">
-                <Link href={`/${locale}/terms`} className="hover:underline text-xs">
+                <Link
+                  href={`/${locale}/terms`}
+                  className="hover:underline text-xs"
+                >
                   Conditions d'utilisation
                 </Link>
-                <Link href={`/${locale}/privacy`} className="hover:underline text-xs">
+                <Link
+                  href={`/${locale}/privacy`}
+                  className="hover:underline text-xs"
+                >
                   Politique de confidentialité
                 </Link>
-                <Link href={`/${locale}/cookies`} className="hover:underline text-xs">
+                <Link
+                  href={`/${locale}/cookies`}
+                  className="hover:underline text-xs"
+                >
                   Cookies
                 </Link>
               </div>

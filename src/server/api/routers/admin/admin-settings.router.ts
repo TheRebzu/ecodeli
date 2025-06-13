@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Router pour les paramètres système admin
@@ -13,25 +13,46 @@ export const adminSettingsRouter = router({
       // TODO: Vérifier les permissions admin
       const { user } = ctx.session;
 
-      // Mock data pour les paramètres
-      const mockSettings = {
+      // Récupérer les paramètres depuis la base de données
+      const settings = await ctx.db.systemSettings.findMany({
+        select: {
+          category: true,
+          key: true,
+          value: true,
+        },
+      });
+
+      // Organiser les paramètres par catégorie
+      const organizedSettings = settings.reduce(
+        (acc, setting) => {
+          if (!acc[setting.category]) {
+            acc[setting.category] = {};
+          }
+          acc[setting.category][setting.key] = setting.value;
+          return acc;
+        },
+        {} as Record<string, Record<string, any>>,
+      );
+
+      // Valeurs par défaut si aucun paramètre n'existe
+      const defaultSettings = {
         general: {
-          siteName: 'EcoDeli',
-          siteDescription: 'Plateforme de services écologiques',
-          contactEmail: 'contact@ecodeli.me',
-          supportEmail: 'support@ecodeli.me',
+          siteName: "EcoDeli",
+          siteDescription: "Plateforme de services écologiques",
+          contactEmail: "contact@ecodeli.me",
+          supportEmail: "support@ecodeli.me",
           maintenanceMode: false,
           registrationEnabled: true,
-          defaultLanguage: 'fr',
-          timezone: 'Europe/Paris',
+          defaultLanguage: "fr",
+          timezone: "Europe/Paris",
         },
         email: {
-          smtpHost: 'smtp.gmail.com',
-          smtpPort: 587,
-          smtpUser: 'noreply@ecodeli.me',
-          smtpSecure: true,
-          fromName: 'EcoDeli',
-          fromEmail: 'noreply@ecodeli.me',
+          smtpHost: process.env.SMTP_HOST || "",
+          smtpPort: parseInt(process.env.SMTP_PORT || "587"),
+          smtpUser: process.env.SMTP_USER || "",
+          smtpSecure: process.env.SMTP_SECURE === "true",
+          fromName: "EcoDeli",
+          fromEmail: process.env.FROM_EMAIL || "noreply@ecodeli.me",
           emailVerificationRequired: true,
           welcomeEmailEnabled: true,
         },
@@ -40,47 +61,56 @@ export const adminSettingsRouter = router({
           passwordRequireUppercase: true,
           passwordRequireNumbers: true,
           passwordRequireSymbols: false,
-          sessionTimeout: 24, // heures
+          sessionTimeout: 24,
           maxLoginAttempts: 5,
-          lockoutDuration: 30, // minutes
+          lockoutDuration: 30,
           twoFactorEnabled: false,
           ipWhitelistEnabled: false,
         },
         payments: {
-          stripePublicKey: 'pk_test_...',
-          stripeWebhookSecret: 'whsec_...',
-          paypalClientId: 'sb-...',
-          paypalMode: 'sandbox',
-          defaultCurrency: 'EUR',
-          commissionRate: 5.0, // pourcentage
+          stripePublicKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
+          defaultCurrency: "EUR",
+          commissionRate: 5.0,
           minimumPayout: 20.0,
-          payoutSchedule: 'weekly',
+          payoutSchedule: "weekly",
         },
         delivery: {
-          defaultDeliveryRadius: 10, // km
-          maxDeliveryRadius: 50, // km
-          deliveryTimeSlots: ['09:00-12:00', '14:00-17:00', '18:00-21:00'],
+          defaultDeliveryRadius: 10,
+          maxDeliveryRadius: 50,
+          deliveryTimeSlots: ["09:00-12:00", "14:00-17:00", "18:00-21:00"],
           emergencyDeliveryEnabled: true,
           trackingEnabled: true,
           autoAssignDeliverers: true,
-          deliveryFeeCalculation: 'distance', // 'fixed' | 'distance' | 'weight'
+          deliveryFeeCalculation: "distance",
         },
         notifications: {
           emailNotificationsEnabled: true,
           smsNotificationsEnabled: false,
           pushNotificationsEnabled: true,
-          onesignalAppId: 'your-onesignal-app-id',
-          onesignalApiKey: 'your-onesignal-api-key',
+          onesignalAppId: process.env.ONESIGNAL_APP_ID || "",
           notificationRetentionDays: 30,
-          digestEmailFrequency: 'daily', // 'never' | 'daily' | 'weekly'
+          digestEmailFrequency: "daily",
         },
       };
 
-      return mockSettings;
+      // Fusionner avec les paramètres de la base de données
+      const finalSettings = { ...defaultSettings };
+      Object.keys(organizedSettings).forEach((category) => {
+        if (finalSettings[category]) {
+          finalSettings[category] = {
+            ...finalSettings[category],
+            ...organizedSettings[category],
+          };
+        } else {
+          finalSettings[category] = organizedSettings[category];
+        }
+      });
+
+      return finalSettings;
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des paramètres',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des paramètres",
       });
     }
   }),
@@ -95,9 +125,9 @@ export const adminSettingsRouter = router({
         supportEmail: z.string().email().optional(),
         maintenanceMode: z.boolean().optional(),
         registrationEnabled: z.boolean().optional(),
-        defaultLanguage: z.enum(['fr', 'en', 'es', 'de']).optional(),
+        defaultLanguage: z.enum(["fr", "en", "es", "de"]).optional(),
         timezone: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -106,12 +136,12 @@ export const adminSettingsRouter = router({
 
         return {
           success: true,
-          message: 'Paramètres généraux mis à jour avec succès',
+          message: "Paramètres généraux mis à jour avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la mise à jour des paramètres généraux',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la mise à jour des paramètres généraux",
         });
       }
     }),
@@ -128,18 +158,18 @@ export const adminSettingsRouter = router({
         fromEmail: z.string().email().optional(),
         emailVerificationRequired: z.boolean().optional(),
         welcomeEmailEnabled: z.boolean().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         return {
           success: true,
-          message: 'Paramètres email mis à jour avec succès',
+          message: "Paramètres email mis à jour avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la mise à jour des paramètres email',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la mise à jour des paramètres email",
         });
       }
     }),
@@ -157,18 +187,18 @@ export const adminSettingsRouter = router({
         lockoutDuration: z.number().min(1).max(1440).optional(), // max 24h
         twoFactorEnabled: z.boolean().optional(),
         ipWhitelistEnabled: z.boolean().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         return {
           success: true,
-          message: 'Paramètres de sécurité mis à jour avec succès',
+          message: "Paramètres de sécurité mis à jour avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la mise à jour des paramètres de sécurité',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la mise à jour des paramètres de sécurité",
         });
       }
     }),
@@ -180,23 +210,23 @@ export const adminSettingsRouter = router({
         stripePublicKey: z.string().optional(),
         stripeWebhookSecret: z.string().optional(),
         paypalClientId: z.string().optional(),
-        paypalMode: z.enum(['sandbox', 'live']).optional(),
-        defaultCurrency: z.enum(['EUR', 'USD', 'GBP']).optional(),
+        paypalMode: z.enum(["sandbox", "live"]).optional(),
+        defaultCurrency: z.enum(["EUR", "USD", "GBP"]).optional(),
         commissionRate: z.number().min(0).max(50).optional(),
         minimumPayout: z.number().min(1).optional(),
-        payoutSchedule: z.enum(['daily', 'weekly', 'monthly']).optional(),
-      })
+        payoutSchedule: z.enum(["daily", "weekly", "monthly"]).optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         return {
           success: true,
-          message: 'Paramètres de paiement mis à jour avec succès',
+          message: "Paramètres de paiement mis à jour avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la mise à jour des paramètres de paiement',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la mise à jour des paramètres de paiement",
         });
       }
     }),
@@ -211,19 +241,21 @@ export const adminSettingsRouter = router({
         emergencyDeliveryEnabled: z.boolean().optional(),
         trackingEnabled: z.boolean().optional(),
         autoAssignDeliverers: z.boolean().optional(),
-        deliveryFeeCalculation: z.enum(['fixed', 'distance', 'weight']).optional(),
-      })
+        deliveryFeeCalculation: z
+          .enum(["fixed", "distance", "weight"])
+          .optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         return {
           success: true,
-          message: 'Paramètres de livraison mis à jour avec succès',
+          message: "Paramètres de livraison mis à jour avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la mise à jour des paramètres de livraison',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la mise à jour des paramètres de livraison",
         });
       }
     }),
@@ -238,19 +270,20 @@ export const adminSettingsRouter = router({
         onesignalAppId: z.string().optional(),
         onesignalApiKey: z.string().optional(),
         notificationRetentionDays: z.number().min(1).max(365).optional(),
-        digestEmailFrequency: z.enum(['never', 'daily', 'weekly']).optional(),
-      })
+        digestEmailFrequency: z.enum(["never", "daily", "weekly"]).optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         return {
           success: true,
-          message: 'Paramètres de notifications mis à jour avec succès',
+          message: "Paramètres de notifications mis à jour avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la mise à jour des paramètres de notifications',
+          code: "BAD_REQUEST",
+          message:
+            "Erreur lors de la mise à jour des paramètres de notifications",
         });
       }
     }),
@@ -260,7 +293,7 @@ export const adminSettingsRouter = router({
     .input(
       z.object({
         testEmail: z.string().email(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -272,7 +305,7 @@ export const adminSettingsRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
+          code: "BAD_REQUEST",
           message: "Erreur lors de l'envoi de l'email de test",
         });
       }
@@ -282,8 +315,15 @@ export const adminSettingsRouter = router({
   resetToDefaults: protectedProcedure
     .input(
       z.object({
-        section: z.enum(['general', 'email', 'security', 'payments', 'delivery', 'notifications']),
-      })
+        section: z.enum([
+          "general",
+          "email",
+          "security",
+          "payments",
+          "delivery",
+          "notifications",
+        ]),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -296,8 +336,8 @@ export const adminSettingsRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la réinitialisation des paramètres',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la réinitialisation des paramètres",
         });
       }
     }),

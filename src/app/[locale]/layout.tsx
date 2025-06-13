@@ -1,10 +1,10 @@
-import { NextIntlClientProvider, hasLocale } from 'next-intl';
-import { notFound } from 'next/navigation';
-import { getMessages, setRequestLocale } from 'next-intl/server';
-import { routing } from '@/i18n/routing';
-import { TRPCProvider } from '@/components/providers/trpc-provider';
-import ThemeProvider from '@/components/providers/theme-provider';
-import { ThemeInitializer } from '@/components/providers/theme-initializer';
+import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { notFound } from "next/navigation";
+import { getMessages, setRequestLocale } from "next-intl/server";
+import { routing } from "@/i18n/routing";
+import { TRPCProvider } from "@/components/providers/trpc-provider";
+import ThemeProvider from "@/components/providers/theme-provider";
+import { ThemeInitializer } from "@/components/providers/theme-initializer";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -36,5 +36,5 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
 }
 
 export function generateStaticParams() {
-  return routing.locales.map(locale => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }));
 }

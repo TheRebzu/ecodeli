@@ -1,11 +1,11 @@
-import { initTRPC, TRPCError } from '@trpc/server';
-import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
-import { type Session } from 'next-auth';
-import superjson from 'superjson';
-import { ZodError } from 'zod';
-import { getServerAuthSession } from '@/server/auth/next-auth';
-import { db } from '@/server/db';
-import { UserRole } from '@prisma/client';
+import { initTRPC, TRPCError } from "@trpc/server";
+import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { type Session } from "next-auth";
+import superjson from "superjson";
+import { ZodError } from "zod";
+import { getServerAuthSession } from "@/server/auth/next-auth";
+import { db } from "@/server/db";
+import { UserRole } from "@prisma/client";
 // Import conditionnel pour éviter les erreurs côté client
 
 /**
@@ -51,7 +51,9 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth) => {
+export const createTRPCContext = async (
+  opts?: CreateNextContextOptionsWithAuth,
+) => {
   // Version adaptée à l'App Router de Next.js
   // Si opts existe, nous sommes dans un contexte Pages Router ou un appel depuis une API Route
   if (opts) {
@@ -78,8 +80,8 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
 
   try {
     // Import dynamique pour éviter les erreurs côté client
-    if (typeof window === 'undefined') {
-      const { headers } = await import('next/headers');
+    if (typeof window === "undefined") {
+      const { headers } = await import("next/headers");
       const headersList = await headers();
       if (headersList) {
         requestHeaders = Object.fromEntries(headersList.entries());
@@ -89,10 +91,16 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
     session = await getServerAuthSession();
   } catch (error: any) {
     // Log plus détaillé pour debugging
-    if (error?.name === 'JWEInvalid' || error?.message?.includes('Invalid Compact JWE')) {
-      console.warn("Session JWT invalide - l'utilisateur sera déconnecté:", error.message);
+    if (
+      error?.name === "JWEInvalid" ||
+      error?.message?.includes("Invalid Compact JWE")
+    ) {
+      console.warn(
+        "Session JWT invalide - l'utilisateur sera déconnecté:",
+        error.message,
+      );
     } else {
-      console.error('Erreur lors de la création du contexte tRPC:', error);
+      console.error("Erreur lors de la création du contexte tRPC:", error);
     }
     // Continue avec session=null et requestHeaders={}
   }
@@ -121,7 +129,8 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
       ...shape,
       data: {
         ...shape.data,
-        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
+        zodError:
+          error.cause instanceof ZodError ? error.cause.flatten() : null,
       },
     };
   },
@@ -154,8 +163,8 @@ export const publicProcedure = t.procedure;
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
     throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'Vous devez être connecté pour accéder à cette ressource',
+      code: "UNAUTHORIZED",
+      message: "Vous devez être connecté pour accéder à cette ressource",
     });
   }
   return next({
@@ -179,20 +188,24 @@ export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 /** Middleware qui vérifie que l'utilisateur est un livreur vérifié */
 const enforceUserIsVerifiedDeliverer = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté' });
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Vous devez être connecté",
+    });
   }
 
   if (ctx.session.user.role !== UserRole.DELIVERER) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Accès réservé aux livreurs',
+      code: "FORBIDDEN",
+      message: "Accès réservé aux livreurs",
     });
   }
 
   if (!ctx.session.user.isVerified) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Votre compte doit être vérifié pour accéder à cette fonctionnalité',
+      code: "FORBIDDEN",
+      message:
+        "Votre compte doit être vérifié pour accéder à cette fonctionnalité",
     });
   }
 
@@ -204,21 +217,23 @@ const enforceUserIsVerifiedDeliverer = t.middleware(({ ctx, next }) => {
 });
 
 /** Procédure protégée pour les livreurs vérifiés uniquement */
-export const verifiedDelivererProcedure = t.procedure.use(enforceUserIsVerifiedDeliverer);
+export const verifiedDelivererProcedure = t.procedure.use(
+  enforceUserIsVerifiedDeliverer,
+);
 
 /** Middleware qui vérifie que l'utilisateur est un administrateur */
 const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
     throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'Vous devez être connecté pour accéder à cette ressource',
+      code: "UNAUTHORIZED",
+      message: "Vous devez être connecté pour accéder à cette ressource",
     });
   }
 
   if (ctx.session.user.role !== UserRole.ADMIN) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Accès réservé aux administrateurs',
+      code: "FORBIDDEN",
+      message: "Accès réservé aux administrateurs",
     });
   }
 
@@ -236,15 +251,15 @@ export const adminProcedure = t.procedure.use(enforceUserIsAdmin);
 const enforceUserIsClient = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
     throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'Vous devez être connecté',
+      code: "UNAUTHORIZED",
+      message: "Vous devez être connecté",
     });
   }
 
   if (ctx.session.user.role !== UserRole.CLIENT) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Accès réservé aux clients',
+      code: "FORBIDDEN",
+      message: "Accès réservé aux clients",
     });
   }
 
@@ -261,13 +276,16 @@ export const clientProcedure = t.procedure.use(enforceUserIsClient);
 /** Middleware qui vérifie que l'utilisateur est un commerçant */
 const enforceUserIsMerchant = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté' });
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Vous devez être connecté",
+    });
   }
 
   if (ctx.session.user.role !== UserRole.MERCHANT) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Accès réservé aux commerçants',
+      code: "FORBIDDEN",
+      message: "Accès réservé aux commerçants",
     });
   }
 
@@ -287,8 +305,8 @@ export const merchantProcedure = t.procedure.use(enforceUserIsMerchant);
 const enforceFinancialAccess = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
     throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'Vous devez être connecté pour accéder à cette ressource',
+      code: "UNAUTHORIZED",
+      message: "Vous devez être connecté pour accéder à cette ressource",
     });
   }
 
@@ -297,10 +315,10 @@ const enforceFinancialAccess = t.middleware(async ({ ctx, next }) => {
     where: { id: ctx.session.user.id },
   });
 
-  if (!user || user.status !== 'ACTIVE') {
+  if (!user || user.status !== "ACTIVE") {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Votre compte est inactif ou suspendu',
+      code: "FORBIDDEN",
+      message: "Votre compte est inactif ou suspendu",
     });
   }
 
@@ -320,7 +338,9 @@ const enforceFinancialAccess = t.middleware(async ({ ctx, next }) => {
 /**
  * Procédures financières (authentification, compte actif et portefeuille vérifié)
  */
-export const financialProcedure = t.procedure.use(enforceUserIsAuthed).use(enforceFinancialAccess);
+export const financialProcedure = t.procedure
+  .use(enforceUserIsAuthed)
+  .use(enforceFinancialAccess);
 
 // Exports avec noms compatibles pour la rétrocompatibilité
 export const createTRPCRouter = router;

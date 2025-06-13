@@ -4,13 +4,13 @@
  */
 
 // Exports des fichiers locaux
-export { default as ForceVerificationUpdate } from './force-verification-update';
-export * from './force-verification-update';
+export { default as ForceVerificationUpdate } from "./force-verification-update";
+export * from "./force-verification-update";
 
 // Exports des sous-dossiers
-export * from './announcements';
-export * from './dashboard';
-export * from './deliveries';
-export * from './documents';
-export * from './planning';
-export * from './wallet';
+export * from "./announcements";
+export * from "./dashboard";
+export * from "./deliveries";
+export * from "./documents";
+export * from "./planning";
+export * from "./wallet";

@@ -1,9 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Schéma de base pour les utilisateurs
 export const baseUserProfileSchema = z.object({
-  name: z.string().min(2, { message: 'Le nom doit comporter au moins 2 caractères' }),
-  email: z.string().email({ message: 'Adresse email invalide' }),
+  name: z
+    .string()
+    .min(2, { message: "Le nom doit comporter au moins 2 caractères" }),
+  email: z.string().email({ message: "Adresse email invalide" }),
   phoneNumber: z.string().optional(),
   image: z.string().optional(),
 });
@@ -11,18 +13,18 @@ export const baseUserProfileSchema = z.object({
 // Schéma d'adresse
 export const addressSchema = z.object({
   id: z.string().optional(),
-  label: z.string().min(1, { message: 'Le libellé est requis' }),
-  street: z.string().min(1, { message: 'La rue est requise' }),
-  city: z.string().min(1, { message: 'La ville est requise' }),
+  label: z.string().min(1, { message: "Le libellé est requis" }),
+  street: z.string().min(1, { message: "La rue est requise" }),
+  city: z.string().min(1, { message: "La ville est requise" }),
   state: z.string().optional(),
-  postalCode: z.string().min(1, { message: 'Le code postal est requis' }),
-  country: z.string().min(1, { message: 'Le pays est requis' }),
+  postalCode: z.string().min(1, { message: "Le code postal est requis" }),
+  country: z.string().min(1, { message: "Le pays est requis" }),
   isDefault: z.boolean().default(false),
 });
 
 // Schéma de préférences utilisateur
 export const userPreferencesSchema = z.object({
-  theme: z.enum(['light', 'dark', 'system']).optional(),
+  theme: z.enum(["light", "dark", "system"]).optional(),
   notifications: z
     .object({
       email: z.boolean().default(true),
@@ -53,7 +55,7 @@ export const updateClientProfileSchema = clientProfileSchema.partial();
 // Schéma du profil livreur
 export const delivererProfileSchema = baseUserProfileSchema.extend({
   address: z.string().optional(),
-  phone: z.string().min(1, { message: 'Le numéro de téléphone est requis' }),
+  phone: z.string().min(1, { message: "Le numéro de téléphone est requis" }),
   vehicleType: z.string().optional(),
   licensePlate: z.string().optional(),
   maxCapacity: z.number().positive().optional(),
@@ -73,9 +75,11 @@ export const updateDelivererProfileSchema = delivererProfileSchema.partial();
 
 // Schéma du profil commerçant
 export const merchantProfileSchema = baseUserProfileSchema.extend({
-  companyName: z.string().min(1, { message: "Le nom de l'entreprise est requis" }),
+  companyName: z
+    .string()
+    .min(1, { message: "Le nom de l'entreprise est requis" }),
   address: z.string().min(1, { message: "L'adresse est requise" }),
-  phone: z.string().min(1, { message: 'Le numéro de téléphone est requis' }),
+  phone: z.string().min(1, { message: "Le numéro de téléphone est requis" }),
   businessType: z.string().optional(),
   vatNumber: z.string().optional(),
   businessName: z.string().optional(),
@@ -94,7 +98,12 @@ export const merchantProfileSchema = baseUserProfileSchema.extend({
   paymentMethods: z.array(z.string()).optional(),
   deliveryOptions: z.array(z.string()).optional(),
   certifications: z.array(z.string()).optional(),
-  foundingYear: z.number().int().min(1900).max(new Date().getFullYear()).optional(),
+  foundingYear: z
+    .number()
+    .int()
+    .min(1900)
+    .max(new Date().getFullYear())
+    .optional(),
   employeeCount: z.number().int().min(1).optional(),
 });
 
@@ -105,7 +114,7 @@ export const updateMerchantProfileSchema = merchantProfileSchema.partial();
 export const providerProfileSchema = baseUserProfileSchema.extend({
   companyName: z.string().optional(),
   address: z.string().min(1, { message: "L'adresse est requise" }),
-  phone: z.string().min(1, { message: 'Le numéro de téléphone est requis' }),
+  phone: z.string().min(1, { message: "Le numéro de téléphone est requis" }),
   services: z.array(z.string()).optional(),
   serviceType: z.string().optional(),
   description: z.string().optional(),
@@ -140,6 +149,8 @@ export type DelivererProfile = z.infer<typeof delivererProfileSchema>;
 export type MerchantProfile = z.infer<typeof merchantProfileSchema>;
 export type ProviderProfile = z.infer<typeof providerProfileSchema>;
 export type UpdateClientProfile = z.infer<typeof updateClientProfileSchema>;
-export type UpdateDelivererProfile = z.infer<typeof updateDelivererProfileSchema>;
+export type UpdateDelivererProfile = z.infer<
+  typeof updateDelivererProfileSchema
+>;
 export type UpdateMerchantProfile = z.infer<typeof updateMerchantProfileSchema>;
 export type UpdateProviderProfile = z.infer<typeof updateProviderProfileSchema>;

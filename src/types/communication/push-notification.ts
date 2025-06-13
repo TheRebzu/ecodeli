@@ -1,30 +1,34 @@
-import { Notification as PrismaNotification, UserRole, AnnouncementStatus } from '@prisma/client';
+import {
+  Notification as PrismaNotification,
+  UserRole,
+  AnnouncementStatus,
+} from "@prisma/client";
 
 // Type pour les types de notifications
 export enum NotificationType {
-  SYSTEM = 'SYSTEM',
-  DELIVERY = 'DELIVERY',
-  PAYMENT = 'PAYMENT',
-  MESSAGE = 'MESSAGE',
-  ANNOUNCEMENT = 'ANNOUNCEMENT',
-  ACCOUNT = 'ACCOUNT',
-  CONTRACT = 'CONTRACT',
-  INVOICE = 'INVOICE',
-  VERIFICATION = 'VERIFICATION',
+  SYSTEM = "SYSTEM",
+  DELIVERY = "DELIVERY",
+  PAYMENT = "PAYMENT",
+  MESSAGE = "MESSAGE",
+  ANNOUNCEMENT = "ANNOUNCEMENT",
+  ACCOUNT = "ACCOUNT",
+  CONTRACT = "CONTRACT",
+  INVOICE = "INVOICE",
+  VERIFICATION = "VERIFICATION",
 }
 
 // Types de canaux de notification
 export enum NotificationChannel {
-  EMAIL = 'EMAIL',
-  PUSH = 'PUSH',
-  SMS = 'SMS',
-  IN_APP = 'IN_APP',
+  EMAIL = "EMAIL",
+  PUSH = "PUSH",
+  SMS = "SMS",
+  IN_APP = "IN_APP",
 }
 
 // Langues supportées
 export enum SupportedLanguage {
-  FR = 'fr',
-  EN = 'en',
+  FR = "fr",
+  EN = "en",
 }
 
 // Paramètres de notifications pour un utilisateur - Version étendue
@@ -34,7 +38,7 @@ export interface UserNotificationSettings {
   pushEnabled?: boolean;
   smsEnabled?: boolean;
   inAppEnabled?: boolean;
-  emailFrequency?: 'INSTANT' | 'DAILY' | 'WEEKLY';
+  emailFrequency?: "INSTANT" | "DAILY" | "WEEKLY";
   deliveryUpdates?: boolean;
   paymentUpdates?: boolean;
   marketingUpdates?: boolean;
@@ -69,7 +73,7 @@ export interface SendUserNotificationOptions {
   actionLabel?: string;
   attachmentUrl?: string;
   deliverAt?: Date;
-  priority?: 'LOW' | 'NORMAL' | 'HIGH';
+  priority?: "LOW" | "NORMAL" | "HIGH";
   expiresAt?: Date;
   templateId?: string;
   templateData?: Record<string, any>;

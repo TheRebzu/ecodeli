@@ -1,19 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSocket } from '@/hooks/system/use-socket';
-import { api } from '@/trpc/react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSocket } from "@/hooks/system/use-socket";
+import { api } from "@/trpc/react";
 
 // UI Components
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   LineChart,
   Line,
@@ -29,7 +35,7 @@ import {
   Cell,
   AreaChart,
   Area,
-} from 'recharts';
+} from "recharts";
 
 // Icons
 import {
@@ -66,8 +72,8 @@ import {
   AlertCircle,
   Plus,
   Search,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 
 // Types
 interface AdminStats {
@@ -90,7 +96,7 @@ interface AdminStats {
 interface Alert {
   id: string;
   type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   title: string;
   description: string;
   timestamp: string;
@@ -103,7 +109,7 @@ interface DashboardOverviewProps {
 
 // Utility function
 function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(" ");
 }
 
 // Composant de carte de statistique
@@ -114,8 +120,8 @@ const AdminStatCard = ({
   trend,
   isLoading = false,
   onClick,
-  color = 'text-primary',
-  bgColor = 'bg-primary/10',
+  color = "text-primary",
+  bgColor = "bg-primary/10",
   subtitle,
 }: {
   title: string;
@@ -130,11 +136,15 @@ const AdminStatCard = ({
 }) => {
   if (isLoading) {
     return (
-      <Card className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}>
+      <Card
+        className={
+          onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+        }
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className={cn('p-3 rounded-full', bgColor)}>
+              <div className={cn("p-3 rounded-full", bgColor)}>
                 <div className="h-5 w-5 bg-gray-300 animate-pulse rounded" />
               </div>
               <div>
@@ -151,26 +161,32 @@ const AdminStatCard = ({
 
   return (
     <Card
-      className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
+      className={
+        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+      }
       onClick={onClick}
     >
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className={cn('p-3 rounded-full', bgColor)}>
+            <div className={cn("p-3 rounded-full", bgColor)}>
               <div className={color}>{icon}</div>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {title}
+              </p>
               <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
-              {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+              {subtitle && (
+                <p className="text-xs text-muted-foreground">{subtitle}</p>
+              )}
             </div>
           </div>
           {trend && (
             <div className="text-right">
               <p
                 className={`text-xs flex items-center gap-1 ${
-                  trend.value >= 0 ? 'text-green-600' : 'text-red-600'
+                  trend.value >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {trend.value >= 0 ? (
@@ -178,7 +194,7 @@ const AdminStatCard = ({
                 ) : (
                   <TrendingDown className="h-3 w-3" />
                 )}
-                {trend.value >= 0 ? '+' : ''}
+                {trend.value >= 0 ? "+" : ""}
                 {trend.value}%
               </p>
               <p className="text-xs text-muted-foreground">{trend.label}</p>
@@ -191,27 +207,33 @@ const AdminStatCard = ({
 };
 
 // Composant d'alerte
-const AlertCard = ({ alert, onResolve }: { alert: Alert; onResolve: (id: string) => void }) => {
+const AlertCard = ({
+  alert,
+  onResolve,
+}: {
+  alert: Alert;
+  onResolve: (id: string) => void;
+}) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical':
-        return 'border-l-red-500 bg-red-50 dark:bg-red-950/20';
-      case 'high':
-        return 'border-l-orange-500 bg-orange-50 dark:bg-orange-950/20';
-      case 'medium':
-        return 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20';
+      case "critical":
+        return "border-l-red-500 bg-red-50 dark:bg-red-950/20";
+      case "high":
+        return "border-l-orange-500 bg-orange-50 dark:bg-orange-950/20";
+      case "medium":
+        return "border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20";
       default:
-        return 'border-l-blue-500 bg-blue-50 dark:bg-blue-950/20';
+        return "border-l-blue-500 bg-blue-50 dark:bg-blue-950/20";
     }
   };
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case 'critical':
+      case "critical":
         return <AlertCircle className="h-4 w-4 text-red-600" />;
-      case 'high':
+      case "high":
         return <AlertTriangle className="h-4 w-4 text-orange-600" />;
-      case 'medium':
+      case "medium":
         return <Bell className="h-4 w-4 text-yellow-600" />;
       default:
         return <Activity className="h-4 w-4 text-blue-600" />;
@@ -219,25 +241,35 @@ const AlertCard = ({ alert, onResolve }: { alert: Alert; onResolve: (id: string)
   };
 
   return (
-    <Card className={cn('border-l-4', getSeverityColor(alert.severity))}>
+    <Card className={cn("border-l-4", getSeverityColor(alert.severity))}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
             {getSeverityIcon(alert.severity)}
             <div className="flex-1">
               <h4 className="font-medium text-sm">{alert.title}</h4>
-              <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {alert.description}
+              </p>
               <p className="text-xs text-muted-foreground mt-2">
                 {new Date(alert.timestamp).toLocaleString()}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}>
+            <Badge
+              variant={
+                alert.severity === "critical" ? "destructive" : "secondary"
+              }
+            >
               {alert.severity}
             </Badge>
             {!alert.isResolved && (
-              <Button size="sm" variant="outline" onClick={() => onResolve(alert.id)}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onResolve(alert.id)}
+              >
                 Résoudre
               </Button>
             )}
@@ -255,32 +287,32 @@ const AdminQuickActions = () => {
   const quickActions = [
     {
       icon: <UserCheck className="h-5 w-5" />,
-      label: 'Vérifications',
-      description: 'Valider les documents',
-      action: () => router.push('/admin/verifications'),
-      color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/50',
-      badge: '5 en attente',
+      label: "Vérifications",
+      description: "Valider les documents",
+      action: () => router.push("/admin/verifications"),
+      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50",
+      badge: "5 en attente",
     },
     {
       icon: <Shield className="h-5 w-5" />,
-      label: 'Sécurité',
-      description: 'Logs et audit',
-      action: () => router.push('/admin/audit'),
-      color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/50',
+      label: "Sécurité",
+      description: "Logs et audit",
+      action: () => router.push("/admin/audit"),
+      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50",
     },
     {
       icon: <Settings className="h-5 w-5" />,
-      label: 'Configuration',
-      description: 'Paramètres système',
-      action: () => router.push('/admin/settings'),
-      color: 'text-green-600 bg-green-100 dark:bg-green-900/50',
+      label: "Configuration",
+      description: "Paramètres système",
+      action: () => router.push("/admin/settings"),
+      color: "text-green-600 bg-green-100 dark:bg-green-900/50",
     },
     {
       icon: <BarChart3 className="h-5 w-5" />,
-      label: 'Rapports',
-      description: 'Analytics avancés',
-      action: () => router.push('/admin/reports'),
-      color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/50',
+      label: "Rapports",
+      description: "Analytics avancés",
+      action: () => router.push("/admin/reports"),
+      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50",
     },
   ];
 
@@ -302,14 +334,21 @@ const AdminQuickActions = () => {
               onClick={action.action}
             >
               {action.badge && (
-                <Badge className="absolute -top-1 -right-1 text-xs px-1 py-0" variant="destructive">
+                <Badge
+                  className="absolute -top-1 -right-1 text-xs px-1 py-0"
+                  variant="destructive"
+                >
                   {action.badge}
                 </Badge>
               )}
-              <div className={cn('p-2 rounded-lg', action.color)}>{action.icon}</div>
+              <div className={cn("p-2 rounded-lg", action.color)}>
+                {action.icon}
+              </div>
               <div className="text-center">
                 <p className="font-medium text-sm">{action.label}</p>
-                <p className="text-xs text-muted-foreground">{action.description}</p>
+                <p className="text-xs text-muted-foreground">
+                  {action.description}
+                </p>
               </div>
             </Button>
           ))}
@@ -322,8 +361,9 @@ const AdminQuickActions = () => {
 export function DashboardOverview({ className }: DashboardOverviewProps) {
   const router = useRouter();
   const { socket } = useSocket();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [realtimeStats, setRealtimeStats] = useState<Partial<AdminStats> | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [realtimeStats, setRealtimeStats] =
+    useState<Partial<AdminStats> | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [dateRange, setDateRange] = useState({
@@ -348,44 +388,44 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('disconnect', () => setIsConnected(false));
+    socket.on("connect", () => setIsConnected(true));
+    socket.on("disconnect", () => setIsConnected(false));
 
     // Écouter les nouvelles alertes système
-    socket.on('admin:new:alert', alert => {
-      setAlerts(prev => [alert, ...prev]);
+    socket.on("admin:new:alert", (alert) => {
+      setAlerts((prev) => [alert, ...prev]);
       toast.error(`Nouvelle alerte: ${alert.title}`);
     });
 
     // Écouter les mises à jour de stats
-    socket.on('admin:stats:update', data => {
+    socket.on("admin:stats:update", (data) => {
       setRealtimeStats(data);
     });
 
     // Écouter les événements critiques
-    socket.on('admin:critical:event', event => {
+    socket.on("admin:critical:event", (event) => {
       toast.error(`Événement critique: ${event.message}`);
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('admin:new:alert');
-      socket.off('admin:stats:update');
-      socket.off('admin:critical:event');
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("admin:new:alert");
+      socket.off("admin:stats:update");
+      socket.off("admin:critical:event");
     };
   }, [socket]);
 
   const handleRefresh = () => {
     refetchDashboard();
-    toast.success('Données actualisées');
+    toast.success("Données actualisées");
   };
 
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/admin/export/dashboard-overview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/export/dashboard-overview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
@@ -396,150 +436,134 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `dashboard-overview-${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `dashboard-overview-${new Date().toISOString().split("T")[0]}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast.success('Export réussi');
+        toast.success("Export réussi");
       }
     } catch (error) {
-      console.error('Export error:', error);
+      console.error("Export error:", error);
       toast.error("Erreur lors de l'export");
     }
   };
 
   const handleResolveAlert = (alertId: string) => {
-    setAlerts(prev =>
-      prev.map(alert => (alert.id === alertId ? { ...alert, isResolved: true } : alert))
+    setAlerts((prev) =>
+      prev.map((alert) =>
+        alert.id === alertId ? { ...alert, isResolved: true } : alert,
+      ),
     );
-    toast.success('Alerte résolue');
+    toast.success("Alerte résolue");
   };
 
-  const isLoading = isLoadingDashboard || isLoadingActivities || isLoadingActions;
+  const isLoading =
+    isLoadingDashboard || isLoadingActivities || isLoadingActions;
 
-  // Données mockées pour la démonstration (à remplacer par les vraies données)
-  const mockStats: AdminStats = {
-    totalUsers: dashboardData?.userStats?.total || 15420,
-    activeUsers: dashboardData?.userStats?.active || 12350,
-    newUsersToday: dashboardData?.userStats?.newToday || 47,
-    newUsersWeek: dashboardData?.userStats?.newWeek || 312,
-    totalDeliveries: dashboardData?.deliveryStats?.total || 8965,
-    activeDeliveries: dashboardData?.deliveryStats?.active || 234,
-    completedToday: dashboardData?.deliveryStats?.completedToday || 127,
-    pendingVerifications: dashboardData?.documentStats?.pending || 23,
-    monthlyRevenue: dashboardData?.transactionStats?.monthlyRevenue || 48750,
-    dailyRevenue: dashboardData?.transactionStats?.dailyRevenue || 1680,
-    commissionEarned: dashboardData?.transactionStats?.commissionEarned || 7320,
-    revenueGrowth: dashboardData?.transactionStats?.growth || 15.2,
+  // Statistiques calculées à partir des données réelles
+  const currentStats: AdminStats = {
+    totalUsers: dashboardData?.userStats?.total || 0,
+    activeUsers: dashboardData?.userStats?.active || 0,
+    newUsersToday: dashboardData?.userStats?.newToday || 0,
+    newUsersWeek: dashboardData?.userStats?.newWeek || 0,
+    totalDeliveries: dashboardData?.deliveryStats?.total || 0,
+    activeDeliveries: dashboardData?.deliveryStats?.active || 0,
+    completedToday: dashboardData?.deliveryStats?.completedToday || 0,
+    pendingVerifications: dashboardData?.documentStats?.pending || 0,
+    monthlyRevenue: dashboardData?.transactionStats?.monthlyRevenue || 0,
+    dailyRevenue: dashboardData?.transactionStats?.dailyRevenue || 0,
+    commissionEarned: dashboardData?.transactionStats?.commissionEarned || 0,
+    revenueGrowth: dashboardData?.transactionStats?.growth || 0,
     platformHealth: 98,
-    systemAlerts: alerts.filter(a => !a.isResolved).length,
+    systemAlerts: alerts.filter((a) => !a.isResolved).length,
   };
 
-  // Données mockées pour les graphiques
+  // Récupérer les données réelles depuis l'API
+  const { data: analyticsData, isLoading: analyticsLoading } = api.admin.analytics.getDashboardOverview.useQuery();
+  const { data: alertsData } = api.admin.system.getAlerts.useQuery();
+  const { data: activityData } = api.admin.analytics.getRecentActivity.useQuery();
+
   const overviewData = {
-    activityChart: [
-      { date: '01/12', users: 450, deliveries: 120, announcements: 89 },
-      { date: '02/12', users: 467, deliveries: 135, announcements: 94 },
-      { date: '03/12', users: 489, deliveries: 142, announcements: 87 },
-      { date: '04/12', users: 512, deliveries: 158, announcements: 102 },
-      { date: '05/12', users: 534, deliveries: 167, announcements: 96 },
-      { date: '06/12', users: 556, deliveries: 174, announcements: 108 },
-    ],
-    alerts: [
-      { title: 'Latence réseau élevée', description: 'Temps de réponse > 2s', severity: 'medium' },
-      { title: 'Espace disque faible', description: 'Moins de 15% disponible', severity: 'high' },
-    ],
-    recentActivity: [
-      { action: 'Nouveau livreur vérifié', timestamp: 'Il y a 5 min', type: 'verification' },
-      { action: 'Commande annulée', timestamp: 'Il y a 12 min', type: 'delivery' },
-      { action: 'Paiement traité', timestamp: 'Il y a 18 min', type: 'payment' },
-    ],
+    activityChart: analyticsData?.activityChart || [],
+    alerts: alertsData?.alerts || [],
+    recentActivity: activityData?.recentActivity || [],
   };
+
+  // Récupérer les données réelles des différentes sections
+  const { data: deliveryAnalytics } = api.admin.analytics.getDeliveryStats.useQuery();
+  const { data: userAnalytics } = api.admin.analytics.getUserStats.useQuery();  
+  const { data: financialAnalytics } = api.admin.analytics.getFinancialData.useQuery();
+  const { data: announcementAnalytics } = api.admin.analytics.getAnnouncementStats.useQuery();
 
   const deliveryData = {
-    statusDistribution: [
-      { status: 'En cours', count: 234 },
-      { status: 'Terminées', count: 8731 },
-      { status: 'Annulées', count: 145 },
-      { status: 'En attente', count: 89 },
-    ],
+    statusDistribution: deliveryAnalytics?.statusDistribution || [],
   };
 
   const userData = {
-    signupTrend: [
-      { date: '01/12', signups: 23 },
-      { date: '02/12', signups: 31 },
-      { date: '03/12', signups: 28 },
-      { date: '04/12', signups: 35 },
-      { date: '05/12', signups: 42 },
-      { date: '06/12', signups: 47 },
-    ],
-    usersByRole: [
-      { role: 'CLIENT', count: 8540 },
-      { role: 'DELIVERER', count: 3420 },
-      { role: 'MERCHANT', count: 2180 },
-      { role: 'PROVIDER', count: 1280 },
-    ],
-    totalUsers: 15420,
-    pendingVerifications: 23,
-    approvedVerifications: 289,
-    rejectedVerifications: 15,
+    signupTrend: userAnalytics?.signupTrend || [],
+    usersByRole: userAnalytics?.usersByRole || [],
+    totalUsers: userAnalytics?.totalUsers || 0,
+    pendingVerifications: userAnalytics?.pendingVerifications || 0,
+    approvedVerifications: userAnalytics?.approvedVerifications || 0,
+    rejectedVerifications: userAnalytics?.rejectedVerifications || 0,
   };
 
   const financialData = {
-    revenueChart: [
-      { date: '01/12', revenue: 1420, commissions: 284 },
-      { date: '02/12', revenue: 1567, commissions: 313 },
-      { date: '03/12', revenue: 1389, commissions: 278 },
-      { date: '04/12', revenue: 1723, commissions: 345 },
-      { date: '05/12', revenue: 1654, commissions: 331 },
-      { date: '06/12', revenue: 1680, commissions: 336 },
-    ],
-    monthlyRevenue: 48750,
-    monthlyCommissions: 9750,
-    revenueGrowth: 15.2,
+    revenueChart: financialAnalytics?.revenueChart || [],
+    monthlyRevenue: financialAnalytics?.monthlyRevenue || 0,
+    monthlyCommissions: financialAnalytics?.monthlyCommissions || 0,
+    revenueGrowth: financialAnalytics?.revenueGrowth || 0,
   };
 
   const announcementData = {
-    creationTrend: [
-      { date: '01/12', created: 45 },
-      { date: '02/12', created: 52 },
-      { date: '03/12', created: 48 },
-      { date: '04/12', created: 61 },
-      { date: '05/12', created: 55 },
-      { date: '06/12', created: 58 },
-    ],
+    creationTrend: announcementAnalytics?.creationTrend || [],
   };
 
   // Fonctions utilitaires
   const generateChartColors = (length: number): string[] => {
-    const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+    const colors = [
+      "#3b82f6",
+      "#22c55e",
+      "#f59e0b",
+      "#ef4444",
+      "#8b5cf6",
+      "#06b6d4",
+    ];
     return colors.slice(0, length);
   };
 
   const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(value);
   };
-
-  const currentStats = realtimeStats || mockStats;
 
   return (
     <div className={`space-y-6 ${className}`}>
       {/* En-tête avec actions */}
       <div className="flex flex-col md:flex-row md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard Administrateur</h1>
-          <p className="text-muted-foreground">Supervision globale de la plateforme EcoDeli</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Dashboard Administrateur
+          </h1>
+          <p className="text-muted-foreground">
+            Supervision globale de la plateforme EcoDeli
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isLoading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            disabled={isLoading}
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
             Actualiser
           </Button>
           <Button onClick={handleExport} variant="outline" size="sm">
@@ -550,22 +574,26 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       </div>
 
       {/* Alertes critiques */}
-      {alerts.filter(a => !a.isResolved && (a.severity === 'critical' || a.severity === 'high'))
-        .length > 0 && (
+      {alerts.filter(
+        (a) =>
+          !a.isResolved && (a.severity === "critical" || a.severity === "high"),
+      ).length > 0 && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Alertes système critiques</AlertTitle>
           <AlertDescription>
             {
               alerts.filter(
-                a => !a.isResolved && (a.severity === 'critical' || a.severity === 'high')
+                (a) =>
+                  !a.isResolved &&
+                  (a.severity === "critical" || a.severity === "high"),
               ).length
-            }{' '}
+            }{" "}
             alerte(s) nécessitent votre attention immédiate.
             <Button
               variant="link"
               className="p-0 h-auto ml-2"
-              onClick={() => setActiveTab('alerts')}
+              onClick={() => setActiveTab("alerts")}
             >
               Voir les alertes
             </Button>
@@ -580,9 +608,9 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           value={currentStats.totalUsers.toLocaleString()}
           subtitle={`${currentStats.newUsersToday} nouveaux aujourd'hui`}
           icon={<Users className="h-5 w-5" />}
-          trend={{ value: 12, label: 'vs semaine dernière' }}
+          trend={{ value: 12, label: "vs semaine dernière" }}
           isLoading={isLoading}
-          onClick={() => router.push('/admin/users')}
+          onClick={() => router.push("/admin/users")}
           color="text-blue-600"
           bgColor="bg-blue-100 dark:bg-blue-900/50"
         />
@@ -593,7 +621,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           subtitle={`${currentStats.completedToday} terminées aujourd'hui`}
           icon={<Truck className="h-5 w-5" />}
           isLoading={isLoading}
-          onClick={() => router.push('/admin/deliveries')}
+          onClick={() => router.push("/admin/deliveries")}
           color="text-green-600"
           bgColor="bg-green-100 dark:bg-green-900/50"
         />
@@ -603,9 +631,12 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           value={`${currentStats.monthlyRevenue.toLocaleString()}€`}
           subtitle={`${currentStats.dailyRevenue}€ aujourd'hui`}
           icon={<Euro className="h-5 w-5" />}
-          trend={{ value: currentStats.revenueGrowth, label: 'vs mois dernier' }}
+          trend={{
+            value: currentStats.revenueGrowth,
+            label: "vs mois dernier",
+          }}
           isLoading={isLoading}
-          onClick={() => router.push('/admin/finance')}
+          onClick={() => router.push("/admin/finance")}
           color="text-purple-600"
           bgColor="bg-purple-100 dark:bg-purple-900/50"
         />
@@ -616,7 +647,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           subtitle={`${currentStats.systemAlerts} alertes actives`}
           icon={<Monitor className="h-5 w-5" />}
           isLoading={isLoading}
-          onClick={() => setActiveTab('system')}
+          onClick={() => setActiveTab("system")}
           color="text-orange-600"
           bgColor="bg-orange-100 dark:bg-orange-900/50"
         />
@@ -626,7 +657,11 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       <AdminQuickActions />
 
       {/* Onglets pour différentes vues */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
@@ -657,7 +692,12 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                         <XAxis dataKey="date" />
                         <YAxis />
                         <Tooltip />
-                        <Line type="monotone" dataKey="users" stroke="#3b82f6" strokeWidth={2} />
+                        <Line
+                          type="monotone"
+                          dataKey="users"
+                          stroke="#3b82f6"
+                          strokeWidth={2}
+                        />
                         <Line
                           type="monotone"
                           dataKey="deliveries"
@@ -698,14 +738,18 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                           fill="#8884d8"
                           label
                         >
-                          {deliveryData.statusDistribution.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={
-                                generateChartColors(deliveryData.statusDistribution.length)[index]
-                              }
-                            />
-                          ))}
+                          {deliveryData.statusDistribution.map(
+                            (entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={
+                                  generateChartColors(
+                                    deliveryData.statusDistribution.length,
+                                  )[index]
+                                }
+                              />
+                            ),
+                          )}
                         </Pie>
                         <Tooltip />
                       </PieChart>
@@ -714,13 +758,16 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                 </div>
                 <div className="mt-4 space-y-2">
                   {deliveryData?.statusDistribution?.map((status, index) => (
-                    <div key={status.status} className="flex justify-between items-center text-sm">
+                    <div
+                      key={status.status}
+                      className="flex justify-between items-center text-sm"
+                    >
                       <div className="flex items-center gap-2">
                         <div
                           className="w-3 h-3 rounded-full"
                           style={{
                             backgroundColor: generateChartColors(
-                              deliveryData.statusDistribution.length
+                              deliveryData.statusDistribution.length,
                             )[index],
                           }}
                         />
@@ -753,19 +800,27 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-2 h-2 rounded-full ${
-                            alert.severity === 'high'
-                              ? 'bg-red-500'
-                              : alert.severity === 'medium'
-                                ? 'bg-yellow-500'
-                                : 'bg-blue-500'
+                            alert.severity === "high"
+                              ? "bg-red-500"
+                              : alert.severity === "medium"
+                                ? "bg-yellow-500"
+                                : "bg-blue-500"
                           }`}
                         />
                         <div>
                           <p className="font-medium text-sm">{alert.title}</p>
-                          <p className="text-xs text-muted-foreground">{alert.description}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {alert.description}
+                          </p>
                         </div>
                       </div>
-                      <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
+                      <Badge
+                        variant={
+                          alert.severity === "high"
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
                         {alert.severity}
                       </Badge>
                     </div>
@@ -793,7 +848,9 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                       <div className="w-2 h-2 rounded-full bg-primary mt-2" />
                       <div className="flex-1">
                         <p className="text-sm font-medium">{activity.action}</p>
-                        <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {activity.timestamp}
+                        </p>
                       </div>
                       <Badge variant="outline" className="text-xs">
                         {activity.type}
@@ -849,7 +906,10 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
               <CardContent>
                 <div className="space-y-3">
                   {userData?.usersByRole?.map((role, index) => (
-                    <div key={role.role} className="flex justify-between items-center">
+                    <div
+                      key={role.role}
+                      className="flex justify-between items-center"
+                    >
                       <span className="text-sm font-medium">{role.role}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
@@ -857,9 +917,9 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                             className="h-full bg-primary"
                             style={{
                               width: `${(role.count / (userData.totalUsers || 1)) * 100}%`,
-                              backgroundColor: generateChartColors(userData.usersByRole.length)[
-                                index
-                              ],
+                              backgroundColor: generateChartColors(
+                                userData.usersByRole.length,
+                              )[index],
                             }}
                           />
                         </div>
@@ -880,15 +940,21 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">En attente</span>
-                    <Badge variant="secondary">{userData?.pendingVerifications || 0}</Badge>
+                    <Badge variant="secondary">
+                      {userData?.pendingVerifications || 0}
+                    </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Approuvées</span>
-                    <Badge variant="default">{userData?.approvedVerifications || 0}</Badge>
+                    <Badge variant="default">
+                      {userData?.approvedVerifications || 0}
+                    </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Rejetées</span>
-                    <Badge variant="destructive">{userData?.rejectedVerifications || 0}</Badge>
+                    <Badge variant="destructive">
+                      {userData?.rejectedVerifications || 0}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -930,11 +996,15 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Actives</p>
-                    <p className="text-2xl font-bold">{currentStats.activeDeliveries}</p>
+                    <p className="text-2xl font-bold">
+                      {currentStats.activeDeliveries}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Terminées</p>
-                    <p className="text-xl font-semibold">{currentStats.completedToday}</p>
+                    <p className="text-xl font-semibold">
+                      {currentStats.completedToday}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total</p>
@@ -966,7 +1036,12 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                       <XAxis dataKey="date" />
                       <YAxis />
                       <Tooltip />
-                      <Line type="monotone" dataKey="created" stroke="#f59e0b" strokeWidth={2} />
+                      <Line
+                        type="monotone"
+                        dataKey="created"
+                        stroke="#f59e0b"
+                        strokeWidth={2}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -1006,7 +1081,9 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                   <TrendingUp className="h-5 w-5" />
                   Évolution des Revenus
                 </CardTitle>
-                <CardDescription>Revenus et commissions sur 30 jours</CardDescription>
+                <CardDescription>
+                  Revenus et commissions sur 30 jours
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
@@ -1016,7 +1093,9 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="date" />
                         <YAxis />
-                        <Tooltip formatter={value => formatCurrency(Number(value))} />
+                        <Tooltip
+                          formatter={(value) => formatCurrency(Number(value))}
+                        />
                         <Area
                           type="monotone"
                           dataKey="revenue"
@@ -1048,7 +1127,9 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Revenus bruts</p>
+                    <p className="text-sm text-muted-foreground">
+                      Revenus bruts
+                    </p>
                     <p className="text-2xl font-bold">
                       {formatCurrency(financialData?.monthlyRevenue || 0)}
                     </p>
@@ -1060,11 +1141,13 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Revenus nets</p>
+                    <p className="text-sm text-muted-foreground">
+                      Revenus nets
+                    </p>
                     <p className="text-xl font-semibold">
                       {formatCurrency(
                         (financialData?.monthlyRevenue || 0) -
-                          (financialData?.monthlyCommissions || 0)
+                          (financialData?.monthlyCommissions || 0),
                       )}
                     </p>
                   </div>
@@ -1072,10 +1155,12 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                     <p className="text-sm text-muted-foreground">Croissance</p>
                     <p
                       className={`text-lg font-semibold ${
-                        (financialData?.revenueGrowth || 0) > 0 ? 'text-green-600' : 'text-red-600'
+                        (financialData?.revenueGrowth || 0) > 0
+                          ? "text-green-600"
+                          : "text-red-600"
                       }`}
                     >
-                      {financialData?.revenueGrowth > 0 ? '+' : ''}
+                      {financialData?.revenueGrowth > 0 ? "+" : ""}
                       {financialData?.revenueGrowth?.toFixed(1) || 0}%
                     </p>
                   </div>

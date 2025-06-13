@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslations } from 'next-intl';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import {
   delivererRegisterSchema,
   DelivererRegisterSchemaType,
-} from '@/schemas/deliverer/deliverer-register.schema';
-import { UserRole } from '@/schemas/auth/register.schema';
-import { Button } from '@/components/ui/button';
+} from "@/schemas/deliverer/deliverer-register.schema";
+import { UserRole } from "@/schemas/auth/register.schema";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -16,42 +16,44 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useRouter } from 'next/navigation';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/select";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
 type DelivererRegisterFormProps = {
   locale?: string;
 };
 
-export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegisterFormProps = {}) {
+export default function DelivererRegisterForm({
+  locale = "fr",
+}: DelivererRegisterFormProps = {}) {
   const router = useRouter();
-  const t = useTranslations('auth.register');
+  const t = useTranslations("auth.register");
   const { toast } = useToast();
 
   const registerMutation = api.auth.register.useMutation({
     onSuccess: () => {
       toast({
-        title: t('success.title'),
-        description: t('success.deliverer'),
+        title: t("success.title"),
+        description: t("success.deliverer"),
       });
-      router.push('/login?registered=true&role=deliverer');
+      router.push("/login?registered=true&role=deliverer");
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: t('error.title'),
-        description: error.message || t('error.description'),
-        variant: 'destructive',
+        title: t("error.title"),
+        description: error.message || t("error.description"),
+        variant: "destructive",
       });
     },
   });
@@ -59,19 +61,19 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
   const form = useForm<DelivererRegisterSchemaType>({
     resolver: zodResolver(delivererRegisterSchema) as any,
     defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      name: '',
-      phoneNumber: '',
-      address: '',
-      city: '',
-      postalCode: '',
-      state: '',
-      country: '',
-      phone: '',
-      vehicleType: 'CAR' as const,
-      licensePlate: '',
+      email: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+      phoneNumber: "",
+      address: "",
+      city: "",
+      postalCode: "",
+      state: "",
+      country: "",
+      phone: "",
+      vehicleType: "CAR" as const,
+      licensePlate: "",
       availableWeekends: false,
       availableNights: false,
       role: UserRole.DELIVERER,
@@ -84,7 +86,7 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
         email: data.email,
         password: data.password,
         name: data.name,
-        role: 'DELIVERER',
+        role: "DELIVERER",
         phone: data.phoneNumber,
         address: data.address,
       });
@@ -101,9 +103,9 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.name')}</FormLabel>
+              <FormLabel>{t("fields.name")}</FormLabel>
               <FormControl>
-                <Input placeholder={t('placeholders.name')} {...field} />
+                <Input placeholder={t("placeholders.name")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -115,9 +117,13 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.email')}</FormLabel>
+              <FormLabel>{t("fields.email")}</FormLabel>
               <FormControl>
-                <Input type="email" placeholder={t('placeholders.email')} {...field} />
+                <Input
+                  type="email"
+                  placeholder={t("placeholders.email")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -129,9 +135,13 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.phone')}</FormLabel>
+              <FormLabel>{t("fields.phone")}</FormLabel>
               <FormControl>
-                <Input type="tel" placeholder={t('placeholders.phone')} {...field} />
+                <Input
+                  type="tel"
+                  placeholder={t("placeholders.phone")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -143,9 +153,9 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.address')}</FormLabel>
+              <FormLabel>{t("fields.address")}</FormLabel>
               <FormControl>
-                <Input placeholder={t('placeholders.address')} {...field} />
+                <Input placeholder={t("placeholders.address")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -158,9 +168,9 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
             name="city"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.city')}</FormLabel>
+                <FormLabel>{t("fields.city")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.city')} {...field} />
+                  <Input placeholder={t("placeholders.city")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -172,9 +182,12 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
             name="postalCode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.postalCode')}</FormLabel>
+                <FormLabel>{t("fields.postalCode")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.postalCode')} {...field} />
+                  <Input
+                    placeholder={t("placeholders.postalCode")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -188,9 +201,9 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
             name="state"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.state')}</FormLabel>
+                <FormLabel>{t("fields.state")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.state')} {...field} />
+                  <Input placeholder={t("placeholders.state")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -202,9 +215,9 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
             name="country"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.country')}</FormLabel>
+                <FormLabel>{t("fields.country")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.country')} {...field} />
+                  <Input placeholder={t("placeholders.country")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -217,19 +230,25 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
           name="vehicleType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.vehicleType')}</FormLabel>
+              <FormLabel>{t("fields.vehicleType")}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('placeholders.vehicleType')} />
+                    <SelectValue placeholder={t("placeholders.vehicleType")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="BICYCLE">{t('vehicleTypes.bicycle')}</SelectItem>
-                  <SelectItem value="SCOOTER">{t('vehicleTypes.scooter')}</SelectItem>
-                  <SelectItem value="CAR">{t('vehicleTypes.car')}</SelectItem>
-                  <SelectItem value="VAN">{t('vehicleTypes.van')}</SelectItem>
-                  <SelectItem value="TRUCK">{t('vehicleTypes.truck')}</SelectItem>
+                  <SelectItem value="BICYCLE">
+                    {t("vehicleTypes.bicycle")}
+                  </SelectItem>
+                  <SelectItem value="SCOOTER">
+                    {t("vehicleTypes.scooter")}
+                  </SelectItem>
+                  <SelectItem value="CAR">{t("vehicleTypes.car")}</SelectItem>
+                  <SelectItem value="VAN">{t("vehicleTypes.van")}</SelectItem>
+                  <SelectItem value="TRUCK">
+                    {t("vehicleTypes.truck")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -242,9 +261,12 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
           name="licensePlate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.licensePlate')}</FormLabel>
+              <FormLabel>{t("fields.licensePlate")}</FormLabel>
               <FormControl>
-                <Input placeholder={t('placeholders.licensePlate')} {...field} />
+                <Input
+                  placeholder={t("placeholders.licensePlate")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -256,9 +278,13 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.password')}</FormLabel>
+              <FormLabel>{t("fields.password")}</FormLabel>
               <FormControl>
-                <Input type="password" placeholder={t('placeholders.password')} {...field} />
+                <Input
+                  type="password"
+                  placeholder={t("placeholders.password")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -270,9 +296,13 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.confirmPassword')}</FormLabel>
+              <FormLabel>{t("fields.confirmPassword")}</FormLabel>
               <FormControl>
-                <Input type="password" placeholder={t('placeholders.confirmPassword')} {...field} />
+                <Input
+                  type="password"
+                  placeholder={t("placeholders.confirmPassword")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -286,10 +316,13 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>{t('fields.availableWeekends')}</FormLabel>
+                  <FormLabel>{t("fields.availableWeekends")}</FormLabel>
                 </div>
               </FormItem>
             )}
@@ -301,18 +334,27 @@ export default function DelivererRegisterForm({ locale = 'fr' }: DelivererRegist
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>{t('fields.availableNights')}</FormLabel>
+                  <FormLabel>{t("fields.availableNights")}</FormLabel>
                 </div>
               </FormItem>
             )}
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-          {registerMutation.isPending ? t('submitting') : t('registerAsDeliverer')}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={registerMutation.isPending}
+        >
+          {registerMutation.isPending
+            ? t("submitting")
+            : t("registerAsDeliverer")}
         </Button>
       </form>
     </Form>

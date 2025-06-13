@@ -1,8 +1,8 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { createCaller } from '@/trpc/server';
-import { notFound } from 'next/navigation';
-import { WarehouseDetail } from '@/components/admin/warehouses/warehouse-detail';
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { createCaller } from "@/trpc/server";
+import { notFound } from "next/navigation";
+import { WarehouseDetail } from "@/components/admin/warehouses/warehouse-detail";
 
 export async function generateMetadata({
   params,
@@ -12,7 +12,7 @@ export async function generateMetadata({
   const { locale, id } = await params;
   const t = await getTranslations({
     locale,
-    namespace: 'admin.warehouses.details.meta',
+    namespace: "admin.warehouses.details.meta",
   });
 
   try {
@@ -20,20 +20,24 @@ export async function generateMetadata({
     const warehouse = await caller.adminWarehouse.getWarehouseById({ id });
 
     return {
-      title: `${warehouse.warehouse.name} - ${t('title')}`,
-      description: t('description'),
+      title: `${warehouse.warehouse.name} - ${t("title")}`,
+      description: t("description"),
     };
   } catch {
     return {
-      title: t('title'),
-      description: t('description'),
+      title: t("title"),
+      description: t("description"),
     };
   }
 }
 
-export default async function WarehouseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function WarehouseDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
-  
+
   try {
     const caller = await createCaller();
     const warehouseData = await caller.adminWarehouse.getWarehouseById({ id });

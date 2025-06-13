@@ -1,17 +1,30 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { CreditCard, Wallet, Building, Plus, Zap, AlertCircle, Info } from 'lucide-react';
-import Image from 'next/image';
-import { cn } from '@/lib/utils/common';
-import { useTranslations } from 'next-intl';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React, { useState } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  CreditCard,
+  Wallet,
+  Building,
+  Plus,
+  Zap,
+  AlertCircle,
+  Info,
+} from "lucide-react";
+import Image from "next/image";
+import { cn } from "@/lib/utils/common";
+import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-export type PaymentMethodType = 'card' | 'wallet' | 'sepa' | 'saved_card';
+export type PaymentMethodType = "card" | "wallet" | "sepa" | "saved_card";
 
 export interface SavedCard {
   id: string;
@@ -39,23 +52,25 @@ export function PaymentMethodSelector({
   onSelect,
   savedCards = [],
   walletBalance,
-  currency = 'EUR',
+  currency = "EUR",
   showAddCard = true,
   onAddCard,
   disabled = false,
   className,
   isDemoMode = false,
 }: PaymentMethodSelectorProps) {
-  const t = useTranslations('payment');
+  const t = useTranslations("payment");
   const [selectedCardId, setSelectedCardId] = useState<string | undefined>(
-    selectedMethod === 'saved_card' && savedCards.length > 0 ? savedCards[0].id : undefined
+    selectedMethod === "saved_card" && savedCards.length > 0
+      ? savedCards[0].id
+      : undefined,
   );
 
   const handleSelect = (value: string) => {
-    if (value === 'saved_card' && savedCards.length > 0) {
+    if (value === "saved_card" && savedCards.length > 0) {
       const cardId = selectedCardId || savedCards[0].id;
       setSelectedCardId(cardId);
-      onSelect('saved_card', cardId);
+      onSelect("saved_card", cardId);
     } else {
       setSelectedCardId(undefined);
       onSelect(value as PaymentMethodType);
@@ -64,13 +79,13 @@ export function PaymentMethodSelector({
 
   const handleCardSelect = (cardId: string) => {
     setSelectedCardId(cardId);
-    onSelect('saved_card', cardId);
+    onSelect("saved_card", cardId);
   };
 
   // Formater le solde du portefeuille
   const formatWalletBalance = (balance: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
       currency: currency,
       minimumFractionDigits: 2,
     }).format(balance);
@@ -79,12 +94,12 @@ export function PaymentMethodSelector({
   // Obtenir le logo de la marque de carte
   const getCardBrandLogo = (brand: string) => {
     switch (brand.toLowerCase()) {
-      case 'visa':
-        return '/images/payment/visa.svg';
-      case 'mastercard':
-        return '/images/payment/mastercard.svg';
-      case 'amex':
-        return '/images/payment/amex.svg';
+      case "visa":
+        return "/images/payment/visa.svg";
+      case "mastercard":
+        return "/images/payment/mastercard.svg";
+      case "amex":
+        return "/images/payment/amex.svg";
       default:
         return null;
     }
@@ -92,7 +107,7 @@ export function PaymentMethodSelector({
 
   // Déterminer si une méthode de paiement est inactive
   const isMethodInactive = (method: PaymentMethodType): boolean => {
-    if (method === 'wallet' && (!walletBalance || walletBalance <= 0)) {
+    if (method === "wallet" && (!walletBalance || walletBalance <= 0)) {
       return true;
     }
     return false;
@@ -103,23 +118,23 @@ export function PaymentMethodSelector({
     if (!isDemoMode) return null;
 
     switch (method) {
-      case 'card':
-        return t('demoCardInfo');
-      case 'wallet':
-        return t('demoWalletInfo');
-      case 'sepa':
-        return t('demoSepaInfo');
-      case 'saved_card':
-        return t('demoSavedCardInfo');
+      case "card":
+        return t("demoCardInfo");
+      case "wallet":
+        return t("demoWalletInfo");
+      case "sepa":
+        return t("demoSepaInfo");
+      case "saved_card":
+        return t("demoSavedCardInfo");
       default:
         return null;
     }
   };
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">{t('paymentMethodTitle')}</h3>
+        <h3 className="text-sm font-medium">{t("paymentMethodTitle")}</h3>
         {isDemoMode && (
           <TooltipProvider>
             <Tooltip>
@@ -129,11 +144,11 @@ export function PaymentMethodSelector({
                   className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
                 >
                   <Zap className="h-3 w-3" />
-                  {t('demoMode')}
+                  {t("demoMode")}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{t('demoPaymentMethodDescription')}</p>
+                <p>{t("demoPaymentMethodDescription")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -148,20 +163,29 @@ export function PaymentMethodSelector({
       >
         {/* Nouvelle carte */}
         <div>
-          <RadioGroupItem value="card" id="card" className="peer sr-only" disabled={disabled} />
+          <RadioGroupItem
+            value="card"
+            id="card"
+            className="peer sr-only"
+            disabled={disabled}
+          />
           <Label
             htmlFor="card"
             className={cn(
-              'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all',
-              selectedMethod === 'card' ? 'border-primary' : '',
-              'cursor-pointer'
+              "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all",
+              selectedMethod === "card" ? "border-primary" : "",
+              "cursor-pointer",
             )}
           >
             <div className="flex w-full items-center space-x-3">
               <CreditCard className="h-5 w-5 text-primary" />
               <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium leading-none">{t('newCard')}</p>
-                <p className="text-xs text-muted-foreground">{t('securePayment')}</p>
+                <p className="text-sm font-medium leading-none">
+                  {t("newCard")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("securePayment")}
+                </p>
               </div>
               {isDemoMode && (
                 <TooltipProvider>
@@ -170,7 +194,7 @@ export function PaymentMethodSelector({
                       <Info className="h-4 w-4 text-blue-500" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p className="max-w-xs">{getDemoInfo('card')}</p>
+                      <p className="max-w-xs">{getDemoInfo("card")}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -191,16 +215,20 @@ export function PaymentMethodSelector({
             <Label
               htmlFor="saved_card"
               className={cn(
-                'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all',
-                selectedMethod === 'saved_card' ? 'border-primary' : '',
-                'cursor-pointer'
+                "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all",
+                selectedMethod === "saved_card" ? "border-primary" : "",
+                "cursor-pointer",
               )}
             >
               <div className="flex w-full items-center space-x-3">
                 <CreditCard className="h-5 w-5 text-primary" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium leading-none">{t('savedCards')}</p>
-                  <p className="text-xs text-muted-foreground">{t('chooseFromSavedCards')}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {t("savedCards")}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("chooseFromSavedCards")}
+                  </p>
                 </div>
                 {isDemoMode && (
                   <TooltipProvider>
@@ -209,28 +237,30 @@ export function PaymentMethodSelector({
                         <Info className="h-4 w-4 text-blue-500" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="max-w-xs">{getDemoInfo('saved_card')}</p>
+                        <p className="max-w-xs">{getDemoInfo("saved_card")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 )}
               </div>
 
-              {selectedMethod === 'saved_card' && (
+              {selectedMethod === "saved_card" && (
                 <div className="w-full mt-4 grid gap-2">
-                  {savedCards.map(card => (
+                  {savedCards.map((card) => (
                     <Card
                       key={card.id}
                       className={cn(
-                        'cursor-pointer border hover:border-primary transition-all',
-                        selectedCardId === card.id ? 'border-primary bg-primary/5' : ''
+                        "cursor-pointer border hover:border-primary transition-all",
+                        selectedCardId === card.id
+                          ? "border-primary bg-primary/5"
+                          : "",
                       )}
                       onClick={() => handleCardSelect(card.id)}
                       role="radio"
                       aria-checked={selectedCardId === card.id}
                       tabIndex={0}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') {
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
                           handleCardSelect(card.id);
                           e.preventDefault();
                         }
@@ -244,7 +274,7 @@ export function PaymentMethodSelector({
                                 src={getCardBrandLogo(card.brand) as string}
                                 alt={card.brand}
                                 fill
-                                style={{ objectFit: 'contain' }}
+                                style={{ objectFit: "contain" }}
                               />
                             </div>
                           ) : (
@@ -252,11 +282,13 @@ export function PaymentMethodSelector({
                           )}
                           <div>
                             <p className="text-sm font-medium">{card.brand}</p>
-                            <p className="text-xs text-muted-foreground">•••• {card.last4}</p>
+                            <p className="text-xs text-muted-foreground">
+                              •••• {card.last4}
+                            </p>
                           </div>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {card.expiryMonth.toString().padStart(2, '0')}/
+                          {card.expiryMonth.toString().padStart(2, "0")}/
                           {card.expiryYear.toString().slice(-2)}
                         </div>
                       </CardContent>
@@ -275,22 +307,26 @@ export function PaymentMethodSelector({
               value="wallet"
               id="wallet"
               className="peer sr-only"
-              disabled={disabled || isMethodInactive('wallet')}
+              disabled={disabled || isMethodInactive("wallet")}
             />
             <Label
               htmlFor="wallet"
               className={cn(
-                'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all',
-                selectedMethod === 'wallet' ? 'border-primary' : '',
-                isMethodInactive('wallet') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all",
+                selectedMethod === "wallet" ? "border-primary" : "",
+                isMethodInactive("wallet")
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer",
               )}
             >
               <div className="flex w-full items-center space-x-3">
                 <Wallet className="h-5 w-5 text-primary" />
                 <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">{t('wallet')}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {t("wallet")}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {t('balance')}: {formatWalletBalance(walletBalance)}
+                    {t("balance")}: {formatWalletBalance(walletBalance)}
                   </p>
                 </div>
                 {isDemoMode && (
@@ -300,7 +336,7 @@ export function PaymentMethodSelector({
                         <Info className="h-4 w-4 text-blue-500" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="max-w-xs">{getDemoInfo('wallet')}</p>
+                        <p className="max-w-xs">{getDemoInfo("wallet")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -312,20 +348,29 @@ export function PaymentMethodSelector({
 
         {/* SEPA */}
         <div>
-          <RadioGroupItem value="sepa" id="sepa" className="peer sr-only" disabled={disabled} />
+          <RadioGroupItem
+            value="sepa"
+            id="sepa"
+            className="peer sr-only"
+            disabled={disabled}
+          />
           <Label
             htmlFor="sepa"
             className={cn(
-              'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all',
-              selectedMethod === 'sepa' ? 'border-primary' : '',
-              'cursor-pointer'
+              "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all",
+              selectedMethod === "sepa" ? "border-primary" : "",
+              "cursor-pointer",
             )}
           >
             <div className="flex w-full items-center space-x-3">
               <Building className="h-5 w-5 text-primary" />
               <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium leading-none">{t('sepaTransfer')}</p>
-                <p className="text-xs text-muted-foreground">{t('sepaDescription')}</p>
+                <p className="text-sm font-medium leading-none">
+                  {t("sepaTransfer")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("sepaDescription")}
+                </p>
               </div>
               {isDemoMode && (
                 <TooltipProvider>
@@ -334,7 +379,7 @@ export function PaymentMethodSelector({
                       <Info className="h-4 w-4 text-blue-500" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p className="max-w-xs">{getDemoInfo('sepa')}</p>
+                      <p className="max-w-xs">{getDemoInfo("sepa")}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -345,7 +390,7 @@ export function PaymentMethodSelector({
       </RadioGroup>
 
       {/* Ajouter une carte */}
-      {showAddCard && onAddCard && selectedMethod === 'saved_card' && (
+      {showAddCard && onAddCard && selectedMethod === "saved_card" && (
         <button
           type="button"
           onClick={onAddCard}
@@ -353,7 +398,7 @@ export function PaymentMethodSelector({
           disabled={disabled}
         >
           <Plus className="h-4 w-4 mr-1" />
-          {t('addNewCard')}
+          {t("addNewCard")}
         </button>
       )}
     </div>

@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export * from './ratings.schema';
-export * from './service-booking.schema';
-export * from './service-category.schema';
-export * from './service.schema';
+export * from "./ratings.schema";
+export * from "./service-booking.schema";
+export * from "./service-category.schema";
+export * from "./service.schema";

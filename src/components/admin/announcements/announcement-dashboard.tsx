@@ -1,42 +1,33 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { AnnouncementTable } from '@/components/admin/announcements/announcement-table';
-import { AnnouncementStats } from '@/components/admin/announcements/announcement-stats';
-import { AnnouncementFilters } from '@/components/admin/announcements/announcement-filters';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, DownloadIcon, RefreshCw } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/trpc/react';
-
-// Traductions temporaires en dur pour résoudre le problème de cache
-const hardcodedTranslations = {
-  refresh: 'Actualiser',
-  export: 'Exporter',
-  allAnnouncements: 'Toutes les annonces',
-  manageAllAnnouncements: 'Gérez et modérez toutes les annonces',
-  tabs: {
-    all: 'Toutes',
-    pending: 'En attente',
-    assigned: 'Assignées',
-    completed: 'Terminées',
-    problems: 'Problèmes',
-  },
-};
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { AnnouncementTable } from "@/components/admin/announcements/announcement-table";
+import { AnnouncementStats } from "@/components/admin/announcements/announcement-stats";
+import { AnnouncementFilters } from "@/components/admin/announcements/announcement-filters";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus, DownloadIcon, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { api } from "@/trpc/react";
 
 export function AnnouncementDashboard() {
-  const t = useTranslations('admin.announcements');
+  const t = useTranslations("admin.announcements");
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState("all");
   const [filters, setFilters] = useState({
-    status: '',
-    type: '',
-    searchTerm: '',
-    startDate: '',
-    endDate: '',
+    status: "",
+    type: "",
+    searchTerm: "",
+    startDate: "",
+    endDate: "",
     page: 1,
     limit: 10,
   });
@@ -60,25 +51,25 @@ export function AnnouncementDashboard() {
     setActiveTab(value);
 
     // Mettre à jour les filtres en fonction de l'onglet sélectionné
-    if (value === 'all') {
-      setFilters(prev => ({ ...prev, status: '' }));
-    } else if (value === 'pending') {
-      setFilters(prev => ({ ...prev, status: 'PUBLISHED' }));
-    } else if (value === 'assigned') {
-      setFilters(prev => ({ ...prev, status: 'ASSIGNED' }));
-    } else if (value === 'completed') {
-      setFilters(prev => ({ ...prev, status: 'COMPLETED' }));
-    } else if (value === 'problems') {
-      setFilters(prev => ({ ...prev, status: 'PROBLEM' }));
+    if (value === "all") {
+      setFilters((prev) => ({ ...prev, status: "" }));
+    } else if (value === "pending") {
+      setFilters((prev) => ({ ...prev, status: "PUBLISHED" }));
+    } else if (value === "assigned") {
+      setFilters((prev) => ({ ...prev, status: "ASSIGNED" }));
+    } else if (value === "completed") {
+      setFilters((prev) => ({ ...prev, status: "COMPLETED" }));
+    } else if (value === "problems") {
+      setFilters((prev) => ({ ...prev, status: "PROBLEM" }));
     }
   };
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
   };
 
   const handlePageChange = (page: number) => {
-    setFilters(prev => ({ ...prev, page }));
+    setFilters((prev) => ({ ...prev, page }));
   };
 
   const handleRefresh = () => {
@@ -88,22 +79,7 @@ export function AnnouncementDashboard() {
 
   const handleExport = async () => {
     // TODO: Implémenter l'export des données
-    console.log('Export des données');
-  };
-
-  // Fonction helper pour obtenir les traductions avec fallback DIRECT
-  const getTranslation = (key: string): string => {
-    // Utiliser directement les traductions en dur pour éviter les erreurs
-    const keys = key.split('.');
-    let value: any = hardcodedTranslations;
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        return key; // Retourner la clé si pas trouvée
-      }
-    }
-    return value || key;
+    console.log("Export des données");
   };
 
   return (
@@ -112,11 +88,11 @@ export function AnnouncementDashboard() {
         <div className="flex gap-2">
           <Button onClick={handleRefresh} variant="outline" size="sm">
             <RefreshCw className="mr-2 h-4 w-4" />
-            {getTranslation('refresh')}
+            {t("refresh")}
           </Button>
           <Button onClick={handleExport} variant="outline" size="sm">
             <DownloadIcon className="mr-2 h-4 w-4" />
-            {getTranslation('export')}
+            {t("export")}
           </Button>
         </div>
       </div>
@@ -125,21 +101,28 @@ export function AnnouncementDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{getTranslation('allAnnouncements')}</CardTitle>
-          <CardDescription>{getTranslation('manageAllAnnouncements')}</CardDescription>
+          <CardTitle>{t("allAnnouncements")}</CardTitle>
+          <CardDescription>{t("manageAllAnnouncements")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
+          <Tabs
+            defaultValue="all"
+            value={activeTab}
+            onValueChange={handleTabChange}
+          >
             <TabsList className="mb-4">
-              <TabsTrigger value="all">{getTranslation('tabs.all')}</TabsTrigger>
-              <TabsTrigger value="pending">{getTranslation('tabs.pending')}</TabsTrigger>
-              <TabsTrigger value="assigned">{getTranslation('tabs.assigned')}</TabsTrigger>
-              <TabsTrigger value="completed">{getTranslation('tabs.completed')}</TabsTrigger>
-              <TabsTrigger value="problems">{getTranslation('tabs.problems')}</TabsTrigger>
+              <TabsTrigger value="all">{t("tabs.all")}</TabsTrigger>
+              <TabsTrigger value="pending">{t("tabs.pending")}</TabsTrigger>
+              <TabsTrigger value="assigned">{t("tabs.assigned")}</TabsTrigger>
+              <TabsTrigger value="completed">{t("tabs.completed")}</TabsTrigger>
+              <TabsTrigger value="problems">{t("tabs.problems")}</TabsTrigger>
             </TabsList>
 
             <div className="mb-4">
-              <AnnouncementFilters filters={filters} onFilterChange={handleFilterChange} />
+              <AnnouncementFilters
+                filters={filters}
+                onFilterChange={handleFilterChange}
+              />
             </div>
 
             <TabsContent value="all" className="m-0">

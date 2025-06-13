@@ -4,15 +4,15 @@
  */
 
 // Exports des sous-dossiers
-export * from './admin';
-export * from './auth';
-export * from './client';
-export * from './deliverer';
-export * from './layout';
-export * from './merchant';
-export * from './profile';
-export * from './provider';
-export * from './providers';
-export * from './schedule';
-export * from './shared';
-export * from './ui';
+export * from "./admin";
+export * from "./auth";
+export * from "./client";
+export * from "./deliverer";
+export * from "./layout";
+export * from "./merchant";
+export * from "./profile";
+export * from "./provider";
+export * from "./providers";
+export * from "./schedule";
+export * from "./shared";
+export * from "./ui";

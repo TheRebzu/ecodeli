@@ -1,4 +1,4 @@
-import { db } from '@/server/db';
+import { db } from "@/server/db";
 import {
   AnnouncementStatus,
   AnnouncementPriority,
@@ -7,15 +7,20 @@ import {
   UpdateAnnouncementInput,
   Announcement,
   GeoSearchParams,
-} from '@/types/announcements/announcement';
-import { Prisma } from '@prisma/client';
-import { AuditService } from '@/server/services/admin/audit.service';
+} from "@/types/announcements/announcement";
+import { Prisma } from "@prisma/client";
+import { AuditService } from "@/server/services/admin/audit.service";
 
 /**
  * Calcule la distance en kilomètres entre deux points géographiques
  * en utilisant la formule de Haversine
  */
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
   const R = 6371; // Rayon de la Terre en km
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
@@ -54,8 +59,8 @@ export const AnnouncementService = {
       tags,
       limit = 10,
       offset = 0,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
+      sortBy = "createdAt",
+      sortOrder = "desc",
     } = filters;
 
     // Construction de la requête avec conditions
@@ -115,10 +120,10 @@ export const AnnouncementService = {
     // Recherche par mot-clé
     if (keyword) {
       where.OR = [
-        { title: { contains: keyword, mode: 'insensitive' } },
-        { description: { contains: keyword, mode: 'insensitive' } },
-        { pickupAddress: { contains: keyword, mode: 'insensitive' } },
-        { deliveryAddress: { contains: keyword, mode: 'insensitive' } },
+        { title: { contains: keyword, mode: "insensitive" } },
+        { description: { contains: keyword, mode: "insensitive" } },
+        { pickupAddress: { contains: keyword, mode: "insensitive" } },
+        { deliveryAddress: { contains: keyword, mode: "insensitive" } },
       ];
     }
 
@@ -198,8 +203,8 @@ export const AnnouncementService = {
         },
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des annonces:', error);
-      throw new Error('Erreur lors de la récupération des annonces');
+      console.error("Erreur lors de la récupération des annonces:", error);
+      throw new Error("Erreur lors de la récupération des annonces");
     }
   },
 
@@ -242,7 +247,7 @@ export const AnnouncementService = {
       });
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       // Incrémenter le compteur de vues
@@ -315,7 +320,7 @@ export const AnnouncementService = {
       });
 
       if (!user || !user.client) {
-        throw new Error('Seuls les clients peuvent créer des annonces');
+        throw new Error("Seuls les clients peuvent créer des annonces");
       }
 
       // Créer l'annonce
@@ -360,12 +365,12 @@ export const AnnouncementService = {
 
       // Créer une entrée dans l'audit log pour suivre la création
       await AuditService.createAuditLog(
-        'announcement',
+        "announcement",
         announcement.id,
-        'CREATE',
+        "CREATE",
         clientId,
         null,
-        announcement
+        announcement,
       );
 
       return announcement;
@@ -384,7 +389,7 @@ export const AnnouncementService = {
       const existingAnnouncement = await this.getById(id);
 
       if (!existingAnnouncement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       // Vérifier que l'utilisateur est le propriétaire de l'annonce
@@ -397,7 +402,9 @@ export const AnnouncementService = {
         existingAnnouncement.status !== AnnouncementStatus.DRAFT &&
         existingAnnouncement.status !== AnnouncementStatus.PENDING
       ) {
-        throw new Error('Impossible de modifier une annonce qui a déjà été publiée ou assignée');
+        throw new Error(
+          "Impossible de modifier une annonce qui a déjà été publiée ou assignée",
+        );
       }
 
       // Exclure l'ID de l'objet de mise à jour
@@ -414,12 +421,12 @@ export const AnnouncementService = {
 
       // Créer une entrée dans l'audit log pour suivre la modification
       await AuditService.createAuditLog(
-        'announcement',
+        "announcement",
         id,
-        'UPDATE',
+        "UPDATE",
         userId,
         existingAnnouncement,
-        updatedAnnouncement
+        updatedAnnouncement,
       );
 
       return updatedAnnouncement;
@@ -438,7 +445,7 @@ export const AnnouncementService = {
       const announcement = await this.getById(id);
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       // Vérifier l'autorisation (seul le client propriétaire ou un admin peut supprimer)
@@ -456,11 +463,18 @@ export const AnnouncementService = {
         announcement.status === AnnouncementStatus.IN_PROGRESS ||
         announcement.status === AnnouncementStatus.ASSIGNED
       ) {
-        throw new Error('Une annonce en cours ne peut pas être supprimée');
+        throw new Error("Une annonce en cours ne peut pas être supprimée");
       }
 
       // Créer une entrée dans l'audit log avant suppression
-      await AuditService.createAuditLog('announcement', id, 'DELETE', userId, announcement, null);
+      await AuditService.createAuditLog(
+        "announcement",
+        id,
+        "DELETE",
+        userId,
+        announcement,
+        null,
+      );
 
       // Transaction pour supprimer l'annonce et ses candidatures
       await db.$transaction(async (tx: any) => {
@@ -475,7 +489,7 @@ export const AnnouncementService = {
         });
       });
 
-      return { success: true, message: 'Annonce supprimée avec succès' };
+      return { success: true, message: "Annonce supprimée avec succès" };
     } catch (error) {
       console.error("Erreur lors de la suppression de l'annonce:", error);
       throw new Error("Erreur lors de la suppression de l'annonce");
@@ -488,14 +502,14 @@ export const AnnouncementService = {
   async applyForAnnouncement(
     announcementId: string,
     delivererId: string,
-    data: { proposedPrice?: number; message?: string }
+    data: { proposedPrice?: number; message?: string },
   ) {
     try {
       // Vérifier si l'annonce existe
       const announcement = await this.getById(announcementId);
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       // Vérifier si l'annonce est ouverte aux candidatures
@@ -513,7 +527,7 @@ export const AnnouncementService = {
       });
 
       if (!user || !user.deliverer) {
-        throw new Error('Seuls les livreurs peuvent postuler aux annonces');
+        throw new Error("Seuls les livreurs peuvent postuler aux annonces");
       }
 
       // Vérifier si le livreur a déjà postulé
@@ -525,7 +539,7 @@ export const AnnouncementService = {
       });
 
       if (existingApplication) {
-        throw new Error('Vous avez déjà postulé pour cette annonce');
+        throw new Error("Vous avez déjà postulé pour cette annonce");
       }
 
       // Créer la candidature et mettre à jour le compteur en une transaction
@@ -536,7 +550,7 @@ export const AnnouncementService = {
             delivererId,
             proposedPrice: data.proposedPrice,
             message: data.message,
-            status: 'PENDING',
+            status: "PENDING",
           },
           include: {
             announcement: true,
@@ -558,25 +572,29 @@ export const AnnouncementService = {
 
       // Créer une entrée dans l'audit log
       await AuditService.createAuditLog(
-        'announcement',
+        "announcement",
         announcementId,
-        'APPLICATION_ADDED',
+        "APPLICATION_ADDED",
         delivererId,
         { applicationsCount: announcement.applicationsCount },
-        { applicationsCount: announcement.applicationsCount + 1 }
+        { applicationsCount: announcement.applicationsCount + 1 },
       );
 
       return application;
     } catch (error) {
-      console.error('Erreur lors de la candidature:', error);
-      throw new Error('Erreur lors de la candidature');
+      console.error("Erreur lors de la candidature:", error);
+      throw new Error("Erreur lors de la candidature");
     }
   },
 
   /**
    * Met à jour le statut d'une candidature
    */
-  async updateApplicationStatus(applicationId: string, status: string, userId: string) {
+  async updateApplicationStatus(
+    applicationId: string,
+    status: string,
+    userId: string,
+  ) {
     try {
       // Récupérer la candidature
       const application = await db.deliveryApplication.findUnique({
@@ -585,12 +603,14 @@ export const AnnouncementService = {
       });
 
       if (!application) {
-        throw new Error('Candidature non trouvée');
+        throw new Error("Candidature non trouvée");
       }
 
       // Vérifier l'autorisation (seul le client propriétaire peut accepter/refuser)
       if (application.announcement.clientId !== userId) {
-        throw new Error("Vous n'êtes pas autorisé à modifier cette candidature");
+        throw new Error(
+          "Vous n'êtes pas autorisé à modifier cette candidature",
+        );
       }
 
       // Transaction pour mettre à jour le statut et gérer les effets secondaires
@@ -606,7 +626,7 @@ export const AnnouncementService = {
         });
 
         // Si la candidature est acceptée
-        if (status === 'ACCEPTED') {
+        if (status === "ACCEPTED") {
           // Mettre à jour l'annonce
           await tx.announcement.update({
             where: { id: application.announcementId },
@@ -624,7 +644,7 @@ export const AnnouncementService = {
               id: { not: applicationId },
             },
             data: {
-              status: 'REJECTED',
+              status: "REJECTED",
               updatedAt: new Date(),
             },
           });
@@ -635,30 +655,35 @@ export const AnnouncementService = {
 
       // Créer une entrée dans l'audit log
       await AuditService.createAuditLog(
-        'announcement',
+        "announcement",
         application.announcementId,
-        'APPLICATION_STATUS_UPDATED',
+        "APPLICATION_STATUS_UPDATED",
         userId,
         { applicationId, oldStatus: application.status },
-        { applicationId, newStatus: status }
+        { applicationId, newStatus: status },
       );
 
       // Si la candidature a été acceptée, créer un autre log pour le changement de statut
-      if (status === 'ACCEPTED') {
+      if (status === "ACCEPTED") {
         await AuditService.createAuditLog(
-          'announcement',
+          "announcement",
           application.announcementId,
-          'STATUS_CHANGED',
+          "STATUS_CHANGED",
           userId,
           { status: application.announcement.status },
-          { status: AnnouncementStatus.ASSIGNED }
+          { status: AnnouncementStatus.ASSIGNED },
         );
       }
 
       return updatedApplication;
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut de la candidature:', error);
-      throw new Error('Erreur lors de la mise à jour du statut de la candidature');
+      console.error(
+        "Erreur lors de la mise à jour du statut de la candidature:",
+        error,
+      );
+      throw new Error(
+        "Erreur lors de la mise à jour du statut de la candidature",
+      );
     }
   },
 
@@ -671,7 +696,7 @@ export const AnnouncementService = {
       const announcement = await this.getById(id);
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       // Vérifier l'autorisation
@@ -684,7 +709,9 @@ export const AnnouncementService = {
         announcement.status !== AnnouncementStatus.DRAFT &&
         announcement.status !== AnnouncementStatus.PENDING
       ) {
-        throw new Error('Seules les annonces en brouillon ou en attente peuvent être publiées');
+        throw new Error(
+          "Seules les annonces en brouillon ou en attente peuvent être publiées",
+        );
       }
 
       // Publier l'annonce
@@ -701,12 +728,12 @@ export const AnnouncementService = {
 
       // Créer une entrée dans l'audit log
       await AuditService.createAuditLog(
-        'announcement',
+        "announcement",
         id,
-        'STATUS_CHANGED',
+        "STATUS_CHANGED",
         userId,
         { status: announcement.status },
-        { status: AnnouncementStatus.PUBLISHED }
+        { status: AnnouncementStatus.PUBLISHED },
       );
 
       return updatedAnnouncement;
@@ -725,17 +752,24 @@ export const AnnouncementService = {
       const announcement = await this.getById(id);
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       // Vérifier l'autorisation (client ou livreur assigné)
-      if (announcement.clientId !== userId && announcement.delivererId !== userId) {
-        throw new Error("Vous n'êtes pas autorisé à marquer cette annonce comme complétée");
+      if (
+        announcement.clientId !== userId &&
+        announcement.delivererId !== userId
+      ) {
+        throw new Error(
+          "Vous n'êtes pas autorisé à marquer cette annonce comme complétée",
+        );
       }
 
       // Vérifier si l'annonce est en cours
       if (announcement.status !== AnnouncementStatus.IN_PROGRESS) {
-        throw new Error('Seules les annonces en cours peuvent être marquées comme complétées');
+        throw new Error(
+          "Seules les annonces en cours peuvent être marquées comme complétées",
+        );
       }
 
       // Compléter l'annonce
@@ -752,12 +786,12 @@ export const AnnouncementService = {
 
       // Créer une entrée dans l'audit log
       await AuditService.createAuditLog(
-        'announcement',
+        "announcement",
         id,
-        'STATUS_CHANGED',
+        "STATUS_CHANGED",
         userId,
         { status: announcement.status },
-        { status: AnnouncementStatus.COMPLETED }
+        { status: AnnouncementStatus.COMPLETED },
       );
 
       return updatedAnnouncement;
@@ -802,7 +836,7 @@ export const AnnouncementService = {
             latitude,
             longitude,
             announcement.pickupLatitude!,
-            announcement.pickupLongitude!
+            announcement.pickupLongitude!,
           );
 
           // Distance du point de livraison
@@ -810,7 +844,7 @@ export const AnnouncementService = {
             latitude,
             longitude,
             announcement.deliveryLatitude!,
-            announcement.deliveryLongitude!
+            announcement.deliveryLongitude!,
           );
 
           // Prendre la distance la plus courte
@@ -837,7 +871,10 @@ export const AnnouncementService = {
         },
       };
     } catch (error) {
-      console.error("Erreur lors de la recherche d'annonces à proximité:", error);
+      console.error(
+        "Erreur lors de la recherche d'annonces à proximité:",
+        error,
+      );
       throw new Error("Erreur lors de la recherche d'annonces à proximité");
     }
   },
@@ -853,7 +890,7 @@ export const AnnouncementService = {
       });
 
       if (!deliverer) {
-        throw new Error('Livreur non trouvé');
+        throw new Error("Livreur non trouvé");
       }
 
       // Récupérer les annonces assignées au livreur pour connaître ses itinéraires habituels
@@ -869,7 +906,7 @@ export const AnnouncementService = {
           },
         },
         take: 10,
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { updatedAt: "desc" },
       });
 
       // Si le livreur n'a pas encore d'historique, retourner les annonces les plus récentes
@@ -888,12 +925,12 @@ export const AnnouncementService = {
             },
           },
           take: 10,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         });
       }
 
       // Extraire les coordonnées des itinéraires précédents
-      const routes = delivererAnnouncements.map(ann => ({
+      const routes = delivererAnnouncements.map((ann) => ({
         pickupLat: ann.pickupLatitude,
         pickupLng: ann.pickupLongitude,
         deliveryLat: ann.deliveryLatitude,
@@ -903,14 +940,19 @@ export const AnnouncementService = {
       // Calculer le centre approximatif des itinéraires précédents
       const avgCoordinates = routes.reduce(
         (acc, route) => {
-          if (route.pickupLat && route.pickupLng && route.deliveryLat && route.deliveryLng) {
+          if (
+            route.pickupLat &&
+            route.pickupLng &&
+            route.deliveryLat &&
+            route.deliveryLng
+          ) {
             acc.lat += (route.pickupLat + route.deliveryLat) / 2;
             acc.lng += (route.pickupLng + route.deliveryLng) / 2;
             acc.count += 1;
           }
           return acc;
         },
-        { lat: 0, lng: 0, count: 0 }
+        { lat: 0, lng: 0, count: 0 },
       );
 
       // Si aucune coordonnée valide n'a été trouvée, retourner les annonces récentes
@@ -929,7 +971,7 @@ export const AnnouncementService = {
             },
           },
           take: 10,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         });
       }
 
@@ -944,7 +986,10 @@ export const AnnouncementService = {
         limit: 10,
       });
     } catch (error) {
-      console.error("Erreur lors de la suggestion d'annonces pour le livreur:", error);
+      console.error(
+        "Erreur lors de la suggestion d'annonces pour le livreur:",
+        error,
+      );
       throw new Error("Erreur lors de la suggestion d'annonces");
     }
   },
@@ -952,7 +997,10 @@ export const AnnouncementService = {
   /**
    * Marque ou démarque une annonce comme favorite pour un livreur
    */
-  async toggleFavorite(id: string, delivererId: string): Promise<{ isFavorite: boolean }> {
+  async toggleFavorite(
+    id: string,
+    delivererId: string,
+  ): Promise<{ isFavorite: boolean }> {
     try {
       // Vérifier que l'annonce existe
       const announcement = await db.announcement.findUnique({
@@ -960,7 +1008,7 @@ export const AnnouncementService = {
       });
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       // Vérifier si cette annonce est déjà en favoris pour ce livreur
@@ -992,8 +1040,8 @@ export const AnnouncementService = {
         return { isFavorite: true };
       }
     } catch (error) {
-      console.error('Erreur lors de la modification des favoris:', error);
-      throw new Error('Erreur lors de la modification des favoris');
+      console.error("Erreur lors de la modification des favoris:", error);
+      throw new Error("Erreur lors de la modification des favoris");
     }
   },
 
@@ -1019,20 +1067,24 @@ export const AnnouncementService = {
         },
       });
 
-      return favorites.map(fav => ({
+      return favorites.map((fav) => ({
         ...fav.announcement,
         isFavorite: true,
       }));
     } catch (error) {
-      console.error('Erreur lors de la récupération des favoris:', error);
-      throw new Error('Erreur lors de la récupération des favoris');
+      console.error("Erreur lors de la récupération des favoris:", error);
+      throw new Error("Erreur lors de la récupération des favoris");
     }
   },
 
   /**
    * Accepte la proposition d'un livreur pour une annonce
    */
-  async acceptDelivererProposal(announcementId: string, applicationId: string, clientId: string) {
+  async acceptDelivererProposal(
+    announcementId: string,
+    applicationId: string,
+    clientId: string,
+  ) {
     try {
       // Vérifier que l'annonce appartient au client
       const announcement = await db.announcement.findFirst({
@@ -1043,7 +1095,9 @@ export const AnnouncementService = {
       });
 
       if (!announcement) {
-        throw new Error("Annonce non trouvée ou vous n'êtes pas autorisé à la modifier");
+        throw new Error(
+          "Annonce non trouvée ou vous n'êtes pas autorisé à la modifier",
+        );
       }
 
       // Vérifier que l'application existe
@@ -1052,7 +1106,7 @@ export const AnnouncementService = {
       });
 
       if (!application || application.announcementId !== announcementId) {
-        throw new Error('Candidature non trouvée ou invalide');
+        throw new Error("Candidature non trouvée ou invalide");
       }
 
       // Mettre à jour le statut de l'annonce et assigner le livreur
@@ -1069,7 +1123,7 @@ export const AnnouncementService = {
       await db.deliveryApplication.update({
         where: { id: applicationId },
         data: {
-          status: 'ACCEPTED',
+          status: "ACCEPTED",
         },
       });
 
@@ -1080,7 +1134,7 @@ export const AnnouncementService = {
           id: { not: applicationId },
         },
         data: {
-          status: 'REJECTED',
+          status: "REJECTED",
         },
       });
 
@@ -1088,9 +1142,9 @@ export const AnnouncementService = {
       await db.notification.create({
         data: {
           userId: application.delivererId,
-          title: 'Proposition acceptée',
+          title: "Proposition acceptée",
           message: `Votre proposition pour l'annonce "${announcement.title}" a été acceptée.`,
-          type: 'ANNOUNCEMENT',
+          type: "ANNOUNCEMENT",
           read: false,
           metadata: {
             announcementId,
@@ -1100,7 +1154,7 @@ export const AnnouncementService = {
 
       // Journaliser l'action
       await AuditService.log({
-        action: 'DELIVERER_PROPOSAL_ACCEPTED',
+        action: "DELIVERER_PROPOSAL_ACCEPTED",
         userId: clientId,
         details: {
           announcementId,
@@ -1111,7 +1165,7 @@ export const AnnouncementService = {
 
       return {
         success: true,
-        message: 'Proposition acceptée avec succès',
+        message: "Proposition acceptée avec succès",
       };
     } catch (error) {
       console.error("Erreur lors de l'acceptation de la proposition:", error);
@@ -1129,7 +1183,7 @@ export const AnnouncementService = {
       pickupLongitude?: number;
       deliveryLatitude?: number;
       deliveryLongitude?: number;
-    }
+    },
   ) {
     try {
       // Vérifier que l'annonce existe
@@ -1138,7 +1192,7 @@ export const AnnouncementService = {
       });
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       // Mettre à jour les coordonnées
@@ -1158,7 +1212,7 @@ export const AnnouncementService = {
           data.pickupLatitude,
           data.pickupLongitude,
           data.deliveryLatitude,
-          data.deliveryLongitude
+          data.deliveryLongitude,
         );
 
         // Estimer la durée (à environ 50 km/h en moyenne)
@@ -1175,8 +1229,11 @@ export const AnnouncementService = {
 
       return { success: true };
     } catch (error) {
-      console.error('Erreur lors de la mise à jour des coordonnées GPS:', error);
-      throw new Error('Erreur lors de la mise à jour des coordonnées GPS');
+      console.error(
+        "Erreur lors de la mise à jour des coordonnées GPS:",
+        error,
+      );
+      throw new Error("Erreur lors de la mise à jour des coordonnées GPS");
     }
   },
 
@@ -1189,16 +1246,16 @@ export const AnnouncementService = {
       maxDistance?: number;
       availableOnly?: boolean;
       minRating?: number;
-      sortBy?: 'distance' | 'rating' | 'price' | 'experience';
+      sortBy?: "distance" | "rating" | "price" | "experience";
       maxResults?: number;
-    } = {}
+    } = {},
   ) {
     try {
       const {
         maxDistance = 15, // Distance maximum en km
         availableOnly = true,
         minRating = 0,
-        sortBy = 'distance',
+        sortBy = "distance",
         maxResults = 20,
       } = filters;
 
@@ -1208,17 +1265,19 @@ export const AnnouncementService = {
       });
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       if (!announcement.pickupLatitude || !announcement.pickupLongitude) {
-        throw new Error('Les coordonnées de collecte sont requises pour le matching');
+        throw new Error(
+          "Les coordonnées de collecte sont requises pour le matching",
+        );
       }
 
       // Construire la requête pour les livreurs
       const delivererFilters: any = {
         verification: {
-          status: 'VERIFIED', // Seuls les livreurs vérifiés
+          status: "VERIFIED", // Seuls les livreurs vérifiés
         },
         user: {
           isActive: true,
@@ -1253,7 +1312,7 @@ export const AnnouncementService = {
           // Historique des livraisons pour calculer l'expérience
           assignedAnnouncements: {
             where: {
-              status: 'COMPLETED',
+              status: "COMPLETED",
             },
             select: {
               id: true,
@@ -1264,7 +1323,7 @@ export const AnnouncementService = {
           // Applications en cours pour vérifier la charge de travail
           applications: {
             where: {
-              status: 'PENDING',
+              status: "PENDING",
             },
             select: {
               id: true,
@@ -1283,7 +1342,7 @@ export const AnnouncementService = {
               announcement.pickupLatitude!,
               announcement.pickupLongitude!,
               deliverer.currentLatitude,
-              deliverer.currentLongitude
+              deliverer.currentLongitude,
             );
           }
 
@@ -1291,7 +1350,8 @@ export const AnnouncementService = {
           const ratings = deliverer.receivedRatings;
           const averageRating =
             ratings.length > 0
-              ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
+              ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) /
+                ratings.length
               : 0;
 
           // Calculer l'expérience (nombre de livraisons complétées)
@@ -1299,7 +1359,7 @@ export const AnnouncementService = {
 
           // Calculer l'expérience spécialisée (même type d'annonce)
           const specializedExperience = deliverer.assignedAnnouncements.filter(
-            (ann: any) => ann.type === announcement.type
+            (ann: any) => ann.type === announcement.type,
           ).length;
 
           // Calculer la charge de travail actuelle
@@ -1310,7 +1370,10 @@ export const AnnouncementService = {
 
           // Score de distance (plus proche = meilleur)
           if (distance !== null) {
-            const distanceScore = Math.max(0, 100 - (distance / maxDistance) * 100);
+            const distanceScore = Math.max(
+              0,
+              100 - (distance / maxDistance) * 100,
+            );
             compatibilityScore += distanceScore * 0.3; // 30% du score
           }
 
@@ -1369,16 +1432,16 @@ export const AnnouncementService = {
       // Trier selon le critère demandé
       const sortedDeliverers = scoredDeliverers.sort((a: any, b: any) => {
         switch (sortBy) {
-          case 'distance':
+          case "distance":
             if (a.distance === null && b.distance === null) return 0;
             if (a.distance === null) return 1;
             if (b.distance === null) return -1;
             return a.distance - b.distance;
-          case 'rating':
+          case "rating":
             return b.averageRating - a.averageRating;
-          case 'experience':
+          case "experience":
             return b.experienceCount - a.experienceCount;
-          case 'price':
+          case "price":
             // Pour le prix, on pourrait implémenter un système de prix préférés
             return b.compatibilityScore - a.compatibilityScore;
           default:
@@ -1401,19 +1464,28 @@ export const AnnouncementService = {
         },
         matchingStats: {
           averageDistance:
-            finalResults.reduce((sum: number, d: any) => sum + (d.distance || 0), 0) /
-            finalResults.length,
+            finalResults.reduce(
+              (sum: number, d: any) => sum + (d.distance || 0),
+              0,
+            ) / finalResults.length,
           averageRating:
-            finalResults.reduce((sum: number, d: any) => sum + d.averageRating, 0) /
-            finalResults.length,
+            finalResults.reduce(
+              (sum: number, d: any) => sum + d.averageRating,
+              0,
+            ) / finalResults.length,
           averageExperience:
-            finalResults.reduce((sum: number, d: any) => sum + d.experienceCount, 0) /
-            finalResults.length,
+            finalResults.reduce(
+              (sum: number, d: any) => sum + d.experienceCount,
+              0,
+            ) / finalResults.length,
         },
       };
     } catch (error) {
-      console.error('Erreur lors de la recherche de livreurs compatibles:', error);
-      throw new Error('Erreur lors de la recherche de livreurs compatibles');
+      console.error(
+        "Erreur lors de la recherche de livreurs compatibles:",
+        error,
+      );
+      throw new Error("Erreur lors de la recherche de livreurs compatibles");
     }
   },
 
@@ -1426,15 +1498,19 @@ export const AnnouncementService = {
       maxDeliverers?: number;
       onlyTopMatches?: boolean;
       minCompatibilityScore?: number;
-    } = {}
+    } = {},
   ) {
     try {
-      const { maxDeliverers = 10, onlyTopMatches = true, minCompatibilityScore = 60 } = options;
+      const {
+        maxDeliverers = 10,
+        onlyTopMatches = true,
+        minCompatibilityScore = 60,
+      } = options;
 
       // Trouver les livreurs compatibles
       const matchingResult = await this.findMatchingDeliverers(announcementId, {
         maxResults: onlyTopMatches ? maxDeliverers : 50,
-        sortBy: 'distance',
+        sortBy: "distance",
       });
 
       const announcement = await db.announcement.findUnique({
@@ -1442,20 +1518,23 @@ export const AnnouncementService = {
       });
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
 
       // Filtrer par score de compatibilité minimum
       const eligibleDeliverers = matchingResult.matchingDeliverers
-        .filter((deliverer: any) => deliverer.compatibilityScore >= minCompatibilityScore)
+        .filter(
+          (deliverer: any) =>
+            deliverer.compatibilityScore >= minCompatibilityScore,
+        )
         .slice(0, maxDeliverers);
 
       // Créer les notifications
       const notifications = eligibleDeliverers.map((deliverer: any) => ({
         userId: deliverer.userId,
-        title: 'Nouvelle opportunité de livraison',
+        title: "Nouvelle opportunité de livraison",
         message: `Une nouvelle annonce "${announcement.title}" correspond à votre profil. Score de compatibilité: ${deliverer.compatibilityScore}%`,
-        type: 'ANNOUNCEMENT_MATCH',
+        type: "ANNOUNCEMENT_MATCH",
         read: false,
         metadata: {
           announcementId,
@@ -1473,16 +1552,16 @@ export const AnnouncementService = {
 
       // Journaliser l'action
       await AuditService.createAuditLog(
-        'announcement',
+        "announcement",
         announcementId,
-        'DELIVERERS_NOTIFIED',
+        "DELIVERERS_NOTIFIED",
         announcement.clientId,
         null,
         {
           notifiedCount: notifications.length,
           totalMatches: matchingResult.totalMatches,
           minCompatibilityScore,
-        }
+        },
       );
 
       return {
@@ -1497,8 +1576,8 @@ export const AnnouncementService = {
         })),
       };
     } catch (error) {
-      console.error('Erreur lors de la notification des livreurs:', error);
-      throw new Error('Erreur lors de la notification des livreurs');
+      console.error("Erreur lors de la notification des livreurs:", error);
+      throw new Error("Erreur lors de la notification des livreurs");
     }
   },
 
@@ -1527,7 +1606,7 @@ export const AnnouncementService = {
           announcementData.pickupLatitude,
           announcementData.pickupLongitude,
           announcementData.deliveryLatitude,
-          announcementData.deliveryLongitude
+          announcementData.deliveryLongitude,
         );
       }
 
@@ -1535,7 +1614,7 @@ export const AnnouncementService = {
       const similarAnnouncements = await db.announcement.findMany({
         where: {
           type: announcementData.type,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           finalPrice: { not: null },
           completedAt: {
             gte: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000), // 3 mois
@@ -1567,14 +1646,14 @@ export const AnnouncementService = {
           ? Math.min(1.5, 1 + announcementData.weight / 20)
           : 1;
         const priorityMultiplier =
-          announcementData.priority === 'URGENT'
+          announcementData.priority === "URGENT"
             ? 1.5
-            : announcementData.priority === 'HIGH'
+            : announcementData.priority === "HIGH"
               ? 1.2
               : 1;
 
         const suggestedPrice = Math.round(
-          (basePrice + distancePrice) * weightMultiplier * priorityMultiplier
+          (basePrice + distancePrice) * weightMultiplier * priorityMultiplier,
         );
 
         return {
@@ -1583,8 +1662,8 @@ export const AnnouncementService = {
             min: Math.round(suggestedPrice * 0.8),
             max: Math.round(suggestedPrice * 1.3),
           },
-          basedOn: 'DEFAULT_PRICING',
-          confidence: 'LOW',
+          basedOn: "DEFAULT_PRICING",
+          confidence: "LOW",
           factors: {
             basePrice,
             distancePrice,
@@ -1595,18 +1674,21 @@ export const AnnouncementService = {
       }
 
       // Analyser les prix des annonces similaires
-      const prices = similarAnnouncements.map(a => a.finalPrice!);
-      const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-      const medianPrice = prices.sort((a, b) => a - b)[Math.floor(prices.length / 2)];
+      const prices = similarAnnouncements.map((a) => a.finalPrice!);
+      const averagePrice =
+        prices.reduce((sum, price) => sum + price, 0) / prices.length;
+      const medianPrice = prices.sort((a, b) => a - b)[
+        Math.floor(prices.length / 2)
+      ];
 
       // Ajustements selon la distance
       let distanceAdjustment = 1;
       if (distance > 0) {
         const avgDistance =
           similarAnnouncements
-            .filter(a => a.estimatedDistance)
+            .filter((a) => a.estimatedDistance)
             .reduce((sum, a) => sum + a.estimatedDistance!, 0) /
-          similarAnnouncements.filter(a => a.estimatedDistance).length;
+          similarAnnouncements.filter((a) => a.estimatedDistance).length;
 
         if (avgDistance > 0) {
           distanceAdjustment = distance / avgDistance;
@@ -1617,8 +1699,10 @@ export const AnnouncementService = {
       let weightAdjustment = 1;
       if (announcementData.weight) {
         const avgWeight =
-          similarAnnouncements.filter(a => a.weight).reduce((sum, a) => sum + a.weight!, 0) /
-          similarAnnouncements.filter(a => a.weight).length;
+          similarAnnouncements
+            .filter((a) => a.weight)
+            .reduce((sum, a) => sum + a.weight!, 0) /
+          similarAnnouncements.filter((a) => a.weight).length;
 
         if (avgWeight > 0) {
           weightAdjustment = Math.min(1.5, announcementData.weight / avgWeight);
@@ -1627,30 +1711,36 @@ export const AnnouncementService = {
 
       // Ajustement selon la priorité
       const priorityMultiplier =
-        announcementData.priority === 'URGENT'
+        announcementData.priority === "URGENT"
           ? 1.3
-          : announcementData.priority === 'HIGH'
+          : announcementData.priority === "HIGH"
             ? 1.15
             : 1;
 
       // Calculer le prix suggéré
       const basePrice = medianPrice; // Utiliser la médiane comme base
-      const adjustedPrice = basePrice * distanceAdjustment * weightAdjustment * priorityMultiplier;
+      const adjustedPrice =
+        basePrice * distanceAdjustment * weightAdjustment * priorityMultiplier;
       const suggestedPrice = Math.round(adjustedPrice);
 
       // Calculer l'intervalle de confiance
       const priceStdDev = Math.sqrt(
-        prices.reduce((sum, price) => sum + Math.pow(price - averagePrice, 2), 0) / prices.length
+        prices.reduce(
+          (sum, price) => sum + Math.pow(price - averagePrice, 2),
+          0,
+        ) / prices.length,
       );
 
       return {
         suggestedPrice,
         priceRange: {
-          min: Math.round(Math.max(suggestedPrice - priceStdDev, suggestedPrice * 0.7)),
+          min: Math.round(
+            Math.max(suggestedPrice - priceStdDev, suggestedPrice * 0.7),
+          ),
           max: Math.round(suggestedPrice + priceStdDev),
         },
-        basedOn: 'HISTORICAL_DATA',
-        confidence: similarAnnouncements.length >= 10 ? 'HIGH' : 'MEDIUM',
+        basedOn: "HISTORICAL_DATA",
+        confidence: similarAnnouncements.length >= 10 ? "HIGH" : "MEDIUM",
         sampleSize: similarAnnouncements.length,
         marketData: {
           averagePrice: Math.round(averagePrice),
@@ -1667,8 +1757,8 @@ export const AnnouncementService = {
         },
       };
     } catch (error) {
-      console.error('Erreur lors du calcul du prix optimal:', error);
-      throw new Error('Erreur lors du calcul du prix optimal');
+      console.error("Erreur lors du calcul du prix optimal:", error);
+      throw new Error("Erreur lors du calcul du prix optimal");
     }
   },
 
@@ -1714,49 +1804,59 @@ export const AnnouncementService = {
 
       // Filtrer par zone géographique si les coordonnées sont fournies
       if (latitude && longitude) {
-        announcements = announcements.filter(ann => {
+        announcements = announcements.filter((ann) => {
           if (!ann.pickupLatitude || !ann.pickupLongitude) return false;
           const distance = calculateDistance(
             latitude,
             longitude,
             ann.pickupLatitude,
-            ann.pickupLongitude
+            ann.pickupLongitude,
           );
           return distance <= radiusKm;
         });
       }
 
       // Séparer les données par période
-      const recentAnnouncements = announcements.filter(ann => ann.createdAt >= oneWeekAgo);
-      const completedAnnouncements = announcements.filter(ann => ann.status === 'COMPLETED');
+      const recentAnnouncements = announcements.filter(
+        (ann) => ann.createdAt >= oneWeekAgo,
+      );
+      const completedAnnouncements = announcements.filter(
+        (ann) => ann.status === "COMPLETED",
+      );
 
       // Calculer les métriques
       const totalDemand = announcements.length;
       const recentDemand = recentAnnouncements.length;
       const completionRate =
-        totalDemand > 0 ? (completedAnnouncements.length / totalDemand) * 100 : 0;
+        totalDemand > 0
+          ? (completedAnnouncements.length / totalDemand) * 100
+          : 0;
 
       const averageApplications =
         totalDemand > 0
-          ? announcements.reduce((sum, ann) => sum + ann.applicationsCount, 0) / totalDemand
+          ? announcements.reduce((sum, ann) => sum + ann.applicationsCount, 0) /
+            totalDemand
           : 0;
 
       const demandTrend =
-        recentDemand >= (totalDemand - recentDemand) / 3 ? 'INCREASING' : 'STABLE';
+        recentDemand >= (totalDemand - recentDemand) / 3
+          ? "INCREASING"
+          : "STABLE";
 
       // Analyser la compétition (nombre d'applications moyen)
-      let competitionLevel = 'LOW';
-      if (averageApplications > 5) competitionLevel = 'HIGH';
-      else if (averageApplications > 2) competitionLevel = 'MEDIUM';
+      let competitionLevel = "LOW";
+      if (averageApplications > 5) competitionLevel = "HIGH";
+      else if (averageApplications > 2) competitionLevel = "MEDIUM";
 
       // Analyser les prix si disponibles
       const pricesData = completedAnnouncements
-        .filter(ann => ann.finalPrice)
-        .map(ann => ann.finalPrice!);
+        .filter((ann) => ann.finalPrice)
+        .map((ann) => ann.finalPrice!);
 
       let priceAnalysis = null;
       if (pricesData.length > 0) {
-        const avgPrice = pricesData.reduce((sum, price) => sum + price, 0) / pricesData.length;
+        const avgPrice =
+          pricesData.reduce((sum, price) => sum + price, 0) / pricesData.length;
         const minPrice = Math.min(...pricesData);
         const maxPrice = Math.max(...pricesData);
 
@@ -1793,17 +1893,19 @@ export const AnnouncementService = {
         recommendations: {
           optimal:
             completionRate > 80 && averageApplications > 3
-              ? 'GOOD_MARKET'
+              ? "GOOD_MARKET"
               : completionRate < 50
-                ? 'OVERSUPPLIED'
-                : 'MODERATE_MARKET',
+                ? "OVERSUPPLIED"
+                : "MODERATE_MARKET",
           suggestions: [
-            completionRate < 50 ? 'Considérez réduire le prix pour attirer plus de livreurs' : null,
-            averageApplications < 2
-              ? 'Le marché semble peu compétitif, vous pourriez obtenir un bon prix'
+            completionRate < 50
+              ? "Considérez réduire le prix pour attirer plus de livreurs"
               : null,
-            demandTrend === 'INCREASING'
-              ? 'La demande est en hausse, bon moment pour publier'
+            averageApplications < 2
+              ? "Le marché semble peu compétitif, vous pourriez obtenir un bon prix"
+              : null,
+            demandTrend === "INCREASING"
+              ? "La demande est en hausse, bon moment pour publier"
               : null,
           ].filter(Boolean),
         },
@@ -1828,7 +1930,7 @@ export const AnnouncementService = {
       });
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée ou accès non autorisé');
+        throw new Error("Annonce non trouvée ou accès non autorisé");
       }
 
       // Récupérer toutes les propositions avec détails des livreurs
@@ -1853,7 +1955,7 @@ export const AnnouncementService = {
               },
               assignedAnnouncements: {
                 where: {
-                  status: 'COMPLETED',
+                  status: "COMPLETED",
                 },
                 select: {
                   id: true,
@@ -1868,7 +1970,7 @@ export const AnnouncementService = {
           },
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
       });
 
@@ -1880,7 +1982,8 @@ export const AnnouncementService = {
         const ratings = deliverer.receivedRatings;
         const averageRating =
           ratings.length > 0
-            ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
+            ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) /
+              ratings.length
             : 0;
 
         // Calculer le nombre de livraisons complétées
@@ -1898,7 +2001,7 @@ export const AnnouncementService = {
             announcement.pickupLatitude,
             announcement.pickupLongitude,
             deliverer.currentLatitude,
-            deliverer.currentLongitude
+            deliverer.currentLongitude,
           );
         }
 
@@ -1919,7 +2022,7 @@ export const AnnouncementService = {
         }
 
         // Bonus pour vérification
-        if (deliverer.verification?.status === 'VERIFIED') {
+        if (deliverer.verification?.status === "VERIFIED") {
           compatibilityScore += 5;
         }
 
@@ -1934,17 +2037,23 @@ export const AnnouncementService = {
             rating: Math.round(averageRating * 10) / 10,
             completedDeliveries,
             averageResponseTime: deliverer.averageResponseTime || null,
-            verificationStatus: deliverer.verification?.status || 'UNVERIFIED',
-            transportMethods: deliverer.vehicleType ? [deliverer.vehicleType] : [],
+            verificationStatus: deliverer.verification?.status || "UNVERIFIED",
+            transportMethods: deliverer.vehicleType
+              ? [deliverer.vehicleType]
+              : [],
           },
           status: proposal.status,
-          proposedPrice: proposal.proposedPrice || announcement.suggestedPrice || 0,
+          proposedPrice:
+            proposal.proposedPrice || announcement.suggestedPrice || 0,
           estimatedDeliveryTime: proposal.estimatedDeliveryTime,
-          message: proposal.message || '',
+          message: proposal.message || "",
           hasRequiredEquipment: proposal.hasRequiredEquipment || true,
           canPickupAtScheduledTime: proposal.canPickupAtScheduledTime || true,
           createdAt: proposal.createdAt,
-          compatibilityScore: Math.min(100, Math.max(0, Math.round(compatibilityScore))),
+          compatibilityScore: Math.min(
+            100,
+            Math.max(0, Math.round(compatibilityScore)),
+          ),
           distance: distance ? Math.round(distance * 10) / 10 : null,
         };
       });
@@ -1952,12 +2061,14 @@ export const AnnouncementService = {
       return {
         proposals: enrichedProposals,
         total: enrichedProposals.length,
-        pending: enrichedProposals.filter(p => p.status === 'PENDING').length,
-        accepted: enrichedProposals.filter(p => p.status === 'ACCEPTED').length,
-        rejected: enrichedProposals.filter(p => p.status === 'REJECTED').length,
+        pending: enrichedProposals.filter((p) => p.status === "PENDING").length,
+        accepted: enrichedProposals.filter((p) => p.status === "ACCEPTED")
+          .length,
+        rejected: enrichedProposals.filter((p) => p.status === "REJECTED")
+          .length,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des propositions:', error);
+      console.error("Erreur lors de la récupération des propositions:", error);
       throw error;
     }
   },
@@ -1965,7 +2076,11 @@ export const AnnouncementService = {
   /**
    * Accepte une proposition de livreur (action client)
    */
-  async acceptProposal(announcementId: string, proposalId: string, clientId: string) {
+  async acceptProposal(
+    announcementId: string,
+    proposalId: string,
+    clientId: string,
+  ) {
     try {
       // Vérifier que l'annonce appartient au client
       const announcement = await db.announcement.findFirst({
@@ -1976,7 +2091,7 @@ export const AnnouncementService = {
       });
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée ou accès non autorisé');
+        throw new Error("Annonce non trouvée ou accès non autorisé");
       }
 
       // Vérifier que la proposition existe et est en attente
@@ -1984,7 +2099,7 @@ export const AnnouncementService = {
         where: {
           id: proposalId,
           announcementId: announcementId,
-          status: 'PENDING',
+          status: "PENDING",
         },
         include: {
           deliverer: {
@@ -2002,16 +2117,16 @@ export const AnnouncementService = {
       });
 
       if (!proposal) {
-        throw new Error('Proposition non trouvée ou déjà traitée');
+        throw new Error("Proposition non trouvée ou déjà traitée");
       }
 
       // Transaction pour accepter la proposition et rejeter les autres
-      const result = await db.$transaction(async tx => {
+      const result = await db.$transaction(async (tx) => {
         // Accepter la proposition sélectionnée
         const acceptedProposal = await tx.delivererApplication.update({
           where: { id: proposalId },
           data: {
-            status: 'ACCEPTED',
+            status: "ACCEPTED",
             acceptedAt: new Date(),
           },
         });
@@ -2021,10 +2136,10 @@ export const AnnouncementService = {
           where: {
             announcementId: announcementId,
             id: { not: proposalId },
-            status: 'PENDING',
+            status: "PENDING",
           },
           data: {
-            status: 'REJECTED',
+            status: "REJECTED",
             rejectedAt: new Date(),
           },
         });
@@ -2033,9 +2148,10 @@ export const AnnouncementService = {
         const updatedAnnouncement = await tx.announcement.update({
           where: { id: announcementId },
           data: {
-            status: 'IN_PROGRESS',
+            status: "IN_PROGRESS",
             assignedDelivererId: proposal.delivererId,
-            acceptedPrice: proposal.proposedPrice || announcement.suggestedPrice,
+            acceptedPrice:
+              proposal.proposedPrice || announcement.suggestedPrice,
           },
         });
 
@@ -2045,8 +2161,9 @@ export const AnnouncementService = {
             announcementId: announcementId,
             delivererId: proposal.delivererId,
             clientId: clientId,
-            status: 'PENDING_PICKUP',
-            agreedPrice: proposal.proposedPrice || announcement.suggestedPrice || 0,
+            status: "PENDING_PICKUP",
+            agreedPrice:
+              proposal.proposedPrice || announcement.suggestedPrice || 0,
             pickupAddress: announcement.pickupAddress,
             pickupLatitude: announcement.pickupLatitude,
             pickupLongitude: announcement.pickupLongitude,
@@ -2078,7 +2195,7 @@ export const AnnouncementService = {
     announcementId: string,
     proposalId: string,
     clientId: string,
-    reason?: string
+    reason?: string,
   ) {
     try {
       // Vérifier que l'annonce appartient au client
@@ -2090,7 +2207,7 @@ export const AnnouncementService = {
       });
 
       if (!announcement) {
-        throw new Error('Annonce non trouvée ou accès non autorisé');
+        throw new Error("Annonce non trouvée ou accès non autorisé");
       }
 
       // Vérifier que la proposition existe et est en attente
@@ -2098,7 +2215,7 @@ export const AnnouncementService = {
         where: {
           id: proposalId,
           announcementId: announcementId,
-          status: 'PENDING',
+          status: "PENDING",
         },
         include: {
           deliverer: {
@@ -2116,14 +2233,14 @@ export const AnnouncementService = {
       });
 
       if (!proposal) {
-        throw new Error('Proposition non trouvée ou déjà traitée');
+        throw new Error("Proposition non trouvée ou déjà traitée");
       }
 
       // Rejeter la proposition
       const rejectedProposal = await db.delivererApplication.update({
         where: { id: proposalId },
         data: {
-          status: 'REJECTED',
+          status: "REJECTED",
           rejectedAt: new Date(),
           rejectionReason: reason,
         },
@@ -2131,7 +2248,7 @@ export const AnnouncementService = {
 
       return rejectedProposal;
     } catch (error) {
-      console.error('Erreur lors du rejet de la proposition:', error);
+      console.error("Erreur lors du rejet de la proposition:", error);
       throw error;
     }
   },
@@ -2142,7 +2259,7 @@ export const AnnouncementService = {
   async getMyProposalsSummary(clientId: string) {
     try {
       const proposalsSummary = await db.delivererApplication.groupBy({
-        by: ['announcementId', 'status'],
+        by: ["announcementId", "status"],
         where: {
           announcement: {
             clientId: clientId,
@@ -2159,7 +2276,7 @@ export const AnnouncementService = {
         { total: number; pending: number; accepted: number; rejected: number }
       > = {};
 
-      proposalsSummary.forEach(item => {
+      proposalsSummary.forEach((item) => {
         if (!summary[item.announcementId]) {
           summary[item.announcementId] = {
             total: 0,
@@ -2172,13 +2289,13 @@ export const AnnouncementService = {
         summary[item.announcementId].total += item._count.id;
 
         switch (item.status) {
-          case 'PENDING':
+          case "PENDING":
             summary[item.announcementId].pending = item._count.id;
             break;
-          case 'ACCEPTED':
+          case "ACCEPTED":
             summary[item.announcementId].accepted = item._count.id;
             break;
-          case 'REJECTED':
+          case "REJECTED":
             summary[item.announcementId].rejected = item._count.id;
             break;
         }
@@ -2186,7 +2303,10 @@ export const AnnouncementService = {
 
       return { proposalsSummary: summary };
     } catch (error) {
-      console.error('Erreur lors de la récupération du résumé des propositions:', error);
+      console.error(
+        "Erreur lors de la récupération du résumé des propositions:",
+        error,
+      );
       throw error;
     }
   },
@@ -2196,65 +2316,66 @@ export const AnnouncementService = {
    */
   async getClientStats(clientId: string) {
     try {
-      const [announcements, completedDeliveries, applications, payments] = await Promise.all([
-        // Toutes les annonces du client
-        db.announcement.findMany({
-          where: { clientId },
-          select: {
-            id: true,
-            status: true,
-            suggestedPrice: true,
-            acceptedPrice: true,
-            createdAt: true,
-          },
-        }),
-
-        // Livraisons complétées
-        db.delivery.findMany({
-          where: {
-            clientId,
-            status: 'COMPLETED',
-          },
-          select: {
-            agreedPrice: true,
-            completedAt: true,
-            createdAt: true,
-          },
-        }),
-
-        // Applications/propositions reçues
-        db.delivererApplication.findMany({
-          where: {
-            announcement: {
-              clientId,
+      const [announcements, completedDeliveries, applications, payments] =
+        await Promise.all([
+          // Toutes les annonces du client
+          db.announcement.findMany({
+            where: { clientId },
+            select: {
+              id: true,
+              status: true,
+              suggestedPrice: true,
+              acceptedPrice: true,
+              createdAt: true,
             },
-          },
-          select: {
-            id: true,
-            status: true,
-            announcementId: true,
-          },
-        }),
+          }),
 
-        // Paiements effectués
-        db.payment.findMany({
-          where: {
-            clientId,
-            status: 'COMPLETED',
-          },
-          select: {
-            amount: true,
-          },
-        }),
-      ]);
+          // Livraisons complétées
+          db.delivery.findMany({
+            where: {
+              clientId,
+              status: "COMPLETED",
+            },
+            select: {
+              agreedPrice: true,
+              completedAt: true,
+              createdAt: true,
+            },
+          }),
+
+          // Applications/propositions reçues
+          db.delivererApplication.findMany({
+            where: {
+              announcement: {
+                clientId,
+              },
+            },
+            select: {
+              id: true,
+              status: true,
+              announcementId: true,
+            },
+          }),
+
+          // Paiements effectués
+          db.payment.findMany({
+            where: {
+              clientId,
+              status: "COMPLETED",
+            },
+            select: {
+              amount: true,
+            },
+          }),
+        ]);
 
       // Calculer les statistiques
       const totalAnnouncements = announcements.length;
       const activeAnnouncements = announcements.filter(
-        a => a.status === 'PUBLISHED' || a.status === 'IN_PROGRESS'
+        (a) => a.status === "PUBLISHED" || a.status === "IN_PROGRESS",
       ).length;
       const completedAnnouncementsCount = announcements.filter(
-        a => a.status === 'COMPLETED'
+        (a) => a.status === "COMPLETED",
       ).length;
       const totalSpent = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
       const totalProposals = applications.length;
@@ -2263,16 +2384,18 @@ export const AnnouncementService = {
 
       // Calculer le temps moyen de livraison
       const deliveryTimes = completedDeliveries
-        .filter(d => d.completedAt && d.createdAt)
+        .filter((d) => d.completedAt && d.createdAt)
         .map(
-          d =>
-            (new Date(d.completedAt!).getTime() - new Date(d.createdAt).getTime()) /
-            (1000 * 60 * 60)
+          (d) =>
+            (new Date(d.completedAt!).getTime() -
+              new Date(d.createdAt).getTime()) /
+            (1000 * 60 * 60),
         ); // en heures
 
       const averageDeliveryTime =
         deliveryTimes.length > 0
-          ? deliveryTimes.reduce((sum, time) => sum + time, 0) / deliveryTimes.length
+          ? deliveryTimes.reduce((sum, time) => sum + time, 0) /
+            deliveryTimes.length
           : 0;
 
       return {
@@ -2282,11 +2405,15 @@ export const AnnouncementService = {
         totalSpent,
         averageDeliveryTime: Math.round(averageDeliveryTime * 10) / 10,
         totalProposals,
-        averageProposalsPerAnnouncement: Math.round(averageProposalsPerAnnouncement * 10) / 10,
+        averageProposalsPerAnnouncement:
+          Math.round(averageProposalsPerAnnouncement * 10) / 10,
         satisfactionScore: 0, // TODO: Implémenter système de satisfaction
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques client:', error);
+      console.error(
+        "Erreur lors de la récupération des statistiques client:",
+        error,
+      );
       throw error;
     }
   },

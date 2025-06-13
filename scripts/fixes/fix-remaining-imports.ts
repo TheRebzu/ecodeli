@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 // scripts/scripts/fix-remaining-imports.ts
 
-import chalk from 'chalk';
-import fs from 'fs/promises';
-import path from 'path';
+import chalk from "chalk";
+import fs from "fs/promises";
+import path from "path";
 
 interface RemainingImportFix {
   file: string;
@@ -15,15 +15,17 @@ class RemainingImportFixer {
   private projectRoot: string = process.cwd();
 
   constructor() {
-    console.log(chalk.bold.cyan('🔧 EcoDeli - Correcteur d\'imports restants\n'));
+    console.log(
+      chalk.bold.cyan("🔧 EcoDeli - Correcteur d'imports restants\n"),
+    );
   }
 
   async run(): Promise<void> {
     const fixes: RemainingImportFix[] = [
       // 1. Default export pour CodeVerification
       {
-        file: 'src/types/users/verification.ts',
-        exports: ['default export'],
+        file: "src/types/users/verification.ts",
+        exports: ["default export"],
         template: `// Types pour la vérification utilisateur
 export interface CodeVerification {
   id: string;
@@ -44,13 +46,13 @@ export interface VerificationResult {
 }
 
 // Export par défaut pour compatibilité
-export default CodeVerification;`
+export default CodeVerification;`,
       },
 
       // 2. ProfilePreferences dans preferences.ts
       {
-        file: 'src/types/users/preferences.ts',
-        exports: ['ProfilePreferences'],
+        file: "src/types/users/preferences.ts",
+        exports: ["ProfilePreferences"],
         template: `// Types pour les préférences utilisateur
 export interface UserPreferences {
   userId: string;
@@ -100,13 +102,13 @@ export interface AccessibilityPreferences {
 }
 
 // Alias pour compatibilité
-export type ProfilePreferences = UserPreferences;`
+export type ProfilePreferences = UserPreferences;`,
       },
 
       // 3. DeliveryNotes component
       {
-        file: 'src/components/deliverer/deliveries/delivery-notes.tsx',
-        exports: ['DeliveryNotes'],
+        file: "src/components/deliverer/deliveries/delivery-notes.tsx",
+        exports: ["DeliveryNotes"],
         template: `import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -134,13 +136,13 @@ export function DeliveryNotes({ deliveryId, notes, onNotesChange, readOnly = fal
       </CardContent>
     </Card>
   );
-}`
+}`,
       },
 
       // 4. InvoiceList component
       {
-        file: 'src/components/merchant/billing/invoice-list.tsx',
-        exports: ['InvoiceList'],
+        file: "src/components/merchant/billing/invoice-list.tsx",
+        exports: ["InvoiceList"],
         template: `import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -194,13 +196,13 @@ export function InvoiceList({ invoices, isLoading = false }: InvoiceListProps) {
       </CardContent>
     </Card>
   );
-}`
+}`,
       },
 
-      // 5. SubscriptionManager component  
+      // 5. SubscriptionManager component
       {
-        file: 'src/components/client/payments/subscription-manager.tsx',
-        exports: ['SubscriptionManager'],
+        file: "src/components/client/payments/subscription-manager.tsx",
+        exports: ["SubscriptionManager"],
         template: `import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -233,13 +235,13 @@ export function SubscriptionManager({
       </CardContent>
     </Card>
   );
-}`
+}`,
       },
 
       // 6. ProfileDocumentsList component
       {
-        file: 'src/components/shared/documents/document-list.tsx',
-        exports: ['ProfileDocumentsList'],
+        file: "src/components/shared/documents/document-list.tsx",
+        exports: ["ProfileDocumentsList"],
         template: `import { Card, CardContent } from '@/components/ui/card';
 
 interface Document {
@@ -274,13 +276,13 @@ export function ProfileDocumentsList({ documents, onUpload }: ProfileDocumentsLi
       </CardContent>
     </Card>
   );
-}`
+}`,
       },
 
       // 7. Config dashboard components
       {
-        file: 'src/config/dashboard.ts',
-        exports: ['DelivererWalletDashboard'],
+        file: "src/config/dashboard.ts",
+        exports: ["DelivererWalletDashboard"],
         template: `// Configuration du dashboard
 export const DelivererWalletDashboard = {
   title: 'Portefeuille Livreur',
@@ -313,13 +315,13 @@ export const MerchantDashboard = {
     'analytics'
   ],
   layout: 'grid-2x2'
-};`
+};`,
       },
 
       // 8. AnnouncementStatusBadge dans badge.tsx
       {
-        file: 'src/components/ui/badge.tsx',
-        exports: ['AnnouncementStatusBadge'],
+        file: "src/components/ui/badge.tsx",
+        exports: ["AnnouncementStatusBadge"],
         template: `import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils/common"
@@ -377,13 +379,13 @@ function AnnouncementStatusBadge({ status, className }: AnnouncementStatusBadgeP
   );
 }
 
-export { Badge, badgeVariants, AnnouncementStatusBadge }`
+export { Badge, badgeVariants, AnnouncementStatusBadge }`,
       },
 
       // 9. JsonView component
       {
-        file: 'src/components/admin/deliverers/document-review.tsx',
-        exports: ['JsonView'],
+        file: "src/components/admin/deliverers/document-review.tsx",
+        exports: ["JsonView"],
         template: `import { Card, CardContent } from '@/components/ui/card';
 
 interface JsonViewProps {
@@ -401,13 +403,13 @@ export function JsonView({ data, className }: JsonViewProps) {
       </CardContent>
     </Card>
   );
-}`
+}`,
       },
 
       // 10. VerificationStatusBanner component
       {
-        file: 'src/components/admin/verification/verification-list.tsx',
-        exports: ['VerificationStatusBanner'],
+        file: "src/components/admin/verification/verification-list.tsx",
+        exports: ["VerificationStatusBanner"],
         template: `import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 
@@ -436,25 +438,27 @@ export function VerificationStatusBanner({ status, message }: VerificationStatus
       </AlertDescription>
     </Alert>
   );
-}`
-      }
+}`,
+      },
     ];
 
-    console.log(chalk.blue('🔧 Application des corrections d\'imports restants...'));
+    console.log(
+      chalk.blue("🔧 Application des corrections d'imports restants..."),
+    );
 
     let fixedCount = 0;
     for (const fix of fixes) {
       try {
         const filePath = path.join(this.projectRoot, fix.file);
-        
+
         // Créer le répertoire si nécessaire
         await fs.mkdir(path.dirname(filePath), { recursive: true });
-        
+
         // Vérifier si le fichier existe et lire son contenu
-        let content = '';
+        let content = "";
         let fileExists = false;
         try {
-          content = await fs.readFile(filePath, 'utf-8');
+          content = await fs.readFile(filePath, "utf-8");
           fileExists = true;
         } catch {
           // Le fichier n'existe pas
@@ -462,15 +466,18 @@ export function VerificationStatusBanner({ status, message }: VerificationStatus
 
         if (!fileExists || content.trim().length === 0) {
           // Créer le fichier avec le template
-          await fs.writeFile(filePath, fix.template, 'utf-8');
+          await fs.writeFile(filePath, fix.template, "utf-8");
           console.log(chalk.green(`✅ ${fix.file} créé`));
           fixedCount++;
         } else {
           // Vérifier si les exports sont manquants
           let needsUpdate = false;
           for (const exportName of fix.exports) {
-            if (!content.includes(exportName) || 
-                (exportName === 'default export' && !content.includes('export default'))) {
+            if (
+              !content.includes(exportName) ||
+              (exportName === "default export" &&
+                !content.includes("export default"))
+            ) {
               needsUpdate = true;
               break;
             }
@@ -478,7 +485,7 @@ export function VerificationStatusBanner({ status, message }: VerificationStatus
 
           if (needsUpdate) {
             // Remplacer le contenu avec le template complet
-            await fs.writeFile(filePath, fix.template, 'utf-8');
+            await fs.writeFile(filePath, fix.template, "utf-8");
             console.log(chalk.green(`✅ ${fix.file} mis à jour`));
             fixedCount++;
           } else {
@@ -494,28 +501,30 @@ export function VerificationStatusBanner({ status, message }: VerificationStatus
     await this.fixEslintConfig();
 
     console.log(chalk.green(`\n✅ ${fixedCount} fichiers corrigés`));
-    console.log(chalk.blue('\n💡 Prochaines étapes:'));
-    console.log('  1. Exécutez pnpm build pour tester les corrections');
-    console.log('  2. Corrigez l\'erreur Next.js params si elle persiste');
+    console.log(chalk.blue("\n💡 Prochaines étapes:"));
+    console.log("  1. Exécutez pnpm build pour tester les corrections");
+    console.log("  2. Corrigez l'erreur Next.js params si elle persiste");
   }
 
   private async fixEslintConfig(): Promise<void> {
     try {
-      const eslintPath = path.join(this.projectRoot, '.eslintrc.js');
-      let content = await fs.readFile(eslintPath, 'utf-8');
-      
+      const eslintPath = path.join(this.projectRoot, ".eslintrc.js");
+      let content = await fs.readFile(eslintPath, "utf-8");
+
       // Corriger l'erreur "module is not defined" en ajoutant la directive
-      if (!content.includes('/* eslint-env node */')) {
-        content = '/* eslint-env node */\n' + content;
-        await fs.writeFile(eslintPath, content, 'utf-8');
-        console.log(chalk.green('✅ .eslintrc.js corrigé'));
+      if (!content.includes("/* eslint-env node */")) {
+        content = "/* eslint-env node */\n" + content;
+        await fs.writeFile(eslintPath, content, "utf-8");
+        console.log(chalk.green("✅ .eslintrc.js corrigé"));
       }
     } catch (err) {
-      console.log(chalk.yellow('⚠️  Impossible de corriger .eslintrc.js automatiquement'));
+      console.log(
+        chalk.yellow("⚠️  Impossible de corriger .eslintrc.js automatiquement"),
+      );
     }
   }
 }
 
 // Exécution du script
 const fixer = new RemainingImportFixer();
-fixer.run().catch(console.error); 
+fixer.run().catch(console.error);

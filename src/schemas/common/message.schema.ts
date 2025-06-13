@@ -1,8 +1,8 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const messageSchema = z.object({
   conversationId: z.string(),
-  content: z.string().min(1, 'Le message ne peut pas être vide'),
+  content: z.string().min(1, "Le message ne peut pas être vide"),
 });
 
 export const conversationSchema = z.object({

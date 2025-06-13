@@ -16,16 +16,16 @@ export interface BaseService {
   updatedAt: Date;
 }
 
-export type ServiceCategory = 
-  | 'DELIVERY'
-  | 'HOME_SERVICES'
-  | 'TRANSPORT'
-  | 'PERSONAL_SERVICES'
-  | 'PROFESSIONAL'
-  | 'HEALTH'
-  | 'EDUCATION';
+export type ServiceCategory =
+  | "DELIVERY"
+  | "HOME_SERVICES"
+  | "TRANSPORT"
+  | "PERSONAL_SERVICES"
+  | "PROFESSIONAL"
+  | "HEALTH"
+  | "EDUCATION";
 
-export type ServiceStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DRAFT';
+export type ServiceStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED" | "DRAFT";
 
 export interface ServiceAvailability {
   schedule: WeeklySchedule;
@@ -50,7 +50,7 @@ export interface DaySchedule {
 }
 
 export interface ServiceLocation {
-  type: 'FIXED' | 'MOBILE' | 'ONLINE';
+  type: "FIXED" | "MOBILE" | "ONLINE";
   address?: string;
   radius?: number; // km de déplacement pour services mobiles
   coordinates?: {

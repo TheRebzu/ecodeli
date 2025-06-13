@@ -4,10 +4,10 @@
  */
 
 // Exports des sous-dossiers
-export * from './announcements';
-export * from './billing';
-export * from './catalog';
-export * from './contract';
-export * from './contracts';
-export * from './dashboard';
-export * from './deliveries';
+export * from "./announcements";
+export * from "./billing";
+export * from "./catalog";
+export * from "./contract";
+export * from "./contracts";
+export * from "./dashboard";
+export * from "./deliveries";

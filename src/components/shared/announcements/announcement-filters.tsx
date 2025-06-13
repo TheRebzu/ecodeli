@@ -1,23 +1,29 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { FilterX, Search } from 'lucide-react';
-import { AnnouncementStatus } from '@/types/announcements/announcement';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { FilterX, Search } from "lucide-react";
+import { AnnouncementStatus } from "@/types/announcements/announcement";
 
 // Schéma de validation pour les filtres
 const filterSchema = z.object({
@@ -65,13 +71,18 @@ export function AnnouncementFilter({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Filtres de recherche</CardTitle>
           {getActiveFiltersCount() > 0 && (
-            <Badge variant="secondary">{getActiveFiltersCount()} filtre(s) actif(s)</Badge>
+            <Badge variant="secondary">
+              {getActiveFiltersCount()} filtre(s) actif(s)
+            </Badge>
           )}
         </div>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Recherche textuelle */}
               <FormField
@@ -143,8 +154,12 @@ export function AnnouncementFilter({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="createdAt">Date de création</SelectItem>
-                        <SelectItem value="updatedAt">Dernière modification</SelectItem>
+                        <SelectItem value="createdAt">
+                          Date de création
+                        </SelectItem>
+                        <SelectItem value="updatedAt">
+                          Dernière modification
+                        </SelectItem>
                         <SelectItem value="amount">Montant</SelectItem>
                         <SelectItem value="title">Titre</SelectItem>
                       </SelectContent>

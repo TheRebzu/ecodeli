@@ -1,25 +1,25 @@
-import { db } from '@/server/db';
-import Stripe from 'stripe';
-import { Decimal } from '@prisma/client/runtime/library';
-import { walletService } from '@/server/services/shared/wallet.service';
+import { db } from "@/server/db";
+import Stripe from "stripe";
+import { Decimal } from "@prisma/client/runtime/library";
+import { walletService } from "@/server/services/shared/wallet.service";
 import {
   TransactionStatus,
   TransactionType,
   Wallet,
   WithdrawalRequest,
   WithdrawalStatus,
-} from '@/trpc/client';
-import { NotificationService } from '@/lib/services/notification.service';
-import { EmailService } from '@/lib/services/email.service';
-import { AuditService } from '@/server/services/admin/audit.service';
-import { WalletService } from '@/server/services/shared/wallet.service';
+} from "@/trpc/client";
+import { NotificationService } from "@/lib/services/notification.service";
+import { EmailService } from "@/lib/services/email.service";
+import { AuditService } from "@/server/services/admin/audit.service";
+import { WalletService } from "@/server/services/shared/wallet.service";
 
 // Récupérer la clé API Stripe depuis les variables d'environnement
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 
 // Initialiser Stripe avec les paramètres de base
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2025-04-30.basil',
+  apiVersion: "2025-04-30.basil",
 });
 
 /**
@@ -38,7 +38,7 @@ export const withdrawalService = {
   async createWithdrawalRequest(
     userId: string,
     amount: number,
-    method: 'BANK_TRANSFER' | 'STRIPE_CONNECT' = 'BANK_TRANSFER'
+    method: "BANK_TRANSFER" | "STRIPE_CONNECT" = "BANK_TRANSFER",
   ) {
     // Vérifier que l'utilisateur existe
     const user = await db.user.findUnique({
@@ -47,7 +47,7 @@ export const withdrawalService = {
     });
 
     if (!user) {
-      throw new Error('Utilisateur non trouvé');
+      throw new Error("Utilisateur non trouvé");
     }
 
     // Vérifier que l'utilisateur a un portefeuille
@@ -66,19 +66,21 @@ export const withdrawalService = {
     // Vérifier que le portefeuille a suffisamment de fonds
     const balanceInfo = await walletService.getBalance(wallet.id);
     if (balanceInfo.availableBalance < amount) {
-      throw new Error('Solde insuffisant pour cette demande de virement');
+      throw new Error("Solde insuffisant pour cette demande de virement");
     }
 
     // Vérifier s'il existe déjà une demande en cours
     const pendingRequest = await db.withdrawalRequest.findFirst({
       where: {
         walletId: wallet.id,
-        status: { in: ['PENDING', 'PROCESSING'] },
+        status: { in: ["PENDING", "PROCESSING"] },
       },
     });
 
     if (pendingRequest) {
-      throw new Error('Une demande de virement est déjà en cours de traitement');
+      throw new Error(
+        "Une demande de virement est déjà en cours de traitement",
+      );
     }
 
     // Vérifier que les informations bancaires sont disponibles si méthode BANK_TRANSFER
@@ -87,20 +89,25 @@ export const withdrawalService = {
       where: { id: userId },
     });
 
-    if (method === 'BANK_TRANSFER' && !userPaymentInfo) {
-      throw new Error('Utilisateur non trouvé pour effectuer un virement');
+    if (method === "BANK_TRANSFER" && !userPaymentInfo) {
+      throw new Error("Utilisateur non trouvé pour effectuer un virement");
     }
 
     // Vérification simplifiée pour ce correctif
     const hasBankInfo = true; // Dans une implémentation réelle, il faudrait vérifier userPaymentInfo.bankInfo
-    if (method === 'BANK_TRANSFER' && !hasBankInfo) {
-      throw new Error('Les informations bancaires sont requises pour effectuer un virement');
+    if (method === "BANK_TRANSFER" && !hasBankInfo) {
+      throw new Error(
+        "Les informations bancaires sont requises pour effectuer un virement",
+      );
     }
 
     // Vérifier que le compte Stripe est vérifié si méthode STRIPE_CONNECT
-    if (method === 'STRIPE_CONNECT' && (!wallet.stripeAccountId || !wallet.accountVerified)) {
+    if (
+      method === "STRIPE_CONNECT" &&
+      (!wallet.stripeAccountId || !wallet.accountVerified)
+    ) {
       throw new Error(
-        'Votre compte Stripe Connect doit être vérifié pour cette méthode de virement'
+        "Votre compte Stripe Connect doit être vérifié pour cette méthode de virement",
       );
     }
 
@@ -110,7 +117,7 @@ export const withdrawalService = {
         walletId: wallet.id,
         amount: new Decimal(amount),
         currency: wallet.currency,
-        status: 'PENDING',
+        status: "PENDING",
         preferredMethod: method,
         reference: `Demande de virement - ${new Date().toLocaleDateString()}`,
         reviewRequired: amount > 1000, // Demandes > 1000€ nécessitent une revue
@@ -124,8 +131,8 @@ export const withdrawalService = {
       data: {
         walletId: wallet.id,
         amount: -amount, // Montant négatif pour un débit
-        type: 'WITHDRAWAL',
-        status: 'PENDING',
+        type: "WITHDRAWAL",
+        status: "PENDING",
         externalReference: `withdrawal-${withdrawalRequest.id}`,
         description: `Demande de virement #${withdrawalRequest.id.substring(0, 8)}`,
         withdrawalId: withdrawalRequest.id,
@@ -135,9 +142,9 @@ export const withdrawalService = {
     // Notifier l'utilisateur
     await NotificationService.sendNotification({
       userId,
-      title: 'Demande de virement créée',
+      title: "Demande de virement créée",
       content: `Votre demande de virement de ${amount}€ a été créée et est en attente de validation.`,
-      type: 'WITHDRAWAL',
+      type: "WITHDRAWAL",
       data: { withdrawalRequestId: withdrawalRequest.id },
     });
 
@@ -158,7 +165,7 @@ export const withdrawalService = {
     if (userId) {
       const wallet = await db.wallet.findUnique({ where: { userId } });
       if (!wallet) {
-        throw new Error('Portefeuille non trouvé pour cet utilisateur');
+        throw new Error("Portefeuille non trouvé pour cet utilisateur");
       }
       query.walletId = wallet.id;
     }
@@ -184,7 +191,7 @@ export const withdrawalService = {
     });
 
     if (!withdrawalRequest) {
-      throw new Error('Demande de virement non trouvée');
+      throw new Error("Demande de virement non trouvée");
     }
 
     return withdrawalRequest;
@@ -200,17 +207,17 @@ export const withdrawalService = {
    */
   async processWithdrawalRequest(
     requestId: string,
-    action: 'APPROVE' | 'REJECT',
+    action: "APPROVE" | "REJECT",
     adminId: string,
-    notes?: string
+    notes?: string,
   ) {
     // Vérifier que l'administrateur existe
     const admin = await db.user.findFirst({
-      where: { id: adminId, role: 'ADMIN' },
+      where: { id: adminId, role: "ADMIN" },
     });
 
     if (!admin) {
-      throw new Error('Administrateur non trouvé ou privilèges insuffisants');
+      throw new Error("Administrateur non trouvé ou privilèges insuffisants");
     }
 
     // Récupérer la demande
@@ -220,31 +227,33 @@ export const withdrawalService = {
     });
 
     if (!withdrawalRequest) {
-      throw new Error('Demande de virement non trouvée');
+      throw new Error("Demande de virement non trouvée");
     }
 
     // Vérifier que la demande est en attente
-    if (withdrawalRequest.status !== 'PENDING') {
-      throw new Error(`Impossible de traiter une demande en statut ${withdrawalRequest.status}`);
+    if (withdrawalRequest.status !== "PENDING") {
+      throw new Error(
+        `Impossible de traiter une demande en statut ${withdrawalRequest.status}`,
+      );
     }
 
     const wallet = withdrawalRequest.wallet;
     const user = await db.user.findUnique({ where: { id: wallet.userId } });
 
     if (!user) {
-      throw new Error('Utilisateur non trouvé');
+      throw new Error("Utilisateur non trouvé");
     }
 
-    if (action === 'REJECT') {
+    if (action === "REJECT") {
       if (!notes) {
-        throw new Error('Une raison de rejet est requise');
+        throw new Error("Une raison de rejet est requise");
       }
 
       // Mettre à jour le statut de la demande
       await db.withdrawalRequest.update({
         where: { id: requestId },
         data: {
-          status: 'REJECTED',
+          status: "REJECTED",
           processedAt: new Date(),
           processorId: adminId,
           processorComments: notes,
@@ -256,7 +265,7 @@ export const withdrawalService = {
       const pendingTransaction = await db.walletTransaction.findFirst({
         where: {
           withdrawalId: requestId,
-          status: 'PENDING',
+          status: "PENDING",
         },
       });
 
@@ -264,7 +273,7 @@ export const withdrawalService = {
         await db.walletTransaction.update({
           where: { id: pendingTransaction.id },
           data: {
-            status: 'CANCELLED',
+            status: "CANCELLED",
             failedAt: new Date(),
             failureReason: notes,
           },
@@ -274,7 +283,9 @@ export const withdrawalService = {
         await db.wallet.update({
           where: { id: wallet.id },
           data: {
-            balance: new Decimal(Number(wallet.balance) + Number(withdrawalRequest.amount)),
+            balance: new Decimal(
+              Number(wallet.balance) + Number(withdrawalRequest.amount),
+            ),
           },
         });
       }
@@ -282,36 +293,38 @@ export const withdrawalService = {
       // Notifier l'utilisateur
       await NotificationService.sendNotification({
         userId: user.id,
-        title: 'Demande de virement rejetée',
+        title: "Demande de virement rejetée",
         content: `Votre demande de virement de ${withdrawalRequest.amount}€ a été rejetée. Raison: ${notes}`,
-        type: 'WITHDRAWAL',
+        type: "WITHDRAWAL",
         data: { withdrawalRequestId: requestId },
       });
 
       // Enregistrer l'action dans les logs d'audit
       await AuditService.createAuditLog(
-        'withdrawal',
+        "withdrawal",
         requestId,
-        'WITHDRAWAL_REJECTED',
+        "WITHDRAWAL_REJECTED",
         adminId,
-        { status: 'PENDING' },
-        { status: 'REJECTED', reason: notes }
+        { status: "PENDING" },
+        { status: "REJECTED", reason: notes },
       );
 
       return {
         success: true,
-        message: 'Demande de virement rejetée',
-        withdrawalRequest: await db.withdrawalRequest.findUnique({ where: { id: requestId } }),
+        message: "Demande de virement rejetée",
+        withdrawalRequest: await db.withdrawalRequest.findUnique({
+          where: { id: requestId },
+        }),
       };
-    } else if (action === 'APPROVE') {
+    } else if (action === "APPROVE") {
       // Mettre à jour le statut de la demande
       await db.withdrawalRequest.update({
         where: { id: requestId },
         data: {
-          status: 'PROCESSING',
+          status: "PROCESSING",
           processedAt: new Date(),
           processorId: adminId,
-          processorComments: notes || 'Demande approuvée',
+          processorComments: notes || "Demande approuvée",
         },
       });
 
@@ -321,24 +334,24 @@ export const withdrawalService = {
           withdrawalRequestId: requestId,
           amount: withdrawalRequest.amount,
           currency: withdrawalRequest.currency,
-          status: 'PROCESSING',
+          status: "PROCESSING",
           initiatedAt: new Date(),
           // Suppression de l'attribut senderName qui n'existe pas dans le modèle
           recipientName: user.name,
-          recipientIban: 'MASKED_IBAN', // Devrait être récupéré à partir des infos bancaires déchiffrées
-          transferMethod: 'SEPA',
+          recipientIban: "MASKED_IBAN", // Devrait être récupéré à partir des infos bancaires déchiffrées
+          transferMethod: "SEPA",
           createdBy: adminId,
           endorsedBy: adminId,
-          notes: notes || 'Virement approuvé',
+          notes: notes || "Virement approuvé",
         },
       });
 
       // Notifier l'utilisateur
       await NotificationService.sendNotification({
         userId: user.id,
-        title: 'Demande de virement approuvée',
+        title: "Demande de virement approuvée",
         content: `Votre demande de virement de ${withdrawalRequest.amount}€ a été approuvée et est en cours de traitement.`,
-        type: 'WITHDRAWAL',
+        type: "WITHDRAWAL",
         data: {
           withdrawalRequestId: requestId,
           bankTransferId: bankTransfer.id,
@@ -350,11 +363,11 @@ export const withdrawalService = {
         user.email,
         Number(withdrawalRequest.amount),
         withdrawalRequest.currency,
-        new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) // Date estimée
+        new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Date estimée
       );
 
       // Enregistrer l'action dans les logs d'audit
-      await auditService.logAction(adminId, 'WITHDRAWAL_APPROVED', {
+      await auditService.logAction(adminId, "WITHDRAWAL_APPROVED", {
         withdrawalRequestId: requestId,
         amount: Number(withdrawalRequest.amount),
         userId: user.id,
@@ -363,7 +376,7 @@ export const withdrawalService = {
 
       return {
         success: true,
-        message: 'Demande de virement approuvée',
+        message: "Demande de virement approuvée",
         withdrawalRequest: await db.withdrawalRequest.findUnique({
           where: { id: requestId },
           include: { bankTransfer: true },
@@ -371,7 +384,7 @@ export const withdrawalService = {
       };
     }
 
-    throw new Error('Action non reconnue');
+    throw new Error("Action non reconnue");
   },
 
   /**
@@ -384,17 +397,17 @@ export const withdrawalService = {
    */
   async finalizeBankTransfer(
     bankTransferId: string,
-    status: 'COMPLETED' | 'FAILED',
+    status: "COMPLETED" | "FAILED",
     adminId: string,
-    details?: { reference?: string; failureReason?: string }
+    details?: { reference?: string; failureReason?: string },
   ) {
     // Vérifier que l'administrateur existe
     const admin = await db.user.findFirst({
-      where: { id: adminId, role: 'ADMIN' },
+      where: { id: adminId, role: "ADMIN" },
     });
 
     if (!admin) {
-      throw new Error('Administrateur non trouvé ou privilèges insuffisants');
+      throw new Error("Administrateur non trouvé ou privilèges insuffisants");
     }
 
     // Récupérer le virement
@@ -404,11 +417,11 @@ export const withdrawalService = {
     });
 
     if (!bankTransfer) {
-      throw new Error('Virement bancaire non trouvé');
+      throw new Error("Virement bancaire non trouvé");
     }
 
     if (!bankTransfer.withdrawalRequest) {
-      throw new Error('Demande de virement associée non trouvée');
+      throw new Error("Demande de virement associée non trouvée");
     }
 
     const withdrawalRequest = bankTransfer.withdrawalRequest;
@@ -416,20 +429,20 @@ export const withdrawalService = {
     const user = await db.user.findUnique({ where: { id: wallet.userId } });
 
     if (!user) {
-      throw new Error('Utilisateur non trouvé');
+      throw new Error("Utilisateur non trouvé");
     }
 
     // Mettre à jour le statut du virement
     const updateData: any = {
-      status: status === 'COMPLETED' ? 'COMPLETED' : 'FAILED',
+      status: status === "COMPLETED" ? "COMPLETED" : "FAILED",
     };
 
-    if (status === 'COMPLETED') {
+    if (status === "COMPLETED") {
       updateData.completedAt = new Date();
       updateData.transferReference = details?.reference;
     } else {
       updateData.failedAt = new Date();
-      updateData.failureReason = details?.failureReason || 'Échec du virement';
+      updateData.failureReason = details?.failureReason || "Échec du virement";
     }
 
     await db.bankTransfer.update({
@@ -441,7 +454,7 @@ export const withdrawalService = {
     await db.withdrawalRequest.update({
       where: { id: withdrawalRequest.id },
       data: {
-        status: status === 'COMPLETED' ? 'COMPLETED' : 'FAILED',
+        status: status === "COMPLETED" ? "COMPLETED" : "FAILED",
         processedAt: new Date(),
       },
     });
@@ -457,27 +470,33 @@ export const withdrawalService = {
       await db.walletTransaction.update({
         where: { id: transaction.id },
         data: {
-          status: status === 'COMPLETED' ? 'COMPLETED' : 'FAILED',
-          completedAt: status === 'COMPLETED' ? new Date() : undefined,
-          failedAt: status === 'FAILED' ? new Date() : undefined,
+          status: status === "COMPLETED" ? "COMPLETED" : "FAILED",
+          completedAt: status === "COMPLETED" ? new Date() : undefined,
+          failedAt: status === "FAILED" ? new Date() : undefined,
           failureReason:
-            status === 'FAILED' ? details?.failureReason || 'Échec du virement' : undefined,
+            status === "FAILED"
+              ? details?.failureReason || "Échec du virement"
+              : undefined,
         },
       });
     }
 
     // Si échec, remettre les fonds dans le portefeuille
-    if (status === 'FAILED') {
+    if (status === "FAILED") {
       await db.wallet.update({
         where: { id: wallet.id },
         data: {
-          balance: new Decimal(Number(wallet.balance) + Number(withdrawalRequest.amount)),
+          balance: new Decimal(
+            Number(wallet.balance) + Number(withdrawalRequest.amount),
+          ),
         },
       });
-    } else if (status === 'COMPLETED') {
+    } else if (status === "COMPLETED") {
       // Mettre à jour les statistiques du portefeuille
       const totalWithdrawn = wallet.totalWithdrawn
-        ? new Decimal(Number(wallet.totalWithdrawn) + Number(withdrawalRequest.amount))
+        ? new Decimal(
+            Number(wallet.totalWithdrawn) + Number(withdrawalRequest.amount),
+          )
         : new Decimal(Number(withdrawalRequest.amount));
 
       await db.wallet.update({
@@ -492,12 +511,15 @@ export const withdrawalService = {
     // Notifier l'utilisateur
     await NotificationService.sendNotification({
       userId: user.id,
-      title: status === 'COMPLETED' ? 'Virement effectué avec succès' : 'Échec du virement',
+      title:
+        status === "COMPLETED"
+          ? "Virement effectué avec succès"
+          : "Échec du virement",
       content:
-        status === 'COMPLETED'
+        status === "COMPLETED"
           ? `Votre virement de ${withdrawalRequest.amount}€ a été effectué avec succès. Référence: ${details?.reference || bankTransferId}`
-          : `Votre virement de ${withdrawalRequest.amount}€ a échoué. Raison: ${details?.failureReason || 'Erreur technique'}. Les fonds ont été replacés dans votre portefeuille.`,
-      type: 'WITHDRAWAL',
+          : `Votre virement de ${withdrawalRequest.amount}€ a échoué. Raison: ${details?.failureReason || "Erreur technique"}. Les fonds ont été replacés dans votre portefeuille.`,
+      type: "WITHDRAWAL",
       data: {
         withdrawalRequestId: withdrawalRequest.id,
         bankTransferId: bankTransferId,
@@ -506,26 +528,28 @@ export const withdrawalService = {
     });
 
     // Envoyer un email
-    if (status === 'COMPLETED') {
+    if (status === "COMPLETED") {
       await emailService.sendWithdrawalCompleted(
         user.email,
         Number(withdrawalRequest.amount),
         withdrawalRequest.currency,
-        details?.reference
+        details?.reference,
       );
     } else {
       await emailService.sendWithdrawalFailed(
         user.email,
         Number(withdrawalRequest.amount),
         withdrawalRequest.currency,
-        details?.failureReason
+        details?.failureReason,
       );
     }
 
     // Enregistrer l'action dans les logs d'audit
     await auditService.logAction(
       adminId,
-      status === 'COMPLETED' ? 'BANK_TRANSFER_COMPLETED' : 'BANK_TRANSFER_FAILED',
+      status === "COMPLETED"
+        ? "BANK_TRANSFER_COMPLETED"
+        : "BANK_TRANSFER_FAILED",
       {
         bankTransferId,
         withdrawalRequestId: withdrawalRequest.id,
@@ -533,13 +557,15 @@ export const withdrawalService = {
         userId: user.id,
         reference: details?.reference,
         failureReason: details?.failureReason,
-      }
+      },
     );
 
     return {
       success: true,
       message:
-        status === 'COMPLETED' ? 'Virement finalisé avec succès' : 'Virement marqué comme échoué',
+        status === "COMPLETED"
+          ? "Virement finalisé avec succès"
+          : "Virement marqué comme échoué",
       bankTransfer: await db.bankTransfer.findUnique({
         where: { id: bankTransferId },
         include: { withdrawalRequest: true },
@@ -561,7 +587,7 @@ export const withdrawalService = {
       status?: string;
       startDate?: Date;
       endDate?: Date;
-    }
+    },
   ) {
     const { page = 1, limit = 10, status, startDate, endDate } = options;
     const skip = (page - 1) * limit;
@@ -569,7 +595,7 @@ export const withdrawalService = {
     // Récupérer le portefeuille de l'utilisateur
     const wallet = await db.wallet.findUnique({ where: { userId } });
     if (!wallet) {
-      throw new Error('Portefeuille non trouvé pour cet utilisateur');
+      throw new Error("Portefeuille non trouvé pour cet utilisateur");
     }
 
     // Construire les filtres
@@ -600,7 +626,7 @@ export const withdrawalService = {
         where,
         skip,
         take: limit,
-        orderBy: { requestedAt: 'desc' },
+        orderBy: { requestedAt: "desc" },
         include: { bankTransfer: true },
       }),
       db.withdrawalRequest.count({ where }),
@@ -633,7 +659,7 @@ export const withdrawalService = {
 
     // Construire les filtres
     const where: any = {
-      status: 'PENDING',
+      status: "PENDING",
     };
 
     if (priority !== undefined) {
@@ -650,7 +676,7 @@ export const withdrawalService = {
         where,
         skip,
         take: limit,
-        orderBy: [{ priority: 'desc' }, { requestedAt: 'asc' }],
+        orderBy: [{ priority: "desc" }, { requestedAt: "asc" }],
         include: {
           wallet: {
             include: {
@@ -689,7 +715,7 @@ export const withdrawalService = {
     // Récupérer le portefeuille de l'utilisateur
     const wallet = await db.wallet.findUnique({ where: { userId } });
     if (!wallet) {
-      throw new Error('Portefeuille non trouvé pour cet utilisateur');
+      throw new Error("Portefeuille non trouvé pour cet utilisateur");
     }
 
     // Statistiques des virements
@@ -699,37 +725,37 @@ export const withdrawalService = {
     const pendingWithdrawals = await db.withdrawalRequest.findMany({
       where: {
         walletId: wallet.id,
-        status: { in: ['PENDING', 'PROCESSING'] },
+        status: { in: ["PENDING", "PROCESSING"] },
       },
     });
 
     // Montant en attente
     const pendingAmount = pendingWithdrawals.reduce(
       (sum, req) => sum.add(req.amount),
-      new Decimal(0)
+      new Decimal(0),
     );
 
     // Derniers virements réussis
     const lastCompletedWithdrawals = await db.withdrawalRequest.findMany({
       where: {
         walletId: wallet.id,
-        status: 'COMPLETED',
+        status: "COMPLETED",
       },
-      orderBy: { processedAt: 'desc' },
+      orderBy: { processedAt: "desc" },
       take: 5,
       include: { bankTransfer: true },
     });
 
     // Nombre total de virements
     const withdrawalCounts = await db.withdrawalRequest.groupBy({
-      by: ['status'],
+      by: ["status"],
       where: { walletId: wallet.id },
       _count: true,
     });
 
     // Organiser les statistiques par statut
     const statsByStatus: Record<string, number> = {};
-    withdrawalCounts.forEach(item => {
+    withdrawalCounts.forEach((item) => {
       statsByStatus[item.status] = item._count;
     });
 

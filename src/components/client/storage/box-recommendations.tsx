@@ -1,15 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { EmptyState } from '@/components/ui/empty-state';
-import { Sparkles, Package, Clock, Euro, MapPin, TrendingUp, Star, Lightbulb } from 'lucide-react';
-import { api } from '@/trpc/react';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Sparkles,
+  Package,
+  Clock,
+  Euro,
+  MapPin,
+  TrendingUp,
+  Star,
+  Lightbulb,
+} from "lucide-react";
+import { api } from "@/trpc/react";
 
 type RecommendationFilters = {
   warehouseId?: string;
@@ -28,7 +43,7 @@ type BoxRecommendationsProps = {
 export function BoxRecommendations({
   filters = {},
   onBoxSelect,
-  className = '',
+  className = "",
   maxRecommendations = 6,
 }: BoxRecommendationsProps) {
   const { data: session } = useSession();
@@ -48,7 +63,9 @@ export function BoxRecommendations({
     return (
       <Card className={className}>
         <CardContent className="flex items-center justify-center py-8">
-          <p className="text-muted-foreground">Connectez-vous pour voir vos recommandations</p>
+          <p className="text-muted-foreground">
+            Connectez-vous pour voir vos recommandations
+          </p>
         </CardContent>
       </Card>
     );
@@ -123,11 +140,17 @@ export function BoxRecommendations({
                   <div>
                     <p className="font-medium mb-1">Types favoris</p>
                     <div className="flex flex-wrap gap-1">
-                      {preferences.preferredBoxTypes.slice(0, 2).map((type, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {type}
-                        </Badge>
-                      ))}
+                      {preferences.preferredBoxTypes
+                        .slice(0, 2)
+                        .map((type, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {type}
+                          </Badge>
+                        ))}
                     </div>
                   </div>
                 )}
@@ -136,7 +159,7 @@ export function BoxRecommendations({
                   <div>
                     <p className="font-medium mb-1">Taille préférée</p>
                     <p className="text-muted-foreground">
-                      {Math.round(preferences.preferredSizeRange.min)}m² -{' '}
+                      {Math.round(preferences.preferredSizeRange.min)}m² -{" "}
                       {Math.round(preferences.preferredSizeRange.max)}m²
                     </p>
                   </div>
@@ -167,7 +190,7 @@ export function BoxRecommendations({
               Box recommandées
             </span>
             <Badge variant="outline">
-              {total} suggestion{total > 1 ? 's' : ''}
+              {total} suggestion{total > 1 ? "s" : ""}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -191,7 +214,9 @@ export function BoxRecommendations({
                     {index < 3 && (
                       <div className="flex items-center gap-1 mb-2">
                         <Star className="h-3 w-3 text-amber-500 fill-current" />
-                        <span className="text-xs font-medium text-amber-600">Top {index + 1}</span>
+                        <span className="text-xs font-medium text-amber-600">
+                          Top {index + 1}
+                        </span>
                       </div>
                     )}
 
@@ -209,7 +234,9 @@ export function BoxRecommendations({
                         <span>Taille: {box.size}m²</span>
                         <div className="flex items-center gap-1">
                           <Euro className="h-3 w-3" />
-                          <span className="font-medium">{box.pricePerDay}€/jour</span>
+                          <span className="font-medium">
+                            {box.pricePerDay}€/jour
+                          </span>
                         </div>
                       </div>
 
@@ -225,7 +252,11 @@ export function BoxRecommendations({
                     {box.features && box.features.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
                         {box.features.slice(0, 3).map((feature, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
+                          <Badge
+                            key={idx}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {feature}
                           </Badge>
                         ))}
@@ -241,21 +272,26 @@ export function BoxRecommendations({
                     <div className="bg-muted/50 p-2 rounded text-xs mb-3">
                       <div className="flex items-center gap-1 mb-1">
                         <TrendingUp className="h-3 w-3 text-primary" />
-                        <span className="font-medium">Pourquoi cette box ?</span>
+                        <span className="font-medium">
+                          Pourquoi cette box ?
+                        </span>
                       </div>
                       <p className="text-muted-foreground">
-                        {index === 0 && 'Correspond parfaitement à vos préférences habituelles'}
-                        {index === 1 && 'Excellent rapport qualité-prix selon votre historique'}
+                        {index === 0 &&
+                          "Correspond parfaitement à vos préférences habituelles"}
+                        {index === 1 &&
+                          "Excellent rapport qualité-prix selon votre historique"}
                         {index === 2 &&
-                          'Emplacement privilégié basé sur vos précédentes réservations'}
-                        {index > 2 && 'Box similaire à celles que vous avez déjà utilisées'}
+                          "Emplacement privilégié basé sur vos précédentes réservations"}
+                        {index > 2 &&
+                          "Box similaire à celles que vous avez déjà utilisées"}
                       </p>
                     </div>
 
                     <Button
                       size="sm"
                       className="w-full"
-                      onClick={e => {
+                      onClick={(e) => {
                         e.stopPropagation();
                         onBoxSelect?.(box.id);
                       }}
@@ -270,14 +306,18 @@ export function BoxRecommendations({
               {!isExpanded && recommendations.length > maxRecommendations && (
                 <div className="text-center">
                   <Button variant="outline" onClick={() => setIsExpanded(true)}>
-                    Voir {recommendations.length - maxRecommendations} autres suggestions
+                    Voir {recommendations.length - maxRecommendations} autres
+                    suggestions
                   </Button>
                 </div>
               )}
 
               {isExpanded && recommendations.length > maxRecommendations && (
                 <div className="text-center">
-                  <Button variant="outline" onClick={() => setIsExpanded(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsExpanded(false)}
+                  >
                     Voir moins
                   </Button>
                 </div>

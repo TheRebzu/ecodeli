@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useSearchParams } from 'next/navigation';
-import { loginSchema, type LoginSchemaType } from '@/schemas/validation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState, useEffect } from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSearchParams } from "next/navigation";
+import { loginSchema, type LoginSchemaType } from "@/schemas/validation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -15,7 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Card,
   CardContent,
@@ -23,25 +23,30 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertTriangle, KeyRound, MailIcon } from 'lucide-react';
-import AppLink from '@/components/shared/app-link';
-import { useAuth } from '@/hooks/auth/use-auth';
-import { useToast } from '@/components/ui/use-toast';
-import { useTranslations } from 'next-intl';
-import { getAuthErrorMessage } from '@/lib/auth/errors';
-import { signIn } from 'next-auth/react';
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertTriangle, KeyRound, MailIcon } from "lucide-react";
+import AppLink from "@/components/shared/app-link";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
+import { getAuthErrorMessage } from "@/lib/auth/errors";
+import { signIn } from "next-auth/react";
 
-export function LoginForm({ locale = 'fr' }: { locale?: string }) {
+export function LoginForm({ locale = "fr" }: { locale?: string }) {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [emailToVerify, setEmailToVerify] = useState<string | null>(null);
   const [isResendingEmail, setIsResendingEmail] = useState(false);
-  const { login, error: authError, isLoading: authLoading, resendEmailVerification } = useAuth();
+  const {
+    login,
+    error: authError,
+    isLoading: authLoading,
+    resendEmailVerification,
+  } = useAuth();
   const { toast: _toast } = useToast();
-  const tAuth = useTranslations('auth');
+  const tAuth = useTranslations("auth");
 
   // Vérifier si l'erreur est liée à un email non vérifié
   const isEmailNotVerifiedError = (error: string | null) => {
@@ -49,11 +54,11 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
 
     // Vérifier les différents cas possibles
     return (
-      error === 'EmailNotVerified' ||
-      error.includes('EmailNotVerified') ||
-      error.includes('vérifier votre email') ||
-      error.includes('Veuillez vérifier votre email') ||
-      error === tAuth('errors.EmailNotVerified')
+      error === "EmailNotVerified" ||
+      error.includes("EmailNotVerified") ||
+      error.includes("vérifier votre email") ||
+      error.includes("Veuillez vérifier votre email") ||
+      error === tAuth("errors.EmailNotVerified")
     );
   };
 
@@ -63,27 +68,27 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
   const form = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema) as any,
     defaultValues: {
-      email: '',
-      password: '',
-      totp: '',
+      email: "",
+      password: "",
+      totp: "",
       remember: false,
     },
   });
 
   // Surveiller le champ email pour afficher/masquer les options de renvoi d'email
-  const watchEmail = form.watch('email');
+  const watchEmail = form.watch("email");
 
   // Vérifier si l'erreur actuelle est liée à un email non vérifié
   useEffect(() => {
     if (isEmailNotVerifiedError(authError)) {
-      const emailValue = form.getValues('email');
+      const emailValue = form.getValues("email");
       if (emailValue) {
         setEmailToVerify(emailValue);
       }
     }
   }, [authError, form]);
 
-  const onSubmit: SubmitHandler<LoginSchemaType> = async values => {
+  const onSubmit: SubmitHandler<LoginSchemaType> = async (values) => {
     try {
       setEmailToVerify(null); // Réinitialiser l'état du formulaire
       const result = await login(values, callbackUrl);
@@ -91,14 +96,14 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
       if (!result) {
         // Si la connexion échoue mais nécessite 2FA
         if (
-          authError?.includes('2FA') ||
-          authError?.includes('TOTP') ||
-          authError?.includes('facteur')
+          authError?.includes("2FA") ||
+          authError?.includes("TOTP") ||
+          authError?.includes("facteur")
         ) {
           setShowTwoFactor(true);
           _toast({
-            title: tAuth('notifications.twoFactorRequired'),
-            variant: 'default',
+            title: tAuth("notifications.twoFactorRequired"),
+            variant: "default",
           });
           return;
         }
@@ -109,7 +114,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
         }
       }
     } catch (error) {
-      console.error('Erreur de connexion:', error);
+      console.error("Erreur de connexion:", error);
     }
   };
 
@@ -120,14 +125,14 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
     try {
       await resendEmailVerification(emailToVerify);
       _toast({
-        title: tAuth('login.verificationEmailSent'),
-        variant: 'default',
+        title: tAuth("login.verificationEmailSent"),
+        variant: "default",
       });
     } catch (error) {
       console.error("Erreur lors du renvoi de l'email de vérification:", error);
       _toast({
-        title: tAuth('login.verificationEmailError'),
-        variant: 'destructive',
+        title: tAuth("login.verificationEmailError"),
+        variant: "destructive",
       });
     } finally {
       setIsResendingEmail(false);
@@ -137,14 +142,18 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">{tAuth('login.title')}</CardTitle>
-        <CardDescription>{tAuth('login.connectToAccount')}</CardDescription>
+        <CardTitle className="text-2xl font-bold">
+          {tAuth("login.title")}
+        </CardTitle>
+        <CardDescription>{tAuth("login.connectToAccount")}</CardDescription>
       </CardHeader>
       <CardContent>
         {authError && (
           <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>{getAuthErrorMessage(authError, key => tAuth(key))}</AlertDescription>
+            <AlertDescription>
+              {getAuthErrorMessage(authError, (key) => tAuth(key))}
+            </AlertDescription>
 
             {isEmailNotVerifiedError(authError) && emailToVerify && (
               <Button
@@ -159,7 +168,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                 ) : (
                   <MailIcon className="mr-2 h-4 w-4" />
                 )}
-                {tAuth('login.resendVerificationEmail')}
+                {tAuth("login.resendVerificationEmail")}
               </Button>
             )}
           </Alert>
@@ -173,7 +182,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{tAuth('login.email')}</FormLabel>
+                      <FormLabel>{tAuth("login.email")}</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="your@email.com"
@@ -192,7 +201,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{tAuth('login.password')}</FormLabel>
+                      <FormLabel>{tAuth("login.password")}</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="••••••••"
@@ -220,7 +229,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                           />
                         </FormControl>
                         <FormLabel className="text-sm font-medium cursor-pointer">
-                          {tAuth('login.rememberMe')}
+                          {tAuth("login.rememberMe")}
                         </FormLabel>
                       </FormItem>
                     )}
@@ -230,7 +239,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                     locale={locale}
                     className="text-sm font-medium text-primary hover:underline"
                   >
-                    {tAuth('login.forgotPassword')}
+                    {tAuth("login.forgotPassword")}
                   </AppLink>
                 </div>
               </>
@@ -240,12 +249,12 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                 name="totp"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{tAuth('login.2fa.codeLabel')}</FormLabel>
+                    <FormLabel>{tAuth("login.2fa.codeLabel")}</FormLabel>
                     <FormControl>
                       <div className="flex items-center">
                         <KeyRound className="mr-2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          placeholder={tAuth('login.2fa.codePlaceholder')}
+                          placeholder={tAuth("login.2fa.codePlaceholder")}
                           type="text"
                           inputMode="numeric"
                           autoComplete="one-time-code"
@@ -256,7 +265,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                     </FormControl>
                     <FormMessage />
                     <p className="text-sm text-muted-foreground mt-2">
-                      {tAuth('login.2fa.enterCode')}
+                      {tAuth("login.2fa.enterCode")}
                     </p>
                   </FormItem>
                 )}
@@ -264,7 +273,9 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             )}
             <Button type="submit" className="w-full" disabled={authLoading}>
               {authLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {showTwoFactor ? tAuth('login.2fa.verifyButton') : tAuth('login.signIn')}
+              {showTwoFactor
+                ? tAuth("login.2fa.verifyButton")
+                : tAuth("login.signIn")}
             </Button>
           </form>
         </Form>
@@ -277,13 +288,15 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                 <span className="w-full border-t"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">{tAuth('login.or')}</span>
+                <span className="bg-card px-2 text-muted-foreground">
+                  {tAuth("login.or")}
+                </span>
               </div>
             </div>
 
             <div className="mt-4 space-y-2">
               <p className="text-sm text-muted-foreground">
-                {tAuth('login.2fa.verificationEmailInfo')}
+                {tAuth("login.2fa.verificationEmailInfo")}
               </p>
               <Button
                 variant="outline"
@@ -297,7 +310,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                 ) : (
                   <MailIcon className="mr-2 h-4 w-4" />
                 )}
-                {tAuth('login.resendVerificationEmail')}
+                {tAuth("login.resendVerificationEmail")}
               </Button>
             </div>
           </div>
@@ -310,7 +323,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
           </div>
           <div className="relative flex justify-center text-xs">
             <span className="bg-card px-2 text-muted-foreground">
-              {tAuth('login.continueWith')}
+              {tAuth("login.continueWith")}
             </span>
           </div>
         </div>
@@ -320,7 +333,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             className="w-full"
             type="button"
             onClick={() => {
-              signIn('google', { callbackUrl: callbackUrl || '/' });
+              signIn("google", { callbackUrl: callbackUrl || "/" });
             }}
             disabled={authLoading}
           >
@@ -354,7 +367,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             className="w-full"
             type="button"
             onClick={() => {
-              signIn('github', { callbackUrl: callbackUrl || '/' });
+              signIn("github", { callbackUrl: callbackUrl || "/" });
             }}
             disabled={authLoading}
           >
@@ -372,13 +385,13 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
           </Button>
         </div>
         <p className="text-center mt-4 text-sm">
-          {tAuth('login.noAccount')}{' '}
+          {tAuth("login.noAccount")}{" "}
           <AppLink
             href="/register"
             locale={locale}
             className="font-medium text-primary hover:underline"
           >
-            {tAuth('login.register')}
+            {tAuth("login.register")}
           </AppLink>
         </p>
       </CardFooter>

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import Link from "next/link";
+import { Heart } from "lucide-react";
 
 interface ProtectedFooterProps {
   locale: string;
@@ -18,7 +18,10 @@ export function ProtectedFooter({ locale }: ProtectedFooterProps) {
         </div>
 
         <div className="flex items-center space-x-4">
-          <Link href={`/${locale}/help`} className="hover:text-foreground transition-colors">
+          <Link
+            href={`/${locale}/help`}
+            className="hover:text-foreground transition-colors"
+          >
             Aide
           </Link>
           <Link
@@ -27,7 +30,10 @@ export function ProtectedFooter({ locale }: ProtectedFooterProps) {
           >
             Confidentialité
           </Link>
-          <Link href={`/${locale}/legal/terms`} className="hover:text-foreground transition-colors">
+          <Link
+            href={`/${locale}/legal/terms`}
+            className="hover:text-foreground transition-colors"
+          >
             Conditions
           </Link>
           <div className="flex items-center">

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { ProfileHeader } from '@/components/shared/profile/profile-header';
-import { ProfileInfoCard } from '@/components/ui/card';
-import { ProfileDocumentsList } from '@/components/shared/documents/document-list';
-import { MerchantProfileForm } from '@/components/ui/form';
-import { useProfileStore } from '@/store/use-profile-store';
+import React from "react";
+import { ProfileHeader } from "@/components/shared/profile/profile-header";
+import { ProfileInfoCard } from "@/components/ui/card";
+import { ProfileDocumentsList } from "@/components/shared/documents/document-list";
+import { MerchantProfileForm } from "@/components/ui/form";
+import { useProfileStore } from "@/store/use-profile-store";
 
 export default function MerchantProfilePage() {
   // Dans cette page côté serveur Next.js, les hooks client React ne sont pas directement utilisables
@@ -31,11 +31,11 @@ function MerchantProfileContent() {
 
   // Afficher différentes sections en fonction de la vue sélectionnée
   switch (profileView) {
-    case 'info':
+    case "info":
       return <ProfileInfoCard />;
-    case 'documents':
+    case "documents":
       return <ProfileDocumentsList />;
-    case 'preferences':
+    case "preferences":
       return (
         <div className="space-y-8">
           <div className="text-center py-10">
@@ -46,13 +46,14 @@ function MerchantProfileContent() {
           </div>
         </div>
       );
-    case 'security':
+    case "security":
       return (
         <div className="space-y-8">
           <div className="text-center py-10">
             <h2 className="text-xl font-medium mb-2">Sécurité du compte</h2>
             <p className="text-muted-foreground">
-              Gestion de la sécurité de votre compte non disponible pour le moment.
+              Gestion de la sécurité de votre compte non disponible pour le
+              moment.
             </p>
           </div>
         </div>

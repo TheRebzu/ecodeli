@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export * from './announcement-alert';
-export * from './email';
-export * from './message';
-export * from './notification';
-export * from './push-notification';
-export * from './sms';
+export * from "./announcement-alert";
+export * from "./email";
+export * from "./message";
+export * from "./notification";
+export * from "./push-notification";
+export * from "./sms";

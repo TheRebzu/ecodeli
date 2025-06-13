@@ -6,7 +6,7 @@ export interface AirportTransfer {
   flightNumber?: string;
   passengerCount: number;
   luggageCount: number;
-  vehicleType: 'ECONOMY' | 'COMFORT' | 'LUXURY';
+  vehicleType: "ECONOMY" | "COMFORT" | "LUXURY";
   scheduledTime: Date;
   price: number;
 }

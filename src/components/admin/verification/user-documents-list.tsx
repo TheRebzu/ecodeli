@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
-import { DocumentStatus, DocumentType } from '@prisma/client';
-import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { DocumentStatus, DocumentType } from "@prisma/client";
+import { useTranslations } from "next-intl";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -14,11 +14,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +33,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,27 +43,36 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { CheckCircle, AlertCircle, Clock, Eye, FileText, X } from 'lucide-react';
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Eye,
+  FileText,
+  X,
+} from "lucide-react";
 
 interface UserDocumentsListProps {
   userId: string;
 }
 
 export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
-  const t = useTranslations('Admin.verification');
+  const t = useTranslations("Admin.verification");
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>("all");
   const [previewDocument, setPreviewDocument] = useState<any | null>(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [approvalNotes, setApprovalNotes] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [approvalNotes, setApprovalNotes] = useState("");
   const [documentToReject, setDocumentToReject] = useState<string | null>(null);
-  const [documentToApprove, setDocumentToApprove] = useState<string | null>(null);
+  const [documentToApprove, setDocumentToApprove] = useState<string | null>(
+    null,
+  );
 
   // 🔧 FIX: Utiliser l'API adminUser.getUsers qui fonctionne au lieu de getUserDetail
   const {
@@ -73,37 +88,17 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
   const allUsers = usersData?.json?.users || [];
   const userData = allUsers.find((user: any) => user.id === userId);
 
-  // Simuler des documents pour la démo (l'utilisateur Sophia a des documents)
-  const mockDocuments = userData
-    ? [
-        {
-          id: `doc-${userData.id}-1`,
-          type: 'ID_CARD',
-          status: 'PENDING',
-          uploadedAt: '2025-04-17T10:00:00Z',
-          createdAt: '2025-04-17T10:00:00Z',
-          fileUrl: '/uploads/id-card-example.jpg',
-          notes: "Document d'identité",
-        },
-      ]
-    : [];
-
-  // Ajouter les documents simulés à userData
-  const userDataWithDocs = userData
-    ? {
-        ...userData,
-        documents: mockDocuments,
-      }
-    : null;
+  // Utiliser les vraies données utilisateur
+  const userDataWithDocs = userData;
 
   // 🔧 FIX: Simuler les mutations pour la démo (à remplacer par les vraies APIs)
   const approveDocumentMutation = {
     mutate: (data: any) => {
       setTimeout(() => {
-        toast.success(t('documentApproved', 'Document approved successfully'));
+        toast.success(t("documentApproved", "Document approved successfully"));
         setApprovalDialogOpen(false);
         setDocumentToApprove(null);
-        setApprovalNotes('');
+        setApprovalNotes("");
         refetch();
       }, 1000);
     },
@@ -112,10 +107,10 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
   const rejectDocumentMutation = {
     mutate: (data: any) => {
       setTimeout(() => {
-        toast.success(t('documentRejected', 'Document rejected successfully'));
+        toast.success(t("documentRejected", "Document rejected successfully"));
         setRejectionDialogOpen(false);
         setDocumentToReject(null);
-        setRejectionReason('');
+        setRejectionReason("");
         refetch();
       }, 1000);
     },
@@ -159,32 +154,32 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
   };
 
   const handleBackToUsers = () => {
-    router.push('/admin/verifications');
+    router.push("/admin/verifications");
   };
 
   // Helper to get status badge
   const getStatusBadge = (status: DocumentStatus) => {
     switch (status) {
-      case 'APPROVED':
+      case "APPROVED":
         return (
           <Badge className="bg-green-500 flex items-center gap-1">
             <CheckCircle className="h-3 w-3" />
-            {t('status.approved', 'Approved')}
+            {t("status.approved", "Approved")}
           </Badge>
         );
-      case 'REJECTED':
+      case "REJECTED":
         return (
           <Badge className="bg-red-500 flex items-center gap-1">
             <X className="h-3 w-3" />
-            {t('status.rejected', 'Rejected')}
+            {t("status.rejected", "Rejected")}
           </Badge>
         );
-      case 'PENDING':
+      case "PENDING":
       default:
         return (
           <Badge variant="outline" className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {t('status.pending', 'Pending')}
+            {t("status.pending", "Pending")}
           </Badge>
         );
     }
@@ -193,14 +188,14 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
   // Helper to get document type label
   const getDocumentTypeLabel = (type: DocumentType) => {
     switch (type) {
-      case 'ID_CARD':
-        return t('documentTypes.ID_CARD', 'ID Card');
-      case 'DRIVING_LICENSE':
-        return t('documentTypes.DRIVING_LICENSE', 'Driving License');
-      case 'SELFIE':
-        return t('documentTypes.SELFIE', 'Selfie');
-      case 'OTHER':
-        return t('documentTypes.OTHER', 'Other');
+      case "ID_CARD":
+        return t("documentTypes.ID_CARD", "ID Card");
+      case "DRIVING_LICENSE":
+        return t("documentTypes.DRIVING_LICENSE", "Driving License");
+      case "SELFIE":
+        return t("documentTypes.SELFIE", "Selfie");
+      case "OTHER":
+        return t("documentTypes.OTHER", "Other");
       default:
         return type;
     }
@@ -211,16 +206,18 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
     if (!userDataWithDocs) return [];
 
     // Check if documents exist and are an array
-    const documents = Array.isArray(userDataWithDocs.documents) ? userDataWithDocs.documents : [];
+    const documents = Array.isArray(userDataWithDocs.documents)
+      ? userDataWithDocs.documents
+      : [];
 
     switch (activeTab) {
-      case 'pending':
-        return documents.filter(doc => doc.status === 'PENDING');
-      case 'approved':
-        return documents.filter(doc => doc.status === 'APPROVED');
-      case 'rejected':
-        return documents.filter(doc => doc.status === 'REJECTED');
-      case 'all':
+      case "pending":
+        return documents.filter((doc) => doc.status === "PENDING");
+      case "approved":
+        return documents.filter((doc) => doc.status === "APPROVED");
+      case "rejected":
+        return documents.filter((doc) => doc.status === "REJECTED");
+      case "all":
       default:
         return documents;
     }
@@ -237,58 +234,84 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">{t('userDocumentsTitle', 'User Documents')}</h1>
+          <h1 className="text-2xl font-bold">
+            {t("userDocumentsTitle", "User Documents")}
+          </h1>
           <p className="text-muted-foreground">
             {userDataWithDocs?.name
               ? `${userDataWithDocs.name} (${userDataWithDocs.email})`
-              : t('loading', 'Loading...')}
+              : t("loading", "Loading...")}
           </p>
         </div>
         <Button variant="outline" onClick={handleBackToUsers}>
-          {t('backToUsers', 'Back to Users')}
+          {t("backToUsers", "Back to Users")}
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('documentsListTitle', 'Documents List')}</CardTitle>
+          <CardTitle>{t("documentsListTitle", "Documents List")}</CardTitle>
           <CardDescription>
-            {t('documentsListDescription', 'All documents uploaded by the user')}
+            {t(
+              "documentsListDescription",
+              "All documents uploaded by the user",
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={handleTabChange}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">{t('tabs.all', 'All')}</TabsTrigger>
-              <TabsTrigger value="pending">{t('tabs.pending', 'Pending')}</TabsTrigger>
-              <TabsTrigger value="approved">{t('tabs.approved', 'Approved')}</TabsTrigger>
-              <TabsTrigger value="rejected">{t('tabs.rejected', 'Rejected')}</TabsTrigger>
+              <TabsTrigger value="all">{t("tabs.all", "All")}</TabsTrigger>
+              <TabsTrigger value="pending">
+                {t("tabs.pending", "Pending")}
+              </TabsTrigger>
+              <TabsTrigger value="approved">
+                {t("tabs.approved", "Approved")}
+              </TabsTrigger>
+              <TabsTrigger value="rejected">
+                {t("tabs.rejected", "Rejected")}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
               {isLoading ? (
-                <div className="text-center py-8">{t('loading', 'Loading...')}</div>
+                <div className="text-center py-8">
+                  {t("loading", "Loading...")}
+                </div>
               ) : filteredDocuments.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  {t('noDocuments', 'No documents found')}
+                  {t("noDocuments", "No documents found")}
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('table.documentType', 'Document Type')}</TableHead>
-                      <TableHead>{t('table.status', 'Status')}</TableHead>
-                      <TableHead>{t('table.submitted', 'Submitted')}</TableHead>
-                      <TableHead>{t('table.actions', 'Actions')}</TableHead>
+                      <TableHead>
+                        {t("table.documentType", "Document Type")}
+                      </TableHead>
+                      <TableHead>{t("table.status", "Status")}</TableHead>
+                      <TableHead>{t("table.submitted", "Submitted")}</TableHead>
+                      <TableHead>{t("table.actions", "Actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredDocuments.map(document => (
+                    {filteredDocuments.map((document) => (
                       <TableRow key={document.id}>
-                        <TableCell>{getDocumentTypeLabel(document.type as DocumentType)}</TableCell>
-                        <TableCell>{getStatusBadge(document.status as DocumentStatus)}</TableCell>
                         <TableCell>
-                          {format(new Date(document.createdAt), 'MMM d, yyyy HH:mm')}
+                          {getDocumentTypeLabel(document.type as DocumentType)}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(document.status as DocumentStatus)}
+                        </TableCell>
+                        <TableCell>
+                          {format(
+                            new Date(document.createdAt),
+                            "MMM d, yyyy HH:mm",
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -298,27 +321,31 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
                               onClick={() => handleViewDocument(document)}
                             >
                               <Eye className="h-4 w-4 mr-2" />
-                              {t('actions.view', 'View')}
+                              {t("actions.view", "View")}
                             </Button>
 
-                            {document.status === 'PENDING' && (
+                            {document.status === "PENDING" && (
                               <>
                                 <Button
                                   variant="default"
                                   size="sm"
-                                  onClick={() => handleApproveDocument(document.id)}
+                                  onClick={() =>
+                                    handleApproveDocument(document.id)
+                                  }
                                   className="bg-green-600 hover:bg-green-700"
                                 >
                                   <CheckCircle className="h-4 w-4 mr-2" />
-                                  {t('actions.approve', 'Approve')}
+                                  {t("actions.approve", "Approve")}
                                 </Button>
                                 <Button
                                   variant="destructive"
                                   size="sm"
-                                  onClick={() => handleRejectDocument(document.id)}
+                                  onClick={() =>
+                                    handleRejectDocument(document.id)
+                                  }
                                 >
                                   <X className="h-4 w-4 mr-2" />
-                                  {t('actions.reject', 'Reject')}
+                                  {t("actions.reject", "Reject")}
                                 </Button>
                               </>
                             )}
@@ -339,10 +366,15 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {previewDocument && getDocumentTypeLabel(previewDocument.type as DocumentType)}
+              {previewDocument &&
+                getDocumentTypeLabel(previewDocument.type as DocumentType)}
             </DialogTitle>
             <DialogDescription>
-              {previewDocument && format(new Date(previewDocument.createdAt), 'MMM d, yyyy HH:mm')}
+              {previewDocument &&
+                format(
+                  new Date(previewDocument.createdAt),
+                  "MMM d, yyyy HH:mm",
+                )}
             </DialogDescription>
           </DialogHeader>
 
@@ -352,7 +384,9 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
                 {isImage(previewDocument.fileUrl) ? (
                   <img
                     src={previewDocument.fileUrl}
-                    alt={getDocumentTypeLabel(previewDocument.type as DocumentType)}
+                    alt={getDocumentTypeLabel(
+                      previewDocument.type as DocumentType,
+                    )}
                     className="max-h-[500px] w-full object-contain"
                   />
                 ) : (
@@ -364,7 +398,7 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
                       className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground"
                     >
                       <FileText className="h-5 w-5" />
-                      {t('viewDocument', 'View Document')}
+                      {t("viewDocument", "View Document")}
                     </a>
                   </div>
                 )}
@@ -372,13 +406,17 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium">{t('status', 'Status')}:</h3>
-                  <p>{getStatusBadge(previewDocument.status as DocumentStatus)}</p>
+                  <h3 className="text-sm font-medium">
+                    {t("status", "Status")}:
+                  </h3>
+                  <p>
+                    {getStatusBadge(previewDocument.status as DocumentStatus)}
+                  </p>
                 </div>
                 {previewDocument.rejectionReason && (
                   <div>
                     <h3 className="text-sm font-medium">
-                      {t('rejectionReason', 'Rejection Reason')}:
+                      {t("rejectionReason", "Rejection Reason")}:
                     </h3>
                     <p className="text-sm">{previewDocument.rejectionReason}</p>
                   </div>
@@ -388,73 +426,92 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPreviewDialogOpen(false)}>
-              {t('close', 'Close')}
+            <Button
+              variant="outline"
+              onClick={() => setPreviewDialogOpen(false)}
+            >
+              {t("close", "Close")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Rejection Dialog */}
-      <AlertDialog open={rejectionDialogOpen} onOpenChange={setRejectionDialogOpen}>
+      <AlertDialog
+        open={rejectionDialogOpen}
+        onOpenChange={setRejectionDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('rejectDocument', 'Reject Document')}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("rejectDocument", "Reject Document")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t(
-                'rejectDocumentDescription',
-                'Please provide a reason for rejection. This will be visible to the user.'
+                "rejectDocumentDescription",
+                "Please provide a reason for rejection. This will be visible to the user.",
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <Textarea
               value={rejectionReason}
-              onChange={e => setRejectionReason(e.target.value)}
-              placeholder={t('rejectionReasonPlaceholder', 'Enter reason for rejection')}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder={t(
+                "rejectionReasonPlaceholder",
+                "Enter reason for rejection",
+              )}
               className="min-h-[100px]"
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmRejectDocument}
               className="bg-destructive text-destructive-foreground"
               disabled={!rejectionReason.trim()}
             >
-              {t('confirm', 'Confirm')}
+              {t("confirm", "Confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Approval Dialog */}
-      <AlertDialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
+      <AlertDialog
+        open={approvalDialogOpen}
+        onOpenChange={setApprovalDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('approveDocument', 'Approve Document')}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("approveDocument", "Approve Document")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t(
-                'approveDocumentDescription',
-                'Add any optional notes for this approval (not visible to the user).'
+                "approveDocumentDescription",
+                "Add any optional notes for this approval (not visible to the user).",
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <Textarea
               value={approvalNotes}
-              onChange={e => setApprovalNotes(e.target.value)}
-              placeholder={t('approvalNotesPlaceholder', 'Optional notes for approval')}
+              onChange={(e) => setApprovalNotes(e.target.value)}
+              placeholder={t(
+                "approvalNotesPlaceholder",
+                "Optional notes for approval",
+              )}
               className="min-h-[100px]"
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmApproveDocument}
               className="bg-green-600 hover:bg-green-700"
             >
-              {t('confirm', 'Confirm')}
+              {t("confirm", "Confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

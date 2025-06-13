@@ -1,49 +1,49 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useOnboarding } from '@/components/shared/onboarding/onboarding-context';
-import { TutorialStep } from '@/components/shared/onboarding/tutorial-step';
-import { TutorialProgress } from '@/components/shared/onboarding/tutorial-progress';
-import { TutorialNavigation } from '@/components/shared/onboarding/tutorial-navigation';
-import { useTranslations } from 'next-intl';
+import { useEffect } from "react";
+import { useOnboarding } from "@/components/shared/onboarding/onboarding-context";
+import { TutorialStep } from "@/components/shared/onboarding/tutorial-step";
+import { TutorialProgress } from "@/components/shared/onboarding/tutorial-progress";
+import { TutorialNavigation } from "@/components/shared/onboarding/tutorial-navigation";
+import { useTranslations } from "next-intl";
 
 // Définition des étapes du tutoriel prestataire
 const PROVIDER_TUTORIAL_STEPS = [
   {
-    id: 'welcome',
-    title: 'steps.welcome.title',
-    description: 'steps.welcome.description',
-    image: '/images/onboarding/provider/welcome.png',
+    id: "welcome",
+    title: "steps.welcome.title",
+    description: "steps.welcome.description",
+    image: "/images/onboarding/provider/welcome.png",
   },
   {
-    id: 'dashboard',
-    title: 'steps.dashboard.title',
-    description: 'steps.dashboard.description',
-    image: '/images/onboarding/provider/dashboard.png',
+    id: "dashboard",
+    title: "steps.dashboard.title",
+    description: "steps.dashboard.description",
+    image: "/images/onboarding/provider/dashboard.png",
   },
   {
-    id: 'services',
-    title: 'steps.services.title',
-    description: 'steps.services.description',
-    image: '/images/onboarding/provider/services.png',
+    id: "services",
+    title: "steps.services.title",
+    description: "steps.services.description",
+    image: "/images/onboarding/provider/services.png",
   },
   {
-    id: 'appointments',
-    title: 'steps.appointments.title',
-    description: 'steps.appointments.description',
-    image: '/images/onboarding/provider/appointments.png',
+    id: "appointments",
+    title: "steps.appointments.title",
+    description: "steps.appointments.description",
+    image: "/images/onboarding/provider/appointments.png",
   },
   {
-    id: 'schedule',
-    title: 'steps.schedule.title',
-    description: 'steps.schedule.description',
-    image: '/images/onboarding/provider/schedule.png',
+    id: "schedule",
+    title: "steps.schedule.title",
+    description: "steps.schedule.description",
+    image: "/images/onboarding/provider/schedule.png",
   },
   {
-    id: 'ratings',
-    title: 'steps.ratings.title',
-    description: 'steps.ratings.description',
-    image: '/images/onboarding/provider/ratings.png',
+    id: "ratings",
+    title: "steps.ratings.title",
+    description: "steps.ratings.description",
+    image: "/images/onboarding/provider/ratings.png",
   },
 ];
 
@@ -63,14 +63,17 @@ export function ProviderTutorial({ options }: ProviderTutorialProps) {
     skipOnboarding,
   } = useOnboarding();
 
-  const t = useTranslations('Provider.Onboarding');
+  const t = useTranslations("Provider.Onboarding");
 
   // Initialiser le tutoriel avec le bon nombre d'étapes
   useEffect(() => {
     // Nous devons ajouter setStepsConfiguration au contexte d'onboarding
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // Fallback temporaire en attendant la mise à jour du contexte
-      localStorage.setItem('tutorial-total-steps', PROVIDER_TUTORIAL_STEPS.length.toString());
+      localStorage.setItem(
+        "tutorial-total-steps",
+        PROVIDER_TUTORIAL_STEPS.length.toString(),
+      );
     }
   }, []);
 

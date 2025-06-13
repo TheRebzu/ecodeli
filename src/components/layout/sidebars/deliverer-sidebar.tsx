@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Home,
   Truck,
@@ -33,8 +33,11 @@ import {
   Archive,
   Users,
   Globe,
-} from 'lucide-react';
-import { BaseSidebar, type SidebarSection } from '@/components/layout/sidebars/base-sidebar';
+} from "lucide-react";
+import {
+  BaseSidebar,
+  type SidebarSection,
+} from "@/components/layout/sidebars/base-sidebar";
 
 interface DelivererSidebarProps {
   locale: string;
@@ -46,10 +49,10 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
   const sections: SidebarSection[] = [
     // Section principale - Dashboard
     {
-      title: 'Accueil',
+      title: "Accueil",
       items: [
         {
-          label: 'Tableau de bord',
+          label: "Tableau de bord",
           href: `/${locale}/deliverer`,
           icon: Home,
           badge: 2,
@@ -59,10 +62,10 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
 
     // Section Annonces et opportunités
     {
-      title: 'Opportunités',
+      title: "Opportunités",
       items: [
         {
-          label: 'Annonces disponibles',
+          label: "Annonces disponibles",
           href: `/${locale}/deliverer/announcements`,
           icon: Megaphone,
           badge: 5,
@@ -72,16 +75,16 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
 
     // Section Livraisons
     {
-      title: 'Livraisons',
+      title: "Livraisons",
       items: [
         {
-          label: 'Livraisons actives',
+          label: "Livraisons actives",
           href: `/${locale}/deliverer/deliveries/active`,
           icon: Package,
           badge: 3,
         },
         {
-          label: 'Toutes les livraisons',
+          label: "Toutes les livraisons",
           href: `/${locale}/deliverer/deliveries`,
           icon: Truck,
         },
@@ -90,25 +93,25 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
 
     // Section Planning et disponibilités
     {
-      title: 'Planning',
+      title: "Planning",
       items: [
         {
-          label: 'Mon planning',
+          label: "Mon planning",
           href: `/${locale}/deliverer/schedule`,
           icon: Calendar,
         },
         {
-          label: 'Disponibilités',
+          label: "Disponibilités",
           href: `/${locale}/deliverer/availability`,
           icon: Clock,
         },
         {
-          label: 'Mes trajets',
+          label: "Mes trajets",
           href: `/${locale}/deliverer/my-routes`,
           icon: Route,
         },
         {
-          label: 'Créer trajet',
+          label: "Créer trajet",
           href: `/${locale}/deliverer/my-routes/create`,
           icon: MapPin,
         },
@@ -117,20 +120,20 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
 
     // Section Documents et vérifications
     {
-      title: 'Documents',
+      title: "Documents",
       items: [
         {
-          label: 'Mes documents',
+          label: "Mes documents",
           href: `/${locale}/deliverer/documents`,
           icon: FileText,
         },
         {
-          label: 'Contrats',
+          label: "Contrats",
           href: `/${locale}/deliverer/contracts`,
           icon: FileText,
         },
         {
-          label: 'Conditions',
+          label: "Conditions",
           href: `/${locale}/deliverer/contracts/terms`,
           icon: Shield,
         },
@@ -139,20 +142,20 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
 
     // Section Financier
     {
-      title: 'Finance',
+      title: "Finance",
       items: [
         {
-          label: 'Mon portefeuille',
+          label: "Mon portefeuille",
           href: `/${locale}/deliverer/wallet`,
           icon: Wallet,
         },
         {
-          label: 'Retrait',
+          label: "Retrait",
           href: `/${locale}/deliverer/wallet/withdrawal`,
           icon: Download,
         },
         {
-          label: 'Paiements',
+          label: "Paiements",
           href: `/${locale}/deliverer/payments`,
           icon: CreditCard,
         },
@@ -161,20 +164,20 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
 
     // Section Statistiques et performance
     {
-      title: 'Performance',
+      title: "Performance",
       items: [
         {
-          label: 'Mes statistiques',
+          label: "Mes statistiques",
           href: `/${locale}/deliverer/stats`,
           icon: BarChart3,
         },
         {
-          label: 'Gains',
+          label: "Gains",
           href: `/${locale}/deliverer/stats/earnings`,
           icon: DollarSign,
         },
         {
-          label: 'Performance',
+          label: "Performance",
           href: `/${locale}/deliverer/stats/performance`,
           icon: TrendingUp,
         },
@@ -183,16 +186,16 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
 
     // Section Communication
     {
-      title: 'Communication',
+      title: "Communication",
       items: [
         {
-          label: 'Messages',
+          label: "Messages",
           href: `/${locale}/deliverer/messages`,
           icon: MessageSquare,
           badge: 2,
         },
         {
-          label: 'Notifications',
+          label: "Notifications",
           href: `/${locale}/deliverer/notifications`,
           icon: Bell,
           badge: notifications,
@@ -202,10 +205,10 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
 
     // Section Profil
     {
-      title: 'Mon compte',
+      title: "Mon compte",
       items: [
         {
-          label: 'Mon profil',
+          label: "Mon profil",
           href: `/${locale}/deliverer/profile`,
           icon: User,
         },
@@ -214,13 +217,13 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
   ];
 
   const userInfo = {
-    name: 'Livreur EcoDeli',
-    email: 'deliverer@ecodeli.me',
-    avatar: '',
+    name: "Livreur EcoDeli",
+    email: "deliverer@ecodeli.me",
+    avatar: "",
   };
 
   const quickAction = {
-    label: 'Voir livraisons',
+    label: "Voir livraisons",
     icon: Package,
     href: `/${locale}/deliverer/deliveries/active`,
   };

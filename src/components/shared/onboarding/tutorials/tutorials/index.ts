@@ -4,11 +4,11 @@
  */
 
 // Exports des fichiers locaux
-export { default as AdminTutorial } from './admin-tutorial';
-export * from './admin-tutorial';
-export { default as DelivererTutorial } from './deliverer-tutorial';
-export * from './deliverer-tutorial';
-export { default as MerchantTutorial } from './merchant-tutorial';
-export * from './merchant-tutorial';
-export { default as ProviderTutorial } from './provider-tutorial';
-export * from './provider-tutorial';
+export { default as AdminTutorial } from "./admin-tutorial";
+export * from "./admin-tutorial";
+export { default as DelivererTutorial } from "./deliverer-tutorial";
+export * from "./deliverer-tutorial";
+export { default as MerchantTutorial } from "./merchant-tutorial";
+export * from "./merchant-tutorial";
+export { default as ProviderTutorial } from "./provider-tutorial";
+export * from "./provider-tutorial";

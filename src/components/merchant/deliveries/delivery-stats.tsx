@@ -1,11 +1,18 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/utils/document-utils';
-import { cn } from '@/lib/utils/common';
-import { TrendingUp, TrendingDown, Clock, Truck, CheckCircle, AlertTriangle } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/utils/document-utils";
+import { cn } from "@/lib/utils/common";
+import {
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Truck,
+  CheckCircle,
+  AlertTriangle,
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DeliveryStatsProps {
   stats: {
@@ -23,12 +30,18 @@ interface DeliveryStatsProps {
   className?: string;
 }
 
-export function DeliveryStats({ stats, isLoading = false, className }: DeliveryStatsProps) {
-  const t = useTranslations('merchant.deliveries.stats');
+export function DeliveryStats({
+  stats,
+  isLoading = false,
+  className,
+}: DeliveryStatsProps) {
+  const t = useTranslations("merchant.deliveries.stats");
 
   if (isLoading) {
     return (
-      <div className={cn('grid gap-4 md:grid-cols-2 lg:grid-cols-4', className)}>
+      <div
+        className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-4", className)}
+      >
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -48,47 +61,51 @@ export function DeliveryStats({ stats, isLoading = false, className }: DeliveryS
   }
 
   return (
-    <div className={cn('grid gap-4 md:grid-cols-2 lg:grid-cols-4', className)}>
+    <div className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-4", className)}>
       <StatsCard
-        title={t('totalDeliveries')}
+        title={t("totalDeliveries")}
         value={stats.total}
-        description={t('totalDescription')}
+        description={t("totalDescription")}
         icon={<Truck className="h-5 w-5" />}
       />
 
       <StatsCard
-        title={t('activeDeliveries')}
+        title={t("activeDeliveries")}
         value={stats.inProgress}
-        description={`${((stats.inProgress / stats.total) * 100).toFixed(1)}% ${t('ofTotal')}`}
+        description={`${((stats.inProgress / stats.total) * 100).toFixed(1)}% ${t("ofTotal")}`}
         icon={<Clock className="h-5 w-5" />}
         iconColor="text-blue-500"
         iconBackground="bg-blue-100"
       />
 
       <StatsCard
-        title={t('completionRate')}
+        title={t("completionRate")}
         value={`${((stats.completed / stats.total) * 100).toFixed(1)}%`}
-        description={`${stats.completed} ${t('deliveriesCompleted')}`}
+        description={`${stats.completed} ${t("deliveriesCompleted")}`}
         icon={<CheckCircle className="h-5 w-5" />}
         iconColor="text-green-500"
         iconBackground="bg-green-100"
       />
 
       <StatsCard
-        title={t('totalRevenue')}
+        title={t("totalRevenue")}
         value={formatCurrency(stats.revenue)}
-        description={t('revenueDescription')}
+        description={t("revenueDescription")}
         icon={<TrendingUp className="h-5 w-5" />}
         iconColor="text-green-500"
         iconBackground="bg-green-100"
       />
 
       <StatsCard
-        title={t('onTimeRate')}
+        title={t("onTimeRate")}
         value={`${(stats.onTimeRate * 100).toFixed(1)}%`}
-        description={t('onTimeDescription')}
+        description={t("onTimeDescription")}
         trend={
-          stats.onTimeRate >= 0.9 ? 'positive' : stats.onTimeRate >= 0.7 ? 'neutral' : 'negative'
+          stats.onTimeRate >= 0.9
+            ? "positive"
+            : stats.onTimeRate >= 0.7
+              ? "neutral"
+              : "negative"
         }
         icon={<Clock className="h-5 w-5" />}
         iconColor="text-blue-500"
@@ -96,11 +113,15 @@ export function DeliveryStats({ stats, isLoading = false, className }: DeliveryS
       />
 
       <StatsCard
-        title={t('problemRate')}
+        title={t("problemRate")}
         value={`${(stats.problemRate * 100).toFixed(1)}%`}
-        description={t('problemDescription')}
+        description={t("problemDescription")}
         trend={
-          stats.problemRate <= 0.05 ? 'positive' : stats.problemRate <= 0.1 ? 'neutral' : 'negative'
+          stats.problemRate <= 0.05
+            ? "positive"
+            : stats.problemRate <= 0.1
+              ? "neutral"
+              : "negative"
         }
         trendReversed
         icon={<AlertTriangle className="h-5 w-5" />}
@@ -109,20 +130,22 @@ export function DeliveryStats({ stats, isLoading = false, className }: DeliveryS
       />
 
       <StatsCard
-        title={t('avgDeliveryTime')}
+        title={t("avgDeliveryTime")}
         value={
-          stats.avgDeliveryTime ? `${stats.avgDeliveryTime} ${t('minutes')}` : t('notAvailable')
+          stats.avgDeliveryTime
+            ? `${stats.avgDeliveryTime} ${t("minutes")}`
+            : t("notAvailable")
         }
-        description={t('avgTimeDescription')}
+        description={t("avgTimeDescription")}
         icon={<Clock className="h-5 w-5" />}
         iconColor="text-purple-500"
         iconBackground="bg-purple-100"
       />
 
       <StatsCard
-        title={t('pendingDeliveries')}
+        title={t("pendingDeliveries")}
         value={stats.pending}
-        description={`${((stats.pending / stats.total) * 100).toFixed(1)}% ${t('ofTotal')}`}
+        description={`${((stats.pending / stats.total) * 100).toFixed(1)}% ${t("ofTotal")}`}
         icon={<Clock className="h-5 w-5" />}
         iconColor="text-amber-500"
         iconBackground="bg-amber-100"
@@ -135,7 +158,7 @@ interface StatsCardProps {
   title: string;
   value: string | number;
   description?: string;
-  trend?: 'positive' | 'negative' | 'neutral';
+  trend?: "positive" | "negative" | "neutral";
   trendReversed?: boolean;
   icon?: React.ReactNode;
   iconColor?: string;
@@ -157,8 +180,10 @@ function StatsCard({
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {icon && (
-          <div className={cn('p-2 rounded-full', iconBackground || 'bg-gray-100')}>
-            <div className={cn(iconColor || 'text-gray-500')}>{icon}</div>
+          <div
+            className={cn("p-2 rounded-full", iconBackground || "bg-gray-100")}
+          >
+            <div className={cn(iconColor || "text-gray-500")}>{icon}</div>
           </div>
         )}
       </CardHeader>
@@ -167,9 +192,9 @@ function StatsCard({
         <p className="text-xs text-muted-foreground mt-1 flex items-center">
           {trend && !trendReversed && (
             <>
-              {trend === 'positive' ? (
+              {trend === "positive" ? (
                 <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
-              ) : trend === 'negative' ? (
+              ) : trend === "negative" ? (
                 <TrendingDown className="mr-1 h-3 w-3 text-red-500" />
               ) : null}
             </>
@@ -177,9 +202,9 @@ function StatsCard({
 
           {trend && trendReversed && (
             <>
-              {trend === 'negative' ? (
+              {trend === "negative" ? (
                 <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
-              ) : trend === 'positive' ? (
+              ) : trend === "positive" ? (
                 <TrendingDown className="mr-1 h-3 w-3 text-red-500" />
               ) : null}
             </>

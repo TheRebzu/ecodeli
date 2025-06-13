@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { useRouter, useParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Toast } from '@/components/ui/toast';
-import { useToast } from '@/components/ui/use-toast';
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter, useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Toast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   Phone,
@@ -26,18 +26,18 @@ import {
   AlertCircle,
   MessageSquare,
   Locate,
-} from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import DeliveryTrackingMap from '@/components/shared/maps/delivery-tracking-map';
-import DeliveryContact from '@/components/deliverer/deliveries/delivery-contact';
-import DeliveryETA from '@/components/deliverer/deliveries/delivery-eta';
-import { DeliveryStatusBadge } from '@/components/shared/deliveries/delivery-status-badge';
-import { useLiveTrackingDetails } from '@/hooks/delivery/use-live-tracking';
-import { DeliveryStatus } from '@/types/delivery/delivery';
-import { cn } from '@/lib/utils/common';
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import DeliveryTrackingMap from "@/components/shared/maps/delivery-tracking-map";
+import DeliveryContact from "@/components/deliverer/deliveries/delivery-contact";
+import DeliveryETA from "@/components/deliverer/deliveries/delivery-eta";
+import { DeliveryStatusBadge } from "@/components/shared/deliveries/delivery-status-badge";
+import { useLiveTrackingDetails } from "@/hooks/delivery/use-live-tracking";
+import { DeliveryStatus } from "@/types/delivery/delivery";
+import { cn } from "@/lib/utils/common";
 
 export default function LiveTrackingPage() {
-  const t = useTranslations('client.liveTracking');
+  const t = useTranslations("client.liveTracking");
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
@@ -46,25 +46,32 @@ export default function LiveTrackingPage() {
   const [fullscreen, setFullscreen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showContactDialog, setShowContactDialog] = useState(false);
-  const [mapHeight, setMapHeight] = useState('calc(100vh - 180px)');
+  const [mapHeight, setMapHeight] = useState("calc(100vh - 180px)");
 
   // Utiliser notre hook personnalisé de suivi en direct
-  const { trackingData, isLoading, error, refreshData, isActive, currentLocation, lastUpdated } =
-    useLiveTrackingDetails(deliveryId);
+  const {
+    trackingData,
+    isLoading,
+    error,
+    refreshData,
+    isActive,
+    currentLocation,
+    lastUpdated,
+  } = useLiveTrackingDetails(deliveryId);
 
   // Mettre à jour la hauteur de la carte en mode plein écran
   useEffect(() => {
     const updateMapHeight = () => {
       if (fullscreen) {
-        setMapHeight('100vh');
+        setMapHeight("100vh");
       } else {
-        setMapHeight('calc(100vh - 180px)');
+        setMapHeight("calc(100vh - 180px)");
       }
     };
 
     updateMapHeight();
-    window.addEventListener('resize', updateMapHeight);
-    return () => window.removeEventListener('resize', updateMapHeight);
+    window.addEventListener("resize", updateMapHeight);
+    return () => window.removeEventListener("resize", updateMapHeight);
   }, [fullscreen]);
 
   // Fonction pour entrer/sortir du mode plein écran
@@ -77,7 +84,7 @@ export default function LiveTrackingPage() {
     setRefreshing(true);
     await refreshData();
     toast({
-      title: t('dataRefreshed'),
+      title: t("dataRefreshed"),
       duration: 2000,
     });
     setTimeout(() => setRefreshing(false), 500);
@@ -94,19 +101,21 @@ export default function LiveTrackingPage() {
       <div className="container py-6 mx-auto">
         <Button variant="ghost" size="sm" onClick={handleBack} className="mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t('backToDetails')}
+          {t("backToDetails")}
         </Button>
 
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('errorTitle')}</AlertTitle>
-          <AlertDescription>{error?.message || t('trackingUnavailable')}</AlertDescription>
+          <AlertTitle>{t("errorTitle")}</AlertTitle>
+          <AlertDescription>
+            {error?.message || t("trackingUnavailable")}
+          </AlertDescription>
         </Alert>
 
         <div className="flex justify-center">
           <Button onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            {t('tryAgain')}
+            {t("tryAgain")}
           </Button>
         </div>
       </div>
@@ -133,8 +142,10 @@ export default function LiveTrackingPage() {
   return (
     <div
       className={cn(
-        'relative overflow-hidden transition-all duration-300',
-        fullscreen ? 'h-screen w-screen fixed top-0 left-0 z-50 bg-background' : ''
+        "relative overflow-hidden transition-all duration-300",
+        fullscreen
+          ? "h-screen w-screen fixed top-0 left-0 z-50 bg-background"
+          : "",
       )}
     >
       {/* Barre supérieure - visible uniquement en mode normal */}
@@ -142,17 +153,27 @@ export default function LiveTrackingPage() {
         <div className="container py-4 mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Button variant="ghost" size="sm" onClick={handleBack} className="mr-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="mr-4"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                {t('backToDetails')}
+                {t("backToDetails")}
               </Button>
 
-              <h1 className="text-2xl font-bold hidden md:block">{t('liveTrackingTitle')}</h1>
+              <h1 className="text-2xl font-bold hidden md:block">
+                {t("liveTrackingTitle")}
+              </h1>
             </div>
 
             <div className="flex items-center gap-2">
               {trackingData && (
-                <DeliveryStatusBadge status={trackingData.status as DeliveryStatus} size="sm" />
+                <DeliveryStatusBadge
+                  status={trackingData.status as DeliveryStatus}
+                  size="sm"
+                />
               )}
 
               <Button
@@ -164,12 +185,12 @@ export default function LiveTrackingPage() {
                 {fullscreen ? (
                   <>
                     <Minimize2 className="h-4 w-4 mr-2" />
-                    {t('exitFullscreen')}
+                    {t("exitFullscreen")}
                   </>
                 ) : (
                   <>
                     <Maximize2 className="h-4 w-4 mr-2" />
-                    {t('enterFullscreen')}
+                    {t("enterFullscreen")}
                   </>
                 )}
               </Button>
@@ -179,12 +200,17 @@ export default function LiveTrackingPage() {
       )}
 
       {/* Carte principale */}
-      <div className={cn('relative', fullscreen ? 'h-screen' : 'h-[calc(100vh-180px)]')}>
+      <div
+        className={cn(
+          "relative",
+          fullscreen ? "h-screen" : "h-[calc(100vh-180px)]",
+        )}
+      >
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="flex flex-col items-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-              <p className="text-muted-foreground">{t('loadingMap')}</p>
+              <p className="text-muted-foreground">{t("loadingMap")}</p>
             </div>
           </div>
         ) : mapProps ? (
@@ -202,7 +228,7 @@ export default function LiveTrackingPage() {
                 className="bg-background/80 backdrop-blur-sm"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                {t('back')}
+                {t("back")}
               </Button>
 
               <Button
@@ -212,7 +238,7 @@ export default function LiveTrackingPage() {
                 className="bg-background/80 backdrop-blur-sm"
               >
                 <Minimize2 className="h-4 w-4 mr-2" />
-                {t('minimize')}
+                {t("minimize")}
               </Button>
             </div>
 
@@ -224,7 +250,7 @@ export default function LiveTrackingPage() {
                 className="bg-primary/90 backdrop-blur-sm"
               >
                 <Phone className="h-4 w-4 mr-2" />
-                {t('contactDeliverer')}
+                {t("contactDeliverer")}
               </Button>
             </div>
           </>
@@ -234,30 +260,32 @@ export default function LiveTrackingPage() {
       {/* Barre d'informations en bas */}
       <div
         className={cn(
-          'border-t bg-card p-4 transition-all duration-300',
+          "border-t bg-card p-4 transition-all duration-300",
           fullscreen
-            ? 'absolute bottom-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-md'
-            : ''
+            ? "absolute bottom-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-md"
+            : "",
         )}
       >
         <div className="container mx-auto">
           <div
             className={cn(
-              'grid gap-4',
-              fullscreen ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-3'
+              "grid gap-4",
+              fullscreen
+                ? "grid-cols-1 md:grid-cols-3"
+                : "grid-cols-1 md:grid-cols-3",
             )}
           >
             {/* ETA et Progression */}
             <div className="space-y-1 flex flex-col justify-center">
               <div className="flex items-center text-sm font-medium text-muted-foreground">
                 <Clock className="w-4 h-4 mr-2" />
-                {t('estimatedArrival')}
+                {t("estimatedArrival")}
               </div>
               <DeliveryETA
                 deliveryId={deliveryId}
                 showProgress
                 size="sm"
-                variant={fullscreen ? 'compact' : 'default'}
+                variant={fullscreen ? "compact" : "default"}
               />
             </div>
 
@@ -265,12 +293,15 @@ export default function LiveTrackingPage() {
             <div className="space-y-1 flex flex-col justify-center">
               <div className="flex items-center text-sm font-medium text-muted-foreground">
                 <Map className="w-4 h-4 mr-2" />
-                {t('currentLocation')}
+                {t("currentLocation")}
               </div>
-              <p className="truncate text-sm">{currentLocation || t('locationUnavailable')}</p>
+              <p className="truncate text-sm">
+                {currentLocation || t("locationUnavailable")}
+              </p>
               {lastUpdated && (
                 <p className="text-xs text-muted-foreground">
-                  {t('lastUpdated')}: {new Date(lastUpdated).toLocaleTimeString()}
+                  {t("lastUpdated")}:{" "}
+                  {new Date(lastUpdated).toLocaleTimeString()}
                 </p>
               )}
             </div>
@@ -284,8 +315,10 @@ export default function LiveTrackingPage() {
                 disabled={refreshing}
                 className="flex items-center"
               >
-                <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
-                {t('refresh')}
+                <RefreshCw
+                  className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")}
+                />
+                {t("refresh")}
               </Button>
 
               {!fullscreen && (
@@ -296,7 +329,7 @@ export default function LiveTrackingPage() {
                   className="flex items-center"
                 >
                   <Phone className="h-4 w-4 mr-2" />
-                  {t('contact')}
+                  {t("contact")}
                 </Button>
               )}
             </div>
@@ -308,8 +341,10 @@ export default function LiveTrackingPage() {
       <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{t('contactDialogTitle')}</DialogTitle>
-            <DialogDescription>{t('contactDialogDescription')}</DialogDescription>
+            <DialogTitle>{t("contactDialogTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("contactDialogDescription")}
+            </DialogDescription>
           </DialogHeader>
           <DeliveryContact
             deliveryId={deliveryId}

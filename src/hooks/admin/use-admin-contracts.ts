@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface ContractFilters {
   search?: string;
@@ -74,18 +74,18 @@ export function useAdminContracts() {
   const createContractMutation = api.adminContracts.create.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Succès',
-        description: 'Le contrat a été créé avec succès.',
+        title: "Succès",
+        description: "Le contrat a été créé avec succès.",
       });
       refetchContracts();
       refetchStats();
       setIsCreateModalOpen(false);
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error.message || 'Erreur lors de la création du contrat.',
-        variant: 'destructive',
+        title: "Erreur",
+        description: error.message || "Erreur lors de la création du contrat.",
+        variant: "destructive",
       });
     },
   });
@@ -93,18 +93,19 @@ export function useAdminContracts() {
   const updateContractMutation = api.adminContracts.update.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Succès',
-        description: 'Le contrat a été modifié avec succès.',
+        title: "Succès",
+        description: "Le contrat a été modifié avec succès.",
       });
       refetchContracts();
       refetchStats();
       setEditingContract(null);
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error.message || 'Erreur lors de la modification du contrat.',
-        variant: 'destructive',
+        title: "Erreur",
+        description:
+          error.message || "Erreur lors de la modification du contrat.",
+        variant: "destructive",
       });
     },
   });
@@ -112,17 +113,18 @@ export function useAdminContracts() {
   const deleteContractMutation = api.adminContracts.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Succès',
-        description: 'Le contrat a été supprimé avec succès.',
+        title: "Succès",
+        description: "Le contrat a été supprimé avec succès.",
       });
       refetchContracts();
       refetchStats();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error.message || 'Erreur lors de la suppression du contrat.',
-        variant: 'destructive',
+        title: "Erreur",
+        description:
+          error.message || "Erreur lors de la suppression du contrat.",
+        variant: "destructive",
       });
     },
   });
@@ -130,17 +132,17 @@ export function useAdminContracts() {
   const activateContractMutation = api.adminContracts.activate.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Succès',
-        description: 'Le contrat a été activé avec succès.',
+        title: "Succès",
+        description: "Le contrat a été activé avec succès.",
       });
       refetchContracts();
       refetchStats();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message || "Erreur lors de l'activation du contrat.",
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -148,52 +150,53 @@ export function useAdminContracts() {
   const suspendContractMutation = api.adminContracts.suspend.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Succès',
-        description: 'Le contrat a été suspendu avec succès.',
+        title: "Succès",
+        description: "Le contrat a été suspendu avec succès.",
       });
       refetchContracts();
       refetchStats();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error.message || 'Erreur lors de la suspension du contrat.',
-        variant: 'destructive',
+        title: "Erreur",
+        description:
+          error.message || "Erreur lors de la suspension du contrat.",
+        variant: "destructive",
       });
     },
   });
 
   const generatePdfMutation = api.adminContracts.generatePdf.useMutation({
-    onSuccess: data => {
+    onSuccess: (data) => {
       toast({
-        title: 'Succès',
-        description: 'Le PDF du contrat a été généré avec succès.',
+        title: "Succès",
+        description: "Le PDF du contrat a été généré avec succès.",
       });
       // Ouvrir le PDF dans un nouvel onglet
-      window.open(data.fileUrl, '_blank');
+      window.open(data.fileUrl, "_blank");
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error.message || 'Erreur lors de la génération du PDF.',
-        variant: 'destructive',
+        title: "Erreur",
+        description: error.message || "Erreur lors de la génération du PDF.",
+        variant: "destructive",
       });
     },
   });
 
   // Actions
   const handleFiltersChange = (newFilters: Partial<ContractFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-    setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page when filters change
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to first page when filters change
   };
 
   const handleClearFilters = () => {
     setFilters({});
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   const handlePageChange = (page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
   };
 
   const handleCreateContract = (data: ContractFormData) => {

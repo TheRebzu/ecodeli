@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -18,8 +24,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
+} from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +33,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   TrendingUp,
   TrendingDown,
@@ -41,18 +47,21 @@ import {
   MoreHorizontal,
   Calendar,
   BarChart3,
-} from 'lucide-react';
-import { useContractPerformance } from '@/hooks/admin/use-contract-performance';
+} from "lucide-react";
+import { useContractPerformance } from "@/hooks/admin/use-contract-performance";
 
 interface ContractPerformanceProps {
   contractId?: string;
   merchantId?: string;
 }
 
-export function ContractPerformance({ contractId, merchantId }: ContractPerformanceProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState<'MONTHLY' | 'QUARTERLY' | 'YEARLY'>(
-    'MONTHLY'
-  );
+export function ContractPerformance({
+  contractId,
+  merchantId,
+}: ContractPerformanceProps) {
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    "MONTHLY" | "QUARTERLY" | "YEARLY"
+  >("MONTHLY");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const {
@@ -77,7 +86,7 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
     year: selectedYear,
   });
 
-  const handlePeriodChange = (period: 'MONTHLY' | 'QUARTERLY' | 'YEARLY') => {
+  const handlePeriodChange = (period: "MONTHLY" | "QUARTERLY" | "YEARLY") => {
     setSelectedPeriod(period);
     changePeriod(period);
   };
@@ -90,7 +99,10 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
 
   const averageMetrics = calculateAverageMetrics();
 
-  const getPerformanceBadge = (value: number, threshold: { good: number; excellent: number }) => {
+  const getPerformanceBadge = (
+    value: number,
+    threshold: { good: number; excellent: number },
+  ) => {
     if (value >= threshold.excellent) {
       return (
         <Badge variant="default" className="bg-green-100 text-green-800">
@@ -160,12 +172,18 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
             </SelectContent>
           </Select>
 
-          <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
+          <Select
+            value={selectedYear.toString()}
+            onValueChange={handleYearChange}
+          >
             <SelectTrigger className="w-24">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+              {Array.from(
+                { length: 5 },
+                (_, i) => new Date().getFullYear() - i,
+              ).map((year) => (
                 <SelectItem key={year} value={year.toString()}>
                   {year}
                 </SelectItem>
@@ -183,9 +201,15 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
             <DropdownMenuContent>
               <DropdownMenuLabel>Format d'export</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => generateReport('PDF')}>PDF</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => generateReport('EXCEL')}>Excel</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => generateReport('CSV')}>CSV</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => generateReport("PDF")}>
+                PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => generateReport("EXCEL")}>
+                Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => generateReport("CSV")}>
+                CSV
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -206,7 +230,9 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Chiffre d'affaires</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Chiffre d'affaires
+              </CardTitle>
               <Euro className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -251,7 +277,9 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Satisfaction client</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Satisfaction client
+              </CardTitle>
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -260,7 +288,10 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               </div>
               <div className="flex items-center gap-2">
-                <Progress value={averageMetrics.averageSatisfaction * 20} className="flex-1" />
+                <Progress
+                  value={averageMetrics.averageSatisfaction * 20}
+                  className="flex-1"
+                />
                 {getPerformanceBadge(averageMetrics.averageSatisfaction, {
                   good: 3.5,
                   excellent: 4.5,
@@ -276,12 +307,12 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
         <CardHeader>
           <CardTitle>Détail des performances</CardTitle>
           <CardDescription>
-            Performance détaillée par{' '}
-            {selectedPeriod === 'MONTHLY'
-              ? 'mois'
-              : selectedPeriod === 'QUARTERLY'
-                ? 'trimestre'
-                : 'année'}
+            Performance détaillée par{" "}
+            {selectedPeriod === "MONTHLY"
+              ? "mois"
+              : selectedPeriod === "QUARTERLY"
+                ? "trimestre"
+                : "année"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -300,16 +331,18 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
               </TableRow>
             </TableHeader>
             <TableBody>
-              {performance.map(item => (
+              {performance.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <div className="font-medium">
-                          {selectedPeriod === 'MONTHLY' && `${item.month}/${item.year}`}
-                          {selectedPeriod === 'QUARTERLY' && `T${item.quarter} ${item.year}`}
-                          {selectedPeriod === 'YEARLY' && item.year}
+                          {selectedPeriod === "MONTHLY" &&
+                            `${item.month}/${item.year}`}
+                          {selectedPeriod === "QUARTERLY" &&
+                            `T${item.quarter} ${item.year}`}
+                          {selectedPeriod === "YEARLY" && item.year}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {item.period.toLowerCase()}
@@ -326,21 +359,29 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="font-medium">{formatCurrency(item.totalRevenue)}</div>
+                    <div className="font-medium">
+                      {formatCurrency(item.totalRevenue)}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="font-medium">{formatCurrency(item.totalCommissions)}</div>
+                    <div className="font-medium">
+                      {formatCurrency(item.totalCommissions)}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="font-medium">{item.totalOrders.toLocaleString()}</div>
+                    <div className="font-medium">
+                      {item.totalOrders.toLocaleString()}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="font-medium">{formatCurrency(item.averageOrderValue)}</div>
+                    <div className="font-medium">
+                      {formatCurrency(item.averageOrderValue)}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <span className="font-medium">
-                        {item.customerSatisfaction?.toFixed(1) || 'N/A'}
+                        {item.customerSatisfaction?.toFixed(1) || "N/A"}
                       </span>
                       {item.customerSatisfaction && (
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
@@ -349,7 +390,10 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Progress value={item.deliverySuccessRate * 100} className="w-16 h-2" />
+                      <Progress
+                        value={item.deliverySuccessRate * 100}
+                        className="w-16 h-2"
+                      />
                       <span className="text-xs font-medium">
                         {formatPercentage(item.deliverySuccessRate)}
                       </span>
@@ -414,12 +458,18 @@ export function ContractPerformance({ contractId, merchantId }: ContractPerforma
                       #{index + 1}
                     </div>
                     <div>
-                      <div className="font-medium">{performer.contractTitle}</div>
-                      <div className="text-sm text-muted-foreground">{performer.merchantName}</div>
+                      <div className="font-medium">
+                        {performer.contractTitle}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {performer.merchantName}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-medium">{formatCurrency(performer.totalRevenue)}</div>
+                    <div className="font-medium">
+                      {formatCurrency(performer.totalRevenue)}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       {performer.totalOrders} commandes
                     </div>

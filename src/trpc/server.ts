@@ -1,10 +1,10 @@
-import { appRouter } from '@/server/api/root';
-import { createTRPCContext } from '@/server/api/trpc';
-import { headers } from 'next/headers';
-import type { AppRouter } from '@/server/api/root';
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
-import { cookieToString } from 'next/dist/server/web/spec-extension/cookies';
-import superjson from 'superjson';
+import { appRouter } from "@/server/api/root";
+import { createTRPCContext } from "@/server/api/trpc";
+import { headers } from "next/headers";
+import type { AppRouter } from "@/server/api/root";
+import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
+import { cookieToString } from "next/dist/server/web/spec-extension/cookies";
+import superjson from "superjson";
 
 // Create a server-side caller for the tRPC API
 export const createCaller = async () => {
@@ -18,30 +18,34 @@ export const createCaller = async () => {
     return appRouter.createCaller(contextWithRequest);
   } catch {
     // Fallback when headers aren't available
-    console.warn('Creating tRPC caller without headers - some features may not work');
+    console.warn(
+      "Creating tRPC caller without headers - some features may not work",
+    );
     const contextWithoutRequest = await createTRPCContext();
     return appRouter.createCaller(contextWithoutRequest);
   }
 };
 
-export type { AppRouter } from '@/server/api/root';
+export type { AppRouter } from "@/server/api/root";
 
 /**
  * Créer un client tRPC pour faire des appels API depuis le serveur
  */
-export function api(cookieStore?: ReturnType<(typeof headers)['getAll'] | any>) {
+export function api(
+  cookieStore?: ReturnType<(typeof headers)["getAll"] | any>,
+) {
   return createTRPCProxyClient<AppRouter>({
     transformer: superjson,
     links: [
       httpBatchLink({
-        url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/trpc`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/trpc`,
         headers() {
           const headersList = new Map();
           // Ajouter les cookies à la requête pour maintenir la session
           if (cookieStore) {
             const stringifiedCookies = cookieToString(cookieStore);
             if (stringifiedCookies) {
-              headersList.set('cookie', stringifiedCookies);
+              headersList.set("cookie", stringifiedCookies);
             }
           }
           return Object.fromEntries(headersList);
@@ -57,20 +61,20 @@ export function api(cookieStore?: ReturnType<(typeof headers)['getAll'] | any>) 
 export function createServerComponentClient({
   cookies,
 }: {
-  cookies: ReturnType<(typeof headers)['getAll'] | any>;
+  cookies: ReturnType<(typeof headers)["getAll"] | any>;
 }) {
   return createTRPCProxyClient<AppRouter>({
     transformer: superjson,
     links: [
       httpBatchLink({
-        url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/trpc`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/trpc`,
         headers() {
           const headersList = new Map();
           // Ajouter les cookies à la requête pour maintenir la session
           if (cookies) {
             const stringifiedCookies = cookieToString(cookies);
             if (stringifiedCookies) {
-              headersList.set('cookie', stringifiedCookies);
+              headersList.set("cookie", stringifiedCookies);
             }
           }
           return Object.fromEntries(headersList);

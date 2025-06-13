@@ -1,5 +1,5 @@
-import { UserRole, UserStatus } from '@prisma/client';
-import { BarChart, PieChart, MapPin } from 'lucide-react';
+import { UserRole, UserStatus } from "@prisma/client";
+import { BarChart, PieChart, MapPin } from "lucide-react";
 import {
   Bar,
   BarChart as RechartsBarChart,
@@ -12,11 +12,17 @@ import {
   PieChart as RechartsPieChart,
   Cell,
   Legend,
-} from 'recharts';
+} from "recharts";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserStatsData } from '@/types/actors/admin';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserStatsData } from "@/types/actors/admin";
 
 interface UserStatsProps {
   data: UserStatsData;
@@ -25,39 +31,49 @@ interface UserStatsProps {
 export function UserStats({ data }: UserStatsProps) {
   // Couleurs pour les graphiques
   const COLORS = {
-    CLIENT: '#3b82f6', // bleu
-    DELIVERER: '#22c55e', // vert
-    MERCHANT: '#f97316', // orange
-    PROVIDER: '#0ea5e9', // bleu ciel
-    ADMIN: '#a855f7', // violet
+    CLIENT: "#3b82f6", // bleu
+    DELIVERER: "#22c55e", // vert
+    MERCHANT: "#f97316", // orange
+    PROVIDER: "#0ea5e9", // bleu ciel
+    ADMIN: "#a855f7", // violet
 
-    ACTIVE: '#22c55e', // vert
-    INACTIVE: '#94a3b8', // gris
-    SUSPENDED: '#ef4444', // rouge
-    PENDING_VERIFICATION: '#f59e0b', // ambre
+    ACTIVE: "#22c55e", // vert
+    INACTIVE: "#94a3b8", // gris
+    SUSPENDED: "#ef4444", // rouge
+    PENDING_VERIFICATION: "#f59e0b", // ambre
 
-    verified: '#10b981', // vert émeraude
-    unverified: '#f59e0b', // ambre
+    verified: "#10b981", // vert émeraude
+    unverified: "#f59e0b", // ambre
   };
 
   // Données pour le graphique des rôles
   const roleData = Object.entries(data.usersByRole).map(([role, count]) => ({
     name: role,
     value: count,
-    color: COLORS[role as UserRole] || '#94a3b8',
+    color: COLORS[role as UserRole] || "#94a3b8",
   }));
 
   // Données pour le graphique des statuts
-  const statusData = Object.entries(data.usersByStatus).map(([status, count]) => ({
-    name: status,
-    value: count,
-    color: COLORS[status as UserStatus] || '#94a3b8',
-  }));
+  const statusData = Object.entries(data.usersByStatus).map(
+    ([status, count]) => ({
+      name: status,
+      value: count,
+      color: COLORS[status as UserStatus] || "#94a3b8",
+    }),
+  );
 
   // Données pour le graphique de vérification
   const verificationData = [
-    { name: 'Vérifiés', value: data.usersByVerification.verified, color: COLORS.verified },
-    { name: 'Non vérifiés', value: data.usersByVerification.unverified, color: COLORS.unverified },
+    {
+      name: "Vérifiés",
+      value: data.usersByVerification.verified,
+      color: COLORS.verified,
+    },
+    {
+      name: "Non vérifiés",
+      value: data.usersByVerification.unverified,
+      color: COLORS.unverified,
+    },
   ];
 
   // Données pour le graphique des inscriptions dans le temps
@@ -125,15 +141,22 @@ export function UserStats({ data }: UserStatsProps) {
                         outerRadius={80}
                         paddingAngle={2}
                         dataKey="value"
-                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        label={({ name, percent }) =>
+                          `${name} (${(percent * 100).toFixed(0)}%)`
+                        }
                         labelLine={false}
                       >
                         {roleData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={value => [`${value} utilisateurs`, 'Nombre']} />
-                      <Legend formatter={value => translateRole(value)} />
+                      <Tooltip
+                        formatter={(value) => [
+                          `${value} utilisateurs`,
+                          "Nombre",
+                        ]}
+                      />
+                      <Legend formatter={(value) => translateRole(value)} />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                 </div>
@@ -143,7 +166,9 @@ export function UserStats({ data }: UserStatsProps) {
             {/* Répartition par statut */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-md">Répartition par statut</CardTitle>
+                <CardTitle className="text-md">
+                  Répartition par statut
+                </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="h-64">
@@ -166,8 +191,13 @@ export function UserStats({ data }: UserStatsProps) {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={value => [`${value} utilisateurs`, 'Nombre']} />
-                      <Legend formatter={value => translateStatus(value)} />
+                      <Tooltip
+                        formatter={(value) => [
+                          `${value} utilisateurs`,
+                          "Nombre",
+                        ]}
+                      />
+                      <Legend formatter={(value) => translateStatus(value)} />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                 </div>
@@ -177,7 +207,9 @@ export function UserStats({ data }: UserStatsProps) {
             {/* Répartition par vérification */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-md">Statut de vérification</CardTitle>
+                <CardTitle className="text-md">
+                  Statut de vérification
+                </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="h-64">
@@ -191,14 +223,21 @@ export function UserStats({ data }: UserStatsProps) {
                         outerRadius={80}
                         paddingAngle={2}
                         dataKey="value"
-                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        label={({ name, percent }) =>
+                          `${name} (${(percent * 100).toFixed(0)}%)`
+                        }
                         labelLine={false}
                       >
                         {verificationData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={value => [`${value} utilisateurs`, 'Nombre']} />
+                      <Tooltip
+                        formatter={(value) => [
+                          `${value} utilisateurs`,
+                          "Nombre",
+                        ]}
+                      />
                       <Legend />
                     </RechartsPieChart>
                   </ResponsiveContainer>
@@ -213,7 +252,9 @@ export function UserStats({ data }: UserStatsProps) {
           <Card>
             <CardHeader>
               <CardTitle>Inscriptions mensuelles</CardTitle>
-              <CardDescription>Tendance des inscriptions dans le temps</CardDescription>
+              <CardDescription>
+                Tendance des inscriptions dans le temps
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
@@ -233,17 +274,20 @@ export function UserStats({ data }: UserStatsProps) {
                       angle={-45}
                       textAnchor="end"
                       tick={{ fontSize: 12 }}
-                      tickFormatter={date => {
+                      tickFormatter={(date) => {
                         const d = new Date(date);
-                        return `${d.toLocaleString('fr-FR', { month: 'short' })} ${d.getFullYear()}`;
+                        return `${d.toLocaleString("fr-FR", { month: "short" })} ${d.getFullYear()}`;
                       }}
                     />
                     <YAxis />
                     <Tooltip
-                      formatter={value => [`${value} utilisateurs`, 'Inscriptions']}
-                      labelFormatter={date => {
+                      formatter={(value) => [
+                        `${value} utilisateurs`,
+                        "Inscriptions",
+                      ]}
+                      labelFormatter={(date) => {
                         const d = new Date(date);
-                        return `${d.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })}`;
+                        return `${d.toLocaleString("fr-FR", { month: "long", year: "numeric" })}`;
                       }}
                     />
                     <Bar dataKey="count" fill="#3b82f6" name="Inscriptions" />
@@ -259,7 +303,9 @@ export function UserStats({ data }: UserStatsProps) {
           <Card>
             <CardHeader>
               <CardTitle>Principaux pays</CardTitle>
-              <CardDescription>Répartition des utilisateurs par pays</CardDescription>
+              <CardDescription>
+                Répartition des utilisateurs par pays
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
@@ -276,8 +322,15 @@ export function UserStats({ data }: UserStatsProps) {
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
-                    <YAxis dataKey="country" type="category" tick={{ fontSize: 12 }} width={100} />
-                    <Tooltip formatter={value => [`${value} utilisateurs`, 'Nombre']} />
+                    <YAxis
+                      dataKey="country"
+                      type="category"
+                      tick={{ fontSize: 12 }}
+                      width={100}
+                    />
+                    <Tooltip
+                      formatter={(value) => [`${value} utilisateurs`, "Nombre"]}
+                    />
                     <Bar dataKey="count" fill="#10b981" name="Utilisateurs" />
                   </RechartsBarChart>
                 </ResponsiveContainer>
@@ -303,7 +356,9 @@ function StatCard({
   return (
     <Card>
       <CardContent className="p-6">
-        <div className="text-2xl font-bold">{value.toLocaleString('fr-FR')}</div>
+        <div className="text-2xl font-bold">
+          {value.toLocaleString("fr-FR")}
+        </div>
         <div className="text-sm font-medium mt-1">{title}</div>
         <div className="text-xs text-muted-foreground mt-1">{description}</div>
       </CardContent>
@@ -314,11 +369,11 @@ function StatCard({
 // Fonction pour traduire les rôles
 function translateRole(role: string): string {
   const translations: Record<string, string> = {
-    CLIENT: 'Clients',
-    DELIVERER: 'Livreurs',
-    MERCHANT: 'Marchands',
-    PROVIDER: 'Prestataires',
-    ADMIN: 'Administrateurs',
+    CLIENT: "Clients",
+    DELIVERER: "Livreurs",
+    MERCHANT: "Marchands",
+    PROVIDER: "Prestataires",
+    ADMIN: "Administrateurs",
   };
   return translations[role] || role;
 }
@@ -326,10 +381,10 @@ function translateRole(role: string): string {
 // Fonction pour traduire les statuts
 function translateStatus(status: string): string {
   const translations: Record<string, string> = {
-    ACTIVE: 'Actifs',
-    INACTIVE: 'Inactifs',
-    SUSPENDED: 'Suspendus',
-    PENDING_VERIFICATION: 'En attente',
+    ACTIVE: "Actifs",
+    INACTIVE: "Inactifs",
+    SUSPENDED: "Suspendus",
+    PENDING_VERIFICATION: "En attente",
   };
   return translations[status] || status;
 }

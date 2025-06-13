@@ -4,8 +4,8 @@
  */
 
 // Exports des fichiers locaux
-export * from './auth';
-export * from './base';
-export * from './preferences';
-export * from './roles';
-export * from './verification';
+export * from "./auth";
+export * from "./base";
+export * from "./preferences";
+export * from "./roles";
+export * from "./verification";

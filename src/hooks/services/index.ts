@@ -4,4 +4,4 @@
  */
 
 // Exports des fichiers locaux
-export * from './use-search-services';
+export * from "./use-search-services";

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils/common';
-import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { cn } from "@/lib/utils/common";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export interface BreadcrumbItem {
   label: string;
@@ -28,7 +28,7 @@ export function PageTitle({
   iconComponent,
 }: PageTitleProps) {
   return (
-    <div className={cn('pb-4', className)}>
+    <div className={cn("pb-4", className)}>
       {/* Fil d'Ariane */}
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="flex items-center text-sm text-muted-foreground mb-2 overflow-x-auto">
@@ -36,7 +36,10 @@ export function PageTitle({
             <div key={index} className="flex items-center">
               {index > 0 && <ChevronRight className="h-3 w-3 mx-1" />}
               {item.href ? (
-                <Link href={item.href} className="hover:text-foreground hover:underline">
+                <Link
+                  href={item.href}
+                  className="hover:text-foreground hover:underline"
+                >
                   {item.label}
                 </Link>
               ) : (
@@ -53,7 +56,11 @@ export function PageTitle({
           {iconComponent}
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-            {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+            {description && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {description}
+              </p>
+            )}
           </div>
         </div>
 

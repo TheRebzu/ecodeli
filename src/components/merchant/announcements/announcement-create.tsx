@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslations } from 'next-intl';
-import { z } from 'zod';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
+import { z } from "zod";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -21,45 +21,51 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { TimePicker } from '@/components/ui/time-picker';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils/common';
-import { CalendarIcon, Package, RefreshCw, Save } from 'lucide-react';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TimePicker } from "@/components/ui/time-picker";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils/common";
+import { CalendarIcon, Package, RefreshCw, Save } from "lucide-react";
 
 // Define the form schema
 const formSchema = z.object({
-  title: z.string().min(5, 'Le titre doit contenir au moins 5 caractères'),
-  description: z.string().min(20, 'La description doit contenir au moins 20 caractères'),
+  title: z.string().min(5, "Le titre doit contenir au moins 5 caractères"),
+  description: z
+    .string()
+    .min(20, "La description doit contenir au moins 20 caractères"),
   type: z.string(),
   category: z.string(),
   weight: z.number().min(0.1).optional(),
   volume: z.number().min(0.1).optional(),
   quantity: z.number().int().positive(),
   pickupAddress: z.string().min(5, "L'adresse de collecte est requise"),
-  pickupCity: z.string().min(2, 'La ville de collecte est requise'),
-  pickupPostal: z.string().min(5, 'Le code postal de collecte est requis'),
+  pickupCity: z.string().min(2, "La ville de collecte est requise"),
+  pickupPostal: z.string().min(5, "Le code postal de collecte est requis"),
   pickupDateStart: z.date().optional(),
   pickupDateEnd: z.date().optional(),
   pickupTimeStart: z.string().optional(),
   pickupTimeEnd: z.string().optional(),
   deliveryAddress: z.string().min(5, "L'adresse de livraison est requise"),
-  deliveryCity: z.string().min(2, 'La ville de livraison est requise'),
-  deliveryPostal: z.string().min(5, 'Le code postal de livraison est requis'),
+  deliveryCity: z.string().min(2, "La ville de livraison est requise"),
+  deliveryPostal: z.string().min(5, "Le code postal de livraison est requis"),
   deliveryDateStart: z.date().optional(),
   deliveryDateEnd: z.date().optional(),
   deliveryTimeStart: z.string().optional(),
@@ -83,28 +89,28 @@ export function AnnouncementForm({
   isSubmitting = false,
   onSubmit,
 }: AnnouncementFormProps) {
-  const t = useTranslations('announcements.form');
+  const t = useTranslations("announcements.form");
 
   const form = useForm<AnnouncementFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      description: '',
-      type: 'STANDARD',
-      category: '',
+      title: "",
+      description: "",
+      type: "STANDARD",
+      category: "",
       weight: undefined,
       volume: undefined,
       quantity: 1,
-      pickupAddress: '',
-      pickupCity: '',
-      pickupPostal: '',
+      pickupAddress: "",
+      pickupCity: "",
+      pickupPostal: "",
       pickupDateStart: undefined,
       pickupDateEnd: undefined,
       pickupTimeStart: undefined,
       pickupTimeEnd: undefined,
-      deliveryAddress: '',
-      deliveryCity: '',
-      deliveryPostal: '',
+      deliveryAddress: "",
+      deliveryCity: "",
+      deliveryPostal: "",
       deliveryDateStart: undefined,
       deliveryDateEnd: undefined,
       deliveryTimeStart: undefined,
@@ -122,8 +128,8 @@ export function AnnouncementForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>{t('basicInfo')}</CardTitle>
-            <CardDescription>{t('basicInfoDescription')}</CardDescription>
+            <CardTitle>{t("basicInfo")}</CardTitle>
+            <CardDescription>{t("basicInfoDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -131,11 +137,11 @@ export function AnnouncementForm({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('title')}</FormLabel>
+                  <FormLabel>{t("title")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('titlePlaceholder')} {...field} />
+                    <Input placeholder={t("titlePlaceholder")} {...field} />
                   </FormControl>
-                  <FormDescription>{t('titleDescription')}</FormDescription>
+                  <FormDescription>{t("titleDescription")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -146,15 +152,15 @@ export function AnnouncementForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('description')}</FormLabel>
+                  <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder={t('descriptionPlaceholder')}
+                      placeholder={t("descriptionPlaceholder")}
                       className="min-h-32"
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>{t('descriptionDetails')}</FormDescription>
+                  <FormDescription>{t("descriptionDetails")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -166,18 +172,29 @@ export function AnnouncementForm({
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('type')}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel>{t("type")}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('selectType')} />
+                          <SelectValue placeholder={t("selectType")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="STANDARD">{t('types.standard')}</SelectItem>
-                        <SelectItem value="EXPRESS">{t('types.express')}</SelectItem>
-                        <SelectItem value="SAME_DAY">{t('types.sameDay')}</SelectItem>
-                        <SelectItem value="SCHEDULED">{t('types.scheduled')}</SelectItem>
+                        <SelectItem value="STANDARD">
+                          {t("types.standard")}
+                        </SelectItem>
+                        <SelectItem value="EXPRESS">
+                          {t("types.express")}
+                        </SelectItem>
+                        <SelectItem value="SAME_DAY">
+                          {t("types.sameDay")}
+                        </SelectItem>
+                        <SelectItem value="SCHEDULED">
+                          {t("types.scheduled")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -190,19 +207,32 @@ export function AnnouncementForm({
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('category')}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel>{t("category")}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('selectCategory')} />
+                          <SelectValue placeholder={t("selectCategory")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="PACKAGE">{t('categories.package')}</SelectItem>
-                        <SelectItem value="FOOD">{t('categories.food')}</SelectItem>
-                        <SelectItem value="DOCUMENTS">{t('categories.documents')}</SelectItem>
-                        <SelectItem value="FURNITURE">{t('categories.furniture')}</SelectItem>
-                        <SelectItem value="OTHER">{t('categories.other')}</SelectItem>
+                        <SelectItem value="PACKAGE">
+                          {t("categories.package")}
+                        </SelectItem>
+                        <SelectItem value="FOOD">
+                          {t("categories.food")}
+                        </SelectItem>
+                        <SelectItem value="DOCUMENTS">
+                          {t("categories.documents")}
+                        </SelectItem>
+                        <SelectItem value="FURNITURE">
+                          {t("categories.furniture")}
+                        </SelectItem>
+                        <SelectItem value="OTHER">
+                          {t("categories.other")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -215,8 +245,8 @@ export function AnnouncementForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('packageDetails')}</CardTitle>
-            <CardDescription>{t('packageDetailsDescription')}</CardDescription>
+            <CardTitle>{t("packageDetails")}</CardTitle>
+            <CardDescription>{t("packageDetailsDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -225,17 +255,17 @@ export function AnnouncementForm({
                 name="weight"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('weight')}</FormLabel>
+                    <FormLabel>{t("weight")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.1"
                         placeholder="0.0"
                         {...field}
-                        onChange={e => field.onChange(e.target.valueAsNumber)}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
                     </FormControl>
-                    <FormDescription>{t('weightUnit')}</FormDescription>
+                    <FormDescription>{t("weightUnit")}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -246,17 +276,17 @@ export function AnnouncementForm({
                 name="volume"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('volume')}</FormLabel>
+                    <FormLabel>{t("volume")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.1"
                         placeholder="0.0"
                         {...field}
-                        onChange={e => field.onChange(e.target.valueAsNumber)}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
                     </FormControl>
-                    <FormDescription>{t('volumeUnit')}</FormDescription>
+                    <FormDescription>{t("volumeUnit")}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -267,7 +297,7 @@ export function AnnouncementForm({
                 name="quantity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('quantity')}</FormLabel>
+                    <FormLabel>{t("quantity")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -275,10 +305,12 @@ export function AnnouncementForm({
                         step="1"
                         placeholder="1"
                         {...field}
-                        onChange={e => field.onChange(e.target.valueAsNumber)}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
                     </FormControl>
-                    <FormDescription>{t('quantityDescription')}</FormDescription>
+                    <FormDescription>
+                      {t("quantityDescription")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -292,11 +324,16 @@ export function AnnouncementForm({
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>{t('fragile')}</FormLabel>
-                      <FormDescription>{t('fragileDescription')}</FormDescription>
+                      <FormLabel>{t("fragile")}</FormLabel>
+                      <FormDescription>
+                        {t("fragileDescription")}
+                      </FormDescription>
                     </div>
                   </FormItem>
                 )}
@@ -308,11 +345,16 @@ export function AnnouncementForm({
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>{t('requiresSignature')}</FormLabel>
-                      <FormDescription>{t('requiresSignatureDescription')}</FormDescription>
+                      <FormLabel>{t("requiresSignature")}</FormLabel>
+                      <FormDescription>
+                        {t("requiresSignatureDescription")}
+                      </FormDescription>
                     </div>
                   </FormItem>
                 )}
@@ -324,11 +366,16 @@ export function AnnouncementForm({
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>{t('requiresId')}</FormLabel>
-                      <FormDescription>{t('requiresIdDescription')}</FormDescription>
+                      <FormLabel>{t("requiresId")}</FormLabel>
+                      <FormDescription>
+                        {t("requiresIdDescription")}
+                      </FormDescription>
                     </div>
                   </FormItem>
                 )}
@@ -339,8 +386,8 @@ export function AnnouncementForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('pickupDetails')}</CardTitle>
-            <CardDescription>{t('pickupDetailsDescription')}</CardDescription>
+            <CardTitle>{t("pickupDetails")}</CardTitle>
+            <CardDescription>{t("pickupDetailsDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -348,9 +395,9 @@ export function AnnouncementForm({
               name="pickupAddress"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('pickupAddress')}</FormLabel>
+                  <FormLabel>{t("pickupAddress")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('addressPlaceholder')} {...field} />
+                    <Input placeholder={t("addressPlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -363,9 +410,9 @@ export function AnnouncementForm({
                 name="pickupCity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('city')}</FormLabel>
+                    <FormLabel>{t("city")}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('cityPlaceholder')} {...field} />
+                      <Input placeholder={t("cityPlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -377,9 +424,12 @@ export function AnnouncementForm({
                 name="pickupPostal"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('postalCode')}</FormLabel>
+                    <FormLabel>{t("postalCode")}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('postalCodePlaceholder')} {...field} />
+                      <Input
+                        placeholder={t("postalCodePlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -393,21 +443,21 @@ export function AnnouncementForm({
                 name="pickupDateStart"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>{t('pickupDateStart')}</FormLabel>
+                    <FormLabel>{t("pickupDateStart")}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={'outline'}
+                            variant={"outline"}
                             className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
-                              format(field.value, 'PPP', { locale: fr })
+                              format(field.value, "PPP", { locale: fr })
                             ) : (
-                              <span>{t('selectDate')}</span>
+                              <span>{t("selectDate")}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -418,7 +468,7 @@ export function AnnouncementForm({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={date => date < new Date()}
+                          disabled={(date) => date < new Date()}
                           initialFocus
                         />
                       </PopoverContent>
@@ -433,9 +483,12 @@ export function AnnouncementForm({
                 name="pickupTimeStart"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('pickupTimeStart')}</FormLabel>
+                    <FormLabel>{t("pickupTimeStart")}</FormLabel>
                     <FormControl>
-                      <TimePicker value={field.value} onChange={field.onChange} />
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -449,21 +502,21 @@ export function AnnouncementForm({
                 name="pickupDateEnd"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>{t('pickupDateEnd')}</FormLabel>
+                    <FormLabel>{t("pickupDateEnd")}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={'outline'}
+                            variant={"outline"}
                             className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
-                              format(field.value, 'PPP', { locale: fr })
+                              format(field.value, "PPP", { locale: fr })
                             ) : (
-                              <span>{t('selectDate')}</span>
+                              <span>{t("selectDate")}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -474,7 +527,7 @@ export function AnnouncementForm({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={date =>
+                          disabled={(date) =>
                             date < new Date() ||
                             (form.getValues().pickupDateStart &&
                               date < form.getValues().pickupDateStart)
@@ -493,9 +546,12 @@ export function AnnouncementForm({
                 name="pickupTimeEnd"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('pickupTimeEnd')}</FormLabel>
+                    <FormLabel>{t("pickupTimeEnd")}</FormLabel>
                     <FormControl>
-                      <TimePicker value={field.value} onChange={field.onChange} />
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -507,8 +563,8 @@ export function AnnouncementForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('deliveryDetails')}</CardTitle>
-            <CardDescription>{t('deliveryDetailsDescription')}</CardDescription>
+            <CardTitle>{t("deliveryDetails")}</CardTitle>
+            <CardDescription>{t("deliveryDetailsDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -516,9 +572,9 @@ export function AnnouncementForm({
               name="deliveryAddress"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('deliveryAddress')}</FormLabel>
+                  <FormLabel>{t("deliveryAddress")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('addressPlaceholder')} {...field} />
+                    <Input placeholder={t("addressPlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -531,9 +587,9 @@ export function AnnouncementForm({
                 name="deliveryCity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('city')}</FormLabel>
+                    <FormLabel>{t("city")}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('cityPlaceholder')} {...field} />
+                      <Input placeholder={t("cityPlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -545,9 +601,12 @@ export function AnnouncementForm({
                 name="deliveryPostal"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('postalCode')}</FormLabel>
+                    <FormLabel>{t("postalCode")}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('postalCodePlaceholder')} {...field} />
+                      <Input
+                        placeholder={t("postalCodePlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -561,21 +620,21 @@ export function AnnouncementForm({
                 name="deliveryDateStart"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>{t('deliveryDateStart')}</FormLabel>
+                    <FormLabel>{t("deliveryDateStart")}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={'outline'}
+                            variant={"outline"}
                             className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
-                              format(field.value, 'PPP', { locale: fr })
+                              format(field.value, "PPP", { locale: fr })
                             ) : (
-                              <span>{t('selectDate')}</span>
+                              <span>{t("selectDate")}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -586,7 +645,7 @@ export function AnnouncementForm({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={date =>
+                          disabled={(date) =>
                             date < new Date() ||
                             (form.getValues().pickupDateStart &&
                               date < form.getValues().pickupDateStart)
@@ -605,9 +664,12 @@ export function AnnouncementForm({
                 name="deliveryTimeStart"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('deliveryTimeStart')}</FormLabel>
+                    <FormLabel>{t("deliveryTimeStart")}</FormLabel>
                     <FormControl>
-                      <TimePicker value={field.value} onChange={field.onChange} />
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -621,21 +683,21 @@ export function AnnouncementForm({
                 name="deliveryDateEnd"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>{t('deliveryDateEnd')}</FormLabel>
+                    <FormLabel>{t("deliveryDateEnd")}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={'outline'}
+                            variant={"outline"}
                             className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
-                              format(field.value, 'PPP', { locale: fr })
+                              format(field.value, "PPP", { locale: fr })
                             ) : (
-                              <span>{t('selectDate')}</span>
+                              <span>{t("selectDate")}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -646,7 +708,7 @@ export function AnnouncementForm({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={date =>
+                          disabled={(date) =>
                             date < new Date() ||
                             (form.getValues().deliveryDateStart &&
                               date < form.getValues().deliveryDateStart)
@@ -665,9 +727,12 @@ export function AnnouncementForm({
                 name="deliveryTimeEnd"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('deliveryTimeEnd')}</FormLabel>
+                    <FormLabel>{t("deliveryTimeEnd")}</FormLabel>
                     <FormControl>
-                      <TimePicker value={field.value} onChange={field.onChange} />
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -679,8 +744,8 @@ export function AnnouncementForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('pricingDetails')}</CardTitle>
-            <CardDescription>{t('pricingDetailsDescription')}</CardDescription>
+            <CardTitle>{t("pricingDetails")}</CardTitle>
+            <CardDescription>{t("pricingDetailsDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <FormField
@@ -688,17 +753,19 @@ export function AnnouncementForm({
               name="suggestedPrice"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('suggestedPrice')}</FormLabel>
+                  <FormLabel>{t("suggestedPrice")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       step="0.01"
                       placeholder="0.00"
                       {...field}
-                      onChange={e => field.onChange(e.target.valueAsNumber)}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
                     />
                   </FormControl>
-                  <FormDescription>{t('suggestedPriceDescription')}</FormDescription>
+                  <FormDescription>
+                    {t("suggestedPriceDescription")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -709,18 +776,18 @@ export function AnnouncementForm({
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" disabled={isSubmitting}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            {t('reset')}
+            {t("reset")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                {t('saving')}
+                {t("saving")}
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                {t('save')}
+                {t("save")}
               </>
             )}
           </Button>

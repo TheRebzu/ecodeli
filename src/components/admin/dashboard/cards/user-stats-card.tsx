@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { AreaChart, BarChart } from '@/components/ui/charts';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { AreaChart, BarChart } from "@/components/ui/charts";
 import {
   Users,
   UserPlus,
@@ -13,8 +19,8 @@ import {
   Shield,
   Clock,
   TrendingUp,
-} from 'lucide-react';
-import { generateChartColors } from '@/utils/document-utils';
+} from "lucide-react";
+import { generateChartColors } from "@/utils/document-utils";
 
 interface UserData {
   period: string;
@@ -62,30 +68,39 @@ export function UserStatsCard({
   newUsersThisMonth,
   userGrowth,
   retentionRate,
-  className = '',
+  className = "",
 }: UserStatsCardProps) {
   // Calculs automatiques
-  const calculatedTotalUsers = totalUsers ?? (data[data.length - 1]?.signups || 0);
-  const calculatedActiveUsers = activeUsers ?? (data[data.length - 1]?.active || 0);
+  const calculatedTotalUsers =
+    totalUsers ?? (data[data.length - 1]?.signups || 0);
+  const calculatedActiveUsers =
+    activeUsers ?? (data[data.length - 1]?.active || 0);
   const calculatedNewUsers =
-    newUsersThisMonth ?? data.slice(-30).reduce((sum, item) => sum + item.signups, 0);
+    newUsersThisMonth ??
+    data.slice(-30).reduce((sum, item) => sum + item.signups, 0);
 
   const calculatedUserGrowth =
     userGrowth ??
     (() => {
       if (data.length < 2) return 0;
-      const current = data.slice(-7).reduce((sum, item) => sum + item.signups, 0);
-      const previous = data.slice(-14, -7).reduce((sum, item) => sum + item.signups, 0);
+      const current = data
+        .slice(-7)
+        .reduce((sum, item) => sum + item.signups, 0);
+      const previous = data
+        .slice(-14, -7)
+        .reduce((sum, item) => sum + item.signups, 0);
       if (previous === 0) return 0;
       return ((current - previous) / previous) * 100;
     })();
 
   const calculatedRetentionRate =
     retentionRate ??
-    (calculatedTotalUsers > 0 ? (calculatedActiveUsers / calculatedTotalUsers) * 100 : 0);
+    (calculatedTotalUsers > 0
+      ? (calculatedActiveUsers / calculatedTotalUsers) * 100
+      : 0);
 
   // Données pour les graphiques
-  const signupChartData = data.map(item => ({
+  const signupChartData = data.map((item) => ({
     period: item.period,
     signups: item.signups,
     active: item.active,
@@ -102,9 +117,11 @@ export function UserStatsCard({
             <Users className="h-5 w-5 text-muted-foreground" />
             <CardTitle className="text-base">{title}</CardTitle>
           </div>
-          <Badge variant={calculatedUserGrowth >= 0 ? 'default' : 'destructive'}>
+          <Badge
+            variant={calculatedUserGrowth >= 0 ? "default" : "destructive"}
+          >
             <TrendingUp className="h-3 w-3 mr-1" />
-            {calculatedUserGrowth >= 0 ? '+' : ''}
+            {calculatedUserGrowth >= 0 ? "+" : ""}
             {calculatedUserGrowth.toFixed(1)}%
           </Badge>
         </div>
@@ -117,17 +134,27 @@ export function UserStatsCard({
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <UserPlus className="h-4 w-4 text-blue-500" />
-                <p className="text-sm text-muted-foreground">Utilisateurs totaux</p>
+                <p className="text-sm text-muted-foreground">
+                  Utilisateurs totaux
+                </p>
               </div>
-              <p className="text-2xl font-bold">{calculatedTotalUsers.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">+{calculatedNewUsers} ce mois</p>
+              <p className="text-2xl font-bold">
+                {calculatedTotalUsers.toLocaleString()}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                +{calculatedNewUsers} ce mois
+              </p>
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Activity className="h-4 w-4 text-green-500" />
-                <p className="text-sm text-muted-foreground">Utilisateurs actifs</p>
+                <p className="text-sm text-muted-foreground">
+                  Utilisateurs actifs
+                </p>
               </div>
-              <p className="text-xl font-semibold">{calculatedActiveUsers.toLocaleString()}</p>
+              <p className="text-xl font-semibold">
+                {calculatedActiveUsers.toLocaleString()}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {calculatedRetentionRate.toFixed(1)}% de rétention
               </p>
@@ -138,10 +165,10 @@ export function UserStatsCard({
           <div className="h-[180px]">
             <AreaChart
               data={signupChartData}
-              categories={['signups', 'active']}
+              categories={["signups", "active"]}
               index="period"
-              colors={['#3b82f6', '#22c55e']}
-              valueFormatter={value => value.toLocaleString()}
+              colors={["#3b82f6", "#22c55e"]}
+              valueFormatter={(value) => value.toLocaleString()}
               showLegend={true}
               showGridLines={false}
               startEndOnly={true}
@@ -169,10 +196,10 @@ export function UserStatsCard({
                       <div className="flex items-center gap-2">
                         <span>{role.count}</span>
                         <Badge
-                          variant={role.growth >= 0 ? 'default' : 'destructive'}
+                          variant={role.growth >= 0 ? "default" : "destructive"}
                           className="text-xs"
                         >
-                          {role.growth >= 0 ? '+' : ''}
+                          {role.growth >= 0 ? "+" : ""}
                           {role.growth.toFixed(1)}%
                         </Badge>
                       </div>
@@ -197,21 +224,27 @@ export function UserStatsCard({
                     <Clock className="h-3 w-3 text-yellow-500" />
                     <p className="text-xs text-muted-foreground">En attente</p>
                   </div>
-                  <p className="text-lg font-semibold">{verificationStats.pending}</p>
+                  <p className="text-lg font-semibold">
+                    {verificationStats.pending}
+                  </p>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <UserCheck className="h-3 w-3 text-green-500" />
                     <p className="text-xs text-muted-foreground">Approuvées</p>
                   </div>
-                  <p className="text-lg font-semibold">{verificationStats.approved}</p>
+                  <p className="text-lg font-semibold">
+                    {verificationStats.approved}
+                  </p>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <UserX className="h-3 w-3 text-red-500" />
                     <p className="text-xs text-muted-foreground">Rejetées</p>
                   </div>
-                  <p className="text-lg font-semibold">{verificationStats.rejected}</p>
+                  <p className="text-lg font-semibold">
+                    {verificationStats.rejected}
+                  </p>
                 </div>
               </div>
 
@@ -221,7 +254,11 @@ export function UserStatsCard({
                   <span>Taux d'approbation</span>
                   <span className="font-medium">
                     {verificationStats.total > 0
-                      ? ((verificationStats.approved / verificationStats.total) * 100).toFixed(1)
+                      ? (
+                          (verificationStats.approved /
+                            verificationStats.total) *
+                          100
+                        ).toFixed(1)
                       : 0}
                     %
                   </span>
@@ -229,7 +266,8 @@ export function UserStatsCard({
                 <Progress
                   value={
                     verificationStats.total > 0
-                      ? (verificationStats.approved / verificationStats.total) * 100
+                      ? (verificationStats.approved / verificationStats.total) *
+                        100
                       : 0
                   }
                   className="h-2"
@@ -244,10 +282,10 @@ export function UserStatsCard({
               <p className="text-sm text-muted-foreground">Croissance</p>
               <p
                 className={`text-lg font-semibold ${
-                  calculatedUserGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                  calculatedUserGrowth >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
-                {calculatedUserGrowth >= 0 ? '+' : ''}
+                {calculatedUserGrowth >= 0 ? "+" : ""}
                 {calculatedUserGrowth.toFixed(1)}%
               </p>
             </div>
@@ -256,10 +294,10 @@ export function UserStatsCard({
               <p
                 className={`text-lg font-semibold ${
                   calculatedRetentionRate >= 70
-                    ? 'text-green-600'
+                    ? "text-green-600"
                     : calculatedRetentionRate >= 50
-                      ? 'text-yellow-600'
-                      : 'text-red-600'
+                      ? "text-yellow-600"
+                      : "text-red-600"
                 }`}
               >
                 {calculatedRetentionRate.toFixed(1)}%

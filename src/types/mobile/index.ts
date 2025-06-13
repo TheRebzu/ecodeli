@@ -4,6 +4,6 @@
  */
 
 // Exports des fichiers locaux
-export * from './android';
-export * from './mobile-tracking';
-export * from './nfc-validation';
+export * from "./android";
+export * from "./mobile-tracking";
+export * from "./nfc-validation";

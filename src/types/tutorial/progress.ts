@@ -11,7 +11,11 @@ export interface TutorialProgress {
   status: TutorialStatus;
 }
 
-export type TutorialStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
+export type TutorialStatus =
+  | "NOT_STARTED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "SKIPPED";
 
 export interface ProgressStats {
   percentage: number;
@@ -26,5 +30,5 @@ export interface UserTutorialHistory {
   inProgressTutorials: string[];
   skippedTutorials: string[];
   totalTimeSpent: number;
-  preferredLearningStyle?: 'VISUAL' | 'TEXTUAL' | 'INTERACTIVE';
+  preferredLearningStyle?: "VISUAL" | "TEXTUAL" | "INTERACTIVE";
 }

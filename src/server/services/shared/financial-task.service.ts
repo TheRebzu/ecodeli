@@ -1,12 +1,16 @@
-import { PrismaClient, FinancialTaskPriority, FinancialTaskCategory } from '@prisma/client';
-import { TRPCError } from '@trpc/server';
+import {
+  PrismaClient,
+  FinancialTaskPriority,
+  FinancialTaskCategory,
+} from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 import {
   CreateFinancialTaskInput,
   UpdateFinancialTaskInput,
   FinancialTaskFilters,
   FinancialTaskSortOptions,
-} from '@/server/services/shared/financial-task.service';
-import { db } from '@/server/db';
+} from "@/server/services/shared/financial-task.service";
+import { db } from "@/server/db";
 
 export class FinancialTaskService {
   private prisma: PrismaClient;
@@ -27,10 +31,13 @@ export class FinancialTaskService {
         },
       });
     } catch (error) {
-      console.error('Erreur lors de la création de la tâche financière:', error);
+      console.error(
+        "Erreur lors de la création de la tâche financière:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Impossible de créer la tâche financière',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Impossible de créer la tâche financière",
       });
     }
   }
@@ -46,15 +53,15 @@ export class FinancialTaskService {
 
       if (!task) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Tâche financière non trouvée',
+          code: "NOT_FOUND",
+          message: "Tâche financière non trouvée",
         });
       }
 
       // Vérifier si l'utilisateur est autorisé à accéder à cette tâche
       if (userId && task.userId !== userId) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à accéder à cette tâche",
         });
       }
@@ -63,10 +70,13 @@ export class FinancialTaskService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Erreur lors de la récupération de la tâche financière:', error);
+      console.error(
+        "Erreur lors de la récupération de la tâche financière:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Impossible de récupérer la tâche financière',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Impossible de récupérer la tâche financière",
       });
     }
   }
@@ -79,7 +89,7 @@ export class FinancialTaskService {
     page = 1,
     limit = 10,
     filters: FinancialTaskFilters = {},
-    sort: FinancialTaskSortOptions = { field: 'createdAt', direction: 'desc' }
+    sort: FinancialTaskSortOptions = { field: "createdAt", direction: "desc" },
   ) {
     try {
       const skip = (page - 1) * limit;
@@ -91,8 +101,8 @@ export class FinancialTaskService {
 
       if (filters.search) {
         where.OR = [
-          { title: { contains: filters.search, mode: 'insensitive' } },
-          { description: { contains: filters.search, mode: 'insensitive' } },
+          { title: { contains: filters.search, mode: "insensitive" } },
+          { description: { contains: filters.search, mode: "insensitive" } },
         ];
       }
 
@@ -144,10 +154,13 @@ export class FinancialTaskService {
         totalPages: Math.ceil(totalTasks / limit),
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des tâches financières:', error);
+      console.error(
+        "Erreur lors de la récupération des tâches financières:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Impossible de récupérer les tâches financières',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Impossible de récupérer les tâches financières",
       });
     }
   }
@@ -179,10 +192,13 @@ export class FinancialTaskService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Erreur lors de la mise à jour de la tâche financière:', error);
+      console.error(
+        "Erreur lors de la mise à jour de la tâche financière:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Impossible de mettre à jour la tâche financière',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Impossible de mettre à jour la tâche financière",
       });
     }
   }
@@ -190,7 +206,11 @@ export class FinancialTaskService {
   /**
    * Change le statut (terminé/non terminé) d'une tâche
    */
-  async toggleFinancialTaskStatus(id: string, completed: boolean, userId: string) {
+  async toggleFinancialTaskStatus(
+    id: string,
+    completed: boolean,
+    userId: string,
+  ) {
     try {
       // Vérifier si la tâche existe et appartient à l'utilisateur
       await this.getFinancialTaskById(id, userId);
@@ -206,10 +226,13 @@ export class FinancialTaskService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Erreur lors du changement de statut de la tâche financière:', error);
+      console.error(
+        "Erreur lors du changement de statut de la tâche financière:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Impossible de changer le statut de la tâche financière',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Impossible de changer le statut de la tâche financière",
       });
     }
   }
@@ -231,10 +254,13 @@ export class FinancialTaskService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Erreur lors de la suppression de la tâche financière:', error);
+      console.error(
+        "Erreur lors de la suppression de la tâche financière:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Impossible de supprimer la tâche financière',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Impossible de supprimer la tâche financière",
       });
     }
   }
@@ -256,14 +282,14 @@ export class FinancialTaskService {
 
       // Nombre de tâches par priorité
       const tasksByPriority = await this.db.financialTask.groupBy({
-        by: ['priority'],
+        by: ["priority"],
         where: { userId },
         _count: true,
       });
 
       // Nombre de tâches par catégorie
       const tasksByCategory = await this.db.financialTask.groupBy({
-        by: ['category'],
+        by: ["category"],
         where: { userId },
         _count: true,
       });
@@ -293,32 +319,40 @@ export class FinancialTaskService {
       });
 
       // Formater les statistiques par priorité
-      const priorityStats = Object.values(FinancialTaskPriority).map(priority => {
-        const count = tasksByPriority.find(t => t.priority === priority)?._count || 0;
-        return { priority, count };
-      });
+      const priorityStats = Object.values(FinancialTaskPriority).map(
+        (priority) => {
+          const count =
+            tasksByPriority.find((t) => t.priority === priority)?._count || 0;
+          return { priority, count };
+        },
+      );
 
       // Formater les statistiques par catégorie
-      const categoryStats = Object.values(FinancialTaskCategory).map(category => {
-        const count = tasksByCategory.find(t => t.category === category)?._count || 0;
-        return { category, count };
-      });
+      const categoryStats = Object.values(FinancialTaskCategory).map(
+        (category) => {
+          const count =
+            tasksByCategory.find((t) => t.category === category)?._count || 0;
+          return { category, count };
+        },
+      );
 
       return {
         totalTasks,
         completedTasks,
         incompleteTasks: totalTasks - completedTasks,
-        completionRate: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0,
+        completionRate:
+          totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0,
         overdueTasks,
         upcomingTasks,
         priorityStats,
         categoryStats,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques:', error);
+      console.error("Erreur lors de la récupération des statistiques:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Impossible de récupérer les statistiques des tâches financières',
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          "Impossible de récupérer les statistiques des tâches financières",
       });
     }
   }

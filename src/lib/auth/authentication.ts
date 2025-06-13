@@ -2,7 +2,7 @@
  * Export centralisé des options d'authentification pour NextAuth
  */
 
-import { authOptions as nextAuthOptions } from '@/server/auth/next-auth';
+import { authOptions as nextAuthOptions } from "@/server/auth/next-auth";
 
 export const authOptions = nextAuthOptions;
 /**
@@ -10,12 +10,16 @@ export const authOptions = nextAuthOptions;
  * Cette fonction est conservée pour la compatibilité mais devrait être supprimée
  */
 export async function registerUser(userData: any) {
-  console.warn('registerUser est déprécié. Utilisez api.auth.register.useMutation() à la place');
+  console.warn(
+    "registerUser est déprécié. Utilisez api.auth.register.useMutation() à la place",
+  );
 
   try {
     // Cette fonction ne devrait plus être utilisée
     // Les composants doivent utiliser directement les hooks tRPC
-    throw new Error('Cette fonction est dépréciée. Utilisez tRPC directement dans vos composants.');
+    throw new Error(
+      "Cette fonction est dépréciée. Utilisez tRPC directement dans vos composants.",
+    );
   } catch (error) {
     console.error("Erreur d'enregistrement:", error);
     throw error;
@@ -25,8 +29,8 @@ export async function registerUser(userData: any) {
  * Fonctions helpers pour la vérification des droits d'accès et des rôles
  */
 
-import { UserRole } from '@prisma/client';
-import { TRPCError } from '@trpc/server';
+import { UserRole } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Vérifie si un rôle spécifique est autorisé pour une action donnée
@@ -34,9 +38,12 @@ import { TRPCError } from '@trpc/server';
  * @param allowedRoles Liste des rôles autorisés
  * @returns Vrai si le rôle est autorisé, faux sinon
  */
-export function isRoleAllowed(userRole: UserRole, allowedRoles: UserRole[]): boolean {
+export function isRoleAllowed(
+  userRole: UserRole,
+  allowedRoles: UserRole[],
+): boolean {
   // L'administrateur a toujours accès à tout
-  if (userRole === 'ADMIN') return true;
+  if (userRole === "ADMIN") return true;
 
   // Pour les autres rôles, vérifier s'ils sont dans la liste des rôles autorisés
   return allowedRoles.includes(userRole);
@@ -54,10 +61,10 @@ export async function checkPaymentAccessRights(
   db: any,
   payment: any,
   userId: string,
-  userRole: string
+  userRole: string,
 ): Promise<void> {
   // L'administrateur a toujours accès
-  if (userRole === 'ADMIN') return;
+  if (userRole === "ADMIN") return;
 
   // Le propriétaire du paiement a toujours accès
   if (payment.userId === userId) return;
@@ -83,10 +90,10 @@ export async function checkPaymentAccessRights(
   }
 
   // Pour les marchands, vérifier si le paiement est associé à leur boutique
-  if (userRole === 'MERCHANT' && payment.merchantId === userId) return;
+  if (userRole === "MERCHANT" && payment.merchantId === userId) return;
 
   // Pour les modérateurs, donner accès aux paiements de leur zone
-  if (userRole === 'MODERATOR') {
+  if (userRole === "MODERATOR") {
     const moderatorZones = await db.moderatorZone.findMany({
       where: { moderatorId: userId },
       select: { zoneId: true },
@@ -107,7 +114,7 @@ export async function checkPaymentAccessRights(
 
   // Si aucune condition n'est remplie, l'accès est refusé
   throw new TRPCError({
-    code: 'FORBIDDEN',
+    code: "FORBIDDEN",
     message: "Vous n'êtes pas autorisé à accéder à ce paiement",
   });
 }
@@ -119,9 +126,13 @@ export async function checkPaymentAccessRights(
  * @param userRole Le rôle de l'utilisateur
  * @returns Vrai si l'accès est autorisé, faux sinon
  */
-export function hasDocumentAccess(document: any, userId: string, userRole: string): boolean {
+export function hasDocumentAccess(
+  document: any,
+  userId: string,
+  userRole: string,
+): boolean {
   // L'administrateur a toujours accès
-  if (userRole === 'ADMIN') return true;
+  if (userRole === "ADMIN") return true;
 
   // Le propriétaire du document a toujours accès
   if (document.userId === userId) return true;

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,17 +8,28 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, CalendarIcon, AlertCircle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
-import { format, isToday, subMonths, startOfMonth, endOfMonth } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import useBilling from '@/hooks/payment/use-billing';
-import { cn } from '@/lib/utils/common';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  Loader2,
+  CalendarIcon,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+} from "lucide-react";
+import { format, isToday, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { fr } from "date-fns/locale";
+import useBilling from "@/hooks/payment/use-billing";
+import { cn } from "@/lib/utils/common";
 
 /**
  * Tableau de bord de facturation pour les administrateurs
@@ -60,14 +71,15 @@ export default function BillingDashboard() {
             <PopoverTrigger asChild>
               <Button variant="outline" onClick={() => setShowCalendar(true)}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                Planifier pour {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}
+                Planifier pour{" "}
+                {format(selectedDate, "dd MMMM yyyy", { locale: fr })}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={date => date && setSelectedDate(date)}
+                onSelect={(date) => date && setSelectedDate(date)}
                 initialFocus
               />
               <div className="p-3 border-t flex justify-end">
@@ -80,14 +92,16 @@ export default function BillingDashboard() {
         </div>
       </div>
 
-      <Alert variant={isToday(currentMonthStart) ? 'destructive' : 'default'}>
+      <Alert variant={isToday(currentMonthStart) ? "destructive" : "default"}>
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Période de facturation</AlertTitle>
         <AlertDescription>
-          La facturation mensuelle concerne la période: <strong>{billingPeriod}</strong>
+          La facturation mensuelle concerne la période:{" "}
+          <strong>{billingPeriod}</strong>
           {isToday(currentMonthStart) && (
             <p className="mt-1 font-semibold">
-              Nous sommes au début du mois! Il est temps de lancer la facturation mensuelle.
+              Nous sommes au début du mois! Il est temps de lancer la
+              facturation mensuelle.
             </p>
           )}
         </AlertDescription>
@@ -112,15 +126,17 @@ export default function BillingDashboard() {
                     <p className="text-sm text-muted-foreground">Cycles</p>
                     <p className="text-2xl font-bold">
                       {billingStats?.cycleStats?.COMPLETED || 0}
-                      <span className="text-sm text-muted-foreground ml-1">terminés</span>
+                      <span className="text-sm text-muted-foreground ml-1">
+                        terminés
+                      </span>
                     </p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Montant</p>
                     <p className="text-2xl font-bold">
-                      {new Intl.NumberFormat('fr-FR', {
-                        style: 'currency',
-                        currency: 'EUR',
+                      {new Intl.NumberFormat("fr-FR", {
+                        style: "currency",
+                        currency: "EUR",
                       }).format(billingStats?.totalBilled || 0)}
                     </p>
                   </div>
@@ -129,15 +145,21 @@ export default function BillingDashboard() {
                 <div className="space-y-1">
                   <div className="flex justify-between">
                     <span className="text-sm">En attente</span>
-                    <span className="font-medium">{billingStats?.cycleStats?.PENDING || 0}</span>
+                    <span className="font-medium">
+                      {billingStats?.cycleStats?.PENDING || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">En traitement</span>
-                    <span className="font-medium">{billingStats?.cycleStats?.PROCESSING || 0}</span>
+                    <span className="font-medium">
+                      {billingStats?.cycleStats?.PROCESSING || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Échoués</span>
-                    <span className="font-medium">{billingStats?.cycleStats?.FAILED || 0}</span>
+                    <span className="font-medium">
+                      {billingStats?.cycleStats?.FAILED || 0}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -147,7 +169,7 @@ export default function BillingDashboard() {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => (window.location.href = '/admin/billing/reports')}
+              onClick={() => (window.location.href = "/admin/billing/reports")}
             >
               Voir tous les rapports
             </Button>
@@ -195,13 +217,14 @@ export default function BillingDashboard() {
 
             <div className="rounded-md bg-muted p-3">
               <p className="text-sm text-muted-foreground">
-                Ces actions peuvent prendre plusieurs minutes selon le nombre d'utilisateurs.
+                Ces actions peuvent prendre plusieurs minutes selon le nombre
+                d'utilisateurs.
               </p>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
             <div className="text-xs text-muted-foreground">
-              Jour configuré: {process.env.MONTHLY_BILLING_DAY || '1'} du mois
+              Jour configuré: {process.env.MONTHLY_BILLING_DAY || "1"} du mois
             </div>
           </CardFooter>
         </Card>
@@ -235,8 +258,8 @@ export default function BillingDashboard() {
           </CardContent>
           <CardFooter>
             <div className="text-xs text-muted-foreground w-full">
-              Ces opérations sont normalement exécutées par le CRON mais peuvent être lancées
-              manuellement.
+              Ces opérations sont normalement exécutées par le CRON mais peuvent
+              être lancées manuellement.
             </div>
           </CardFooter>
         </Card>
@@ -246,7 +269,9 @@ export default function BillingDashboard() {
       <Card>
         <CardHeader>
           <CardTitle>Cycles de facturation récents</CardTitle>
-          <CardDescription>Suivre l'état des cycles de facturation</CardDescription>
+          <CardDescription>
+            Suivre l'état des cycles de facturation
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -254,42 +279,51 @@ export default function BillingDashboard() {
               <div className="flex justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : billingStats?.cycleStats && Object.keys(billingStats.cycleStats).length > 0 ? (
+            ) : billingStats?.cycleStats &&
+              Object.keys(billingStats.cycleStats).length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(billingStats.cycleStats).map(([status, count]) => (
-                  <div
-                    key={status}
-                    className="flex items-center justify-between p-3 rounded-lg border"
-                  >
-                    <div className="flex items-center gap-2">
-                      {status === 'COMPLETED' && <CheckCircle className="h-5 w-5 text-green-500" />}
-                      {status === 'FAILED' && <XCircle className="h-5 w-5 text-red-500" />}
-                      {status === 'PROCESSING' && (
-                        <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />
-                      )}
-                      {status === 'PENDING' && <AlertCircle className="h-5 w-5 text-yellow-500" />}
-                      <span className="font-medium">
-                        {status === 'COMPLETED' && 'Terminés'}
-                        {status === 'FAILED' && 'Échoués'}
-                        {status === 'PROCESSING' && 'En traitement'}
-                        {status === 'PENDING' && 'En attente'}
-                      </span>
-                    </div>
-                    <Badge
-                      variant={
-                        status === 'COMPLETED'
-                          ? 'default'
-                          : status === 'FAILED'
-                            ? 'destructive'
-                            : status === 'PROCESSING'
-                              ? 'secondary'
-                              : 'outline'
-                      }
+                {Object.entries(billingStats.cycleStats).map(
+                  ([status, count]) => (
+                    <div
+                      key={status}
+                      className="flex items-center justify-between p-3 rounded-lg border"
                     >
-                      {count}
-                    </Badge>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-2">
+                        {status === "COMPLETED" && (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        )}
+                        {status === "FAILED" && (
+                          <XCircle className="h-5 w-5 text-red-500" />
+                        )}
+                        {status === "PROCESSING" && (
+                          <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />
+                        )}
+                        {status === "PENDING" && (
+                          <AlertCircle className="h-5 w-5 text-yellow-500" />
+                        )}
+                        <span className="font-medium">
+                          {status === "COMPLETED" && "Terminés"}
+                          {status === "FAILED" && "Échoués"}
+                          {status === "PROCESSING" && "En traitement"}
+                          {status === "PENDING" && "En attente"}
+                        </span>
+                      </div>
+                      <Badge
+                        variant={
+                          status === "COMPLETED"
+                            ? "default"
+                            : status === "FAILED"
+                              ? "destructive"
+                              : status === "PROCESSING"
+                                ? "secondary"
+                                : "outline"
+                        }
+                      >
+                        {count}
+                      </Badge>
+                    </div>
+                  ),
+                )}
               </div>
             ) : (
               <div className="p-6 text-center text-muted-foreground">
@@ -302,7 +336,7 @@ export default function BillingDashboard() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => (window.location.href = '/admin/billing/cycles')}
+            onClick={() => (window.location.href = "/admin/billing/cycles")}
           >
             Gérer les cycles de facturation
           </Button>

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
-import { format, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import React, { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
+import { format, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   DownloadCloud,
   Eye,
@@ -18,12 +18,12 @@ import {
   Info,
   ChevronDown,
   Calendar,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { api } from '@/trpc/react';
-import { cn } from '@/lib/utils/common';
-import { formatCurrency } from '@/utils/document-utils';
-import { useToast } from '@/components/ui/use-toast';
+import { api } from "@/trpc/react";
+import { cn } from "@/lib/utils/common";
+import { formatCurrency } from "@/utils/document-utils";
+import { useToast } from "@/components/ui/use-toast";
 
 import {
   Card,
@@ -32,13 +32,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -46,14 +51,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -62,9 +67,13 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+} from "@/components/ui/pagination";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Type d'une facture
 export interface Invoice {
@@ -73,14 +82,14 @@ export interface Invoice {
   createdAt: Date;
   dueDate: Date | null;
   amount: number;
-  status: 'DRAFT' | 'ISSUED' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+  status: "DRAFT" | "ISSUED" | "PAID" | "OVERDUE" | "CANCELLED";
   description?: string;
   currency?: string;
   recipient?: {
     name: string;
     email: string;
   } | null;
-  type?: 'STANDARD' | 'SUBSCRIPTION' | 'COMMISSION' | 'SERVICE';
+  type?: "STANDARD" | "SUBSCRIPTION" | "COMMISSION" | "SERVICE";
 }
 
 // Props du composant
@@ -99,13 +108,13 @@ export function InvoiceList({
   onDownloadInvoice,
   className,
 }: InvoiceListProps) {
-  const t = useTranslations('invoices');
+  const t = useTranslations("invoices");
   const { toast } = useToast();
 
   // États pour la pagination, le filtrage et la recherche
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
@@ -114,19 +123,11 @@ export function InvoiceList({
 
   // Générer des données démo
   const generateDemoInvoices = (): { invoices: Invoice[]; total: number } => {
-    const statuses: Array<'DRAFT' | 'ISSUED' | 'PAID' | 'OVERDUE' | 'CANCELLED'> = [
-      'DRAFT',
-      'ISSUED',
-      'PAID',
-      'OVERDUE',
-      'CANCELLED',
-    ];
-    const types: Array<'STANDARD' | 'SUBSCRIPTION' | 'COMMISSION' | 'SERVICE'> = [
-      'STANDARD',
-      'SUBSCRIPTION',
-      'COMMISSION',
-      'SERVICE',
-    ];
+    const statuses: Array<
+      "DRAFT" | "ISSUED" | "PAID" | "OVERDUE" | "CANCELLED"
+    > = ["DRAFT", "ISSUED", "PAID", "OVERDUE", "CANCELLED"];
+    const types: Array<"STANDARD" | "SUBSCRIPTION" | "COMMISSION" | "SERVICE"> =
+      ["STANDARD", "SUBSCRIPTION", "COMMISSION", "SERVICE"];
 
     const now = new Date();
     const invoices: Invoice[] = Array(25)
@@ -143,21 +144,21 @@ export function InvoiceList({
 
         return {
           id: `invoice-${i + 1}`,
-          invoiceNumber: `FAC-${2025}-${String(i + 1).padStart(3, '0')}`,
+          invoiceNumber: `FAC-${2025}-${String(i + 1).padStart(3, "0")}`,
           createdAt,
           dueDate,
           amount: Math.round(Math.random() * 1000 + 50),
           status,
-          currency: 'EUR',
+          currency: "EUR",
           description:
-            type === 'SUBSCRIPTION'
-              ? `Abonnement ${Math.random() > 0.5 ? 'Premium' : 'Business'} - ${format(createdAt, 'MMMM yyyy', { locale: fr })}`
-              : type === 'COMMISSION'
-                ? `Commission sur ventes - ${format(createdAt, 'MMMM yyyy', { locale: fr })}`
-                : `Facturation services ${format(createdAt, 'MMMM yyyy', { locale: fr })}`,
+            type === "SUBSCRIPTION"
+              ? `Abonnement ${Math.random() > 0.5 ? "Premium" : "Business"} - ${format(createdAt, "MMMM yyyy", { locale: fr })}`
+              : type === "COMMISSION"
+                ? `Commission sur ventes - ${format(createdAt, "MMMM yyyy", { locale: fr })}`
+                : `Facturation services ${format(createdAt, "MMMM yyyy", { locale: fr })}`,
           recipient: {
-            name: 'Client Demo',
-            email: 'client@exemple.fr',
+            name: "Client Demo",
+            email: "client@exemple.fr",
           },
           type,
         };
@@ -169,24 +170,25 @@ export function InvoiceList({
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        invoice =>
+        (invoice) =>
           invoice.invoiceNumber.toLowerCase().includes(query) ||
-          (invoice.description && invoice.description.toLowerCase().includes(query))
+          (invoice.description &&
+            invoice.description.toLowerCase().includes(query)),
       );
     }
 
     if (statusFilter) {
-      filtered = filtered.filter(invoice => invoice.status === statusFilter);
+      filtered = filtered.filter((invoice) => invoice.status === statusFilter);
     }
 
     if (startDate) {
-      filtered = filtered.filter(invoice => invoice.createdAt >= startDate);
+      filtered = filtered.filter((invoice) => invoice.createdAt >= startDate);
     }
 
     if (endDate) {
       const nextDay = new Date(endDate);
       nextDay.setDate(nextDay.getDate() + 1);
-      filtered = filtered.filter(invoice => invoice.createdAt < nextDay);
+      filtered = filtered.filter((invoice) => invoice.createdAt < nextDay);
     }
 
     // Pagination simple
@@ -201,7 +203,11 @@ export function InvoiceList({
 
   // Requête pour récupérer les factures (réelles ou démo)
   const { data, isLoading, refetch } = isDemo
-    ? { data: generateDemoInvoices(), isLoading: false, refetch: async () => {} }
+    ? {
+        data: generateDemoInvoices(),
+        isLoading: false,
+        refetch: async () => {},
+      }
     : api.invoice.getMyInvoices.useQuery(
         {
           page: currentPage,
@@ -214,7 +220,7 @@ export function InvoiceList({
         {
           enabled: !isDemo && !!userId,
           keepPreviousData: true,
-        }
+        },
       );
 
   // Télécharger une facture
@@ -222,8 +228,8 @@ export function InvoiceList({
     try {
       if (isDemo) {
         toast({
-          title: t('downloadStarted'),
-          description: t('demoDownloadMessage'),
+          title: t("downloadStarted"),
+          description: t("demoDownloadMessage"),
         });
         return;
       }
@@ -233,9 +239,9 @@ export function InvoiceList({
       }
     } catch (error) {
       toast({
-        variant: 'destructive',
-        title: t('downloadError'),
-        description: typeof error === 'string' ? error : t('genericError'),
+        variant: "destructive",
+        title: t("downloadError"),
+        description: typeof error === "string" ? error : t("genericError"),
       });
     }
   };
@@ -252,7 +258,7 @@ export function InvoiceList({
 
   // Réinitialiser les filtres
   const resetFilters = () => {
-    setSearchQuery('');
+    setSearchQuery("");
     setStatusFilter(undefined);
     setStartDate(undefined);
     setEndDate(undefined);
@@ -262,18 +268,18 @@ export function InvoiceList({
   // Avoir la couleur appropriée selon le statut
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PAID':
-        return 'bg-green-50 text-green-700 border-green-200';
-      case 'ISSUED':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'DRAFT':
-        return 'bg-gray-50 text-gray-700 border-gray-200';
-      case 'OVERDUE':
-        return 'bg-red-50 text-red-700 border-red-200';
-      case 'CANCELLED':
-        return 'bg-gray-50 text-gray-500 border-gray-200';
+      case "PAID":
+        return "bg-green-50 text-green-700 border-green-200";
+      case "ISSUED":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "DRAFT":
+        return "bg-gray-50 text-gray-700 border-gray-200";
+      case "OVERDUE":
+        return "bg-red-50 text-red-700 border-red-200";
+      case "CANCELLED":
+        return "bg-gray-50 text-gray-500 border-gray-200";
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return "bg-gray-50 text-gray-700 border-gray-200";
     }
   };
 
@@ -288,13 +294,13 @@ export function InvoiceList({
     : Math.ceil((data?.total || 0) / pageSize);
 
   return (
-    <Card className={cn('w-full', className)}>
+    <Card className={cn("w-full", className)}>
       <CardHeader className="pb-2">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              {t('title')}
+              {t("title")}
               {isDemo && (
                 <TooltipProvider>
                   <Tooltip>
@@ -304,17 +310,17 @@ export function InvoiceList({
                         className="ml-2 bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
                       >
                         <Zap className="h-3 w-3" />
-                        {t('demoMode')}
+                        {t("demoMode")}
                       </Badge>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{t('demoModeDescription')}</p>
+                      <p>{t("demoModeDescription")}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
             </CardTitle>
-            <CardDescription>{t('description')}</CardDescription>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           <Button
             variant="outline"
@@ -322,8 +328,10 @@ export function InvoiceList({
             onClick={handleRefresh}
             disabled={isLoading || isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {t('refresh')}
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            {t("refresh")}
           </Button>
         </div>
       </CardHeader>
@@ -335,10 +343,10 @@ export function InvoiceList({
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder={t('searchPlaceholder')}
+              placeholder={t("searchPlaceholder")}
               className="pl-8"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
@@ -350,9 +358,9 @@ export function InvoiceList({
             <CollapsibleTrigger asChild>
               <Button variant="outline" className="w-full sm:w-auto">
                 <Filter className="h-4 w-4 mr-2" />
-                {t('filters')}
+                {t("filters")}
                 <ChevronDown
-                  className={`h-4 w-4 ml-2 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`}
+                  className={`h-4 w-4 ml-2 transition-transform ${isFiltersOpen ? "rotate-180" : ""}`}
                 />
               </Button>
             </CollapsibleTrigger>
@@ -360,38 +368,46 @@ export function InvoiceList({
             <CollapsibleContent className="mt-2 space-y-2 p-2 border rounded-md">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">{t('status')}</label>
+                  <label className="text-sm font-medium">{t("status")}</label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('allStatuses')} />
+                      <SelectValue placeholder={t("allStatuses")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">{t('allStatuses')}</SelectItem>
-                      <SelectItem value="DRAFT">{t('statusDraft')}</SelectItem>
-                      <SelectItem value="ISSUED">{t('statusIssued')}</SelectItem>
-                      <SelectItem value="PAID">{t('statusPaid')}</SelectItem>
-                      <SelectItem value="OVERDUE">{t('statusOverdue')}</SelectItem>
-                      <SelectItem value="CANCELLED">{t('statusCancelled')}</SelectItem>
+                      <SelectItem value="">{t("allStatuses")}</SelectItem>
+                      <SelectItem value="DRAFT">{t("statusDraft")}</SelectItem>
+                      <SelectItem value="ISSUED">
+                        {t("statusIssued")}
+                      </SelectItem>
+                      <SelectItem value="PAID">{t("statusPaid")}</SelectItem>
+                      <SelectItem value="OVERDUE">
+                        {t("statusOverdue")}
+                      </SelectItem>
+                      <SelectItem value="CANCELLED">
+                        {t("statusCancelled")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">{t('startDate')}</label>
+                  <label className="text-sm font-medium">
+                    {t("startDate")}
+                  </label>
                   <DatePicker
                     selected={startDate}
                     onSelect={setStartDate}
-                    placeholder={t('selectStartDate')}
+                    placeholder={t("selectStartDate")}
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">{t('endDate')}</label>
+                  <label className="text-sm font-medium">{t("endDate")}</label>
                   <DatePicker
                     selected={endDate}
                     onSelect={setEndDate}
-                    placeholder={t('selectEndDate')}
-                    disabled={date => (startDate ? date < startDate : false)}
+                    placeholder={t("selectEndDate")}
+                    disabled={(date) => (startDate ? date < startDate : false)}
                   />
                 </div>
               </div>
@@ -404,7 +420,7 @@ export function InvoiceList({
                   className="flex items-center"
                 >
                   <XCircle className="h-4 w-4 mr-2" />
-                  {t('resetFilters')}
+                  {t("resetFilters")}
                 </Button>
               </div>
             </CollapsibleContent>
@@ -425,34 +441,43 @@ export function InvoiceList({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('invoiceNumber')}</TableHead>
-                  <TableHead>{t('date')}</TableHead>
-                  <TableHead>{t('dueDate')}</TableHead>
-                  <TableHead>{t('amount')}</TableHead>
-                  <TableHead>{t('status')}</TableHead>
-                  <TableHead>{t('actions')}</TableHead>
+                  <TableHead>{t("invoiceNumber")}</TableHead>
+                  <TableHead>{t("date")}</TableHead>
+                  <TableHead>{t("dueDate")}</TableHead>
+                  <TableHead>{t("amount")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead>{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.invoices.map(invoice => (
+                {data.invoices.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">
                       {invoice.invoiceNumber}
                       {invoice.type && (
                         <div className="text-xs text-muted-foreground mt-1">
-                          {t(`type${invoice.type.charAt(0) + invoice.type.slice(1).toLowerCase()}`)}
+                          {t(
+                            `type${invoice.type.charAt(0) + invoice.type.slice(1).toLowerCase()}`,
+                          )}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell>{format(new Date(invoice.createdAt), 'dd/MM/yyyy')}</TableCell>
                     <TableCell>
-                      {invoice.dueDate ? format(new Date(invoice.dueDate), 'dd/MM/yyyy') : '-'}
+                      {format(new Date(invoice.createdAt), "dd/MM/yyyy")}
+                    </TableCell>
+                    <TableCell>
+                      {invoice.dueDate
+                        ? format(new Date(invoice.dueDate), "dd/MM/yyyy")
+                        : "-"}
                     </TableCell>
                     <TableCell className="font-medium">
                       {formatCurrency(invoice.amount, invoice.currency)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={cn(getStatusColor(invoice.status))}>
+                      <Badge
+                        variant="outline"
+                        className={cn(getStatusColor(invoice.status))}
+                      >
                         {getStatusLabel(invoice.status)}
                       </Badge>
                     </TableCell>
@@ -462,7 +487,7 @@ export function InvoiceList({
                           variant="ghost"
                           size="icon"
                           onClick={() => onViewInvoice(invoice.id)}
-                          title={t('viewDetails')}
+                          title={t("viewDetails")}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -470,8 +495,8 @@ export function InvoiceList({
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDownload(invoice.id)}
-                          title={t('download')}
-                          disabled={invoice.status === 'DRAFT'}
+                          title={t("download")}
+                          disabled={invoice.status === "DRAFT"}
                         >
                           <DownloadCloud className="h-4 w-4" />
                         </Button>
@@ -485,15 +510,15 @@ export function InvoiceList({
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <FileText className="h-12 w-12 text-muted-foreground/60 mb-3" />
-            <h3 className="text-lg font-medium">{t('noInvoicesFound')}</h3>
+            <h3 className="text-lg font-medium">{t("noInvoicesFound")}</h3>
             <p className="text-sm text-muted-foreground mt-1">
               {searchQuery || statusFilter || startDate || endDate
-                ? t('noInvoicesMatchingFilters')
-                : t('emptyInvoiceList')}
+                ? t("noInvoicesMatchingFilters")
+                : t("emptyInvoiceList")}
             </p>
             {(searchQuery || statusFilter || startDate || endDate) && (
               <Button variant="outline" className="mt-4" onClick={resetFilters}>
-                {t('resetFilters')}
+                {t("resetFilters")}
               </Button>
             )}
           </div>
@@ -506,11 +531,13 @@ export function InvoiceList({
               <PaginationItem>
                 <PaginationPrevious
                   href="#"
-                  onClick={e => {
+                  onClick={(e) => {
                     e.preventDefault();
                     if (currentPage > 1) setCurrentPage(currentPage - 1);
                   }}
-                  className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                  className={
+                    currentPage <= 1 ? "pointer-events-none opacity-50" : ""
+                  }
                 />
               </PaginationItem>
 
@@ -520,7 +547,7 @@ export function InvoiceList({
                   <PaginationItem key={page}>
                     <PaginationLink
                       href="#"
-                      onClick={e => {
+                      onClick={(e) => {
                         e.preventDefault();
                         setCurrentPage(page);
                       }}
@@ -541,7 +568,7 @@ export function InvoiceList({
                   <PaginationItem>
                     <PaginationLink
                       href="#"
-                      onClick={e => {
+                      onClick={(e) => {
                         e.preventDefault();
                         setCurrentPage(totalPages);
                       }}
@@ -556,11 +583,16 @@ export function InvoiceList({
               <PaginationItem>
                 <PaginationNext
                   href="#"
-                  onClick={e => {
+                  onClick={(e) => {
                     e.preventDefault();
-                    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                    if (currentPage < totalPages)
+                      setCurrentPage(currentPage + 1);
                   }}
-                  className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                  className={
+                    currentPage >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
@@ -570,7 +602,9 @@ export function InvoiceList({
 
       <CardFooter className="flex justify-between border-t pt-4">
         <div className="text-sm text-muted-foreground">
-          {data?.total ? t('totalResults', { count: data.total }) : t('noResults')}
+          {data?.total
+            ? t("totalResults", { count: data.total })
+            : t("noResults")}
         </div>
       </CardFooter>
     </Card>

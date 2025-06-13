@@ -4,5 +4,5 @@
  */
 
 // Exports des fichiers locaux
-export { default as DeliveryRatingForm } from './delivery-rating-form';
-export * from './delivery-rating-form';
+export { default as DeliveryRatingForm } from "./delivery-rating-form";
+export * from "./delivery-rating-form";

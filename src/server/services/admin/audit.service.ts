@@ -1,4 +1,4 @@
-import { db } from '@/server/db';
+import { db } from "@/server/db";
 
 /**
  * Service pour la gestion des journaux d'audit
@@ -20,7 +20,7 @@ export const AuditService = {
     action: string,
     performedById: string,
     oldData: Record<string, any> | null,
-    newData: Record<string, any> | null
+    newData: Record<string, any> | null,
   ) {
     try {
       // Calculer les changements entre l'ancien et le nouveau état
@@ -63,7 +63,7 @@ export const AuditService = {
         performedBy: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   },
@@ -112,7 +112,7 @@ export const AuditService = {
           performedBy: true,
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         skip: offset,
         take: limit,

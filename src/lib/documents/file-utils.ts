@@ -5,19 +5,19 @@ import {
   FileIcon as FilePdfIcon,
   FileIcon as FileSpreadsheetIcon,
   FileType,
-} from 'lucide-react';
+} from "lucide-react";
 
 /**
  * Formate la taille d'un fichier en unité lisible (KB, MB, GB)
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
 
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
 /**
@@ -26,25 +26,25 @@ export function formatFileSize(bytes: number): string {
 export function getFileIcon(fileName: string): React.ElementType {
   if (!fileName) return FileIcon;
 
-  const extension = fileName.split('.').pop()?.toLowerCase();
+  const extension = fileName.split(".").pop()?.toLowerCase();
 
   switch (extension) {
-    case 'pdf':
+    case "pdf":
       return FilePdfIcon;
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'gif':
-    case 'webp':
+    case "jpg":
+    case "jpeg":
+    case "png":
+    case "gif":
+    case "webp":
       return ImageIcon;
-    case 'txt':
-    case 'md':
-    case 'doc':
-    case 'docx':
+    case "txt":
+    case "md":
+    case "doc":
+    case "docx":
       return FileTextIcon;
-    case 'csv':
-    case 'xls':
-    case 'xlsx':
+    case "csv":
+    case "xls":
+    case "xlsx":
       return FileSpreadsheetIcon;
     default:
       return FileIcon;
@@ -55,14 +55,14 @@ export function getFileIcon(fileName: string): React.ElementType {
  * Vérifie si le type mime est une image
  */
 export function isImageFile(mimeType: string): boolean {
-  return mimeType.startsWith('image/');
+  return mimeType.startsWith("image/");
 }
 
 /**
  * Vérifie si le type mime est un PDF
  */
 export function isPdfFile(mimeType: string): boolean {
-  return mimeType === 'application/pdf';
+  return mimeType === "application/pdf";
 }
 
 /**
@@ -70,21 +70,21 @@ export function isPdfFile(mimeType: string): boolean {
  */
 export function getMimeTypeDescription(mimeType: string): string {
   if (isImageFile(mimeType)) {
-    return 'Image';
+    return "Image";
   }
   if (isPdfFile(mimeType)) {
-    return 'PDF';
+    return "PDF";
   }
-  if (mimeType.includes('word') || mimeType.includes('doc')) {
-    return 'Document Word';
+  if (mimeType.includes("word") || mimeType.includes("doc")) {
+    return "Document Word";
   }
-  if (mimeType.includes('excel') || mimeType.includes('sheet')) {
-    return 'Feuille Excel';
+  if (mimeType.includes("excel") || mimeType.includes("sheet")) {
+    return "Feuille Excel";
   }
-  if (mimeType.includes('text')) {
-    return 'Fichier texte';
+  if (mimeType.includes("text")) {
+    return "Fichier texte";
   }
-  return 'Fichier';
+  return "Fichier";
 }
 
 /**
@@ -94,8 +94,8 @@ export function validateFile(
   file: File,
   {
     maxSizeInMB = 5,
-    allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'],
-  }: { maxSizeInMB?: number; allowedTypes?: string[] } = {}
+    allowedTypes = ["image/jpeg", "image/png", "application/pdf"],
+  }: { maxSizeInMB?: number; allowedTypes?: string[] } = {},
 ): { valid: boolean; error?: string } {
   // Vérifier la taille
   if (file.size > maxSizeInMB * 1024 * 1024) {
@@ -111,7 +111,7 @@ export function validateFile(
       valid: false,
       error: `Type de fichier non autorisé. Types acceptés: ${allowedTypes
         .map(getMimeTypeDescription)
-        .join(', ')}`,
+        .join(", ")}`,
     };
   }
 

@@ -2,31 +2,31 @@
  * Shared types for document and verification system
  * This file centralizes all shared types to avoid duplication and inconsistencies
  */
-import { UserRole } from '@prisma/client';
+import { UserRole } from "@prisma/client";
 
 /**
  * Document status enum
  */
 export enum DocumentStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
 
 /**
  * Document types enum
  */
 export enum DocumentType {
-  ID_CARD = 'ID_CARD',
-  DRIVER_LICENSE = 'DRIVER_LICENSE',
-  VEHICLE_REGISTRATION = 'VEHICLE_REGISTRATION',
-  INSURANCE = 'INSURANCE',
-  CRIMINAL_RECORD = 'CRIMINAL_RECORD',
-  PROFESSIONAL_CERTIFICATION = 'PROFESSIONAL_CERTIFICATION',
-  BUSINESS_REGISTRATION = 'BUSINESS_REGISTRATION',
-  PROOF_OF_ADDRESS = 'PROOF_OF_ADDRESS',
-  SELFIE = 'SELFIE',
-  OTHER = 'OTHER',
+  ID_CARD = "ID_CARD",
+  DRIVER_LICENSE = "DRIVER_LICENSE",
+  VEHICLE_REGISTRATION = "VEHICLE_REGISTRATION",
+  INSURANCE = "INSURANCE",
+  CRIMINAL_RECORD = "CRIMINAL_RECORD",
+  PROFESSIONAL_CERTIFICATION = "PROFESSIONAL_CERTIFICATION",
+  BUSINESS_REGISTRATION = "BUSINESS_REGISTRATION",
+  PROOF_OF_ADDRESS = "PROOF_OF_ADDRESS",
+  SELFIE = "SELFIE",
+  OTHER = "OTHER",
 }
 
 /**
@@ -81,10 +81,10 @@ export interface DocumentUpdateInput {
  * Document verification status enum
  */
 export enum VerificationStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  NOT_SUBMITTED = 'NOT_SUBMITTED',
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+  NOT_SUBMITTED = "NOT_SUBMITTED",
 }
 
 /**

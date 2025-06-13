@@ -1,11 +1,11 @@
-import { z } from 'zod';
-import { locales } from '@/types/i18n/translation';
+import { z } from "zod";
+import { locales } from "@/types/i18n/translation";
 
 export const userPreferencesSchema = z.object({
   locale: z.enum(locales as [string, ...string[]]),
   timeZone: z.string().optional(),
-  dateFormat: z.enum(['short', 'medium', 'long']).default('medium'),
-  currencyFormat: z.enum(['EUR', 'USD']).default('EUR'),
+  dateFormat: z.enum(["short", "medium", "long"]).default("medium"),
+  currencyFormat: z.enum(["EUR", "USD"]).default("EUR"),
   hasCompletedOnboarding: z.boolean().default(false),
   lastOnboardingStep: z.number().default(0),
   onboardingCompletionDate: z.string().datetime().optional(),
@@ -25,4 +25,6 @@ export const updateOnboardingStatusSchema = z.object({
   tutorialSkipped: z.boolean().optional(),
 });
 
-export type UpdateOnboardingStatus = z.infer<typeof updateOnboardingStatusSchema>;
+export type UpdateOnboardingStatus = z.infer<
+  typeof updateOnboardingStatusSchema
+>;

@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Home, Search } from 'lucide-react';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Home, Search } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -9,7 +9,8 @@ export default function NotFound() {
         <h1 className="text-6xl font-bold text-primary">404</h1>
         <h2 className="text-2xl font-semibold">Page introuvable</h2>
         <p className="text-muted-foreground">
-          Désolé, la page que vous recherchez n&apos;existe pas ou a été déplacée.
+          Désolé, la page que vous recherchez n&apos;existe pas ou a été
+          déplacée.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
           <Button asChild>

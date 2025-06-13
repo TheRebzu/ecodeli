@@ -1,5 +1,10 @@
-import { db } from '@/server/db';
-import { UserRole, DeliveryStatus, DocumentStatus, VerificationStatus } from '@prisma/client';
+import { db } from "@/server/db";
+import {
+  UserRole,
+  DeliveryStatus,
+  DocumentStatus,
+  VerificationStatus,
+} from "@prisma/client";
 
 /**
  * Service pour la gestion du tableau de bord administrateur
@@ -23,7 +28,10 @@ export const dashboardService = {
       try {
         userStats = await this.getUserStats();
       } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques utilisateurs:', error);
+        console.error(
+          "Erreur lors de la récupération des statistiques utilisateurs:",
+          error,
+        );
         // Fournir une structure par défaut compatible
         userStats = {
           total: 0,
@@ -43,7 +51,10 @@ export const dashboardService = {
       try {
         documentStats = await this.getDocumentStats();
       } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques documents:', error);
+        console.error(
+          "Erreur lors de la récupération des statistiques documents:",
+          error,
+        );
         documentStats = {
           pending: 0,
           approved: 0,
@@ -60,7 +71,10 @@ export const dashboardService = {
       try {
         transactionStats = await this.getTransactionStats();
       } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques transactions:', error);
+        console.error(
+          "Erreur lors de la récupération des statistiques transactions:",
+          error,
+        );
         transactionStats = {
           total: 0,
           today: 0,
@@ -78,7 +92,10 @@ export const dashboardService = {
       try {
         warehouseStats = await this.getWarehouseStats();
       } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques entrepôts:', error);
+        console.error(
+          "Erreur lors de la récupération des statistiques entrepôts:",
+          error,
+        );
         warehouseStats = {
           total: 0,
           totalCapacity: 0,
@@ -96,7 +113,10 @@ export const dashboardService = {
       try {
         deliveryStats = await this.getDeliveryStats();
       } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques livraisons:', error);
+        console.error(
+          "Erreur lors de la récupération des statistiques livraisons:",
+          error,
+        );
         deliveryStats = {
           active: 0,
           completed: { today: 0, thisWeek: 0, thisMonth: 0 },
@@ -111,14 +131,20 @@ export const dashboardService = {
       try {
         recentActivities = await this.getRecentActivities(10);
       } catch (error) {
-        console.error('Erreur lors de la récupération des activités récentes:', error);
+        console.error(
+          "Erreur lors de la récupération des activités récentes:",
+          error,
+        );
         recentActivities = [];
       }
 
       try {
         activityChartData = await this.getActivityChartData();
       } catch (error) {
-        console.error('Erreur lors de la récupération des données graphiques:', error);
+        console.error(
+          "Erreur lors de la récupération des données graphiques:",
+          error,
+        );
         activityChartData = {
           deliveries: [],
           transactions: [],
@@ -129,7 +155,10 @@ export const dashboardService = {
       try {
         actionItems = await this.getActionItems();
       } catch (error) {
-        console.error('Erreur lors de la récupération des actions requises:', error);
+        console.error(
+          "Erreur lors de la récupération des actions requises:",
+          error,
+        );
         actionItems = {
           pendingVerifications: 0,
           expiringContracts: 0,
@@ -149,7 +178,10 @@ export const dashboardService = {
         actionItems,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des données du tableau de bord:', error);
+      console.error(
+        "Erreur lors de la récupération des données du tableau de bord:",
+        error,
+      );
       throw error;
     }
   },
@@ -160,17 +192,23 @@ export const dashboardService = {
   async getUserStats() {
     try {
       const totalUsers = await db.user.count();
-      const activeUsers = await db.user.count({ where: { status: 'ACTIVE' } });
+      const activeUsers = await db.user.count({ where: { status: "ACTIVE" } });
       const pendingVerifications = await db.user.count({
-        where: { status: 'PENDING_VERIFICATION' },
+        where: { status: "PENDING_VERIFICATION" },
       });
 
       // Statistiques par rôle
-      const clientCount = await db.user.count({ where: { role: 'CLIENT' } });
-      const delivererCount = await db.user.count({ where: { role: 'DELIVERER' } });
-      const merchantCount = await db.user.count({ where: { role: 'MERCHANT' } });
-      const providerCount = await db.user.count({ where: { role: 'PROVIDER' } });
-      const adminCount = await db.user.count({ where: { role: 'ADMIN' } });
+      const clientCount = await db.user.count({ where: { role: "CLIENT" } });
+      const delivererCount = await db.user.count({
+        where: { role: "DELIVERER" },
+      });
+      const merchantCount = await db.user.count({
+        where: { role: "MERCHANT" },
+      });
+      const providerCount = await db.user.count({
+        where: { role: "PROVIDER" },
+      });
+      const adminCount = await db.user.count({ where: { role: "ADMIN" } });
 
       // Nouveaux utilisateurs (aujourd'hui)
       const today = new Date();
@@ -246,7 +284,10 @@ export const dashboardService = {
         totalActiveUsersToday: activeUsersToday,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques utilisateurs:', error);
+      console.error(
+        "Erreur lors de la récupération des statistiques utilisateurs:",
+        error,
+      );
       throw error;
     }
   },
@@ -258,33 +299,33 @@ export const dashboardService = {
     try {
       const totalDocuments = await db.document.count();
       const pendingReview = await db.document.count({
-        where: { verificationStatus: 'PENDING' },
+        where: { verificationStatus: "PENDING" },
       });
       const approved = await db.document.count({
-        where: { verificationStatus: 'APPROVED' },
+        where: { verificationStatus: "APPROVED" },
       });
       const rejected = await db.document.count({
-        where: { verificationStatus: 'REJECTED' },
+        where: { verificationStatus: "REJECTED" },
       });
 
       // Documents par type
       const idCards = await db.document.count({
-        where: { type: 'ID_CARD' },
+        where: { type: "ID_CARD" },
       });
       const drivingLicenses = await db.document.count({
-        where: { type: 'DRIVING_LICENSE' },
+        where: { type: "DRIVING_LICENSE" },
       });
       const vehicleRegistrations = await db.document.count({
-        where: { type: 'VEHICLE_REGISTRATION' },
+        where: { type: "VEHICLE_REGISTRATION" },
       });
       const insurances = await db.document.count({
-        where: { type: 'INSURANCE' },
+        where: { type: "INSURANCE" },
       });
       const proofOfAddress = await db.document.count({
-        where: { type: 'PROOF_OF_ADDRESS' },
+        where: { type: "PROOF_OF_ADDRESS" },
       });
       const others = await db.document.count({
-        where: { type: 'OTHER' },
+        where: { type: "OTHER" },
       });
 
       // Documents soumis aujourd'hui
@@ -298,25 +339,10 @@ export const dashboardService = {
         },
       });
 
-      // Structure pour la compatibilité avec DocumentStats
-      const mockRecentlySubmitted = [
-        {
-          id: 'mock-1',
-          type: 'ID_CARD',
-          submittedAt: new Date(),
-          user: {
-            id: 'mock-user-1',
-            name: 'Utilisateur Test',
-            email: 'test@example.com',
-            role: 'CLIENT' as UserRole,
-          },
-        },
-      ];
-
       // Récupérer les demandes de vérification récemment soumises
       const recentlySubmitted = await db.verificationRequest.findMany({
         where: {
-          status: 'PENDING',
+          status: "PENDING",
           createdAt: {
             gte: startOfWeek(new Date()),
           },
@@ -332,7 +358,7 @@ export const dashboardService = {
           },
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         take: 5,
       });
@@ -348,7 +374,7 @@ export const dashboardService = {
           MERCHANT: Math.round(pendingReview * 0.15),
           PROVIDER: Math.round(pendingReview * 0.05),
         },
-        recentlySubmitted: recentlySubmitted.map(request => ({
+        recentlySubmitted: recentlySubmitted.map((request) => ({
           id: request.id,
           status: request.status,
           createdAt: request.createdAt,
@@ -375,7 +401,10 @@ export const dashboardService = {
         },
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques de documents:', error);
+      console.error(
+        "Erreur lors de la récupération des statistiques de documents:",
+        error,
+      );
       throw error;
     }
   },
@@ -393,9 +422,11 @@ export const dashboardService = {
       });
 
       // Transactions par statut
-      const successful = await db.payment.count({ where: { status: 'COMPLETED' } });
-      const pending = await db.payment.count({ where: { status: 'PENDING' } });
-      const failed = await db.payment.count({ where: { status: 'FAILED' } });
+      const successful = await db.payment.count({
+        where: { status: "COMPLETED" },
+      });
+      const pending = await db.payment.count({ where: { status: "PENDING" } });
+      const failed = await db.payment.count({ where: { status: "FAILED" } });
 
       // Statistiques des 30 derniers jours
       const thirtyDaysAgo = new Date();
@@ -432,7 +463,10 @@ export const dashboardService = {
         },
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques de transactions:', error);
+      console.error(
+        "Erreur lors de la récupération des statistiques de transactions:",
+        error,
+      );
       throw error;
     }
   },
@@ -444,17 +478,24 @@ export const dashboardService = {
     try {
       const totalWarehouses = await db.warehouse.count();
       const totalBoxes = await db.box.count();
-      const availableBoxes = await db.box.count({ where: { status: 'AVAILABLE' } });
-      const occupiedBoxes = await db.box.count({ where: { status: 'OCCUPIED' } });
-      const maintenanceBoxes = await db.box.count({ where: { status: 'MAINTENANCE' } });
+      const availableBoxes = await db.box.count({
+        where: { status: "AVAILABLE" },
+      });
+      const occupiedBoxes = await db.box.count({
+        where: { status: "OCCUPIED" },
+      });
+      const maintenanceBoxes = await db.box.count({
+        where: { status: "MAINTENANCE" },
+      });
 
       // Calcul du taux d'occupation
-      const occupancyRate = totalBoxes > 0 ? (occupiedBoxes / totalBoxes) * 100 : 0;
+      const occupancyRate =
+        totalBoxes > 0 ? (occupiedBoxes / totalBoxes) * 100 : 0;
 
       // Réservations actives
       const activeReservations = await db.reservation.count({
         where: {
-          status: 'ACTIVE',
+          status: "ACTIVE",
           endDate: {
             gte: new Date(),
           },
@@ -469,15 +510,17 @@ export const dashboardService = {
       });
 
       // Calculer le taux d'occupation pour chaque entrepôt
-      const warehouseOccupancy = warehouses.map(warehouse => {
+      const warehouseOccupancy = warehouses.map((warehouse) => {
         const total = warehouse.boxes.length;
-        const occupied = warehouse.boxes.filter(box => box.status === 'OCCUPIED').length;
+        const occupied = warehouse.boxes.filter(
+          (box) => box.status === "OCCUPIED",
+        ).length;
         const occupancyRate = total > 0 ? (occupied / total) * 100 : 0;
 
         return {
           id: warehouse.id,
           name: warehouse.name,
-          location: warehouse.address || 'Non spécifié',
+          location: warehouse.address || "Non spécifié",
           capacity: total,
           occupied: occupied,
           occupancyRate: occupancyRate,
@@ -495,7 +538,10 @@ export const dashboardService = {
         warehouseOccupancy,
       };
     } catch (error) {
-      console.error("Erreur lors de la récupération des statistiques d'entrepôts:", error);
+      console.error(
+        "Erreur lors de la récupération des statistiques d'entrepôts:",
+        error,
+      );
       throw error;
     }
   },
@@ -509,13 +555,15 @@ export const dashboardService = {
       const activeDeliveries = await db.delivery.count({
         where: {
           status: {
-            in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'],
+            in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"],
           },
         },
       });
 
       // Compter le nombre de livraisons annulées
-      const cancelledDeliveries = await db.delivery.count({ where: { status: 'CANCELLED' } });
+      const cancelledDeliveries = await db.delivery.count({
+        where: { status: "CANCELLED" },
+      });
 
       // Date d'aujourd'hui (début de journée)
       const today = new Date();
@@ -524,7 +572,7 @@ export const dashboardService = {
       // Livraisons terminées aujourd'hui
       const completedToday = await db.delivery.count({
         where: {
-          status: 'DELIVERED',
+          status: "DELIVERED",
           updatedAt: {
             gte: today,
           },
@@ -539,7 +587,7 @@ export const dashboardService = {
       // Livraisons terminées cette semaine
       const completedThisWeek = await db.delivery.count({
         where: {
-          status: 'DELIVERED',
+          status: "DELIVERED",
           updatedAt: {
             gte: startOfWeek,
           },
@@ -554,7 +602,7 @@ export const dashboardService = {
       // Livraisons terminées ce mois
       const completedThisMonth = await db.delivery.count({
         where: {
-          status: 'DELIVERED',
+          status: "DELIVERED",
           updatedAt: {
             gte: startOfMonth,
           },
@@ -577,7 +625,7 @@ export const dashboardService = {
       // Incidents aujourd'hui
       const todayIssues = await db.delivery.count({
         where: {
-          status: 'DISPUTED',
+          status: "DISPUTED",
           updatedAt: {
             gte: today,
           },
@@ -587,7 +635,7 @@ export const dashboardService = {
       // Incidents en attente
       const pendingIssues = await db.delivery.count({
         where: {
-          status: 'DISPUTED',
+          status: "DISPUTED",
         },
       });
 
@@ -609,12 +657,18 @@ export const dashboardService = {
         avgDeliveryTime: avgDeliveryTime,
 
         // Conserver les anciennes propriétés pour la rétrocompatibilité
-        totalDeliveries: activeDeliveries + cancelledDeliveries + completedThisMonth,
-        pendingDeliveries: await db.delivery.count({ where: { status: 'PENDING' } }),
+        totalDeliveries:
+          activeDeliveries + cancelledDeliveries + completedThisMonth,
+        pendingDeliveries: await db.delivery.count({
+          where: { status: "PENDING" },
+        }),
         completedDeliveries: completedThisMonth,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques de livraisons:', error);
+      console.error(
+        "Erreur lors de la récupération des statistiques de livraisons:",
+        error,
+      );
       throw error;
     }
   },
@@ -627,7 +681,7 @@ export const dashboardService = {
       // Récents documents soumis
       const recentDocuments = await db.document.findMany({
         take: limit,
-        orderBy: { uploadedAt: 'desc' },
+        orderBy: { uploadedAt: "desc" },
         include: {
           user: true,
         },
@@ -636,7 +690,7 @@ export const dashboardService = {
       // Récentes livraisons
       const recentDeliveries = await db.delivery.findMany({
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           client: true,
           deliverer: true,
@@ -647,11 +701,11 @@ export const dashboardService = {
       const recentVerifications = await db.document.findMany({
         where: {
           verificationStatus: {
-            in: ['APPROVED', 'REJECTED'],
+            in: ["APPROVED", "REJECTED"],
           },
         },
         take: limit,
-        orderBy: { uploadedAt: 'desc' },
+        orderBy: { uploadedAt: "desc" },
         include: {
           user: true,
           reviewer: true,
@@ -661,28 +715,28 @@ export const dashboardService = {
       // Récentes inscriptions
       const recentRegistrations = await db.user.findMany({
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
 
       // Combiner et trier par date
       const allActivities = [
-        ...recentDocuments.map(doc => ({
-          type: 'DOCUMENT_SUBMISSION',
+        ...recentDocuments.map((doc) => ({
+          type: "DOCUMENT_SUBMISSION",
           date: doc.uploadedAt,
           data: doc,
         })),
-        ...recentDeliveries.map(del => ({
-          type: 'DELIVERY',
+        ...recentDeliveries.map((del) => ({
+          type: "DELIVERY",
           date: del.createdAt,
           data: del,
         })),
-        ...recentVerifications.map(ver => ({
-          type: 'VERIFICATION',
+        ...recentVerifications.map((ver) => ({
+          type: "VERIFICATION",
           date: ver.uploadedAt,
           data: ver,
         })),
-        ...recentRegistrations.map(reg => ({
-          type: 'REGISTRATION',
+        ...recentRegistrations.map((reg) => ({
+          type: "REGISTRATION",
           date: reg.createdAt,
           data: reg,
         })),
@@ -692,7 +746,10 @@ export const dashboardService = {
 
       return allActivities;
     } catch (error) {
-      console.error('Erreur lors de la récupération des activités récentes:', error);
+      console.error(
+        "Erreur lors de la récupération des activités récentes:",
+        error,
+      );
       throw error;
     }
   },
@@ -716,7 +773,7 @@ export const dashboardService = {
       for (let i = 0; i < 30; i++) {
         const date = new Date(thirtyDaysAgo);
         date.setDate(date.getDate() + i);
-        dates.push(date.toISOString().split('T')[0]);
+        dates.push(date.toISOString().split("T")[0]);
       }
 
       // Récupérer les données pour chaque jour
@@ -784,7 +841,10 @@ export const dashboardService = {
         registrations,
       };
     } catch (error) {
-      console.error("Erreur lors de la récupération des données du graphique d'activité:", error);
+      console.error(
+        "Erreur lors de la récupération des données du graphique d'activité:",
+        error,
+      );
       throw error;
     }
   },
@@ -797,21 +857,21 @@ export const dashboardService = {
       // Documents en attente de vérification
       const pendingDocuments = await db.document.count({
         where: {
-          verificationStatus: 'PENDING',
+          verificationStatus: "PENDING",
         },
       });
 
       // Utilisateurs en attente de vérification
       const pendingUsers = await db.user.count({
         where: {
-          status: 'PENDING_VERIFICATION',
+          status: "PENDING_VERIFICATION",
         },
       });
 
       // Demandes de retrait en attente
       const pendingWithdrawals = await db.withdrawalRequest.count({
         where: {
-          status: 'PENDING',
+          status: "PENDING",
         },
       });
 
@@ -832,7 +892,10 @@ export const dashboardService = {
         };
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération des éléments d'action:", error);
+      console.error(
+        "Erreur lors de la récupération des éléments d'action:",
+        error,
+      );
       throw error;
     }
   },
@@ -865,7 +928,7 @@ export const dashboardService = {
         where: {
           clientId,
           status: {
-            in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'],
+            in: ["PENDING", "ACCEPTED", "IN_TRANSIT"],
           },
         },
         include: {
@@ -877,7 +940,7 @@ export const dashboardService = {
           },
         },
         orderBy: {
-          updatedAt: 'desc',
+          updatedAt: "desc",
         },
       });
 
@@ -887,7 +950,7 @@ export const dashboardService = {
       const completedDeliveries = await db.delivery.count({
         where: {
           clientId,
-          status: 'DELIVERED',
+          status: "DELIVERED",
         },
       });
 
@@ -902,7 +965,7 @@ export const dashboardService = {
       const unpaidInvoices = await db.invoice.count({
         where: {
           userId,
-          status: 'OVERDUE',
+          status: "OVERDUE",
         },
       });
 
@@ -914,7 +977,10 @@ export const dashboardService = {
         unpaidInvoices,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques du client:', error);
+      console.error(
+        "Erreur lors de la récupération des statistiques du client:",
+        error,
+      );
       throw error;
     }
   },
@@ -940,14 +1006,14 @@ export const dashboardService = {
       // Récupérer les 10 dernières livraisons
       const recentDeliveries = await db.delivery.findMany({
         where: { clientId },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 5,
       });
 
       // Récupérer les 10 derniers services réservés
       const recentServices = await db.serviceBooking.findMany({
         where: { clientId },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 5,
         include: { service: true },
       });
@@ -955,21 +1021,21 @@ export const dashboardService = {
       // Récupérer les 10 dernières factures
       const recentInvoices = await db.invoice.findMany({
         where: { userId },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 5,
       });
 
       // Combiner et trier toutes les activités par date
       const allActivities = [
-        ...recentDeliveries.map(delivery => ({
-          type: 'DELIVERY',
+        ...recentDeliveries.map((delivery) => ({
+          type: "DELIVERY",
           id: delivery.id,
           status: delivery.status,
           date: delivery.createdAt,
           data: delivery,
         })),
-        ...recentServices.map(booking => ({
-          type: 'SERVICE',
+        ...recentServices.map((booking) => ({
+          type: "SERVICE",
           id: booking.id,
           status: booking.status,
           date: booking.createdAt,
@@ -978,8 +1044,8 @@ export const dashboardService = {
             serviceName: booking.service.name,
           },
         })),
-        ...recentInvoices.map(invoice => ({
-          type: 'INVOICE',
+        ...recentInvoices.map((invoice) => ({
+          type: "INVOICE",
           id: invoice.id,
           status: invoice.status,
           date: invoice.createdAt,
@@ -991,7 +1057,10 @@ export const dashboardService = {
 
       return allActivities;
     } catch (error) {
-      console.error("Erreur lors de la récupération de l'activité récente du client:", error);
+      console.error(
+        "Erreur lors de la récupération de l'activité récente du client:",
+        error,
+      );
       throw error;
     }
   },
@@ -1006,7 +1075,7 @@ export const dashboardService = {
       const totalSpent = await db.payment.aggregate({
         where: {
           userId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
         },
         _sum: {
           amount: true,
@@ -1017,13 +1086,13 @@ export const dashboardService = {
       const unpaidInvoices = await db.invoice.findMany({
         where: {
           userId,
-          status: 'OVERDUE',
+          status: "OVERDUE",
         },
       });
 
       const unpaidAmount = unpaidInvoices.reduce(
         (sum, invoice) => sum + invoice.amount.toNumber(),
-        0
+        0,
       );
 
       // Dépenses mensuelles (derniers 6 mois)
@@ -1035,7 +1104,7 @@ export const dashboardService = {
       const monthlyPayments = await db.payment.findMany({
         where: {
           userId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           createdAt: {
             gte: sixMonthsAgo,
           },
@@ -1045,14 +1114,14 @@ export const dashboardService = {
           createdAt: true,
         },
         orderBy: {
-          createdAt: 'asc',
+          createdAt: "asc",
         },
       });
 
       // Calculer les dépenses mensuelles manuellement
       const monthlySpending: Record<string, number> = {};
 
-      monthlyPayments.forEach(payment => {
+      monthlyPayments.forEach((payment) => {
         const date = payment.createdAt;
         const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
 
@@ -1064,10 +1133,12 @@ export const dashboardService = {
       });
 
       // Convertir en tableau pour le frontend
-      const monthlySpendingArray = Object.entries(monthlySpending).map(([monthYear, amount]) => ({
-        month: monthYear,
-        amount,
-      }));
+      const monthlySpendingArray = Object.entries(monthlySpending).map(
+        ([monthYear, amount]) => ({
+          month: monthYear,
+          amount,
+        }),
+      );
 
       return {
         totalSpent: totalSpent._sum.amount?.toNumber() || 0,
@@ -1076,7 +1147,10 @@ export const dashboardService = {
         monthlySpending: monthlySpendingArray,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des métriques financières du client:', error);
+      console.error(
+        "Erreur lors de la récupération des métriques financières du client:",
+        error,
+      );
       throw error;
     }
   },
@@ -1104,7 +1178,7 @@ export const dashboardService = {
         where: {
           clientId,
           status: {
-            in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'],
+            in: ["PENDING", "ACCEPTED", "IN_TRANSIT"],
           },
         },
         include: {
@@ -1116,7 +1190,7 @@ export const dashboardService = {
           },
         },
         orderBy: {
-          updatedAt: 'desc',
+          updatedAt: "desc",
         },
       });
 
@@ -1124,7 +1198,7 @@ export const dashboardService = {
       const upcomingAppointments = await db.serviceBooking.findMany({
         where: {
           clientId,
-          status: 'CONFIRMED',
+          status: "CONFIRMED",
           startTime: {
             gte: new Date(),
           },
@@ -1140,7 +1214,7 @@ export const dashboardService = {
           },
         },
         orderBy: {
-          startTime: 'asc',
+          startTime: "asc",
         },
       });
 
@@ -1148,7 +1222,7 @@ export const dashboardService = {
       const activeBoxReservations = await db.reservation.findMany({
         where: {
           clientId,
-          status: 'ACTIVE',
+          status: "ACTIVE",
         },
         include: {
           box: {
@@ -1165,7 +1239,10 @@ export const dashboardService = {
         activeBoxReservations,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des éléments actifs du client:', error);
+      console.error(
+        "Erreur lors de la récupération des éléments actifs du client:",
+        error,
+      );
       throw error;
     }
   },
@@ -1185,7 +1262,9 @@ export const dashboardService = {
 
     // Déterminer la période précédente pour comparaison si demandé
     const compareStartDate = comparison
-      ? new Date(startDate.getTime() - (endDate.getTime() - startDate.getTime()))
+      ? new Date(
+          startDate.getTime() - (endDate.getTime() - startDate.getTime()),
+        )
       : null;
     const compareEndDate = comparison ? startDate : null;
 
@@ -1197,7 +1276,7 @@ export const dashboardService = {
             gte: startDateFormatted,
             lte: endDateFormatted,
           },
-          status: 'PAID',
+          status: "PAID",
           ...(categoryFilter ? { category: categoryFilter } : {}),
         },
         select: {
@@ -1208,7 +1287,7 @@ export const dashboardService = {
           category: true,
         },
         orderBy: {
-          createdAt: 'asc',
+          createdAt: "asc",
         },
       });
 
@@ -1221,7 +1300,7 @@ export const dashboardService = {
               gte: compareStartDate,
               lte: compareEndDate,
             },
-            status: 'PAID',
+            status: "PAID",
             ...(categoryFilter ? { category: categoryFilter } : {}),
           },
           select: {
@@ -1232,51 +1311,63 @@ export const dashboardService = {
             category: true,
           },
           orderBy: {
-            createdAt: 'asc',
+            createdAt: "asc",
           },
         });
       }
 
       // Analyse et agrégation des données par période (jour, semaine, mois...)
-      const timeSeriesData = aggregateTimeSeriesData(salesQuery, granularity, 'totalAmount');
+      const timeSeriesData = aggregateTimeSeriesData(
+        salesQuery,
+        granularity,
+        "totalAmount",
+      );
       const comparisonTimeSeriesData = comparisonData
-        ? aggregateTimeSeriesData(comparisonData, granularity, 'totalAmount')
+        ? aggregateTimeSeriesData(comparisonData, granularity, "totalAmount")
         : null;
 
       // Agréger les données par catégorie
       const salesByCategory = await db.invoice.groupBy({
-        by: ['category'],
+        by: ["category"],
         where: {
           createdAt: {
             gte: startDateFormatted,
             lte: endDateFormatted,
           },
-          status: 'PAID',
+          status: "PAID",
         },
         _sum: {
           totalAmount: true,
         },
         orderBy: {
           _sum: {
-            totalAmount: 'desc',
+            totalAmount: "desc",
           },
         },
       });
 
       // Calcul des totaux et des comparaisons
-      const totalSales = salesQuery.reduce((sum, invoice) => sum + Number(invoice.totalAmount), 0);
+      const totalSales = salesQuery.reduce(
+        (sum, invoice) => sum + Number(invoice.totalAmount),
+        0,
+      );
       const previousTotalSales = comparisonData
-        ? comparisonData.reduce((sum, invoice) => sum + Number(invoice.totalAmount), 0)
+        ? comparisonData.reduce(
+            (sum, invoice) => sum + Number(invoice.totalAmount),
+            0,
+          )
         : 0;
 
       const percentChange =
-        previousTotalSales > 0 ? ((totalSales - previousTotalSales) / previousTotalSales) * 100 : 0;
+        previousTotalSales > 0
+          ? ((totalSales - previousTotalSales) / previousTotalSales) * 100
+          : 0;
 
       return {
         timeSeriesData,
         comparisonTimeSeriesData,
-        salesByCategory: salesByCategory.map(category => ({
-          name: category.category || 'Non catégorisé',
+        salesByCategory: salesByCategory.map((category) => ({
+          name: category.category || "Non catégorisé",
           value: Number(category._sum.totalAmount),
         })),
         summary: {
@@ -1284,11 +1375,15 @@ export const dashboardService = {
           numberOfInvoices: salesQuery.length,
           previousTotalSales: comparison ? previousTotalSales : null,
           percentChange: comparison ? percentChange : null,
-          averageOrderValue: salesQuery.length > 0 ? totalSales / salesQuery.length : 0,
+          averageOrderValue:
+            salesQuery.length > 0 ? totalSales / salesQuery.length : 0,
         },
       };
     } catch (error) {
-      console.error('Erreur lors de la génération du rapport de ventes:', error);
+      console.error(
+        "Erreur lors de la génération du rapport de ventes:",
+        error,
+      );
       throw error;
     }
   },
@@ -1308,7 +1403,9 @@ export const dashboardService = {
 
     // Déterminer la période précédente pour comparaison si demandé
     const compareStartDate = comparison
-      ? new Date(startDate.getTime() - (endDate.getTime() - startDate.getTime()))
+      ? new Date(
+          startDate.getTime() - (endDate.getTime() - startDate.getTime()),
+        )
       : null;
     const compareEndDate = comparison ? startDate : null;
 
@@ -1328,7 +1425,7 @@ export const dashboardService = {
           role: true,
         },
         orderBy: {
-          createdAt: 'asc',
+          createdAt: "asc",
         },
       });
 
@@ -1352,7 +1449,7 @@ export const dashboardService = {
           },
         },
         orderBy: {
-          createdAt: 'asc',
+          createdAt: "asc",
         },
       });
 
@@ -1375,7 +1472,7 @@ export const dashboardService = {
             role: true,
           },
           orderBy: {
-            createdAt: 'asc',
+            createdAt: "asc",
           },
         });
 
@@ -1398,27 +1495,35 @@ export const dashboardService = {
             },
           },
           orderBy: {
-            createdAt: 'asc',
+            createdAt: "asc",
           },
         });
       }
 
       // Agréger les données d'inscriptions par période
-      const signupsTimeSeriesData = aggregateTimeSeriesData(userSignupsQuery, granularity, 'count');
+      const signupsTimeSeriesData = aggregateTimeSeriesData(
+        userSignupsQuery,
+        granularity,
+        "count",
+      );
       const comparisonSignupsData = comparisonSignups
-        ? aggregateTimeSeriesData(comparisonSignups, granularity, 'count')
+        ? aggregateTimeSeriesData(comparisonSignups, granularity, "count")
         : null;
 
       // Agréger les données de connexions par période
-      const loginsTimeSeriesData = aggregateTimeSeriesData(userLoginsQuery, granularity, 'count');
+      const loginsTimeSeriesData = aggregateTimeSeriesData(
+        userLoginsQuery,
+        granularity,
+        "count",
+      );
       const comparisonLoginsData = comparisonLogins
-        ? aggregateTimeSeriesData(comparisonLogins, granularity, 'count')
+        ? aggregateTimeSeriesData(comparisonLogins, granularity, "count")
         : null;
 
       // Analyser par rôle si pas de filtre
       const usersByRole = !userRoleFilter
         ? await db.user.groupBy({
-            by: ['role'],
+            by: ["role"],
             where: {
               createdAt: {
                 gte: startDateFormatted,
@@ -1430,12 +1535,16 @@ export const dashboardService = {
         : [];
 
       // Calculer les utilisateurs actifs (ayant eu au moins une session)
-      const activeUserIds = new Set(userLoginsQuery.map(login => login.userId));
+      const activeUserIds = new Set(
+        userLoginsQuery.map((login) => login.userId),
+      );
       const activeUsersCount = activeUserIds.size;
 
       // Calculer les totaux et comparaisons
       const totalSignups = userSignupsQuery.length;
-      const previousTotalSignups = comparisonSignups ? comparisonSignups.length : 0;
+      const previousTotalSignups = comparisonSignups
+        ? comparisonSignups.length
+        : 0;
       const signupsPercentChange =
         previousTotalSignups > 0
           ? ((totalSignups - previousTotalSignups) / previousTotalSignups) * 100
@@ -1446,7 +1555,7 @@ export const dashboardService = {
         comparisonSignupsData,
         loginsTimeSeriesData,
         comparisonLoginsData,
-        usersByRole: usersByRole.map(role => ({
+        usersByRole: usersByRole.map((role) => ({
           role: role.role,
           count: role._count,
         })),
@@ -1460,7 +1569,10 @@ export const dashboardService = {
         },
       };
     } catch (error) {
-      console.error("Erreur lors de la génération du rapport d'activité utilisateur:", error);
+      console.error(
+        "Erreur lors de la génération du rapport d'activité utilisateur:",
+        error,
+      );
       throw error;
     }
   },
@@ -1481,7 +1593,9 @@ export const dashboardService = {
 
     // Déterminer la période précédente pour comparaison si demandé
     const compareStartDate = comparison
-      ? new Date(startDate.getTime() - (endDate.getTime() - startDate.getTime()))
+      ? new Date(
+          startDate.getTime() - (endDate.getTime() - startDate.getTime()),
+        )
       : null;
     const compareEndDate = comparison ? startDate : null;
 
@@ -1512,7 +1626,7 @@ export const dashboardService = {
           },
         },
         orderBy: {
-          createdAt: 'asc',
+          createdAt: "asc",
         },
       });
 
@@ -1545,16 +1659,19 @@ export const dashboardService = {
             },
           },
           orderBy: {
-            createdAt: 'asc',
+            createdAt: "asc",
           },
         });
       }
 
       // Calculer les livraisons à temps vs en retard
       const completedDeliveries = deliveriesQuery.filter(
-        d => d.status === 'DELIVERED' && d.estimatedDeliveryTime && d.actualDeliveryTime
+        (d) =>
+          d.status === "DELIVERED" &&
+          d.estimatedDeliveryTime &&
+          d.actualDeliveryTime,
       );
-      const onTimeDeliveries = completedDeliveries.filter(d => {
+      const onTimeDeliveries = completedDeliveries.filter((d) => {
         const estimated = new Date(d.estimatedDeliveryTime!);
         const actual = new Date(d.actualDeliveryTime!);
         return actual <= estimated;
@@ -1606,21 +1723,23 @@ export const dashboardService = {
       const deliveriesTimeSeriesData = aggregateTimeSeriesData(
         deliveriesQuery,
         granularity,
-        'count'
+        "count",
       );
 
       // Agréger les livraisons à temps par période
       const onTimeDeliveriesData =
         onTimeDeliveries.length > 0
-          ? aggregateTimeSeriesData(onTimeDeliveries, granularity, 'count')
+          ? aggregateTimeSeriesData(onTimeDeliveries, granularity, "count")
           : [];
 
       // Calculer le taux de livraison à temps par période
-      const onTimeDeliveryRate = deliveriesTimeSeriesData.map(period => {
+      const onTimeDeliveryRate = deliveriesTimeSeriesData.map((period) => {
         const totalForPeriod = period.value;
         const onTimeForPeriod =
-          onTimeDeliveriesData.find(p => p.period === period.period)?.value || 0;
-        const rate = totalForPeriod > 0 ? (onTimeForPeriod / totalForPeriod) * 100 : 0;
+          onTimeDeliveriesData.find((p) => p.period === period.period)?.value ||
+          0;
+        const rate =
+          totalForPeriod > 0 ? (onTimeForPeriod / totalForPeriod) * 100 : 0;
 
         return {
           period: period.period,
@@ -1632,9 +1751,12 @@ export const dashboardService = {
       let previousOnTimePercentage = null;
       if (comparisonDeliveries) {
         const prevCompletedDeliveries = comparisonDeliveries.filter(
-          d => d.status === 'DELIVERED' && d.estimatedDeliveryTime && d.actualDeliveryTime
+          (d) =>
+            d.status === "DELIVERED" &&
+            d.estimatedDeliveryTime &&
+            d.actualDeliveryTime,
         );
-        const prevOnTimeDeliveries = prevCompletedDeliveries.filter(d => {
+        const prevOnTimeDeliveries = prevCompletedDeliveries.filter((d) => {
           const estimated = new Date(d.estimatedDeliveryTime!);
           const actual = new Date(d.actualDeliveryTime!);
           return actual <= estimated;
@@ -1642,7 +1764,8 @@ export const dashboardService = {
 
         previousOnTimePercentage =
           prevCompletedDeliveries.length > 0
-            ? (prevOnTimeDeliveries.length / prevCompletedDeliveries.length) * 100
+            ? (prevOnTimeDeliveries.length / prevCompletedDeliveries.length) *
+              100
             : 0;
       }
 
@@ -1654,7 +1777,9 @@ export const dashboardService = {
 
       // Calculer le changement de pourcentage
       const percentChange =
-        previousOnTimePercentage !== null ? onTimePercentage - previousOnTimePercentage : 0;
+        previousOnTimePercentage !== null
+          ? onTimePercentage - previousOnTimePercentage
+          : 0;
 
       // Calculer le temps moyen de livraison
       const averageDeliveryTimeInMinutes =
@@ -1663,7 +1788,10 @@ export const dashboardService = {
               if (delivery.actualDeliveryTime && delivery.createdAt) {
                 const createdAt = new Date(delivery.createdAt);
                 const completedAt = new Date(delivery.actualDeliveryTime);
-                return sum + (completedAt.getTime() - createdAt.getTime()) / (1000 * 60);
+                return (
+                  sum +
+                  (completedAt.getTime() - createdAt.getTime()) / (1000 * 60)
+                );
               }
               return sum;
             }, 0) / completedDeliveries.length
@@ -1684,20 +1812,28 @@ export const dashboardService = {
       });
 
       const issueRate =
-        deliveriesQuery.length > 0 ? (issueCount / deliveriesQuery.length) * 100 : 0;
+        deliveriesQuery.length > 0
+          ? (issueCount / deliveriesQuery.length) * 100
+          : 0;
 
       // Calculer le taux d'annulation
-      const cancelledDeliveries = deliveriesQuery.filter(d => d.status === 'CANCELLED').length;
+      const cancelledDeliveries = deliveriesQuery.filter(
+        (d) => d.status === "CANCELLED",
+      ).length;
       const cancelRate =
-        deliveriesQuery.length > 0 ? (cancelledDeliveries / deliveriesQuery.length) * 100 : 0;
+        deliveriesQuery.length > 0
+          ? (cancelledDeliveries / deliveriesQuery.length) * 100
+          : 0;
 
       return {
         onTimeDeliveryRate,
-        deliveryTimesByZone: deliveryTimesByZone.map((zone: any, index: number) => ({
-          zone: zone.zone,
-          averageTime: parseFloat(zone.average_time),
-          color: index % 2 === 0 ? '#8884d8' : '#82ca9d',
-        })),
+        deliveryTimesByZone: deliveryTimesByZone.map(
+          (zone: any, index: number) => ({
+            zone: zone.zone,
+            averageTime: parseFloat(zone.average_time),
+            color: index % 2 === 0 ? "#8884d8" : "#82ca9d",
+          }),
+        ),
         deliveryIssues: (deliveryIssues as any[]).map((issue, index) => ({
           issueType: issue.issue_type,
           count: parseInt(issue.count, 10),
@@ -1706,35 +1842,40 @@ export const dashboardService = {
         })),
         deliveriesByStatus: [
           {
-            status: 'DELIVERED',
-            count: deliveriesQuery.filter(d => d.status === 'DELIVERED').length,
-            color: '#4CAF50',
+            status: "DELIVERED",
+            count: deliveriesQuery.filter((d) => d.status === "DELIVERED")
+              .length,
+            color: "#4CAF50",
           },
           {
-            status: 'IN_TRANSIT',
-            count: deliveriesQuery.filter(d => d.status === 'IN_TRANSIT').length,
-            color: '#2196F3',
+            status: "IN_TRANSIT",
+            count: deliveriesQuery.filter((d) => d.status === "IN_TRANSIT")
+              .length,
+            color: "#2196F3",
           },
           {
-            status: 'PENDING',
-            count: deliveriesQuery.filter(d => d.status === 'PENDING').length,
-            color: '#FFC107',
+            status: "PENDING",
+            count: deliveriesQuery.filter((d) => d.status === "PENDING").length,
+            color: "#FFC107",
           },
           {
-            status: 'CANCELLED',
-            count: deliveriesQuery.filter(d => d.status === 'CANCELLED').length,
-            color: '#F44336',
+            status: "CANCELLED",
+            count: deliveriesQuery.filter((d) => d.status === "CANCELLED")
+              .length,
+            color: "#F44336",
           },
           {
-            status: 'PROBLEM',
-            count: deliveriesQuery.filter(d => d.status === 'PROBLEM').length,
-            color: '#FF5722',
+            status: "PROBLEM",
+            count: deliveriesQuery.filter((d) => d.status === "PROBLEM").length,
+            color: "#FF5722",
           },
         ],
         performanceSummary: {
           totalDeliveries: deliveriesQuery.length,
           onTimePercentage,
-          previousOnTimePercentage: comparison ? previousOnTimePercentage : null,
+          previousOnTimePercentage: comparison
+            ? previousOnTimePercentage
+            : null,
           percentChange,
           averageDeliveryTime: averageDeliveryTimeInMinutes,
           issueRate,
@@ -1742,7 +1883,10 @@ export const dashboardService = {
         },
       };
     } catch (error) {
-      console.error('Erreur lors de la génération du rapport de performance de livraison:', error);
+      console.error(
+        "Erreur lors de la génération du rapport de performance de livraison:",
+        error,
+      );
       throw error;
     }
   },
@@ -1751,38 +1895,42 @@ export const dashboardService = {
 /**
  * Fonction utilitaire pour agréger des données par période (jour, semaine, mois...)
  */
-function aggregateTimeSeriesData(data: any[], granularity: string, valueField: string = 'count') {
+function aggregateTimeSeriesData(
+  data: any[],
+  granularity: string,
+  valueField: string = "count",
+) {
   if (!data || data.length === 0) return [];
 
   const result: { period: string; value: number }[] = [];
   const groupedData: Record<string, any[]> = {};
 
   // Regrouper les données par la période spécifiée
-  data.forEach(item => {
+  data.forEach((item) => {
     const date = new Date(item.createdAt);
     let periodKey: string;
 
     switch (granularity) {
-      case 'day':
-        periodKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      case "day":
+        periodKey = date.toISOString().split("T")[0]; // YYYY-MM-DD
         break;
-      case 'week':
+      case "week":
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay()); // Début de la semaine (dimanche)
-        periodKey = weekStart.toISOString().split('T')[0];
+        periodKey = weekStart.toISOString().split("T")[0];
         break;
-      case 'month':
-        periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      case "month":
+        periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
         break;
-      case 'quarter':
+      case "quarter":
         const quarter = Math.floor(date.getMonth() / 3) + 1;
         periodKey = `${date.getFullYear()}-Q${quarter}`;
         break;
-      case 'year':
+      case "year":
         periodKey = `${date.getFullYear()}`;
         break;
       default:
-        periodKey = date.toISOString().split('T')[0]; // Par défaut: jour
+        periodKey = date.toISOString().split("T")[0]; // Par défaut: jour
     }
 
     if (!groupedData[periodKey]) {
@@ -1796,11 +1944,14 @@ function aggregateTimeSeriesData(data: any[], granularity: string, valueField: s
   Object.entries(groupedData).forEach(([period, items]) => {
     let value: number;
 
-    if (valueField === 'count') {
+    if (valueField === "count") {
       value = items.length;
     } else {
       // Somme des valeurs numériques
-      value = items.reduce((sum, item) => sum + (Number(item[valueField]) || 0), 0);
+      value = items.reduce(
+        (sum, item) => sum + (Number(item[valueField]) || 0),
+        0,
+      );
     }
 
     result.push({ period, value });
@@ -1817,18 +1968,18 @@ function aggregateTimeSeriesData(data: any[], granularity: string, valueField: s
  */
 function getColorByIndex(index: number): string {
   const colors = [
-    '#8884d8',
-    '#82ca9d',
-    '#ffc658',
-    '#ff8042',
-    '#0088FE',
-    '#00C49F',
-    '#FFBB28',
-    '#FF8042',
-    '#8844d8',
-    '#41ca9d',
-    '#eec658',
-    '#ef8042',
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+    "#ff8042",
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#8844d8",
+    "#41ca9d",
+    "#eec658",
+    "#ef8042",
   ];
 
   return colors[index % colors.length];

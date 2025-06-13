@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { ProfileHeader } from '@/components/shared/profile/profile-header';
-import { ProfileInfoCard } from '@/components/ui/card';
-import { ClientProfileForm } from '@/components/ui/form';
-import { useProfileStore } from '@/store/use-profile-store';
-import { UserRole } from '@prisma/client';
+import React from "react";
+import { ProfileHeader } from "@/components/shared/profile/profile-header";
+import { ProfileInfoCard } from "@/components/ui/card";
+import { ClientProfileForm } from "@/components/ui/form";
+import { useProfileStore } from "@/store/use-profile-store";
+import { UserRole } from "@prisma/client";
 
 export default function ClientProfilePage() {
   // Dans cette page côté serveur Next.js, les hooks client React ne sont pas directement utilisables
@@ -31,9 +31,9 @@ function ClientProfileContent() {
 
   // Afficher différentes sections en fonction de la vue sélectionnée
   switch (profileView) {
-    case 'info':
+    case "info":
       return <ProfileInfoCard />;
-    case 'preferences':
+    case "preferences":
       return (
         <div className="space-y-8">
           <div className="text-center py-10">
@@ -44,7 +44,7 @@ function ClientProfileContent() {
           </div>
         </div>
       );
-    case 'addresses':
+    case "addresses":
       // L'adresse est pour l'instant dans ProfileInfoCard
       // Mais on pourrait créer un composant dédié pour la gestion des adresses
       return (
@@ -53,13 +53,14 @@ function ClientProfileContent() {
           {/* Futur composant de gestion des adresses */}
         </div>
       );
-    case 'security':
+    case "security":
       return (
         <div className="space-y-8">
           <div className="text-center py-10">
             <h2 className="text-xl font-medium mb-2">Sécurité du compte</h2>
             <p className="text-muted-foreground">
-              Gestion de la sécurité de votre compte non disponible pour le moment.
+              Gestion de la sécurité de votre compte non disponible pour le
+              moment.
             </p>
           </div>
         </div>

@@ -1,20 +1,20 @@
-import { db } from '@/server/db';
-import { TRPCError } from '@trpc/server';
+import { db } from "@/server/db";
+import { TRPCError } from "@trpc/server";
 import {
   DeliveryStatus,
   DocumentVerificationStatus,
   ApplicationStatus,
   MatchingStatus,
   RequiredDocumentType,
-} from '@prisma/client';
+} from "@prisma/client";
 import type {
   DeliveryFilters,
   DeliveryStatusUpdate,
   DeliveryCoordinatesInput,
   DeliveryConfirmation,
   DeliveryRatingInput,
-} from '@/types/delivery';
-import { NotificationService } from '@/lib/services/notification.service';
+} from "@/types/delivery";
+import { NotificationService } from "@/lib/services/notification.service";
 
 export const DeliveryService = {
   /**
@@ -40,7 +40,9 @@ export const DeliveryService = {
         }),
         db.delivery.count({
           where: {
-            status: { in: [DeliveryStatus.PICKED_UP, DeliveryStatus.IN_TRANSIT] },
+            status: {
+              in: [DeliveryStatus.PICKED_UP, DeliveryStatus.IN_TRANSIT],
+            },
             createdAt: { gte: startDate, lte: endDate },
           },
         }),
@@ -64,11 +66,14 @@ export const DeliveryService = {
         inProgressDeliveries,
         completedDeliveries,
         cancelledDeliveries,
-        completionRate: totalDeliveries > 0 ? (completedDeliveries / totalDeliveries) * 100 : 0,
+        completionRate:
+          totalDeliveries > 0
+            ? (completedDeliveries / totalDeliveries) * 100
+            : 0,
         timeRange: { startDate, endDate },
       };
     } catch (error) {
-      console.error('Erreur dans getStats:', error);
+      console.error("Erreur dans getStats:", error);
       throw error;
     }
   },
@@ -80,9 +85,9 @@ export const DeliveryService = {
     const where: any = {};
 
     // Filtrage par rôle utilisateur
-    if (userRole === 'DELIVERER') {
+    if (userRole === "DELIVERER") {
       where.delivererId = userId;
-    } else if (userRole === 'CLIENT') {
+    } else if (userRole === "CLIENT") {
       where.clientId = userId;
     }
 
@@ -95,8 +100,12 @@ export const DeliveryService = {
     }
     if (filters.search) {
       where.OR = [
-        { trackingCode: { contains: filters.search, mode: 'insensitive' } },
-        { announcement: { title: { contains: filters.search, mode: 'insensitive' } } },
+        { trackingCode: { contains: filters.search, mode: "insensitive" } },
+        {
+          announcement: {
+            title: { contains: filters.search, mode: "insensitive" },
+          },
+        },
       ];
     }
 
@@ -134,11 +143,11 @@ export const DeliveryService = {
           },
         },
         coordinates: {
-          orderBy: { timestamp: 'desc' },
+          orderBy: { timestamp: "desc" },
           take: 1,
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   },
 
@@ -157,10 +166,10 @@ export const DeliveryService = {
           include: { deliverer: true },
         },
         logs: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         },
         coordinates: {
-          orderBy: { timestamp: 'desc' },
+          orderBy: { timestamp: "desc" },
           take: 20,
         },
         proofs: true,
@@ -169,12 +178,19 @@ export const DeliveryService = {
     });
 
     if (!delivery) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Livraison introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Livraison introuvable",
+      });
     }
 
     // Vérification des permissions
-    if (userRole !== 'ADMIN' && delivery.clientId !== userId && delivery.delivererId !== userId) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+    if (
+      userRole !== "ADMIN" &&
+      delivery.clientId !== userId &&
+      delivery.delivererId !== userId
+    ) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
     }
 
     return delivery;
@@ -186,18 +202,26 @@ export const DeliveryService = {
   async assignDelivery(announcementId: string) {
     const announcement = await db.announcement.findUnique({
       where: { id: announcementId },
-      include: { proposals: { include: { deliverer: { include: { profile: true } } } } },
+      include: {
+        proposals: { include: { deliverer: { include: { profile: true } } } },
+      },
     });
 
     if (!announcement) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Annonce introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Annonce introuvable",
+      });
     }
 
     // Logique d'assignment intelligent (proximité, évaluations, disponibilité)
     const bestDeliverer = await this.findBestDeliverer(announcement);
 
     if (!bestDeliverer) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Aucun livreur disponible' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Aucun livreur disponible",
+      });
     }
 
     const delivery = await db.delivery.create({
@@ -213,9 +237,9 @@ export const DeliveryService = {
 
     // Notification au livreur
     await NotificationService.sendToUser(bestDeliverer.id, {
-      title: 'Nouvelle livraison assignée',
+      title: "Nouvelle livraison assignée",
       body: `Livraison ${delivery.trackingCode} vous a été assignée`,
-      data: { deliveryId: delivery.id, type: 'DELIVERY_ASSIGNED' },
+      data: { deliveryId: delivery.id, type: "DELIVERY_ASSIGNED" },
     });
 
     return delivery;
@@ -231,25 +255,32 @@ export const DeliveryService = {
     });
 
     if (!delivery) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Livraison introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Livraison introuvable",
+      });
     }
 
     if (delivery.delivererId !== userId) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seul le livreur assigné peut modifier le statut',
+        code: "FORBIDDEN",
+        message: "Seul le livreur assigné peut modifier le statut",
       });
     }
 
     // Transaction pour mise à jour atomique
-    const result = await db.$transaction(async tx => {
+    const result = await db.$transaction(async (tx) => {
       // Mise à jour du statut
       const updatedDelivery = await tx.delivery.update({
         where: { id: statusUpdate.deliveryId },
         data: {
           status: statusUpdate.status,
-          ...(statusUpdate.status === DeliveryStatus.PICKED_UP && { startTime: new Date() }),
-          ...(statusUpdate.status === DeliveryStatus.DELIVERED && { completionTime: new Date() }),
+          ...(statusUpdate.status === DeliveryStatus.PICKED_UP && {
+            startTime: new Date(),
+          }),
+          ...(statusUpdate.status === DeliveryStatus.DELIVERED && {
+            completionTime: new Date(),
+          }),
         },
       });
 
@@ -258,7 +289,8 @@ export const DeliveryService = {
         data: {
           deliveryId: statusUpdate.deliveryId,
           status: statusUpdate.status,
-          message: statusUpdate.comment || `Statut mis à jour: ${statusUpdate.status}`,
+          message:
+            statusUpdate.comment || `Statut mis à jour: ${statusUpdate.status}`,
           location: statusUpdate.location
             ? `${statusUpdate.location.latitude},${statusUpdate.location.longitude}`
             : null,
@@ -281,7 +313,7 @@ export const DeliveryService = {
 
     // Notification au client
     await NotificationService.sendToUser(delivery.clientId, {
-      title: 'Mise à jour de livraison',
+      title: "Mise à jour de livraison",
       body: `Votre livraison ${delivery.trackingCode} : ${statusUpdate.status}`,
       data: { deliveryId: delivery.id, status: statusUpdate.status },
     });
@@ -292,17 +324,23 @@ export const DeliveryService = {
   /**
    * Enregistre les coordonnées GPS du livreur en temps réel
    */
-  async updateCoordinates(coordinates: DeliveryCoordinatesInput, userId: string) {
+  async updateCoordinates(
+    coordinates: DeliveryCoordinatesInput,
+    userId: string,
+  ) {
     const delivery = await db.delivery.findUnique({
       where: { id: coordinates.deliveryId },
     });
 
     if (!delivery) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Livraison introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Livraison introuvable",
+      });
     }
 
     if (delivery.delivererId !== userId) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
     }
 
     return await db.deliveryCoordinates.create({
@@ -317,20 +355,29 @@ export const DeliveryService = {
   /**
    * Valide le code de livraison pour confirmer la réception
    */
-  async validateDeliveryCode(confirmation: DeliveryConfirmation, userId: string) {
+  async validateDeliveryCode(
+    confirmation: DeliveryConfirmation,
+    userId: string,
+  ) {
     const delivery = await db.delivery.findUnique({
       where: { id: confirmation.deliveryId },
       include: { announcement: true },
     });
 
     if (!delivery) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Livraison introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Livraison introuvable",
+      });
     }
 
     // Vérification du code (généré côté client lors de la création)
     const expectedCode = delivery.announcement.confirmationCode;
     if (confirmation.confirmationCode !== expectedCode) {
-      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Code de confirmation invalide' });
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Code de confirmation invalide",
+      });
     }
 
     // Mise à jour du statut
@@ -367,21 +414,23 @@ export const DeliveryService = {
     // - Historique des livraisons
     const availableDeliverers = await db.user.findMany({
       where: {
-        role: 'DELIVERER',
+        role: "DELIVERER",
         isActive: true,
-        verificationStatus: 'VERIFIED',
+        verificationStatus: "VERIFIED",
       },
       include: {
         profile: true,
         delivererDeliveries: {
-          where: { status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] } },
+          where: {
+            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
+          },
         },
       },
     });
 
     // Filtre les livreurs non surchargés (max 3 livraisons actives)
     const eligibleDeliverers = availableDeliverers.filter(
-      deliverer => deliverer.delivererDeliveries.length < 3
+      (deliverer) => deliverer.delivererDeliveries.length < 3,
     );
 
     // Retourne le premier éligible (à améliorer avec un algorithme de scoring)
@@ -393,7 +442,7 @@ export const DeliveryService = {
    */
   generateTrackingCode(): string {
     return (
-      'ECO' +
+      "ECO" +
       Date.now().toString(36).toUpperCase() +
       Math.random().toString(36).substr(2, 3).toUpperCase()
     );
@@ -408,13 +457,16 @@ export const DeliveryService = {
     });
 
     if (!delivery) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Livraison introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Livraison introuvable",
+      });
     }
 
     if (delivery.status !== DeliveryStatus.DELIVERED) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'La livraison doit être terminée pour être évaluée',
+        code: "BAD_REQUEST",
+        message: "La livraison doit être terminée pour être évaluée",
       });
     }
 
@@ -440,12 +492,12 @@ export const DeliveryService = {
    */
   async getDelivererProfile(delivererId: string, requesterId?: string) {
     const deliverer = await db.user.findUnique({
-      where: { id: delivererId, role: 'DELIVERER' },
+      where: { id: delivererId, role: "DELIVERER" },
       include: {
         profile: true,
         stats: true,
         schedules: {
-          orderBy: { dayOfWeek: 'asc' },
+          orderBy: { dayOfWeek: "asc" },
         },
         routes: {
           where: { isActive: true },
@@ -457,16 +509,20 @@ export const DeliveryService = {
           where: {
             endDate: { gte: new Date() },
           },
-          orderBy: { startDate: 'asc' },
+          orderBy: { startDate: "asc" },
         },
         preferences: true,
         delivererDeliveries: {
           where: {
-            status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
+            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
           },
           include: {
             announcement: {
-              select: { title: true, pickupAddress: true, deliveryAddress: true },
+              select: {
+                title: true,
+                pickupAddress: true,
+                deliveryAddress: true,
+              },
             },
           },
         },
@@ -474,7 +530,10 @@ export const DeliveryService = {
     });
 
     if (!deliverer) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Livreur introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Livreur introuvable",
+      });
     }
 
     return deliverer;
@@ -483,16 +542,20 @@ export const DeliveryService = {
   /**
    * Met à jour le profil d'un livreur
    */
-  async updateDelivererProfile(delivererId: string, profileData: any, userId: string) {
+  async updateDelivererProfile(
+    delivererId: string,
+    profileData: any,
+    userId: string,
+  ) {
     // Vérification des permissions
     if (delivererId !== userId) {
       const requester = await db.user.findUnique({ where: { id: userId } });
-      if (requester?.role !== 'ADMIN') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+      if (requester?.role !== "ADMIN") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
       }
     }
 
-    return await db.$transaction(async tx => {
+    return await db.$transaction(async (tx) => {
       // Mise à jour du profil principal
       if (profileData.profile) {
         await tx.userProfile.update({
@@ -520,15 +583,19 @@ export const DeliveryService = {
   /**
    * Upload et validation des documents du livreur
    */
-  async uploadDelivererDocument(delivererId: string, documentData: any, userId: string) {
+  async uploadDelivererDocument(
+    delivererId: string,
+    documentData: any,
+    userId: string,
+  ) {
     // Vérification des permissions
     if (delivererId !== userId) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
     }
 
     // Créer une application fictive pour les documents du profil
     let application = await db.deliveryApplication.findFirst({
-      where: { delivererId, announcementId: 'profile-documents' },
+      where: { delivererId, announcementId: "profile-documents" },
     });
 
     if (!application) {
@@ -536,21 +603,21 @@ export const DeliveryService = {
       application = await db.deliveryApplication.create({
         data: {
           delivererId,
-          announcementId: 'profile-documents', // ID spécial pour les documents de profil
+          announcementId: "profile-documents", // ID spécial pour les documents de profil
           status: ApplicationStatus.PENDING,
           verificationStatus: DocumentVerificationStatus.PENDING,
         },
       });
     }
 
-    return await db.$transaction(async tx => {
+    return await db.$transaction(async (tx) => {
       // Calculer la version suivante
       const lastVersion = await tx.applicationDocument.findFirst({
         where: {
           applicationId: application.id,
           documentType: documentData.type,
         },
-        orderBy: { version: 'desc' },
+        orderBy: { version: "desc" },
       });
 
       const newVersion = (lastVersion?.version || 0) + 1;
@@ -579,7 +646,7 @@ export const DeliveryService = {
           previousStatus: DocumentVerificationStatus.PENDING,
           newStatus: DocumentVerificationStatus.PENDING,
           actionBy: userId,
-          actionType: 'UPLOAD',
+          actionType: "UPLOAD",
           notes: `Document uploadé - version ${newVersion}`,
           automated: false,
         },
@@ -596,27 +663,33 @@ export const DeliveryService = {
     // Vérification des permissions
     if (delivererId !== userId) {
       const requester = await db.user.findUnique({ where: { id: userId } });
-      if (requester?.role !== 'ADMIN') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+      if (requester?.role !== "ADMIN") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
       }
     }
 
     const application = await db.deliveryApplication.findFirst({
-      where: { delivererId, announcementId: 'profile-documents' },
+      where: { delivererId, announcementId: "profile-documents" },
       include: {
         requiredDocuments: {
           include: {
             auditLogs: {
               include: {
-                actor: { select: { profile: { select: { firstName: true, lastName: true } } } },
+                actor: {
+                  select: {
+                    profile: { select: { firstName: true, lastName: true } },
+                  },
+                },
               },
-              orderBy: { createdAt: 'desc' },
+              orderBy: { createdAt: "desc" },
             },
             verifier: {
-              select: { profile: { select: { firstName: true, lastName: true } } },
+              select: {
+                profile: { select: { firstName: true, lastName: true } },
+              },
             },
           },
-          orderBy: { version: 'desc' },
+          orderBy: { version: "desc" },
         },
       },
     });
@@ -627,7 +700,7 @@ export const DeliveryService = {
 
     // Grouper par type de document pour avoir la dernière version
     const documentsByType = new Map();
-    application.requiredDocuments.forEach(doc => {
+    application.requiredDocuments.forEach((doc) => {
       const existing = documentsByType.get(doc.documentType);
       if (!existing || doc.version > existing.version) {
         documentsByType.set(doc.documentType, doc);
@@ -647,7 +720,10 @@ export const DeliveryService = {
     });
 
     if (!document) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Document introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Document introuvable",
+      });
     }
 
     // Simulation de validation automatique (à remplacer par vrai OCR/AI)
@@ -656,16 +732,19 @@ export const DeliveryService = {
 
     // Règles de validation basiques
     if (document.fileSize && document.fileSize > 10 * 1024 * 1024) {
-      validationFlags.push('FILE_TOO_LARGE');
+      validationFlags.push("FILE_TOO_LARGE");
     }
 
-    if (!document.mimeType?.includes('image') && !document.mimeType?.includes('pdf')) {
-      validationFlags.push('INVALID_FILE_TYPE');
+    if (
+      !document.mimeType?.includes("image") &&
+      !document.mimeType?.includes("pdf")
+    ) {
+      validationFlags.push("INVALID_FILE_TYPE");
     }
 
     // Vérification de l'expiration
     if (document.expiryDate && document.expiryDate < new Date()) {
-      validationFlags.push('DOCUMENT_EXPIRED');
+      validationFlags.push("DOCUMENT_EXPIRED");
     }
 
     const autoValidated = validationScore > 80 && validationFlags.length === 0;
@@ -673,7 +752,7 @@ export const DeliveryService = {
       ? DocumentVerificationStatus.APPROVED
       : DocumentVerificationStatus.PENDING;
 
-    return await db.$transaction(async tx => {
+    return await db.$transaction(async (tx) => {
       // Mettre à jour le document
       const updatedDocument = await tx.applicationDocument.update({
         where: { id: documentId },
@@ -682,7 +761,10 @@ export const DeliveryService = {
           validationScore,
           validationFlags,
           status: newStatus,
-          ...(autoValidated && { verifiedAt: new Date(), verifiedBy: 'system' }),
+          ...(autoValidated && {
+            verifiedAt: new Date(),
+            verifiedBy: "system",
+          }),
         },
       });
 
@@ -692,8 +774,8 @@ export const DeliveryService = {
           documentId,
           previousStatus: document.status,
           newStatus,
-          actionBy: 'system',
-          actionType: autoValidated ? 'AUTO_APPROVE' : 'AUTO_REVIEW',
+          actionBy: "system",
+          actionType: autoValidated ? "AUTO_APPROVE" : "AUTO_REVIEW",
           notes: `Validation automatique - Score: ${validationScore}`,
           automated: true,
           validationData: { score: validationScore, flags: validationFlags },
@@ -704,9 +786,9 @@ export const DeliveryService = {
       // Notification si validation réussie
       if (autoValidated) {
         await NotificationService.sendToUser(document.application.delivererId, {
-          title: 'Document approuvé automatiquement',
+          title: "Document approuvé automatiquement",
           body: `Votre document ${document.documentType} a été validé automatiquement`,
-          data: { documentId, type: 'DOCUMENT_AUTO_APPROVED' },
+          data: { documentId, type: "DOCUMENT_AUTO_APPROVED" },
         });
       }
 
@@ -717,10 +799,17 @@ export const DeliveryService = {
   /**
    * Validation admin des documents livreur
    */
-  async validateDelivererDocument(documentId: string, validation: any, adminId: string) {
+  async validateDelivererDocument(
+    documentId: string,
+    validation: any,
+    adminId: string,
+  ) {
     const admin = await db.user.findUnique({ where: { id: adminId } });
-    if (admin?.role !== 'ADMIN') {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Seuls les admins peuvent valider' });
+    if (admin?.role !== "ADMIN") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Seuls les admins peuvent valider",
+      });
     }
 
     const document = await db.applicationDocument.update({
@@ -740,8 +829,11 @@ export const DeliveryService = {
 
     // Notification au livreur
     await NotificationService.sendToUser(document.application.delivererId, {
-      title: validation.status === 'APPROVED' ? 'Document approuvé' : 'Document rejeté',
-      body: `Votre document ${document.documentType} a été ${validation.status === 'APPROVED' ? 'approuvé' : 'rejeté'}`,
+      title:
+        validation.status === "APPROVED"
+          ? "Document approuvé"
+          : "Document rejeté",
+      body: `Votre document ${document.documentType} a été ${validation.status === "APPROVED" ? "approuvé" : "rejeté"}`,
       data: { documentId: document.id, status: validation.status },
     });
 
@@ -753,12 +845,16 @@ export const DeliveryService = {
   /**
    * Créer une route personnalisée pour un livreur
    */
-  async createDelivererRoute(delivererId: string, routeData: any, userId: string) {
+  async createDelivererRoute(
+    delivererId: string,
+    routeData: any,
+    userId: string,
+  ) {
     if (delivererId !== userId) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
     }
 
-    return await db.$transaction(async tx => {
+    return await db.$transaction(async (tx) => {
       const route = await tx.delivererRoute.create({
         data: {
           delivererId,
@@ -786,8 +882,8 @@ export const DeliveryService = {
             cityName: zone.cityName,
             postalCodes: zone.postalCodes || [],
             isPreferred: zone.isPreferred || false,
-            trafficLevel: zone.trafficLevel || 'NORMAL',
-            parkingDifficulty: zone.parkingDifficulty || 'EASY',
+            trafficLevel: zone.trafficLevel || "NORMAL",
+            parkingDifficulty: zone.parkingDifficulty || "EASY",
             accessNotes: zone.accessNotes,
             timeRestrictions: zone.timeRestrictions || [],
             vehicleRestrictions: zone.vehicleRestrictions || [],
@@ -837,49 +933,69 @@ export const DeliveryService = {
     });
 
     if (!deliverer) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Livreur introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Livreur introuvable",
+      });
     }
 
     // Analyser les performances des routes existantes
     const routeAnalysis = [];
     for (const route of deliverer.routes) {
       const stats = route.statistics;
-      const avgEarnings = stats.reduce((sum, s) => sum + s.totalEarnings, 0) / (stats.length || 1);
-      const avgTime = stats.reduce((sum, s) => sum + (s.averageTime || 0), 0) / (stats.length || 1);
+      const avgEarnings =
+        stats.reduce((sum, s) => sum + s.totalEarnings, 0) /
+        (stats.length || 1);
+      const avgTime =
+        stats.reduce((sum, s) => sum + (s.averageTime || 0), 0) /
+        (stats.length || 1);
       const successRate =
-        stats.reduce((sum, s) => sum + (s.onTimeRate || 0), 0) / (stats.length || 1);
+        stats.reduce((sum, s) => sum + (s.onTimeRate || 0), 0) /
+        (stats.length || 1);
 
       routeAnalysis.push({
         routeId: route.id,
         name: route.name,
         efficiency: avgEarnings / (avgTime || 1), // Gains par minute
         successRate,
-        totalDeliveries: stats.reduce((sum, s) => sum + s.completedDeliveries, 0),
-        recommendation: this.generateRouteRecommendation(avgEarnings, avgTime, successRate),
+        totalDeliveries: stats.reduce(
+          (sum, s) => sum + s.completedDeliveries,
+          0,
+        ),
+        recommendation: this.generateRouteRecommendation(
+          avgEarnings,
+          avgTime,
+          successRate,
+        ),
       });
     }
 
     // Identifier les zones populaires non couvertes
-    const popularZones = await this.findPopularDeliveryZones(deliverer.delivererDeliveries);
+    const popularZones = await this.findPopularDeliveryZones(
+      deliverer.delivererDeliveries,
+    );
     const uncoveredZones = popularZones.filter(
-      zone =>
-        !deliverer.routes.some(route =>
+      (zone) =>
+        !deliverer.routes.some((route) =>
           route.zones.some(
-            rzone =>
+            (rzone) =>
               this.calculateDistanceSync(
                 zone.lat,
                 zone.lng,
                 rzone.centerLatitude,
-                rzone.centerLongitude
-              ) <= rzone.radiusKm
-          )
-        )
+                rzone.centerLongitude,
+              ) <= rzone.radiusKm,
+          ),
+        ),
     );
 
     return {
       currentRoutes: routeAnalysis,
       uncoveredOpportunities: uncoveredZones,
-      recommendations: this.generateOptimizationRecommendations(routeAnalysis, uncoveredZones),
+      recommendations: this.generateOptimizationRecommendations(
+        routeAnalysis,
+        uncoveredZones,
+      ),
     };
   },
 
@@ -948,16 +1064,16 @@ export const DeliveryService = {
     }
 
     // Trouver la route correspondante
-    const matchingRoute = delivery.deliverer.routes.find(route =>
+    const matchingRoute = delivery.deliverer.routes.find((route) =>
       route.zones.some(
-        zone =>
+        (zone) =>
           this.calculateDistanceSync(
             delivery.announcement.pickupLatitude!,
             delivery.announcement.pickupLongitude!,
             zone.centerLatitude,
-            zone.centerLongitude
-          ) <= zone.radiusKm
-      )
+            zone.centerLongitude,
+          ) <= zone.radiusKm,
+      ),
     );
 
     if (!matchingRoute) {
@@ -970,7 +1086,8 @@ export const DeliveryService = {
     // Calculer les métriques
     const deliveryTime =
       delivery.completionTime && delivery.startTime
-        ? (delivery.completionTime.getTime() - delivery.startTime.getTime()) / (1000 * 60)
+        ? (delivery.completionTime.getTime() - delivery.startTime.getTime()) /
+          (1000 * 60)
         : null;
 
     await db.routeStatistics.upsert({
@@ -1048,7 +1165,7 @@ export const DeliveryService = {
       announcement.pickupLatitude!,
       announcement.pickupLongitude!,
       deliverer.availabilities[0]?.currentLat || 0,
-      deliverer.availabilities[0]?.currentLng || 0
+      deliverer.availabilities[0]?.currentLng || 0,
     );
 
     distanceScore = Math.max(0, 100 - distance * 2); // 2 points par km
@@ -1060,11 +1177,16 @@ export const DeliveryService = {
     availabilityScore = deliverer.availabilities.length > 0 ? 100 : 0;
 
     // 4. Score de préférence (15%)
-    const hasPreferredType = deliverer.preferences?.preferredTypes.includes(announcement.type);
+    const hasPreferredType = deliverer.preferences?.preferredTypes.includes(
+      announcement.type,
+    );
     preferenceScore = hasPreferredType ? 100 : 50;
 
     // 5. Score de route (10%)
-    const isInRoute = await this.isAnnouncementInRoute(announcement, deliverer.routes);
+    const isInRoute = await this.isAnnouncementInRoute(
+      announcement,
+      deliverer.routes,
+    );
     const routeScore = isInRoute ? 100 : 30;
 
     // Calcul du score final pondéré
@@ -1128,15 +1250,15 @@ export const DeliveryService = {
     // Récupérer tous les livreurs actifs
     const deliverers = await db.user.findMany({
       where: {
-        role: 'DELIVERER',
+        role: "DELIVERER",
         isActive: true,
-        verificationStatus: 'VERIFIED',
+        verificationStatus: "VERIFIED",
       },
     });
 
     // Calculer le score pour chaque livreur
-    const matchingPromises = deliverers.map(deliverer =>
-      this.calculateMatchingScore(announcementId, deliverer.id)
+    const matchingPromises = deliverers.map((deliverer) =>
+      this.calculateMatchingScore(announcementId, deliverer.id),
     );
 
     await Promise.all(matchingPromises);
@@ -1155,7 +1277,7 @@ export const DeliveryService = {
           },
         },
       },
-      orderBy: { matchingScore: 'desc' },
+      orderBy: { matchingScore: "desc" },
       take: limit,
     });
   },
@@ -1165,12 +1287,16 @@ export const DeliveryService = {
   /**
    * Met à jour le planning hebdomadaire d'un livreur
    */
-  async updateDelivererSchedule(delivererId: string, schedules: any[], userId: string) {
+  async updateDelivererSchedule(
+    delivererId: string,
+    schedules: any[],
+    userId: string,
+  ) {
     if (delivererId !== userId) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
     }
 
-    return await db.$transaction(async tx => {
+    return await db.$transaction(async (tx) => {
       // Supprimer l'ancien planning
       await tx.delivererSchedule.deleteMany({
         where: { delivererId },
@@ -1179,7 +1305,7 @@ export const DeliveryService = {
       // Créer le nouveau planning
       if (schedules.length > 0) {
         await tx.delivererSchedule.createMany({
-          data: schedules.map(schedule => ({
+          data: schedules.map((schedule) => ({
             delivererId,
             dayOfWeek: schedule.dayOfWeek,
             startTime: schedule.startTime,
@@ -1198,7 +1324,7 @@ export const DeliveryService = {
       return await tx.delivererSchedule.findMany({
         where: { delivererId },
         include: { exceptions: true },
-        orderBy: { dayOfWeek: 'asc' },
+        orderBy: { dayOfWeek: "asc" },
       });
     });
   },
@@ -1206,9 +1332,13 @@ export const DeliveryService = {
   /**
    * Ajoute une exception au planning (congés, indisponibilité)
    */
-  async addScheduleException(delivererId: string, exceptionData: any, userId: string) {
+  async addScheduleException(
+    delivererId: string,
+    exceptionData: any,
+    userId: string,
+  ) {
     if (delivererId !== userId) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
     }
 
     const schedule = await db.delivererSchedule.findFirst({
@@ -1219,7 +1349,10 @@ export const DeliveryService = {
     });
 
     if (!schedule) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Planning non trouvé pour ce jour' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Planning non trouvé pour ce jour",
+      });
     }
 
     return await db.scheduleException.create({
@@ -1237,12 +1370,16 @@ export const DeliveryService = {
   /**
    * Récupère le planning optimisé d'un livreur avec suggestions
    */
-  async getOptimizedSchedule(delivererId: string, startDate: Date, endDate: Date) {
+  async getOptimizedSchedule(
+    delivererId: string,
+    startDate: Date,
+    endDate: Date,
+  ) {
     const [schedule, exceptions, recentStats] = await Promise.all([
       db.delivererSchedule.findMany({
         where: { delivererId },
         include: { exceptions: true },
-        orderBy: { dayOfWeek: 'asc' },
+        orderBy: { dayOfWeek: "asc" },
       }),
       db.scheduleException.findMany({
         where: {
@@ -1265,17 +1402,21 @@ export const DeliveryService = {
     // Générer des suggestions d'optimisation
     const optimizationSuggestions = [];
     for (const daySchedule of schedule) {
-      const dayStats = recentStats.filter(s => s.dayOfWeek === daySchedule.dayOfWeek);
+      const dayStats = recentStats.filter(
+        (s) => s.dayOfWeek === daySchedule.dayOfWeek,
+      );
       const avgEarnings =
-        dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) / (dayStats.length || 1);
+        dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) /
+        (dayStats.length || 1);
 
       if (avgEarnings < 50) {
         // Seuil configurable
         optimizationSuggestions.push({
           day: daySchedule.dayOfWeek,
-          type: 'LOW_EARNINGS',
-          suggestion: 'Envisager de modifier les créneaux horaires',
-          potentialImprovement: profitableTimeSlots[daySchedule.dayOfWeek] || null,
+          type: "LOW_EARNINGS",
+          suggestion: "Envisager de modifier les créneaux horaires",
+          potentialImprovement:
+            profitableTimeSlots[daySchedule.dayOfWeek] || null,
         });
       }
     }
@@ -1285,16 +1426,23 @@ export const DeliveryService = {
       exceptions,
       optimizationSuggestions,
       profitableTimeSlots,
-      weeklyEarningsProjection: this.calculateWeeklyProjection(schedule, recentStats),
+      weeklyEarningsProjection: this.calculateWeeklyProjection(
+        schedule,
+        recentStats,
+      ),
     };
   },
 
   /**
    * Met à jour la disponibilité temps réel d'un livreur
    */
-  async updateDelivererAvailability(delivererId: string, availabilityData: any, userId: string) {
+  async updateDelivererAvailability(
+    delivererId: string,
+    availabilityData: any,
+    userId: string,
+  ) {
     if (delivererId !== userId) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
     }
 
     return await db.delivererAvailability.upsert({
@@ -1302,7 +1450,8 @@ export const DeliveryService = {
       create: {
         delivererId,
         startDate: availabilityData.startDate || new Date(),
-        endDate: availabilityData.endDate || new Date(Date.now() + 8 * 60 * 60 * 1000), // 8h par défaut
+        endDate:
+          availabilityData.endDate || new Date(Date.now() + 8 * 60 * 60 * 1000), // 8h par défaut
         isAvailable: availabilityData.isAvailable,
         reason: availabilityData.reason,
         currentLat: availabilityData.latitude,
@@ -1321,12 +1470,16 @@ export const DeliveryService = {
   /**
    * Récupère les livreurs disponibles dans une zone
    */
-  async getAvailableDeliverersInArea(latitude: number, longitude: number, radiusKm: number = 10) {
+  async getAvailableDeliverersInArea(
+    latitude: number,
+    longitude: number,
+    radiusKm: number = 10,
+  ) {
     const availableDeliverers = await db.user.findMany({
       where: {
-        role: 'DELIVERER',
+        role: "DELIVERER",
         isActive: true,
-        verificationStatus: 'VERIFIED',
+        verificationStatus: "VERIFIED",
         availabilities: {
           some: {
             isAvailable: true,
@@ -1347,7 +1500,7 @@ export const DeliveryService = {
         },
         delivererDeliveries: {
           where: {
-            status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
+            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
           },
         },
       },
@@ -1363,7 +1516,7 @@ export const DeliveryService = {
         latitude,
         longitude,
         availability.currentLat,
-        availability.currentLng
+        availability.currentLng,
       );
 
       if (distance <= radiusKm && deliverer.delivererDeliveries.length < 3) {
@@ -1389,52 +1542,53 @@ export const DeliveryService = {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const [activeDeliveries, todayDeliveries, stats, notifications] = await Promise.all([
-      // Livraisons actives
-      db.delivery.findMany({
-        where: {
-          delivererId,
-          status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
-        },
-        include: {
-          announcement: {
-            select: {
-              title: true,
-              pickupAddress: true,
-              deliveryAddress: true,
-              pickupDate: true,
+    const [activeDeliveries, todayDeliveries, stats, notifications] =
+      await Promise.all([
+        // Livraisons actives
+        db.delivery.findMany({
+          where: {
+            delivererId,
+            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
+          },
+          include: {
+            announcement: {
+              select: {
+                title: true,
+                pickupAddress: true,
+                deliveryAddress: true,
+                pickupDate: true,
+              },
+            },
+            coordinates: {
+              orderBy: { timestamp: "desc" },
+              take: 1,
             },
           },
-          coordinates: {
-            orderBy: { timestamp: 'desc' },
-            take: 1,
+          orderBy: { createdAt: "asc" },
+        }),
+
+        // Livraisons du jour
+        db.delivery.count({
+          where: {
+            delivererId,
+            createdAt: { gte: today, lt: tomorrow },
           },
-        },
-        orderBy: { createdAt: 'asc' },
-      }),
+        }),
 
-      // Livraisons du jour
-      db.delivery.count({
-        where: {
-          delivererId,
-          createdAt: { gte: today, lt: tomorrow },
-        },
-      }),
+        // Statistiques
+        db.delivererStats.findUnique({
+          where: { delivererId },
+        }),
 
-      // Statistiques
-      db.delivererStats.findUnique({
-        where: { delivererId },
-      }),
-
-      // Notifications non lues
-      db.delivererNotification.count({
-        where: {
-          delivererId,
-          status: 'SENT',
-          readAt: null,
-        },
-      }),
-    ]);
+        // Notifications non lues
+        db.delivererNotification.count({
+          where: {
+            delivererId,
+            status: "SENT",
+            readAt: null,
+          },
+        }),
+      ]);
 
     return {
       activeDeliveries,
@@ -1454,8 +1608,8 @@ export const DeliveryService = {
    */
   async respondToDeliveryProposal(
     matchingId: string,
-    response: 'ACCEPTED' | 'DECLINED',
-    delivererId: string
+    response: "ACCEPTED" | "DECLINED",
+    delivererId: string,
   ) {
     const matching = await db.announcementMatching.findUnique({
       where: { id: matchingId },
@@ -1463,10 +1617,13 @@ export const DeliveryService = {
     });
 
     if (!matching || matching.delivererId !== delivererId) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Proposition introuvable' });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Proposition introuvable",
+      });
     }
 
-    if (response === 'ACCEPTED') {
+    if (response === "ACCEPTED") {
       // Créer la livraison
       const delivery = await db.delivery.create({
         data: {
@@ -1483,16 +1640,19 @@ export const DeliveryService = {
       await db.announcementMatching.update({
         where: { id: matchingId },
         data: {
-          status: 'ACCEPTED',
+          status: "ACCEPTED",
           respondedAt: new Date(),
         },
       });
 
       // Notification au client
       await NotificationService.sendToUser(matching.announcement.clientId, {
-        title: 'Livreur trouvé !',
+        title: "Livreur trouvé !",
         body: `Un livreur a accepté votre annonce "${matching.announcement.title}"`,
-        data: { deliveryId: delivery.id, announcementId: matching.announcementId },
+        data: {
+          deliveryId: delivery.id,
+          announcementId: matching.announcementId,
+        },
       });
 
       return delivery;
@@ -1501,19 +1661,22 @@ export const DeliveryService = {
       await db.announcementMatching.update({
         where: { id: matchingId },
         data: {
-          status: 'DECLINED',
+          status: "DECLINED",
           respondedAt: new Date(),
         },
       });
 
-      return { success: true, message: 'Proposition refusée' };
+      return { success: true, message: "Proposition refusée" };
     }
   },
 
   /**
    * Mise à jour de position en temps réel (pour app mobile)
    */
-  async updateLiveLocation(delivererId: string, location: { latitude: number; longitude: number }) {
+  async updateLiveLocation(
+    delivererId: string,
+    location: { latitude: number; longitude: number },
+  ) {
     // Mettre à jour la disponibilité
     await db.delivererAvailability.updateMany({
       where: {
@@ -1531,13 +1694,13 @@ export const DeliveryService = {
     const activeDeliveries = await db.delivery.findMany({
       where: {
         delivererId,
-        status: { in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
+        status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
       },
     });
 
     if (activeDeliveries.length > 0) {
       await db.deliveryCoordinates.createMany({
-        data: activeDeliveries.map(delivery => ({
+        data: activeDeliveries.map((delivery) => ({
           deliveryId: delivery.id,
           latitude: location.latitude,
           longitude: location.longitude,
@@ -1553,7 +1716,12 @@ export const DeliveryService = {
   /**
    * Calcule la distance entre deux points GPS
    */
-  async calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): Promise<number> {
+  async calculateDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): Promise<number> {
     const R = 6371; // Rayon de la Terre en km
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -1570,14 +1738,17 @@ export const DeliveryService = {
   /**
    * Vérifie si une annonce est dans les routes d'un livreur
    */
-  async isAnnouncementInRoute(announcement: any, routes: any[]): Promise<boolean> {
+  async isAnnouncementInRoute(
+    announcement: any,
+    routes: any[],
+  ): Promise<boolean> {
     for (const route of routes) {
       for (const zone of route.zones) {
         const distance = await this.calculateDistance(
           announcement.pickupLatitude,
           announcement.pickupLongitude,
           zone.centerLatitude,
-          zone.centerLongitude
+          zone.centerLongitude,
         );
         if (distance <= zone.radiusKm) {
           return true;
@@ -1590,7 +1761,12 @@ export const DeliveryService = {
   /**
    * Version synchrone du calcul de distance pour les boucles
    */
-  calculateDistanceSync(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  calculateDistanceSync(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
     const R = 6371; // Rayon de la Terre en km
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -1632,7 +1808,8 @@ export const DeliveryService = {
 
       if (delivery.completionTime && delivery.startTime) {
         const duration =
-          (delivery.completionTime.getTime() - delivery.startTime.getTime()) / (1000 * 60);
+          (delivery.completionTime.getTime() - delivery.startTime.getTime()) /
+          (1000 * 60);
         pattern.totalTime += duration;
       }
 
@@ -1642,7 +1819,7 @@ export const DeliveryService = {
     }
 
     // Calculer les moyennes et métriques finales
-    return Array.from(patterns.values()).map(pattern => ({
+    return Array.from(patterns.values()).map((pattern) => ({
       ...pattern,
       averageEarnings: pattern.totalEarnings / pattern.frequency,
       averageTime: pattern.totalTime / pattern.frequency,
@@ -1689,15 +1866,19 @@ export const DeliveryService = {
   /**
    * Génère une recommandation pour une route
    */
-  generateRouteRecommendation(avgEarnings: number, avgTime: number, successRate: number): string {
+  generateRouteRecommendation(
+    avgEarnings: number,
+    avgTime: number,
+    successRate: number,
+  ): string {
     if (successRate < 80) {
-      return 'Améliorer la ponctualité';
+      return "Améliorer la ponctualité";
     } else if (avgEarnings < 40) {
-      return 'Optimiser la rentabilité';
+      return "Optimiser la rentabilité";
     } else if (avgTime > 90) {
-      return 'Réduire les temps de trajet';
+      return "Réduire les temps de trajet";
     } else {
-      return 'Route performante';
+      return "Route performante";
     }
   },
 
@@ -1726,7 +1907,7 @@ export const DeliveryService = {
     }
 
     return Array.from(zoneCounts.values())
-      .filter(zone => zone.count >= 3)
+      .filter((zone) => zone.count >= 3)
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
   },
@@ -1734,24 +1915,33 @@ export const DeliveryService = {
   /**
    * Génère des recommandations d'optimisation
    */
-  generateOptimizationRecommendations(routeAnalysis: any[], uncoveredZones: any[]): string[] {
+  generateOptimizationRecommendations(
+    routeAnalysis: any[],
+    uncoveredZones: any[],
+  ): string[] {
     const recommendations = [];
 
     // Routes peu performantes
-    const underperformingRoutes = routeAnalysis.filter(r => r.efficiency < 0.5);
+    const underperformingRoutes = routeAnalysis.filter(
+      (r) => r.efficiency < 0.5,
+    );
     if (underperformingRoutes.length > 0) {
-      recommendations.push('Revoir les routes peu rentables');
+      recommendations.push("Revoir les routes peu rentables");
     }
 
     // Zones non couvertes
     if (uncoveredZones.length > 0) {
-      recommendations.push(`Créer des routes pour ${uncoveredZones.length} zones populaires`);
+      recommendations.push(
+        `Créer des routes pour ${uncoveredZones.length} zones populaires`,
+      );
     }
 
     // Routes trop chargées
-    const overloadedRoutes = routeAnalysis.filter(r => r.totalDeliveries > 50);
+    const overloadedRoutes = routeAnalysis.filter(
+      (r) => r.totalDeliveries > 50,
+    );
     if (overloadedRoutes.length > 0) {
-      recommendations.push('Diviser les routes surchargées');
+      recommendations.push("Diviser les routes surchargées");
     }
 
     return recommendations;
@@ -1764,16 +1954,21 @@ export const DeliveryService = {
     const dayAnalysis: Record<number, any> = {};
 
     for (let day = 0; day < 7; day++) {
-      const dayStats = stats.filter(s => s.dayOfWeek === day);
+      const dayStats = stats.filter((s) => s.dayOfWeek === day);
 
       if (dayStats.length > 0) {
-        const bestEarnings = Math.max(...dayStats.map(s => s.totalEarnings));
-        const bestStat = dayStats.find(s => s.totalEarnings === bestEarnings);
+        const bestEarnings = Math.max(...dayStats.map((s) => s.totalEarnings));
+        const bestStat = dayStats.find((s) => s.totalEarnings === bestEarnings);
 
         dayAnalysis[day] = {
           bestTimeSlot: this.estimateTimeSlotFromStats(bestStat),
-          averageEarnings: dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) / dayStats.length,
-          totalDeliveries: dayStats.reduce((sum, s) => sum + s.completedDeliveries, 0),
+          averageEarnings:
+            dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) /
+            dayStats.length,
+          totalDeliveries: dayStats.reduce(
+            (sum, s) => sum + s.completedDeliveries,
+            0,
+          ),
         };
       }
     }
@@ -1799,10 +1994,13 @@ export const DeliveryService = {
 
     for (const daySchedule of schedule) {
       if (daySchedule.isAvailable) {
-        const dayStats = recentStats.filter(s => s.dayOfWeek === daySchedule.dayOfWeek);
+        const dayStats = recentStats.filter(
+          (s) => s.dayOfWeek === daySchedule.dayOfWeek,
+        );
         const avgDailyEarnings =
           dayStats.length > 0
-            ? dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) / dayStats.length
+            ? dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) /
+              dayStats.length
             : 30; // Valeur par défaut
 
         weeklyProjection += avgDailyEarnings;
@@ -1820,7 +2018,7 @@ export const DeliveryService = {
       const where: any = {
         OR: [{ clientId: userId }, { delivererId: userId }],
         status: {
-          in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'],
+          in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"],
         },
       };
 
@@ -1858,19 +2056,19 @@ export const DeliveryService = {
             },
           },
           coordinates: {
-            orderBy: { timestamp: 'desc' },
+            orderBy: { timestamp: "desc" },
             take: 1,
           },
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { updatedAt: "desc" },
       });
 
       return deliveries;
     } catch (error) {
-      console.error('Erreur getActiveDeliveries:', error);
+      console.error("Erreur getActiveDeliveries:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des livraisons actives',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des livraisons actives",
       });
     }
   },

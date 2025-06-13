@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
-import { useSession } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
-import { UserRole } from '@prisma/client';
-import { RoleBasedSidebar } from '@/components/layout/protected/role-based-sidebar';
-import { ProtectedHeader } from '@/components/layout/protected/header';
-import { ProtectedFooter } from '@/components/layout/protected/footer';
-import { PageHeader } from '@/components/layout/protected/page-header';
-import { DashboardShell } from '@/components/layout/dashboard-shell';
-import { Spinner } from '@/components/ui/spinner';
-import { AuthGuard } from '@/components/auth/guards/auth-guard';
+import { ReactNode } from "react";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { UserRole } from "@prisma/client";
+import { RoleBasedSidebar } from "@/components/layout/protected/role-based-sidebar";
+import { ProtectedHeader } from "@/components/layout/protected/header";
+import { ProtectedFooter } from "@/components/layout/protected/footer";
+import { PageHeader } from "@/components/layout/protected/page-header";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { Spinner } from "@/components/ui/spinner";
+import { AuthGuard } from "@/components/auth/guards/auth-guard";
 
 interface ProtectedLayoutProps {
   children: ReactNode;
@@ -46,7 +46,7 @@ export function ProtectedLayout({
   const pathname = usePathname();
 
   // Afficher le spinner pendant le chargement de la session
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <div className="flex h-screen items-center justify-center">
         <Spinner size="lg" />
@@ -69,7 +69,9 @@ export function ProtectedLayout({
         {/* Contenu principal */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Header principal */}
-          {showHeader && <ProtectedHeader locale={locale} user={session?.user} />}
+          {showHeader && (
+            <ProtectedHeader locale={locale} user={session?.user} />
+          )}
 
           {/* Zone de contenu scrollable */}
           <main className="flex-1 overflow-auto">

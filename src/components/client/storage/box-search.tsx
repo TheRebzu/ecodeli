@@ -1,10 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { boxSearchSchema, BoxSearchInput } from '@/schemas/storage/storage.schema';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  boxSearchSchema,
+  BoxSearchInput,
+} from "@/schemas/storage/storage.schema";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,24 +16,28 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils/common';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+} from "@/components/ui/form";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils/common";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useTranslations } from 'next-intl';
-import { Slider } from '@/components/ui/slider';
-import { useWarehouses } from '@/hooks/common/use-storage';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useTranslations } from "next-intl";
+import { Slider } from "@/components/ui/slider";
+import { useWarehouses } from "@/hooks/common/use-storage";
 
 export interface BoxSearchFormProps {
   onSearch: (data: BoxSearchInput) => void;
@@ -45,7 +52,7 @@ export function BoxSearchForm({
   submitText,
   defaultValues,
 }: BoxSearchFormProps) {
-  const t = useTranslations('storage');
+  const t = useTranslations("storage");
   const { warehouses, isLoading: isLoadingWarehouses } = useWarehouses();
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [sizeRange, setSizeRange] = useState([0, 10]);
@@ -61,21 +68,21 @@ export function BoxSearchForm({
   });
 
   const features = [
-    { id: 'climate-controlled', label: t('features.climateControlled') },
-    { id: 'secure', label: t('features.secure') },
-    { id: '24h-access', label: t('features.24hAccess') },
+    { id: "climate-controlled", label: t("features.climateControlled") },
+    { id: "secure", label: t("features.secure") },
+    { id: "24h-access", label: t("features.24hAccess") },
   ];
 
   // Mise à jour des champs dépendants du slider
   const handlePriceRangeChange = (values: number[]) => {
     setPriceRange(values);
-    form.setValue('maxPrice', values[1]);
+    form.setValue("maxPrice", values[1]);
   };
 
   const handleSizeRangeChange = (values: number[]) => {
     setSizeRange(values);
-    form.setValue('minSize', values[0]);
-    form.setValue('maxSize', values[1]);
+    form.setValue("minSize", values[0]);
+    form.setValue("maxSize", values[1]);
   };
 
   const onSubmit = (data: BoxSearchInput) => {
@@ -92,7 +99,7 @@ export function BoxSearchForm({
             name="warehouseId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('form.warehouse')}</FormLabel>
+                <FormLabel>{t("form.warehouse")}</FormLabel>
                 <Select
                   disabled={isLoadingWarehouses}
                   onValueChange={field.onChange}
@@ -100,18 +107,20 @@ export function BoxSearchForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('form.selectWarehouse')} />
+                      <SelectValue placeholder={t("form.selectWarehouse")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {warehouses?.map(warehouse => (
+                    {warehouses?.map((warehouse) => (
                       <SelectItem key={warehouse.id} value={warehouse.id}>
                         {warehouse.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <FormDescription>{t('form.warehouseDescription')}</FormDescription>
+                <FormDescription>
+                  {t("form.warehouseDescription")}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -123,25 +132,37 @@ export function BoxSearchForm({
             name="boxType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('form.boxType')}</FormLabel>
+                <FormLabel>{t("form.boxType")}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('form.selectBoxType')} />
+                      <SelectValue placeholder={t("form.selectBoxType")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="STANDARD">{t('boxTypes.standard')}</SelectItem>
-                    <SelectItem value="CLIMATE_CONTROLLED">
-                      {t('boxTypes.climateControlled')}
+                    <SelectItem value="STANDARD">
+                      {t("boxTypes.standard")}
                     </SelectItem>
-                    <SelectItem value="SECURE">{t('boxTypes.secure')}</SelectItem>
-                    <SelectItem value="EXTRA_LARGE">{t('boxTypes.extraLarge')}</SelectItem>
-                    <SelectItem value="REFRIGERATED">{t('boxTypes.refrigerated')}</SelectItem>
-                    <SelectItem value="FRAGILE">{t('boxTypes.fragile')}</SelectItem>
+                    <SelectItem value="CLIMATE_CONTROLLED">
+                      {t("boxTypes.climateControlled")}
+                    </SelectItem>
+                    <SelectItem value="SECURE">
+                      {t("boxTypes.secure")}
+                    </SelectItem>
+                    <SelectItem value="EXTRA_LARGE">
+                      {t("boxTypes.extraLarge")}
+                    </SelectItem>
+                    <SelectItem value="REFRIGERATED">
+                      {t("boxTypes.refrigerated")}
+                    </SelectItem>
+                    <SelectItem value="FRAGILE">
+                      {t("boxTypes.fragile")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
-                <FormDescription>{t('form.boxTypeDescription')}</FormDescription>
+                <FormDescription>
+                  {t("form.boxTypeDescription")}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -153,21 +174,21 @@ export function BoxSearchForm({
             name="startDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>{t('form.startDate')}</FormLabel>
+                <FormLabel>{t("form.startDate")}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
                         className={cn(
-                          'w-full pl-3 text-left font-normal',
-                          !field.value && 'text-muted-foreground'
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
-                          format(field.value, 'PPP', { locale: fr })
+                          format(field.value, "PPP", { locale: fr })
                         ) : (
-                          <span>{t('form.pickDate')}</span>
+                          <span>{t("form.pickDate")}</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -177,13 +198,15 @@ export function BoxSearchForm({
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={date => date && field.onChange(date)}
-                      disabled={date => date < new Date()}
+                      onSelect={(date) => date && field.onChange(date)}
+                      disabled={(date) => date < new Date()}
                       initialFocus
                     />
                   </PopoverContent>
                 </Popover>
-                <FormDescription>{t('form.startDateDescription')}</FormDescription>
+                <FormDescription>
+                  {t("form.startDateDescription")}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -195,21 +218,21 @@ export function BoxSearchForm({
             name="endDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>{t('form.endDate')}</FormLabel>
+                <FormLabel>{t("form.endDate")}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
                         className={cn(
-                          'w-full pl-3 text-left font-normal',
-                          !field.value && 'text-muted-foreground'
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
-                          format(field.value, 'PPP', { locale: fr })
+                          format(field.value, "PPP", { locale: fr })
                         ) : (
-                          <span>{t('form.pickDate')}</span>
+                          <span>{t("form.pickDate")}</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -219,13 +242,17 @@ export function BoxSearchForm({
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={date => date && field.onChange(date)}
-                      disabled={date => date <= (form.getValues().startDate || new Date())}
+                      onSelect={(date) => date && field.onChange(date)}
+                      disabled={(date) =>
+                        date <= (form.getValues().startDate || new Date())
+                      }
                       initialFocus
                     />
                   </PopoverContent>
                 </Popover>
-                <FormDescription>{t('form.endDateDescription')}</FormDescription>
+                <FormDescription>
+                  {t("form.endDateDescription")}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -235,7 +262,7 @@ export function BoxSearchForm({
         <div className="space-y-4">
           {/* Prix maximum */}
           <div className="space-y-2">
-            <FormLabel>{t('form.priceRange')}</FormLabel>
+            <FormLabel>{t("form.priceRange")}</FormLabel>
             <Slider
               defaultValue={priceRange}
               min={0}
@@ -246,15 +273,15 @@ export function BoxSearchForm({
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>0€</span>
               <span>
-                {priceRange[1]}€ {t('form.perDay')}
+                {priceRange[1]}€ {t("form.perDay")}
               </span>
             </div>
-            <FormDescription>{t('form.priceDescription')}</FormDescription>
+            <FormDescription>{t("form.priceDescription")}</FormDescription>
           </div>
 
           {/* Taille */}
           <div className="space-y-2">
-            <FormLabel>{t('form.sizeRange')}</FormLabel>
+            <FormLabel>{t("form.sizeRange")}</FormLabel>
             <Slider
               defaultValue={sizeRange}
               min={0}
@@ -266,7 +293,7 @@ export function BoxSearchForm({
               <span>{sizeRange[0]} m³</span>
               <span>{sizeRange[1]} m³</span>
             </div>
-            <FormDescription>{t('form.sizeDescription')}</FormDescription>
+            <FormDescription>{t("form.sizeDescription")}</FormDescription>
           </div>
 
           {/* Caractéristiques */}
@@ -276,11 +303,15 @@ export function BoxSearchForm({
             render={() => (
               <FormItem>
                 <div className="mb-4">
-                  <FormLabel className="text-base">{t('form.features')}</FormLabel>
-                  <FormDescription>{t('form.featuresDescription')}</FormDescription>
+                  <FormLabel className="text-base">
+                    {t("form.features")}
+                  </FormLabel>
+                  <FormDescription>
+                    {t("form.featuresDescription")}
+                  </FormDescription>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {features.map(feature => (
+                  {features.map((feature) => (
                     <FormField
                       key={feature.id}
                       control={form.control}
@@ -294,16 +325,23 @@ export function BoxSearchForm({
                             <FormControl>
                               <Checkbox
                                 checked={field.value?.includes(feature.id)}
-                                onCheckedChange={checked => {
+                                onCheckedChange={(checked) => {
                                   return checked
-                                    ? field.onChange([...(field.value || []), feature.id])
+                                    ? field.onChange([
+                                        ...(field.value || []),
+                                        feature.id,
+                                      ])
                                     : field.onChange(
-                                        field.value?.filter(value => value !== feature.id)
+                                        field.value?.filter(
+                                          (value) => value !== feature.id,
+                                        ),
                                       );
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="text-sm font-normal">{feature.label}</FormLabel>
+                            <FormLabel className="text-sm font-normal">
+                              {feature.label}
+                            </FormLabel>
                           </FormItem>
                         );
                       }}
@@ -317,7 +355,7 @@ export function BoxSearchForm({
         </div>
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {submitText || t('form.search')}
+          {submitText || t("form.search")}
         </Button>
       </form>
     </Form>

@@ -4,8 +4,8 @@
  */
 
 // Exports des fichiers locaux
-export * from './admin';
-export * from './client';
-export * from './deliverer';
-export * from './merchant';
-export * from './provider';
+export * from "./admin";
+export * from "./client";
+export * from "./deliverer";
+export * from "./merchant";
+export * from "./provider";

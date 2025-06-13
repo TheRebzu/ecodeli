@@ -1,24 +1,37 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { DeliveryDashboard } from '@/components/admin/deliveries/delivery-monitoring';
-import { DeliveryIssues } from '@/components/admin/deliveries/delivery-issues';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, Download, FileBarChart, MapPin, RefreshCw, Truck } from 'lucide-react';
-import { dashboardService } from '@/server/services/admin/dashboard.service';
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { DeliveryDashboard } from "@/components/admin/deliveries/delivery-monitoring";
+import { DeliveryIssues } from "@/components/admin/deliveries/delivery-issues";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertTriangle,
+  Download,
+  FileBarChart,
+  MapPin,
+  RefreshCw,
+  Truck,
+} from "lucide-react";
+import { dashboardService } from "@/server/services/admin/dashboard.service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('admin.deliveries');
+  const t = await getTranslations("admin.deliveries");
 
   return {
-    title: t('metadata.title'),
-    description: t('metadata.description'),
+    title: t("metadata.title"),
+    description: t("metadata.description"),
   };
 }
 
 export default async function AdminDeliveriesPage() {
-  const t = await getTranslations('admin.deliveries');
+  const t = await getTranslations("admin.deliveries");
 
   // Récupérer les statistiques des livraisons directement depuis le service
   const deliveryStats = await dashboardService.getDeliveryStats();
@@ -27,7 +40,9 @@ export default async function AdminDeliveriesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Suivi des Livraisons</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Suivi des Livraisons
+          </h1>
           <p className="text-muted-foreground">
             Suivez en temps réel toutes les livraisons sur la plateforme
           </p>
@@ -52,11 +67,15 @@ export default async function AdminDeliveriesPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Livraisons En Cours</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Livraisons En Cours
+            </CardTitle>
             <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{deliveryStats.inProgressDeliveries}</div>
+            <div className="text-2xl font-bold">
+              {deliveryStats.inProgressDeliveries}
+            </div>
             <p className="text-xs text-muted-foreground">
               {deliveryStats.deliveriesToday} nouvelles livraisons aujourd'hui
             </p>
@@ -65,7 +84,9 @@ export default async function AdminDeliveriesPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taux de Livraison à Temps</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Taux de Livraison à Temps
+            </CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -91,7 +112,9 @@ export default async function AdminDeliveriesPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Temps Moyen de Livraison</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Temps Moyen de Livraison
+            </CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -107,9 +130,12 @@ export default async function AdminDeliveriesPage() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{deliveryStats.averageDeliveryTime}m</div>
+            <div className="text-2xl font-bold">
+              {deliveryStats.averageDeliveryTime}m
+            </div>
             <p className="text-xs text-muted-foreground">
-              {deliveryStats.averageDeliveryTime < deliveryStats.previousAverageDeliveryTime
+              {deliveryStats.averageDeliveryTime <
+              deliveryStats.previousAverageDeliveryTime
                 ? `-${Math.round(deliveryStats.previousAverageDeliveryTime - deliveryStats.averageDeliveryTime)}m`
                 : `+${Math.round(deliveryStats.averageDeliveryTime - deliveryStats.previousAverageDeliveryTime)}m`}
               par rapport au mois dernier
@@ -119,11 +145,15 @@ export default async function AdminDeliveriesPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Incidents Signalés</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Incidents Signalés
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{deliveryStats.pendingIssues}</div>
+            <div className="text-2xl font-bold">
+              {deliveryStats.pendingIssues}
+            </div>
             <p className="text-xs text-muted-foreground">
               {deliveryStats.todayIssues} nouveaux incidents aujourd'hui
             </p>
@@ -150,8 +180,8 @@ export default async function AdminDeliveriesPage() {
         <TabsContent value="map" className="m-0">
           <Card>
             <CardHeader>
-              <CardTitle>{t('liveTracking')}</CardTitle>
-              <CardDescription>{t('liveTrackingDescription')}</CardDescription>
+              <CardTitle>{t("liveTracking")}</CardTitle>
+              <CardDescription>{t("liveTrackingDescription")}</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <DeliveryDashboard />
@@ -163,7 +193,9 @@ export default async function AdminDeliveriesPage() {
           <Card>
             <CardHeader>
               <CardTitle>Liste des Livraisons</CardTitle>
-              <CardDescription>Consultez et gérez toutes les livraisons actives</CardDescription>
+              <CardDescription>
+                Consultez et gérez toutes les livraisons actives
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {/* La liste des livraisons sera ajoutée ultérieurement */}

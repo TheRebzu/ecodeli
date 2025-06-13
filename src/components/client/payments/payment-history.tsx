@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { format } from 'date-fns';
+import React, { useState } from "react";
+import { useTranslations } from "next-intl";
+import { format } from "date-fns";
 import {
   Card,
   CardContent,
@@ -10,7 +10,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,17 +19,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   Loader2,
   FileDown,
@@ -47,27 +47,40 @@ import {
   Clock,
   Zap,
   RefreshCcw,
-} from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+} from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { formatCurrency, formatDate } from '@/utils/document-utils';
-import { api } from '@/trpc/react';
-import { Payment, PaymentStatus } from '@prisma/client';
-import { DateRange } from 'react-day-picker';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { usePaymentHistory } from '@/hooks/payment/use-payment';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/pagination";
+import { formatCurrency, formatDate } from "@/utils/document-utils";
+import { api } from "@/trpc/react";
+import { Payment, PaymentStatus } from "@prisma/client";
+import { DateRange } from "react-day-picker";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { usePaymentHistory } from "@/hooks/payment/use-payment";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Fonction utilitaire pour formater les dates en toute sécurité
-const safeFormatDate = (dateValue: any, formatString: string, fallback: string = '-') => {
+const safeFormatDate = (
+  dateValue: any,
+  formatString: string,
+  fallback: string = "-",
+) => {
   if (!dateValue) return fallback;
 
   try {
@@ -76,7 +89,7 @@ const safeFormatDate = (dateValue: any, formatString: string, fallback: string =
 
     if (dateValue instanceof Date) {
       date = dateValue;
-    } else if (typeof dateValue === 'string') {
+    } else if (typeof dateValue === "string") {
       // Essayer de convertir la chaîne en date
       date = new Date(dateValue);
 
@@ -84,11 +97,11 @@ const safeFormatDate = (dateValue: any, formatString: string, fallback: string =
       if (isNaN(date.getTime())) {
         // Format ISO sans timezone
         if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(dateValue)) {
-          date = new Date(dateValue + 'Z');
+          date = new Date(dateValue + "Z");
         }
         // Format date uniquement
         else if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-          const [year, month, day] = dateValue.split('-').map(Number);
+          const [year, month, day] = dateValue.split("-").map(Number);
           date = new Date(year, month - 1, day);
         }
         // Format timestamp en ms
@@ -96,7 +109,7 @@ const safeFormatDate = (dateValue: any, formatString: string, fallback: string =
           date = new Date(parseInt(dateValue));
         }
       }
-    } else if (typeof dateValue === 'number') {
+    } else if (typeof dateValue === "number") {
       date = new Date(dateValue);
     } else {
       return fallback;
@@ -104,13 +117,13 @@ const safeFormatDate = (dateValue: any, formatString: string, fallback: string =
 
     // Vérifier que la date est valide
     if (isNaN(date.getTime())) {
-      console.warn('Date invalide:', dateValue);
+      console.warn("Date invalide:", dateValue);
       return fallback;
     }
 
     return format(date, formatString);
   } catch (error) {
-    console.error('Erreur de formatage de date:', error, dateValue);
+    console.error("Erreur de formatage de date:", error, dateValue);
     return fallback;
   }
 };
@@ -122,15 +135,15 @@ const normalizePayment = (payment: any) => {
 
   // Vérifier et convertir les propriétés de type date
   const dateFields = [
-    'createdAt',
-    'updatedAt',
-    'deliveryDate',
-    'dueDate',
-    'processedAt',
-    'completedAt',
+    "createdAt",
+    "updatedAt",
+    "deliveryDate",
+    "dueDate",
+    "processedAt",
+    "completedAt",
   ];
 
-  dateFields.forEach(field => {
+  dateFields.forEach((field) => {
     if (normalizedPayment[field]) {
       try {
         // Tenter de convertir en Date si ce n'est pas déjà une instance de Date
@@ -142,12 +155,18 @@ const normalizePayment = (payment: any) => {
             normalizedPayment[field] = date;
           } else {
             // Si la date est invalide, la supprimer pour éviter les erreurs
-            console.warn(`Champ de date invalide ${field}:`, normalizedPayment[field]);
+            console.warn(
+              `Champ de date invalide ${field}:`,
+              normalizedPayment[field],
+            );
             normalizedPayment[field] = null;
           }
         }
       } catch (error) {
-        console.error(`Erreur lors de la conversion de la date ${field}:`, error);
+        console.error(
+          `Erreur lors de la conversion de la date ${field}:`,
+          error,
+        );
         normalizedPayment[field] = null;
       }
     }
@@ -183,9 +202,9 @@ type CustomDateRange = {
 };
 
 // Fonction pour obtenir une valeur en toute sécurité
-const safeGet = (obj: any, path: string, defaultValue: any = '') => {
+const safeGet = (obj: any, path: string, defaultValue: any = "") => {
   try {
-    const parts = path.split('.');
+    const parts = path.split(".");
     let current = obj;
 
     for (const part of parts) {
@@ -203,15 +222,17 @@ const safeGet = (obj: any, path: string, defaultValue: any = '') => {
 };
 
 // Fonction pour sécuriser l'affichage des montants
-const safeAmount = (amount: any, currency: string = 'EUR') => {
-  if (amount === null || amount === undefined) return formatCurrency(0, currency);
+const safeAmount = (amount: any, currency: string = "EUR") => {
+  if (amount === null || amount === undefined)
+    return formatCurrency(0, currency);
 
   try {
-    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
+    const numericAmount =
+      typeof amount === "string" ? parseFloat(amount) : Number(amount);
     if (isNaN(numericAmount)) return formatCurrency(0, currency);
     return formatCurrency(numericAmount, currency);
   } catch (error) {
-    console.error('Erreur lors du formatage du montant:', amount, error);
+    console.error("Erreur lors du formatage du montant:", amount, error);
     return formatCurrency(0, currency);
   }
 };
@@ -222,7 +243,7 @@ export function PaymentHistory({
   showExportButton = true,
   showFilters = true,
   itemsPerPage = 10,
-  className = '',
+  className = "",
   onViewDetails,
   isDemo = false,
   showEmptyState = true,
@@ -230,19 +251,26 @@ export function PaymentHistory({
   showRefreshButton = false,
   onRefresh,
 }: PaymentHistoryProps) {
-  const t = useTranslations('payment');
+  const t = useTranslations("payment");
 
   // Utiliser notre hook personnalisé pour l'historique des paiements
-  const { paymentHistory, isRefreshing, loadPaymentHistory, filterPaymentHistory, isDemoMode } =
-    usePaymentHistory();
+  const {
+    paymentHistory,
+    isRefreshing,
+    loadPaymentHistory,
+    filterPaymentHistory,
+    isDemoMode,
+  } = usePaymentHistory();
 
   // États pour la pagination, le filtrage et le tri
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(
+    undefined,
+  );
   const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
   // Utiliser notre type personnalisé
   const [dateRange, setDateRange] = useState<CustomDateRange>({});
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Récupérer l'historique des paiements depuis l'API tRPC
   const {
@@ -262,42 +290,43 @@ export function PaymentHistory({
     {
       // Désactiver la requête si userId n'est pas défini
       enabled: !!userId && !(isDemo || isDemoMode),
-    }
+    },
   );
 
   // Fonction pour déterminer le type de paiement à partir de l'objet payment
   const getPaymentType = (payment: any) => {
-    if (!payment) return 'PAYMENT';
+    if (!payment) return "PAYMENT";
 
-    if (safeGet(payment, 'deliveryId')) return 'DELIVERY';
-    if (safeGet(payment, 'serviceId')) return 'SERVICE';
-    if (safeGet(payment, 'subscriptionId')) return 'SUBSCRIPTION';
-    if (safeGet(payment, 'refunded')) return 'REFUND';
-    if (safeGet(payment, 'metadata.type')) return safeGet(payment, 'metadata.type');
-    return 'PAYMENT';
+    if (safeGet(payment, "deliveryId")) return "DELIVERY";
+    if (safeGet(payment, "serviceId")) return "SERVICE";
+    if (safeGet(payment, "subscriptionId")) return "SUBSCRIPTION";
+    if (safeGet(payment, "refunded")) return "REFUND";
+    if (safeGet(payment, "metadata.type"))
+      return safeGet(payment, "metadata.type");
+    return "PAYMENT";
   };
 
   // Fonction pour obtenir la description du paiement
   const getPaymentDescription = (payment: any) => {
-    if (!payment) return 'Paiement';
+    if (!payment) return "Paiement";
 
-    if (safeGet(payment, 'metadata.description')) {
-      return safeGet(payment, 'metadata.description');
+    if (safeGet(payment, "metadata.description")) {
+      return safeGet(payment, "metadata.description");
     }
 
-    if (safeGet(payment, 'delivery')) {
-      return `Livraison #${safeGet(payment, 'delivery.trackingNumber', '') || safeGet(payment, 'deliveryId', '')}`;
+    if (safeGet(payment, "delivery")) {
+      return `Livraison #${safeGet(payment, "delivery.trackingNumber", "") || safeGet(payment, "deliveryId", "")}`;
     }
 
-    if (safeGet(payment, 'service')) {
-      return safeGet(payment, 'service.name', 'Service');
+    if (safeGet(payment, "service")) {
+      return safeGet(payment, "service.name", "Service");
     }
 
-    if (safeGet(payment, 'subscription')) {
-      return `Abonnement ${safeGet(payment, 'subscription.planId', '')}`;
+    if (safeGet(payment, "subscription")) {
+      return `Abonnement ${safeGet(payment, "subscription.planId", "")}`;
     }
 
-    return 'Paiement';
+    return "Paiement";
   };
 
   // Fonction pour réinitialiser tous les filtres
@@ -305,7 +334,7 @@ export function PaymentHistory({
     setStatusFilter(undefined);
     setTypeFilter(undefined);
     setDateRange({});
-    setSearchQuery('');
+    setSearchQuery("");
     setPage(1);
   };
 
@@ -314,31 +343,38 @@ export function PaymentHistory({
     if (!displayData?.payments?.length) return;
 
     // Créer le contenu CSV
-    const headers = ['Date', 'Type', 'Status', 'Amount', 'Description', 'Reference'];
+    const headers = [
+      "Date",
+      "Type",
+      "Status",
+      "Amount",
+      "Description",
+      "Reference",
+    ];
     const csvContent = [
-      headers.join(','),
-      ...displayData.payments.map(payment =>
+      headers.join(","),
+      ...displayData.payments.map((payment) =>
         [
-          safeFormatDate(payment.createdAt, 'dd/MM/yyyy HH:mm'),
+          safeFormatDate(payment.createdAt, "dd/MM/yyyy HH:mm"),
           getPaymentType(payment),
           payment.status,
-          `${safeAmount(payment.amount, safeGet(payment, 'currency', 'EUR'))}`,
+          `${safeAmount(payment.amount, safeGet(payment, "currency", "EUR"))}`,
           `"${getPaymentDescription(payment)}"`,
-          payment.metadata?.reference || '',
-        ].join(',')
+          payment.metadata?.reference || "",
+        ].join(","),
       ),
-    ].join('\n');
+    ].join("\n");
 
     // Créer un blob et déclencher le téléchargement
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
     link.setAttribute(
-      'download',
-      `payment_history_${safeFormatDate(new Date(), 'yyyy-MM-dd')}.csv`
+      "download",
+      `payment_history_${safeFormatDate(new Date(), "yyyy-MM-dd")}.csv`,
     );
-    link.style.visibility = 'hidden';
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -347,68 +383,68 @@ export function PaymentHistory({
   // Fonction pour obtenir la couleur du badge en fonction du statut
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
-        return 'outline bg-green-50 text-green-700 border-green-200';
-      case 'PENDING':
-        return 'outline bg-amber-50 text-amber-700 border-amber-200';
-      case 'FAILED':
-        return 'outline bg-red-50 text-red-700 border-red-200';
-      case 'CANCELLED':
-        return 'outline bg-slate-50 text-slate-700 border-slate-200';
-      case 'REFUNDED':
-        return 'outline bg-blue-50 text-blue-700 border-blue-200';
+      case "COMPLETED":
+        return "outline bg-green-50 text-green-700 border-green-200";
+      case "PENDING":
+        return "outline bg-amber-50 text-amber-700 border-amber-200";
+      case "FAILED":
+        return "outline bg-red-50 text-red-700 border-red-200";
+      case "CANCELLED":
+        return "outline bg-slate-50 text-slate-700 border-slate-200";
+      case "REFUNDED":
+        return "outline bg-blue-50 text-blue-700 border-blue-200";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
   // Fonction pour obtenir la couleur du badge en fonction du type
   const getTypeBadgeVariant = (type: string) => {
     switch (type) {
-      case 'PAYMENT':
-        return 'outline bg-violet-50 text-violet-700 border-violet-200';
-      case 'REFUND':
-        return 'outline bg-blue-50 text-blue-700 border-blue-200';
-      case 'SUBSCRIPTION':
-        return 'outline bg-pink-50 text-pink-700 border-pink-200';
-      case 'ESCROW_RELEASE':
-        return 'outline bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'WITHDRAWAL':
-        return 'outline bg-amber-50 text-amber-700 border-amber-200';
+      case "PAYMENT":
+        return "outline bg-violet-50 text-violet-700 border-violet-200";
+      case "REFUND":
+        return "outline bg-blue-50 text-blue-700 border-blue-200";
+      case "SUBSCRIPTION":
+        return "outline bg-pink-50 text-pink-700 border-pink-200";
+      case "ESCROW_RELEASE":
+        return "outline bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "WITHDRAWAL":
+        return "outline bg-amber-50 text-amber-700 border-amber-200";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
   const getStatusBadge = (status: PaymentStatus) => {
     switch (status) {
-      case 'COMPLETED':
+      case "COMPLETED":
         return {
-          variant: 'default' as const,
+          variant: "default" as const,
           icon: <CheckCircle className="h-3 w-3 mr-1" />,
-          label: t('statusCompleted'),
+          label: t("statusCompleted"),
         };
-      case 'PENDING':
+      case "PENDING":
         return {
-          variant: 'secondary' as const,
+          variant: "secondary" as const,
           icon: <Clock className="h-3 w-3 mr-1" />,
-          label: t('statusPending'),
+          label: t("statusPending"),
         };
-      case 'FAILED':
+      case "FAILED":
         return {
-          variant: 'destructive' as const,
+          variant: "destructive" as const,
           icon: <AlertCircle className="h-3 w-3 mr-1" />,
-          label: t('statusFailed'),
+          label: t("statusFailed"),
         };
-      case 'REFUNDED':
+      case "REFUNDED":
         return {
-          variant: 'outline' as const,
+          variant: "outline" as const,
           icon: <Receipt className="h-3 w-3 mr-1" />,
-          label: t('statusRefunded'),
+          label: t("statusRefunded"),
         };
       default:
         return {
-          variant: 'secondary' as const,
+          variant: "secondary" as const,
           icon: <CreditCard className="h-3 w-3 mr-1" />,
           label: status,
         };
@@ -494,8 +530,10 @@ export function PaymentHistory({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <div>
-              <CardTitle>{t('paymentHistory')}</CardTitle>
-              <CardDescription>{t('paymentHistoryDescription')}</CardDescription>
+              <CardTitle>{t("paymentHistory")}</CardTitle>
+              <CardDescription>
+                {t("paymentHistoryDescription")}
+              </CardDescription>
             </div>
             {inDemoMode && (
               <TooltipProvider>
@@ -506,11 +544,11 @@ export function PaymentHistory({
                       className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
                     >
                       <Zap className="h-3 w-3" />
-                      {t('demoMode')}
+                      {t("demoMode")}
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{t('demoPaymentHistoryDescription')}</p>
+                    <p>{t("demoPaymentHistoryDescription")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -529,7 +567,9 @@ export function PaymentHistory({
                 ) : (
                   <RefreshCcw className="h-4 w-4" />
                 )}
-                <span className="ml-2 sr-only sm:not-sr-only">{t('refresh')}</span>
+                <span className="ml-2 sr-only sm:not-sr-only">
+                  {t("refresh")}
+                </span>
               </Button>
             )}
             {showExportButton && (
@@ -540,7 +580,7 @@ export function PaymentHistory({
                 onClick={exportToCsv}
               >
                 <FileDown className="mr-2 h-4 w-4" />
-                {t('exportToCsv')}
+                {t("exportToCsv")}
               </Button>
             )}
           </div>
@@ -554,55 +594,77 @@ export function PaymentHistory({
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder={t('searchPayments')}
+                  placeholder={t("searchPayments")}
                   className="pl-8"
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  aria-label={t('searchPayments')}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label={t("searchPayments")}
                 />
                 {searchQuery && (
                   <Button
                     variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setSearchQuery('')}
-                    aria-label={t('clear')}
+                    onClick={() => setSearchQuery("")}
+                    aria-label={t("clear")}
                   >
                     <X className="h-4 w-4" />
-                    <span className="sr-only">{t('clear')}</span>
+                    <span className="sr-only">{t("clear")}</span>
                   </Button>
                 )}
               </div>
               <Select
-                value={statusFilter || 'ALL'}
-                onValueChange={value => setStatusFilter(value === 'ALL' ? undefined : value)}
+                value={statusFilter || "ALL"}
+                onValueChange={(value) =>
+                  setStatusFilter(value === "ALL" ? undefined : value)
+                }
               >
-                <SelectTrigger className="w-full sm:w-[150px]" aria-label={t('statusFilter')}>
-                  <SelectValue placeholder={t('statusFilter')} />
+                <SelectTrigger
+                  className="w-full sm:w-[150px]"
+                  aria-label={t("statusFilter")}
+                >
+                  <SelectValue placeholder={t("statusFilter")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t('allStatuses')}</SelectItem>
-                  <SelectItem value="PENDING">{t('statusPending')}</SelectItem>
-                  <SelectItem value="COMPLETED">{t('statusCompleted')}</SelectItem>
-                  <SelectItem value="FAILED">{t('statusFailed')}</SelectItem>
-                  <SelectItem value="CANCELLED">{t('statusCancelled')}</SelectItem>
-                  <SelectItem value="REFUNDED">{t('statusRefunded')}</SelectItem>
+                  <SelectItem value="ALL">{t("allStatuses")}</SelectItem>
+                  <SelectItem value="PENDING">{t("statusPending")}</SelectItem>
+                  <SelectItem value="COMPLETED">
+                    {t("statusCompleted")}
+                  </SelectItem>
+                  <SelectItem value="FAILED">{t("statusFailed")}</SelectItem>
+                  <SelectItem value="CANCELLED">
+                    {t("statusCancelled")}
+                  </SelectItem>
+                  <SelectItem value="REFUNDED">
+                    {t("statusRefunded")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <Select
-                value={typeFilter || 'ALL'}
-                onValueChange={value => setTypeFilter(value === 'ALL' ? undefined : value)}
+                value={typeFilter || "ALL"}
+                onValueChange={(value) =>
+                  setTypeFilter(value === "ALL" ? undefined : value)
+                }
               >
-                <SelectTrigger className="w-full sm:w-[150px]" aria-label={t('typeFilter')}>
-                  <SelectValue placeholder={t('typeFilter')} />
+                <SelectTrigger
+                  className="w-full sm:w-[150px]"
+                  aria-label={t("typeFilter")}
+                >
+                  <SelectValue placeholder={t("typeFilter")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t('allTypes')}</SelectItem>
-                  <SelectItem value="PAYMENT">{t('typePayment')}</SelectItem>
-                  <SelectItem value="REFUND">{t('typeRefund')}</SelectItem>
-                  <SelectItem value="SUBSCRIPTION">{t('typeSubscription')}</SelectItem>
-                  <SelectItem value="ESCROW_RELEASE">{t('typeEscrowRelease')}</SelectItem>
-                  <SelectItem value="WITHDRAWAL">{t('typeWithdrawal')}</SelectItem>
+                  <SelectItem value="ALL">{t("allTypes")}</SelectItem>
+                  <SelectItem value="PAYMENT">{t("typePayment")}</SelectItem>
+                  <SelectItem value="REFUND">{t("typeRefund")}</SelectItem>
+                  <SelectItem value="SUBSCRIPTION">
+                    {t("typeSubscription")}
+                  </SelectItem>
+                  <SelectItem value="ESCROW_RELEASE">
+                    {t("typeEscrowRelease")}
+                  </SelectItem>
+                  <SelectItem value="WITHDRAWAL">
+                    {t("typeWithdrawal")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -612,19 +674,23 @@ export function PaymentHistory({
               <div className="flex items-center space-x-2">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 px-2 lg:px-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-2 lg:px-3"
+                    >
                       <Calendar className="mr-2 h-4 w-4" />
                       {dateRange?.from ? (
                         dateRange.to ? (
                           <>
-                            {safeFormatDate(dateRange.from, 'dd/MM/yyyy')} -{' '}
-                            {safeFormatDate(dateRange.to, 'dd/MM/yyyy')}
+                            {safeFormatDate(dateRange.from, "dd/MM/yyyy")} -{" "}
+                            {safeFormatDate(dateRange.to, "dd/MM/yyyy")}
                           </>
                         ) : (
-                          safeFormatDate(dateRange.from, 'dd/MM/yyyy')
+                          safeFormatDate(dateRange.from, "dd/MM/yyyy")
                         )
                       ) : (
-                        <span>{t('dateRange')}</span>
+                        <span>{t("dateRange")}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -634,7 +700,7 @@ export function PaymentHistory({
                       mode="range"
                       defaultMonth={dateRange?.from}
                       selected={dateRange as any}
-                      onSelect={value => setDateRange(value || {})}
+                      onSelect={(value) => setDateRange(value || {})}
                       numberOfMonths={2}
                     />
                   </PopoverContent>
@@ -643,7 +709,7 @@ export function PaymentHistory({
 
               <Button variant="ghost" size="sm" onClick={resetFilters}>
                 <X className="mr-2 h-4 w-4" />
-                {t('resetFilters')}
+                {t("resetFilters")}
               </Button>
             </div>
           </div>
@@ -663,8 +729,8 @@ export function PaymentHistory({
         {isError && !inDemoMode && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('error')}</AlertTitle>
-            <AlertDescription>{t('errorLoadingPayments')}</AlertDescription>
+            <AlertTitle>{t("error")}</AlertTitle>
+            <AlertDescription>{t("errorLoadingPayments")}</AlertDescription>
           </Alert>
         )}
 
@@ -673,54 +739,63 @@ export function PaymentHistory({
           <div className="rounded-md border">
             <Table>
               <TableCaption>
-                {t('totalPayments', { count: displayData.pagination?.total || 0 })}
+                {t("totalPayments", {
+                  count: displayData.pagination?.total || 0,
+                })}
               </TableCaption>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('date')}</TableHead>
-                  <TableHead>{t('description')}</TableHead>
-                  <TableHead className="text-right">{t('amount')}</TableHead>
-                  <TableHead className="text-center">{t('status')}</TableHead>
-                  <TableHead className="text-center">{t('type')}</TableHead>
-                  <TableHead className="text-right">{t('actions')}</TableHead>
+                  <TableHead>{t("date")}</TableHead>
+                  <TableHead>{t("description")}</TableHead>
+                  <TableHead className="text-right">{t("amount")}</TableHead>
+                  <TableHead className="text-center">{t("status")}</TableHead>
+                  <TableHead className="text-center">{t("type")}</TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {displayData.payments.map(payment => {
-                  const status = safeGet(payment, 'status', 'PENDING');
+                {displayData.payments.map((payment) => {
+                  const status = safeGet(payment, "status", "PENDING");
                   const type = getPaymentType(payment);
                   const statusBadge = getStatusBadge(status as PaymentStatus);
                   const description = getPaymentDescription(payment);
-                  const paymentId = safeGet(payment, 'id', '');
-                  const amount = safeGet(payment, 'amount', 0);
-                  const currency = safeGet(payment, 'currency', 'EUR');
-                  const createdAt = safeGet(payment, 'createdAt', new Date());
+                  const paymentId = safeGet(payment, "id", "");
+                  const amount = safeGet(payment, "amount", 0);
+                  const currency = safeGet(payment, "currency", "EUR");
+                  const createdAt = safeGet(payment, "createdAt", new Date());
 
                   return (
                     <TableRow key={paymentId} data-payment-id={paymentId}>
                       <TableCell className="font-medium">
-                        {safeFormatDate(createdAt, 'dd/MM/yyyy')}
+                        {safeFormatDate(createdAt, "dd/MM/yyyy")}
                         <div className="text-xs text-muted-foreground">
-                          {safeFormatDate(createdAt, 'HH:mm')}
+                          {safeFormatDate(createdAt, "HH:mm")}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="max-w-[200px] truncate" title={description}>
+                        <div
+                          className="max-w-[200px] truncate"
+                          title={description}
+                        >
                           {description}
                         </div>
                         {payment.metadata?.reference && (
                           <div className="text-xs text-muted-foreground">
-                            {t('reference')}: {payment.metadata.reference}
+                            {t("reference")}: {payment.metadata.reference}
                           </div>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
                         <span
                           className={
-                            type === 'REFUND' ? 'text-red-600' : amount < 0 ? 'text-red-600' : ''
+                            type === "REFUND"
+                              ? "text-red-600"
+                              : amount < 0
+                                ? "text-red-600"
+                                : ""
                           }
                         >
-                          {type === 'REFUND' && amount > 0 ? '-' : ''}
+                          {type === "REFUND" && amount > 0 ? "-" : ""}
                           {safeAmount(amount, currency)}
                         </span>
                       </TableCell>
@@ -728,16 +803,23 @@ export function PaymentHistory({
                         <Badge
                           variant={statusBadge.variant}
                           className={`flex items-center justify-center ${getStatusBadgeVariant(
-                            status
+                            status,
                           )}`}
                         >
                           {statusBadge.icon}
-                          <span className="hidden sm:inline">{statusBadge.label}</span>
+                          <span className="hidden sm:inline">
+                            {statusBadge.label}
+                          </span>
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={`${getTypeBadgeVariant(type)}`}>
-                          {t(`type${type.charAt(0)}${type.slice(1).toLowerCase()}`)}
+                        <Badge
+                          variant="outline"
+                          className={`${getTypeBadgeVariant(type)}`}
+                        >
+                          {t(
+                            `type${type.charAt(0)}${type.slice(1).toLowerCase()}`,
+                          )}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -746,10 +828,10 @@ export function PaymentHistory({
                             variant="ghost"
                             size="sm"
                             onClick={() => onViewDetails(paymentId)}
-                            aria-label={t('viewDetails')}
+                            aria-label={t("viewDetails")}
                           >
                             <Eye className="h-4 w-4" />
-                            <span className="sr-only">{t('viewDetails')}</span>
+                            <span className="sr-only">{t("viewDetails")}</span>
                           </Button>
                         )}
                       </TableCell>
@@ -762,25 +844,28 @@ export function PaymentHistory({
         )}
 
         {/* État vide */}
-        {!isLoading && !isError && displayData?.payments?.length === 0 && showEmptyState && (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <CreditCard className="h-12 w-12 text-muted-foreground mb-3" />
-            <h3 className="text-lg font-medium mb-1">{t('noPayments')}</h3>
-            <p className="text-muted-foreground max-w-md mb-6">
-              {emptyStateMessage || t('noPaymentsDescription')}
-            </p>
-            {inDemoMode && (
-              <Button
-                variant="outline"
-                onClick={handleRefresh}
-                disabled={isLoading || isRefreshing}
-              >
-                <Zap className="mr-2 h-4 w-4" />
-                {t('generateDemoPayments')}
-              </Button>
-            )}
-          </div>
-        )}
+        {!isLoading &&
+          !isError &&
+          displayData?.payments?.length === 0 &&
+          showEmptyState && (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <CreditCard className="h-12 w-12 text-muted-foreground mb-3" />
+              <h3 className="text-lg font-medium mb-1">{t("noPayments")}</h3>
+              <p className="text-muted-foreground max-w-md mb-6">
+                {emptyStateMessage || t("noPaymentsDescription")}
+              </p>
+              {inDemoMode && (
+                <Button
+                  variant="outline"
+                  onClick={handleRefresh}
+                  disabled={isLoading || isRefreshing}
+                >
+                  <Zap className="mr-2 h-4 w-4" />
+                  {t("generateDemoPayments")}
+                </Button>
+              )}
+            </div>
+          )}
 
         {/* Pagination */}
         {!isLoading &&
@@ -793,34 +878,39 @@ export function PaymentHistory({
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious
-                      onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                      onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
                       disabled={page === 1}
-                      aria-label={t('previousPage')}
+                      aria-label={t("previousPage")}
                     />
                   </PaginationItem>
 
-                  {Array.from({ length: displayData.pagination.totalPages }, (_, i) => (
-                    <PaginationItem key={i + 1}>
-                      <Button
-                        variant={page === i + 1 ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setPage(i + 1)}
-                        className="w-8 h-8"
-                        aria-label={t('goToPage', { page: i + 1 })}
-                        aria-current={page === i + 1 ? 'page' : undefined}
-                      >
-                        {i + 1}
-                      </Button>
-                    </PaginationItem>
-                  ))}
+                  {Array.from(
+                    { length: displayData.pagination.totalPages },
+                    (_, i) => (
+                      <PaginationItem key={i + 1}>
+                        <Button
+                          variant={page === i + 1 ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setPage(i + 1)}
+                          className="w-8 h-8"
+                          aria-label={t("goToPage", { page: i + 1 })}
+                          aria-current={page === i + 1 ? "page" : undefined}
+                        >
+                          {i + 1}
+                        </Button>
+                      </PaginationItem>
+                    ),
+                  )}
 
                   <PaginationItem>
                     <PaginationNext
                       onClick={() =>
-                        setPage(prev => Math.min(prev + 1, displayData.pagination.totalPages))
+                        setPage((prev) =>
+                          Math.min(prev + 1, displayData.pagination.totalPages),
+                        )
                       }
                       disabled={page === displayData.pagination.totalPages}
-                      aria-label={t('nextPage')}
+                      aria-label={t("nextPage")}
                     />
                   </PaginationItem>
                 </PaginationContent>

@@ -1,26 +1,36 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { UserRole } from '@prisma/client';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { UserRole } from "@prisma/client";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { Search, Calendar as CalendarIcon, X } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils/common';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Search, Calendar as CalendarIcon, X } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils/common";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface VerificationFilterFormProps {
   currentFilters: any;
@@ -31,19 +41,23 @@ export function VerificationFilterForm({
   currentFilters,
   onFilterChange,
 }: VerificationFilterFormProps) {
-  const t = useTranslations('admin.verification.filters');
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(currentFilters.dateFrom || undefined);
-  const [dateTo, setDateTo] = useState<Date | undefined>(currentFilters.dateTo || undefined);
+  const t = useTranslations("admin.verification.filters");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(
+    currentFilters.dateFrom || undefined,
+  );
+  const [dateTo, setDateTo] = useState<Date | undefined>(
+    currentFilters.dateTo || undefined,
+  );
 
   // Ensure all required fields are present with default values
   const defaultValues = {
-    status: currentFilters.status || 'PENDING',
+    status: currentFilters.status || "PENDING",
     page: currentFilters.page || 1,
     limit: currentFilters.limit || 10,
-    sortBy: currentFilters.sortBy || 'createdAt',
-    sortDirection: currentFilters.sortDirection || 'desc',
+    sortBy: currentFilters.sortBy || "createdAt",
+    sortDirection: currentFilters.sortDirection || "desc",
     role: currentFilters.role,
-    search: currentFilters.search || '',
+    search: currentFilters.search || "",
   };
 
   // @ts-ignore - Using any type to avoid complex type errors
@@ -52,7 +66,7 @@ export function VerificationFilterForm({
   });
 
   // @ts-ignore - Using any type to avoid complex type errors
-  const handleSubmit = form.handleSubmit(data => {
+  const handleSubmit = form.handleSubmit((data) => {
     onFilterChange({
       ...data,
       dateFrom,
@@ -62,12 +76,12 @@ export function VerificationFilterForm({
 
   const handleReset = () => {
     const resetValues = {
-      status: 'PENDING',
+      status: "PENDING",
       page: 1,
       limit: 10,
-      sortBy: 'createdAt',
-      sortDirection: 'desc',
-      search: '',
+      sortBy: "createdAt",
+      sortDirection: "desc",
+      search: "",
       role: undefined,
     };
 
@@ -91,28 +105,34 @@ export function VerificationFilterForm({
             name="role"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('role')}</FormLabel>
+                <FormLabel>{t("role")}</FormLabel>
                 <Select
-                  onValueChange={value => {
-                    if (value === 'ALL') {
+                  onValueChange={(value) => {
+                    if (value === "ALL") {
                       field.onChange(undefined);
                     } else {
                       field.onChange(value);
                     }
                   }}
-                  value={field.value ? field.value : 'ALL'}
+                  value={field.value ? field.value : "ALL"}
                   defaultValue="ALL"
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('allRoles')} />
+                      <SelectValue placeholder={t("allRoles")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="ALL">{t('allRoles')}</SelectItem>
-                    <SelectItem value={UserRole.DELIVERER}>{t('roles.deliverer')}</SelectItem>
-                    <SelectItem value={UserRole.MERCHANT}>{t('roles.merchant')}</SelectItem>
-                    <SelectItem value={UserRole.PROVIDER}>{t('roles.provider')}</SelectItem>
+                    <SelectItem value="ALL">{t("allRoles")}</SelectItem>
+                    <SelectItem value={UserRole.DELIVERER}>
+                      {t("roles.deliverer")}
+                    </SelectItem>
+                    <SelectItem value={UserRole.MERCHANT}>
+                      {t("roles.merchant")}
+                    </SelectItem>
+                    <SelectItem value={UserRole.PROVIDER}>
+                      {t("roles.provider")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </FormItem>
@@ -121,7 +141,7 @@ export function VerificationFilterForm({
 
           {/* Date range filter - From */}
           <FormItem>
-            <FormLabel>{t('dateFrom')}</FormLabel>
+            <FormLabel>{t("dateFrom")}</FormLabel>
             <Popover>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -129,14 +149,14 @@ export function VerificationFilterForm({
                     type="button"
                     variant="outline"
                     className={cn(
-                      'w-full pl-3 text-left font-normal',
-                      !dateFrom && 'text-muted-foreground'
+                      "w-full pl-3 text-left font-normal",
+                      !dateFrom && "text-muted-foreground",
                     )}
                   >
                     {dateFrom ? (
-                      format(dateFrom, 'PPP', { locale: fr })
+                      format(dateFrom, "PPP", { locale: fr })
                     ) : (
-                      <span>{t('selectDate')}</span>
+                      <span>{t("selectDate")}</span>
                     )}
                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                   </Button>
@@ -156,7 +176,7 @@ export function VerificationFilterForm({
 
           {/* Date range filter - To */}
           <FormItem>
-            <FormLabel>{t('dateTo')}</FormLabel>
+            <FormLabel>{t("dateTo")}</FormLabel>
             <Popover>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -164,14 +184,14 @@ export function VerificationFilterForm({
                     type="button"
                     variant="outline"
                     className={cn(
-                      'w-full pl-3 text-left font-normal',
-                      !dateTo && 'text-muted-foreground'
+                      "w-full pl-3 text-left font-normal",
+                      !dateTo && "text-muted-foreground",
                     )}
                   >
                     {dateTo ? (
-                      format(dateTo, 'PPP', { locale: fr })
+                      format(dateTo, "PPP", { locale: fr })
                     ) : (
-                      <span>{t('selectDate')}</span>
+                      <span>{t("selectDate")}</span>
                     )}
                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                   </Button>
@@ -184,7 +204,7 @@ export function VerificationFilterForm({
                   onSelect={setDateTo}
                   locale={fr}
                   initialFocus
-                  disabled={date => (dateFrom ? date < dateFrom : false)}
+                  disabled={(date) => (dateFrom ? date < dateFrom : false)}
                 />
               </PopoverContent>
             </Popover>
@@ -196,15 +216,15 @@ export function VerificationFilterForm({
             name="search"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('search')}</FormLabel>
+                <FormLabel>{t("search")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder={t('searchPlaceholder')}
+                      placeholder={t("searchPlaceholder")}
                       className="pl-8"
                       {...field}
-                      value={field.value || ''}
+                      value={field.value || ""}
                     />
                   </div>
                 </FormControl>
@@ -216,11 +236,11 @@ export function VerificationFilterForm({
         <div className="flex justify-between">
           <Button type="button" variant="outline" onClick={handleReset}>
             <X className="mr-2 h-4 w-4" />
-            {t('reset')}
+            {t("reset")}
           </Button>
           <Button type="submit">
             <Search className="mr-2 h-4 w-4" />
-            {t('filter')}
+            {t("filter")}
           </Button>
         </div>
       </form>

@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSocket } from '@/hooks/system/use-socket';
-import { useProviderDashboard } from '@/hooks/provider/use-provider-dashboard';
-import { api } from '@/trpc/react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSocket } from "@/hooks/system/use-socket";
+import { useProviderDashboard } from "@/hooks/provider/use-provider-dashboard";
+import { api } from "@/trpc/react";
 
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LineChart,
   Line,
@@ -25,7 +25,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-} from 'recharts';
+} from "recharts";
 
 // Icons
 import {
@@ -55,7 +55,7 @@ import {
   Home,
   ChevronRight,
   AlertCircle,
-} from 'lucide-react';
+} from "lucide-react";
 
 // Types
 interface ProviderStats {
@@ -130,7 +130,7 @@ type ProviderDashboardProps = {
 
 // Utilitaire pour les classes CSS
 function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(" ");
 }
 
 // Composant de carte de statistique
@@ -141,8 +141,8 @@ const StatCard = ({
   trend,
   isLoading = false,
   onClick,
-  color = 'text-primary',
-  bgColor = 'bg-primary/10',
+  color = "text-primary",
+  bgColor = "bg-primary/10",
 }: {
   title: string;
   value: string | number;
@@ -155,11 +155,15 @@ const StatCard = ({
 }) => {
   if (isLoading) {
     return (
-      <Card className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}>
+      <Card
+        className={
+          onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+        }
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className={cn('p-3 rounded-full', bgColor)}>
+              <div className={cn("p-3 rounded-full", bgColor)}>
                 <div className="h-5 w-5 bg-gray-300 animate-pulse rounded" />
               </div>
               <div>
@@ -176,17 +180,21 @@ const StatCard = ({
 
   return (
     <Card
-      className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
+      className={
+        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+      }
       onClick={onClick}
     >
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className={cn('p-3 rounded-full', bgColor)}>
+            <div className={cn("p-3 rounded-full", bgColor)}>
               <div className={color}>{icon}</div>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {title}
+              </p>
               <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
             </div>
           </div>
@@ -194,7 +202,7 @@ const StatCard = ({
             <div className="text-right">
               <p
                 className={`text-xs flex items-center gap-1 ${
-                  trend.value >= 0 ? 'text-green-600' : 'text-red-600'
+                  trend.value >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {trend.value >= 0 ? (
@@ -202,7 +210,7 @@ const StatCard = ({
                 ) : (
                   <TrendingDown className="h-3 w-3" />
                 )}
-                {trend.value >= 0 ? '+' : ''}
+                {trend.value >= 0 ? "+" : ""}
                 {trend.value}%
               </p>
               <p className="text-xs text-muted-foreground">{trend.label}</p>
@@ -222,30 +230,32 @@ const AppointmentCard = ({
   appointment: Appointment;
   onView: (id: string) => void;
 }) => {
-  const isToday = new Date(appointment.scheduledDate).toDateString() === new Date().toDateString();
+  const isToday =
+    new Date(appointment.scheduledDate).toDateString() ===
+    new Date().toDateString();
   const isTomorrow =
     new Date(appointment.scheduledDate).toDateString() ===
     new Date(Date.now() + 24 * 60 * 60 * 1000).toDateString();
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200';
-      case 'IN_PROGRESS':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200';
-      case 'COMPLETED':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200';
+      case "CONFIRMED":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200";
+      case "IN_PROGRESS":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200";
+      case "COMPLETED":
+        return "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200";
     }
   };
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      CONFIRMED: 'Confirmé',
-      IN_PROGRESS: 'En cours',
-      COMPLETED: 'Terminé',
-      CANCELLED: 'Annulé',
+      CONFIRMED: "Confirmé",
+      IN_PROGRESS: "En cours",
+      COMPLETED: "Terminé",
+      CANCELLED: "Annulé",
     };
     return labels[status] || status;
   };
@@ -259,29 +269,44 @@ const AppointmentCard = ({
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             <h4 className="font-medium text-sm mb-1">
-              {appointment.client.profile.firstName} {appointment.client.profile.lastName}
+              {appointment.client.profile.firstName}{" "}
+              {appointment.client.profile.lastName}
             </h4>
-            <p className="text-xs text-muted-foreground">{appointment.service.name}</p>
-            <Badge className={cn('text-xs mt-1', getStatusColor(appointment.status))}>
+            <p className="text-xs text-muted-foreground">
+              {appointment.service.name}
+            </p>
+            <Badge
+              className={cn("text-xs mt-1", getStatusColor(appointment.status))}
+            >
               {getStatusLabel(appointment.status)}
             </Badge>
           </div>
           <div className="text-right">
             <p className="font-bold text-sm">{appointment.price}€</p>
-            <p className="text-xs text-muted-foreground">{appointment.duration}min</p>
+            <p className="text-xs text-muted-foreground">
+              {appointment.duration}min
+            </p>
           </div>
         </div>
 
         <div className="space-y-1 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <Calendar className="h-3 w-3" />
-            <span>{new Date(appointment.scheduledDate).toLocaleDateString()}</span>
-            {isToday && <span className="text-blue-600 font-medium">Aujourd'hui</span>}
-            {isTomorrow && <span className="text-orange-600 font-medium">Demain</span>}
+            <span>
+              {new Date(appointment.scheduledDate).toLocaleDateString()}
+            </span>
+            {isToday && (
+              <span className="text-blue-600 font-medium">Aujourd'hui</span>
+            )}
+            {isTomorrow && (
+              <span className="text-orange-600 font-medium">Demain</span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-3 w-3" />
-            <span>{new Date(appointment.scheduledDate).toLocaleTimeString()}</span>
+            <span>
+              {new Date(appointment.scheduledDate).toLocaleTimeString()}
+            </span>
           </div>
           {appointment.client.profile.phone && (
             <div className="flex items-center gap-2">
@@ -303,17 +328,24 @@ const InterventionCard = ({ intervention }: { intervention: Intervention }) => {
         <div className="flex items-start justify-between mb-3">
           <div>
             <h4 className="font-medium text-sm">
-              {intervention.client.profile.firstName} {intervention.client.profile.lastName}
+              {intervention.client.profile.firstName}{" "}
+              {intervention.client.profile.lastName}
             </h4>
-            <p className="text-xs text-muted-foreground">{intervention.service.name}</p>
-            <p className="text-xs text-muted-foreground">{intervention.service.category}</p>
+            <p className="text-xs text-muted-foreground">
+              {intervention.service.name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {intervention.service.category}
+            </p>
           </div>
           <div className="text-right">
             <p className="font-bold text-sm">{intervention.price}€</p>
             {intervention.rating && (
               <div className="flex items-center gap-1">
                 <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs">{intervention.rating.toFixed(1)}</span>
+                <span className="text-xs">
+                  {intervention.rating.toFixed(1)}
+                </span>
               </div>
             )}
           </div>
@@ -322,7 +354,9 @@ const InterventionCard = ({ intervention }: { intervention: Intervention }) => {
         <div className="text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <Clock className="h-3 w-3" />
-            <span>{new Date(intervention.completedAt).toLocaleDateString()}</span>
+            <span>
+              {new Date(intervention.completedAt).toLocaleDateString()}
+            </span>
           </div>
         </div>
       </CardContent>
@@ -344,14 +378,18 @@ const RatingCard = ({ rating }: { rating: Rating }) => {
             <h4 className="font-medium text-sm">
               {rating.client.profile.firstName} {rating.client.profile.lastName}
             </h4>
-            <p className="text-xs text-muted-foreground">{rating.service.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {rating.service.name}
+            </p>
           </div>
           <div className="text-xs text-muted-foreground">
             {new Date(rating.completedAt).toLocaleDateString()}
           </div>
         </div>
 
-        <p className="text-sm text-muted-foreground italic">"{rating.review}"</p>
+        <p className="text-sm text-muted-foreground italic">
+          "{rating.review}"
+        </p>
       </CardContent>
     </Card>
   );
@@ -364,31 +402,31 @@ const QuickActionsSection = () => {
   const quickActions = [
     {
       icon: <Plus className="h-5 w-5" />,
-      label: 'Nouveau service',
-      description: 'Créer un nouveau service',
-      action: () => router.push('/provider/services/create'),
-      color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/50',
+      label: "Nouveau service",
+      description: "Créer un nouveau service",
+      action: () => router.push("/provider/services/create"),
+      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50",
     },
     {
       icon: <Calendar className="h-5 w-5" />,
-      label: 'Planning',
-      description: 'Gérer mon planning',
-      action: () => router.push('/provider/schedule'),
-      color: 'text-green-600 bg-green-100 dark:bg-green-900/50',
+      label: "Planning",
+      description: "Gérer mon planning",
+      action: () => router.push("/provider/schedule"),
+      color: "text-green-600 bg-green-100 dark:bg-green-900/50",
     },
     {
       icon: <Award className="h-5 w-5" />,
-      label: 'Compétences',
-      description: 'Gérer mes compétences',
-      action: () => router.push('/provider/skills'),
-      color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/50',
+      label: "Compétences",
+      description: "Gérer mes compétences",
+      action: () => router.push("/provider/skills"),
+      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50",
     },
     {
       icon: <BarChart3 className="h-5 w-5" />,
-      label: 'Statistiques',
-      description: 'Voir mes performances',
-      action: () => router.push('/provider/stats'),
-      color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/50',
+      label: "Statistiques",
+      description: "Voir mes performances",
+      action: () => router.push("/provider/stats"),
+      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50",
     },
   ];
 
@@ -409,10 +447,14 @@ const QuickActionsSection = () => {
               className="h-auto flex-col p-4 space-y-2"
               onClick={action.action}
             >
-              <div className={cn('p-2 rounded-lg', action.color)}>{action.icon}</div>
+              <div className={cn("p-2 rounded-lg", action.color)}>
+                {action.icon}
+              </div>
               <div className="text-center">
                 <p className="font-medium text-sm">{action.label}</p>
-                <p className="text-xs text-muted-foreground">{action.description}</p>
+                <p className="text-xs text-muted-foreground">
+                  {action.description}
+                </p>
               </div>
             </Button>
           ))}
@@ -425,7 +467,8 @@ const QuickActionsSection = () => {
 export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
   const router = useRouter();
   const { socket } = useSocket();
-  const [realtimeStats, setRealtimeStats] = useState<Partial<ProviderStats> | null>(null);
+  const [realtimeStats, setRealtimeStats] =
+    useState<Partial<ProviderStats> | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   const {
@@ -444,31 +487,31 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('disconnect', () => setIsConnected(false));
+    socket.on("connect", () => setIsConnected(true));
+    socket.on("disconnect", () => setIsConnected(false));
 
     // Écouter les nouvelles réservations
-    socket.on('provider:new:booking', booking => {
+    socket.on("provider:new:booking", (booking) => {
       refetchStats();
       // Notification de nouveau RDV
     });
 
     // Écouter les mises à jour de stats
-    socket.on('provider:stats:update', data => {
+    socket.on("provider:stats:update", (data) => {
       setRealtimeStats(data);
     });
 
     // Écouter les nouvelles évaluations
-    socket.on('provider:new:rating', rating => {
+    socket.on("provider:new:rating", (rating) => {
       // Notification de nouvelle évaluation
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('provider:new:booking');
-      socket.off('provider:stats:update');
-      socket.off('provider:new:rating');
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("provider:new:booking");
+      socket.off("provider:stats:update");
+      socket.off("provider:new:rating");
     };
   }, [socket, refetchStats]);
 
@@ -486,9 +529,9 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
           title="Revenus mensuel"
           value={`${currentStats?.monthlyRevenue || 0}€`}
           icon={<Euro className="h-5 w-5" />}
-          trend={{ value: 15, label: 'vs mois dernier' }}
+          trend={{ value: 15, label: "vs mois dernier" }}
           isLoading={isLoadingStats}
-          onClick={() => router.push('/provider/stats/monthly-report')}
+          onClick={() => router.push("/provider/stats/monthly-report")}
           color="text-green-600"
           bgColor="bg-green-100 dark:bg-green-900/50"
         />
@@ -498,7 +541,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
           value={currentStats?.appointmentsToday || 0}
           icon={<Calendar className="h-5 w-5" />}
           isLoading={isLoadingStats}
-          onClick={() => router.push('/provider/schedule')}
+          onClick={() => router.push("/provider/schedule")}
           color="text-blue-600"
           bgColor="bg-blue-100 dark:bg-blue-900/50"
         />
@@ -508,7 +551,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
           value={`${currentStats?.averageRating?.toFixed(1) || 0}/5`}
           icon={<Star className="h-5 w-5" />}
           isLoading={isLoadingStats}
-          onClick={() => router.push('/provider/ratings')}
+          onClick={() => router.push("/provider/ratings")}
           color="text-yellow-600"
           bgColor="bg-yellow-100 dark:bg-yellow-900/50"
         />
@@ -517,7 +560,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
           title="Clients servis"
           value={currentStats?.clientsServed || 0}
           icon={<Users className="h-5 w-5" />}
-          trend={{ value: 8, label: 'ce mois' }}
+          trend={{ value: 8, label: "ce mois" }}
           isLoading={isLoadingStats}
           color="text-purple-600"
           bgColor="bg-purple-100 dark:bg-purple-900/50"
@@ -547,7 +590,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => router.push('/provider/appointments')}
+                      onClick={() => router.push("/provider/appointments")}
                     >
                       Voir tout
                     </Button>
@@ -557,13 +600,14 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                   <ScrollArea className="h-[400px] pr-4">
                     {isLoadingAppointments ? (
                       <div className="space-y-3">
-                        {[1, 2, 3, 4, 5].map(i => (
+                        {[1, 2, 3, 4, 5].map((i) => (
                           <Skeleton key={i} className="h-24 w-full" />
                         ))}
                       </div>
-                    ) : upcomingAppointments && upcomingAppointments.length > 0 ? (
+                    ) : upcomingAppointments &&
+                      upcomingAppointments.length > 0 ? (
                       <div className="space-y-3">
-                        {upcomingAppointments.map(appointment => (
+                        {upcomingAppointments.map((appointment) => (
                           <AppointmentCard
                             key={appointment.id}
                             appointment={appointment as Appointment}
@@ -574,7 +618,9 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                     ) : (
                       <div className="text-center py-8">
                         <Calendar className="h-12 w-12 mx-auto text-muted-foreground opacity-25 mb-2" />
-                        <p className="text-muted-foreground">Aucun rendez-vous à venir</p>
+                        <p className="text-muted-foreground">
+                          Aucun rendez-vous à venir
+                        </p>
                       </div>
                     )}
                   </ScrollArea>
@@ -594,20 +640,36 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Interventions</span>
-                    <span className="font-medium">{currentStats?.completedMonth || 0}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Interventions
+                    </span>
+                    <span className="font-medium">
+                      {currentStats?.completedMonth || 0}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Revenus jour</span>
-                    <span className="font-medium">{currentStats?.dailyRevenue || 0}€</span>
+                    <span className="text-sm text-muted-foreground">
+                      Revenus jour
+                    </span>
+                    <span className="font-medium">
+                      {currentStats?.dailyRevenue || 0}€
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Contrats actifs</span>
-                    <span className="font-medium">{currentStats?.activeContracts || 0}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Contrats actifs
+                    </span>
+                    <span className="font-medium">
+                      {currentStats?.activeContracts || 0}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Compétences</span>
-                    <span className="font-medium">{currentStats?.skillsCount || 0}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Compétences
+                    </span>
+                    <span className="font-medium">
+                      {currentStats?.skillsCount || 0}
+                    </span>
                   </div>
 
                   {/* Graphique de performance */}
@@ -640,7 +702,9 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                     <div className="rounded-full bg-green-100 dark:bg-green-900/50 p-3 mb-4">
                       <CheckCircle className="h-8 w-8 text-green-600" />
                     </div>
-                    <h3 className="text-lg font-medium mb-1">Prestataire vérifié</h3>
+                    <h3 className="text-lg font-medium mb-1">
+                      Prestataire vérifié
+                    </h3>
                     <p className="text-center text-sm text-muted-foreground mb-3">
                       Votre profil est entièrement vérifié
                     </p>
@@ -655,7 +719,9 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => router.push('/provider/skills/certifications')}
+                        onClick={() =>
+                          router.push("/provider/skills/certifications")
+                        }
                       >
                         Gérer les certifications
                       </Button>
@@ -671,12 +737,12 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {isLoadingAppointments ? (
               <>
-                {[1, 2, 3, 4].map(i => (
+                {[1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-32 w-full" />
                 ))}
               </>
             ) : upcomingAppointments && upcomingAppointments.length > 0 ? (
-              upcomingAppointments.map(appointment => (
+              upcomingAppointments.map((appointment) => (
                 <AppointmentCard
                   key={appointment.id}
                   appointment={appointment as Appointment}
@@ -687,8 +753,10 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
               <Card className="col-span-full">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Calendar className="h-12 w-12 text-muted-foreground opacity-25 mb-2" />
-                  <p className="text-muted-foreground mb-4">Aucun rendez-vous planifié</p>
-                  <Button onClick={() => router.push('/provider/schedule')}>
+                  <p className="text-muted-foreground mb-4">
+                    Aucun rendez-vous planifié
+                  </p>
+                  <Button onClick={() => router.push("/provider/schedule")}>
                     Gérer mon planning
                   </Button>
                 </CardContent>
@@ -700,7 +768,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
         <TabsContent value="interventions" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {recentInterventions && recentInterventions.length > 0 ? (
-              recentInterventions.map(intervention => (
+              recentInterventions.map((intervention) => (
                 <InterventionCard
                   key={intervention.id}
                   intervention={intervention as Intervention}
@@ -710,7 +778,9 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
               <Card className="col-span-full">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Wrench className="h-12 w-12 text-muted-foreground opacity-25 mb-2" />
-                  <p className="text-muted-foreground">Aucune intervention récente</p>
+                  <p className="text-muted-foreground">
+                    Aucune intervention récente
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -739,7 +809,9 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                   </div>
                 ) : (
                   <div className="h-[300px] flex items-center justify-center">
-                    <p className="text-muted-foreground">Données non disponibles</p>
+                    <p className="text-muted-foreground">
+                      Données non disponibles
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -754,14 +826,16 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
                 <ScrollArea className="h-[300px] pr-4">
                   {recentRatings && recentRatings.length > 0 ? (
                     <div className="space-y-3">
-                      {recentRatings.map(rating => (
+                      {recentRatings.map((rating) => (
                         <RatingCard key={rating.id} rating={rating as Rating} />
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8">
                       <Star className="h-12 w-12 mx-auto text-muted-foreground opacity-25 mb-2" />
-                      <p className="text-muted-foreground">Aucune évaluation récente</p>
+                      <p className="text-muted-foreground">
+                        Aucune évaluation récente
+                      </p>
                     </div>
                   )}
                 </ScrollArea>

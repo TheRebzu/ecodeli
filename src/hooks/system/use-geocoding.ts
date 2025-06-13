@@ -1,4 +1,4 @@
-import { api } from '@/trpc/react';
+import { api } from "@/trpc/react";
 
 export function useGeocoding() {
   const utils = api.useUtils();
@@ -10,7 +10,7 @@ export function useGeocoding() {
         limit,
       });
     } catch (error) {
-      console.error('Error searching address:', error);
+      console.error("Error searching address:", error);
       throw error;
     }
   };
@@ -23,7 +23,7 @@ export function useGeocoding() {
         zoom,
       });
     } catch (error) {
-      console.error('Error reverse geocoding:', error);
+      console.error("Error reverse geocoding:", error);
       throw error;
     }
   };

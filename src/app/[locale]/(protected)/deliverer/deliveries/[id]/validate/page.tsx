@@ -1,19 +1,32 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, AlertCircle, CheckCircle, Package, Clock, MapPin } from 'lucide-react';
-import { Link } from '@/navigation';
-import { useRoleProtection } from '@/hooks/auth/use-role-protection';
-import { toast } from 'sonner';
-import DeliveryCodeValidator from '@/components/shared/deliveries/delivery-code-validator';
-import type { ValidationPhoto } from '@/components/shared/deliveries/delivery-code-validator';
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  AlertCircle,
+  CheckCircle,
+  Package,
+  Clock,
+  MapPin,
+} from "lucide-react";
+import { Link } from "@/navigation";
+import { useRoleProtection } from "@/hooks/auth/use-role-protection";
+import { toast } from "sonner";
+import DeliveryCodeValidator from "@/components/shared/deliveries/delivery-code-validator";
+import type { ValidationPhoto } from "@/components/shared/deliveries/delivery-code-validator";
 
 interface DeliveryValidationPageProps {
   params: Promise<{
@@ -35,14 +48,16 @@ interface DeliveryData {
   requiresId: boolean;
   isFragile: boolean;
   weight?: number;
-  status: 'ASSIGNED' | 'IN_PROGRESS' | 'DELIVERED' | 'VALIDATED';
+  status: "ASSIGNED" | "IN_PROGRESS" | "DELIVERED" | "VALIDATED";
   estimatedArrival?: Date;
   createdAt: Date;
 }
 
-export default async function DeliveryValidationPage({ params }: DeliveryValidationPageProps) {
-  useRoleProtection(['DELIVERER']);
-  const t = useTranslations('delivery');
+export default async function DeliveryValidationPage({
+  params,
+}: DeliveryValidationPageProps) {
+  useRoleProtection(["DELIVERER"]);
+  const t = useTranslations("delivery");
   const router = useRouter();
   const [deliveryData, setDeliveryData] = useState<DeliveryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,32 +72,33 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
         setIsLoading(true);
         setError(null);
 
-        // Simuler un appel API
-        setTimeout(() => {
-          const mockDelivery: DeliveryData = {
-            id: params.id,
-            title: 'Livraison de colis express Paris → Lyon',
-            pickupAddress: '123 Rue de Rivoli, 75001 Paris',
-            deliveryAddress: '456 Rue de la République, 69002 Lyon',
-            clientName: 'Marie Dubois',
-            clientPhone: '+33 6 12 34 56 78',
-            specialInstructions:
-              'Sonner à l\'interphone "Dubois". Si absent, laisser chez la gardienne.',
-            requiresSignature: true,
-            requiresId: false,
-            isFragile: true,
-            weight: 2.5,
-            status: 'IN_PROGRESS',
-            estimatedArrival: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
-            createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 heures
-          };
+        // Charger les données de livraison depuis l'API
+        const response = await fetch(`/api/trpc/deliverer.getDeliveryById`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ deliveryId: params.id }),
+        });
 
-          setDeliveryData(mockDelivery);
-          setIsLoading(false);
-        }, 1000);
+        if (!response.ok) {
+          throw new Error("Erreur lors du chargement de la livraison");
+        }
+
+        const data = await response.json();
+        const delivery = data.result?.data;
+
+        if (!delivery) {
+          throw new Error("Livraison non trouvée");
+        }
+
+        setDeliveryData(delivery);
+        setIsLoading(false);
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'Erreur lors du chargement de la livraison';
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du chargement de la livraison";
         setError(message);
         setIsLoading(false);
       }
@@ -95,51 +111,70 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
   const handleValidateCode = async (
     code: string,
     photos: ValidationPhoto[],
-    location?: GeolocationPosition
+    location?: GeolocationPosition,
   ): Promise<boolean> => {
     try {
       setIsValidating(true);
 
-      // Simuler la validation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Valider la livraison via l'API
+      const response = await fetch("/api/trpc/deliverer.validateDelivery", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          deliveryId: params.id,
+          validationCode: code,
+          photos: photos.map((p) => ({ type: p.type, url: p.url })),
+          location: location
+            ? {
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              }
+            : undefined,
+        }),
+      });
 
-      // Vérifier le code (simulation)
-      if (code !== 'ABC123') {
-        throw new Error(t('invalidCode'));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || t("validationError"));
       }
 
       // Vérifier les photos requises
-      const requiredPhotoTypes = ['package'];
+      const requiredPhotoTypes = ["package"];
       if (deliveryData?.requiresSignature) {
-        requiredPhotoTypes.push('signature');
+        requiredPhotoTypes.push("signature");
       }
 
       for (const type of requiredPhotoTypes) {
-        if (!photos.some(p => p.type === type)) {
-          throw new Error(t('missingRequiredPhoto', { type: t(`photoTypes.${type}`) }));
+        if (!photos.some((p) => p.type === type)) {
+          throw new Error(
+            t("missingRequiredPhoto", { type: t(`photoTypes.${type}`) }),
+          );
         }
       }
 
-      console.log('Validation réussie:', {
+      console.log("Validation réussie:", {
         deliveryId: params.id,
         code,
         photos: photos.length,
         location: location
           ? `${location.coords.latitude},${location.coords.longitude}`
-          : 'Non fournie',
+          : "Non fournie",
       });
 
       setValidationSuccess(true);
-      toast.success(t('deliveryValidatedSuccess'));
+      toast.success(t("deliveryValidatedSuccess"));
 
       // Rediriger après 3 secondes
       setTimeout(() => {
-        router.push('/deliverer/deliveries');
+        router.push("/deliverer/deliveries");
       }, 3000);
 
       return true;
     } catch (error) {
-      const message = error instanceof Error ? error.message : t('validationError');
+      const message =
+        error instanceof Error ? error.message : t("validationError");
       toast.error(message);
       return false;
     } finally {
@@ -153,7 +188,7 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
       window.open(`tel:${deliveryData.clientPhone}`);
     } else {
       // Rediriger vers la messagerie
-      toast.info(t('redirectingToMessages'));
+      toast.info(t("redirectingToMessages"));
     }
   };
 
@@ -168,7 +203,10 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
           </div>
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-32 bg-muted rounded animate-pulse"></div>
+              <div
+                key={i}
+                className="h-32 bg-muted rounded animate-pulse"
+              ></div>
             ))}
           </div>
         </div>
@@ -183,14 +221,16 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
         <div className="max-w-4xl mx-auto">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('error')}</AlertTitle>
-            <AlertDescription>{error || t('deliveryNotFound')}</AlertDescription>
+            <AlertTitle>{t("error")}</AlertTitle>
+            <AlertDescription>
+              {error || t("deliveryNotFound")}
+            </AlertDescription>
           </Alert>
           <div className="mt-6">
             <Button variant="outline" asChild>
               <Link href="/deliverer/deliveries">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('backToDeliveries')}
+                {t("backToDeliveries")}
               </Link>
             </Button>
           </div>
@@ -207,22 +247,30 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
           <Card>
             <CardContent className="text-center py-12">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">{t('deliveryValidated')}</h2>
-              <p className="text-muted-foreground mb-6">{t('deliveryValidatedDescription')}</p>
+              <h2 className="text-2xl font-bold mb-2">
+                {t("deliveryValidated")}
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                {t("deliveryValidatedDescription")}
+              </p>
 
               <div className="space-y-4">
                 <Alert className="max-w-md mx-auto">
                   <CheckCircle className="h-4 w-4" />
-                  <AlertTitle>{t('paymentProcessing')}</AlertTitle>
-                  <AlertDescription>{t('paymentWillBeProcessed')}</AlertDescription>
+                  <AlertTitle>{t("paymentProcessing")}</AlertTitle>
+                  <AlertDescription>
+                    {t("paymentWillBeProcessed")}
+                  </AlertDescription>
                 </Alert>
 
                 <div className="flex justify-center space-x-4">
                   <Button asChild>
-                    <Link href="/deliverer/deliveries">{t('backToDeliveries')}</Link>
+                    <Link href="/deliverer/deliveries">
+                      {t("backToDeliveries")}
+                    </Link>
                   </Button>
                   <Button variant="outline" asChild>
-                    <Link href="/deliverer/wallet">{t('viewEarnings')}</Link>
+                    <Link href="/deliverer/wallet">{t("viewEarnings")}</Link>
                   </Button>
                 </div>
               </div>
@@ -234,21 +282,23 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
   }
 
   // Vérifier si la livraison peut être validée
-  const canValidate = deliveryData.status === 'IN_PROGRESS';
+  const canValidate = deliveryData.status === "IN_PROGRESS";
 
   return (
     <div className="container py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('validateDelivery')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("validateDelivery")}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            {t('deliveryId')}: {deliveryData.id}
+            {t("deliveryId")}: {deliveryData.id}
           </p>
         </div>
         <Button variant="outline" asChild>
           <Link href="/deliverer/deliveries">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('back')}
+            {t("back")}
           </Link>
         </Button>
       </div>
@@ -262,9 +312,15 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center space-x-2">
                 <Package className="h-5 w-5" />
-                <span>{t('deliveryStatus')}</span>
+                <span>{t("deliveryStatus")}</span>
               </CardTitle>
-              <Badge variant={deliveryData.status === 'IN_PROGRESS' ? 'default' : 'secondary'}>
+              <Badge
+                variant={
+                  deliveryData.status === "IN_PROGRESS"
+                    ? "default"
+                    : "secondary"
+                }
+              >
                 {t(`status.${deliveryData.status}`)}
               </Badge>
             </div>
@@ -274,14 +330,16 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
               <div className="flex items-center space-x-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <div className="font-medium">{t('estimatedArrival')}</div>
+                  <div className="font-medium">{t("estimatedArrival")}</div>
                   <div className="text-muted-foreground">
                     {deliveryData.estimatedArrival
-                      ? new Date(deliveryData.estimatedArrival).toLocaleTimeString('fr-FR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
+                      ? new Date(
+                          deliveryData.estimatedArrival,
+                        ).toLocaleTimeString("fr-FR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })
-                      : t('notSpecified')}
+                      : t("notSpecified")}
                   </div>
                 </div>
               </div>
@@ -289,17 +347,21 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <div className="font-medium">{t('distance')}</div>
-                  <div className="text-muted-foreground">1.2 km du point de livraison</div>
+                  <div className="font-medium">{t("distance")}</div>
+                  <div className="text-muted-foreground">
+                    1.2 km du point de livraison
+                  </div>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2">
                 <Package className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <div className="font-medium">{t('packageWeight')}</div>
+                  <div className="font-medium">{t("packageWeight")}</div>
                   <div className="text-muted-foreground">
-                    {deliveryData.weight ? `${deliveryData.weight} kg` : t('notSpecified')}
+                    {deliveryData.weight
+                      ? `${deliveryData.weight} kg`
+                      : t("notSpecified")}
                   </div>
                 </div>
               </div>
@@ -311,11 +373,13 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
         {!canValidate && (
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('cannotValidate')}</AlertTitle>
+            <AlertTitle>{t("cannotValidate")}</AlertTitle>
             <AlertDescription>
-              {deliveryData.status === 'ASSIGNED' && t('deliveryNotStarted')}
-              {deliveryData.status === 'DELIVERED' && t('deliveryAlreadyDelivered')}
-              {deliveryData.status === 'VALIDATED' && t('deliveryAlreadyValidated')}
+              {deliveryData.status === "ASSIGNED" && t("deliveryNotStarted")}
+              {deliveryData.status === "DELIVERED" &&
+                t("deliveryAlreadyDelivered")}
+              {deliveryData.status === "VALIDATED" &&
+                t("deliveryAlreadyValidated")}
             </AlertDescription>
           </Alert>
         )}
@@ -346,14 +410,16 @@ export default async function DeliveryValidationPage({ params }: DeliveryValidat
         {canValidate && (
           <Card className="bg-blue-50 border-blue-200">
             <CardHeader>
-              <CardTitle className="text-blue-900">{t('importantInstructions')}</CardTitle>
+              <CardTitle className="text-blue-900">
+                {t("importantInstructions")}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-blue-800">
-                <li>• {t('clientInstruction1')}</li>
-                <li>• {t('clientInstruction2')}</li>
-                <li>• {t('clientInstruction3')}</li>
-                <li>• {t('clientInstruction4')}</li>
+                <li>• {t("clientInstruction1")}</li>
+                <li>• {t("clientInstruction2")}</li>
+                <li>• {t("clientInstruction3")}</li>
+                <li>• {t("clientInstruction4")}</li>
               </ul>
             </CardContent>
           </Card>

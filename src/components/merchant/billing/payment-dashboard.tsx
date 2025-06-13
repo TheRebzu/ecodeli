@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { api } from '@/trpc/react';
-import { useRouter } from 'next/navigation';
-import { formatCurrency, formatDate } from '@/utils/document-utils';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
+import { formatCurrency, formatDate } from "@/utils/document-utils";
 import {
   CreditCard,
   FileDown,
@@ -19,10 +25,12 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-import InvoiceList, { Invoice } from '@/components/merchant/billing/invoice-list';
+import InvoiceList, {
+  Invoice,
+} from "@/components/merchant/billing/invoice-list";
 
 // Données factices de statistiques de facturation pour la démo
 interface BillingStats {
@@ -36,104 +44,36 @@ interface BillingStats {
   currency: string;
 }
 
-// Données factices de factures pour la démo
-const MOCK_INVOICES: Invoice[] = [
-  {
-    id: '1',
-    number: 'INV-2023-001',
-    date: new Date('2023-05-15'),
-    dueDate: new Date('2023-06-15'),
-    status: 'paid',
-    amount: 129.99,
-    currency: 'EUR',
-    customerName: 'EcoDeli SAS',
-    description: 'Abonnement mensuel - Mai 2023',
-    pdfUrl: '/invoices/INV-2023-001.pdf',
-  },
-  {
-    id: '2',
-    number: 'INV-2023-002',
-    date: new Date('2023-06-15'),
-    dueDate: new Date('2023-07-15'),
-    status: 'paid',
-    amount: 129.99,
-    currency: 'EUR',
-    customerName: 'EcoDeli SAS',
-    description: 'Abonnement mensuel - Juin 2023',
-    pdfUrl: '/invoices/INV-2023-002.pdf',
-  },
-  {
-    id: '3',
-    number: 'INV-2023-003',
-    date: new Date('2023-07-15'),
-    dueDate: new Date('2023-08-15'),
-    status: 'overdue',
-    amount: 129.99,
-    currency: 'EUR',
-    customerName: 'EcoDeli SAS',
-    description: 'Abonnement mensuel - Juillet 2023',
-    pdfUrl: '/invoices/INV-2023-003.pdf',
-  },
-  {
-    id: '4',
-    number: 'INV-2023-004',
-    date: new Date('2023-08-15'),
-    dueDate: new Date('2023-09-15'),
-    status: 'sent',
-    amount: 129.99,
-    currency: 'EUR',
-    customerName: 'EcoDeli SAS',
-    description: 'Abonnement mensuel - Août 2023',
-    pdfUrl: '/invoices/INV-2023-004.pdf',
-  },
-  {
-    id: '5',
-    number: 'INV-2023-005',
-    date: new Date('2023-09-15'),
-    dueDate: new Date('2023-10-15'),
-    status: 'draft',
-    amount: 129.99,
-    currency: 'EUR',
-    customerName: 'EcoDeli SAS',
-    description: 'Abonnement mensuel - Septembre 2023',
-  },
-];
-
-// Statistiques pour la démo
-const MOCK_STATS: BillingStats = {
-  totalPaid: 259.98,
-  pendingPayments: 129.99,
-  overdueAmount: 129.99,
-  totalInvoices: 5,
-  paidInvoices: 2,
-  pendingInvoices: 2,
-  overdueInvoices: 1,
-  currency: 'EUR',
-};
-
 interface MerchantBillingDashboardProps {
   merchantId: string;
 }
 
-export default function MerchantBillingDashboard({ merchantId }: MerchantBillingDashboardProps) {
+export default function MerchantBillingDashboard({
+  merchantId,
+}: MerchantBillingDashboardProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  const { data: billingStats, isLoading: isLoadingStats } = api.billing.getStats.useQuery();
-  const { data: invoices, isLoading: isLoadingInvoices } = api.billing.getInvoices.useQuery({
-    page: 1,
-    limit: 10,
-    status: 'all'
-  });
+  const { data: billingStats, isLoading: isLoadingStats } =
+    api.billing.getStats.useQuery();
+  const { data: invoices, isLoading: isLoadingInvoices } =
+    api.billing.getInvoices.useQuery({
+      page: 1,
+      limit: 10,
+      status: "all",
+    });
 
   if (isLoadingStats || isLoadingInvoices) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-200 animate-pulse rounded-lg" />
+            <div
+              key={i}
+              className="h-32 bg-gray-200 animate-pulse rounded-lg"
+            />
           ))}
         </div>
         <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
@@ -144,11 +84,11 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
   // Handlers pour les interactions
   const handleDownloadInvoice = (invoiceId: string) => {
     // Trouver l'invoice et ouvrir l'URL PDF dans un nouvel onglet
-    const invoice = invoices.find(inv => inv.id === invoiceId);
+    const invoice = invoices.find((inv) => inv.id === invoiceId);
     if (invoice?.pdfUrl) {
-      window.open(invoice.pdfUrl, '_blank');
+      window.open(invoice.pdfUrl, "_blank");
     } else {
-      console.error('PDF URL not found for invoice:', invoiceId);
+      console.error("PDF URL not found for invoice:", invoiceId);
     }
   };
 
@@ -186,7 +126,10 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                 <div className="flex items-center">
                   <DollarSign className="mr-2 h-4 w-4 text-green-500" />
                   <span className="text-2xl font-bold">
-                    {formatCurrency(billingStats.totalPaid, billingStats.currency)}
+                    {formatCurrency(
+                      billingStats.totalPaid,
+                      billingStats.currency,
+                    )}
                   </span>
                 </div>
               </CardContent>
@@ -202,7 +145,10 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                 <div className="flex items-center">
                   <Clock className="mr-2 h-4 w-4 text-yellow-500" />
                   <span className="text-2xl font-bold">
-                    {formatCurrency(billingStats.pendingPayments, billingStats.currency)}
+                    {formatCurrency(
+                      billingStats.pendingPayments,
+                      billingStats.currency,
+                    )}
                   </span>
                 </div>
               </CardContent>
@@ -218,7 +164,10 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                 <div className="flex items-center">
                   <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
                   <span className="text-2xl font-bold">
-                    {formatCurrency(billingStats.overdueAmount, billingStats.currency)}
+                    {formatCurrency(
+                      billingStats.overdueAmount,
+                      billingStats.currency,
+                    )}
                   </span>
                 </div>
               </CardContent>
@@ -233,7 +182,9 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
               <CardContent>
                 <div className="flex items-center">
                   <FileText className="mr-2 h-4 w-4 text-primary" />
-                  <span className="text-2xl font-bold">{billingStats.totalInvoices}</span>
+                  <span className="text-2xl font-bold">
+                    {billingStats.totalInvoices}
+                  </span>
                 </div>
                 <div className="mt-2 flex items-center text-xs text-muted-foreground">
                   <span className="flex items-center text-green-500 mr-2">
@@ -265,11 +216,18 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                 isLoading={isLoadingInvoices}
                 onDownload={handleDownloadInvoice}
                 onView={handleViewInvoice}
-                pagination={{ currentPage: 1, totalPages: 1, totalItems: invoices.length }}
+                pagination={{
+                  currentPage: 1,
+                  totalPages: 1,
+                  totalItems: invoices.length,
+                }}
               />
 
               <div className="mt-4 flex justify-center">
-                <Button variant="outline" onClick={() => setActiveTab('invoices')}>
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveTab("invoices")}
+                >
                   Voir toutes les factures
                 </Button>
               </div>
@@ -288,7 +246,9 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                   <CreditCard className="h-6 w-6" />
                   <div>
                     <p className="font-medium">Visa se terminant par 4242</p>
-                    <p className="text-sm text-muted-foreground">Expire le 12/24</p>
+                    <p className="text-sm text-muted-foreground">
+                      Expire le 12/24
+                    </p>
                   </div>
                 </div>
                 <Badge>Par défaut</Badge>

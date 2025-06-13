@@ -5,17 +5,23 @@ export default {
   // Langues prises en charge
   languages: {
     // Langue source (principale) du projet
-    sourceLanguage: 'fr',
+    sourceLanguage: "fr",
     // Toutes les langues supportées (y compris la source)
-    supportedLanguages: ['fr', 'en'],
+    supportedLanguages: ["fr", "en"],
   },
 
   // Configuration de l'extraction des chaînes
   extraction: {
     // Répertoires à analyser pour l'extraction des chaînes
-    directories: ['src/app', 'src/components', 'src/hooks', 'src/lib', 'src/server'],
+    directories: [
+      "src/app",
+      "src/components",
+      "src/hooks",
+      "src/lib",
+      "src/server",
+    ],
     // Extensions de fichiers à analyser
-    extensions: ['ts', 'tsx', 'js', 'jsx'],
+    extensions: ["ts", "tsx", "js", "jsx"],
     // Expressions régulières pour détecter les chaînes à traduire
     patterns: [
       // next-intl: t(...)
@@ -45,7 +51,7 @@ export default {
       },
     ],
     // Répertoire de sortie pour les fichiers de traduction
-    outputDir: 'src/messages',
+    outputDir: "src/messages",
   },
 
   // Configuration pour la traduction automatique
@@ -57,17 +63,21 @@ export default {
     // Délai entre les requêtes API (ms)
     requestDelay: 500,
     // Préfixe pour les traductions non vérifiées
-    unverifiedPrefix: '[TO_TRANSLATE] ',
+    unverifiedPrefix: "[TO_TRANSLATE] ",
   },
 
   // Configuration pour le rapport de traduction
   report: {
     // Chemin du fichier de rapport
-    filePath: 'translation-report.json',
+    filePath: "translation-report.json",
     // Ignorer certaines clés lors de la génération du rapport
-    ignoreKeys: ['common.system.error', 'common.system.warning', 'common.system.info'],
+    ignoreKeys: [
+      "common.system.error",
+      "common.system.warning",
+      "common.system.info",
+    ],
   },
 
   // Chemin du rapport d'extraction
-  outputPath: 'translation-report.json',
+  outputPath: "translation-report.json",
 };

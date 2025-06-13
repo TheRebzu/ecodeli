@@ -1,4 +1,4 @@
-import { Box, Reservation } from '@prisma/client';
+import { Box, Reservation } from "@prisma/client";
 
 // Type représentant un entrepôt
 export type Warehouse = {
@@ -60,10 +60,10 @@ export type BoxAvailabilitySubscription = {
 
 // Type pour les actions sur les box
 export enum BoxActionType {
-  ACCESS = 'ACCESS',
-  DEPARTURE = 'DEPARTURE',
-  MAINTENANCE = 'MAINTENANCE',
-  OTHER = 'OTHER',
+  ACCESS = "ACCESS",
+  DEPARTURE = "DEPARTURE",
+  MAINTENANCE = "MAINTENANCE",
+  OTHER = "OTHER",
 }
 
 // Type pour l'historique d'utilisation d'une box

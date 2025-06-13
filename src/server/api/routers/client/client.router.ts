@@ -4,14 +4,14 @@ import {
   clientProcedure,
   adminProcedure,
   type Context,
-} from '@/server/api/trpc';
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
-import type { User, Client } from '@prisma/client';
-import { dashboardService } from '@/server/services/admin/dashboard.service';
-import { storageService } from '@/server/services/storage.service';
-import { serviceService } from '@/server/services/provider/provider-service.service';
-import { Prisma } from '@prisma/client';
+} from "@/server/api/trpc";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import type { User, Client } from "@prisma/client";
+import { dashboardService } from "@/server/services/admin/dashboard.service";
+import { storageService } from "@/server/services/storage.service";
+import { serviceService } from "@/server/services/provider/provider-service.service";
+import { Prisma } from "@prisma/client";
 
 // Définir les interfaces pour les données récupérées de la base de données
 interface DeliveryWithRelations {
@@ -52,8 +52,8 @@ export const clientRouter = router({
 
     if (!user || !user.client) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Profil client non trouvé',
+        code: "NOT_FOUND",
+        message: "Profil client non trouvé",
       });
     }
 
@@ -79,7 +79,7 @@ export const clientRouter = router({
         postalCode: z.string().optional(),
         country: z.string().optional(),
         phoneNumber: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -92,7 +92,7 @@ export const clientRouter = router({
 
       if (!user || !user.client) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à mettre à jour ce profil",
         });
       }
@@ -149,7 +149,7 @@ export const clientRouter = router({
 
     if (!user || !user.client) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à accéder à ces données",
       });
     }
@@ -177,21 +177,24 @@ export const clientRouter = router({
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
     // Transformer les données pour le client
-    return deliveries.map(delivery => ({
+    return deliveries.map((delivery) => ({
       id: delivery.id,
       clientId: delivery.clientId,
       status: delivery.status,
-      merchantName: 'Inconnu', // Valeur par défaut si merchant n'est pas disponible
+      merchantName: "Inconnu", // Valeur par défaut si merchant n'est pas disponible
       originAddress: delivery.announcement.pickupAddress,
       destinationAddress: delivery.announcement.deliveryAddress,
       createdAt: delivery.createdAt.toISOString(),
       estimatedDelivery: delivery.announcement.deliveryDate?.toISOString(),
-      deliveredAt: delivery.status === 'DELIVERED' ? delivery.updatedAt.toISOString() : undefined,
+      deliveredAt:
+        delivery.status === "DELIVERED"
+          ? delivery.updatedAt.toISOString()
+          : undefined,
     }));
   }),
 
@@ -206,7 +209,7 @@ export const clientRouter = router({
 
     if (!user || !user.client) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à accéder à ces données",
       });
     }
@@ -217,14 +220,14 @@ export const clientRouter = router({
         userId: userId, // Utiliser userId au lieu de clientId
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
     // Transformer les données pour le client
-    return invoices.map(invoice => ({
+    return invoices.map((invoice) => ({
       id: invoice.id,
-      clientId: user.client?.id || '', // Utiliser l'opérateur de coalescence nullish
+      clientId: user.client?.id || "", // Utiliser l'opérateur de coalescence nullish
       amount: invoice.amount,
       status: invoice.status,
       date: invoice.createdAt.toISOString(),
@@ -239,7 +242,7 @@ export const clientRouter = router({
         providerId: z.string(),
         date: z.string(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -252,7 +255,7 @@ export const clientRouter = router({
 
       if (!user || !user.client) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à réserver un service",
         });
       }
@@ -264,8 +267,8 @@ export const clientRouter = router({
 
       if (!service) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Service non trouvé',
+          code: "NOT_FOUND",
+          message: "Service non trouvé",
         });
       }
 
@@ -276,8 +279,8 @@ export const clientRouter = router({
 
       if (!provider) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Prestataire non trouvé',
+          code: "NOT_FOUND",
+          message: "Prestataire non trouvé",
         });
       }
 
@@ -290,7 +293,7 @@ export const clientRouter = router({
           providerId: input.providerId,
           startTime: date,
           endTime: new Date(date.getTime() + 60 * 60 * 1000), // +1 heure par défaut
-          status: 'PENDING',
+          status: "PENDING",
           totalPrice: service.price,
           notes: input.notes,
         },
@@ -321,31 +324,36 @@ export const clientRouter = router({
 
     if (!user || !user.client) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Profil client non trouvé',
+        code: "NOT_FOUND",
+        message: "Profil client non trouvé",
       });
     }
 
     const clientId = user.client.id;
 
     // Statistiques simplifiées directement dans le routeur
-    const [totalDeliveries, activeDeliveries, completedDeliveries, bookedServices, unpaidInvoices] =
-      await Promise.all([
-        ctx.db.delivery.count({ where: { clientId } }),
-        ctx.db.delivery.count({
-          where: {
-            clientId,
-            status: { in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'] },
-          },
-        }),
-        ctx.db.delivery.count({
-          where: { clientId, status: 'DELIVERED' },
-        }),
-        ctx.db.serviceBooking.count({ where: { clientId } }),
-        ctx.db.invoice.count({
-          where: { userId, status: 'OVERDUE' },
-        }),
-      ]);
+    const [
+      totalDeliveries,
+      activeDeliveries,
+      completedDeliveries,
+      bookedServices,
+      unpaidInvoices,
+    ] = await Promise.all([
+      ctx.db.delivery.count({ where: { clientId } }),
+      ctx.db.delivery.count({
+        where: {
+          clientId,
+          status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] },
+        },
+      }),
+      ctx.db.delivery.count({
+        where: { clientId, status: "DELIVERED" },
+      }),
+      ctx.db.serviceBooking.count({ where: { clientId } }),
+      ctx.db.invoice.count({
+        where: { userId, status: "OVERDUE" },
+      }),
+    ]);
 
     return {
       totalDeliveries,
@@ -368,44 +376,45 @@ export const clientRouter = router({
 
     if (!user || !user.client) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Profil client non trouvé',
+        code: "NOT_FOUND",
+        message: "Profil client non trouvé",
       });
     }
 
     const clientId = user.client.id;
 
     // Activité récente simplifiée
-    const [recentDeliveries, recentServices, recentInvoices] = await Promise.all([
-      ctx.db.delivery.findMany({
-        where: { clientId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-      }),
-      ctx.db.serviceBooking.findMany({
-        where: { clientId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: { service: true },
-      }),
-      ctx.db.invoice.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-      }),
-    ]);
+    const [recentDeliveries, recentServices, recentInvoices] =
+      await Promise.all([
+        ctx.db.delivery.findMany({
+          where: { clientId },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        }),
+        ctx.db.serviceBooking.findMany({
+          where: { clientId },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          include: { service: true },
+        }),
+        ctx.db.invoice.findMany({
+          where: { userId },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        }),
+      ]);
 
     // Combiner et trier toutes les activités par date
     const allActivities = [
-      ...recentDeliveries.map(delivery => ({
-        type: 'DELIVERY',
+      ...recentDeliveries.map((delivery) => ({
+        type: "DELIVERY",
         id: delivery.id,
         status: delivery.status,
         date: delivery.createdAt,
         data: delivery,
       })),
-      ...recentServices.map(booking => ({
-        type: 'SERVICE',
+      ...recentServices.map((booking) => ({
+        type: "SERVICE",
         id: booking.id,
         status: booking.status,
         date: booking.createdAt,
@@ -414,8 +423,8 @@ export const clientRouter = router({
           serviceName: booking.service.name,
         },
       })),
-      ...recentInvoices.map(invoice => ({
-        type: 'INVOICE',
+      ...recentInvoices.map((invoice) => ({
+        type: "INVOICE",
         id: invoice.id,
         status: invoice.status,
         date: invoice.createdAt,
@@ -435,17 +444,17 @@ export const clientRouter = router({
     // Métriques financières simplifiées
     const [totalSpent, unpaidInvoices] = await Promise.all([
       ctx.db.payment.aggregate({
-        where: { userId, status: 'COMPLETED' },
+        where: { userId, status: "COMPLETED" },
         _sum: { amount: true },
       }),
       ctx.db.invoice.findMany({
-        where: { userId, status: 'OVERDUE' },
+        where: { userId, status: "OVERDUE" },
       }),
     ]);
 
     const unpaidAmount = unpaidInvoices.reduce(
       (sum, invoice) => sum + invoice.amount.toNumber(),
-      0
+      0,
     );
 
     return {
@@ -467,45 +476,46 @@ export const clientRouter = router({
 
     if (!user || !user.client) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Profil client non trouvé',
+        code: "NOT_FOUND",
+        message: "Profil client non trouvé",
       });
     }
 
     const clientId = user.client.id;
 
     // Éléments actifs
-    const [activeDeliveries, upcomingServices, pendingPayments] = await Promise.all([
-      ctx.db.delivery.findMany({
-        where: {
-          clientId,
-          status: { in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'] },
-        },
-        include: {
-          deliverer: { select: { name: true, image: true } },
-        },
-        orderBy: { updatedAt: 'desc' },
-        take: 5,
-      }),
-      ctx.db.serviceBooking.findMany({
-        where: {
-          clientId,
-          status: 'CONFIRMED',
-          startTime: { gte: new Date() },
-        },
-        include: {
-          service: true,
-          provider: { select: { name: true, image: true } },
-        },
-        orderBy: { startTime: 'asc' },
-        take: 5,
-      }),
-      ctx.db.invoice.findMany({
-        where: { userId, status: 'ISSUED' },
-        orderBy: { dueDate: 'asc' },
-        take: 5,
-      }),
-    ]);
+    const [activeDeliveries, upcomingServices, pendingPayments] =
+      await Promise.all([
+        ctx.db.delivery.findMany({
+          where: {
+            clientId,
+            status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] },
+          },
+          include: {
+            deliverer: { select: { name: true, image: true } },
+          },
+          orderBy: { updatedAt: "desc" },
+          take: 5,
+        }),
+        ctx.db.serviceBooking.findMany({
+          where: {
+            clientId,
+            status: "CONFIRMED",
+            startTime: { gte: new Date() },
+          },
+          include: {
+            service: true,
+            provider: { select: { name: true, image: true } },
+          },
+          orderBy: { startTime: "asc" },
+          take: 5,
+        }),
+        ctx.db.invoice.findMany({
+          where: { userId, status: "ISSUED" },
+          orderBy: { dueDate: "asc" },
+          take: 5,
+        }),
+      ]);
 
     return {
       activeDeliveries,
@@ -521,7 +531,7 @@ export const clientRouter = router({
         .object({
           status: z.string().optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -534,7 +544,7 @@ export const clientRouter = router({
 
       if (!user || !user.client) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à accéder à ces données",
         });
       }
@@ -549,7 +559,7 @@ export const clientRouter = router({
     .input(
       z.object({
         id: z.string().cuid(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -562,7 +572,7 @@ export const clientRouter = router({
 
       if (!user || !user.client) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à accéder à ces données",
         });
       }
@@ -584,15 +594,15 @@ export const clientRouter = router({
 
       if (!booking) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Réservation non trouvée',
+          code: "NOT_FOUND",
+          message: "Réservation non trouvée",
         });
       }
 
       // Vérifier que la réservation appartient au client
       if (booking.clientId !== user.client.id) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à accéder à cette réservation",
         });
       }
@@ -612,12 +622,16 @@ export const clientRouter = router({
           page: z.number().min(1).default(1),
           limit: z.number().min(1).max(100).default(10),
           search: z.string().optional(),
-          status: z.enum(['ACTIVE', 'PENDING_VERIFICATION', 'SUSPENDED', 'INACTIVE']).optional(),
-          sortBy: z.enum(['name', 'email', 'createdAt', 'lastLoginAt']).default('createdAt'),
-          sortDirection: z.enum(['asc', 'desc']).default('desc'),
+          status: z
+            .enum(["ACTIVE", "PENDING_VERIFICATION", "SUSPENDED", "INACTIVE"])
+            .optional(),
+          sortBy: z
+            .enum(["name", "email", "createdAt", "lastLoginAt"])
+            .default("createdAt"),
+          sortDirection: z.enum(["asc", "desc"]).default("desc"),
         })
         .optional()
-        .default({})
+        .default({}),
     )
     .query(async ({ ctx, input }) => {
       const {
@@ -625,13 +639,13 @@ export const clientRouter = router({
         limit = 10,
         search,
         status,
-        sortBy = 'createdAt',
-        sortDirection = 'desc',
+        sortBy = "createdAt",
+        sortDirection = "desc",
       } = input || {};
 
       // Construire les conditions de filtrage
       const where: any = {
-        role: 'CLIENT',
+        role: "CLIENT",
       };
 
       if (status) {
@@ -640,9 +654,9 @@ export const clientRouter = router({
 
       if (search) {
         where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { client: { city: { contains: search, mode: 'insensitive' } } },
+          { name: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+          { client: { city: { contains: search, mode: "insensitive" } } },
         ];
       }
 
@@ -671,7 +685,7 @@ export const clientRouter = router({
 
       // Calculer statistiques pour chaque client
       const clientsWithStats = await Promise.all(
-        clients.map(async client => {
+        clients.map(async (client) => {
           if (!client.client) return null;
 
           // Récupérer les statistiques du client
@@ -680,12 +694,12 @@ export const clientRouter = router({
               where: { clientId: client.client.id },
             }),
             ctx.db.payment.aggregate({
-              where: { userId: client.id, status: 'COMPLETED' },
+              where: { userId: client.id, status: "COMPLETED" },
               _sum: { amount: true },
             }),
             ctx.db.announcement.findFirst({
               where: { clientId: client.client.id },
-              orderBy: { createdAt: 'desc' },
+              orderBy: { createdAt: "desc" },
               select: { createdAt: true },
             }),
           ]);
@@ -713,7 +727,7 @@ export const clientRouter = router({
               documentsCount: client._count.documents,
             },
           };
-        })
+        }),
       );
 
       // Filtrer les clients null (qui n'ont pas de profil client)
@@ -748,25 +762,27 @@ export const clientRouter = router({
       totalRevenue,
       averageOrderValue,
     ] = await Promise.all([
-      ctx.db.user.count({ where: { role: 'CLIENT' } }),
-      ctx.db.user.count({ where: { role: 'CLIENT', status: 'ACTIVE' } }),
-      ctx.db.user.count({ where: { role: 'CLIENT', status: 'PENDING_VERIFICATION' } }),
-      ctx.db.user.count({ where: { role: 'CLIENT', status: 'SUSPENDED' } }),
-      ctx.db.user.count({ where: { role: 'CLIENT', status: 'INACTIVE' } }),
+      ctx.db.user.count({ where: { role: "CLIENT" } }),
+      ctx.db.user.count({ where: { role: "CLIENT", status: "ACTIVE" } }),
+      ctx.db.user.count({
+        where: { role: "CLIENT", status: "PENDING_VERIFICATION" },
+      }),
+      ctx.db.user.count({ where: { role: "CLIENT", status: "SUSPENDED" } }),
+      ctx.db.user.count({ where: { role: "CLIENT", status: "INACTIVE" } }),
       ctx.db.user.count({
         where: {
-          role: 'CLIENT',
+          role: "CLIENT",
           createdAt: {
             gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
       }),
       ctx.db.payment.aggregate({
-        where: { status: 'COMPLETED' },
+        where: { status: "COMPLETED" },
         _sum: { amount: true },
       }),
       ctx.db.payment.aggregate({
-        where: { status: 'COMPLETED' },
+        where: { status: "COMPLETED" },
         _avg: { amount: true },
       }),
     ]);
@@ -789,7 +805,7 @@ export const clientRouter = router({
       .input(
         z.object({
           limit: z.number().min(1).max(20).default(5),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
@@ -800,8 +816,8 @@ export const clientRouter = router({
 
         if (!user?.client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Client non trouvé',
+            code: "NOT_FOUND",
+            message: "Client non trouvé",
           });
         }
 
@@ -809,13 +825,13 @@ export const clientRouter = router({
           where: {
             clientId: user.client.id,
             startTime: { gte: new Date() },
-            status: { in: ['CONFIRMED', 'PENDING'] },
+            status: { in: ["CONFIRMED", "PENDING"] },
           },
           include: {
             service: { select: { name: true, category: true } },
             provider: { select: { name: true, image: true, rating: true } },
           },
-          orderBy: { startTime: 'asc' },
+          orderBy: { startTime: "asc" },
           take: input.limit,
         });
       }),
@@ -831,15 +847,15 @@ export const clientRouter = router({
 
       if (!user?.client) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Client non trouvé',
+          code: "NOT_FOUND",
+          message: "Client non trouvé",
         });
       }
 
       return await ctx.db.storageBoxReservation.findMany({
         where: {
           clientId: user.client.id,
-          status: 'ACTIVE',
+          status: "ACTIVE",
           endDate: { gte: new Date() },
         },
         include: {
@@ -849,7 +865,7 @@ export const clientRouter = router({
             },
           },
         },
-        orderBy: { startDate: 'desc' },
+        orderBy: { startDate: "desc" },
       });
     }),
   }),
@@ -859,14 +875,14 @@ export const clientRouter = router({
       .input(
         z.object({
           limit: z.number().min(1).max(20).default(5),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
 
         return await ctx.db.invoice.findMany({
           where: { userId },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           take: input.limit,
         });
       }),

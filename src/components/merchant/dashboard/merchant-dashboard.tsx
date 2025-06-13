@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSocket } from '@/hooks/system/use-socket';
-import { api } from '@/trpc/react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSocket } from "@/hooks/system/use-socket";
+import { api } from "@/trpc/react";
 
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LineChart,
   Line,
@@ -24,7 +24,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-} from 'recharts';
+} from "recharts";
 
 // Icons
 import {
@@ -50,7 +50,7 @@ import {
   MapPin,
   FileText,
   Sparkles,
-} from 'lucide-react';
+} from "lucide-react";
 
 // Types
 interface MerchantStats {
@@ -96,7 +96,7 @@ type MerchantDashboardProps = {
 
 // Utilitaire pour les classes CSS
 function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(" ");
 }
 
 // Composant de carte de statistique
@@ -107,8 +107,8 @@ const StatCard = ({
   trend,
   isLoading = false,
   onClick,
-  color = 'text-primary',
-  bgColor = 'bg-primary/10',
+  color = "text-primary",
+  bgColor = "bg-primary/10",
 }: {
   title: string;
   value: string | number;
@@ -121,11 +121,15 @@ const StatCard = ({
 }) => {
   if (isLoading) {
     return (
-      <Card className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}>
+      <Card
+        className={
+          onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+        }
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className={cn('p-3 rounded-full', bgColor)}>
+              <div className={cn("p-3 rounded-full", bgColor)}>
                 <div className="h-5 w-5 bg-gray-300 animate-pulse rounded" />
               </div>
               <div>
@@ -142,17 +146,21 @@ const StatCard = ({
 
   return (
     <Card
-      className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
+      className={
+        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+      }
       onClick={onClick}
     >
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className={cn('p-3 rounded-full', bgColor)}>
+            <div className={cn("p-3 rounded-full", bgColor)}>
               <div className={color}>{icon}</div>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {title}
+              </p>
               <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
             </div>
           </div>
@@ -160,7 +168,7 @@ const StatCard = ({
             <div className="text-right">
               <p
                 className={`text-xs flex items-center gap-1 ${
-                  trend.value >= 0 ? 'text-green-600' : 'text-red-600'
+                  trend.value >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {trend.value >= 0 ? (
@@ -168,7 +176,7 @@ const StatCard = ({
                 ) : (
                   <TrendingDown className="h-3 w-3" />
                 )}
-                {trend.value >= 0 ? '+' : ''}
+                {trend.value >= 0 ? "+" : ""}
                 {trend.value}%
               </p>
               <p className="text-xs text-muted-foreground">{trend.label}</p>
@@ -181,31 +189,37 @@ const StatCard = ({
 };
 
 // Composant de commande récente
-const OrderCard = ({ order, onView }: { order: Order; onView: (id: string) => void }) => {
+const OrderCard = ({
+  order,
+  onView,
+}: {
+  order: Order;
+  onView: (id: string) => void;
+}) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200';
-      case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200';
-      case 'PREPARING':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200';
-      case 'READY':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200';
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200';
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200";
+      case "CONFIRMED":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200";
+      case "PREPARING":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200";
+      case "READY":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200";
+      case "DELIVERED":
+        return "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200";
     }
   };
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      PENDING: 'En attente',
-      CONFIRMED: 'Confirmée',
-      PREPARING: 'En préparation',
-      READY: 'Prête',
-      DELIVERED: 'Livrée',
+      PENDING: "En attente",
+      CONFIRMED: "Confirmée",
+      PREPARING: "En préparation",
+      READY: "Prête",
+      DELIVERED: "Livrée",
     };
     return labels[status] || status;
   };
@@ -218,16 +232,20 @@ const OrderCard = ({ order, onView }: { order: Order; onView: (id: string) => vo
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <h4 className="font-medium text-sm mb-1">Commande #{order.number}</h4>
-            <p className="text-xs text-muted-foreground">{order.customer.name}</p>
-            <Badge className={cn('text-xs mt-1', getStatusColor(order.status))}>
+            <h4 className="font-medium text-sm mb-1">
+              Commande #{order.number}
+            </h4>
+            <p className="text-xs text-muted-foreground">
+              {order.customer.name}
+            </p>
+            <Badge className={cn("text-xs mt-1", getStatusColor(order.status))}>
               {getStatusLabel(order.status)}
             </Badge>
           </div>
           <div className="text-right">
             <p className="font-bold text-sm">{order.total}€</p>
             <p className="text-xs text-muted-foreground">
-              {order.items.length} article{order.items.length > 1 ? 's' : ''}
+              {order.items.length} article{order.items.length > 1 ? "s" : ""}
             </p>
           </div>
         </div>
@@ -249,15 +267,16 @@ const OrderCard = ({ order, onView }: { order: Order; onView: (id: string) => vo
 
 // Composant d'alerte stock
 const StockAlertCard = ({ alert }: { alert: StockAlert }) => {
-  const urgencyLevel = alert.currentStock <= alert.minimumStock * 0.5 ? 'critical' : 'warning';
+  const urgencyLevel =
+    alert.currentStock <= alert.minimumStock * 0.5 ? "critical" : "warning";
 
   return (
     <Card
       className={cn(
-        'border-l-4',
-        urgencyLevel === 'critical'
-          ? 'border-l-red-500 bg-red-50 dark:bg-red-950/20'
-          : 'border-l-orange-500 bg-orange-50 dark:bg-orange-950/20'
+        "border-l-4",
+        urgencyLevel === "critical"
+          ? "border-l-red-500 bg-red-50 dark:bg-red-950/20"
+          : "border-l-orange-500 bg-orange-50 dark:bg-orange-950/20",
       )}
     >
       <CardContent className="p-4">
@@ -268,8 +287,8 @@ const StockAlertCard = ({ alert }: { alert: StockAlert }) => {
           </div>
           <AlertTriangle
             className={cn(
-              'h-4 w-4',
-              urgencyLevel === 'critical' ? 'text-red-600' : 'text-orange-600'
+              "h-4 w-4",
+              urgencyLevel === "critical" ? "text-red-600" : "text-orange-600",
             )}
           />
         </div>
@@ -281,14 +300,17 @@ const StockAlertCard = ({ alert }: { alert: StockAlert }) => {
               {alert.currentStock} / {alert.minimumStock} min
             </span>
           </div>
-          <Progress value={(alert.currentStock / alert.minimumStock) * 100} className="h-2" />
+          <Progress
+            value={(alert.currentStock / alert.minimumStock) * 100}
+            className="h-2"
+          />
           <p
             className={cn(
-              'text-xs mt-1',
-              urgencyLevel === 'critical' ? 'text-red-600' : 'text-orange-600'
+              "text-xs mt-1",
+              urgencyLevel === "critical" ? "text-red-600" : "text-orange-600",
             )}
           >
-            {urgencyLevel === 'critical' ? 'Stock critique !' : 'Stock faible'}
+            {urgencyLevel === "critical" ? "Stock critique !" : "Stock faible"}
           </p>
         </div>
       </CardContent>
@@ -303,31 +325,31 @@ const QuickActionsSection = () => {
   const quickActions = [
     {
       icon: <Plus className="h-5 w-5" />,
-      label: 'Nouvelle commande',
-      description: 'Créer une commande manuelle',
-      action: () => router.push('/merchant/orders/create'),
-      color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/50',
+      label: "Nouvelle commande",
+      description: "Créer une commande manuelle",
+      action: () => router.push("/merchant/orders/create"),
+      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50",
     },
     {
       icon: <Monitor className="h-5 w-5" />,
-      label: 'Terminal chariot',
-      description: 'Lâcher chariot caisse',
-      action: () => router.push('/merchant/cart-drop/terminal'),
-      color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/50',
+      label: "Terminal chariot",
+      description: "Lâcher chariot caisse",
+      action: () => router.push("/merchant/cart-drop/terminal"),
+      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50",
     },
     {
       icon: <Package className="h-5 w-5" />,
-      label: 'Gérer catalogue',
-      description: 'Produits et stock',
-      action: () => router.push('/merchant/catalog'),
-      color: 'text-green-600 bg-green-100 dark:bg-green-900/50',
+      label: "Gérer catalogue",
+      description: "Produits et stock",
+      action: () => router.push("/merchant/catalog"),
+      color: "text-green-600 bg-green-100 dark:bg-green-900/50",
     },
     {
       icon: <BarChart3 className="h-5 w-5" />,
-      label: 'Voir analytics',
-      description: 'Statistiques ventes',
-      action: () => router.push('/merchant/stats'),
-      color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/50',
+      label: "Voir analytics",
+      description: "Statistiques ventes",
+      action: () => router.push("/merchant/stats"),
+      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50",
     },
   ];
 
@@ -348,10 +370,14 @@ const QuickActionsSection = () => {
               className="h-auto flex-col p-4 space-y-2"
               onClick={action.action}
             >
-              <div className={cn('p-2 rounded-lg', action.color)}>{action.icon}</div>
+              <div className={cn("p-2 rounded-lg", action.color)}>
+                {action.icon}
+              </div>
               <div className="text-center">
                 <p className="font-medium text-sm">{action.label}</p>
-                <p className="text-xs text-muted-foreground">{action.description}</p>
+                <p className="text-xs text-muted-foreground">
+                  {action.description}
+                </p>
               </div>
             </Button>
           ))}
@@ -364,7 +390,8 @@ const QuickActionsSection = () => {
 export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
   const router = useRouter();
   const { socket } = useSocket();
-  const [realtimeStats, setRealtimeStats] = useState<Partial<MerchantStats> | null>(null);
+  const [realtimeStats, setRealtimeStats] =
+    useState<Partial<MerchantStats> | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   // Récupérer les données du dashboard
@@ -374,45 +401,46 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
     refetch: refetchStats,
   } = api.merchant.getDashboardStats.useQuery();
 
-  const { data: recentOrders, isLoading: isLoadingOrders } = api.merchant.getRecentOrders.useQuery({
-    limit: 5,
-  });
+  const { data: recentOrders, isLoading: isLoadingOrders } =
+    api.merchant.getRecentOrders.useQuery({
+      limit: 5,
+    });
 
   const { data: stockAlerts } = api.merchant.getStockAlerts.useQuery();
 
   const { data: salesChart } = api.merchant.getSalesChart.useQuery({
-    period: 'week',
+    period: "week",
   });
 
   // Socket.io pour les mises à jour temps réel
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('disconnect', () => setIsConnected(false));
+    socket.on("connect", () => setIsConnected(true));
+    socket.on("disconnect", () => setIsConnected(false));
 
     // Écouter les nouvelles commandes
-    socket.on('merchant:new:order', order => {
+    socket.on("merchant:new:order", (order) => {
       refetchStats();
       // Ici on pourrait afficher une notification
     });
 
     // Écouter les mises à jour de stats
-    socket.on('merchant:stats:update', data => {
+    socket.on("merchant:stats:update", (data) => {
       setRealtimeStats(data);
     });
 
     // Écouter les alertes stock
-    socket.on('merchant:stock:alert', alert => {
+    socket.on("merchant:stock:alert", (alert) => {
       // Afficher notification d'alerte stock
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('merchant:new:order');
-      socket.off('merchant:stats:update');
-      socket.off('merchant:stock:alert');
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("merchant:new:order");
+      socket.off("merchant:stats:update");
+      socket.off("merchant:stock:alert");
     };
   }, [socket, refetchStats]);
 
@@ -426,17 +454,23 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
     <div className="space-y-6">
       {/* Alertes stock critiques */}
       {stockAlerts &&
-        stockAlerts.filter(alert => alert.currentStock <= alert.minimumStock * 0.5).length > 0 && (
+        stockAlerts.filter(
+          (alert) => alert.currentStock <= alert.minimumStock * 0.5,
+        ).length > 0 && (
           <Alert className="border-red-200 bg-red-50 dark:bg-red-950/20">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Alertes stock critiques</AlertTitle>
             <AlertDescription>
-              {stockAlerts.filter(alert => alert.currentStock <= alert.minimumStock * 0.5).length}{' '}
+              {
+                stockAlerts.filter(
+                  (alert) => alert.currentStock <= alert.minimumStock * 0.5,
+                ).length
+              }{" "}
               produit(s) en rupture de stock.
               <Button
                 variant="link"
                 className="p-0 h-auto ml-2"
-                onClick={() => router.push('/merchant/catalog')}
+                onClick={() => router.push("/merchant/catalog")}
               >
                 Gérer le stock
               </Button>
@@ -450,9 +484,9 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
           title="CA aujourd'hui"
           value={`${currentStats?.dailyRevenue || 0}€`}
           icon={<Euro className="h-5 w-5" />}
-          trend={{ value: 12, label: 'vs hier' }}
+          trend={{ value: 12, label: "vs hier" }}
           isLoading={isLoadingStats}
-          onClick={() => router.push('/merchant/stats/sales')}
+          onClick={() => router.push("/merchant/stats/sales")}
           color="text-green-600"
           bgColor="bg-green-100 dark:bg-green-900/50"
         />
@@ -461,9 +495,9 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
           title="CA mensuel"
           value={`${currentStats?.monthlyRevenue || 0}€`}
           icon={<TrendingUp className="h-5 w-5" />}
-          trend={{ value: 8, label: 'vs mois dernier' }}
+          trend={{ value: 8, label: "vs mois dernier" }}
           isLoading={isLoadingStats}
-          onClick={() => router.push('/merchant/stats')}
+          onClick={() => router.push("/merchant/stats")}
           color="text-blue-600"
           bgColor="bg-blue-100 dark:bg-blue-900/50"
         />
@@ -473,7 +507,7 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
           value={currentStats?.orderCount || 0}
           icon={<ShoppingCart className="h-5 w-5" />}
           isLoading={isLoadingStats}
-          onClick={() => router.push('/merchant/orders')}
+          onClick={() => router.push("/merchant/orders")}
           color="text-purple-600"
           bgColor="bg-purple-100 dark:bg-purple-900/50"
         />
@@ -483,7 +517,7 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
           value={currentStats?.activeDeliveries || 0}
           icon={<Truck className="h-5 w-5" />}
           isLoading={isLoadingStats}
-          onClick={() => router.push('/merchant/deliveries')}
+          onClick={() => router.push("/merchant/deliveries")}
           color="text-orange-600"
           bgColor="bg-orange-100 dark:bg-orange-900/50"
         />
@@ -512,7 +546,7 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => router.push('/merchant/orders')}
+                      onClick={() => router.push("/merchant/orders")}
                     >
                       Voir tout
                     </Button>
@@ -522,20 +556,26 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
                   <ScrollArea className="h-[400px] pr-4">
                     {isLoadingOrders ? (
                       <div className="space-y-3">
-                        {[1, 2, 3, 4, 5].map(i => (
+                        {[1, 2, 3, 4, 5].map((i) => (
                           <Skeleton key={i} className="h-24 w-full" />
                         ))}
                       </div>
                     ) : recentOrders && recentOrders.length > 0 ? (
                       <div className="space-y-3">
-                        {recentOrders.map(order => (
-                          <OrderCard key={order.id} order={order} onView={handleViewOrder} />
+                        {recentOrders.map((order) => (
+                          <OrderCard
+                            key={order.id}
+                            order={order}
+                            onView={handleViewOrder}
+                          />
                         ))}
                       </div>
                     ) : (
                       <div className="text-center py-8">
                         <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground opacity-25 mb-2" />
-                        <p className="text-muted-foreground">Aucune commande récente</p>
+                        <p className="text-muted-foreground">
+                          Aucune commande récente
+                        </p>
                       </div>
                     )}
                   </ScrollArea>
@@ -555,19 +595,29 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Panier moyen</span>
-                    <span className="font-medium">{currentStats?.averageOrderValue || 0}€</span>
+                    <span className="text-sm text-muted-foreground">
+                      Panier moyen
+                    </span>
+                    <span className="font-medium">
+                      {currentStats?.averageOrderValue || 0}€
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Satisfaction client</span>
+                    <span className="text-sm text-muted-foreground">
+                      Satisfaction client
+                    </span>
                     <span className="font-medium flex items-center gap-1">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                       {currentStats?.customerSatisfaction || 0}/5
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Taux conversion</span>
-                    <span className="font-medium">{currentStats?.conversionRate || 0}%</span>
+                    <span className="text-sm text-muted-foreground">
+                      Taux conversion
+                    </span>
+                    <span className="font-medium">
+                      {currentStats?.conversionRate || 0}%
+                    </span>
                   </div>
 
                   {/* Graphique de performance */}
@@ -605,7 +655,7 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
                   <CardContent>
                     <ScrollArea className="h-[200px] pr-4">
                       <div className="space-y-3">
-                        {stockAlerts.slice(0, 3).map(alert => (
+                        {stockAlerts.slice(0, 3).map((alert) => (
                           <StockAlertCard key={alert.id} alert={alert} />
                         ))}
                       </div>
@@ -615,7 +665,7 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
                         variant="outline"
                         size="sm"
                         className="w-full mt-3"
-                        onClick={() => router.push('/merchant/catalog')}
+                        onClick={() => router.push("/merchant/catalog")}
                       >
                         Voir toutes les alertes ({stockAlerts.length})
                       </Button>
@@ -661,13 +711,17 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
         <TabsContent value="stock" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {stockAlerts && stockAlerts.length > 0 ? (
-              stockAlerts.map(alert => <StockAlertCard key={alert.id} alert={alert} />)
+              stockAlerts.map((alert) => (
+                <StockAlertCard key={alert.id} alert={alert} />
+              ))
             ) : (
               <Card className="col-span-full">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Package className="h-12 w-12 text-muted-foreground opacity-25 mb-2" />
-                  <p className="text-muted-foreground mb-4">Aucune alerte stock</p>
-                  <Button onClick={() => router.push('/merchant/catalog')}>
+                  <p className="text-muted-foreground mb-4">
+                    Aucune alerte stock
+                  </p>
+                  <Button onClick={() => router.push("/merchant/catalog")}>
                     Gérer le catalogue
                   </Button>
                 </CardContent>
@@ -698,7 +752,9 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
                   </div>
                 ) : (
                   <div className="h-[300px] flex items-center justify-center">
-                    <p className="text-muted-foreground">Données non disponibles</p>
+                    <p className="text-muted-foreground">
+                      Données non disponibles
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -712,11 +768,17 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{currentStats?.averageOrderValue || 0}€</p>
-                    <p className="text-sm text-muted-foreground">Panier moyen</p>
+                    <p className="text-2xl font-bold">
+                      {currentStats?.averageOrderValue || 0}€
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Panier moyen
+                    </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{currentStats?.conversionRate || 0}%</p>
+                    <p className="text-2xl font-bold">
+                      {currentStats?.conversionRate || 0}%
+                    </p>
                     <p className="text-sm text-muted-foreground">Conversion</p>
                   </div>
                   <div className="text-center">
@@ -724,15 +786,24 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       {currentStats?.customerSatisfaction || 0}
                     </p>
-                    <p className="text-sm text-muted-foreground">Satisfaction</p>
+                    <p className="text-sm text-muted-foreground">
+                      Satisfaction
+                    </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{currentStats?.lowStockItems || 0}</p>
-                    <p className="text-sm text-muted-foreground">Alertes stock</p>
+                    <p className="text-2xl font-bold">
+                      {currentStats?.lowStockItems || 0}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Alertes stock
+                    </p>
                   </div>
                 </div>
 
-                <Button className="w-full" onClick={() => router.push('/merchant/stats')}>
+                <Button
+                  className="w-full"
+                  onClick={() => router.push("/merchant/stats")}
+                >
                   Voir le rapport complet
                 </Button>
               </CardContent>

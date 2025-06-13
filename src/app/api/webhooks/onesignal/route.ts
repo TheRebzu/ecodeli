@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import _getServerSession from 'next-auth/next';
-import { PrismaClient } from '@prisma/client';
-import { authOptions as _authOptions } from '@/server/auth/next-auth';
+import { NextRequest, NextResponse } from "next/server";
+import _getServerSession from "next-auth/next";
+import { PrismaClient } from "@prisma/client";
+import { authOptions as _authOptions } from "@/server/auth/next-auth";
 
 const prisma = new PrismaClient();
 
@@ -10,15 +10,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Vérification de la sécurité
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || authHeader !== `Basic ${process.env.ONESIGNAL_REST_API_KEY}`) {
-      return new NextResponse(JSON.stringify({ success: false, error: 'Unauthorized' }), {
-        status: 401,
-      });
+    const authHeader = request.headers.get("Authorization");
+    if (
+      !authHeader ||
+      authHeader !== `Basic ${process.env.ONESIGNAL_REST_API_KEY}`
+    ) {
+      return new NextResponse(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        {
+          status: 401,
+        },
+      );
     }
 
     // Traiter l'événement de notification
-    if (body.event === 'notification.clicked') {
+    if (body.event === "notification.clicked") {
       const { userId, type } = body.data.custom;
 
       if (userId && type) {
@@ -27,7 +33,7 @@ export async function POST(request: NextRequest) {
           data: {
             userId,
             type,
-            action: 'CLICKED',
+            action: "CLICKED",
             timestamp: new Date(),
           },
         });
@@ -36,9 +42,12 @@ export async function POST(request: NextRequest) {
 
     return new NextResponse(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
-    console.error('Error in OneSignal webhook:', error);
-    return new NextResponse(JSON.stringify({ success: false, error: 'Internal server error' }), {
-      status: 500,
-    });
+    console.error("Error in OneSignal webhook:", error);
+    return new NextResponse(
+      JSON.stringify({ success: false, error: "Internal server error" }),
+      {
+        status: 500,
+      },
+    );
   }
 }

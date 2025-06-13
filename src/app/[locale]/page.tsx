@@ -1,8 +1,12 @@
-import { redirect } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
+import { redirect } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
+import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 
-export default async function RootPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function RootPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   // Attendre que les paramètres soient résolus avant de les utiliser
   const { locale } = await params;
 
@@ -14,5 +18,5 @@ export default async function RootPage({ params }: { params: Promise<{ locale: s
 }
 
 export function generateStaticParams() {
-  return ['fr', 'en'].map(locale => ({ locale }));
+  return ["fr", "en"].map((locale) => ({ locale }));
 }

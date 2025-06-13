@@ -4,16 +4,16 @@
  */
 
 // Exports des fichiers locaux
-export * from './client-announcements.router';
-export * from './client-appointments.router';
-export * from './client-booking.router';
-export * from './client-boxes.router';
-export * from './client-cart-drop.router';
-export * from './client-data.router';
-export * from './client-international-purchase.router';
-export * from './client-payments.router';
-export * from './client-services.router';
-export * from './client-storage.router';
-export * from './client-subscription.router';
-export * from './client-tutorial.router';
-export * from './client.router';
+export * from "./client-announcements.router";
+export * from "./client-appointments.router";
+export * from "./client-booking.router";
+export * from "./client-boxes.router";
+export * from "./client-cart-drop.router";
+export * from "./client-data.router";
+export * from "./client-international-purchase.router";
+export * from "./client-payments.router";
+export * from "./client-services.router";
+export * from "./client-storage.router";
+export * from "./client-subscription.router";
+export * from "./client-tutorial.router";
+export * from "./client.router";

@@ -4,13 +4,13 @@
  */
 
 // Exports des fichiers locaux
-export * from './provider-calendar.router';
-export * from './provider-evaluations.router';
-export * from './provider-interventions.router';
-export * from './provider-invoices.router';
-export * from './provider-rates.router';
-export * from './provider-service-types.router';
-export * from './provider-services.router';
-export * from './provider-skills.router';
-export * from './provider-validation.router';
-export * from './provider.router';
+export * from "./provider-calendar.router";
+export * from "./provider-evaluations.router";
+export * from "./provider-interventions.router";
+export * from "./provider-invoices.router";
+export * from "./provider-rates.router";
+export * from "./provider-service-types.router";
+export * from "./provider-services.router";
+export * from "./provider-skills.router";
+export * from "./provider-validation.router";
+export * from "./provider.router";

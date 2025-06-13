@@ -1,5 +1,5 @@
-import { db } from '@/server/db';
-import { UserRole, UserStatus } from '@prisma/client';
+import { db } from "@/server/db";
+import { UserRole, UserStatus } from "@prisma/client";
 
 /**
  * Service pour la gestion administrative des livreurs
@@ -27,9 +27,9 @@ export const delivererAdminService = {
 
     if (search) {
       where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
+        { firstName: { contains: search, mode: "insensitive" } },
+        { lastName: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -76,41 +76,44 @@ export const delivererAdminService = {
           },
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
       }),
       db.user.count({ where }),
     ]);
 
-    const transformedDeliverers = deliverers.map(deliverer => {
+    const transformedDeliverers = deliverers.map((deliverer) => {
       const completedDeliveries = deliverer.delivererDeliveries.filter(
-        d => d.status === 'DELIVERED'
+        (d) => d.status === "DELIVERED",
       ).length;
       const totalDeliveries = deliverer.delivererDeliveries.length;
 
       // Récupérer toutes les notes des livraisons
-      const allRatings = deliverer.delivererDeliveries.flatMap(d => d.ratings).map(r => r.rating);
+      const allRatings = deliverer.delivererDeliveries
+        .flatMap((d) => d.ratings)
+        .map((r) => r.rating);
       const averageRating =
         allRatings.length > 0
-          ? allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length
+          ? allRatings.reduce((sum, rating) => sum + rating, 0) /
+            allRatings.length
           : 0;
 
-      let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' = 'PENDING';
+      let verificationStatus: "PENDING" | "APPROVED" | "REJECTED" = "PENDING";
       if (deliverer.isVerified) {
-        verificationStatus = 'APPROVED';
+        verificationStatus = "APPROVED";
       } else {
         const hasRejectedDoc = deliverer.documents.some(
-          doc => doc.verificationStatus === 'REJECTED'
+          (doc) => doc.verificationStatus === "REJECTED",
         );
         if (hasRejectedDoc) {
-          verificationStatus = 'REJECTED';
+          verificationStatus = "REJECTED";
         }
       }
 
       // Séparer le nom complet en prénom et nom
-      const nameParts = deliverer.name.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
+      const nameParts = deliverer.name.split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
 
       return {
         id: deliverer.id,
@@ -207,10 +210,10 @@ export const delivererAdminService = {
         activeZones: 25,
       };
 
-      console.log('📊 Stats livreurs:', result);
+      console.log("📊 Stats livreurs:", result);
       return result;
     } catch (error) {
-      console.error('❌ Erreur dans getDeliverersStats:', error);
+      console.error("❌ Erreur dans getDeliverersStats:", error);
       // Retourner des valeurs par défaut en cas d'erreur
       return {
         totalDeliverers: 0,
@@ -282,13 +285,13 @@ export const delivererAdminService = {
             },
           },
           orderBy: {
-            createdAt: 'desc',
+            createdAt: "desc",
           },
           take: 10,
         },
         documents: {
           orderBy: {
-            uploadedAt: 'desc',
+            uploadedAt: "desc",
           },
         },
         wallet: true,
@@ -296,7 +299,7 @@ export const delivererAdminService = {
     });
 
     if (!deliverer) {
-      throw new Error('Livreur non trouvé');
+      throw new Error("Livreur non trouvé");
     }
 
     return deliverer;

@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
-import { faker } from '@faker-js/faker';
-import * as bcrypt from 'bcryptjs';
+import { PrismaClient } from "@prisma/client";
+import { faker } from "@faker-js/faker";
+import * as bcrypt from "bcryptjs";
 
 export interface SeedResult {
   entity: string;
@@ -20,21 +20,21 @@ export interface SeedOptions {
  */
 export function generateFrenchAddress() {
   const cities = [
-    'Paris',
-    'Marseille',
-    'Lyon',
-    'Toulouse',
-    'Nice',
-    'Nantes',
-    'Montpellier',
-    'Strasbourg',
-    'Bordeaux',
-    'Lille',
-    'Rennes',
-    'Reims',
-    'Saint-Étienne',
-    'Toulon',
-    'Le Havre',
+    "Paris",
+    "Marseille",
+    "Lyon",
+    "Toulouse",
+    "Nice",
+    "Nantes",
+    "Montpellier",
+    "Strasbourg",
+    "Bordeaux",
+    "Lille",
+    "Rennes",
+    "Reims",
+    "Saint-Étienne",
+    "Toulon",
+    "Le Havre",
   ];
 
   const city = faker.helpers.arrayElement(cities);
@@ -43,7 +43,7 @@ export function generateFrenchAddress() {
     street: `${faker.number.int({ min: 1, max: 999 })} ${faker.location.streetAddress()}`,
     city,
     zipCode: faker.location.zipCode(),
-    country: 'France',
+    country: "France",
     latitude: faker.location.latitude({ min: 43.0, max: 49.0 }),
     longitude: faker.location.longitude({ min: -5.0, max: 8.0 }),
   };
@@ -62,7 +62,7 @@ export function generateSiret(): string {
  * Générateur de numéros de téléphone français
  */
 export function generateFrenchPhone(): string {
-  const prefixes = ['01', '02', '03', '04', '05', '06', '07', '09'];
+  const prefixes = ["01", "02", "03", "04", "05", "06", "07", "09"];
   const prefix = faker.helpers.arrayElement(prefixes);
   const number = faker.number.int({ min: 10000000, max: 99999999 }).toString();
   return `${prefix}${number}`;
@@ -71,19 +71,29 @@ export function generateFrenchPhone(): string {
 /**
  * Générateur d'emails avec domaines français
  */
-export function generateFrenchEmail(firstName?: string, lastName?: string): string {
-  const domains = ['gmail.com', 'orange.fr', 'wanadoo.fr', 'free.fr', 'hotmail.fr', 'yahoo.fr'];
+export function generateFrenchEmail(
+  firstName?: string,
+  lastName?: string,
+): string {
+  const domains = [
+    "gmail.com",
+    "orange.fr",
+    "wanadoo.fr",
+    "free.fr",
+    "hotmail.fr",
+    "yahoo.fr",
+  ];
   const domain = faker.helpers.arrayElement(domains);
 
   if (firstName && lastName) {
     const cleanFirst = firstName
       .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
     const cleanLast = lastName
       .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
     return `${cleanFirst}.${cleanLast}@${domain}`;
   }
 
@@ -100,7 +110,10 @@ export function generateDateInRange(startDate: Date, endDate: Date): Date {
 /**
  * Générateur de prix en centimes (pour éviter les problèmes de décimales)
  */
-export function generatePriceInCents(min: number = 100, max: number = 50000): number {
+export function generatePriceInCents(
+  min: number = 100,
+  max: number = 50000,
+): number {
   return faker.number.int({ min, max });
 }
 
@@ -125,9 +138,11 @@ export function weightedSelect<T>(items: { item: T; weight: number }[]): T {
  * Générateur de statuts basé sur des probabilités réalistes
  */
 export function generateRealisticStatus<T extends string>(
-  statuses: { status: T; probability: number }[]
+  statuses: { status: T; probability: number }[],
 ): T {
-  return weightedSelect(statuses.map(s => ({ item: s.status, weight: s.probability })));
+  return weightedSelect(
+    statuses.map((s) => ({ item: s.status, weight: s.probability })),
+  );
 }
 
 /**
@@ -136,7 +151,7 @@ export function generateRealisticStatus<T extends string>(
 export async function cleanTable(
   prisma: PrismaClient,
   tableName: string,
-  options: { force?: boolean } = {}
+  options: { force?: boolean } = {},
 ): Promise<number> {
   try {
     // @ts-ignore - Accès dynamique aux tables Prisma
@@ -157,7 +172,7 @@ export async function cleanTable(
 export async function createEntity<T>(
   createFn: () => Promise<T>,
   entityName: string,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<{ entity?: T; success: boolean; error?: string }> {
   try {
     const entity = await createFn();
@@ -166,9 +181,12 @@ export async function createEntity<T>(
     }
     return { entity, success: true };
   } catch (error: any) {
-    const errorMsg = error.message || 'Erreur inconnue';
+    const errorMsg = error.message || "Erreur inconnue";
     if (options.verbose) {
-      console.error(`❌ Erreur lors de la création de ${entityName}:`, errorMsg);
+      console.error(
+        `❌ Erreur lors de la création de ${entityName}:`,
+        errorMsg,
+      );
     }
     return { success: false, error: errorMsg };
   }
@@ -181,7 +199,7 @@ export async function createBatch<T>(
   items: any[],
   createFn: (item: any) => Promise<T>,
   entityName: string,
-  options: SeedOptions & { batchSize?: number } = {}
+  options: SeedOptions & { batchSize?: number } = {},
 ): Promise<SeedResult> {
   const batchSize = options.batchSize || 10;
   const result: SeedResult = {
@@ -193,11 +211,13 @@ export async function createBatch<T>(
 
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
-    const promises = batch.map(item => createEntity(() => createFn(item), entityName, options));
+    const promises = batch.map((item) =>
+      createEntity(() => createFn(item), entityName, options),
+    );
 
     const results = await Promise.all(promises);
 
-    results.forEach(res => {
+    results.forEach((res) => {
       if (res.success) {
         result.created++;
       } else {
@@ -207,7 +227,7 @@ export async function createBatch<T>(
 
     if (options.verbose && i + batchSize < items.length) {
       console.log(
-        `📊 Progression ${entityName}: ${Math.min(i + batchSize, items.length)}/${items.length}`
+        `📊 Progression ${entityName}: ${Math.min(i + batchSize, items.length)}/${items.length}`,
       );
     }
   }
@@ -236,7 +256,9 @@ export function getRandomDate(minDaysAgo: number, maxDaysAgo: number): Date {
   // S'assurer que min est plus petit que max
   const minDays = Math.min(minDaysAgo, maxDaysAgo);
   const maxDays = Math.max(minDaysAgo, maxDaysAgo);
-  return faker.date.recent({ days: faker.number.int({ min: minDays, max: maxDays }) });
+  return faker.date.recent({
+    days: faker.number.int({ min: minDays, max: maxDays }),
+  });
 }
 
 /**

@@ -1,9 +1,9 @@
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { userPreferencesService } from '@/server/services/common/user-preferences.service';
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { userPreferencesService } from "@/server/services/common/user-preferences.service";
 import {
   updateUserPreferencesSchema,
   updateOnboardingStatusSchema,
-} from '@/schemas/user/user-preferences.schema';
+} from "@/schemas/user/user-preferences.schema";
 
 export const userPreferencesRouter = router({
   getUserPreferences: protectedProcedure.query(async ({ ctx }) => {
@@ -13,13 +13,19 @@ export const userPreferencesRouter = router({
   updateUserPreferences: protectedProcedure
     .input(updateUserPreferencesSchema)
     .mutation(async ({ ctx, input }) => {
-      return userPreferencesService.updateUserPreferences(ctx.session.user.id, input);
+      return userPreferencesService.updateUserPreferences(
+        ctx.session.user.id,
+        input,
+      );
     }),
 
   updatePreferences: protectedProcedure
     .input(updateUserPreferencesSchema)
     .mutation(async ({ ctx, input }) => {
-      return userPreferencesService.updateUserPreferences(ctx.session.user.id, input);
+      return userPreferencesService.updateUserPreferences(
+        ctx.session.user.id,
+        input,
+      );
     }),
 
   getOnboardingStatus: protectedProcedure.query(async ({ ctx }) => {
@@ -29,7 +35,10 @@ export const userPreferencesRouter = router({
   updateOnboardingStatus: protectedProcedure
     .input(updateOnboardingStatusSchema)
     .mutation(async ({ ctx, input }) => {
-      return userPreferencesService.updateOnboardingStatus(ctx.session.user.id, input);
+      return userPreferencesService.updateOnboardingStatus(
+        ctx.session.user.id,
+        input,
+      );
     }),
 
   resetOnboardingStatus: protectedProcedure.mutation(async ({ ctx }) => {

@@ -1,70 +1,74 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useOnboarding } from '@/components/shared/onboarding/onboarding-context';
-import { TutorialStep } from '@/components/shared/onboarding/tutorial-step';
-import { TutorialProgress } from '@/components/shared/onboarding/tutorial-progress';
-import { TutorialNavigation } from '@/components/shared/onboarding/tutorial-navigation';
+import { useEffect } from "react";
+import { useOnboarding } from "@/components/shared/onboarding/onboarding-context";
+import { TutorialStep } from "@/components/shared/onboarding/tutorial-step";
+import { TutorialProgress } from "@/components/shared/onboarding/tutorial-progress";
+import { TutorialNavigation } from "@/components/shared/onboarding/tutorial-navigation";
 
 // Labels pour les boutons de navigation du tutoriel
 const navigationLabels = {
-  skip: 'Passer le tutoriel',
-  previous: 'Précédent',
-  next: 'Suivant',
-  finish: 'Terminer',
+  skip: "Passer le tutoriel",
+  previous: "Précédent",
+  next: "Suivant",
+  finish: "Terminer",
 };
 
 // Définition des étapes du tutoriel livreur avec traductions intégrées
 const DELIVERER_TUTORIAL_STEPS = [
   {
-    id: 'welcome',
-    titleKey: 'steps.welcome.title',
-    descriptionKey: 'steps.welcome.description',
+    id: "welcome",
+    titleKey: "steps.welcome.title",
+    descriptionKey: "steps.welcome.description",
     // Fallbacks de traduction pour éviter les erreurs
-    title: 'Bienvenue chez EcoDeli',
-    description: 'Découvrez comment livrer efficacement avec notre plateforme écologique.',
-    image: '/images/onboarding/deliverer/welcome.png',
-  },
-  {
-    id: 'dashboard',
-    titleKey: 'steps.dashboard.title',
-    descriptionKey: 'steps.dashboard.description',
-    title: 'Votre tableau de bord',
-    description: "Consultez vos statistiques, revenus et activités récentes en un coup d'œil.",
-    image: '/images/onboarding/deliverer/dashboard.png',
-  },
-  {
-    id: 'announcements',
-    titleKey: 'steps.announcements.title',
-    descriptionKey: 'steps.announcements.description',
-    title: 'Annonces de livraison',
-    description: 'Parcourez les annonces disponibles et trouvez des opportunités de livraison.',
-    image: '/images/onboarding/deliverer/announcements.png',
-  },
-  {
-    id: 'deliveries',
-    titleKey: 'steps.deliveries.title',
-    descriptionKey: 'steps.deliveries.description',
-    title: 'Gestion des livraisons',
+    title: "Bienvenue chez EcoDeli",
     description:
-      'Suivez vos livraisons en cours, planifiez votre itinéraire et communiquez avec les clients.',
-    image: '/images/onboarding/deliverer/deliveries.png',
+      "Découvrez comment livrer efficacement avec notre plateforme écologique.",
+    image: "/images/onboarding/deliverer/welcome.png",
   },
   {
-    id: 'routes',
-    titleKey: 'steps.routes.title',
-    descriptionKey: 'steps.routes.description',
+    id: "dashboard",
+    titleKey: "steps.dashboard.title",
+    descriptionKey: "steps.dashboard.description",
+    title: "Votre tableau de bord",
+    description:
+      "Consultez vos statistiques, revenus et activités récentes en un coup d'œil.",
+    image: "/images/onboarding/deliverer/dashboard.png",
+  },
+  {
+    id: "announcements",
+    titleKey: "steps.announcements.title",
+    descriptionKey: "steps.announcements.description",
+    title: "Annonces de livraison",
+    description:
+      "Parcourez les annonces disponibles et trouvez des opportunités de livraison.",
+    image: "/images/onboarding/deliverer/announcements.png",
+  },
+  {
+    id: "deliveries",
+    titleKey: "steps.deliveries.title",
+    descriptionKey: "steps.deliveries.description",
+    title: "Gestion des livraisons",
+    description:
+      "Suivez vos livraisons en cours, planifiez votre itinéraire et communiquez avec les clients.",
+    image: "/images/onboarding/deliverer/deliveries.png",
+  },
+  {
+    id: "routes",
+    titleKey: "steps.routes.title",
+    descriptionKey: "steps.routes.description",
     title: "Création d'itinéraires",
-    description: 'Optimisez vos trajets et réduisez votre empreinte carbone.',
-    image: '/images/onboarding/deliverer/routes.png',
+    description: "Optimisez vos trajets et réduisez votre empreinte carbone.",
+    image: "/images/onboarding/deliverer/routes.png",
   },
   {
-    id: 'payments',
-    titleKey: 'steps.payments.title',
-    descriptionKey: 'steps.payments.description',
-    title: 'Paiements et revenus',
-    description: 'Consultez votre historique de paiements et gérez vos revenus.',
-    image: '/images/onboarding/deliverer/payments.png',
+    id: "payments",
+    titleKey: "steps.payments.title",
+    descriptionKey: "steps.payments.description",
+    title: "Paiements et revenus",
+    description:
+      "Consultez votre historique de paiements et gérez vos revenus.",
+    image: "/images/onboarding/deliverer/payments.png",
   },
 ];
 
@@ -92,8 +96,11 @@ export function DelivererTutorial({ options }: DelivererTutorialProps) {
       setStepsConfiguration(0, DELIVERER_TUTORIAL_STEPS.length);
     } else {
       // Fallback pour le cas où setStepsConfiguration n'est pas disponible
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('tutorial-total-steps', DELIVERER_TUTORIAL_STEPS.length.toString());
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          "tutorial-total-steps",
+          DELIVERER_TUTORIAL_STEPS.length.toString(),
+        );
       }
     }
   }, [setStepsConfiguration]);
@@ -123,7 +130,10 @@ export function DelivererTutorial({ options }: DelivererTutorialProps) {
           />
         }
       >
-        <TutorialProgress currentStep={currentStep} totalSteps={stepsTotalCount} />
+        <TutorialProgress
+          currentStep={currentStep}
+          totalSteps={stepsTotalCount}
+        />
       </TutorialStep>
     </div>
   );

@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import React, { useState, use } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { useSession } from 'next-auth/react';
-import { ArrowLeft, Download, Printer, Share2 } from 'lucide-react';
+import React, { useState, use } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
+import { ArrowLeft, Download, Printer, Share2 } from "lucide-react";
 
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import { InvoiceDetails } from '@/components/shared/payments/invoice-details';
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { InvoiceDetails } from "@/components/shared/payments/invoice-details";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
 interface InvoiceDetailsPageProps {
   params: Promise<{
@@ -27,9 +27,11 @@ interface InvoiceDetailsPageProps {
   }>;
 }
 
-export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageProps) {
+export default async function InvoiceDetailsPage({
+  params,
+}: InvoiceDetailsPageProps) {
   const { id, locale } = use(params);
-  const t = useTranslations('invoices');
+  const t = useTranslations("invoices");
   const router = useRouter();
   const { data: session } = useSession();
   const { toast } = useToast();
@@ -37,7 +39,7 @@ export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageP
   const [isPrinting, setIsPrinting] = useState(false);
 
   // Mode démo seulement si l'ID contient explicitement "demo"
-  const isDemo = id === 'demo' || id.startsWith('demo-');
+  const isDemo = id === "demo" || id.startsWith("demo-");
 
   // Fonction pour télécharger la facture
   const handleDownloadInvoice = async (invoiceId: string) => {
@@ -47,19 +49,19 @@ export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageP
       // Dans une implémentation réelle, appelez l'API pour télécharger la facture
       if (!isDemo) {
         // Simulation du téléchargement pour le moment
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
       toast({
-        variant: 'default',
-        title: t('downloadStarted'),
+        variant: "default",
+        title: t("downloadStarted"),
       });
 
       return Promise.resolve();
     } catch (error) {
       toast({
-        variant: 'destructive',
-        title: t('downloadError'),
+        variant: "destructive",
+        title: t("downloadError"),
       });
       throw error;
     } finally {
@@ -79,8 +81,8 @@ export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageP
       return Promise.resolve();
     } catch (error) {
       toast({
-        variant: 'destructive',
-        title: t('printError'),
+        variant: "destructive",
+        title: t("printError"),
       });
       throw error;
     } finally {
@@ -93,19 +95,19 @@ export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageP
     if (navigator.share) {
       navigator
         .share({
-          title: t('shareInvoiceTitle'),
-          text: t('shareInvoiceText'),
+          title: t("shareInvoiceTitle"),
+          text: t("shareInvoiceText"),
           url: window.location.href,
         })
-        .catch(err => {
-          console.error('Erreur lors du partage:', err);
+        .catch((err) => {
+          console.error("Erreur lors du partage:", err);
         });
     } else {
       // Copier l'URL dans le presse-papier si le partage n'est pas disponible
       navigator.clipboard.writeText(window.location.href);
       toast({
-        variant: 'default',
-        title: t('linkCopied'),
+        variant: "default",
+        title: t("linkCopied"),
       });
     }
   };
@@ -125,9 +127,14 @@ export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageP
       {/* En-tête avec actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center">
-          <Button variant="ghost" size="sm" onClick={handleBack} className="mr-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="mr-4"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t('backToInvoices')}
+            {t("backToInvoices")}
           </Button>
         </div>
 
@@ -139,7 +146,7 @@ export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageP
             disabled={isPrinting}
           >
             <Printer className="h-4 w-4 mr-2" />
-            {t('print')}
+            {t("print")}
           </Button>
 
           <Button
@@ -149,26 +156,28 @@ export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageP
             disabled={isDownloading}
           >
             <Download className="h-4 w-4 mr-2" />
-            {t('download')}
+            {t("download")}
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Share2 className="h-4 w-4 mr-2" />
-                {t('share')}
+                {t("share")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleShareInvoice}>{t('copyLink')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleShareInvoice}>
+                {t("copyLink")}
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() =>
                   window.open(
-                    `mailto:?subject=${t('shareInvoiceTitle')}&body=${window.location.href}`
+                    `mailto:?subject=${t("shareInvoiceTitle")}&body=${window.location.href}`,
                   )
                 }
               >
-                {t('shareByEmail')}
+                {t("shareByEmail")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -188,7 +197,7 @@ export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageP
       <Separator className="my-6" />
       <div className="flex flex-col sm:flex-row gap-2 justify-center">
         <Button variant="outline" onClick={handleViewPaymentHistory}>
-          {t('viewPaymentHistory')}
+          {t("viewPaymentHistory")}
         </Button>
       </div>
     </div>

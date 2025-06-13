@@ -1,12 +1,12 @@
-import { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
-import ProviderRegisterForm from '@/components/auth/register/provider-register-form';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/auth/next-auth";
+import ProviderRegisterForm from "@/components/auth/register/provider-register-form";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
 export async function generateMetadata({
   params,
 }: {
@@ -16,11 +16,11 @@ export async function generateMetadata({
   const resolvedParams = await params;
   const locale = resolvedParams.locale;
 
-  const t = await getTranslations({ locale, namespace: 'auth.register' });
+  const t = await getTranslations({ locale, namespace: "auth.register" });
 
   return {
-    title: t('provider.pageTitle'),
-    description: t('provider.pageDescription'),
+    title: t("provider.pageTitle"),
+    description: t("provider.pageDescription"),
   };
 }
 
@@ -39,21 +39,29 @@ export default async function ProviderRegisterPage({
     redirect(`/${locale}/dashboard`);
   }
 
-  const t = await getTranslations({ locale, namespace: 'auth.register' });
+  const t = await getTranslations({ locale, namespace: "auth.register" });
 
   return (
     <div className="container flex h-screen flex-col items-center justify-center">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] md:w-[550px]">
-        <Button variant="ghost" className="absolute left-4 top-4 md:left-8 md:top-8" asChild>
+        <Button
+          variant="ghost"
+          className="absolute left-4 top-4 md:left-8 md:top-8"
+          asChild
+        >
           <Link href={`/${locale}/register`}>
             <ChevronLeft className="mr-2 h-4 w-4" />
-            {t('back')}
+            {t("back")}
           </Link>
         </Button>
 
         <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">{t('provider.title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('provider.description')}</p>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("provider.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("provider.description")}
+          </p>
         </div>
 
         <ProviderRegisterForm />

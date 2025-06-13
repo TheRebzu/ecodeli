@@ -1,15 +1,33 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Check, ChevronDown, ChevronsUpDown, Filter, MapPin, Package, Truck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import React, { useState } from "react";
+import { useTranslations } from "next-intl";
+import {
+  Check,
+  ChevronDown,
+  ChevronsUpDown,
+  Filter,
+  MapPin,
+  Package,
+  Truck,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -17,24 +35,24 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
-import { cn } from '@/lib/utils/common';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { AnnouncementStatus } from '@prisma/client';
+} from "@/components/ui/accordion";
+import { cn } from "@/lib/utils/common";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { AnnouncementStatus } from "@prisma/client";
 
 // Types du filtre
 interface AnnouncementFilterProps {
@@ -58,35 +76,35 @@ interface AnnouncementFilterValues {
   isNegotiable?: boolean;
   requiresRefrigeration?: boolean;
   isFragile?: boolean;
-  sortBy?: 'recent' | 'price_low' | 'price_high' | 'distance' | 'deadline';
+  sortBy?: "recent" | "price_low" | "price_high" | "distance" | "deadline";
 }
 
 const ANNOUNCEMENT_TYPES = [
-  { value: 'PACKAGE_DELIVERY', label: 'Livraison de colis' },
-  { value: 'GROCERY_SHOPPING', label: 'Courses alimentaires' },
-  { value: 'PERSON_TRANSPORT', label: 'Transport de personnes' },
-  { value: 'AIRPORT_TRANSFER', label: 'Transfert aéroport' },
-  { value: 'FOREIGN_PURCHASE', label: "Achat à l'étranger" },
-  { value: 'PET_CARE', label: "Transport d'animaux" },
-  { value: 'HOME_SERVICES', label: 'Services à domicile' },
+  { value: "PACKAGE_DELIVERY", label: "Livraison de colis" },
+  { value: "GROCERY_SHOPPING", label: "Courses alimentaires" },
+  { value: "PERSON_TRANSPORT", label: "Transport de personnes" },
+  { value: "AIRPORT_TRANSFER", label: "Transfert aéroport" },
+  { value: "FOREIGN_PURCHASE", label: "Achat à l'étranger" },
+  { value: "PET_CARE", label: "Transport d'animaux" },
+  { value: "HOME_SERVICES", label: "Services à domicile" },
 ];
 
 const ANNOUNCEMENT_STATUSES = [
-  { value: 'DRAFT', label: 'Brouillon' },
-  { value: 'PENDING', label: 'En attente' },
-  { value: 'PUBLISHED', label: 'Publiée' },
-  { value: 'ASSIGNED', label: 'Assignée' },
-  { value: 'IN_PROGRESS', label: 'En cours' },
-  { value: 'COMPLETED', label: 'Terminée' },
-  { value: 'CANCELLED', label: 'Annulée' },
+  { value: "DRAFT", label: "Brouillon" },
+  { value: "PENDING", label: "En attente" },
+  { value: "PUBLISHED", label: "Publiée" },
+  { value: "ASSIGNED", label: "Assignée" },
+  { value: "IN_PROGRESS", label: "En cours" },
+  { value: "COMPLETED", label: "Terminée" },
+  { value: "CANCELLED", label: "Annulée" },
 ];
 
 const SORT_OPTIONS = [
-  { value: 'recent', label: 'Plus récentes' },
-  { value: 'price_low', label: 'Prix croissant' },
-  { value: 'price_high', label: 'Prix décroissant' },
-  { value: 'distance', label: 'Distance' },
-  { value: 'deadline', label: 'Date limite' },
+  { value: "recent", label: "Plus récentes" },
+  { value: "price_low", label: "Prix croissant" },
+  { value: "price_high", label: "Prix décroissant" },
+  { value: "distance", label: "Distance" },
+  { value: "deadline", label: "Date limite" },
 ];
 
 /**
@@ -99,29 +117,32 @@ export function AnnouncementFilter({
   isCompact = false,
   className,
 }: AnnouncementFilterProps) {
-  const t = useTranslations('Announcements.filters');
+  const t = useTranslations("Announcements.filters");
 
   // Initialisation des états à partir des valeurs par défaut
   const [filters, setFilters] = useState<AnnouncementFilterValues>({
-    search: '',
+    search: "",
     types: [],
     status: [],
     priceRange: [0, 1000],
     distance: 50,
     dateRange: [null, null],
-    pickupLocation: '',
-    deliveryLocation: '',
+    pickupLocation: "",
+    deliveryLocation: "",
     hasPhotos: false,
     isNegotiable: false,
     requiresRefrigeration: false,
     isFragile: false,
-    sortBy: 'recent',
+    sortBy: "recent",
     ...defaultValues,
   });
 
   // Gérer le changement d'état des filtres
-  const handleFilterChange = (key: keyof AnnouncementFilterValues, value: any) => {
-    setFilters(prev => {
+  const handleFilterChange = (
+    key: keyof AnnouncementFilterValues,
+    value: any,
+  ) => {
+    setFilters((prev) => {
       const newFilters = { ...prev, [key]: value };
       // Utiliser setTimeout pour éviter d'appeler onFilterChange pendant le render
       setTimeout(() => {
@@ -134,19 +155,19 @@ export function AnnouncementFilter({
   // Réinitialiser les filtres
   const handleReset = () => {
     const resetFilters: AnnouncementFilterValues = {
-      search: '',
+      search: "",
       types: [],
       status: [],
       priceRange: [0, 1000] as [number, number],
       distance: 50,
       dateRange: [null, null] as [Date | null, Date | null],
-      pickupLocation: '',
-      deliveryLocation: '',
+      pickupLocation: "",
+      deliveryLocation: "",
       hasPhotos: false,
       isNegotiable: false,
       requiresRefrigeration: false,
       isFragile: false,
-      sortBy: 'recent' as const,
+      sortBy: "recent" as const,
     };
 
     setFilters(resetFilters);
@@ -163,12 +184,12 @@ export function AnnouncementFilter({
   // Version compacte du filtre (pour mobile)
   if (isCompact) {
     return (
-      <div className={cn('space-y-2', className)}>
+      <div className={cn("space-y-2", className)}>
         <div className="flex gap-2">
           <Input
-            placeholder={t('search')}
-            value={filters.search || ''}
-            onChange={e => handleFilterChange('search', e.target.value)}
+            placeholder={t("search")}
+            value={filters.search || ""}
+            onChange={(e) => handleFilterChange("search", e.target.value)}
             className="flex-grow"
           />
 
@@ -181,19 +202,23 @@ export function AnnouncementFilter({
             <PopoverContent className="w-80" align="end">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <h3 className="font-medium text-sm">{t('types')}</h3>
+                  <h3 className="font-medium text-sm">{t("types")}</h3>
                   <div className="flex flex-wrap gap-1">
-                    {ANNOUNCEMENT_TYPES.map(type => (
+                    {ANNOUNCEMENT_TYPES.map((type) => (
                       <Badge
                         key={type.value}
-                        variant={filters.types?.includes(type.value) ? 'default' : 'outline'}
+                        variant={
+                          filters.types?.includes(type.value)
+                            ? "default"
+                            : "outline"
+                        }
                         className="cursor-pointer"
                         onClick={() => {
                           const current = filters.types || [];
                           const updated = current.includes(type.value)
-                            ? current.filter(t => t !== type.value)
+                            ? current.filter((t) => t !== type.value)
                             : [...current, type.value];
-                          handleFilterChange('types', updated);
+                          handleFilterChange("types", updated);
                         }}
                       >
                         {type.label}
@@ -203,7 +228,7 @@ export function AnnouncementFilter({
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="font-medium text-sm">{t('priceRange')}</h3>
+                  <h3 className="font-medium text-sm">{t("priceRange")}</h3>
                   <div className="pt-4">
                     <Slider
                       defaultValue={filters.priceRange}
@@ -211,7 +236,9 @@ export function AnnouncementFilter({
                       max={1000}
                       step={10}
                       value={filters.priceRange}
-                      onValueChange={value => handleFilterChange('priceRange', value)}
+                      onValueChange={(value) =>
+                        handleFilterChange("priceRange", value)
+                      }
                     />
                     <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                       <span>{filters.priceRange?.[0]}€</span>
@@ -221,7 +248,7 @@ export function AnnouncementFilter({
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="font-medium text-sm">{t('distance')}</h3>
+                  <h3 className="font-medium text-sm">{t("distance")}</h3>
                   <div className="pt-4">
                     <Slider
                       defaultValue={[filters.distance || 50]}
@@ -229,7 +256,9 @@ export function AnnouncementFilter({
                       max={100}
                       step={1}
                       value={[filters.distance || 50]}
-                      onValueChange={value => handleFilterChange('distance', value[0])}
+                      onValueChange={(value) =>
+                        handleFilterChange("distance", value[0])
+                      }
                     />
                     <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                       <span>1km</span>
@@ -239,21 +268,21 @@ export function AnnouncementFilter({
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="font-medium text-sm">{t('options')}</h3>
+                  <h3 className="font-medium text-sm">{t("options")}</h3>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="compact-has-photos"
                         checked={filters.hasPhotos}
-                        onCheckedChange={checked =>
-                          handleFilterChange('hasPhotos', checked === true)
+                        onCheckedChange={(checked) =>
+                          handleFilterChange("hasPhotos", checked === true)
                         }
                       />
                       <label
                         htmlFor="compact-has-photos"
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                       >
-                        {t('hasPhotos')}
+                        {t("hasPhotos")}
                       </label>
                     </div>
 
@@ -261,31 +290,33 @@ export function AnnouncementFilter({
                       <Checkbox
                         id="compact-is-negotiable"
                         checked={filters.isNegotiable}
-                        onCheckedChange={checked =>
-                          handleFilterChange('isNegotiable', checked === true)
+                        onCheckedChange={(checked) =>
+                          handleFilterChange("isNegotiable", checked === true)
                         }
                       />
                       <label
                         htmlFor="compact-is-negotiable"
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                       >
-                        {t('isNegotiable')}
+                        {t("isNegotiable")}
                       </label>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="font-medium text-sm">{t('sortBy')}</h3>
+                  <h3 className="font-medium text-sm">{t("sortBy")}</h3>
                   <Select
                     value={filters.sortBy}
-                    onValueChange={value => handleFilterChange('sortBy', value)}
+                    onValueChange={(value) =>
+                      handleFilterChange("sortBy", value)
+                    }
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t('sortByPlaceholder')} />
+                      <SelectValue placeholder={t("sortByPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {SORT_OPTIONS.map(option => (
+                      {SORT_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -296,10 +327,10 @@ export function AnnouncementFilter({
 
                 <div className="flex justify-between">
                   <Button variant="outline" size="sm" onClick={handleReset}>
-                    {t('reset')}
+                    {t("reset")}
                   </Button>
                   <Button size="sm" onClick={() => onFilterChange(filters)}>
-                    {t('apply')}
+                    {t("apply")}
                   </Button>
                 </div>
               </div>
@@ -308,13 +339,15 @@ export function AnnouncementFilter({
 
           <Select
             value={filters.sortBy}
-            onValueChange={value => handleFilterChange('sortBy', value as any)}
+            onValueChange={(value) =>
+              handleFilterChange("sortBy", value as any)
+            }
           >
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder={t('sortByPlaceholder')} />
+              <SelectValue placeholder={t("sortByPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {SORT_OPTIONS.map(option => (
+              {SORT_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -331,26 +364,30 @@ export function AnnouncementFilter({
           filters.priceRange?.[1] !== 1000 ||
           filters.distance !== 50) && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {filters.types?.map(type => (
+            {filters.types?.map((type) => (
               <Badge
                 key={type}
                 variant="secondary"
                 className="cursor-pointer"
                 onClick={() => {
-                  handleFilterChange('types', filters.types?.filter(t => t !== type) || []);
+                  handleFilterChange(
+                    "types",
+                    filters.types?.filter((t) => t !== type) || [],
+                  );
                 }}
               >
-                {ANNOUNCEMENT_TYPES.find(t => t.value === type)?.label}
+                {ANNOUNCEMENT_TYPES.find((t) => t.value === type)?.label}
                 <button className="ml-1 font-mono text-xs">×</button>
               </Badge>
             ))}
 
             {filters.priceRange?.[1] !== 1000 && (
               <Badge variant="secondary" className="cursor-pointer">
-                {t('price')}: {filters.priceRange?.[0]}€ - {filters.priceRange?.[1]}€
+                {t("price")}: {filters.priceRange?.[0]}€ -{" "}
+                {filters.priceRange?.[1]}€
                 <button
                   className="ml-1 font-mono text-xs"
-                  onClick={() => handleFilterChange('priceRange', [0, 1000])}
+                  onClick={() => handleFilterChange("priceRange", [0, 1000])}
                 >
                   ×
                 </button>
@@ -359,10 +396,10 @@ export function AnnouncementFilter({
 
             {filters.distance !== 50 && (
               <Badge variant="secondary" className="cursor-pointer">
-                {t('distance')}: {filters.distance}km
+                {t("distance")}: {filters.distance}km
                 <button
                   className="ml-1 font-mono text-xs"
-                  onClick={() => handleFilterChange('distance', 50)}
+                  onClick={() => handleFilterChange("distance", 50)}
                 >
                   ×
                 </button>
@@ -371,10 +408,10 @@ export function AnnouncementFilter({
 
             {filters.hasPhotos && (
               <Badge variant="secondary" className="cursor-pointer">
-                {t('hasPhotos')}
+                {t("hasPhotos")}
                 <button
                   className="ml-1 font-mono text-xs"
-                  onClick={() => handleFilterChange('hasPhotos', false)}
+                  onClick={() => handleFilterChange("hasPhotos", false)}
                 >
                   ×
                 </button>
@@ -383,10 +420,10 @@ export function AnnouncementFilter({
 
             {filters.isNegotiable && (
               <Badge variant="secondary" className="cursor-pointer">
-                {t('isNegotiable')}
+                {t("isNegotiable")}
                 <button
                   className="ml-1 font-mono text-xs"
-                  onClick={() => handleFilterChange('isNegotiable', false)}
+                  onClick={() => handleFilterChange("isNegotiable", false)}
                 >
                   ×
                 </button>
@@ -404,7 +441,7 @@ export function AnnouncementFilter({
                 className="cursor-pointer hover:bg-destructive/10"
                 onClick={handleReset}
               >
-                {t('reset')}
+                {t("reset")}
               </Badge>
             )}
           </div>
@@ -415,36 +452,36 @@ export function AnnouncementFilter({
 
   // Version complète du filtre (pour desktop)
   return (
-    <Card className={cn('w-full', className)}>
+    <Card className={cn("w-full", className)}>
       <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="search">{t('search')}</Label>
+          <Label htmlFor="search">{t("search")}</Label>
           <Input
             id="search"
-            placeholder={t('searchPlaceholder')}
-            value={filters.search || ''}
-            onChange={e => handleFilterChange('search', e.target.value)}
+            placeholder={t("searchPlaceholder")}
+            value={filters.search || ""}
+            onChange={(e) => handleFilterChange("search", e.target.value)}
           />
         </div>
 
         <div className="space-y-2">
-          <Label>{t('types')}</Label>
+          <Label>{t("types")}</Label>
           <div className="grid grid-cols-1 gap-2">
-            {ANNOUNCEMENT_TYPES.map(type => (
+            {ANNOUNCEMENT_TYPES.map((type) => (
               <div key={type.value} className="flex items-center space-x-2">
                 <Checkbox
                   id={`type-${type.value}`}
                   checked={filters.types?.includes(type.value)}
-                  onCheckedChange={checked => {
+                  onCheckedChange={(checked) => {
                     const current = filters.types || [];
                     const updated = checked
                       ? [...current, type.value]
-                      : current.filter(t => t !== type.value);
-                    handleFilterChange('types', updated);
+                      : current.filter((t) => t !== type.value);
+                    handleFilterChange("types", updated);
                   }}
                 />
                 <label
@@ -459,19 +496,21 @@ export function AnnouncementFilter({
         </div>
 
         <div className="space-y-2">
-          <Label>{t('status')}</Label>
+          <Label>{t("status")}</Label>
           <div className="grid grid-cols-1 gap-2">
-            {ANNOUNCEMENT_STATUSES.map(status => (
+            {ANNOUNCEMENT_STATUSES.map((status) => (
               <div key={status.value} className="flex items-center space-x-2">
                 <Checkbox
                   id={`status-${status.value}`}
-                  checked={filters.status?.includes(status.value as AnnouncementStatus)}
-                  onCheckedChange={checked => {
+                  checked={filters.status?.includes(
+                    status.value as AnnouncementStatus,
+                  )}
+                  onCheckedChange={(checked) => {
                     const current = filters.status || [];
                     const updated = checked
                       ? [...current, status.value as AnnouncementStatus]
-                      : current.filter(s => s !== status.value);
-                    handleFilterChange('status', updated);
+                      : current.filter((s) => s !== status.value);
+                    handleFilterChange("status", updated);
                   }}
                 />
                 <label
@@ -487,7 +526,7 @@ export function AnnouncementFilter({
 
         <Accordion type="multiple" className="w-full">
           <AccordionItem value="price">
-            <AccordionTrigger>{t('priceRange')}</AccordionTrigger>
+            <AccordionTrigger>{t("priceRange")}</AccordionTrigger>
             <AccordionContent>
               <div className="pt-4">
                 <Slider
@@ -496,7 +535,9 @@ export function AnnouncementFilter({
                   max={1000}
                   step={10}
                   value={filters.priceRange}
-                  onValueChange={value => handleFilterChange('priceRange', value)}
+                  onValueChange={(value) =>
+                    handleFilterChange("priceRange", value)
+                  }
                 />
                 <div className="flex justify-between mt-2 text-sm">
                   <span>{filters.priceRange?.[0]}€</span>
@@ -507,7 +548,7 @@ export function AnnouncementFilter({
           </AccordionItem>
 
           <AccordionItem value="distance">
-            <AccordionTrigger>{t('distance')}</AccordionTrigger>
+            <AccordionTrigger>{t("distance")}</AccordionTrigger>
             <AccordionContent>
               <div className="pt-4">
                 <Slider
@@ -516,7 +557,9 @@ export function AnnouncementFilter({
                   max={100}
                   step={1}
                   value={[filters.distance || 50]}
-                  onValueChange={value => handleFilterChange('distance', value[0])}
+                  onValueChange={(value) =>
+                    handleFilterChange("distance", value[0])
+                  }
                 />
                 <div className="flex justify-between mt-2 text-sm">
                   <span>1km</span>
@@ -527,49 +570,55 @@ export function AnnouncementFilter({
           </AccordionItem>
 
           <AccordionItem value="location">
-            <AccordionTrigger>{t('location')}</AccordionTrigger>
+            <AccordionTrigger>{t("location")}</AccordionTrigger>
             <AccordionContent className="space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
-                  {t('pickupLocation')}
+                  {t("pickupLocation")}
                 </Label>
                 <Input
-                  placeholder={t('pickupLocationPlaceholder')}
-                  value={filters.pickupLocation || ''}
-                  onChange={e => handleFilterChange('pickupLocation', e.target.value)}
+                  placeholder={t("pickupLocationPlaceholder")}
+                  value={filters.pickupLocation || ""}
+                  onChange={(e) =>
+                    handleFilterChange("pickupLocation", e.target.value)
+                  }
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
-                  {t('deliveryLocation')}
+                  {t("deliveryLocation")}
                 </Label>
                 <Input
-                  placeholder={t('deliveryLocationPlaceholder')}
-                  value={filters.deliveryLocation || ''}
-                  onChange={e => handleFilterChange('deliveryLocation', e.target.value)}
+                  placeholder={t("deliveryLocationPlaceholder")}
+                  value={filters.deliveryLocation || ""}
+                  onChange={(e) =>
+                    handleFilterChange("deliveryLocation", e.target.value)
+                  }
                 />
               </div>
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="options">
-            <AccordionTrigger>{t('options')}</AccordionTrigger>
+            <AccordionTrigger>{t("options")}</AccordionTrigger>
             <AccordionContent>
               <div className="space-y-3 pt-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="has-photos"
                     checked={filters.hasPhotos}
-                    onCheckedChange={checked => handleFilterChange('hasPhotos', checked === true)}
+                    onCheckedChange={(checked) =>
+                      handleFilterChange("hasPhotos", checked === true)
+                    }
                   />
                   <label
                     htmlFor="has-photos"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {t('hasPhotos')}
+                    {t("hasPhotos")}
                   </label>
                 </div>
 
@@ -577,15 +626,15 @@ export function AnnouncementFilter({
                   <Checkbox
                     id="is-negotiable"
                     checked={filters.isNegotiable}
-                    onCheckedChange={checked =>
-                      handleFilterChange('isNegotiable', checked === true)
+                    onCheckedChange={(checked) =>
+                      handleFilterChange("isNegotiable", checked === true)
                     }
                   />
                   <label
                     htmlFor="is-negotiable"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {t('isNegotiable')}
+                    {t("isNegotiable")}
                   </label>
                 </div>
 
@@ -593,15 +642,18 @@ export function AnnouncementFilter({
                   <Checkbox
                     id="requires-refrigeration"
                     checked={filters.requiresRefrigeration}
-                    onCheckedChange={checked =>
-                      handleFilterChange('requiresRefrigeration', checked === true)
+                    onCheckedChange={(checked) =>
+                      handleFilterChange(
+                        "requiresRefrigeration",
+                        checked === true,
+                      )
                     }
                   />
                   <label
                     htmlFor="requires-refrigeration"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {t('requiresRefrigeration')}
+                    {t("requiresRefrigeration")}
                   </label>
                 </div>
 
@@ -609,13 +661,15 @@ export function AnnouncementFilter({
                   <Checkbox
                     id="is-fragile"
                     checked={filters.isFragile}
-                    onCheckedChange={checked => handleFilterChange('isFragile', checked === true)}
+                    onCheckedChange={(checked) =>
+                      handleFilterChange("isFragile", checked === true)
+                    }
                   />
                   <label
                     htmlFor="is-fragile"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {t('isFragile')}
+                    {t("isFragile")}
                   </label>
                 </div>
               </div>
@@ -623,15 +677,21 @@ export function AnnouncementFilter({
           </AccordionItem>
 
           <AccordionItem value="sort">
-            <AccordionTrigger>{t('sortBy')}</AccordionTrigger>
+            <AccordionTrigger>{t("sortBy")}</AccordionTrigger>
             <AccordionContent>
               <RadioGroup
                 value={filters.sortBy}
-                onValueChange={value => handleFilterChange('sortBy', value)}
+                onValueChange={(value) => handleFilterChange("sortBy", value)}
               >
-                {SORT_OPTIONS.map(option => (
-                  <div key={option.value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option.value} id={`sort-${option.value}`} />
+                {SORT_OPTIONS.map((option) => (
+                  <div
+                    key={option.value}
+                    className="flex items-center space-x-2"
+                  >
+                    <RadioGroupItem
+                      value={option.value}
+                      id={`sort-${option.value}`}
+                    />
                     <label
                       htmlFor={`sort-${option.value}`}
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -648,9 +708,9 @@ export function AnnouncementFilter({
 
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={handleReset}>
-          {t('reset')}
+          {t("reset")}
         </Button>
-        <Button onClick={() => onFilterChange(filters)}>{t('apply')}</Button>
+        <Button onClick={() => onFilterChange(filters)}>{t("apply")}</Button>
       </CardFooter>
     </Card>
   );

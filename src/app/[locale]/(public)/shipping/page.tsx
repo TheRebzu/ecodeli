@@ -1,7 +1,7 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowRight,
   Box,
@@ -18,9 +18,9 @@ import {
   ShoppingBag,
   Truck,
   Users,
-} from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function ShippingPage() {
   return (
@@ -30,8 +30,8 @@ export default function ShippingPage() {
         <section
           className="w-full bg-muted/30 pt-12 pb-24 md:pt-24 md:pb-32 border-b relative overflow-hidden"
           style={{
-            backgroundImage: 'url(/images/shipping/pattern-bg.svg)',
-            backgroundSize: 'cover',
+            backgroundImage: "url(/images/shipping/pattern-bg.svg)",
+            backgroundSize: "cover",
           }}
         >
           <div className="container mx-auto px-4 md:px-6 relative z-10">
@@ -42,8 +42,9 @@ export default function ShippingPage() {
                   Le crowdshipping au service de tous
                 </h1>
                 <p className="text-xl text-muted-foreground">
-                  Confiez vos colis à des livreurs indépendants qui se déplacent déjà dans votre
-                  direction ou profitez de nos services à la personne
+                  Confiez vos colis à des livreurs indépendants qui se déplacent
+                  déjà dans votre direction ou profitez de nos services à la
+                  personne
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
                   <Button size="lg" asChild>
@@ -68,7 +69,9 @@ export default function ShippingPage() {
                   <div className="absolute -bottom-6 -right-6 bg-background rounded-lg p-4 shadow-lg border">
                     <div className="flex items-center gap-2">
                       <Leaf className="h-5 w-5 text-green-500" />
-                      <p className="text-sm font-medium">Réduisez votre empreinte carbone</p>
+                      <p className="text-sm font-medium">
+                        Réduisez votre empreinte carbone
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -86,7 +89,8 @@ export default function ShippingPage() {
                 Une large gamme de services
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                EcoDeli vous propose bien plus que de la simple livraison de colis
+                EcoDeli vous propose bien plus que de la simple livraison de
+                colis
               </p>
             </div>
 
@@ -94,42 +98,45 @@ export default function ShippingPage() {
               {[
                 {
                   icon: Package,
-                  title: 'Transport de colis',
+                  title: "Transport de colis",
                   description:
-                    'Livraison de vos colis par des particuliers qui se déplacent déjà dans votre direction. Prise en charge intégrale ou partielle du trajet selon vos besoins.',
+                    "Livraison de vos colis par des particuliers qui se déplacent déjà dans votre direction. Prise en charge intégrale ou partielle du trajet selon vos besoins.",
                 },
                 {
                   icon: Users,
-                  title: 'Transport de personnes',
+                  title: "Transport de personnes",
                   description:
                     "Service de transport quotidien : accompagnement de personnes âgées chez un médecin, trajets vers le travail ou la gare, transferts aéroport au départ ou à l'arrivée.",
                 },
                 {
                   icon: ShoppingBag,
-                  title: 'Courses et achats',
+                  title: "Courses et achats",
                   description:
                     "Faites réaliser vos courses par un livreur EcoDeli. Achat de produits spécifiques, même à l'étranger (produits introuvables chez vous).",
                 },
                 {
                   icon: Map,
-                  title: 'Lâcher de chariot',
+                  title: "Lâcher de chariot",
                   description:
                     "Faites vos achats chez un commerçant partenaire et profitez d'une livraison à domicile à l'adresse et au créneau horaire de votre choix.",
                 },
                 {
                   icon: Shield,
-                  title: 'Services à la personne',
+                  title: "Services à la personne",
                   description:
                     "Garde d'animaux à domicile, petits travaux ménagers ou de jardinage pendant que vous êtes transporté(e) ailleurs.",
                 },
                 {
                   icon: Leaf,
-                  title: 'Écologique et solidaire',
+                  title: "Écologique et solidaire",
                   description:
                     "Réduction de l'impact environnemental des livraisons, pouvoir d'achat favorisé et lutte contre l'isolement social.",
                 },
               ].map((service, index) => (
-                <Card key={index} className="flex flex-col p-6 border bg-background">
+                <Card
+                  key={index}
+                  className="flex flex-col p-6 border bg-background"
+                >
                   <div className="flex items-center space-x-4 mb-4">
                     <div className="bg-primary/10 p-3 rounded-lg">
                       <service.icon className="h-6 w-6 text-primary" />
@@ -166,18 +173,21 @@ export default function ShippingPage() {
               <TabsContent value="standard" className="space-y-4">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="md:w-1/2">
-                    <h3 className="text-2xl font-bold mb-4">Livraison Standard</h3>
+                    <h3 className="text-2xl font-bold mb-4">
+                      Livraison Standard
+                    </h3>
                     <p className="text-muted-foreground mb-6">
-                      Livraison économique et écologique. Vos colis sont livrés par des particuliers
-                      qui effectuent déjà un trajet similaire.
+                      Livraison économique et écologique. Vos colis sont livrés
+                      par des particuliers qui effectuent déjà un trajet
+                      similaire.
                     </p>
                     <ul className="space-y-2">
                       {[
-                        'Annonce publiée sur notre plateforme',
-                        'Suivi en temps réel',
-                        'Assurance proposée par la société',
-                        'Code de confirmation à la livraison',
-                        'Paiement sécurisé',
+                        "Annonce publiée sur notre plateforme",
+                        "Suivi en temps réel",
+                        "Assurance proposée par la société",
+                        "Code de confirmation à la livraison",
+                        "Paiement sécurisé",
                       ].map((feature, i) => (
                         <li key={i} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-primary mr-2" />
@@ -206,18 +216,21 @@ export default function ShippingPage() {
               <TabsContent value="express" className="space-y-4">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="md:w-1/2">
-                    <h3 className="text-2xl font-bold mb-4">Distribution locale</h3>
+                    <h3 className="text-2xl font-bold mb-4">
+                      Distribution locale
+                    </h3>
                     <p className="text-muted-foreground mb-6">
-                      Un livreur occasionnel se charge de distribuer vos marchandises aux
-                      destinataires finaux dans une zone géographique définie.
+                      Un livreur occasionnel se charge de distribuer vos
+                      marchandises aux destinataires finaux dans une zone
+                      géographique définie.
                     </p>
                     <ul className="space-y-2">
                       {[
-                        'Livraison du dernier kilomètre',
-                        'Idéal pour les commerçants locaux',
-                        'Parfait pour les livraisons groupées',
-                        'Notification aux destinataires',
-                        'Confirmation de livraison en temps réel',
+                        "Livraison du dernier kilomètre",
+                        "Idéal pour les commerçants locaux",
+                        "Parfait pour les livraisons groupées",
+                        "Notification aux destinataires",
+                        "Confirmation de livraison en temps réel",
                       ].map((feature, i) => (
                         <li key={i} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-primary mr-2" />
@@ -246,18 +259,21 @@ export default function ShippingPage() {
               <TabsContent value="special" className="space-y-4">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="md:w-1/2">
-                    <h3 className="text-2xl font-bold mb-4">Stockage temporaire</h3>
+                    <h3 className="text-2xl font-bold mb-4">
+                      Stockage temporaire
+                    </h3>
                     <p className="text-muted-foreground mb-6">
-                      Stockage temporaire de vos colis dans l'un de nos entrepôts avant la livraison
-                      finale par l'un de nos livreurs.
+                      Stockage temporaire de vos colis dans l'un de nos
+                      entrepôts avant la livraison finale par l'un de nos
+                      livreurs.
                     </p>
                     <ul className="space-y-2">
                       {[
-                        'Disponible dans nos 6 entrepôts (Paris, Marseille, Lyon, Lille, Montpellier, Rennes)',
-                        'Idéal pour les livraisons en plusieurs étapes',
-                        'Sécurité garantie',
-                        'Suivi en temps réel',
-                        'Flexibilité maximale',
+                        "Disponible dans nos 6 entrepôts (Paris, Marseille, Lyon, Lille, Montpellier, Rennes)",
+                        "Idéal pour les livraisons en plusieurs étapes",
+                        "Sécurité garantie",
+                        "Suivi en temps réel",
+                        "Flexibilité maximale",
                       ].map((feature, i) => (
                         <li key={i} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-primary mr-2" />
@@ -302,31 +318,31 @@ export default function ShippingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
-                  number: '01',
-                  title: 'Publiez votre annonce',
+                  number: "01",
+                  title: "Publiez votre annonce",
                   description:
-                    'Décrivez votre colis, indiquez les adresses de collecte et de livraison, et choisissez votre créneau horaire.',
+                    "Décrivez votre colis, indiquez les adresses de collecte et de livraison, et choisissez votre créneau horaire.",
                   icon: Box,
                 },
                 {
-                  number: '02',
-                  title: 'Un livreur accepte',
+                  number: "02",
+                  title: "Un livreur accepte",
                   description:
-                    'Notre système trouve le livreur idéal pour votre colis en fonction de son trajet prévu et de ses évaluations.',
+                    "Notre système trouve le livreur idéal pour votre colis en fonction de son trajet prévu et de ses évaluations.",
                   icon: Truck,
                 },
                 {
-                  number: '03',
-                  title: 'Suivez en temps réel',
+                  number: "03",
+                  title: "Suivez en temps réel",
                   description:
-                    'Recevez des notifications à chaque étape et suivez le parcours de votre colis sur une carte.',
+                    "Recevez des notifications à chaque étape et suivez le parcours de votre colis sur une carte.",
                   icon: Forward,
                 },
                 {
-                  number: '04',
-                  title: 'Livraison confirmée',
+                  number: "04",
+                  title: "Livraison confirmée",
                   description:
-                    'Le destinataire communique un code au livreur pour confirmer la réception. Le paiement est alors débloqué.',
+                    "Le destinataire communique un code au livreur pour confirmer la réception. Le paiement est alors débloqué.",
                   icon: Package,
                 },
               ].map((step, index) => (
@@ -370,7 +386,9 @@ export default function ShippingPage() {
               <Card className="flex flex-col p-6 border bg-background h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold">Free</h3>
-                  <p className="text-muted-foreground mt-2">Pour les utilisateurs occasionnels</p>
+                  <p className="text-muted-foreground mt-2">
+                    Pour les utilisateurs occasionnels
+                  </p>
                   <div className="mt-4 text-3xl font-bold">0€</div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
@@ -398,10 +416,14 @@ export default function ShippingPage() {
                     Populaire
                   </Badge>
                   <h3 className="text-2xl font-bold">Starter</h3>
-                  <p className="text-muted-foreground mt-2">Pour les utilisateurs réguliers</p>
+                  <p className="text-muted-foreground mt-2">
+                    Pour les utilisateurs réguliers
+                  </p>
                   <div className="mt-4 text-3xl font-bold">
                     9,90€
-                    <span className="text-lg font-normal text-muted-foreground">/mois</span>
+                    <span className="text-lg font-normal text-muted-foreground">
+                      /mois
+                    </span>
                   </div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
@@ -430,10 +452,14 @@ export default function ShippingPage() {
               <Card className="flex flex-col p-6 border bg-background h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold">Premium</h3>
-                  <p className="text-muted-foreground mt-2">Pour une utilisation intensive</p>
+                  <p className="text-muted-foreground mt-2">
+                    Pour une utilisation intensive
+                  </p>
                   <div className="mt-4 text-3xl font-bold">
                     19,99€
-                    <span className="text-lg font-normal text-muted-foreground">/mois</span>
+                    <span className="text-lg font-normal text-muted-foreground">
+                      /mois
+                    </span>
                   </div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
@@ -476,8 +502,8 @@ export default function ShippingPage() {
                   Prêt à utiliser EcoDeli ?
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-[700px]">
-                  Inscrivez-vous gratuitement et découvrez tous nos services de livraison et à la
-                  personne
+                  Inscrivez-vous gratuitement et découvrez tous nos services de
+                  livraison et à la personne
                 </p>
                 <div className="flex gap-3 pt-4">
                   <Button size="lg" asChild>
@@ -491,15 +517,15 @@ export default function ShippingPage() {
                   {[
                     {
                       icon: Package,
-                      text: 'Livraison de colis',
+                      text: "Livraison de colis",
                     },
                     {
                       icon: Users,
-                      text: 'Services à la personne',
+                      text: "Services à la personne",
                     },
                     {
                       icon: Leaf,
-                      text: 'Démarche écologique',
+                      text: "Démarche écologique",
                     },
                   ].map((item, index) => (
                     <div

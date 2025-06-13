@@ -1,6 +1,10 @@
-import { z } from 'zod';
-import { router as router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import {
+  router as router,
+  protectedProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Router pour provider interventions
@@ -20,8 +24,8 @@ export const providerInterventionsRouter = router({
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des données',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des données",
       });
     }
   }),
@@ -31,7 +35,7 @@ export const providerInterventionsRouter = router({
     .input(
       z.object({
         // TODO: Définir le schéma de validation
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -43,8 +47,8 @@ export const providerInterventionsRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la création',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la création",
         });
       }
     }),

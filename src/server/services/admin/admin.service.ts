@@ -1,18 +1,18 @@
-import { TRPCError } from '@trpc/server';
-import { PrismaClient, UserRole, UserStatus, Prisma } from '@prisma/client';
-import { db } from '@/server/db';
-import { sendEmailNotification } from '@/lib/services/email.service';
-import { getUserPreferredLocale } from '@/lib/i18n/user-locale';
-import { UserFilters, ActivityType } from '@/types/actors/admin';
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
+import { TRPCError } from "@trpc/server";
+import { PrismaClient, UserRole, UserStatus, Prisma } from "@prisma/client";
+import { db } from "@/server/db";
+import { sendEmailNotification } from "@/lib/services/email.service";
+import { getUserPreferredLocale } from "@/lib/i18n/user-locale";
+import { UserFilters, ActivityType } from "@/types/actors/admin";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 /**
  * Options de tri pour les utilisateurs
  */
 interface SortOptions {
   field: string;
-  direction: 'asc' | 'desc';
+  direction: "asc" | "desc";
 }
 
 /**
@@ -30,7 +30,7 @@ export class AdminService {
    */
   async getUsers(
     filters: UserFilters & { page?: number; limit?: number } = {},
-    sort: SortOptions = { field: 'createdAt', direction: 'desc' }
+    sort: SortOptions = { field: "createdAt", direction: "desc" },
   ) {
     try {
       const {
@@ -56,9 +56,9 @@ export class AdminService {
       // Search by name or email
       if (search) {
         where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { phoneNumber: { contains: search, mode: 'insensitive' } },
+          { name: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+          { phoneNumber: { contains: search, mode: "insensitive" } },
         ];
       }
 
@@ -95,7 +95,7 @@ export class AdminService {
       if (hasPendingVerifications) {
         where.submittedVerifications = {
           some: {
-            status: 'PENDING',
+            status: "PENDING",
           },
         };
       }
@@ -133,15 +133,15 @@ export class AdminService {
       // Determine sort field mapping
       let orderBy: any = {};
       switch (sort.field) {
-        case 'name':
-        case 'email':
-        case 'role':
-        case 'status':
-        case 'createdAt':
-        case 'lastLoginAt':
+        case "name":
+        case "email":
+        case "role":
+        case "status":
+        case "createdAt":
+        case "lastLoginAt":
           orderBy[sort.field] = sort.direction;
           break;
-        case 'lastActivityAt':
+        case "lastActivityAt":
           // Sort by the most recent activity log
           orderBy = {
             activityLogs: {
@@ -152,7 +152,7 @@ export class AdminService {
           };
           break;
         default:
-          orderBy.createdAt = 'desc';
+          orderBy.createdAt = "desc";
       }
 
       // Execute count query
@@ -180,14 +180,14 @@ export class AdminService {
               documents: true,
               submittedVerifications: {
                 where: {
-                  status: 'PENDING',
+                  status: "PENDING",
                 },
               },
             },
           },
           activityLogs: {
             orderBy: {
-              createdAt: 'desc',
+              createdAt: "desc",
             },
             take: 1,
           },
@@ -198,7 +198,7 @@ export class AdminService {
       });
 
       // Transform data for client
-      const transformedUsers = users.map(user => ({
+      const transformedUsers = users.map((user) => ({
         id: user.id,
         name: user.name,
         email: user.email,
@@ -225,10 +225,10 @@ export class AdminService {
         totalPages: Math.ceil(totalUsers / limit),
       };
     } catch (error) {
-      console.error('Error retrieving users:', error);
+      console.error("Error retrieving users:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error retrieving users',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving users",
       });
     }
   }
@@ -242,7 +242,7 @@ export class AdminService {
       includeDocuments: true,
       includeVerificationHistory: true,
       includeActivityLogs: false,
-    }
+    },
   ) {
     try {
       const user = await this.db.user.findUnique({
@@ -264,7 +264,7 @@ export class AdminService {
                   notes: true,
                 },
                 orderBy: {
-                  uploadedAt: 'desc',
+                  uploadedAt: "desc",
                 },
               }
             : false,
@@ -283,7 +283,7 @@ export class AdminService {
                   },
                 },
                 orderBy: {
-                  createdAt: 'desc',
+                  createdAt: "desc",
                 },
               }
             : false,
@@ -297,7 +297,7 @@ export class AdminService {
                   createdAt: true,
                 },
                 orderBy: {
-                  createdAt: 'desc',
+                  createdAt: "desc",
                 },
                 take: 50,
               }
@@ -307,8 +307,8 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'User not found',
+          code: "NOT_FOUND",
+          message: "User not found",
         });
       }
 
@@ -319,13 +319,14 @@ export class AdminService {
       };
 
       // Transform documents to handle SELFIE documents stored as OTHER
-      if ('documents' in user && Array.isArray(user.documents)) {
-        result.documents = user.documents.map(doc => {
+      if ("documents" in user && Array.isArray(user.documents)) {
+        result.documents = user.documents.map((doc) => {
           // Determine if this is a SELFIE document based on notes field
           const isSelfie =
-            doc.type === 'OTHER' &&
-            (doc.notes === 'SELFIE' ||
-              (typeof doc.notes === 'string' && doc.notes.toLowerCase().includes('selfie')));
+            doc.type === "OTHER" &&
+            (doc.notes === "SELFIE" ||
+              (typeof doc.notes === "string" &&
+                doc.notes.toLowerCase().includes("selfie")));
 
           return {
             ...doc,
@@ -334,7 +335,7 @@ export class AdminService {
             // Map verificationStatus to status for frontend compatibility
             status: doc.verificationStatus,
             // If document is OTHER type but has selfie in notes, correct the type for frontend
-            type: isSelfie ? 'SELFIE' : doc.type,
+            type: isSelfie ? "SELFIE" : doc.type,
           };
         });
       }
@@ -343,10 +344,10 @@ export class AdminService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Error retrieving user details:', error);
+      console.error("Error retrieving user details:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error retrieving user details',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving user details",
       });
     }
   }
@@ -357,7 +358,7 @@ export class AdminService {
   async updateUserStatus(
     userId: string,
     status: UserStatus,
-    options: { reason?: string; notifyUser?: boolean } = {}
+    options: { reason?: string; notifyUser?: boolean } = {},
   ) {
     const { reason, notifyUser = true } = options;
 
@@ -369,18 +370,21 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'User not found',
+          code: "NOT_FOUND",
+          message: "User not found",
         });
       }
 
       // Don't allow updates if status is the same
       if (user.status === status) {
-        return { success: true, message: 'User status is already set to ' + status };
+        return {
+          success: true,
+          message: "User status is already set to " + status,
+        };
       }
 
       // Update user in a transaction to include audit trail
-      const updatedUser = await this.db.$transaction(async tx => {
+      const updatedUser = await this.db.$transaction(async (tx) => {
         // Update user status
         const updated = await tx.user.update({
           where: { id: userId },
@@ -397,12 +401,13 @@ export class AdminService {
         const locale = getUserPreferredLocale(user);
         await sendEmailNotification({
           to: user.email,
-          subject: locale === 'fr' ? 'Modification de votre statut' : 'Status update',
-          templateName: 'user-status-update',
+          subject:
+            locale === "fr" ? "Modification de votre statut" : "Status update",
+          templateName: "user-status-update",
           data: {
-            name: user.name || '',
+            name: user.name || "",
             status,
-            reason: reason || '',
+            reason: reason || "",
           },
           locale,
         });
@@ -412,10 +417,10 @@ export class AdminService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Error updating user status:', error);
+      console.error("Error updating user status:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error updating user status',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error updating user status",
       });
     }
   }
@@ -426,7 +431,7 @@ export class AdminService {
   async updateUserRole(
     userId: string,
     role: UserRole,
-    options: { reason?: string; createRoleSpecificProfile?: boolean } = {}
+    options: { reason?: string; createRoleSpecificProfile?: boolean } = {},
   ) {
     const { reason, createRoleSpecificProfile = true } = options;
 
@@ -444,26 +449,29 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'User not found',
+          code: "NOT_FOUND",
+          message: "User not found",
         });
       }
 
       // Check if role change is allowed
-      if (user.role === 'ADMIN' && role !== 'ADMIN') {
+      if (user.role === "ADMIN" && role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Cannot remove admin role directly',
+          code: "FORBIDDEN",
+          message: "Cannot remove admin role directly",
         });
       }
 
       // Don't allow updates if role is the same
       if (user.role === role) {
-        return { success: true, message: 'User role is already set to ' + role };
+        return {
+          success: true,
+          message: "User role is already set to " + role,
+        };
       }
 
       // Update user in a transaction
-      const updatedUser = await this.db.$transaction(async tx => {
+      const updatedUser = await this.db.$transaction(async (tx) => {
         // Update user role
         const updated = await tx.user.update({
           where: { id: userId },
@@ -473,7 +481,7 @@ export class AdminService {
         // Create role-specific profile if it doesn't exist
         if (createRoleSpecificProfile) {
           switch (role) {
-            case 'CLIENT':
+            case "CLIENT":
               if (!user.client) {
                 await tx.client.create({
                   data: {
@@ -482,29 +490,29 @@ export class AdminService {
                 });
               }
               break;
-            case 'DELIVERER':
+            case "DELIVERER":
               if (!user.deliverer) {
                 await tx.deliverer.create({
                   data: {
                     userId,
-                    phone: user.phoneNumber || '',
+                    phone: user.phoneNumber || "",
                   },
                 });
               }
               break;
-            case 'MERCHANT':
+            case "MERCHANT":
               if (!user.merchant) {
                 await tx.merchant.create({
                   data: {
                     userId,
                     companyName: user.name,
-                    address: '',
-                    phone: user.phoneNumber || '',
+                    address: "",
+                    phone: user.phoneNumber || "",
                   },
                 });
               }
               break;
-            case 'PROVIDER':
+            case "PROVIDER":
               if (!user.provider) {
                 await tx.provider.create({
                   data: {
@@ -513,12 +521,12 @@ export class AdminService {
                 });
               }
               break;
-            case 'ADMIN':
+            case "ADMIN":
               if (!user.admin) {
                 await tx.admin.create({
                   data: {
                     userId,
-                    permissions: ['users.view'],
+                    permissions: ["users.view"],
                   },
                 });
               }
@@ -531,7 +539,7 @@ export class AdminService {
           data: {
             userId,
             activityType: ActivityType.ROLE_CHANGE,
-            details: `Role changed from ${user.role} to ${role}${reason ? `: ${reason}` : ''}`,
+            details: `Role changed from ${user.role} to ${role}${reason ? `: ${reason}` : ""}`,
           },
         });
 
@@ -542,10 +550,10 @@ export class AdminService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Error updating user role:', error);
+      console.error("Error updating user role:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error updating user role',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error updating user role",
       });
     }
   }
@@ -564,15 +572,15 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'User not found',
+          code: "NOT_FOUND",
+          message: "User not found",
         });
       }
 
-      if (user.role !== 'ADMIN') {
+      if (user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Only administrators can have admin permissions',
+          code: "BAD_REQUEST",
+          message: "Only administrators can have admin permissions",
         });
       }
 
@@ -596,7 +604,7 @@ export class AdminService {
         data: {
           userId,
           activityType: ActivityType.PROFILE_UPDATE,
-          details: `Admin permissions updated: ${permissions.join(', ')}`,
+          details: `Admin permissions updated: ${permissions.join(", ")}`,
         },
       });
 
@@ -604,10 +612,10 @@ export class AdminService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Error updating admin permissions:', error);
+      console.error("Error updating admin permissions:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error updating admin permissions',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error updating admin permissions",
       });
     }
   }
@@ -623,8 +631,8 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'User not found',
+          code: "NOT_FOUND",
+          message: "User not found",
         });
       }
 
@@ -641,10 +649,10 @@ export class AdminService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Error adding user note:', error);
+      console.error("Error adding user note:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error adding user note',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error adding user note",
       });
     }
   }
@@ -660,7 +668,7 @@ export class AdminService {
       dateTo?: Date;
       page?: number;
       limit?: number;
-    } = {}
+    } = {},
   ) {
     try {
       const { types, dateFrom, dateTo, page = 1, limit = 10 } = options;
@@ -693,7 +701,7 @@ export class AdminService {
           createdAt: true,
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         skip,
         take: limit,
@@ -707,10 +715,10 @@ export class AdminService {
         totalPages: Math.ceil(total / limit),
       };
     } catch (error) {
-      console.error('Error retrieving user activity logs:', error);
+      console.error("Error retrieving user activity logs:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error retrieving user activity logs',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving user activity logs",
       });
     }
   }
@@ -735,8 +743,8 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'User not found',
+          code: "NOT_FOUND",
+          message: "User not found",
         });
       }
 
@@ -755,10 +763,10 @@ export class AdminService {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
-      console.error('Error adding user activity log:', error);
+      console.error("Error adding user activity log:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error adding user activity log',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error adding user activity log",
       });
     }
   }
@@ -766,57 +774,64 @@ export class AdminService {
   /**
    * Exporte les utilisateurs selon des filtres
    */
-  async exportUsers(format: 'csv' | 'excel' | 'pdf', fields: string[], filters: UserFilters = {}) {
+  async exportUsers(
+    format: "csv" | "excel" | "pdf",
+    fields: string[],
+    filters: UserFilters = {},
+  ) {
     try {
       // Get filtered users with no pagination
-      const result = await this.getUsers(filters, { field: 'name', direction: 'asc' });
+      const result = await this.getUsers(filters, {
+        field: "name",
+        direction: "asc",
+      });
       const users = result.users;
 
       // This would connect to an export service
       // For now, return mock data or CSV string
-      if (format === 'csv') {
+      if (format === "csv") {
         // Create CSV header
-        const header = fields.join(',');
+        const header = fields.join(",");
 
         // Create CSV rows
-        const rows = users.map(user => {
+        const rows = users.map((user) => {
           return fields
-            .map(field => {
+            .map((field) => {
               // @ts-ignore
               const value = user[field];
               if (value instanceof Date) {
                 return value.toISOString();
               }
-              if (typeof value === 'object') {
+              if (typeof value === "object") {
                 return JSON.stringify(value);
               }
-              return value?.toString() || '';
+              return value?.toString() || "";
             })
-            .join(',');
+            .join(",");
         });
 
         // Combine header and rows
         return {
-          data: [header, ...rows].join('\n'),
+          data: [header, ...rows].join("\n"),
           filename: `users_export_${new Date().toISOString().slice(0, 10)}.csv`,
-          mimeType: 'text/csv',
+          mimeType: "text/csv",
         };
       }
 
       // Mock for other formats
       return {
-        data: 'Export data would go here',
+        data: "Export data would go here",
         filename: `users_export_${new Date().toISOString().slice(0, 10)}.${format}`,
         mimeType:
-          format === 'excel'
-            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : 'application/pdf',
+          format === "excel"
+            ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            : "application/pdf",
       };
     } catch (error) {
-      console.error('Error exporting users:', error);
+      console.error("Error exporting users:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error exporting users',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error exporting users",
       });
     }
   }
@@ -845,31 +860,31 @@ export class AdminService {
         verifiedUsers,
       ] = await Promise.all([
         this.db.user.count(),
-        this.db.user.count({ where: { status: 'ACTIVE' } }),
+        this.db.user.count({ where: { status: "ACTIVE" } }),
         this.db.user.count({ where: { createdAt: { gte: today } } }),
         this.db.user.count({ where: { createdAt: { gte: oneWeekAgo } } }),
         this.db.user.count({ where: { createdAt: { gte: oneMonthAgo } } }),
-        this.db.user.groupBy({ by: ['role'], _count: true }),
-        this.db.user.groupBy({ by: ['status'], _count: true }),
+        this.db.user.groupBy({ by: ["role"], _count: true }),
+        this.db.user.groupBy({ by: ["status"], _count: true }),
         this.db.user.count({ where: { isVerified: true } }),
       ]);
 
       // Transformation des données
       const roleStats = {};
-      usersByRole.forEach(stat => {
+      usersByRole.forEach((stat) => {
         roleStats[stat.role] = stat._count;
       });
 
       const statusStats = {};
-      usersByStatus.forEach(stat => {
+      usersByStatus.forEach((stat) => {
         statusStats[stat.status] = stat._count;
       });
 
       // Remplacer par un tableau vide ou utiliser un autre champ comme providerCity
       const countriesStats = [
-        { country: 'France', count: 0 },
-        { country: 'Belgium', count: 0 },
-        { country: 'Switzerland', count: 0 },
+        { country: "France", count: 0 },
+        { country: "Belgium", count: 0 },
+        { country: "Switzerland", count: 0 },
       ];
 
       // Récupération des inscriptions dans le temps (derniers 6 mois)
@@ -901,16 +916,16 @@ export class AdminService {
         topCountries: countriesStats,
         registrationsOverTime: registrationsOverTime
           ? registrationsOverTime.map((row: any) => ({
-              date: row.month.toISOString().split('T')[0],
+              date: row.month.toISOString().split("T")[0],
               count: Number(row.count),
             }))
           : [],
       };
     } catch (error) {
-      console.error('Error retrieving user statistics:', error);
+      console.error("Error retrieving user statistics:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error retrieving user statistics',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving user statistics",
       });
     }
   }
@@ -919,7 +934,7 @@ export class AdminService {
    * Get advanced user statistics with detailed breakdowns
    */
   async getUserStatsAdvanced(options: {
-    period: 'DAY' | 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR';
+    period: "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR";
     compareWithPrevious?: boolean;
     breakdownByRole?: boolean;
     breakdownByStatus?: boolean;
@@ -932,7 +947,7 @@ export class AdminService {
   }) {
     try {
       const {
-        period = 'MONTH',
+        period = "MONTH",
         compareWithPrevious = true,
         breakdownByRole = true,
         breakdownByStatus = true,
@@ -950,30 +965,30 @@ export class AdminService {
 
       // Calculate date ranges based on period
       switch (period) {
-        case 'DAY':
+        case "DAY":
           startDate = new Date(now.setHours(0, 0, 0, 0));
           previousStartDate = new Date(startDate);
           previousStartDate.setDate(previousStartDate.getDate() - 1);
           break;
-        case 'WEEK':
+        case "WEEK":
           startDate = new Date(now);
           startDate.setDate(startDate.getDate() - startDate.getDay());
           startDate.setHours(0, 0, 0, 0);
           previousStartDate = new Date(startDate);
           previousStartDate.setDate(previousStartDate.getDate() - 7);
           break;
-        case 'MONTH':
+        case "MONTH":
           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
           previousStartDate = new Date(startDate);
           previousStartDate.setMonth(previousStartDate.getMonth() - 1);
           break;
-        case 'QUARTER':
+        case "QUARTER":
           const quarter = Math.floor(now.getMonth() / 3);
           startDate = new Date(now.getFullYear(), quarter * 3, 1);
           previousStartDate = new Date(startDate);
           previousStartDate.setMonth(previousStartDate.getMonth() - 3);
           break;
-        case 'YEAR':
+        case "YEAR":
           startDate = new Date(now.getFullYear(), 0, 1);
           previousStartDate = new Date(startDate);
           previousStartDate.setFullYear(previousStartDate.getFullYear() - 1);
@@ -987,29 +1002,37 @@ export class AdminService {
       // Basic stats for current period
       const [totalUsers, activeUsers, newUsers] = await Promise.all([
         this.prisma.user.count(),
-        this.prisma.user.count({ where: { status: 'ACTIVE' } }),
+        this.prisma.user.count({ where: { status: "ACTIVE" } }),
         this.prisma.user.count({ where: { createdAt: { gte: startDate } } }),
       ]);
 
       // Previous period comparison if requested
       let prevPeriodComparison = null;
       if (compareWithPrevious) {
-        const [prevTotalUsers, prevActiveUsers, prevNewUsers] = await Promise.all([
-          this.prisma.user.count({ where: { createdAt: { lt: startDate } } }),
-          this.prisma.user.count({
-            where: { status: 'ACTIVE', createdAt: { lt: startDate } },
-          }),
-          this.prisma.user.count({
-            where: { createdAt: { gte: previousStartDate, lt: startDate } },
-          }),
-        ]);
+        const [prevTotalUsers, prevActiveUsers, prevNewUsers] =
+          await Promise.all([
+            this.prisma.user.count({ where: { createdAt: { lt: startDate } } }),
+            this.prisma.user.count({
+              where: { status: "ACTIVE", createdAt: { lt: startDate } },
+            }),
+            this.prisma.user.count({
+              where: { createdAt: { gte: previousStartDate, lt: startDate } },
+            }),
+          ]);
 
         prevPeriodComparison = {
           totalUsersDiff:
-            prevTotalUsers > 0 ? ((totalUsers - prevTotalUsers) / prevTotalUsers) * 100 : 0,
+            prevTotalUsers > 0
+              ? ((totalUsers - prevTotalUsers) / prevTotalUsers) * 100
+              : 0,
           activeUsersDiff:
-            prevActiveUsers > 0 ? ((activeUsers - prevActiveUsers) / prevActiveUsers) * 100 : 0,
-          newUsersDiff: prevNewUsers > 0 ? ((newUsers - prevNewUsers) / prevNewUsers) * 100 : 0,
+            prevActiveUsers > 0
+              ? ((activeUsers - prevActiveUsers) / prevActiveUsers) * 100
+              : 0,
+          newUsersDiff:
+            prevNewUsers > 0
+              ? ((newUsers - prevNewUsers) / prevNewUsers) * 100
+              : 0,
         };
       }
 
@@ -1017,7 +1040,7 @@ export class AdminService {
       let roleBreakdown = null;
       if (breakdownByRole) {
         const roleStats = await this.prisma.user.groupBy({
-          by: ['role'],
+          by: ["role"],
           _count: true,
         });
         roleBreakdown = roleStats.reduce(
@@ -1025,7 +1048,7 @@ export class AdminService {
             acc[stat.role] = stat._count;
             return acc;
           },
-          {} as Record<string, number>
+          {} as Record<string, number>,
         );
       }
 
@@ -1033,7 +1056,7 @@ export class AdminService {
       let statusBreakdown = null;
       if (breakdownByStatus) {
         const statusStats = await this.prisma.user.groupBy({
-          by: ['status'],
+          by: ["status"],
           _count: true,
         });
         statusBreakdown = statusStats.reduce(
@@ -1041,7 +1064,7 @@ export class AdminService {
             acc[stat.status] = stat._count;
             return acc;
           },
-          {} as Record<string, number>
+          {} as Record<string, number>,
         );
       }
 
@@ -1073,14 +1096,16 @@ export class AdminService {
         });
 
         retentionRate =
-          usersCreated30DaysAgo > 0 ? (activeUsersFrom30DaysAgo / usersCreated30DaysAgo) * 100 : 0;
+          usersCreated30DaysAgo > 0
+            ? (activeUsersFrom30DaysAgo / usersCreated30DaysAgo) * 100
+            : 0;
       }
 
       // Churn rate calculation
       let churnRate = null;
       if (includeChurnRate) {
         const inactiveUsers = await this.prisma.user.count({
-          where: { status: 'INACTIVE' },
+          where: { status: "INACTIVE" },
         });
         churnRate = totalUsers > 0 ? (inactiveUsers / totalUsers) * 100 : 0;
       }
@@ -1107,10 +1132,10 @@ export class AdminService {
         endDate: now.toISOString(),
       };
     } catch (error) {
-      console.error('Error retrieving advanced user statistics:', error);
+      console.error("Error retrieving advanced user statistics:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error retrieving advanced user statistics',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving advanced user statistics",
       });
     }
   }
@@ -1125,10 +1150,15 @@ export class AdminService {
       notifyUser?: boolean;
       expireExistingTokens?: boolean;
       performedById: string;
-    }
+    },
   ) {
     try {
-      const { reason, notifyUser = true, expireExistingTokens = true, performedById } = options;
+      const {
+        reason,
+        notifyUser = true,
+        expireExistingTokens = true,
+        performedById,
+      } = options;
 
       // Vérifier si l'utilisateur existe
       const user = await this.db.user.findUnique({
@@ -1138,13 +1168,13 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Utilisateur non trouvé',
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
         });
       }
 
       // Générer un token de réinitialisation
-      const token = crypto.randomBytes(32).toString('hex');
+      const token = crypto.randomBytes(32).toString("hex");
       const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
 
       // Supprimer tous les tokens existants si nécessaire
@@ -1171,19 +1201,24 @@ export class AdminService {
 
       // Notifier l'utilisateur si demandé
       if (notifyUser) {
-        const locale = (await getUserPreferredLocale(userId)) || 'fr';
+        const locale = (await getUserPreferredLocale(userId)) || "fr";
 
         await sendEmailNotification({
           to: user.email,
           subject:
-            locale === 'fr' ? 'Réinitialisation de votre mot de passe' : 'Password Reset Required',
-          template: 'admin-force-password-reset',
+            locale === "fr"
+              ? "Réinitialisation de votre mot de passe"
+              : "Password Reset Required",
+          template: "admin-force-password-reset",
           data: {
             name: user.name,
             resetLink,
             reason:
-              reason || (locale === 'fr' ? "Demande de l'administrateur" : 'Administrator request'),
-            expiresIn: '24 heures',
+              reason ||
+              (locale === "fr"
+                ? "Demande de l'administrateur"
+                : "Administrator request"),
+            expiresIn: "24 heures",
             locale,
           },
         });
@@ -1193,19 +1228,22 @@ export class AdminService {
       await this.db.userActivityLog.create({
         data: {
           userId,
-          activityType: 'PASSWORD_RESET_REQUEST',
-          details: `Réinitialisation forcée par un administrateur${reason ? `: ${reason}` : ''}`,
+          activityType: "PASSWORD_RESET_REQUEST",
+          details: `Réinitialisation forcée par un administrateur${reason ? `: ${reason}` : ""}`,
           performedById,
         },
       });
 
-      return { success: true, message: 'Réinitialisation du mot de passe initiée' };
+      return {
+        success: true,
+        message: "Réinitialisation du mot de passe initiée",
+      };
     } catch (error) {
-      console.error('Error forcing password reset:', error);
+      console.error("Error forcing password reset:", error);
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la réinitialisation du mot de passe',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la réinitialisation du mot de passe",
       });
     }
   }
@@ -1233,8 +1271,8 @@ export class AdminService {
 
       if (!userIds.length) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Aucun utilisateur sélectionné pour cette action',
+          code: "BAD_REQUEST",
+          message: "Aucun utilisateur sélectionné pour cette action",
         });
       }
 
@@ -1246,7 +1284,7 @@ export class AdminService {
 
       if (users.length !== userIds.length) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
+          code: "BAD_REQUEST",
           message: "Certains utilisateurs n'existent pas",
         });
       }
@@ -1254,84 +1292,88 @@ export class AdminService {
       let results = [];
 
       switch (action) {
-        case 'ACTIVATE':
+        case "ACTIVATE":
           results = await Promise.all(
-            users.map(user =>
-              this.updateUserStatus(user.id, 'ACTIVE', {
+            users.map((user) =>
+              this.updateUserStatus(user.id, "ACTIVE", {
                 reason,
                 notifyUser: notifyUsers,
                 performedById,
-              })
-            )
+              }),
+            ),
           );
           break;
 
-        case 'DEACTIVATE':
+        case "DEACTIVATE":
           results = await Promise.all(
-            users.map(user =>
-              this.updateUserStatus(user.id, 'INACTIVE', {
+            users.map((user) =>
+              this.updateUserStatus(user.id, "INACTIVE", {
                 reason,
                 notifyUser: notifyUsers,
                 performedById,
-              })
-            )
+              }),
+            ),
           );
           break;
 
-        case 'SUSPEND':
+        case "SUSPEND":
           results = await Promise.all(
-            users.map(user =>
-              this.updateUserStatus(user.id, 'SUSPENDED', {
+            users.map((user) =>
+              this.updateUserStatus(user.id, "SUSPENDED", {
                 reason,
                 notifyUser: notifyUsers,
                 performedById,
                 expiresAt: additionalData?.expiresAt,
-              })
-            )
+              }),
+            ),
           );
           break;
 
-        case 'FORCE_PASSWORD_RESET':
+        case "FORCE_PASSWORD_RESET":
           results = await Promise.all(
-            users.map(user =>
+            users.map((user) =>
               this.forcePasswordReset(user.id, {
                 reason,
                 notifyUser: notifyUsers,
                 expireExistingTokens: true,
                 performedById,
-              })
-            )
+              }),
+            ),
           );
           break;
 
-        case 'SEND_VERIFICATION_EMAIL':
+        case "SEND_VERIFICATION_EMAIL":
           // Implémentation de l'envoi en masse d'emails de vérification
           // ...
           break;
 
-        case 'DELETE':
+        case "DELETE":
           results = await Promise.all(
-            users.map(user => this.softDeleteUser(user.id, reason, performedById))
+            users.map((user) =>
+              this.softDeleteUser(user.id, reason, performedById),
+            ),
           );
           break;
 
-        case 'ADD_TAG':
+        case "ADD_TAG":
           if (!additionalData?.tag) {
             throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Tag non spécifié pour cette action',
+              code: "BAD_REQUEST",
+              message: "Tag non spécifié pour cette action",
             });
           }
 
           results = await Promise.all(
-            users.map(user => this.addUserTag(user.id, additionalData.tag, performedById))
+            users.map((user) =>
+              this.addUserTag(user.id, additionalData.tag, performedById),
+            ),
           );
           break;
 
         default:
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Action non prise en charge',
+            code: "BAD_REQUEST",
+            message: "Action non prise en charge",
           });
       }
 
@@ -1341,10 +1383,10 @@ export class AdminService {
         results,
       };
     } catch (error) {
-      console.error('Error performing bulk user action:', error);
+      console.error("Error performing bulk user action:", error);
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de l'exécution de l'action en masse",
       });
     }
@@ -1362,8 +1404,8 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Utilisateur non trouvé',
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
         });
       }
 
@@ -1379,7 +1421,7 @@ export class AdminService {
         await this.db.userActivityLog.create({
           data: {
             userId,
-            activityType: 'OTHER',
+            activityType: "OTHER",
             details: `Tag ajouté: ${tag}`,
             performedById,
           },
@@ -1388,9 +1430,9 @@ export class AdminService {
 
       return { success: true, userId, tag };
     } catch (error) {
-      console.error('Error adding user tag:', error);
+      console.error("Error adding user tag:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de l'ajout du tag",
       });
     }
@@ -1399,7 +1441,11 @@ export class AdminService {
   /**
    * Soft delete d'un utilisateur (marque comme supprimé sans effacer les données)
    */
-  private async softDeleteUser(userId: string, reason: string | undefined, performedById: string) {
+  private async softDeleteUser(
+    userId: string,
+    reason: string | undefined,
+    performedById: string,
+  ) {
     try {
       const user = await this.db.user.findUnique({
         where: { id: userId },
@@ -1408,8 +1454,8 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Utilisateur non trouvé',
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
         });
       }
 
@@ -1417,14 +1463,14 @@ export class AdminService {
       await this.db.user.update({
         where: { id: userId },
         data: {
-          status: 'INACTIVE',
+          status: "INACTIVE",
           isDeleted: true,
           deletedAt: new Date(),
           deletedByUserId: performedById,
           deletionReason: reason,
           // Anonymiser les données sensibles
           email: `deleted_${userId}@deleted.com`,
-          name: 'Utilisateur supprimé',
+          name: "Utilisateur supprimé",
           phoneNumber: null,
           // Révoquer les sessions
           sessions: {
@@ -1437,17 +1483,17 @@ export class AdminService {
       await this.db.userActivityLog.create({
         data: {
           userId,
-          activityType: 'OTHER',
-          details: `Compte supprimé${reason ? `: ${reason}` : ''}`,
+          activityType: "OTHER",
+          details: `Compte supprimé${reason ? `: ${reason}` : ""}`,
           performedById,
         },
       });
 
       return { success: true, userId };
     } catch (error) {
-      console.error('Error soft-deleting user:', error);
+      console.error("Error soft-deleting user:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la suppression de l'utilisateur",
       });
     }
@@ -1461,7 +1507,7 @@ export class AdminService {
     options: {
       reason: string;
       performedById: string;
-    }
+    },
   ) {
     try {
       const { reason, performedById } = options;
@@ -1479,8 +1525,8 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Utilisateur non trouvé',
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
         });
       }
 
@@ -1488,9 +1534,9 @@ export class AdminService {
       await this.db.userActivityLog.create({
         data: {
           userId,
-          activityType: 'OTHER',
+          activityType: "OTHER",
           details: `Suppression définitive du compte - Raison: ${reason} - Effectuée par: ${performedById}`,
-          ipAddress: 'admin-action',
+          ipAddress: "admin-action",
         },
       });
 
@@ -1521,11 +1567,11 @@ export class AdminService {
         where: { id: userId },
       });
 
-      return { success: true, message: 'Utilisateur définitivement supprimé' };
+      return { success: true, message: "Utilisateur définitivement supprimé" };
     } catch (error) {
-      console.error('Error permanently deleting user:', error);
+      console.error("Error permanently deleting user:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la suppression définitive de l'utilisateur",
       });
     }
@@ -1534,10 +1580,13 @@ export class AdminService {
   /**
    * Vérifie le mot de passe d'un administrateur
    */
-  async verifyAdminPassword(adminId: string, password: string): Promise<boolean> {
+  async verifyAdminPassword(
+    adminId: string,
+    password: string,
+  ): Promise<boolean> {
     try {
       const admin = await this.db.user.findUnique({
-        where: { id: adminId, role: 'ADMIN' },
+        where: { id: adminId, role: "ADMIN" },
         select: { id: true, password: true },
       });
 
@@ -1548,7 +1597,7 @@ export class AdminService {
       // Vérifier le mot de passe en utilisant bcrypt
       return bcrypt.compare(password, admin.password);
     } catch (error) {
-      console.error('Error verifying admin password:', error);
+      console.error("Error verifying admin password:", error);
       return false;
     }
   }
@@ -1564,7 +1613,13 @@ export class AdminService {
     comparison?: boolean;
   }) {
     try {
-      const { startDate, endDate, granularity = 'day', categoryFilter, comparison } = filters;
+      const {
+        startDate,
+        endDate,
+        granularity = "day",
+        categoryFilter,
+        comparison,
+      } = filters;
 
       // Rapport des revenus par période
       const revenueQuery = `
@@ -1575,7 +1630,7 @@ export class AdminService {
         FROM "payments"
         WHERE "createdAt" >= $1 AND "createdAt" <= $2
         AND "status" = 'COMPLETED'
-        ${categoryFilter ? 'AND "category" = $3' : ''}
+        ${categoryFilter ? 'AND "category" = $3' : ""}
         GROUP BY DATE_TRUNC('${granularity}', "createdAt")
         ORDER BY period
       `;
@@ -1584,7 +1639,7 @@ export class AdminService {
         revenueQuery,
         startDate,
         endDate,
-        ...(categoryFilter ? [categoryFilter] : [])
+        ...(categoryFilter ? [categoryFilter] : []),
       );
 
       // Revenus par catégorie
@@ -1600,7 +1655,11 @@ export class AdminService {
         ORDER BY revenue DESC
       `;
 
-      const categoryData = await this.db.$queryRawUnsafe(categoryQuery, startDate, endDate);
+      const categoryData = await this.db.$queryRawUnsafe(
+        categoryQuery,
+        startDate,
+        endDate,
+      );
 
       // Totaux
       const totalsQuery = `
@@ -1613,7 +1672,11 @@ export class AdminService {
         AND "status" = 'COMPLETED'
       `;
 
-      const totalsData = await this.db.$queryRawUnsafe(totalsQuery, startDate, endDate);
+      const totalsData = await this.db.$queryRawUnsafe(
+        totalsQuery,
+        startDate,
+        endDate,
+      );
 
       // Données de comparaison si demandées
       let comparisonData = null;
@@ -1634,7 +1697,7 @@ export class AdminService {
         comparisonData = await this.db.$queryRawUnsafe(
           comparisonQuery,
           comparisonStartDate,
-          comparisonEndDate
+          comparisonEndDate,
         );
       }
 
@@ -1645,10 +1708,10 @@ export class AdminService {
         comparisonData: comparisonData?.[0],
       };
     } catch (error) {
-      console.error('Error generating sales report:', error);
+      console.error("Error generating sales report:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error generating sales report',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error generating sales report",
       });
     }
   }
@@ -1663,7 +1726,7 @@ export class AdminService {
     comparison?: boolean;
   }) {
     try {
-      const { startDate, endDate, granularity = 'day', comparison } = filters;
+      const { startDate, endDate, granularity = "day", comparison } = filters;
 
       // Performance des livraisons par période
       const performanceQuery = `
@@ -1680,7 +1743,11 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const performanceData = await this.db.$queryRawUnsafe(performanceQuery, startDate, endDate);
+      const performanceData = await this.db.$queryRawUnsafe(
+        performanceQuery,
+        startDate,
+        endDate,
+      );
 
       // Performance par zone
       const zoneQuery = `
@@ -1698,7 +1765,11 @@ export class AdminService {
         LIMIT 10
       `;
 
-      const zoneData = await this.db.$queryRawUnsafe(zoneQuery, startDate, endDate);
+      const zoneData = await this.db.$queryRawUnsafe(
+        zoneQuery,
+        startDate,
+        endDate,
+      );
 
       // Types de problèmes
       const issuesQuery = `
@@ -1713,7 +1784,11 @@ export class AdminService {
         ORDER BY count DESC
       `;
 
-      const issuesData = await this.db.$queryRawUnsafe(issuesQuery, startDate, endDate);
+      const issuesData = await this.db.$queryRawUnsafe(
+        issuesQuery,
+        startDate,
+        endDate,
+      );
 
       return {
         timeSeriesData: performanceData,
@@ -1721,10 +1796,10 @@ export class AdminService {
         issueBreakdown: issuesData,
       };
     } catch (error) {
-      console.error('Error generating delivery performance report:', error);
+      console.error("Error generating delivery performance report:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error generating delivery performance report',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error generating delivery performance report",
       });
     }
   }
@@ -1740,7 +1815,13 @@ export class AdminService {
     comparison?: boolean;
   }) {
     try {
-      const { startDate, endDate, granularity = 'day', userRoleFilter, comparison } = filters;
+      const {
+        startDate,
+        endDate,
+        granularity = "day",
+        userRoleFilter,
+        comparison,
+      } = filters;
 
       // Nouvelles inscriptions par période
       const signupsQuery = `
@@ -1752,7 +1833,7 @@ export class AdminService {
           COUNT(CASE WHEN "role" = 'MERCHANT' THEN 1 END) as merchants
         FROM "users"
         WHERE "createdAt" >= $1 AND "createdAt" <= $2
-        ${userRoleFilter ? 'AND "role" = $3' : ''}
+        ${userRoleFilter ? 'AND "role" = $3' : ""}
         GROUP BY DATE_TRUNC('${granularity}', "createdAt")
         ORDER BY period
       `;
@@ -1761,7 +1842,7 @@ export class AdminService {
         signupsQuery,
         startDate,
         endDate,
-        ...(userRoleFilter ? [userRoleFilter] : [])
+        ...(userRoleFilter ? [userRoleFilter] : []),
       );
 
       // Utilisateurs actifs par période
@@ -1775,7 +1856,11 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const activeUsersData = await this.db.$queryRawUnsafe(activeUsersQuery, startDate, endDate);
+      const activeUsersData = await this.db.$queryRawUnsafe(
+        activeUsersQuery,
+        startDate,
+        endDate,
+      );
 
       // Répartition par rôles
       const rolesQuery = `
@@ -1788,7 +1873,11 @@ export class AdminService {
         ORDER BY count DESC
       `;
 
-      const rolesData = await this.db.$queryRawUnsafe(rolesQuery, startDate, endDate);
+      const rolesData = await this.db.$queryRawUnsafe(
+        rolesQuery,
+        startDate,
+        endDate,
+      );
 
       // Taux de rétention mensuel
       const retentionQuery = `
@@ -1802,7 +1891,11 @@ export class AdminService {
         ORDER BY cohortMonth
       `;
 
-      const retentionData = await this.db.$queryRawUnsafe(retentionQuery, startDate, endDate);
+      const retentionData = await this.db.$queryRawUnsafe(
+        retentionQuery,
+        startDate,
+        endDate,
+      );
 
       return {
         signupsTimeSeriesData: signupsData,
@@ -1811,10 +1904,10 @@ export class AdminService {
         retentionRates: retentionData,
       };
     } catch (error) {
-      console.error('Error generating user activity report:', error);
+      console.error("Error generating user activity report:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error generating user activity report',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error generating user activity report",
       });
     }
   }
@@ -1827,7 +1920,7 @@ export class AdminService {
    */
   async manageUserDevices(input: any) {
     // TODO: Implémenter la gestion des appareils
-    return { success: true, message: 'Device management not yet implemented' };
+    return { success: true, message: "Device management not yet implemented" };
   }
 
   /**
@@ -1851,7 +1944,10 @@ export class AdminService {
    */
   async upsertPermissionGroup(input: any) {
     // TODO: Implémenter la gestion des groupes de permissions
-    return { success: true, message: 'Permission group management not yet implemented' };
+    return {
+      success: true,
+      message: "Permission group management not yet implemented",
+    };
   }
 
   async getFinancialReport(filters: {
@@ -1861,7 +1957,12 @@ export class AdminService {
     includeCommissions?: boolean;
   }) {
     try {
-      const { startDate, endDate, granularity = 'day', includeCommissions = true } = filters;
+      const {
+        startDate,
+        endDate,
+        granularity = "day",
+        includeCommissions = true,
+      } = filters;
 
       // Revenus et transactions
       const revenueQuery = `
@@ -1877,7 +1978,11 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const revenueData = await this.db.$queryRawUnsafe(revenueQuery, startDate, endDate);
+      const revenueData = await this.db.$queryRawUnsafe(
+        revenueQuery,
+        startDate,
+        endDate,
+      );
 
       let commissionsData = null;
       if (includeCommissions) {
@@ -1893,7 +1998,11 @@ export class AdminService {
           ORDER BY period
         `;
 
-        commissionsData = await this.db.$queryRawUnsafe(commissionsQuery, startDate, endDate);
+        commissionsData = await this.db.$queryRawUnsafe(
+          commissionsQuery,
+          startDate,
+          endDate,
+        );
       }
 
       // Méthodes de paiement
@@ -1912,7 +2021,7 @@ export class AdminService {
       const paymentMethodsData = await this.db.$queryRawUnsafe(
         paymentMethodsQuery,
         startDate,
-        endDate
+        endDate,
       );
 
       return {
@@ -1921,10 +2030,10 @@ export class AdminService {
         paymentMethodsBreakdown: paymentMethodsData,
       };
     } catch (error) {
-      console.error('Error generating financial report:', error);
+      console.error("Error generating financial report:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error generating financial report',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error generating financial report",
       });
     }
   }
@@ -1942,8 +2051,8 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Utilisateur non trouvé',
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
         });
       }
 
@@ -1970,8 +2079,8 @@ export class AdminService {
       if (isActive) {
         await sendEmailNotification({
           to: user.email,
-          subject: 'Compte réactivé',
-          template: 'account-reactivated',
+          subject: "Compte réactivé",
+          template: "account-reactivated",
           data: {
             userName: user.name,
           },
@@ -1979,8 +2088,8 @@ export class AdminService {
       } else {
         await sendEmailNotification({
           to: user.email,
-          subject: 'Compte désactivé',
-          template: 'account-deactivated',
+          subject: "Compte désactivé",
+          template: "account-deactivated",
           data: {
             userName: user.name,
           },
@@ -1990,15 +2099,15 @@ export class AdminService {
       return {
         success: true,
         user: updatedUser,
-        message: `Utilisateur ${isActive ? 'activé' : 'désactivé'} avec succès`,
+        message: `Utilisateur ${isActive ? "activé" : "désactivé"} avec succès`,
       };
     } catch (error) {
-      console.error('Error toggling user activation:', error);
+      console.error("Error toggling user activation:", error);
       if (error instanceof TRPCError) {
         throw error;
       }
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la modification de l'activation utilisateur",
       });
     }
@@ -2007,7 +2116,7 @@ export class AdminService {
   /**
    * Bannit ou débannit un utilisateur
    */
-  async banUser(userId: string, action: 'BAN' | 'UNBAN', reason?: string) {
+  async banUser(userId: string, action: "BAN" | "UNBAN", reason?: string) {
     try {
       // Vérifier que l'utilisateur existe
       const user = await this.prisma.user.findUnique({
@@ -2017,33 +2126,33 @@ export class AdminService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Utilisateur non trouvé',
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
         });
       }
 
       // Vérifier la cohérence de l'action
-      if (action === 'BAN' && user.isBanned) {
+      if (action === "BAN" && user.isBanned) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Cet utilisateur est déjà banni',
+          code: "BAD_REQUEST",
+          message: "Cet utilisateur est déjà banni",
         });
       }
 
-      if (action === 'UNBAN' && !user.isBanned) {
+      if (action === "UNBAN" && !user.isBanned) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
+          code: "BAD_REQUEST",
           message: "Cet utilisateur n'est pas banni",
         });
       }
 
       // Mettre à jour l'utilisateur
       const updateData: any = {
-        isBanned: action === 'BAN',
+        isBanned: action === "BAN",
         updatedAt: new Date(),
       };
 
-      if (action === 'BAN') {
+      if (action === "BAN") {
         updateData.bannedAt = new Date();
         updateData.banReason = reason;
         updateData.status = UserStatus.SUSPENDED;
@@ -2069,8 +2178,10 @@ export class AdminService {
       });
 
       // Envoyer une notification par email
-      const emailTemplate = action === 'BAN' ? 'account-banned' : 'account-unbanned';
-      const emailSubject = action === 'BAN' ? 'Compte suspendu' : 'Compte réactivé';
+      const emailTemplate =
+        action === "BAN" ? "account-banned" : "account-unbanned";
+      const emailSubject =
+        action === "BAN" ? "Compte suspendu" : "Compte réactivé";
 
       await sendEmailNotification({
         to: user.email,
@@ -2078,22 +2189,22 @@ export class AdminService {
         template: emailTemplate,
         data: {
           userName: user.name,
-          reason: reason || 'Aucune raison spécifiée',
+          reason: reason || "Aucune raison spécifiée",
         },
       });
 
       return {
         success: true,
         user: updatedUser,
-        message: `Utilisateur ${action === 'BAN' ? 'banni' : 'débanni'} avec succès`,
+        message: `Utilisateur ${action === "BAN" ? "banni" : "débanni"} avec succès`,
       };
     } catch (error) {
-      console.error('Error banning/unbanning user:', error);
+      console.error("Error banning/unbanning user:", error);
       if (error instanceof TRPCError) {
         throw error;
       }
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors du bannissement/débannissement de l'utilisateur",
       });
     }

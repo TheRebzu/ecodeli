@@ -4,11 +4,11 @@
  */
 
 // Exports des fichiers locaux
-export { default as DeliveryFilters } from './delivery-filters';
-export * from './delivery-filters';
-export { default as DeliveryMap } from './delivery-map';
-export * from './delivery-map';
-export { default as DeliveryStats } from './delivery-stats';
-export * from './delivery-stats';
-export { default as DeliveryTable } from './delivery-table';
-export * from './delivery-table';
+export { default as DeliveryFilters } from "./delivery-filters";
+export * from "./delivery-filters";
+export { default as DeliveryMap } from "./delivery-map";
+export * from "./delivery-map";
+export { default as DeliveryStats } from "./delivery-stats";
+export * from "./delivery-stats";
+export { default as DeliveryTable } from "./delivery-table";
+export * from "./delivery-table";

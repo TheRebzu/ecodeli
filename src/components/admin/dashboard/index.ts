@@ -4,12 +4,12 @@
  */
 
 // Exports des fichiers locaux
-export { default as ActivityMonitor } from './activity-monitor';
-export * from './activity-monitor';
-export { default as AdminDashboard } from './admin-dashboard';
-export * from './admin-dashboard';
-export { default as PlatformStats } from './platform-stats';
-export * from './platform-stats';
+export { default as ActivityMonitor } from "./activity-monitor";
+export * from "./activity-monitor";
+export { default as AdminDashboard } from "./admin-dashboard";
+export * from "./admin-dashboard";
+export { default as PlatformStats } from "./platform-stats";
+export * from "./platform-stats";
 
 // Exports des sous-dossiers
-export * from './cards';
+export * from "./cards";

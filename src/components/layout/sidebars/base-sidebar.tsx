@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LogOut, Bell, ChevronLeft } from 'lucide-react';
-import { cn } from '@/lib/utils/common';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/hooks/auth/use-auth';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LogOut, Bell, ChevronLeft } from "lucide-react";
+import { cn } from "@/lib/utils/common";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface NavigationItem {
   label: string;
@@ -90,8 +90,8 @@ export function BaseSidebar({
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [mounted]);
 
   const toggleCollapse = () => {
@@ -118,9 +118,9 @@ export function BaseSidebar({
   return (
     <nav
       className={cn(
-        'h-full flex flex-col bg-background border-r transition-all duration-300',
-        collapsed ? 'w-[80px]' : 'w-[280px]',
-        className
+        "h-full flex flex-col bg-background border-r transition-all duration-300",
+        collapsed ? "w-[80px]" : "w-[280px]",
+        className,
       )}
     >
       {/* En-tête de la Sidebar */}
@@ -142,7 +142,7 @@ export function BaseSidebar({
               <Link href={`/${locale}/notifications`}>
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                  {notifications > 9 ? '9+' : notifications}
+                  {notifications > 9 ? "9+" : notifications}
                 </span>
               </Link>
             </Button>
@@ -153,11 +153,14 @@ export function BaseSidebar({
             <Button
               variant="ghost"
               size="icon"
-              aria-label={collapsed ? 'Déplier' : 'Replier'}
+              aria-label={collapsed ? "Déplier" : "Replier"}
               onClick={toggleCollapse}
             >
               <ChevronLeft
-                className={cn('h-4 w-4 transition-transform', collapsed && 'rotate-180')}
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  collapsed && "rotate-180",
+                )}
               />
             </Button>
           )}
@@ -175,17 +178,28 @@ export function BaseSidebar({
             )}
             <div className="space-y-1">
               {section.items.map((item, itemIndex) => (
-                <Link key={itemIndex} href={item.href} passHref onClick={item.onClick}>
+                <Link
+                  key={itemIndex}
+                  href={item.href}
+                  passHref
+                  onClick={item.onClick}
+                >
                   <Button
                     variant="ghost"
                     className={cn(
-                      'w-full justify-start',
-                      collapsed ? 'px-0 py-2 h-12 flex-col justify-center' : 'px-3 py-2',
-                      isActive(item.href) && 'bg-muted font-medium'
+                      "w-full justify-start",
+                      collapsed
+                        ? "px-0 py-2 h-12 flex-col justify-center"
+                        : "px-3 py-2",
+                      isActive(item.href) && "bg-muted font-medium",
                     )}
                   >
-                    <item.icon className={cn('h-5 w-5', collapsed ? 'mx-auto' : 'mr-3')} />
-                    {!collapsed && <span className="truncate">{item.label}</span>}
+                    <item.icon
+                      className={cn("h-5 w-5", collapsed ? "mx-auto" : "mr-3")}
+                    />
+                    {!collapsed && (
+                      <span className="truncate">{item.label}</span>
+                    )}
                     {!collapsed && item.badge && (
                       <span className="ml-auto text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5">
                         {item.badge}
@@ -210,7 +224,9 @@ export function BaseSidebar({
           <div className="flex items-center justify-between">
             <div>
               <span className="text-sm font-medium">Abonnement</span>
-              <div className="text-xs text-muted-foreground mt-1">{subscriptionInfo.plan}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {subscriptionInfo.plan}
+              </div>
             </div>
             <Link href={subscriptionInfo.href}>
               <Button variant="outline" size="sm" className="text-xs h-7 px-2">
@@ -234,10 +250,15 @@ export function BaseSidebar({
       )}
 
       {/* Pied de la Sidebar avec profil utilisateur et déconnexion */}
-      <div className={cn('border-t', collapsed ? 'p-2' : 'p-4')}>
+      <div className={cn("border-t", collapsed ? "p-2" : "p-4")}>
         {userInfo && (
           <>
-            <div className={cn('flex items-center gap-3 mb-4', collapsed && 'flex-col')}>
+            <div
+              className={cn(
+                "flex items-center gap-3 mb-4",
+                collapsed && "flex-col",
+              )}
+            >
               <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                 {userInfo.avatar ? (
                   <img
@@ -248,17 +269,21 @@ export function BaseSidebar({
                 ) : (
                   <span className="font-medium text-sm">
                     {userInfo.name
-                      .split(' ')
-                      .map(n => n[0])
-                      .join('')
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
                       .toUpperCase()}
                   </span>
                 )}
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{userInfo.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{userInfo.email}</p>
+                  <p className="text-sm font-medium truncate">
+                    {userInfo.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {userInfo.email}
+                  </p>
                 </div>
               )}
             </div>
@@ -270,15 +295,15 @@ export function BaseSidebar({
 
         <Button
           variant="outline"
-          size={collapsed ? 'icon' : 'default'}
+          size={collapsed ? "icon" : "default"}
           className={cn(
-            'text-muted-foreground',
-            collapsed ? 'w-full h-10 px-0' : 'w-full justify-start'
+            "text-muted-foreground",
+            collapsed ? "w-full h-10 px-0" : "w-full justify-start",
           )}
           onClick={handleLogout}
         >
-          <LogOut className={cn('h-4 w-4', collapsed ? 'mx-auto' : 'mr-2')} />
-          {!collapsed && 'Déconnexion'}
+          <LogOut className={cn("h-4 w-4", collapsed ? "mx-auto" : "mr-2")} />
+          {!collapsed && "Déconnexion"}
         </Button>
       </div>
     </nav>

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
 // N'importer que le client, pas la partie serveur
-import { io, Socket } from 'socket.io-client';
+import { io, Socket } from "socket.io-client";
 
 // Variable globale pour stocker l'instance du socket
 let socket: Socket | null = null;
@@ -26,9 +26,9 @@ export const initializeSocket = (token: string): Socket => {
   const socketOptions = {
     auth: { token },
     autoConnect: true,
-    transports: ['websocket', 'polling'],
+    transports: ["websocket", "polling"],
     forceNew: true,
-    path: '/api/socket',
+    path: "/api/socket",
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
     timeout: 20000,
@@ -37,41 +37,41 @@ export const initializeSocket = (token: string): Socket => {
   // Déterminer l'URL du serveur (par défaut, même origine)
   const socketUrl =
     process.env.NEXT_PUBLIC_SOCKET_URL ||
-    (typeof window !== 'undefined' ? window.location.origin : '');
+    (typeof window !== "undefined" ? window.location.origin : "");
 
   try {
     // Créer une nouvelle instance socket
     socket = io(socketUrl, socketOptions);
 
     // Configurer les gestionnaires d'événements
-    socket.on('connect', () => {
-      console.log('Socket connecté');
+    socket.on("connect", () => {
+      console.log("Socket connecté");
     });
 
-    socket.on('connect_error', error => {
-      console.error('Erreur de connexion socket:', error.message);
+    socket.on("connect_error", (error) => {
+      console.error("Erreur de connexion socket:", error.message);
     });
 
-    socket.on('disconnect', reason => {
+    socket.on("disconnect", (reason) => {
       console.log(`Socket déconnecté: ${reason}`);
     });
 
-    socket.on('reconnect_attempt', attemptNumber => {
+    socket.on("reconnect_attempt", (attemptNumber) => {
       console.log(`Tentative de reconnexion #${attemptNumber}`);
     });
 
-    socket.on('reconnect_failed', () => {
-      console.error('Échec de reconnexion après plusieurs tentatives');
+    socket.on("reconnect_failed", () => {
+      console.error("Échec de reconnexion après plusieurs tentatives");
     });
 
-    socket.on('error', error => {
-      console.error('Erreur socket:', error);
+    socket.on("error", (error) => {
+      console.error("Erreur socket:", error);
     });
 
     return socket;
   } catch (error) {
-    console.error('Erreur lors de la création du socket:', error);
-    throw new Error('Impossible de créer la connexion socket');
+    console.error("Erreur lors de la création du socket:", error);
+    throw new Error("Impossible de créer la connexion socket");
   }
 };
 
@@ -91,7 +91,7 @@ export const closeSocket = (): void => {
       socket.removeAllListeners();
       socket = null;
     } catch (error) {
-      console.error('Erreur lors de la fermeture du socket:', error);
+      console.error("Erreur lors de la fermeture du socket:", error);
     }
   }
 };

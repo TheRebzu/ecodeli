@@ -1,30 +1,36 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/ui/page-header';
-import { Badge } from '@/components/ui/badge';
-import { AnnouncementDetails } from '@/components/merchant/announcements/announcement-details';
-import { DeliveryTimeline } from '@/components/merchant/announcements/delivery-timeline';
-import { AnnouncementStatusBadge } from '@/components/ui/badge';
-import { AnnouncementActions } from '@/components/merchant/announcements/announcement-list';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Edit, Eye, AlertTriangle } from 'lucide-react';
-import { AnnouncementAnalytics } from '@/components/merchant/announcements/announcement-analytics';
-import { DeliveryRequests } from '@/components/merchant/announcements/delivery-requests';
-import { toast } from 'sonner';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { api } from "@/trpc/react";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { Badge } from "@/components/ui/badge";
+import { AnnouncementDetails } from "@/components/merchant/announcements/announcement-details";
+import { DeliveryTimeline } from "@/components/merchant/announcements/delivery-timeline";
+import { AnnouncementStatusBadge } from "@/components/ui/badge";
+import { AnnouncementActions } from "@/components/merchant/announcements/announcement-list";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Edit, Eye, AlertTriangle } from "lucide-react";
+import { AnnouncementAnalytics } from "@/components/merchant/announcements/announcement-analytics";
+import { DeliveryRequests } from "@/components/merchant/announcements/delivery-requests";
+import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AnnouncementDetailsPage() {
-  const t = useTranslations('merchant.announcements.details');
+  const t = useTranslations("merchant.announcements.details");
   const params = useParams();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('details');
+  const [activeTab, setActiveTab] = useState("details");
 
   const id = params.id as string;
 
@@ -34,7 +40,7 @@ export default function AnnouncementDetailsPage() {
     {
       retry: 1,
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   // Récupération des statistiques de l'annonce
@@ -43,28 +49,30 @@ export default function AnnouncementDetailsPage() {
     {
       enabled: !!announcementQuery.data,
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   // Récupération des demandes de livraison pour cette annonce
-  const deliveryRequestsQuery = api.merchant.announcements.getDeliveryRequests.useQuery(
-    { id },
-    {
-      enabled: !!announcementQuery.data,
-      refetchOnWindowFocus: false,
-    }
-  );
+  const deliveryRequestsQuery =
+    api.merchant.announcements.getDeliveryRequests.useQuery(
+      { id },
+      {
+        enabled: !!announcementQuery.data,
+        refetchOnWindowFocus: false,
+      },
+    );
 
   // Mutation pour mettre à jour le statut de l'annonce
-  const updateStatusMutation = api.merchant.announcements.updateStatus.useMutation({
-    onSuccess: () => {
-      announcementQuery.refetch();
-      toast.success(t('statusUpdateSuccess'));
-    },
-    onError: error => {
-      toast.error(t('statusUpdateError', { error: error.message }));
-    },
-  });
+  const updateStatusMutation =
+    api.merchant.announcements.updateStatus.useMutation({
+      onSuccess: () => {
+        announcementQuery.refetch();
+        toast.success(t("statusUpdateSuccess"));
+      },
+      onError: (error) => {
+        toast.error(t("statusUpdateError", { error: error.message }));
+      },
+    });
 
   const handleBack = () => {
     router.back();
@@ -75,22 +83,22 @@ export default function AnnouncementDetailsPage() {
   };
 
   const handlePublish = () => {
-    updateStatusMutation.mutate({ id, status: 'ACTIVE' });
+    updateStatusMutation.mutate({ id, status: "ACTIVE" });
   };
 
   const handleDeactivate = () => {
-    updateStatusMutation.mutate({ id, status: 'INACTIVE' });
+    updateStatusMutation.mutate({ id, status: "INACTIVE" });
   };
 
   const handleReactivate = () => {
-    updateStatusMutation.mutate({ id, status: 'ACTIVE' });
+    updateStatusMutation.mutate({ id, status: "ACTIVE" });
   };
 
   const handleDelete = () => {
     // Confirmer avant de supprimer
-    if (window.confirm(t('deleteConfirmation'))) {
-      updateStatusMutation.mutate({ id, status: 'DELETED' });
-      router.push('/merchant/announcements');
+    if (window.confirm(t("deleteConfirmation"))) {
+      updateStatusMutation.mutate({ id, status: "DELETED" });
+      router.push("/merchant/announcements");
     }
   };
 
@@ -103,13 +111,13 @@ export default function AnnouncementDetailsPage() {
       <div className="space-y-6">
         <Button variant="outline" onClick={handleBack}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t('back')}
+          {t("back")}
         </Button>
 
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>{t('error')}</AlertTitle>
-          <AlertDescription>{t('announcementNotFound')}</AlertDescription>
+          <AlertTitle>{t("error")}</AlertTitle>
+          <AlertDescription>{t("announcementNotFound")}</AlertDescription>
         </Alert>
       </div>
     );
@@ -121,7 +129,7 @@ export default function AnnouncementDetailsPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('back')}
+            {t("back")}
           </Button>
 
           {isLoading ? (
@@ -135,23 +143,23 @@ export default function AnnouncementDetailsPage() {
           <Skeleton className="h-10 w-48" />
         ) : (
           <div className="flex gap-2">
-            {announcement?.status === 'DRAFT' && (
+            {announcement?.status === "DRAFT" && (
               <Button onClick={handlePublish}>
                 <Eye className="mr-2 h-4 w-4" />
-                {t('publish')}
+                {t("publish")}
               </Button>
             )}
-            {announcement?.status === 'ACTIVE' && (
+            {announcement?.status === "ACTIVE" && (
               <Button variant="outline" onClick={handleDeactivate}>
-                {t('deactivate')}
+                {t("deactivate")}
               </Button>
             )}
-            {announcement?.status === 'INACTIVE' && (
-              <Button onClick={handleReactivate}>{t('reactivate')}</Button>
+            {announcement?.status === "INACTIVE" && (
+              <Button onClick={handleReactivate}>{t("reactivate")}</Button>
             )}
             <Button variant="outline" onClick={handleEdit}>
               <Edit className="mr-2 h-4 w-4" />
-              {t('edit')}
+              {t("edit")}
             </Button>
           </div>
         )}
@@ -161,17 +169,24 @@ export default function AnnouncementDetailsPage() {
         <Skeleton className="h-14 w-full" />
       ) : (
         <PageHeader
-          heading={announcement?.title || t('noTitle')}
-          description={announcement?.description?.substring(0, 100) + '...' || t('noDescription')}
+          heading={announcement?.title || t("noTitle")}
+          description={
+            announcement?.description?.substring(0, 100) + "..." ||
+            t("noDescription")
+          }
         />
       )}
 
-      <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        defaultValue="details"
+        value={activeTab}
+        onValueChange={setActiveTab}
+      >
         <TabsList className="mb-6">
-          <TabsTrigger value="details">{t('tabs.details')}</TabsTrigger>
-          <TabsTrigger value="timeline">{t('tabs.timeline')}</TabsTrigger>
-          <TabsTrigger value="requests">{t('tabs.requests')}</TabsTrigger>
-          <TabsTrigger value="analytics">{t('tabs.analytics')}</TabsTrigger>
+          <TabsTrigger value="details">{t("tabs.details")}</TabsTrigger>
+          <TabsTrigger value="timeline">{t("tabs.timeline")}</TabsTrigger>
+          <TabsTrigger value="requests">{t("tabs.requests")}</TabsTrigger>
+          <TabsTrigger value="analytics">{t("tabs.analytics")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="space-y-6">
@@ -183,7 +198,7 @@ export default function AnnouncementDetailsPage() {
 
           <div className="flex justify-end gap-2">
             <Button variant="destructive" onClick={handleDelete}>
-              {t('delete')}
+              {t("delete")}
             </Button>
           </div>
         </TabsContent>
@@ -194,8 +209,10 @@ export default function AnnouncementDetailsPage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>{t('deliveryTimeline')}</CardTitle>
-                <CardDescription>{t('deliveryTimelineDescription')}</CardDescription>
+                <CardTitle>{t("deliveryTimeline")}</CardTitle>
+                <CardDescription>
+                  {t("deliveryTimelineDescription")}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <DeliveryTimeline announcementId={id} />
@@ -210,8 +227,10 @@ export default function AnnouncementDetailsPage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>{t('deliveryRequests')}</CardTitle>
-                <CardDescription>{t('deliveryRequestsDescription')}</CardDescription>
+                <CardTitle>{t("deliveryRequests")}</CardTitle>
+                <CardDescription>
+                  {t("deliveryRequestsDescription")}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <DeliveryRequests
@@ -230,8 +249,8 @@ export default function AnnouncementDetailsPage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>{t('analytics')}</CardTitle>
-                <CardDescription>{t('analyticsDescription')}</CardDescription>
+                <CardTitle>{t("analytics")}</CardTitle>
+                <CardDescription>{t("analyticsDescription")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <AnnouncementAnalytics

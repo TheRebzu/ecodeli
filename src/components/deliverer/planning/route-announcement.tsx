@@ -1,30 +1,40 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/use-toast';
-import { api } from '@/trpc/react';
-import { MapPin, Plus, Edit, Trash2, Settings, Navigation, Zap, Star, Clock } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/trpc/react";
+import {
+  MapPin,
+  Plus,
+  Edit,
+  Trash2,
+  Settings,
+  Navigation,
+  Zap,
+  Star,
+  Clock,
+} from "lucide-react";
 
 interface RouteZone {
   latitude: number;
@@ -53,59 +63,60 @@ export default function DelivererRoutesManager() {
 
   // État du formulaire
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     priority: 1,
     zones: [] as RouteZone[],
   });
 
   // État pour l'ajout de zone
   const [newZone, setNewZone] = useState({
-    latitude: '',
-    longitude: '',
-    radius: '5',
-    cityName: '',
-    postalCodes: '',
+    latitude: "",
+    longitude: "",
+    radius: "5",
+    cityName: "",
+    postalCodes: "",
     isPreferred: false,
   });
 
   // Récupérer les routes du livreur
-  const { data: routes, refetch } = api.delivery.routes.getByDeliverer.useQuery();
+  const { data: routes, refetch } =
+    api.delivery.routes.getByDeliverer.useQuery();
 
   // Mutations
   const createRouteMutation = api.delivery.routes.create.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Route créée',
-        description: 'Votre nouveau trajet a été enregistré avec succès',
-        variant: 'success',
+        title: "Route créée",
+        description: "Votre nouveau trajet a été enregistré avec succès",
+        variant: "success",
       });
       setIsCreateModalOpen(false);
       resetForm();
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      description: '',
+      name: "",
+      description: "",
       priority: 1,
       zones: [],
     });
     setNewZone({
-      latitude: '',
-      longitude: '',
-      radius: '5',
-      cityName: '',
-      postalCodes: '',
+      latitude: "",
+      longitude: "",
+      radius: "5",
+      cityName: "",
+      postalCodes: "",
       isPreferred: false,
     });
   };
@@ -113,9 +124,9 @@ export default function DelivererRoutesManager() {
   const handleAddZone = () => {
     if (!newZone.latitude || !newZone.longitude) {
       toast({
-        title: 'Erreur',
-        description: 'Latitude et longitude sont requises',
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Latitude et longitude sont requises",
+        variant: "destructive",
       });
       return;
     }
@@ -126,28 +137,28 @@ export default function DelivererRoutesManager() {
       radius: parseFloat(newZone.radius),
       cityName: newZone.cityName || undefined,
       postalCodes: newZone.postalCodes
-        ? newZone.postalCodes.split(',').map(code => code.trim())
+        ? newZone.postalCodes.split(",").map((code) => code.trim())
         : undefined,
       isPreferred: newZone.isPreferred,
     };
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       zones: [...prev.zones, zone],
     }));
 
     setNewZone({
-      latitude: '',
-      longitude: '',
-      radius: '5',
-      cityName: '',
-      postalCodes: '',
+      latitude: "",
+      longitude: "",
+      radius: "5",
+      cityName: "",
+      postalCodes: "",
       isPreferred: false,
     });
   };
 
   const handleRemoveZone = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       zones: prev.zones.filter((_, i) => i !== index),
     }));
@@ -156,18 +167,18 @@ export default function DelivererRoutesManager() {
   const handleCreateRoute = () => {
     if (!formData.name.trim()) {
       toast({
-        title: 'Erreur',
-        description: 'Le nom du trajet est requis',
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Le nom du trajet est requis",
+        variant: "destructive",
       });
       return;
     }
 
     if (formData.zones.length === 0) {
       toast({
-        title: 'Erreur',
-        description: 'Au moins une zone doit être définie',
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Au moins une zone doit être définie",
+        variant: "destructive",
       });
       return;
     }
@@ -183,26 +194,26 @@ export default function DelivererRoutesManager() {
   const getPriorityLabel = (priority: number) => {
     switch (priority) {
       case 1:
-        return 'Haute';
+        return "Haute";
       case 2:
-        return 'Moyenne';
+        return "Moyenne";
       case 3:
-        return 'Basse';
+        return "Basse";
       default:
-        return 'Inconnue';
+        return "Inconnue";
     }
   };
 
   const getPriorityColor = (priority: number) => {
     switch (priority) {
       case 1:
-        return 'bg-red-100 text-red-800';
+        return "bg-red-100 text-red-800";
       case 2:
-        return 'bg-yellow-100 text-yellow-800';
+        return "bg-yellow-100 text-yellow-800";
       case 3:
-        return 'bg-green-100 text-green-800';
+        return "bg-green-100 text-green-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -213,7 +224,8 @@ export default function DelivererRoutesManager() {
         <div>
           <h1 className="text-2xl font-bold">Mes trajets préférés</h1>
           <p className="text-muted-foreground">
-            Définissez vos zones de livraison préférées pour recevoir des propositions ciblées
+            Définissez vos zones de livraison préférées pour recevoir des
+            propositions ciblées
           </p>
         </div>
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
@@ -241,7 +253,9 @@ export default function DelivererRoutesManager() {
                     id="name"
                     placeholder="Ex: Centre-ville Paris"
                     value={formData.name}
-                    onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    }
                   />
                 </div>
 
@@ -251,7 +265,12 @@ export default function DelivererRoutesManager() {
                     id="description"
                     placeholder="Description optionnelle du trajet"
                     value={formData.description}
-                    onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                   />
                 </div>
 
@@ -259,17 +278,26 @@ export default function DelivererRoutesManager() {
                   <Label htmlFor="priority">Priorité</Label>
                   <Select
                     value={formData.priority.toString()}
-                    onValueChange={value =>
-                      setFormData(prev => ({ ...prev, priority: parseInt(value) }))
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        priority: parseInt(value),
+                      }))
                     }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">Haute - Je préfère fortement ces zones</SelectItem>
-                      <SelectItem value="2">Moyenne - Je peux faire ces zones</SelectItem>
-                      <SelectItem value="3">Basse - Je fais si besoin</SelectItem>
+                      <SelectItem value="1">
+                        Haute - Je préfère fortement ces zones
+                      </SelectItem>
+                      <SelectItem value="2">
+                        Moyenne - Je peux faire ces zones
+                      </SelectItem>
+                      <SelectItem value="3">
+                        Basse - Je fais si besoin
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -291,8 +319,9 @@ export default function DelivererRoutesManager() {
                               {zone.cityName || `Zone ${index + 1}`}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {zone.latitude.toFixed(4)}, {zone.longitude.toFixed(4)} - Rayon:{' '}
-                              {zone.radius}km
+                              {zone.latitude.toFixed(4)},{" "}
+                              {zone.longitude.toFixed(4)} - Rayon: {zone.radius}
+                              km
                             </div>
                             {zone.isPreferred && (
                               <Badge variant="secondary" className="mt-1">
@@ -316,7 +345,9 @@ export default function DelivererRoutesManager() {
 
                 {/* Ajouter nouvelle zone */}
                 <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                  <Label className="text-base font-medium">Ajouter une zone</Label>
+                  <Label className="text-base font-medium">
+                    Ajouter une zone
+                  </Label>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -327,7 +358,12 @@ export default function DelivererRoutesManager() {
                         step="any"
                         placeholder="48.8566"
                         value={newZone.latitude}
-                        onChange={e => setNewZone(prev => ({ ...prev, latitude: e.target.value }))}
+                        onChange={(e) =>
+                          setNewZone((prev) => ({
+                            ...prev,
+                            latitude: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -338,7 +374,12 @@ export default function DelivererRoutesManager() {
                         step="any"
                         placeholder="2.3522"
                         value={newZone.longitude}
-                        onChange={e => setNewZone(prev => ({ ...prev, longitude: e.target.value }))}
+                        onChange={(e) =>
+                          setNewZone((prev) => ({
+                            ...prev,
+                            longitude: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                   </div>
@@ -352,7 +393,12 @@ export default function DelivererRoutesManager() {
                         min="0.5"
                         max="25"
                         value={newZone.radius}
-                        onChange={e => setNewZone(prev => ({ ...prev, radius: e.target.value }))}
+                        onChange={(e) =>
+                          setNewZone((prev) => ({
+                            ...prev,
+                            radius: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -361,18 +407,30 @@ export default function DelivererRoutesManager() {
                         id="cityName"
                         placeholder="Paris 1er"
                         value={newZone.cityName}
-                        onChange={e => setNewZone(prev => ({ ...prev, cityName: e.target.value }))}
+                        onChange={(e) =>
+                          setNewZone((prev) => ({
+                            ...prev,
+                            cityName: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="postalCodes">Codes postaux (séparés par des virgules)</Label>
+                    <Label htmlFor="postalCodes">
+                      Codes postaux (séparés par des virgules)
+                    </Label>
                     <Input
                       id="postalCodes"
                       placeholder="75001, 75002, 75003"
                       value={newZone.postalCodes}
-                      onChange={e => setNewZone(prev => ({ ...prev, postalCodes: e.target.value }))}
+                      onChange={(e) =>
+                        setNewZone((prev) => ({
+                          ...prev,
+                          postalCodes: e.target.value,
+                        }))
+                      }
                     />
                   </div>
 
@@ -381,15 +439,22 @@ export default function DelivererRoutesManager() {
                       type="checkbox"
                       id="isPreferred"
                       checked={newZone.isPreferred}
-                      onChange={e =>
-                        setNewZone(prev => ({ ...prev, isPreferred: e.target.checked }))
+                      onChange={(e) =>
+                        setNewZone((prev) => ({
+                          ...prev,
+                          isPreferred: e.target.checked,
+                        }))
                       }
                       className="rounded"
                     />
                     <Label htmlFor="isPreferred">Zone préférée</Label>
                   </div>
 
-                  <Button onClick={handleAddZone} variant="outline" className="w-full">
+                  <Button
+                    onClick={handleAddZone}
+                    variant="outline"
+                    className="w-full"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Ajouter cette zone
                   </Button>
@@ -398,11 +463,19 @@ export default function DelivererRoutesManager() {
             </Tabs>
 
             <div className="flex justify-end space-x-2 pt-4 border-t">
-              <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsCreateModalOpen(false)}
+              >
                 Annuler
               </Button>
-              <Button onClick={handleCreateRoute} disabled={createRouteMutation.isPending}>
-                {createRouteMutation.isPending ? 'Création...' : 'Créer le trajet'}
+              <Button
+                onClick={handleCreateRoute}
+                disabled={createRouteMutation.isPending}
+              >
+                {createRouteMutation.isPending
+                  ? "Création..."
+                  : "Créer le trajet"}
               </Button>
             </div>
           </DialogContent>
@@ -417,8 +490,8 @@ export default function DelivererRoutesManager() {
               <MapPin className="h-12 w-12 mx-auto text-muted-foreground opacity-50 mb-4" />
               <h3 className="text-lg font-medium mb-2">Aucun trajet défini</h3>
               <p className="text-muted-foreground mb-4">
-                Créez vos premiers trajets préférés pour recevoir des propositions de livraison
-                ciblées
+                Créez vos premiers trajets préférés pour recevoir des
+                propositions de livraison ciblées
               </p>
               <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -438,7 +511,9 @@ export default function DelivererRoutesManager() {
                     <div>
                       <CardTitle className="text-lg">{route.name}</CardTitle>
                       {route.description && (
-                        <p className="text-sm text-muted-foreground">{route.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {route.description}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -447,8 +522,8 @@ export default function DelivererRoutesManager() {
                     <Badge className={getPriorityColor(route.priority)}>
                       {getPriorityLabel(route.priority)}
                     </Badge>
-                    <Badge variant={route.isActive ? 'success' : 'secondary'}>
-                      {route.isActive ? 'Actif' : 'Inactif'}
+                    <Badge variant={route.isActive ? "success" : "secondary"}>
+                      {route.isActive ? "Actif" : "Inactif"}
                     </Badge>
                   </div>
                 </div>
@@ -476,7 +551,9 @@ export default function DelivererRoutesManager() {
                               Rayon: {zone.radiusKm}km
                             </div>
                           </div>
-                          {zone.isPreferred && <Star className="h-4 w-4 text-yellow-500" />}
+                          {zone.isPreferred && (
+                            <Star className="h-4 w-4 text-yellow-500" />
+                          )}
                         </div>
                       ))}
                     </div>

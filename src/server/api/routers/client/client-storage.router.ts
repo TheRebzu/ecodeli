@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { storageService } from '@/server/services/shared/storage.service';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { storageService } from "@/server/services/shared/storage.service";
 import {
   boxAvailabilitySubscriptionSchema,
   boxReservationCreateSchema,
@@ -10,23 +10,25 @@ import {
   extendReservationSchema,
   boxAccessSchema,
   boxDetailsSchema,
-} from '@/schemas/storage/storage.schema';
+} from "@/schemas/storage/storage.schema";
 
 // Définir les statuts de réservation si non disponibles dans Prisma
 export enum ReservationStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-  OVERDUE = 'OVERDUE',
-  EXTENDED = 'EXTENDED',
+  PENDING = "PENDING",
+  ACTIVE = "ACTIVE",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+  OVERDUE = "OVERDUE",
+  EXTENDED = "EXTENDED",
 }
 
 export const storageRouter = router({
   // Recherche de box disponibles
-  findAvailableBoxes: protectedProcedure.input(boxSearchSchema).query(({ input }) => {
-    return storageService.findAvailableBoxes(input);
-  }),
+  findAvailableBoxes: protectedProcedure
+    .input(boxSearchSchema)
+    .query(({ input }) => {
+      return storageService.findAvailableBoxes(input);
+    }),
 
   // Création d'une réservation de box
   createBoxReservation: protectedProcedure
@@ -48,15 +50,22 @@ export const storageRouter = router({
       z
         .object({
           status: z
-            .enum(['PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED', 'OVERDUE', 'EXTENDED'])
+            .enum([
+              "PENDING",
+              "ACTIVE",
+              "COMPLETED",
+              "CANCELLED",
+              "OVERDUE",
+              "EXTENDED",
+            ])
             .optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(({ input, ctx }) => {
       return storageService.getClientBoxReservations(
         ctx.session.user.id,
-        input?.status as ReservationStatus | undefined
+        input?.status as ReservationStatus | undefined,
       );
     }),
 
@@ -65,17 +74,23 @@ export const storageRouter = router({
     .input(
       z.object({
         boxId: z.string(),
-      })
+      }),
     )
     .query(({ input, ctx }) => {
-      return storageService.getBoxUsageHistory(input.boxId, ctx.session.user.id);
+      return storageService.getBoxUsageHistory(
+        input.boxId,
+        ctx.session.user.id,
+      );
     }),
 
   // Abonnement aux notifications de disponibilité
   subscribeToAvailability: protectedProcedure
     .input(boxAvailabilitySubscriptionSchema)
     .mutation(({ input, ctx }) => {
-      return storageService.createAvailabilitySubscription(input, ctx.session.user.id);
+      return storageService.createAvailabilitySubscription(
+        input,
+        ctx.session.user.id,
+      );
     }),
 
   // Récupération des abonnements de notification du client
@@ -88,10 +103,13 @@ export const storageRouter = router({
     .input(
       z.object({
         subscriptionId: z.string(),
-      })
+      }),
     )
     .mutation(({ input, ctx }) => {
-      return storageService.deactivateSubscription(input.subscriptionId, ctx.session.user.id);
+      return storageService.deactivateSubscription(
+        input.subscriptionId,
+        ctx.session.user.id,
+      );
     }),
 
   // Extension d'une réservation
@@ -102,14 +120,18 @@ export const storageRouter = router({
     }),
 
   // Accès à une box (validation du code d'accès)
-  accessBox: protectedProcedure.input(boxAccessSchema).mutation(({ input, ctx }) => {
-    return storageService.accessBox(input, ctx.session.user.id);
-  }),
+  accessBox: protectedProcedure
+    .input(boxAccessSchema)
+    .mutation(({ input, ctx }) => {
+      return storageService.accessBox(input, ctx.session.user.id);
+    }),
 
   // Enregistrement d'une action dans l'historique
-  logBoxUsage: protectedProcedure.input(boxUsageHistorySchema).mutation(({ input, ctx }) => {
-    return storageService.logBoxUsage(input, ctx.session.user.id);
-  }),
+  logBoxUsage: protectedProcedure
+    .input(boxUsageHistorySchema)
+    .mutation(({ input, ctx }) => {
+      return storageService.logBoxUsage(input, ctx.session.user.id);
+    }),
 
   // Récupération des entrepôts actifs
   getActiveWarehouses: protectedProcedure.query(() => {
@@ -121,26 +143,28 @@ export const storageRouter = router({
     .input(
       z.object({
         warehouseId: z.string(),
-      })
+      }),
     )
     .query(({ input }) => {
       return storageService.getWarehouseBoxes(input.warehouseId);
     }),
 
   // Création ou mise à jour d'une box (admin uniquement)
-  upsertBox: protectedProcedure.input(boxDetailsSchema).mutation(({ input, ctx }) => {
-    // Vérification que l'utilisateur est admin (le service effectue également cette vérification)
-    if (ctx.session.user.role !== 'ADMIN') {
-      throw new Error('Accès non autorisé');
-    }
-    return storageService.upsertBox(input, ctx.session.user.id);
-  }),
+  upsertBox: protectedProcedure
+    .input(boxDetailsSchema)
+    .mutation(({ input, ctx }) => {
+      // Vérification que l'utilisateur est admin (le service effectue également cette vérification)
+      if (ctx.session.user.role !== "ADMIN") {
+        throw new Error("Accès non autorisé");
+      }
+      return storageService.upsertBox(input, ctx.session.user.id);
+    }),
 
   // Vérification des disponibilités et envoi de notifications (admin ou système)
   checkAvailabilityAndNotify: protectedProcedure.mutation(({ ctx }) => {
     // Vérification que l'utilisateur est admin
-    if (ctx.session.user.role !== 'ADMIN') {
-      throw new Error('Accès non autorisé');
+    if (ctx.session.user.role !== "ADMIN") {
+      throw new Error("Accès non autorisé");
     }
     return storageService.checkAvailabilityAndNotify();
   }),
@@ -157,10 +181,13 @@ export const storageRouter = router({
           startDate: z.coerce.date().optional(),
           endDate: z.coerce.date().optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(({ input, ctx }) => {
-      return storageService.getBoxRecommendationsForClient(ctx.session.user.id, input);
+      return storageService.getBoxRecommendationsForClient(
+        ctx.session.user.id,
+        input,
+      );
     }),
 
   // Récupération des statistiques personnelles du client
@@ -175,10 +202,14 @@ export const storageRouter = router({
         boxId: z.string(),
         startDate: z.coerce.date(),
         endDate: z.coerce.date(),
-      })
+      }),
     )
     .query(({ input }) => {
-      return storageService.findBoxAlternatives(input.boxId, input.startDate, input.endDate);
+      return storageService.findBoxAlternatives(
+        input.boxId,
+        input.startDate,
+        input.endDate,
+      );
     }),
 
   // Calcul du prix optimal avec remises
@@ -188,7 +219,7 @@ export const storageRouter = router({
         boxId: z.string(),
         startDate: z.coerce.date(),
         endDate: z.coerce.date(),
-      })
+      }),
     )
     .query(({ input, ctx }) => {
       return storageService.calculateOptimalPricing({

@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { getCookie, deleteCookie } from 'cookies-next';
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { getCookie, deleteCookie } from "cookies-next";
 
 /**
  * Hook to automatically refresh the session when verification status changes
@@ -13,21 +13,24 @@ export function useVerificationUpdate() {
 
   useEffect(() => {
     // Check for the special cookie that indicates a verification status update
-    const verificationUpdated = getCookie('verification_updated');
+    const verificationUpdated = getCookie("verification_updated");
 
-    if (verificationUpdated === 'true') {
-      console.log('Verification status updated, refreshing session...');
+    if (verificationUpdated === "true") {
+      console.log("Verification status updated, refreshing session...");
 
       // Remove the cookie to prevent repeated refreshes
-      deleteCookie('verification_updated');
+      deleteCookie("verification_updated");
 
       // Call the NextAuth update method to refresh the session
       update()
         .then(() => {
-          console.log('Session refreshed successfully');
+          console.log("Session refreshed successfully");
         })
-        .catch(error => {
-          console.error('Failed to refresh session after verification update:', error);
+        .catch((error) => {
+          console.error(
+            "Failed to refresh session after verification update:",
+            error,
+          );
         });
     }
   }, [update]);

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
   Bar,
@@ -13,8 +13,8 @@ import {
   CartesianGrid,
   LineChart,
   Line,
-} from 'recharts';
-import { Package, Truck, Check, AlertTriangle, Clock } from 'lucide-react';
+} from "recharts";
+import { Package, Truck, Check, AlertTriangle, Clock } from "lucide-react";
 
 interface StatsData {
   totalCount: number;
@@ -32,13 +32,21 @@ interface DeliveryStatsProps {
 }
 
 export function DeliveryStats({ data }: DeliveryStatsProps) {
-  const t = useTranslations('admin.deliveries');
+  const t = useTranslations("admin.deliveries");
 
   const statusDistributionData = [
-    { name: t('status.pending'), value: data.pendingCount, color: '#6366F1' },
-    { name: t('status.inTransit'), value: data.inTransitCount, color: '#8B5CF6' },
-    { name: t('status.delivered'), value: data.deliveredCount, color: '#10B981' },
-    { name: t('status.problem'), value: data.problemCount, color: '#EF4444' },
+    { name: t("status.pending"), value: data.pendingCount, color: "#6366F1" },
+    {
+      name: t("status.inTransit"),
+      value: data.inTransitCount,
+      color: "#8B5CF6",
+    },
+    {
+      name: t("status.delivered"),
+      value: data.deliveredCount,
+      color: "#10B981",
+    },
+    { name: t("status.problem"), value: data.problemCount, color: "#EF4444" },
   ];
 
   // Formatage des statistiques
@@ -56,76 +64,94 @@ export function DeliveryStats({ data }: DeliveryStatsProps) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('stats.totalDeliveries')}</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {t("stats.totalDeliveries")}
+          </CardTitle>
           <Package className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{data.totalCount}</div>
-          <p className="text-xs text-muted-foreground">{t('stats.activeLivraisons')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("stats.activeLivraisons")}
+          </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('stats.inTransit')}</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {t("stats.inTransit")}
+          </CardTitle>
           <Truck className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{data.inTransitCount}</div>
-          <p className="text-xs text-muted-foreground">{t('stats.currentlyInTransit')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("stats.currentlyInTransit")}
+          </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('stats.completed')}</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {t("stats.completed")}
+          </CardTitle>
           <Check className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{data.deliveredCount}</div>
           <p className="text-xs text-muted-foreground">
             {data.totalCount > 0
-              ? `${Math.round((data.deliveredCount / data.totalCount) * 100)}% ${t('stats.completionRate')}`
-              : t('stats.noDeliveries')}
+              ? `${Math.round((data.deliveredCount / data.totalCount) * 100)}% ${t("stats.completionRate")}`
+              : t("stats.noDeliveries")}
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('stats.averageTime')}</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {t("stats.averageTime")}
+          </CardTitle>
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatTime(data.averageDeliveryTime)}</div>
-          <p className="text-xs text-muted-foreground">{t('stats.avgDeliveryTime')}</p>
+          <div className="text-2xl font-bold">
+            {formatTime(data.averageDeliveryTime)}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("stats.avgDeliveryTime")}
+          </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('stats.issues')}</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {t("stats.issues")}
+          </CardTitle>
           <AlertTriangle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{data.problemCount}</div>
           <p className="text-xs text-muted-foreground">
             {data.totalCount > 0
-              ? `${Math.round((data.problemCount / data.totalCount) * 100)}% ${t('stats.problemRate')}`
-              : t('stats.noProblems')}
+              ? `${Math.round((data.problemCount / data.totalCount) * 100)}% ${t("stats.problemRate")}`
+              : t("stats.noProblems")}
           </p>
         </CardContent>
       </Card>
 
       <Card className="col-span-full md:col-span-2">
         <CardHeader>
-          <CardTitle>{t('stats.statusDistribution')}</CardTitle>
+          <CardTitle>{t("stats.statusDistribution")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="h-80 w-full py-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={statusDistributionData.filter(item => item.value > 0)}
+                data={statusDistributionData.filter((item) => item.value > 0)}
                 barSize={60}
                 margin={{
                   top: 20,
@@ -139,7 +165,11 @@ export function DeliveryStats({ data }: DeliveryStatsProps) {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="value" name={t('stats.deliveries')} fill="#6366F1" />
+                <Bar
+                  dataKey="value"
+                  name={t("stats.deliveries")}
+                  fill="#6366F1"
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -149,7 +179,7 @@ export function DeliveryStats({ data }: DeliveryStatsProps) {
       {data.dailyDeliveries && data.dailyDeliveries.length > 0 && (
         <Card className="col-span-full md:col-span-3">
           <CardHeader>
-            <CardTitle>{t('stats.dailyActivity')}</CardTitle>
+            <CardTitle>{t("stats.dailyActivity")}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="h-80 w-full py-4">
@@ -171,7 +201,7 @@ export function DeliveryStats({ data }: DeliveryStatsProps) {
                   <Line
                     type="monotone"
                     dataKey="count"
-                    name={t('stats.deliveriesPerDay')}
+                    name={t("stats.deliveriesPerDay")}
                     stroke="#8B5CF6"
                     activeDot={{ r: 8 }}
                   />

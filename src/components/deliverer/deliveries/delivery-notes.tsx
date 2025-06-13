@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardContent,
@@ -12,9 +12,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ButtonWithLoading } from '@/app/[locale]/(public)/loading';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
 import {
   Form,
   FormControl,
@@ -23,28 +23,28 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, AlertCircle, MessageCircle, Clock } from 'lucide-react';
+} from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, AlertCircle, MessageCircle, Clock } from "lucide-react";
 
 // Schéma de validation
 const notesSchema = z.object({
   noteType: z.string({
-    required_error: 'Veuillez sélectionner un type de note',
+    required_error: "Veuillez sélectionner un type de note",
   }),
   content: z
     .string()
-    .min(3, { message: 'La note doit contenir au moins 3 caractères' })
-    .max(500, { message: 'La note ne doit pas dépasser 500 caractères' }),
+    .min(3, { message: "La note doit contenir au moins 3 caractères" })
+    .max(500, { message: "La note ne doit pas dépasser 500 caractères" }),
 });
 
 type NotesFormValues = z.infer<typeof notesSchema>;
@@ -68,8 +68,17 @@ interface DeliveryNotesProps {
   readOnly?: boolean;
 }
 
-export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onCancel, className = '', notes, onNotesChange, readOnly = false }: DeliveryNotesProps) {
-  const t = useTranslations('deliveries.notes');
+export function DeliveryNotes({
+  deliveryId,
+  previousNotes = [],
+  onNoteAdded,
+  onCancel,
+  className = "",
+  notes,
+  onNotesChange,
+  readOnly = false,
+}: DeliveryNotesProps) {
+  const t = useTranslations("deliveries.notes");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -78,18 +87,18 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
   const form = useForm<NotesFormValues>({
     resolver: zodResolver(notesSchema),
     defaultValues: {
-      noteType: 'INFO',
-      content: '',
+      noteType: "INFO",
+      content: "",
     },
   });
 
   // Types de notes
   const noteTypes = [
-    { value: 'INFO', label: t('noteTypes.info') },
-    { value: 'INSTRUCTION', label: t('noteTypes.instruction') },
-    { value: 'WARNING', label: t('noteTypes.warning') },
-    { value: 'CLIENT_REQUEST', label: t('noteTypes.clientRequest') },
-    { value: 'MERCHANT_INFO', label: t('noteTypes.merchantInfo') },
+    { value: "INFO", label: t("noteTypes.info") },
+    { value: "INSTRUCTION", label: t("noteTypes.instruction") },
+    { value: "WARNING", label: t("noteTypes.warning") },
+    { value: "CLIENT_REQUEST", label: t("noteTypes.clientRequest") },
+    { value: "MERCHANT_INFO", label: t("noteTypes.merchantInfo") },
   ];
 
   // Gérer la soumission du formulaire
@@ -100,9 +109,9 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
     try {
       // Simuler un appel API pour l'exemple
       // Dans un cas réel, vous utiliseriez un hook ou un appel API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      console.log('Note ajoutée:', {
+      console.log("Note ajoutée:", {
         deliveryId,
         ...data,
         timestamp: new Date(),
@@ -115,7 +124,7 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
       }
     } catch (err) {
       console.error("Erreur lors de l'ajout de la note:", err);
-      setError(t('errorSubmitting'));
+      setError(t("errorSubmitting"));
     } finally {
       setIsSubmitting(false);
     }
@@ -124,41 +133,45 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
   // Obtenir la couleur du badge selon le type de note
   const getNoteTypeBadgeVariant = (type: string) => {
     switch (type) {
-      case 'INFO':
-        return 'default';
-      case 'INSTRUCTION':
-        return 'outline';
-      case 'WARNING':
-        return 'destructive';
-      case 'CLIENT_REQUEST':
-        return 'secondary';
-      case 'MERCHANT_INFO':
-        return 'blue';
+      case "INFO":
+        return "default";
+      case "INSTRUCTION":
+        return "outline";
+      case "WARNING":
+        return "destructive";
+      case "CLIENT_REQUEST":
+        return "secondary";
+      case "MERCHANT_INFO":
+        return "blue";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   // Formatter la date
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Intl.DateTimeFormat("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(date);
   };
 
   // Afficher les notes précédentes
   const renderPreviousNotes = () => {
     if (previousNotes.length === 0) {
-      return <div className="text-center text-muted-foreground py-3">{t('noPreviousNotes')}</div>;
+      return (
+        <div className="text-center text-muted-foreground py-3">
+          {t("noPreviousNotes")}
+        </div>
+      );
     }
 
     return (
       <div className="space-y-3">
-        {previousNotes.map(note => (
+        {previousNotes.map((note) => (
           <div key={note.id} className="border rounded-md p-3 bg-card">
             <div className="flex justify-between items-center mb-2">
               <Badge variant={getNoteTypeBadgeVariant(note.type) as any}>
@@ -181,15 +194,15 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
       <CardHeader>
         <CardTitle className="flex items-center">
           <MessageCircle className="mr-2 h-5 w-5" />
-          {t('title')}
+          {t("title")}
         </CardTitle>
-        <CardDescription>{t('description')}</CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('errorTitle')}</AlertTitle>
+            <AlertTitle>{t("errorTitle")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -197,8 +210,10 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
         {success && (
           <Alert className="mb-4 bg-green-50">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertTitle className="text-green-600">{t('successTitle')}</AlertTitle>
-            <AlertDescription>{t('successMessage')}</AlertDescription>
+            <AlertTitle className="text-green-600">
+              {t("successTitle")}
+            </AlertTitle>
+            <AlertDescription>{t("successMessage")}</AlertDescription>
           </Alert>
         )}
 
@@ -209,7 +224,7 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
               name="noteType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('noteTypeLabel')}</FormLabel>
+                  <FormLabel>{t("noteTypeLabel")}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -217,18 +232,18 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('selectNoteType')} />
+                        <SelectValue placeholder={t("selectNoteType")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {noteTypes.map(type => (
+                      {noteTypes.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>{t('noteTypeDescription')}</FormDescription>
+                  <FormDescription>{t("noteTypeDescription")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -239,16 +254,16 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
               name="content"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('contentLabel')}</FormLabel>
+                  <FormLabel>{t("contentLabel")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder={t('contentPlaceholder')}
+                      placeholder={t("contentPlaceholder")}
                       className="min-h-[100px]"
                       {...field}
                       disabled={isSubmitting}
                     />
                   </FormControl>
-                  <FormDescription>{t('contentHelp')}</FormDescription>
+                  <FormDescription>{t("contentHelp")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -258,12 +273,14 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
 
         {/* Notes précédentes */}
         <div className="mt-6">
-          <h3 className="text-sm font-medium mb-2">{t('previousNotesTitle')}</h3>
+          <h3 className="text-sm font-medium mb-2">
+            {t("previousNotesTitle")}
+          </h3>
           {renderPreviousNotes()}
         </div>
 
         <Textarea
-          value={notes || ''}
+          value={notes || ""}
           onChange={(e) => onNotesChange?.(e.target.value)}
           readOnly={readOnly}
           placeholder="Ajouter des notes pour cette livraison..."
@@ -272,14 +289,14 @@ export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onC
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
-          {t('cancelButton')}
+          {t("cancelButton")}
         </Button>
         <ButtonWithLoading
           onClick={form.handleSubmit(onSubmit)}
           disabled={isSubmitting || !form.formState.isValid}
           loading={isSubmitting}
         >
-          {t('addNoteButton')}
+          {t("addNoteButton")}
         </ButtonWithLoading>
       </CardFooter>
     </Card>

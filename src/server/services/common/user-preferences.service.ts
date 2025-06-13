@@ -1,10 +1,10 @@
-import { db } from '@/server/db';
+import { db } from "@/server/db";
 import {
   UserPreferences,
   UpdateUserPreferences,
   UpdateOnboardingStatus,
-} from '@/schemas/user/user-preferences.schema';
-import { defaultLocale } from '@/types/i18n/translation';
+} from "@/schemas/user/user-preferences.schema";
+import { defaultLocale } from "@/types/i18n/translation";
 
 export const userPreferencesService = {
   /**
@@ -25,8 +25,8 @@ export const userPreferencesService = {
     if (!user) {
       return {
         locale: defaultLocale,
-        dateFormat: 'medium',
-        currencyFormat: 'EUR',
+        dateFormat: "medium",
+        currencyFormat: "EUR",
         hasCompletedOnboarding: false,
         lastOnboardingStep: 0,
         tutorialSkipped: false,
@@ -38,8 +38,8 @@ export const userPreferencesService = {
     return {
       locale: user.locale || defaultLocale,
       timeZone: preferences.timeZone,
-      dateFormat: preferences.dateFormat || 'medium',
-      currencyFormat: preferences.currencyFormat || 'EUR',
+      dateFormat: preferences.dateFormat || "medium",
+      currencyFormat: preferences.currencyFormat || "EUR",
       hasCompletedOnboarding: user.hasCompletedOnboarding || false,
       lastOnboardingStep: user.lastOnboardingStep || 0,
       onboardingCompletionDate: user.onboardingCompletionDate?.toISOString(),
@@ -52,7 +52,7 @@ export const userPreferencesService = {
    */
   async updateUserPreferences(
     userId: string,
-    data: UpdateUserPreferences
+    data: UpdateUserPreferences,
   ): Promise<UserPreferences> {
     const {
       locale,
@@ -89,11 +89,12 @@ export const userPreferencesService = {
     return {
       locale: updatedUser.locale || defaultLocale,
       timeZone: preferences.timeZone,
-      dateFormat: preferences.dateFormat || 'medium',
-      currencyFormat: preferences.currencyFormat || 'EUR',
+      dateFormat: preferences.dateFormat || "medium",
+      currencyFormat: preferences.currencyFormat || "EUR",
       hasCompletedOnboarding: updatedUser.hasCompletedOnboarding || false,
       lastOnboardingStep: updatedUser.lastOnboardingStep || 0,
-      onboardingCompletionDate: updatedUser.onboardingCompletionDate?.toISOString(),
+      onboardingCompletionDate:
+        updatedUser.onboardingCompletionDate?.toISOString(),
       tutorialSkipped: preferences.tutorialSkipped || false,
     };
   },
@@ -140,7 +141,7 @@ export const userPreferencesService = {
    */
   async updateOnboardingStatus(
     userId: string,
-    data: UpdateOnboardingStatus
+    data: UpdateOnboardingStatus,
   ): Promise<{
     hasCompletedOnboarding: boolean;
     lastOnboardingStep: number;
@@ -158,7 +159,8 @@ export const userPreferencesService = {
     const updateData: any = {};
     if (hasCompletedOnboarding !== undefined)
       updateData.hasCompletedOnboarding = hasCompletedOnboarding;
-    if (lastOnboardingStep !== undefined) updateData.lastOnboardingStep = lastOnboardingStep;
+    if (lastOnboardingStep !== undefined)
+      updateData.lastOnboardingStep = lastOnboardingStep;
     if (onboardingCompletionDate !== undefined)
       updateData.onboardingCompletionDate = new Date(onboardingCompletionDate);
 
@@ -194,7 +196,8 @@ export const userPreferencesService = {
     return {
       hasCompletedOnboarding: updatedUser.hasCompletedOnboarding || false,
       lastOnboardingStep: updatedUser.lastOnboardingStep || 0,
-      onboardingCompletionDate: updatedUser.onboardingCompletionDate?.toISOString(),
+      onboardingCompletionDate:
+        updatedUser.onboardingCompletionDate?.toISOString(),
       tutorialSkipped: preferences.tutorialSkipped || false,
     };
   },
@@ -299,12 +302,12 @@ export const userPreferencesService = {
         announcementNotifications: true,
         serviceReminders: true,
         storageAlerts: true,
-        notificationCategories: ['security', 'payments', 'deliveries'],
+        notificationCategories: ["security", "payments", "deliveries"],
         quietHours: {
           enabled: false,
-          startTime: '22:00',
-          endTime: '08:00',
-          timezone: 'Europe/Paris',
+          startTime: "22:00",
+          endTime: "08:00",
+          timezone: "Europe/Paris",
         },
         frequency: {
           immediate: true,
@@ -332,15 +335,15 @@ export const userPreferencesService = {
       serviceReminders: notifPrefs.serviceReminders ?? true,
       storageAlerts: notifPrefs.storageAlerts ?? true,
       notificationCategories: notifPrefs.notificationCategories || [
-        'security',
-        'payments',
-        'deliveries',
+        "security",
+        "payments",
+        "deliveries",
       ],
       quietHours: notifPrefs.quietHours || {
         enabled: false,
-        startTime: '22:00',
-        endTime: '08:00',
-        timezone: generalPrefs.timeZone || 'Europe/Paris',
+        startTime: "22:00",
+        endTime: "08:00",
+        timezone: generalPrefs.timeZone || "Europe/Paris",
       },
       frequency: notifPrefs.frequency || {
         immediate: true,
@@ -382,7 +385,7 @@ export const userPreferencesService = {
         daily: boolean;
         weekly: boolean;
       };
-    }>
+    }>,
   ): Promise<boolean> {
     try {
       // Récupérer les préférences actuelles
@@ -392,7 +395,7 @@ export const userPreferencesService = {
       });
 
       if (!currentUser) {
-        throw new Error('Utilisateur non trouvé');
+        throw new Error("Utilisateur non trouvé");
       }
 
       const currentPrefs = (currentUser.notificationPreferences as any) || {};
@@ -427,7 +430,10 @@ export const userPreferencesService = {
 
       return true;
     } catch (error) {
-      console.error('Erreur lors de la mise à jour des préférences de notification:', error);
+      console.error(
+        "Erreur lors de la mise à jour des préférences de notification:",
+        error,
+      );
       return false;
     }
   },
@@ -438,13 +444,13 @@ export const userPreferencesService = {
   async canReceiveNotificationNow(
     userId: string,
     notificationType: string,
-    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' = 'MEDIUM'
+    priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT" = "MEDIUM",
   ): Promise<boolean> {
     try {
       const prefs = await this.getNotificationPreferences(userId);
 
       // Les notifications urgentes et de sécurité passent toujours
-      if (priority === 'URGENT' || prefs.securityAlerts) {
+      if (priority === "URGENT" || prefs.securityAlerts) {
         return true;
       }
 
@@ -459,8 +465,8 @@ export const userPreferencesService = {
 
         // Logique simplifiée - dans un vrai système, utilisez une bibliothèque comme date-fns-tz
         const currentHour = now.getHours();
-        const startHour = parseInt(startTime.split(':')[0]);
-        const endHour = parseInt(endTime.split(':')[0]);
+        const startHour = parseInt(startTime.split(":")[0]);
+        const endHour = parseInt(endTime.split(":")[0]);
 
         if (startHour > endHour) {
           // Les heures de silence traversent minuit
@@ -477,23 +483,26 @@ export const userPreferencesService = {
 
       // Vérifier les préférences spécifiques au type
       switch (notificationType) {
-        case 'DELIVERY':
+        case "DELIVERY":
           return prefs.deliveryUpdates;
-        case 'ANNOUNCEMENT':
+        case "ANNOUNCEMENT":
           return prefs.announcementNotifications;
-        case 'SERVICE':
+        case "SERVICE":
           return prefs.serviceReminders;
-        case 'STORAGE':
+        case "STORAGE":
           return prefs.storageAlerts;
-        case 'PAYMENT':
+        case "PAYMENT":
           return prefs.paymentAlerts;
-        case 'MARKETING':
+        case "MARKETING":
           return prefs.marketingEmails;
         default:
           return true;
       }
     } catch (error) {
-      console.error('Erreur lors de la vérification des permissions de notification:', error);
+      console.error(
+        "Erreur lors de la vérification des permissions de notification:",
+        error,
+      );
       return true; // En cas d'erreur, autoriser par défaut
     }
   },
@@ -504,7 +513,7 @@ export const userPreferencesService = {
   async snoozeNotifications(
     userId: string,
     duration: number, // en minutes
-    reason?: string
+    reason?: string,
   ): Promise<{ success: boolean; unsnoozeAt: Date }> {
     try {
       const unsnoozeAt = new Date(Date.now() + duration * 60 * 1000);
@@ -519,7 +528,7 @@ export const userPreferencesService = {
             snoozed: {
               enabled: true,
               until: unsnoozeAt.toISOString(),
-              reason: reason || 'Notifications en pause',
+              reason: reason || "Notifications en pause",
               originalPrefs: {
                 emailNotifications: currentPrefs.emailNotifications,
                 pushNotifications: currentPrefs.pushNotifications,
@@ -535,7 +544,10 @@ export const userPreferencesService = {
         unsnoozeAt,
       };
     } catch (error) {
-      console.error('Erreur lors de la mise en pause des notifications:', error);
+      console.error(
+        "Erreur lors de la mise en pause des notifications:",
+        error,
+      );
       return {
         success: false,
         unsnoozeAt: new Date(),
@@ -580,7 +592,7 @@ export const userPreferencesService = {
 
       return true;
     } catch (error) {
-      console.error('Erreur lors de la réactivation des notifications:', error);
+      console.error("Erreur lors de la réactivation des notifications:", error);
       return false;
     }
   },

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useLocalizedFormat } from '@/hooks/system/use-socket';
+import { useLocalizedFormat } from "@/hooks/system/use-socket";
 
-type DateFormat = 'short' | 'medium' | 'long' | string;
+type DateFormat = "short" | "medium" | "long" | string;
 
 interface FormattedDateProps {
   date: Date | string | null | undefined;
@@ -13,11 +13,12 @@ interface FormattedDateProps {
 
 export function FormattedDate({
   date,
-  format = 'medium',
+  format = "medium",
   relative = false,
-  className = '',
+  className = "",
 }: FormattedDateProps) {
-  const { formatLocalizedDate, formatLocalizedRelativeDate } = useLocalizedFormat();
+  const { formatLocalizedDate, formatLocalizedRelativeDate } =
+    useLocalizedFormat();
 
   if (!date) {
     return <span className={className}>-</span>;

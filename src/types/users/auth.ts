@@ -1,7 +1,7 @@
-import type { ClientRegisterSchemaType } from '@/schemas/client/client-register.schema';
-import type { DelivererRegisterSchemaType } from '@/schemas/deliverer/deliverer-register.schema';
-import type { MerchantRegisterSchemaType } from '@/schemas/merchant/merchant-register.schema';
-import type { ProviderRegisterSchemaType } from '@/schemas/provider/provider-register.schema';
+import type { ClientRegisterSchemaType } from "@/schemas/client/client-register.schema";
+import type { DelivererRegisterSchemaType } from "@/schemas/deliverer/deliverer-register.schema";
+import type { MerchantRegisterSchemaType } from "@/schemas/merchant/merchant-register.schema";
+import type { ProviderRegisterSchemaType } from "@/schemas/provider/provider-register.schema";
 
 export interface AuthResponse {
   success: boolean;
@@ -18,7 +18,9 @@ export interface AuthService {
   /**
    * Inscription d'un livreur
    */
-  registerDeliverer: (data: DelivererRegisterSchemaType) => Promise<AuthResponse>;
+  registerDeliverer: (
+    data: DelivererRegisterSchemaType,
+  ) => Promise<AuthResponse>;
 
   /**
    * Inscription d'un commerçant
@@ -51,7 +53,7 @@ export interface AuthService {
   resetPassword: (
     token: string,
     password: string,
-    confirmPassword: string
+    confirmPassword: string,
   ) => Promise<AuthResponse>;
 
   /**

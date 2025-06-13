@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { DocumentType } from '@prisma/client';
+import { DocumentType } from "@prisma/client";
 import {
   FileIcon,
   FileTextIcon,
@@ -11,8 +11,8 @@ import {
   AwardIcon,
   ShieldIcon,
   User2Icon,
-} from 'lucide-react';
-import { DocumentTypeIconProps } from '@/components/shared/documents/document-types';
+} from "lucide-react";
+import { DocumentTypeIconProps } from "@/components/shared/documents/document-types";
 
 /**
  * Component to display an appropriate icon based on document type
@@ -42,6 +42,8 @@ export function DocumentTypeIcon({ type, size = 5 }: DocumentTypeIconProps) {
   };
 
   return (
-    <div className={`w-${size} h-${size} flex items-center justify-center`}>{getIconByType()}</div>
+    <div className={`w-${size} h-${size} flex items-center justify-center`}>
+      {getIconByType()}
+    </div>
   );
 }

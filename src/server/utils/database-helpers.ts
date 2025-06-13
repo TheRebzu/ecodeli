@@ -3,7 +3,7 @@
  * Patterns et helpers pour améliorer les performances Prisma
  */
 
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from "@prisma/client";
 
 /**
  * Optimise les requêtes de pagination avec cursor
@@ -11,7 +11,7 @@ import type { Prisma } from '@prisma/client';
 export function buildCursorPagination(
   cursor?: string,
   limit: number = 20,
-  orderBy: any = { createdAt: 'desc' }
+  orderBy: any = { createdAt: "desc" },
 ) {
   const take = Math.min(limit, 100); // Limiter à 100 maximum
 
@@ -87,7 +87,7 @@ export const optimizedSelects = {
 export const commonFilters = {
   // Filtres pour les annonces actives
   activeAnnouncements: {
-    status: { in: ['PUBLISHED', 'MATCHED'] },
+    status: { in: ["PUBLISHED", "MATCHED"] },
     isActive: true,
   } as const,
 
@@ -96,7 +96,7 @@ export const commonFilters = {
     isActive: true,
     deliverer: {
       isActive: true,
-      verificationStatus: 'VERIFIED',
+      verificationStatus: "VERIFIED",
     },
   } as const,
 
@@ -117,17 +117,17 @@ export function buildDynamicWhere(filters: Record<string, any>): any {
     if (value === undefined || value === null) return;
 
     // Gestion des chaînes de recherche
-    if (typeof value === 'string' && key.includes('search')) {
+    if (typeof value === "string" && key.includes("search")) {
       where.OR = [
-        { title: { contains: value, mode: 'insensitive' } },
-        { description: { contains: value, mode: 'insensitive' } },
+        { title: { contains: value, mode: "insensitive" } },
+        { description: { contains: value, mode: "insensitive" } },
       ];
       return;
     }
 
     // Gestion des plages de dates
-    if (key.includes('Date') && Array.isArray(value) && value.length === 2) {
-      where[key.replace('Date', '')] = {
+    if (key.includes("Date") && Array.isArray(value) && value.length === 2) {
+      where[key.replace("Date", "")] = {
         gte: value[0],
         lte: value[1],
       };
@@ -168,7 +168,7 @@ export function buildOptimizedInclude(includes: string[]): any {
 
   const result: any = {};
 
-  includes.forEach(include => {
+  includes.forEach((include) => {
     if (includeMap[include]) {
       result[include] = includeMap[include];
     }
@@ -180,11 +180,13 @@ export function buildOptimizedInclude(includes: string[]): any {
 /**
  * Requête batch pour récupérer plusieurs entités
  */
-export async function batchQuery<T>(queries: Array<() => Promise<T>>): Promise<T[]> {
+export async function batchQuery<T>(
+  queries: Array<() => Promise<T>>,
+): Promise<T[]> {
   try {
     return await Promise.all(queries);
   } catch (error) {
-    console.error('Batch query error:', error);
+    console.error("Batch query error:", error);
     throw error;
   }
 }
@@ -225,7 +227,7 @@ export const queryCache = new QueryCache();
 export async function withCache<T>(
   key: string,
   query: () => Promise<T>,
-  useCache: boolean = true
+  useCache: boolean = true,
 ): Promise<T> {
   if (!useCache) {
     return await query();
@@ -247,32 +249,32 @@ export async function withCache<T>(
 export function buildAggregations(metrics: string[]) {
   const aggregations: any = {};
 
-  if (metrics.includes('count')) {
+  if (metrics.includes("count")) {
     aggregations._count = true;
   }
 
-  if (metrics.includes('sum')) {
+  if (metrics.includes("sum")) {
     aggregations._sum = {
       amount: true,
       price: true,
     };
   }
 
-  if (metrics.includes('avg')) {
+  if (metrics.includes("avg")) {
     aggregations._avg = {
       rating: true,
       price: true,
     };
   }
 
-  if (metrics.includes('max')) {
+  if (metrics.includes("max")) {
     aggregations._max = {
       createdAt: true,
       price: true,
     };
   }
 
-  if (metrics.includes('min')) {
+  if (metrics.includes("min")) {
     aggregations._min = {
       createdAt: true,
       price: true,
@@ -287,20 +289,20 @@ export function buildAggregations(metrics: string[]) {
  */
 export function buildTextSearch(
   searchTerm: string,
-  fields: string[] = ['title', 'description']
+  fields: string[] = ["title", "description"],
 ): any {
   if (!searchTerm.trim()) return {};
 
   const terms = searchTerm.trim().split(/\s+/);
 
   return {
-    OR: fields.flatMap(field =>
-      terms.map(term => ({
+    OR: fields.flatMap((field) =>
+      terms.map((term) => ({
         [field]: {
           contains: term,
-          mode: 'insensitive' as const,
+          mode: "insensitive" as const,
         },
-      }))
+      })),
     ),
   };
 }
@@ -308,7 +310,11 @@ export function buildTextSearch(
 /**
  * Construit des requêtes géospatiales optimisées
  */
-export function buildGeoQuery(latitude: number, longitude: number, radiusKm: number) {
+export function buildGeoQuery(
+  latitude: number,
+  longitude: number,
+  radiusKm: number,
+) {
   // Note: Pour une vraie recherche géospatiale, il faudrait utiliser PostGIS
   // Ceci est une approximation pour le développement
   const latRange = radiusKm / 111; // ~111 km par degré de latitude
@@ -331,7 +337,7 @@ export function buildGeoQuery(latitude: number, longitude: number, radiusKm: num
  */
 export async function withTransaction<T>(
   prisma: any,
-  operations: (tx: any) => Promise<T>
+  operations: (tx: any) => Promise<T>,
 ): Promise<T> {
   return await prisma.$transaction(operations);
 }
@@ -339,19 +345,22 @@ export async function withTransaction<T>(
 /**
  * Construit les paramètres d'ordre optimisés
  */
-export function buildOrderBy(sortBy: string = 'createdAt', sortOrder: 'asc' | 'desc' = 'desc') {
+export function buildOrderBy(
+  sortBy: string = "createdAt",
+  sortOrder: "asc" | "desc" = "desc",
+) {
   const allowedSortFields = [
-    'createdAt',
-    'updatedAt',
-    'name',
-    'title',
-    'price',
-    'rating',
-    'distance',
+    "createdAt",
+    "updatedAt",
+    "name",
+    "title",
+    "price",
+    "rating",
+    "distance",
   ];
 
   if (!allowedSortFields.includes(sortBy)) {
-    sortBy = 'createdAt';
+    sortBy = "createdAt";
   }
 
   return { [sortBy]: sortOrder };

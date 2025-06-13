@@ -1,6 +1,6 @@
-import { ProtectedHeader } from '@/components/layout/protected/header';
-import { ProtectedFooter } from '@/components/layout/protected/footer';
-import { MerchantSidebar } from '@/components/layout/sidebars/merchant-sidebar';
+import { ProtectedHeader } from "@/components/layout/protected/header";
+import { ProtectedFooter } from "@/components/layout/protected/footer";
+import { MerchantSidebar } from "@/components/layout/sidebars/merchant-sidebar";
 
 interface MerchantLayoutProps {
   children: React.ReactNode;
@@ -9,7 +9,10 @@ interface MerchantLayoutProps {
   }>;
 }
 
-export default async function MerchantLayout({ children, params }: MerchantLayoutProps) {
+export default async function MerchantLayout({
+  children,
+  params,
+}: MerchantLayoutProps) {
   const { locale } = await params;
 
   return (
@@ -24,7 +27,9 @@ export default async function MerchantLayout({ children, params }: MerchantLayou
         </div>
 
         <main className="flex-1 overflow-x-hidden bg-muted/10">
-          <div className="container max-w-7xl mx-auto p-4 md:p-8">{children}</div>
+          <div className="container max-w-7xl mx-auto p-4 md:p-8">
+            {children}
+          </div>
         </main>
       </div>
 

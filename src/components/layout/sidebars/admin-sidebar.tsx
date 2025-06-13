@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   BarChart3,
   Users,
@@ -58,8 +58,11 @@ import {
   Shield,
   Server,
   Home,
-} from 'lucide-react';
-import { BaseSidebar, type SidebarSection } from '@/components/layout/sidebars/base-sidebar';
+} from "lucide-react";
+import {
+  BaseSidebar,
+  type SidebarSection,
+} from "@/components/layout/sidebars/base-sidebar";
 
 interface AdminSidebarProps {
   locale: string;
@@ -74,7 +77,7 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
       title: "Vue d'ensemble",
       items: [
         {
-          label: 'Tableau de bord',
+          label: "Tableau de bord",
           href: `/${locale}/admin`,
           icon: BarChart3,
           badge: 5,
@@ -84,49 +87,49 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
     // Section Utilisateurs et vérifications
     {
-      title: 'Utilisateurs',
+      title: "Utilisateurs",
       items: [
         {
-          label: 'Tous les utilisateurs',
+          label: "Tous les utilisateurs",
           href: `/${locale}/admin/users`,
           icon: Users,
           badge: 3,
         },
         {
-          label: 'Clients',
+          label: "Clients",
           href: `/${locale}/admin/clients`,
           icon: Users,
         },
         {
-          label: 'Livreurs',
+          label: "Livreurs",
           href: `/${locale}/admin/deliverers`,
           icon: Truck,
           badge: 2,
         },
         {
-          label: 'Commerçants',
+          label: "Commerçants",
           href: `/${locale}/admin/merchants`,
           icon: Building,
         },
         {
-          label: 'Prestataires',
+          label: "Prestataires",
           href: `/${locale}/admin/providers`,
           icon: HardHat,
         },
         {
-          label: 'Vérifications',
+          label: "Vérifications",
           href: `/${locale}/admin/verifications`,
           icon: FileCheck,
           badge: 12,
         },
         {
-          label: 'Vérif. livreurs',
+          label: "Vérif. livreurs",
           href: `/${locale}/admin/deliverers/verifications`,
           icon: UserCheck,
           badge: 7,
         },
         {
-          label: 'Vérif. prestataires',
+          label: "Vérif. prestataires",
           href: `/${locale}/admin/providers/verifications`,
           icon: UserCheck,
           badge: 5,
@@ -136,36 +139,36 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
     // Section Opérations
     {
-      title: 'Opérations',
+      title: "Opérations",
       items: [
         {
-          label: 'Livraisons',
+          label: "Livraisons",
           href: `/${locale}/admin/deliveries`,
           icon: Package,
           badge: 8,
         },
         {
-          label: 'Annonces',
+          label: "Annonces",
           href: `/${locale}/admin/announcements`,
           icon: Megaphone,
         },
         {
-          label: 'Services',
+          label: "Services",
           href: `/${locale}/admin/services`,
           icon: Briefcase,
         },
         {
-          label: 'Prestations',
+          label: "Prestations",
           href: `/${locale}/admin/prestations`,
           icon: ClipboardList,
         },
         {
-          label: 'Catégories prestations',
+          label: "Catégories prestations",
           href: `/${locale}/admin/prestations/categories`,
           icon: Tag,
         },
         {
-          label: 'Tarifs prestations',
+          label: "Tarifs prestations",
           href: `/${locale}/admin/prestations/pricing`,
           icon: DollarSign,
         },
@@ -174,31 +177,31 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
     // Section Contrats et Partenariats
     {
-      title: 'Contrats',
+      title: "Contrats",
       items: [
         {
-          label: 'Tous les contrats',
+          label: "Tous les contrats",
           href: `/${locale}/admin/contracts`,
           icon: FileText,
         },
         {
-          label: 'Contrats en attente',
+          label: "Contrats en attente",
           href: `/${locale}/admin/contracts/pending`,
           icon: Clock,
           badge: 4,
         },
         {
-          label: 'Modèles de contrats',
+          label: "Modèles de contrats",
           href: `/${locale}/admin/contracts/templates`,
           icon: FileText,
         },
         {
-          label: 'Créer modèle',
+          label: "Créer modèle",
           href: `/${locale}/admin/contracts/templates/create`,
           icon: FileText,
         },
         {
-          label: 'Contrats commerçants',
+          label: "Contrats commerçants",
           href: `/${locale}/admin/merchants/contracts`,
           icon: Building,
         },
@@ -207,41 +210,41 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
     // Section Finance
     {
-      title: 'Finance',
+      title: "Finance",
       items: [
         {
-          label: 'Facturation',
+          label: "Facturation",
           href: `/${locale}/admin/billing`,
           icon: Receipt,
         },
         {
-          label: 'Factures',
+          label: "Factures",
           href: `/${locale}/admin/invoices`,
           icon: Receipt,
         },
         {
-          label: 'Paiements',
+          label: "Paiements",
           href: `/${locale}/admin/payments`,
           icon: CreditCard,
           badge: 6,
         },
         {
-          label: 'Commissions',
+          label: "Commissions",
           href: `/${locale}/admin/payments/commissions`,
           icon: Percent,
         },
         {
-          label: 'Comptabilité',
+          label: "Comptabilité",
           href: `/${locale}/admin/finance/accounting`,
           icon: Calculator,
         },
         {
-          label: 'Prévisions',
+          label: "Prévisions",
           href: `/${locale}/admin/finance/forecasts`,
           icon: TrendingUp,
         },
         {
-          label: 'Trésorerie',
+          label: "Trésorerie",
           href: `/${locale}/admin/finance/treasury`,
           icon: Banknote,
         },
@@ -250,40 +253,40 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
     // Section Configuration et Tarification
     {
-      title: 'Configuration',
+      title: "Configuration",
       items: [
         {
-          label: 'Paramètres système',
+          label: "Paramètres système",
           href: `/${locale}/admin/settings`,
           icon: Settings,
         },
         {
-          label: 'Taux de commission',
+          label: "Taux de commission",
           href: `/${locale}/admin/config/commission-rates`,
           icon: Percent,
         },
         {
-          label: 'Config notifications',
+          label: "Config notifications",
           href: `/${locale}/admin/config/notifications`,
           icon: Bell,
         },
         {
-          label: 'Règles tarifaires',
+          label: "Règles tarifaires",
           href: `/${locale}/admin/config/pricing-rules`,
           icon: Calculator,
         },
         {
-          label: 'Tarification',
+          label: "Tarification",
           href: `/${locale}/admin/pricing`,
           icon: DollarSign,
         },
         {
-          label: 'Historique tarifs',
+          label: "Historique tarifs",
           href: `/${locale}/admin/pricing/history`,
           icon: Clock,
         },
         {
-          label: 'Simulateur prix',
+          label: "Simulateur prix",
           href: `/${locale}/admin/pricing/simulator`,
           icon: Calculator,
         },
@@ -292,15 +295,15 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
     // Section Entrepôts et Logistique
     {
-      title: 'Logistique',
+      title: "Logistique",
       items: [
         {
-          label: 'Entrepôts',
+          label: "Entrepôts",
           href: `/${locale}/admin/warehouses`,
           icon: Warehouse,
         },
         {
-          label: 'Créer entrepôt',
+          label: "Créer entrepôt",
           href: `/${locale}/admin/warehouses/create`,
           icon: Warehouse,
         },
@@ -309,26 +312,26 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
     // Section Communication
     {
-      title: 'Communication',
+      title: "Communication",
       items: [
         {
-          label: 'Notifications',
+          label: "Notifications",
           href: `/${locale}/admin/notifications`,
           icon: Bell,
           badge: notifications,
         },
         {
-          label: 'Campagnes notifs',
+          label: "Campagnes notifs",
           href: `/${locale}/admin/notifications/campaigns`,
           icon: Send,
         },
         {
-          label: 'Créer campagne',
+          label: "Créer campagne",
           href: `/${locale}/admin/notifications/campaigns/create`,
           icon: Send,
         },
         {
-          label: 'Modèles notifs',
+          label: "Modèles notifs",
           href: `/${locale}/admin/notifications/templates`,
           icon: Mail,
         },
@@ -337,20 +340,20 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
     // Section Rapports et Analytics
     {
-      title: 'Analytics',
+      title: "Analytics",
       items: [
         {
-          label: 'Rapports',
+          label: "Rapports",
           href: `/${locale}/admin/reports`,
           icon: FileBarChart,
         },
         {
-          label: 'Audit système',
+          label: "Audit système",
           href: `/${locale}/admin/audit`,
           icon: ShieldCheck,
         },
         {
-          label: 'Logs système',
+          label: "Logs système",
           href: `/${locale}/admin/logs`,
           icon: Database,
         },
@@ -359,16 +362,16 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
     // Section Support et Aide
     {
-      title: 'Support',
+      title: "Support",
       items: [
         {
-          label: 'Support client',
+          label: "Support client",
           href: `/${locale}/admin/support`,
           icon: HelpCircle,
           badge: 3,
         },
         {
-          label: 'Gestion FAQ',
+          label: "Gestion FAQ",
           href: `/${locale}/admin/support/faq-management`,
           icon: BookOpen,
         },
@@ -377,13 +380,13 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
   ];
 
   const userInfo = {
-    name: 'Administrateur',
-    email: 'admin@ecodeli.me',
-    avatar: '',
+    name: "Administrateur",
+    email: "admin@ecodeli.me",
+    avatar: "",
   };
 
   const quickAction = {
-    label: 'Créer utilisateur',
+    label: "Créer utilisateur",
     icon: Users,
     href: `/${locale}/admin/users/create`,
   };

@@ -3,6 +3,7 @@
 ## 🚀 Démarrage rapide
 
 ### 1. Configuration de l'environnement
+
 ```bash
 # Cloner le repository
 git clone https://github.com/ecodeli/ecodeli.git
@@ -16,7 +17,9 @@ cd ecodeli/apps/mobile
 ```
 
 ### 2. Configuration de l'API
+
 Créer un fichier `local.properties` :
+
 ```properties
 # API Configuration
 api.base.url=http://10.0.2.2:3000
@@ -78,6 +81,7 @@ app/src/main/java/com/ecodeli/
 ## 🎨 Développement UI avec Jetpack Compose
 
 ### Thème et couleurs
+
 ```kotlin
 // Utilisation du thème EcoDeli
 @Composable
@@ -98,6 +102,7 @@ MaterialTheme.colorScheme.error          // Rouge d'erreur
 ```
 
 ### Composants réutilisables
+
 ```kotlin
 // Écran de chargement
 LoadingScreen(message = "Chargement des données...")
@@ -113,6 +118,7 @@ InlineLoading(message = "Synchronisation...")
 ```
 
 ### Navigation
+
 ```kotlin
 // Navigation vers un écran
 navController.navigate(Routes.DELIVERY_DETAIL + "/$deliveryId")
@@ -126,19 +132,20 @@ navController.navigate(Routes.HOME) {
 ## 🔄 Architecture MVVM
 
 ### ViewModel exemple
+
 ```kotlin
 @HiltViewModel
 class MonViewModel @Inject constructor(
     private val repository: MonRepository
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(MonUiState())
     val uiState: StateFlow<MonUiState> = _uiState.asStateFlow()
-    
+
     fun action() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            
+
             when (val result = repository.getData()) {
                 is Result.Success -> {
                     _uiState.value = _uiState.value.copy(
@@ -165,6 +172,7 @@ data class MonUiState(
 ```
 
 ### Repository exemple
+
 ```kotlin
 @Singleton
 class MonRepository @Inject constructor(
@@ -184,6 +192,7 @@ class MonRepository @Inject constructor(
 ## 🔌 Intégration API tRPC
 
 ### Structure des requêtes
+
 ```kotlin
 // Requête tRPC
 data class TrpcRequest<T>(
@@ -201,6 +210,7 @@ data class TrpcResult<T>(
 ```
 
 ### Appel API
+
 ```kotlin
 // Dans un repository
 suspend fun login(email: String, password: String): Result<LoginOutput> {
@@ -216,6 +226,7 @@ suspend fun login(email: String, password: String): Result<LoginOutput> {
 ```
 
 ### Gestion des erreurs
+
 ```kotlin
 // Dans un ViewModel
 when (val result = repository.getData()) {
@@ -225,11 +236,11 @@ when (val result = repository.getData()) {
     }
     is Result.Error -> {
         // Erreur
-        updateUiState { 
+        updateUiState {
             it.copy(
                 error = result.exception.message ?: "Erreur inconnue",
                 isLoading = false
-            ) 
+            )
         }
     }
     is Result.Loading -> {
@@ -242,25 +253,26 @@ when (val result = repository.getData()) {
 ## 📱 Gestion NFC
 
 ### Initialisation
+
 ```kotlin
 class MainActivity : ComponentActivity() {
     @Inject lateinit var nfcManager: NfcManager
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         nfcManager.initialize(this)
         nfcManager.setOnNfcTagReadListener { nfcData ->
             // Traiter les données NFC
         }
     }
-    
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        
+
         if (NfcAdapter.ACTION_TAG_DISCOVERED == intent?.action) {
             val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
-            tag?.let { 
+            tag?.let {
                 lifecycleScope.launch {
                     nfcManager.handleNfcTag(it)
                 }
@@ -271,12 +283,13 @@ class MainActivity : ComponentActivity() {
 ```
 
 ### Validation NFC
+
 ```kotlin
 // Dans un ViewModel
 fun validateWithNfc(nfcData: NfcTagData) {
     viewModelScope.launch {
         val validationResult = nfcManager.validateDelivererTag(nfcData)
-        
+
         when (validationResult) {
             is ValidationResult.Success -> {
                 // Valider la livraison avec l'API
@@ -304,15 +317,16 @@ fun validateWithNfc(nfcData: NfcTagData) {
 ## 🔔 Notifications OneSignal
 
 ### Configuration
+
 ```kotlin
 // Dans EcoDeliApp.kt
 class EcoDeliApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        
+
         // Initialiser OneSignal
         OneSignal.initWithContext(this, BuildConfig.ONESIGNAL_APP_ID)
-        
+
         // Demander la permission
         CoroutineScope(Dispatchers.IO).launch {
             OneSignal.Notifications.requestPermission(true)
@@ -322,12 +336,13 @@ class EcoDeliApp : Application() {
 ```
 
 ### Gestion des notifications
+
 ```kotlin
 // Écouter les notifications
 OneSignal.Notifications.addForegroundLifecycleListener { event ->
     // Notification reçue en premier plan
     val notification = event.notification
-    
+
     // Traiter la notification personnalisée
     handleCustomNotification(notification)
 }
@@ -335,7 +350,7 @@ OneSignal.Notifications.addForegroundLifecycleListener { event ->
 OneSignal.Notifications.addClickListener { result ->
     // Notification cliquée
     val notification = result.notification
-    
+
     // Navigation basée sur les données de la notification
     navigateFromNotification(notification.additionalData)
 }
@@ -344,34 +359,35 @@ OneSignal.Notifications.addClickListener { result ->
 ## 🧪 Tests
 
 ### Tests unitaires
+
 ```kotlin
 @ExperimentalCoroutinesTest
 class LoginViewModelTest {
-    
+
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
-    
+
     @Mock
     private lateinit var loginUseCase: LoginUseCase
-    
+
     private lateinit var viewModel: LoginViewModel
-    
+
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
         viewModel = LoginViewModel(loginUseCase)
     }
-    
+
     @Test
     fun `login success updates ui state correctly`() = runTest {
         // Given
         val loginOutput = LoginOutput(/* ... */)
         whenever(loginUseCase("test@test.com", "password"))
             .thenReturn(Result.Success(loginOutput))
-        
+
         // When
         viewModel.login()
-        
+
         // Then
         val uiState = viewModel.uiState.value
         assertTrue(uiState.loginSuccess)
@@ -382,13 +398,14 @@ class LoginViewModelTest {
 ```
 
 ### Tests UI
+
 ```kotlin
 @ExperimentalComposeUiApi
 class LoginScreenTest {
-    
+
     @get:Rule
     val composeTestRule = createComposeRule()
-    
+
     @Test
     fun `login screen displays correctly`() {
         composeTestRule.setContent {
@@ -399,11 +416,11 @@ class LoginScreenTest {
                 )
             }
         }
-        
+
         composeTestRule
             .onNodeWithText("Se connecter")
             .assertIsDisplayed()
-            
+
         composeTestRule
             .onNodeWithText("Email")
             .assertIsDisplayed()
@@ -414,21 +431,25 @@ class LoginScreenTest {
 ## 🎯 Conseils de développement
 
 ### Performance
+
 - Utiliser `remember` pour éviter les recompositions inutiles
 - Préférer `LazyColumn` pour les listes longues
 - Optimiser les images avec Coil
 
 ### Sécurité
+
 - Ne jamais logger de données sensibles
 - Utiliser EncryptedSharedPreferences pour les tokens
 - Valider toutes les entrées utilisateur
 
 ### Architecture
+
 - Respecter la séparation des couches
 - Utiliser les Use Cases pour la logique métier complexe
 - Préférer l'injection de dépendance avec Hilt
 
 ### Git
+
 ```bash
 # Branches
 git checkout -b feature/nouvelle-fonctionnalite
@@ -444,6 +465,7 @@ git commit -m "refactor: simplifier LoginViewModel"
 ## 🚀 Déploiement
 
 ### Build local
+
 ```bash
 # Debug
 ./scripts/build.sh debug
@@ -453,12 +475,15 @@ git commit -m "refactor: simplifier LoginViewModel"
 ```
 
 ### CI/CD
+
 Le projet utilise GitHub Actions pour :
+
 - Tests automatiques sur PR
 - Build et déploiement automatique
 - Analyse de la qualité du code
 
 ### Variables d'environnement nécessaires
+
 ```bash
 # Pour la release
 KEYSTORE_PASSWORD=your_keystore_password
@@ -475,6 +500,7 @@ PLAY_CONSOLE_KEY=your_play_console_service_account_key
 ## 🐛 Debugging
 
 ### Logs utiles
+
 ```kotlin
 // Dans le code
 Log.d("EcoDeli", "Debug message")
@@ -486,6 +512,7 @@ Log.d("EcoDeli-API", "API call: ${response.status}")
 ```
 
 ### ADB Commands
+
 ```bash
 # Logs de l'application
 adb logcat | grep EcoDeli

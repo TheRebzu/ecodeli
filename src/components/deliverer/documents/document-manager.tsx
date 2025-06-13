@@ -1,28 +1,36 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/use-toast';
-import { api } from '@/trpc/react';
-import { Upload, FileText, CheckCircle, XCircle, Clock, AlertTriangle, Eye } from 'lucide-react';
-import DocumentUploadForm from '@/components/shared/documents/document-upload-form';
-import DocumentPreview from '@/components/shared/documents/document-preview';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/trpc/react";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Clock,
+  AlertTriangle,
+  Eye,
+} from "lucide-react";
+import DocumentUploadForm from "@/components/shared/documents/document-upload-form";
+import DocumentPreview from "@/components/shared/documents/document-preview";
 
 const REQUIRED_DOCUMENTS = [
-  { type: 'IDENTITY', label: "Pièce d'identité", required: true },
-  { type: 'DRIVING_LICENSE', label: 'Permis de conduire', required: true },
-  { type: 'INSURANCE', label: 'Assurance véhicule', required: false },
-  { type: 'VEHICLE_REGISTRATION', label: 'Carte grise', required: false },
-  { type: 'BACKGROUND_CHECK', label: 'Casier judiciaire', required: true },
+  { type: "IDENTITY", label: "Pièce d'identité", required: true },
+  { type: "DRIVING_LICENSE", label: "Permis de conduire", required: true },
+  { type: "INSURANCE", label: "Assurance véhicule", required: false },
+  { type: "VEHICLE_REGISTRATION", label: "Carte grise", required: false },
+  { type: "BACKGROUND_CHECK", label: "Casier judiciaire", required: true },
 ];
 
 interface DocumentStatus {
   type: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: "PENDING" | "APPROVED" | "REJECTED";
   uploadedAt?: Date;
   verifiedAt?: Date;
   rejectionReason?: string;
@@ -32,7 +40,8 @@ interface DocumentStatus {
 
 export default function DelivererDocumentManager() {
   const { toast } = useToast();
-  const [selectedDocument, setSelectedDocument] = useState<DocumentStatus | null>(null);
+  const [selectedDocument, setSelectedDocument] =
+    useState<DocumentStatus | null>(null);
   const [uploadModalOpen, setUploadModalOpen] = useState<string | null>(null);
 
   // Récupérer le statut des documents
@@ -43,18 +52,18 @@ export default function DelivererDocumentManager() {
   const uploadMutation = api.deliverer.documents.upload.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Document uploadé',
-        description: 'Votre document a été envoyé pour vérification',
-        variant: 'success',
+        title: "Document uploadé",
+        description: "Votre document a été envoyé pour vérification",
+        variant: "success",
       });
       setUploadModalOpen(null);
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
         title: "Erreur d'upload",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -64,18 +73,18 @@ export default function DelivererDocumentManager() {
 
     return (
       verificationStatus.documents.find(
-        (doc: any) => doc.documentType === documentType
+        (doc: any) => doc.documentType === documentType,
       ) || null
     );
   };
 
   const getStatusIcon = (status?: string) => {
     switch (status) {
-      case 'APPROVED':
+      case "APPROVED":
         return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'REJECTED':
+      case "REJECTED":
         return <XCircle className="h-5 w-5 text-red-500" />;
-      case 'PENDING':
+      case "PENDING":
         return <Clock className="h-5 w-5 text-yellow-500" />;
       default:
         return <AlertTriangle className="h-5 w-5 text-gray-400" />;
@@ -84,11 +93,11 @@ export default function DelivererDocumentManager() {
 
   const getStatusBadge = (status?: string) => {
     switch (status) {
-      case 'APPROVED':
+      case "APPROVED":
         return <Badge variant="success">Approuvé</Badge>;
-      case 'REJECTED':
+      case "REJECTED":
         return <Badge variant="destructive">Rejeté</Badge>;
-      case 'PENDING':
+      case "PENDING":
         return <Badge variant="secondary">En attente</Badge>;
       default:
         return <Badge variant="outline">Non uploadé</Badge>;
@@ -96,26 +105,31 @@ export default function DelivererDocumentManager() {
   };
 
   const calculateProgress = () => {
-    const totalRequired = REQUIRED_DOCUMENTS.filter(doc => doc.required).length;
-    const approvedRequired = REQUIRED_DOCUMENTS.filter(doc => {
+    const totalRequired = REQUIRED_DOCUMENTS.filter(
+      (doc) => doc.required,
+    ).length;
+    const approvedRequired = REQUIRED_DOCUMENTS.filter((doc) => {
       const status = getDocumentStatus(doc.type);
-      return doc.required && status?.status === 'APPROVED';
+      return doc.required && status?.status === "APPROVED";
     }).length;
 
     return (approvedRequired / totalRequired) * 100;
   };
 
-  const handleUpload = async (documentType: string, data: { file: File; expiryDate?: string; notes?: string }) => {
+  const handleUpload = async (
+    documentType: string,
+    data: { file: File; expiryDate?: string; notes?: string },
+  ) => {
     // Simuler l'upload du fichier (en réalité, cela passerait par un service d'upload)
     const formData = new FormData();
-    formData.append('file', data.file);
-    formData.append('documentType', documentType);
-    if (data.expiryDate) formData.append('expiryDate', data.expiryDate);
-    if (data.notes) formData.append('notes', data.notes);
+    formData.append("file", data.file);
+    formData.append("documentType", documentType);
+    if (data.expiryDate) formData.append("expiryDate", data.expiryDate);
+    if (data.notes) formData.append("notes", data.notes);
 
     // Pour la simulation, on crée une URL temporaire
     const simulatedUrl = URL.createObjectURL(data.file);
-    
+
     await uploadMutation.mutateAsync({
       documentType,
       documentUrl: simulatedUrl,
@@ -153,7 +167,8 @@ export default function DelivererDocumentManager() {
                 <div className="text-2xl font-bold text-green-600">
                   {
                     REQUIRED_DOCUMENTS.filter(
-                      doc => getDocumentStatus(doc.type)?.status === 'APPROVED'
+                      (doc) =>
+                        getDocumentStatus(doc.type)?.status === "APPROVED",
                     ).length
                   }
                 </div>
@@ -163,7 +178,8 @@ export default function DelivererDocumentManager() {
                 <div className="text-2xl font-bold text-yellow-600">
                   {
                     REQUIRED_DOCUMENTS.filter(
-                      doc => getDocumentStatus(doc.type)?.status === 'PENDING'
+                      (doc) =>
+                        getDocumentStatus(doc.type)?.status === "PENDING",
                     ).length
                   }
                 </div>
@@ -173,7 +189,8 @@ export default function DelivererDocumentManager() {
                 <div className="text-2xl font-bold text-red-600">
                   {
                     REQUIRED_DOCUMENTS.filter(
-                      doc => getDocumentStatus(doc.type)?.status === 'REJECTED'
+                      (doc) =>
+                        getDocumentStatus(doc.type)?.status === "REJECTED",
                     ).length
                   }
                 </div>
@@ -181,7 +198,11 @@ export default function DelivererDocumentManager() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-600">
-                  {REQUIRED_DOCUMENTS.filter(doc => !getDocumentStatus(doc.type)).length}
+                  {
+                    REQUIRED_DOCUMENTS.filter(
+                      (doc) => !getDocumentStatus(doc.type),
+                    ).length
+                  }
                 </div>
                 <div className="text-sm text-muted-foreground">Manquants</div>
               </div>
@@ -198,7 +219,7 @@ export default function DelivererDocumentManager() {
         </TabsList>
 
         <TabsContent value="required" className="space-y-4">
-          {REQUIRED_DOCUMENTS.filter(doc => doc.required).map(document => {
+          {REQUIRED_DOCUMENTS.filter((doc) => doc.required).map((document) => {
             const status = getDocumentStatus(document.type);
             return (
               <Card key={document.type}>
@@ -210,7 +231,8 @@ export default function DelivererDocumentManager() {
                         <h3 className="font-medium">{document.label}</h3>
                         {status?.uploadedAt && (
                           <p className="text-sm text-muted-foreground">
-                            Uploadé le {new Date(status.uploadedAt).toLocaleDateString()}
+                            Uploadé le{" "}
+                            {new Date(status.uploadedAt).toLocaleDateString()}
                           </p>
                         )}
                         {status?.rejectionReason && (
@@ -235,13 +257,15 @@ export default function DelivererDocumentManager() {
                       )}
 
                       <Button
-                        variant={status?.status === 'REJECTED' ? 'default' : 'outline'}
+                        variant={
+                          status?.status === "REJECTED" ? "default" : "outline"
+                        }
                         size="sm"
                         onClick={() => setUploadModalOpen(document.type)}
                         disabled={uploadMutation.isPending}
                       >
                         <Upload className="h-4 w-4 mr-1" />
-                        {status?.status === 'REJECTED' ? 'Remplacer' : 'Upload'}
+                        {status?.status === "REJECTED" ? "Remplacer" : "Upload"}
                       </Button>
                     </div>
                   </div>
@@ -252,7 +276,7 @@ export default function DelivererDocumentManager() {
         </TabsContent>
 
         <TabsContent value="optional" className="space-y-4">
-          {REQUIRED_DOCUMENTS.filter(doc => !doc.required).map(document => {
+          {REQUIRED_DOCUMENTS.filter((doc) => !doc.required).map((document) => {
             const status = getDocumentStatus(document.type);
             return (
               <Card key={document.type}>
@@ -262,10 +286,13 @@ export default function DelivererDocumentManager() {
                       {getStatusIcon(status?.status)}
                       <div>
                         <h3 className="font-medium">{document.label}</h3>
-                        <p className="text-sm text-muted-foreground">Document optionnel</p>
+                        <p className="text-sm text-muted-foreground">
+                          Document optionnel
+                        </p>
                         {status?.uploadedAt && (
                           <p className="text-sm text-muted-foreground">
-                            Uploadé le {new Date(status.uploadedAt).toLocaleDateString()}
+                            Uploadé le{" "}
+                            {new Date(status.uploadedAt).toLocaleDateString()}
                           </p>
                         )}
                       </div>
@@ -308,19 +335,19 @@ export default function DelivererDocumentManager() {
           documentType={uploadModalOpen}
           open={!!uploadModalOpen}
           onOpenChange={(open) => !open && setUploadModalOpen(null)}
-          onSubmit={data => handleUpload(uploadModalOpen, data)}
+          onSubmit={(data) => handleUpload(uploadModalOpen, data)}
           isLoading={uploadMutation.isPending}
         />
       )}
 
       {/* Preview Modal */}
       {selectedDocument && (
-        <DocumentPreview 
-          document={selectedDocument} 
+        <DocumentPreview
+          document={selectedDocument}
           onClose={() => setSelectedDocument(null)}
           onDownload={() => {
             if (selectedDocument.documentUrl) {
-              window.open(selectedDocument.documentUrl, '_blank');
+              window.open(selectedDocument.documentUrl, "_blank");
             }
           }}
           onReplace={() => {

@@ -1,6 +1,6 @@
-import { db } from '@/server/db';
-import { TRPCError } from '@trpc/server';
-import { Prisma } from '@prisma/client';
+import { db } from "@/server/db";
+import { TRPCError } from "@trpc/server";
+import { Prisma } from "@prisma/client";
 
 type WarehouseSearchInput = {
   includeBoxes?: boolean;
@@ -46,8 +46,8 @@ class WarehouseService {
         isActive: true,
         ...(input.city && {
           OR: [
-            { city: { contains: input.city, mode: 'insensitive' } },
-            { address: { contains: input.city, mode: 'insensitive' } },
+            { city: { contains: input.city, mode: "insensitive" } },
+            { address: { contains: input.city, mode: "insensitive" } },
           ],
         }),
       };
@@ -77,20 +77,20 @@ class WarehouseService {
             ? {
                 boxes: {
                   where: { isOccupied: false },
-                  orderBy: { name: 'asc' },
+                  orderBy: { name: "asc" },
                 },
               }
             : undefined,
-          orderBy: { name: 'asc' },
+          orderBy: { name: "asc" },
         });
       }
 
       return warehouses;
     } catch (error) {
-      console.error('Erreur lors de la récupération des entrepôts:', error);
+      console.error("Erreur lors de la récupération des entrepôts:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des entrepôts',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des entrepôts",
       });
     }
   }
@@ -102,25 +102,28 @@ class WarehouseService {
         where: { id: warehouseId },
         include: {
           boxes: {
-            orderBy: [{ floorLevel: 'asc' }, { name: 'asc' }],
+            orderBy: [{ floorLevel: "asc" }, { name: "asc" }],
           },
         },
       });
 
       if (!warehouse) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Entrepôt introuvable',
+          code: "NOT_FOUND",
+          message: "Entrepôt introuvable",
         });
       }
 
       return warehouse;
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-      console.error("Erreur lors de la récupération des détails de l'entrepôt:", error);
+      console.error(
+        "Erreur lors de la récupération des détails de l'entrepôt:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des détails',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des détails",
       });
     }
   }
@@ -153,7 +156,7 @@ class WarehouseService {
                     ],
                   },
                   {
-                    status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+                    status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
                   },
                 ],
               },
@@ -173,15 +176,19 @@ class WarehouseService {
             },
           },
         },
-        orderBy: [{ floorLevel: 'asc' }, { pricePerDay: 'asc' }, { name: 'asc' }],
+        orderBy: [
+          { floorLevel: "asc" },
+          { pricePerDay: "asc" },
+          { name: "asc" },
+        ],
       });
 
       return boxes;
     } catch (error) {
-      console.error('Erreur lors de la récupération des boxes:', error);
+      console.error("Erreur lors de la récupération des boxes:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des boxes',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des boxes",
       });
     }
   }
@@ -212,10 +219,13 @@ class WarehouseService {
 
       return nearbyWarehouses;
     } catch (error) {
-      console.error("Erreur lors de la recherche d'entrepôts proximité:", error);
+      console.error(
+        "Erreur lors de la recherche d'entrepôts proximité:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la recherche par proximité',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la recherche par proximité",
       });
     }
   }
@@ -232,15 +242,18 @@ class WarehouseService {
 
       if (!warehouse) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Entrepôt introuvable',
+          code: "NOT_FOUND",
+          message: "Entrepôt introuvable",
         });
       }
 
       const totalBoxes = warehouse.boxes.length;
-      const availableBoxes = warehouse.boxes.filter(box => !box.isOccupied).length;
+      const availableBoxes = warehouse.boxes.filter(
+        (box) => !box.isOccupied,
+      ).length;
       const occupiedBoxes = totalBoxes - availableBoxes;
-      const occupancyRate = totalBoxes > 0 ? (occupiedBoxes / totalBoxes) * 100 : 0;
+      const occupancyRate =
+        totalBoxes > 0 ? (occupiedBoxes / totalBoxes) * 100 : 0;
 
       const basicStats = {
         totalBoxes,
@@ -287,10 +300,10 @@ class WarehouseService {
       return basicStats;
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-      console.error('Erreur lors de la récupération des statistiques:', error);
+      console.error("Erreur lors de la récupération des statistiques:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des statistiques',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des statistiques",
       });
     }
   }
@@ -321,7 +334,7 @@ class WarehouseService {
                 ],
               },
               {
-                status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+                status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
               },
             ],
           },
@@ -330,7 +343,7 @@ class WarehouseService {
 
       const availableBoxes = await db.box.findMany({
         where: whereClause,
-        orderBy: [{ pricePerDay: 'asc' }, { size: 'asc' }],
+        orderBy: [{ pricePerDay: "asc" }, { size: "asc" }],
       });
 
       return {
@@ -339,10 +352,10 @@ class WarehouseService {
         period: { startDate, endDate },
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des créneaux:', error);
+      console.error("Erreur lors de la récupération des créneaux:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des créneaux',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des créneaux",
       });
     }
   }
@@ -354,11 +367,11 @@ class WarehouseService {
       await db.reservation.updateMany({
         where: {
           boxId,
-          status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+          status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
         },
         data: {
-          status: 'CANCELLED',
-          notes: reason ? `Annulée par admin: ${reason}` : 'Annulée par admin',
+          status: "CANCELLED",
+          notes: reason ? `Annulée par admin: ${reason}` : "Annulée par admin",
         },
       });
 
@@ -374,17 +387,17 @@ class WarehouseService {
           INSERT INTO box_usage_history (
             id, box_id, client_id, action_type, action_time, details
           ) VALUES (
-            gen_random_uuid(), ${boxId}, ${adminId}, 'ADMIN_RELEASE', now(), ${reason || 'Box libérée par admin'}
+            gen_random_uuid(), ${boxId}, ${adminId}, 'ADMIN_RELEASE', now(), ${reason || "Box libérée par admin"}
           )
         `;
       }
 
-      return { success: true, message: 'Box libérée avec succès' };
+      return { success: true, message: "Box libérée avec succès" };
     } catch (error) {
-      console.error('Erreur lors de la libération de la box:', error);
+      console.error("Erreur lors de la libération de la box:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la libération de la box',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la libération de la box",
       });
     }
   }
@@ -401,8 +414,8 @@ class WarehouseService {
 
       if (!warehouse) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Entrepôt introuvable',
+          code: "NOT_FOUND",
+          message: "Entrepôt introuvable",
         });
       }
 
@@ -417,12 +430,12 @@ class WarehouseService {
         )
       `;
 
-      return { success: true, message: 'Signalement enregistré avec succès' };
+      return { success: true, message: "Signalement enregistré avec succès" };
     } catch (error) {
-      console.error('Erreur lors du signalement:', error);
+      console.error("Erreur lors du signalement:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors du signalement',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du signalement",
       });
     }
   }
@@ -443,18 +456,18 @@ class WarehouseService {
 
       if (!warehouse) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Entrepôt introuvable',
+          code: "NOT_FOUND",
+          message: "Entrepôt introuvable",
         });
       }
 
       return warehouse;
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-      console.error('Erreur lors de la récupération des horaires:', error);
+      console.error("Erreur lors de la récupération des horaires:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des horaires',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des horaires",
       });
     }
   }
@@ -471,7 +484,7 @@ class WarehouseService {
       const reservedBoxes = await db.reservation.count({
         where: {
           box: { warehouseId },
-          status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+          status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
           OR: [
             {
               startDate: { lte: endDate },
@@ -482,7 +495,8 @@ class WarehouseService {
       });
 
       const availableBoxes = totalBoxes - reservedBoxes;
-      const capacityRate = totalBoxes > 0 ? (reservedBoxes / totalBoxes) * 100 : 0;
+      const capacityRate =
+        totalBoxes > 0 ? (reservedBoxes / totalBoxes) * 100 : 0;
 
       return {
         totalBoxes,
@@ -492,10 +506,10 @@ class WarehouseService {
         hasCapacity: availableBoxes > 0,
       };
     } catch (error) {
-      console.error('Erreur lors de la vérification de capacité:', error);
+      console.error("Erreur lors de la vérification de capacité:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la vérification de capacité',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la vérification de capacité",
       });
     }
   }

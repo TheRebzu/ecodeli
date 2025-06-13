@@ -1,8 +1,8 @@
-import { db } from '@/server/db';
+import { db } from "@/server/db";
 // import { UserBanAction } from '@/types/users/verification';
 
 // Type local pour UserBanAction
-type UserBanAction = 'BAN' | 'UNBAN' | 'SUSPEND' | 'ACTIVATE';
+type UserBanAction = "BAN" | "UNBAN" | "SUSPEND" | "ACTIVATE";
 
 /**
  * Service pour la gestion des utilisateurs, incluant le bannissement
@@ -18,7 +18,7 @@ export const userService = {
     return db.user.update({
       where: { id: userId },
       data: {
-        status: isActive ? 'ACTIVE' : 'INACTIVE',
+        status: isActive ? "ACTIVE" : "INACTIVE",
       },
       select: {
         id: true,
@@ -62,23 +62,23 @@ export const userService = {
     userId: string,
     action: UserBanAction,
     reason: string | undefined,
-    adminId: string
+    adminId: string,
   ) {
     if (action === UserBanAction.BAN) {
       return db.user.update({
         where: { id: userId },
         data: {
-          status: 'SUSPENDED',
+          status: "SUSPENDED",
           notes: reason
             ? `BANNI par ${adminId} le ${new Date().toISOString()}: ${reason}`
-            : 'BANNI: Raison non spécifiée',
+            : "BANNI: Raison non spécifiée",
         },
       });
     } else {
       return db.user.update({
         where: { id: userId },
         data: {
-          status: 'ACTIVE',
+          status: "ACTIVE",
           notes: null,
         },
       });

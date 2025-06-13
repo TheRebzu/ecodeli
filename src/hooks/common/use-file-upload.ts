@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
-import { DocumentType } from '@prisma/client';
+import { useState, useCallback } from "react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
+import { DocumentType } from "@prisma/client";
 
 interface UploadOptions {
   documentType?: DocumentType;
@@ -36,18 +36,18 @@ export function useFileUpload() {
 
         // 2. Créer le FormData pour l'upload
         const formData = new FormData();
-        formData.append('file', file);
-        formData.append('uploadId', uploadInfo.uploadId);
-        formData.append('uploadToken', uploadInfo.uploadToken);
+        formData.append("file", file);
+        formData.append("uploadId", uploadInfo.uploadId);
+        formData.append("uploadToken", uploadInfo.uploadToken);
         if (options?.documentType) {
-          formData.append('documentType', options.documentType);
+          formData.append("documentType", options.documentType);
         }
 
         // 3. Upload le fichier via l'API route
         const xhr = new XMLHttpRequest();
 
         // Gérer la progression
-        xhr.upload.addEventListener('progress', event => {
+        xhr.upload.addEventListener("progress", (event) => {
           if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
             setUploadProgress(Math.round(percentComplete));
@@ -62,7 +62,9 @@ export function useFileUpload() {
               if (response.success && response.fileUrl) {
                 resolve(response.fileUrl);
               } else {
-                reject(new Error(response.message || "Erreur lors de l'upload"));
+                reject(
+                  new Error(response.message || "Erreur lors de l'upload"),
+                );
               }
             } else {
               reject(new Error(`Erreur HTTP: ${xhr.status}`));
@@ -75,15 +77,15 @@ export function useFileUpload() {
         });
 
         // Lancer l'upload
-        xhr.open('POST', uploadInfo.uploadUrl);
+        xhr.open("POST", uploadInfo.uploadUrl);
         xhr.send(formData);
 
         const fileUrl = await uploadPromise;
 
         // Succès
         toast({
-          title: 'Succès',
-          description: 'Fichier uploadé avec succès',
+          title: "Succès",
+          description: "Fichier uploadé avec succès",
         });
 
         options?.onSuccess?.(fileUrl);
@@ -92,12 +94,14 @@ export function useFileUpload() {
         console.error("Erreur lors de l'upload:", error);
 
         const errorMessage =
-          error instanceof Error ? error.message : "Erreur lors de l'upload du fichier";
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de l'upload du fichier";
 
         toast({
-          title: 'Erreur',
+          title: "Erreur",
           description: errorMessage,
-          variant: 'destructive',
+          variant: "destructive",
         });
 
         options?.onError?.(error as Error);
@@ -107,7 +111,7 @@ export function useFileUpload() {
         setUploadProgress(0);
       }
     },
-    [prepareUploadMutation]
+    [prepareUploadMutation],
   );
 
   return {
@@ -142,7 +146,7 @@ export function useFileDownload() {
         }
 
         // Créer un lien temporaire pour télécharger
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = data.url;
         if (fileName) {
           link.download = fileName;
@@ -152,16 +156,16 @@ export function useFileDownload() {
         document.body.removeChild(link);
 
         toast({
-          title: 'Téléchargement démarré',
-          description: 'Le fichier est en cours de téléchargement',
+          title: "Téléchargement démarré",
+          description: "Le fichier est en cours de téléchargement",
         });
       } catch (error) {
-        console.error('Erreur lors du téléchargement:', error);
+        console.error("Erreur lors du téléchargement:", error);
 
         toast({
-          title: 'Erreur',
-          description: 'Impossible de télécharger le fichier',
-          variant: 'destructive',
+          title: "Erreur",
+          description: "Impossible de télécharger le fichier",
+          variant: "destructive",
         });
 
         throw error;
@@ -169,7 +173,7 @@ export function useFileDownload() {
         setIsDownloading(false);
       }
     },
-    [getDownloadUrlQuery]
+    [getDownloadUrlQuery],
   );
 
   return {
@@ -191,24 +195,24 @@ export function useFileDelete() {
         const result = await deleteFileMutation.mutateAsync({ fileUrl });
 
         toast({
-          title: 'Succès',
-          description: 'Fichier supprimé avec succès',
+          title: "Succès",
+          description: "Fichier supprimé avec succès",
         });
 
         return result;
       } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
+        console.error("Erreur lors de la suppression:", error);
 
         toast({
-          title: 'Erreur',
-          description: 'Impossible de supprimer le fichier',
-          variant: 'destructive',
+          title: "Erreur",
+          description: "Impossible de supprimer le fichier",
+          variant: "destructive",
         });
 
         throw error;
       }
     },
-    [deleteFileMutation]
+    [deleteFileMutation],
   );
 
   return {

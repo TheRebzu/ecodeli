@@ -1,7 +1,17 @@
-import { PrismaClient, UserRole, TransactionType, TransactionStatus } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+import {
+  PrismaClient,
+  UserRole,
+  TransactionType,
+  TransactionStatus,
+} from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import {
+  SeedResult,
+  SeedOptions,
+  getRandomElement,
+  getRandomDate,
+} from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Interface pour définir un wallet
@@ -35,12 +45,12 @@ interface WalletTransactionData {
 export async function seedWallets(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('WALLETS');
+  logger.startSeed("WALLETS");
 
   const result: SeedResult = {
-    entity: 'wallets',
+    entity: "wallets",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -50,7 +60,7 @@ export async function seedWallets(
   const eligibleUsers = await prisma.user.findMany({
     where: {
       role: { in: [UserRole.DELIVERER, UserRole.PROVIDER] },
-      status: 'ACTIVE',
+      status: "ACTIVE",
     },
     include: {
       deliverer: true,
@@ -60,15 +70,15 @@ export async function seedWallets(
 
   if (eligibleUsers.length === 0) {
     logger.warning(
-      'WALLETS',
-      "Aucun livreur/prestataire trouvé - exécuter d'abord les seeds utilisateurs"
+      "WALLETS",
+      "Aucun livreur/prestataire trouvé - exécuter d'abord les seeds utilisateurs",
     );
     return result;
   }
 
   // Trouver Marie Laurent pour son wallet spécifique
   const marieLaurent = await prisma.user.findUnique({
-    where: { email: 'marie.laurent@orange.fr' },
+    where: { email: "marie.laurent@orange.fr" },
     include: { deliverer: true },
   });
 
@@ -83,8 +93,8 @@ export async function seedWallets(
 
   if (existingWallets > 0 && !options.force) {
     logger.warning(
-      'WALLETS',
-      `${existingWallets} wallets déjà présents - utiliser force:true pour recréer`
+      "WALLETS",
+      `${existingWallets} wallets déjà présents - utiliser force:true pour recréer`,
     );
     result.skipped = existingWallets;
     return result;
@@ -94,7 +104,7 @@ export async function seedWallets(
   if (options.force) {
     await prisma.walletTransaction.deleteMany({});
     await prisma.wallet.deleteMany({});
-    logger.database('NETTOYAGE', 'wallets et transactions', 0);
+    logger.database("NETTOYAGE", "wallets et transactions", 0);
   }
 
   // Paramètres financiers réalistes
@@ -115,10 +125,10 @@ export async function seedWallets(
   for (const user of eligibleUsers) {
     try {
       logger.progress(
-        'WALLETS',
+        "WALLETS",
         totalWallets + 1,
         eligibleUsers.length,
-        `Création wallet: ${user.name}`
+        `Création wallet: ${user.name}`,
       );
 
       // Déterminer le profil du wallet selon le rôle et statut
@@ -128,7 +138,9 @@ export async function seedWallets(
           : user.provider?.isVerified || false;
 
       const earningRange =
-        AVERAGE_MONTHLY_EARNINGS[user.role as keyof typeof AVERAGE_MONTHLY_EARNINGS];
+        AVERAGE_MONTHLY_EARNINGS[
+          user.role as keyof typeof AVERAGE_MONTHLY_EARNINGS
+        ];
 
       // Calculer les gains historiques (6 derniers mois)
       const monthsActive = faker.number.int({ min: 1, max: 6 });
@@ -141,9 +153,13 @@ export async function seedWallets(
       const totalEarned = avgMonthlyEarnings * monthsActive;
 
       // Déterminer le pattern de retrait
-      const withdrawalPattern = getRandomElement(Object.keys(WITHDRAWAL_PATTERNS));
+      const withdrawalPattern = getRandomElement(
+        Object.keys(WITHDRAWAL_PATTERNS),
+      );
       const withdrawalFrequency =
-        WITHDRAWAL_PATTERNS[withdrawalPattern as keyof typeof WITHDRAWAL_PATTERNS];
+        WITHDRAWAL_PATTERNS[
+          withdrawalPattern as keyof typeof WITHDRAWAL_PATTERNS
+        ];
 
       // Calculer les retraits effectués (80-95% des gains)
       const withdrawalRate = faker.number.float({ min: 0.8, max: 0.95 });
@@ -163,10 +179,11 @@ export async function seedWallets(
         data: {
           userId: user.id,
           balance: Math.max(0, currentBalance), // Éviter les soldes négatifs
-          currency: 'EUR',
+          currency: "EUR",
           isActive: true,
           accountVerified: isVerified,
-          accountType: user.role === UserRole.DELIVERER ? 'INDIVIDUAL' : 'BUSINESS',
+          accountType:
+            user.role === UserRole.DELIVERER ? "INDIVIDUAL" : "BUSINESS",
           minimumWithdrawalAmount: 10,
           automaticWithdrawal: faker.datatype.boolean(withdrawalFrequency),
           withdrawalThreshold: faker.number.float({ min: 50, max: 200 }),
@@ -187,7 +204,9 @@ export async function seedWallets(
           lastWithdrawalAt: withdrawalRate > 0.85 ? getRandomDate(3, 14) : null,
           notificationThreshold: 500,
           notificationsEnabled: true,
-          stripeConnectAccountId: isVerified ? `acct_${faker.string.alphanumeric(16)}` : null,
+          stripeConnectAccountId: isVerified
+            ? `acct_${faker.string.alphanumeric(16)}`
+            : null,
           taxReportingEnabled: user.role === UserRole.PROVIDER,
         },
       });
@@ -202,7 +221,7 @@ export async function seedWallets(
         totalWithdrawn,
         currentBalance,
         user.role,
-        monthsActive
+        monthsActive,
       );
 
       for (const transactionData of transactions) {
@@ -211,7 +230,7 @@ export async function seedWallets(
             data: {
               walletId: transactionData.walletId,
               amount: transactionData.amount,
-              currency: 'EUR',
+              currency: "EUR",
               type: transactionData.type,
               status: transactionData.status,
               description: transactionData.description,
@@ -227,21 +246,27 @@ export async function seedWallets(
                   : null,
               isSystemGenerated: true,
               taxRate: user.role === UserRole.PROVIDER ? 0.2 : null,
-              reportingCategory: getCategoryForTransaction(transactionData.type, user.role),
+              reportingCategory: getCategoryForTransaction(
+                transactionData.type,
+                user.role,
+              ),
             },
           });
 
           totalTransactions++;
         } catch (error: any) {
           logger.error(
-            'WALLETS',
-            `❌ Erreur création transaction pour ${user.name}: ${error.message}`
+            "WALLETS",
+            `❌ Erreur création transaction pour ${user.name}: ${error.message}`,
           );
           result.errors++;
         }
       }
     } catch (error: any) {
-      logger.error('WALLETS', `❌ Erreur création wallet pour ${user.name}: ${error.message}`);
+      logger.error(
+        "WALLETS",
+        `❌ Erreur création wallet pour ${user.name}: ${error.message}`,
+      );
       result.errors++;
     }
   }
@@ -249,14 +274,26 @@ export async function seedWallets(
   // 1. CRÉER LE WALLET SPÉCIFIQUE DE MARIE LAURENT
   if (marieLaurent && marieDeliveries.length > 0) {
     try {
-      logger.progress('WALLETS', 1, 1, 'Création wallet Marie Laurent avec historique');
+      logger.progress(
+        "WALLETS",
+        1,
+        1,
+        "Création wallet Marie Laurent avec historique",
+      );
 
       // Calculer les gains de Marie
-      const completedDeliveries = marieDeliveries.filter(d => d.status === 'DELIVERED');
-      const activeDelivery = marieDeliveries.find(d => d.status === 'IN_TRANSIT');
+      const completedDeliveries = marieDeliveries.filter(
+        (d) => d.status === "DELIVERED",
+      );
+      const activeDelivery = marieDeliveries.find(
+        (d) => d.status === "IN_TRANSIT",
+      );
 
       // Gains des livraisons terminées (sans commission EcoDeli)
-      const completedEarnings = completedDeliveries.reduce((sum, d) => sum + d.price, 0); // 135€
+      const completedEarnings = completedDeliveries.reduce(
+        (sum, d) => sum + d.price,
+        0,
+      ); // 135€
 
       // Gain en attente pour la livraison active (sera crédité après livraison)
       const pendingEarnings = activeDelivery ? activeDelivery.price : 0; // 45€
@@ -269,10 +306,10 @@ export async function seedWallets(
         data: {
           userId: marieLaurent.id,
           balance: currentBalance,
-          currency: 'EUR',
+          currency: "EUR",
           isActive: true,
           accountVerified: marieLaurent.deliverer?.isVerified || true,
-          accountType: 'INDIVIDUAL',
+          accountType: "INDIVIDUAL",
           minimumWithdrawalAmount: 10,
           automaticWithdrawal: false,
           withdrawalThreshold: 100,
@@ -281,9 +318,10 @@ export async function seedWallets(
           totalWithdrawn: totalWithdrawn,
           earningsThisMonth: completedDeliveries
             .filter(
-              d =>
+              (d) =>
                 d.completionTime &&
-                d.completionTime >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+                d.completionTime >=
+                  new Date(new Date().getFullYear(), new Date().getMonth(), 1),
             )
             .reduce((sum, d) => sum + d.price, 0),
           earningsLastMonth: 0,
@@ -307,7 +345,7 @@ export async function seedWallets(
           data: {
             walletId: marieWallet.id,
             amount: delivery.price,
-            currency: 'EUR',
+            currency: "EUR",
             type: TransactionType.EARNING,
             status: TransactionStatus.COMPLETED,
             description: `Gain livraison ${delivery.trackingCode}`,
@@ -316,7 +354,7 @@ export async function seedWallets(
             completedAt: delivery.completionTime || new Date(),
             commissionRate: 0.1,
             isSystemGenerated: true,
-            reportingCategory: 'DELIVERY_EARNINGS',
+            reportingCategory: "DELIVERY_EARNINGS",
           },
         });
       }
@@ -329,15 +367,15 @@ export async function seedWallets(
         data: {
           walletId: marieWallet.id,
           amount: -withdrawalAmount,
-          currency: 'EUR',
+          currency: "EUR",
           type: TransactionType.WITHDRAWAL,
           status: TransactionStatus.COMPLETED,
-          description: 'Retrait vers compte bancaire',
+          description: "Retrait vers compte bancaire",
           balanceAfter: runningBalance,
           createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
           completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
           isSystemGenerated: true,
-          reportingCategory: 'WITHDRAWAL',
+          reportingCategory: "WITHDRAWAL",
         },
       });
 
@@ -346,11 +384,14 @@ export async function seedWallets(
 
       result.created++;
       logger.success(
-        'WALLETS',
-        `✅ Wallet Marie Laurent créé (${currentBalance.toFixed(2)}€ disponible, ${pendingEarnings}€ en attente)`
+        "WALLETS",
+        `✅ Wallet Marie Laurent créé (${currentBalance.toFixed(2)}€ disponible, ${pendingEarnings}€ en attente)`,
       );
     } catch (error: any) {
-      logger.error('WALLETS', `❌ Erreur création wallet Marie Laurent: ${error.message}`);
+      logger.error(
+        "WALLETS",
+        `❌ Erreur création wallet Marie Laurent: ${error.message}`,
+      );
       result.errors++;
     }
   }
@@ -364,12 +405,16 @@ export async function seedWallets(
   });
 
   if (finalWallets.length >= totalWallets - result.errors) {
-    logger.validation('WALLETS', 'PASSED', `${finalWallets.length} wallets créés avec succès`);
+    logger.validation(
+      "WALLETS",
+      "PASSED",
+      `${finalWallets.length} wallets créés avec succès`,
+    );
   } else {
     logger.validation(
-      'WALLETS',
-      'FAILED',
-      `Attendu: ${totalWallets}, Créé: ${finalWallets.length}`
+      "WALLETS",
+      "FAILED",
+      `Attendu: ${totalWallets}, Créé: ${finalWallets.length}`,
     );
   }
 
@@ -380,37 +425,42 @@ export async function seedWallets(
     return acc;
   }, {});
 
-  logger.info('WALLETS', `👥 Wallets par rôle: ${JSON.stringify(byRole)}`);
+  logger.info("WALLETS", `👥 Wallets par rôle: ${JSON.stringify(byRole)}`);
 
   // Statistiques financières
   const totalBalance = finalWallets.reduce(
     (sum, wallet) => sum + parseFloat(wallet.balance.toString()),
-    0
+    0,
   );
   const avgBalance = totalBalance / finalWallets.length;
 
-  logger.info('WALLETS', `💰 Balance totale: ${totalBalance.toFixed(2)} EUR`);
-  logger.info('WALLETS', `📊 Balance moyenne: ${avgBalance.toFixed(2)} EUR`);
+  logger.info("WALLETS", `💰 Balance totale: ${totalBalance.toFixed(2)} EUR`);
+  logger.info("WALLETS", `📊 Balance moyenne: ${avgBalance.toFixed(2)} EUR`);
 
   // Transactions par type
   const allTransactions = await prisma.walletTransaction.findMany();
-  const transactionsByType = allTransactions.reduce((acc: Record<string, number>, tx) => {
-    acc[tx.type] = (acc[tx.type] || 0) + 1;
-    return acc;
-  }, {});
-
-  logger.info('WALLETS', `🔄 Transactions: ${totalTransactions} créées`);
-  logger.info('WALLETS', `📈 Par type: ${JSON.stringify(transactionsByType)}`);
-
-  // Wallets vérifiés
-  const verifiedWallets = finalWallets.filter(w => w.accountVerified);
-  const verificationRate = Math.round((verifiedWallets.length / finalWallets.length) * 100);
-  logger.info(
-    'WALLETS',
-    `✅ Taux de vérification: ${verificationRate}% (${verifiedWallets.length}/${finalWallets.length})`
+  const transactionsByType = allTransactions.reduce(
+    (acc: Record<string, number>, tx) => {
+      acc[tx.type] = (acc[tx.type] || 0) + 1;
+      return acc;
+    },
+    {},
   );
 
-  logger.endSeed('WALLETS', result);
+  logger.info("WALLETS", `🔄 Transactions: ${totalTransactions} créées`);
+  logger.info("WALLETS", `📈 Par type: ${JSON.stringify(transactionsByType)}`);
+
+  // Wallets vérifiés
+  const verifiedWallets = finalWallets.filter((w) => w.accountVerified);
+  const verificationRate = Math.round(
+    (verifiedWallets.length / finalWallets.length) * 100,
+  );
+  logger.info(
+    "WALLETS",
+    `✅ Taux de vérification: ${verificationRate}% (${verifiedWallets.length}/${finalWallets.length})`,
+  );
+
+  logger.endSeed("WALLETS", result);
   return result;
 }
 
@@ -423,7 +473,7 @@ async function generateWalletTransactions(
   totalWithdrawn: number,
   currentBalance: number,
   userRole: UserRole,
-  monthsActive: number
+  monthsActive: number,
 ): Promise<WalletTransactionData[]> {
   const transactions: WalletTransactionData[] = [];
 
@@ -496,7 +546,7 @@ async function generateWalletTransactions(
       status: faker.datatype.boolean(0.95)
         ? TransactionStatus.COMPLETED
         : TransactionStatus.PENDING,
-      description: 'Retrait vers compte bancaire',
+      description: "Retrait vers compte bancaire",
       balanceAfter: runningBalance,
       createdAt: transactionDate,
     });
@@ -521,7 +571,7 @@ async function generateWalletTransactions(
       amount,
       type: isBonus ? TransactionType.BONUS : TransactionType.SERVICE_FEE,
       status: TransactionStatus.COMPLETED,
-      description: isBonus ? 'Bonus de performance' : 'Frais de service',
+      description: isBonus ? "Bonus de performance" : "Frais de service",
       balanceAfter: runningBalance,
       createdAt: transactionDate,
     });
@@ -532,7 +582,7 @@ async function generateWalletTransactions(
 
   // Recalculer les balances progressives
   let balance = 0;
-  transactions.forEach(tx => {
+  transactions.forEach((tx) => {
     balance += tx.amount;
     tx.balanceAfter = balance;
   });
@@ -546,26 +596,26 @@ async function generateWalletTransactions(
 function generateEarningDescription(userRole: UserRole): string {
   if (userRole === UserRole.DELIVERER) {
     const descriptions = [
-      'Livraison Paris 15e - Boulangerie Dupont',
-      'Course alimentaire Monoprix - Client premium',
-      'Livraison express centre-ville',
-      'Transport colis - Zone prioritaire',
-      'Livraison restaurant - Weekend',
-      'Course pharmacie - Urgence',
-      'Livraison meuble - Transport lourd',
-      'Course aéroport - Longue distance',
+      "Livraison Paris 15e - Boulangerie Dupont",
+      "Course alimentaire Monoprix - Client premium",
+      "Livraison express centre-ville",
+      "Transport colis - Zone prioritaire",
+      "Livraison restaurant - Weekend",
+      "Course pharmacie - Urgence",
+      "Livraison meuble - Transport lourd",
+      "Course aéroport - Longue distance",
     ];
     return getRandomElement(descriptions);
   } else {
     const descriptions = [
-      'Service électricité - Installation prise',
-      'Intervention plomberie - Réparation fuite',
-      'Service informatique - Dépannage PC',
-      'Nettoyage résidentiel - Appartement 3P',
-      'Jardinage - Taille haie et tonte',
-      'Service climatisation - Maintenance',
-      'Réparation électroménager - Lave-linge',
-      'Service peinture - Chambre 15m²',
+      "Service électricité - Installation prise",
+      "Intervention plomberie - Réparation fuite",
+      "Service informatique - Dépannage PC",
+      "Nettoyage résidentiel - Appartement 3P",
+      "Jardinage - Taille haie et tonte",
+      "Service climatisation - Maintenance",
+      "Réparation électroménager - Lave-linge",
+      "Service peinture - Chambre 15m²",
     ];
     return getRandomElement(descriptions);
   }
@@ -574,34 +624,40 @@ function generateEarningDescription(userRole: UserRole): string {
 /**
  * Détermine la catégorie de reporting pour une transaction
  */
-function getCategoryForTransaction(type: TransactionType, userRole: UserRole): string {
+function getCategoryForTransaction(
+  type: TransactionType,
+  userRole: UserRole,
+): string {
   const categories: Record<TransactionType, string> = {
     [TransactionType.EARNING]:
-      userRole === UserRole.DELIVERER ? 'DELIVERY_INCOME' : 'SERVICE_INCOME',
-    [TransactionType.WITHDRAWAL]: 'WITHDRAWAL',
-    [TransactionType.BONUS]: 'BONUS_INCOME',
-    [TransactionType.SERVICE_FEE]: 'SERVICE_FEE',
-    [TransactionType.REFUND]: 'REFUND',
-    [TransactionType.DEPOSIT]: 'DEPOSIT',
-    [TransactionType.TRANSFER]: 'TRANSFER',
-    [TransactionType.PLATFORM_FEE]: 'PLATFORM_FEE',
-    [TransactionType.COMMISSION]: 'COMMISSION',
-    [TransactionType.ADJUSTMENT]: 'ADJUSTMENT',
-    [TransactionType.TAX]: 'TAX',
-    [TransactionType.DELIVERY_PAYOUT]: 'DELIVERY_PAYOUT',
-    [TransactionType.SERVICE_PAYOUT]: 'SERVICE_PAYOUT',
-    [TransactionType.SUBSCRIPTION_PAYMENT]: 'SUBSCRIPTION_PAYMENT',
-    [TransactionType.MONTHLY_FEE]: 'MONTHLY_FEE',
+      userRole === UserRole.DELIVERER ? "DELIVERY_INCOME" : "SERVICE_INCOME",
+    [TransactionType.WITHDRAWAL]: "WITHDRAWAL",
+    [TransactionType.BONUS]: "BONUS_INCOME",
+    [TransactionType.SERVICE_FEE]: "SERVICE_FEE",
+    [TransactionType.REFUND]: "REFUND",
+    [TransactionType.DEPOSIT]: "DEPOSIT",
+    [TransactionType.TRANSFER]: "TRANSFER",
+    [TransactionType.PLATFORM_FEE]: "PLATFORM_FEE",
+    [TransactionType.COMMISSION]: "COMMISSION",
+    [TransactionType.ADJUSTMENT]: "ADJUSTMENT",
+    [TransactionType.TAX]: "TAX",
+    [TransactionType.DELIVERY_PAYOUT]: "DELIVERY_PAYOUT",
+    [TransactionType.SERVICE_PAYOUT]: "SERVICE_PAYOUT",
+    [TransactionType.SUBSCRIPTION_PAYMENT]: "SUBSCRIPTION_PAYMENT",
+    [TransactionType.MONTHLY_FEE]: "MONTHLY_FEE",
   };
 
-  return categories[type] || 'OTHER';
+  return categories[type] || "OTHER";
 }
 
 /**
  * Valide l'intégrité des wallets
  */
-export async function validateWallets(prisma: PrismaClient, logger: SeedLogger): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des wallets...');
+export async function validateWallets(
+  prisma: PrismaClient,
+  logger: SeedLogger,
+): Promise<boolean> {
+  logger.info("VALIDATION", "🔍 Validation des wallets...");
 
   let isValid = true;
 
@@ -614,10 +670,10 @@ export async function validateWallets(prisma: PrismaClient, logger: SeedLogger):
   });
 
   if (wallets.length === 0) {
-    logger.error('VALIDATION', '❌ Aucun wallet trouvé');
+    logger.error("VALIDATION", "❌ Aucun wallet trouvé");
     isValid = false;
   } else {
-    logger.success('VALIDATION', `✅ ${wallets.length} wallets trouvés`);
+    logger.success("VALIDATION", `✅ ${wallets.length} wallets trouvés`);
   }
 
   // Vérifier la cohérence des balances
@@ -625,7 +681,7 @@ export async function validateWallets(prisma: PrismaClient, logger: SeedLogger):
   for (const wallet of wallets) {
     const calculatedBalance = wallet.transactions.reduce(
       (sum, tx) => sum + parseFloat(tx.amount.toString()),
-      0
+      0,
     );
 
     const actualBalance = parseFloat(wallet.balance.toString());
@@ -638,21 +694,26 @@ export async function validateWallets(prisma: PrismaClient, logger: SeedLogger):
   }
 
   if (balanceErrors === 0) {
-    logger.success('VALIDATION', '✅ Toutes les balances sont cohérentes');
+    logger.success("VALIDATION", "✅ Toutes les balances sont cohérentes");
   } else {
-    logger.warning('VALIDATION', `⚠️ ${balanceErrors} wallets avec balance incohérente`);
-  }
-
-  // Vérifier que les comptes vérifiés ont des Stripe IDs
-  const verifiedWithoutStripe = wallets.filter(w => w.accountVerified && !w.stripeConnectAccountId);
-
-  if (verifiedWithoutStripe.length > 0) {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${verifiedWithoutStripe.length} comptes vérifiés sans Stripe Connect`
+      "VALIDATION",
+      `⚠️ ${balanceErrors} wallets avec balance incohérente`,
     );
   }
 
-  logger.success('VALIDATION', '✅ Validation des wallets terminée');
+  // Vérifier que les comptes vérifiés ont des Stripe IDs
+  const verifiedWithoutStripe = wallets.filter(
+    (w) => w.accountVerified && !w.stripeConnectAccountId,
+  );
+
+  if (verifiedWithoutStripe.length > 0) {
+    logger.warning(
+      "VALIDATION",
+      `⚠️ ${verifiedWithoutStripe.length} comptes vérifiés sans Stripe Connect`,
+    );
+  }
+
+  logger.success("VALIDATION", "✅ Validation des wallets terminée");
   return isValid;
 }

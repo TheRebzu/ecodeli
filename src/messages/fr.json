@@ -67,12 +67,20 @@
       "PACKAGE_DELIVERY": {
         "label": "Livraison de colis",
         "description": "Transport complet de votre colis de A à Z",
-        "features": ["Prise en charge complète", "Suivi en temps réel", "Assurance incluse"]
+        "features": [
+          "Prise en charge complète",
+          "Suivi en temps réel",
+          "Assurance incluse"
+        ]
       },
       "PARTIAL_DELIVERY": {
         "label": "Livraison partielle",
         "description": "Livraison avec relais intermédiaires",
-        "features": ["Points de relais", "Tarif optimisé", "Flexibilité horaire"]
+        "features": [
+          "Points de relais",
+          "Tarif optimisé",
+          "Flexibilité horaire"
+        ]
       },
       "CART_DROP": {
         "label": "Lâcher de chariot",
@@ -87,7 +95,11 @@
       "INTERNATIONAL_PURCHASE": {
         "label": "Achat international",
         "description": "Achat et rapatriement depuis l'étranger",
-        "features": ["Douanes incluses", "Suivi international", "Assurance étendue"]
+        "features": [
+          "Douanes incluses",
+          "Suivi international",
+          "Assurance étendue"
+        ]
       },
       "AIRPORT_TRANSFER": {
         "label": "Transfert aéroport",
@@ -102,17 +114,29 @@
       "PET_SITTING": {
         "label": "Garde d'animaux",
         "description": "Service de garde pour vos animaux",
-        "features": ["Professionnel certifié", "Soins personnalisés", "Rapport quotidien"]
+        "features": [
+          "Professionnel certifié",
+          "Soins personnalisés",
+          "Rapport quotidien"
+        ]
       },
       "HOME_SERVICES": {
         "label": "Services à domicile",
         "description": "Interventions techniques à domicile",
-        "features": ["Expert qualifié", "Outils fournis", "Garantie intervention"]
+        "features": [
+          "Expert qualifié",
+          "Outils fournis",
+          "Garantie intervention"
+        ]
       },
       "DOCUMENT_DELIVERY": {
         "label": "Livraison de documents",
         "description": "Transport sécurisé de documents importants",
-        "features": ["Confidentialité", "Signature requise", "Traçabilité complète"]
+        "features": [
+          "Confidentialité",
+          "Signature requise",
+          "Traçabilité complète"
+        ]
       }
     },
     "form": {

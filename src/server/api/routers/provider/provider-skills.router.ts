@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { SkillLevel, CertificationStatus } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { SkillLevel, CertificationStatus } from "@prisma/client";
 
 /**
  * Router pour la gestion des compétences et certifications des prestataires
@@ -54,17 +54,25 @@ const createCertificationSchema = z.object({
   verificationNotes: z.string().max(1000).optional(),
 
   // Métadonnées
-  credentialType: z.enum(['CERTIFICATE', 'DIPLOMA', 'LICENSE', 'BADGE', 'ACCREDITATION']),
+  credentialType: z.enum([
+    "CERTIFICATE",
+    "DIPLOMA",
+    "LICENSE",
+    "BADGE",
+    "ACCREDITATION",
+  ]),
   skillCategories: z.array(z.string()).max(10), // Compétences couvertes
 
   // Reconnaissance
   isRecognizedByEcodeli: z.boolean().default(false),
-  recognitionLevel: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']).optional(),
+  recognitionLevel: z
+    .enum(["BASIC", "INTERMEDIATE", "ADVANCED", "EXPERT"])
+    .optional(),
 });
 
 const skillValidationSchema = z.object({
   skillId: z.string().cuid(),
-  status: z.enum(['PENDING', 'VALIDATED', 'REJECTED', 'EXPIRED']),
+  status: z.enum(["PENDING", "VALIDATED", "REJECTED", "EXPIRED"]),
   validatorNotes: z.string().max(1000),
   validatedUntil: z.date().optional(),
   requiredDocuments: z.array(z.string()).optional(),
@@ -76,8 +84,10 @@ const skillFiltersSchema = z.object({
   isVerified: z.boolean().optional(),
   isAvailable: z.boolean().optional(),
   search: z.string().optional(),
-  sortBy: z.enum(['name', 'level', 'experience', 'rate', 'createdAt']).default('name'),
-  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  sortBy: z
+    .enum(["name", "level", "experience", "rate", "createdAt"])
+    .default("name"),
+  sortOrder: z.enum(["asc", "desc"]).default("asc"),
   limit: z.number().min(1).max(100).default(20),
   offset: z.number().min(0).default(0),
 });
@@ -86,293 +96,15 @@ export const providerSkillsRouter = router({
   /**
    * Obtenir toutes les compétences du prestataire
    */
-  getMySkills: protectedProcedure.input(skillFiltersSchema).query(async ({ ctx, input }) => {
-    const { user } = ctx.session;
-
-    if (user.role !== 'PROVIDER') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les prestataires peuvent consulter leurs compétences',
-      });
-    }
-
-    try {
-      const provider = await ctx.db.provider.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!provider) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil prestataire non trouvé',
-        });
-      }
-
-      // Construire les filtres
-      const where: any = {
-        providerId: provider.id,
-        ...(input.category && { category: input.category }),
-        ...(input.level && { level: input.level }),
-        ...(input.isVerified !== undefined && { isVerified: input.isVerified }),
-        ...(input.isAvailable !== undefined && { isAvailable: input.isAvailable }),
-        ...(input.search && {
-          OR: [
-            { name: { contains: input.search, mode: 'insensitive' } },
-            { description: { contains: input.search, mode: 'insensitive' } },
-            { category: { contains: input.search, mode: 'insensitive' } },
-          ],
-        }),
-      };
-
-      const orderBy: any = {};
-      orderBy[input.sortBy] = input.sortOrder;
-
-      const [skills, totalCount] = await Promise.all([
-        ctx.db.providerSkill.findMany({
-          where,
-          include: {
-            certifications: {
-              select: {
-                id: true,
-                name: true,
-                issuingOrganization: true,
-                status: true,
-                expiryDate: true,
-              },
-            },
-            validations: {
-              orderBy: { createdAt: 'desc' },
-              take: 1,
-              select: {
-                status: true,
-                validatorNotes: true,
-                validatedAt: true,
-                validatedUntil: true,
-              },
-            },
-            _count: {
-              select: {
-                bookings: true,
-                portfolioItems: true,
-              },
-            },
-          },
-          orderBy,
-          skip: input.offset,
-          take: input.limit,
-        }),
-        ctx.db.providerSkill.count({ where }),
-      ]);
-
-      // Formatter les données
-      const formattedSkills = skills.map(skill => ({
-        ...skill,
-        hourlyRate: skill.hourlyRate?.toNumber(),
-        minimumRate: skill.minimumRate?.toNumber(),
-        currentValidation: skill.validations[0] || null,
-        activeCertifications: skill.certifications.filter(
-          cert => cert.status === 'ACTIVE' && (!cert.expiryDate || cert.expiryDate > new Date())
-        ),
-        totalBookings: skill._count.bookings,
-        portfolioCount: skill._count.portfolioItems,
-        isExpiringSoon: skill.certifications.some(
-          cert =>
-            cert.expiryDate && cert.expiryDate <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 jours
-        ),
-      }));
-
-      return {
-        success: true,
-        data: formattedSkills,
-        pagination: {
-          total: totalCount,
-          offset: input.offset,
-          limit: input.limit,
-          hasMore: input.offset + input.limit < totalCount,
-        },
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des compétences',
-      });
-    }
-  }),
-
-  /**
-   * Ajouter une nouvelle compétence
-   */
-  createSkill: protectedProcedure.input(createSkillSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
-
-    if (user.role !== 'PROVIDER') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les prestataires peuvent ajouter des compétences',
-      });
-    }
-
-    try {
-      const provider = await ctx.db.provider.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!provider) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil prestataire non trouvé',
-        });
-      }
-
-      // Vérifier les limites (max 20 compétences par prestataire)
-      const skillCount = await ctx.db.providerSkill.count({
-        where: { providerId: provider.id },
-      });
-
-      if (skillCount >= 20) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Limite de 20 compétences atteinte',
-        });
-      }
-
-      // Vérifier l'unicité de la compétence
-      const existingSkill = await ctx.db.providerSkill.findFirst({
-        where: {
-          providerId: provider.id,
-          name: input.name,
-          category: input.category,
-        },
-      });
-
-      if (existingSkill) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Cette compétence existe déjà dans cette catégorie',
-        });
-      }
-
-      const skill = await ctx.db.providerSkill.create({
-        data: {
-          ...input,
-          providerId: provider.id,
-          isVerified: false, // Doit être validé par l'admin
-          verificationStatus: 'PENDING',
-        },
-      });
-
-      return {
-        success: true,
-        data: {
-          ...skill,
-          hourlyRate: skill.hourlyRate?.toNumber(),
-          minimumRate: skill.minimumRate?.toNumber(),
-        },
-        message: 'Compétence ajoutée avec succès. En attente de validation.',
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: "Erreur lors de l'ajout de la compétence",
-      });
-    }
-  }),
-
-  /**
-   * Mettre à jour une compétence
-   */
-  updateSkill: protectedProcedure.input(updateSkillSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
-
-    if (user.role !== 'PROVIDER') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les prestataires peuvent modifier leurs compétences',
-      });
-    }
-
-    try {
-      const provider = await ctx.db.provider.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!provider) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil prestataire non trouvé',
-        });
-      }
-
-      const skill = await ctx.db.providerSkill.findFirst({
-        where: {
-          id: input.id,
-          providerId: provider.id,
-        },
-      });
-
-      if (!skill) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Compétence non trouvée',
-        });
-      }
-
-      const { id, ...updateData } = input;
-
-      // Si la compétence était validée et qu'on modifie des éléments critiques,
-      // remettre en attente de validation
-      const criticalFields = ['name', 'level', 'certificationNumber', 'certificateUrls'];
-      const needsRevalidation = criticalFields.some(
-        field => updateData[field as keyof typeof updateData] !== undefined
-      );
-
-      const updatedSkill = await ctx.db.providerSkill.update({
-        where: { id: input.id },
-        data: {
-          ...updateData,
-          ...(needsRevalidation &&
-            skill.isVerified && {
-              isVerified: false,
-              verificationStatus: 'PENDING',
-            }),
-          updatedAt: new Date(),
-        },
-      });
-
-      return {
-        success: true,
-        data: {
-          ...updatedSkill,
-          hourlyRate: updatedSkill.hourlyRate?.toNumber(),
-          minimumRate: updatedSkill.minimumRate?.toNumber(),
-        },
-        message: needsRevalidation
-          ? 'Compétence mise à jour. En attente de re-validation.'
-          : 'Compétence mise à jour avec succès',
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour',
-      });
-    }
-  }),
-
-  /**
-   * Supprimer une compétence
-   */
-  deleteSkill: protectedProcedure
-    .input(z.object({ id: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
+  getMySkills: protectedProcedure
+    .input(skillFiltersSchema)
+    .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'PROVIDER') {
+      if (user.role !== "PROVIDER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les prestataires peuvent supprimer leurs compétences',
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent consulter leurs compétences",
         });
       }
 
@@ -383,8 +115,305 @@ export const providerSkillsRouter = router({
 
         if (!provider) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil prestataire non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouvé",
+          });
+        }
+
+        // Construire les filtres
+        const where: any = {
+          providerId: provider.id,
+          ...(input.category && { category: input.category }),
+          ...(input.level && { level: input.level }),
+          ...(input.isVerified !== undefined && {
+            isVerified: input.isVerified,
+          }),
+          ...(input.isAvailable !== undefined && {
+            isAvailable: input.isAvailable,
+          }),
+          ...(input.search && {
+            OR: [
+              { name: { contains: input.search, mode: "insensitive" } },
+              { description: { contains: input.search, mode: "insensitive" } },
+              { category: { contains: input.search, mode: "insensitive" } },
+            ],
+          }),
+        };
+
+        const orderBy: any = {};
+        orderBy[input.sortBy] = input.sortOrder;
+
+        const [skills, totalCount] = await Promise.all([
+          ctx.db.providerSkill.findMany({
+            where,
+            include: {
+              certifications: {
+                select: {
+                  id: true,
+                  name: true,
+                  issuingOrganization: true,
+                  status: true,
+                  expiryDate: true,
+                },
+              },
+              validations: {
+                orderBy: { createdAt: "desc" },
+                take: 1,
+                select: {
+                  status: true,
+                  validatorNotes: true,
+                  validatedAt: true,
+                  validatedUntil: true,
+                },
+              },
+              _count: {
+                select: {
+                  bookings: true,
+                  portfolioItems: true,
+                },
+              },
+            },
+            orderBy,
+            skip: input.offset,
+            take: input.limit,
+          }),
+          ctx.db.providerSkill.count({ where }),
+        ]);
+
+        // Formatter les données
+        const formattedSkills = skills.map((skill) => ({
+          ...skill,
+          hourlyRate: skill.hourlyRate?.toNumber(),
+          minimumRate: skill.minimumRate?.toNumber(),
+          currentValidation: skill.validations[0] || null,
+          activeCertifications: skill.certifications.filter(
+            (cert) =>
+              cert.status === "ACTIVE" &&
+              (!cert.expiryDate || cert.expiryDate > new Date()),
+          ),
+          totalBookings: skill._count.bookings,
+          portfolioCount: skill._count.portfolioItems,
+          isExpiringSoon: skill.certifications.some(
+            (cert) =>
+              cert.expiryDate &&
+              cert.expiryDate <=
+                new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
+          ),
+        }));
+
+        return {
+          success: true,
+          data: formattedSkills,
+          pagination: {
+            total: totalCount,
+            offset: input.offset,
+            limit: input.limit,
+            hasMore: input.offset + input.limit < totalCount,
+          },
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des compétences",
+        });
+      }
+    }),
+
+  /**
+   * Ajouter une nouvelle compétence
+   */
+  createSkill: protectedProcedure
+    .input(createSkillSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
+
+      if (user.role !== "PROVIDER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent ajouter des compétences",
+        });
+      }
+
+      try {
+        const provider = await ctx.db.provider.findUnique({
+          where: { userId: user.id },
+        });
+
+        if (!provider) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouvé",
+          });
+        }
+
+        // Vérifier les limites (max 20 compétences par prestataire)
+        const skillCount = await ctx.db.providerSkill.count({
+          where: { providerId: provider.id },
+        });
+
+        if (skillCount >= 20) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Limite de 20 compétences atteinte",
+          });
+        }
+
+        // Vérifier l'unicité de la compétence
+        const existingSkill = await ctx.db.providerSkill.findFirst({
+          where: {
+            providerId: provider.id,
+            name: input.name,
+            category: input.category,
+          },
+        });
+
+        if (existingSkill) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cette compétence existe déjà dans cette catégorie",
+          });
+        }
+
+        const skill = await ctx.db.providerSkill.create({
+          data: {
+            ...input,
+            providerId: provider.id,
+            isVerified: false, // Doit être validé par l'admin
+            verificationStatus: "PENDING",
+          },
+        });
+
+        return {
+          success: true,
+          data: {
+            ...skill,
+            hourlyRate: skill.hourlyRate?.toNumber(),
+            minimumRate: skill.minimumRate?.toNumber(),
+          },
+          message: "Compétence ajoutée avec succès. En attente de validation.",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'ajout de la compétence",
+        });
+      }
+    }),
+
+  /**
+   * Mettre à jour une compétence
+   */
+  updateSkill: protectedProcedure
+    .input(updateSkillSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
+
+      if (user.role !== "PROVIDER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent modifier leurs compétences",
+        });
+      }
+
+      try {
+        const provider = await ctx.db.provider.findUnique({
+          where: { userId: user.id },
+        });
+
+        if (!provider) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouvé",
+          });
+        }
+
+        const skill = await ctx.db.providerSkill.findFirst({
+          where: {
+            id: input.id,
+            providerId: provider.id,
+          },
+        });
+
+        if (!skill) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Compétence non trouvée",
+          });
+        }
+
+        const { id, ...updateData } = input;
+
+        // Si la compétence était validée et qu'on modifie des éléments critiques,
+        // remettre en attente de validation
+        const criticalFields = [
+          "name",
+          "level",
+          "certificationNumber",
+          "certificateUrls",
+        ];
+        const needsRevalidation = criticalFields.some(
+          (field) => updateData[field as keyof typeof updateData] !== undefined,
+        );
+
+        const updatedSkill = await ctx.db.providerSkill.update({
+          where: { id: input.id },
+          data: {
+            ...updateData,
+            ...(needsRevalidation &&
+              skill.isVerified && {
+                isVerified: false,
+                verificationStatus: "PENDING",
+              }),
+            updatedAt: new Date(),
+          },
+        });
+
+        return {
+          success: true,
+          data: {
+            ...updatedSkill,
+            hourlyRate: updatedSkill.hourlyRate?.toNumber(),
+            minimumRate: updatedSkill.minimumRate?.toNumber(),
+          },
+          message: needsRevalidation
+            ? "Compétence mise à jour. En attente de re-validation."
+            : "Compétence mise à jour avec succès",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour",
+        });
+      }
+    }),
+
+  /**
+   * Supprimer une compétence
+   */
+  deleteSkill: protectedProcedure
+    .input(z.object({ id: z.string().cuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
+
+      if (user.role !== "PROVIDER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent supprimer leurs compétences",
+        });
+      }
+
+      try {
+        const provider = await ctx.db.provider.findUnique({
+          where: { userId: user.id },
+        });
+
+        if (!provider) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouvé",
           });
         }
 
@@ -400,20 +429,22 @@ export const providerSkillsRouter = router({
 
         if (!skill) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Compétence non trouvée',
+            code: "NOT_FOUND",
+            message: "Compétence non trouvée",
           });
         }
 
         // Vérifier s'il y a des réservations actives liées
         const activeBookings = skill.bookings.filter(
-          booking => booking.status === 'PENDING' || booking.status === 'CONFIRMED'
+          (booking) =>
+            booking.status === "PENDING" || booking.status === "CONFIRMED",
         );
 
         if (activeBookings.length > 0) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Impossible de supprimer une compétence avec des réservations actives',
+            code: "BAD_REQUEST",
+            message:
+              "Impossible de supprimer une compétence avec des réservations actives",
           });
         }
 
@@ -423,13 +454,13 @@ export const providerSkillsRouter = router({
 
         return {
           success: true,
-          message: 'Compétence supprimée avec succès',
+          message: "Compétence supprimée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la suppression',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la suppression",
         });
       }
     }),
@@ -442,10 +473,10 @@ export const providerSkillsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'PROVIDER') {
+      if (user.role !== "PROVIDER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les prestataires peuvent ajouter des certifications',
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent ajouter des certifications",
         });
       }
 
@@ -456,8 +487,8 @@ export const providerSkillsRouter = router({
 
         if (!provider) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil prestataire non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouvé",
           });
         }
 
@@ -472,16 +503,17 @@ export const providerSkillsRouter = router({
 
         if (existingCert) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette certification existe déjà',
+            code: "BAD_REQUEST",
+            message: "Cette certification existe déjà",
           });
         }
 
         // Vérifier la validité des dates
         if (input.expiryDate && input.expiryDate <= input.issueDate) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: "La date d'expiration doit être postérieure à la date d'émission",
+            code: "BAD_REQUEST",
+            message:
+              "La date d'expiration doit être postérieure à la date d'émission",
           });
         }
 
@@ -489,20 +521,21 @@ export const providerSkillsRouter = router({
           data: {
             ...input,
             providerId: provider.id,
-            status: 'PENDING', // En attente de validation
-            verificationStatus: 'PENDING',
+            status: "PENDING", // En attente de validation
+            verificationStatus: "PENDING",
           },
         });
 
         return {
           success: true,
           data: certification,
-          message: 'Certification ajoutée avec succès. En attente de validation.',
+          message:
+            "Certification ajoutée avec succès. En attente de validation.",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'ajout de la certification",
         });
       }
@@ -518,15 +551,16 @@ export const providerSkillsRouter = router({
         expiringSoon: z.boolean().optional(), // Dans les 60 jours
         limit: z.number().min(1).max(100).default(20),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'PROVIDER') {
+      if (user.role !== "PROVIDER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les prestataires peuvent consulter leurs certifications',
+          code: "FORBIDDEN",
+          message:
+            "Seuls les prestataires peuvent consulter leurs certifications",
         });
       }
 
@@ -537,8 +571,8 @@ export const providerSkillsRouter = router({
 
         if (!provider) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil prestataire non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouvé",
           });
         }
 
@@ -570,7 +604,7 @@ export const providerSkillsRouter = router({
                 },
               },
             },
-            orderBy: [{ expiryDate: 'asc' }, { createdAt: 'desc' }],
+            orderBy: [{ expiryDate: "asc" }, { createdAt: "desc" }],
             skip: input.offset,
             take: input.limit,
           }),
@@ -578,20 +612,24 @@ export const providerSkillsRouter = router({
         ]);
 
         // Formatter les données avec statuts dynamiques
-        const formattedCertifications = certifications.map(cert => {
+        const formattedCertifications = certifications.map((cert) => {
           const now = new Date();
           const isExpired = cert.expiryDate && cert.expiryDate < now;
           const isExpiringSoon =
             cert.expiryDate &&
             cert.expiryDate > now &&
-            cert.expiryDate <= new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+            cert.expiryDate <=
+              new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
 
           return {
             ...cert,
             isExpired,
             isExpiringSoon,
             daysUntilExpiry: cert.expiryDate
-              ? Math.ceil((cert.expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+              ? Math.ceil(
+                  (cert.expiryDate.getTime() - now.getTime()) /
+                    (1000 * 60 * 60 * 24),
+                )
               : null,
             relatedSkillsCount: cert.skills.length,
           };
@@ -610,8 +648,8 @@ export const providerSkillsRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des certifications',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des certifications",
         });
       }
     }),
@@ -622,10 +660,10 @@ export const providerSkillsRouter = router({
   getSkillsStats: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'PROVIDER') {
+    if (user.role !== "PROVIDER") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les prestataires peuvent consulter leurs statistiques',
+        code: "FORBIDDEN",
+        message: "Seuls les prestataires peuvent consulter leurs statistiques",
       });
     }
 
@@ -636,8 +674,8 @@ export const providerSkillsRouter = router({
 
       if (!provider) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil prestataire non trouvé',
+          code: "NOT_FOUND",
+          message: "Profil prestataire non trouvé",
         });
       }
 
@@ -667,7 +705,7 @@ export const providerSkillsRouter = router({
         ctx.db.providerSkill.count({
           where: {
             providerId: provider.id,
-            verificationStatus: 'PENDING',
+            verificationStatus: "PENDING",
           },
         }),
 
@@ -675,7 +713,7 @@ export const providerSkillsRouter = router({
         ctx.db.providerCertification.count({
           where: {
             providerId: provider.id,
-            status: 'ACTIVE',
+            status: "ACTIVE",
             OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
           },
         }),
@@ -684,7 +722,7 @@ export const providerSkillsRouter = router({
         ctx.db.providerCertification.count({
           where: {
             providerId: provider.id,
-            status: 'ACTIVE',
+            status: "ACTIVE",
             expiryDate: {
               gte: new Date(),
               lte: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
@@ -694,7 +732,7 @@ export const providerSkillsRouter = router({
 
         // Répartition par niveau
         ctx.db.providerSkill.groupBy({
-          by: ['level'],
+          by: ["level"],
           where: { providerId: provider.id },
           _count: true,
         }),
@@ -708,7 +746,7 @@ export const providerSkillsRouter = router({
             },
           },
           orderBy: {
-            bookings: { _count: 'desc' },
+            bookings: { _count: "desc" },
           },
           take: 5,
         }),
@@ -728,16 +766,17 @@ export const providerSkillsRouter = router({
             totalSkills,
             verifiedSkills,
             pendingSkills,
-            verificationRate: totalSkills > 0 ? (verifiedSkills / totalSkills) * 100 : 0,
+            verificationRate:
+              totalSkills > 0 ? (verifiedSkills / totalSkills) * 100 : 0,
             activeCertifications,
             expiringSoonCertifications,
             profileCompleteness,
           },
-          levelDistribution: skillsByLevel.map(item => ({
+          levelDistribution: skillsByLevel.map((item) => ({
             level: item.level,
             count: item._count,
           })),
-          topPerformingSkills: topPerformingSkills.map(skill => ({
+          topPerformingSkills: topPerformingSkills.map((skill) => ({
             id: skill.id,
             name: skill.name,
             category: skill.category,
@@ -754,8 +793,8 @@ export const providerSkillsRouter = router({
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des statistiques',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des statistiques",
       });
     }
   }),
@@ -772,10 +811,12 @@ export const providerSkillsRouter = router({
         city: z.string().optional(),
         maxHourlyRate: z.number().optional(),
         onlyVerified: z.boolean().default(true),
-        sortBy: z.enum(['relevance', 'rate', 'experience', 'rating']).default('relevance'),
+        sortBy: z
+          .enum(["relevance", "rate", "experience", "rating"])
+          .default("relevance"),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -788,9 +829,9 @@ export const providerSkillsRouter = router({
           },
           ...(input.query && {
             OR: [
-              { name: { contains: input.query, mode: 'insensitive' } },
-              { description: { contains: input.query, mode: 'insensitive' } },
-              { category: { contains: input.query, mode: 'insensitive' } },
+              { name: { contains: input.query, mode: "insensitive" } },
+              { description: { contains: input.query, mode: "insensitive" } },
+              { category: { contains: input.query, mode: "insensitive" } },
             ],
           }),
           ...(input.category && { category: input.category }),
@@ -801,7 +842,7 @@ export const providerSkillsRouter = router({
           ...(input.city && {
             provider: {
               user: {
-                city: { contains: input.city, mode: 'insensitive' },
+                city: { contains: input.city, mode: "insensitive" },
               },
             },
           }),
@@ -809,17 +850,17 @@ export const providerSkillsRouter = router({
 
         const orderBy: any = {};
         switch (input.sortBy) {
-          case 'rate':
-            orderBy.hourlyRate = 'asc';
+          case "rate":
+            orderBy.hourlyRate = "asc";
             break;
-          case 'experience':
-            orderBy.yearsOfExperience = 'desc';
+          case "experience":
+            orderBy.yearsOfExperience = "desc";
             break;
-          case 'rating':
-            orderBy.provider = { rating: 'desc' };
+          case "rating":
+            orderBy.provider = { rating: "desc" };
             break;
           default:
-            orderBy.createdAt = 'desc';
+            orderBy.createdAt = "desc";
         }
 
         const [skills, totalCount] = await Promise.all([
@@ -838,7 +879,7 @@ export const providerSkillsRouter = router({
                 },
               },
               certifications: {
-                where: { status: 'ACTIVE' },
+                where: { status: "ACTIVE" },
                 select: {
                   name: true,
                   issuingOrganization: true,
@@ -855,7 +896,7 @@ export const providerSkillsRouter = router({
           ctx.db.providerSkill.count({ where }),
         ]);
 
-        const formattedSkills = skills.map(skill => ({
+        const formattedSkills = skills.map((skill) => ({
           id: skill.id,
           name: skill.name,
           description: skill.description,
@@ -889,8 +930,8 @@ export const providerSkillsRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la recherche de compétences',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la recherche de compétences",
         });
       }
     }),
@@ -929,20 +970,26 @@ function generateSkillRecommendations(stats: {
   const recommendations: string[] = [];
 
   if (stats.totalSkills < 3) {
-    recommendations.push('Ajoutez au moins 3 compétences pour améliorer votre visibilité');
+    recommendations.push(
+      "Ajoutez au moins 3 compétences pour améliorer votre visibilité",
+    );
   }
 
   if (stats.verifiedSkills / stats.totalSkills < 0.5) {
-    recommendations.push('Soumettez des documents pour faire vérifier vos compétences');
+    recommendations.push(
+      "Soumettez des documents pour faire vérifier vos compétences",
+    );
   }
 
   if (stats.activeCertifications === 0) {
-    recommendations.push('Ajoutez des certifications pour renforcer votre crédibilité');
+    recommendations.push(
+      "Ajoutez des certifications pour renforcer votre crédibilité",
+    );
   }
 
   if (stats.expiringSoonCertifications > 0) {
     recommendations.push(
-      `${stats.expiringSoonCertifications} certification(s) expirent bientôt, pensez à les renouveler`
+      `${stats.expiringSoonCertifications} certification(s) expirent bientôt, pensez à les renouveler`,
     );
   }
 

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -9,7 +9,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -18,24 +18,28 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
-import { UserRole, DocumentType } from '@prisma/client';
-import { Files, Calendar, User, Clock } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { api } from '@/trpc/react';
-import { useTranslations } from 'next-intl';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import { UserRole, DocumentType } from "@prisma/client";
+import { Files, Calendar, User, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { api } from "@/trpc/react";
+import { useTranslations } from "next-intl";
 
 /**
  * Composant pour afficher la liste des utilisateurs avec des documents à vérifier
  */
-export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?: string }) {
+export function PendingUserVerifications({
+  userRole = "DELIVERER",
+}: {
+  userRole?: string;
+}) {
   const router = useRouter();
   const { toast } = useToast();
-  const t = useTranslations('admin.verification');
+  const t = useTranslations("admin.verification");
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
 
@@ -59,7 +63,7 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
     data: usersWithPendingDocs.map((user: any) => ({
       id: `doc-${user.id}`,
       userId: user.id,
-      type: 'ID_CARD' as DocumentType,
+      type: "ID_CARD" as DocumentType,
       uploadedAt: user.createdAt,
       user: {
         id: user.id,
@@ -86,7 +90,7 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
         acc[doc.userId].documents.push(doc);
         return acc;
       },
-      {} as Record<string, { user: any; documents: any[] }>
+      {} as Record<string, { user: any; documents: any[] }>,
     ) || {};
 
   const users = Object.values(usersWithDocuments);
@@ -99,32 +103,32 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
 
   // Générer un résumé des documents soumis
   const getDocumentsSummary = (documents: any[]) => {
-    if (documents.length === 0) return 'Aucun document';
+    if (documents.length === 0) return "Aucun document";
 
-    const types = documents.map(doc => {
+    const types = documents.map((doc) => {
       switch (doc.type) {
-        case 'ID_CARD':
+        case "ID_CARD":
           return "Carte d'identité";
-        case 'DRIVING_LICENSE':
-          return 'Permis de conduire';
-        case 'VEHICLE_REGISTRATION':
-          return 'Carte grise';
-        case 'SELFIE':
-          return 'Selfie';
-        case 'QUALIFICATION_CERTIFICATE':
-          return 'Certificat de qualification';
-        case 'INSURANCE':
+        case "DRIVING_LICENSE":
+          return "Permis de conduire";
+        case "VEHICLE_REGISTRATION":
+          return "Carte grise";
+        case "SELFIE":
+          return "Selfie";
+        case "QUALIFICATION_CERTIFICATE":
+          return "Certificat de qualification";
+        case "INSURANCE":
           return "Attestation d'assurance";
-        case 'PROOF_OF_ADDRESS':
-          return 'Justificatif de domicile';
-        case 'BUSINESS_REGISTRATION':
-          return 'Registre du commerce';
+        case "PROOF_OF_ADDRESS":
+          return "Justificatif de domicile";
+        case "BUSINESS_REGISTRATION":
+          return "Registre du commerce";
         default:
           return doc.type;
       }
     });
 
-    return types.join(', ');
+    return types.join(", ");
   };
 
   // Afficher un état de chargement
@@ -133,7 +137,9 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
       <Card>
         <CardHeader>
           <CardTitle>Vérifications en attente</CardTitle>
-          <CardDescription>Chargement des utilisateurs à vérifier...</CardDescription>
+          <CardDescription>
+            Chargement des utilisateurs à vérifier...
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center py-8">
           <p>Chargement en cours...</p>
@@ -155,7 +161,9 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
         <CardContent className="flex justify-center py-8">
           <div className="text-center">
             <Files className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium mb-2">Aucune vérification en attente</h3>
+            <h3 className="text-lg font-medium mb-2">
+              Aucune vérification en attente
+            </h3>
             <p className="text-muted-foreground">
               Tous les documents ont été vérifiés. Revenez plus tard.
             </p>
@@ -169,7 +177,9 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
     <Card>
       <CardHeader>
         <CardTitle>Vérifications en attente</CardTitle>
-        <CardDescription>Liste des utilisateurs avec des documents à vérifier</CardDescription>
+        <CardDescription>
+          Liste des utilisateurs avec des documents à vérifier
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -182,25 +192,34 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map(item => (
+            {users.map((item) => (
               <TableRow key={item.user.id}>
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="font-medium">{item.user.name}</span>
-                    <span className="text-sm text-muted-foreground">{item.user.email}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {item.user.email}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1">
                     <span>{getDocumentsSummary(item.documents)}</span>
-                    <Badge variant="outline">{item.documents.length} document(s)</Badge>
+                    <Badge variant="outline">
+                      {item.documents.length} document(s)
+                    </Badge>
                   </div>
                 </TableCell>
                 <TableCell>
-                  {format(new Date(item.documents[0].uploadedAt), 'PPP', { locale: fr })}
+                  {format(new Date(item.documents[0].uploadedAt), "PPP", {
+                    locale: fr,
+                  })}
                 </TableCell>
                 <TableCell>
-                  <Button onClick={() => goToUserVerification(item.user.id)} size="sm">
+                  <Button
+                    onClick={() => goToUserVerification(item.user.id)}
+                    size="sm"
+                  >
                     Vérifier
                   </Button>
                 </TableCell>
@@ -214,7 +233,7 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
             >
               Précédent
@@ -225,7 +244,9 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
             >
               Suivant

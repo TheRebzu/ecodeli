@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslations } from 'next-intl';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import {
   clientRegisterSchema,
   ClientRegisterSchemaType,
-} from '@/schemas/client/client-register.schema';
-import { UserRole } from '@/schemas/auth/register.schema';
-import { Button } from '@/components/ui/button';
+} from "@/schemas/client/client-register.schema";
+import { UserRole } from "@/schemas/auth/register.schema";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -16,32 +16,32 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useRouter } from 'next/navigation';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ClientRegisterForm() {
   const router = useRouter();
-  const t = useTranslations('auth.register');
+  const t = useTranslations("auth.register");
   const { toast } = useToast();
 
   const registerMutation = api.auth.register.useMutation({
     onSuccess: () => {
       toast({
-        title: t('success.title'),
-        description: t('success.description'),
+        title: t("success.title"),
+        description: t("success.description"),
       });
       // Rediriger vers la page de connexion avec un message
-      router.push('/login?registered=true');
+      router.push("/login?registered=true");
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: t('error.title'),
-        description: error.message || t('error.description'),
-        variant: 'destructive',
+        title: t("error.title"),
+        description: error.message || t("error.description"),
+        variant: "destructive",
       });
     },
   });
@@ -49,16 +49,16 @@ export default function ClientRegisterForm() {
   const form = useForm<ClientRegisterSchemaType>({
     resolver: zodResolver(clientRegisterSchema),
     defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      name: '',
-      phoneNumber: '',
-      address: '',
-      city: '',
-      postalCode: '',
-      state: '',
-      country: '',
+      email: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+      phoneNumber: "",
+      address: "",
+      city: "",
+      postalCode: "",
+      state: "",
+      country: "",
       newsletter: false,
       role: UserRole.CLIENT,
     },
@@ -70,7 +70,7 @@ export default function ClientRegisterForm() {
         email: data.email,
         password: data.password,
         name: data.name,
-        role: 'CLIENT',
+        role: "CLIENT",
         phone: data.phoneNumber,
         address: data.address,
       });
@@ -87,9 +87,9 @@ export default function ClientRegisterForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.name')}</FormLabel>
+              <FormLabel>{t("fields.name")}</FormLabel>
               <FormControl>
-                <Input placeholder={t('placeholders.name')} {...field} />
+                <Input placeholder={t("placeholders.name")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -101,9 +101,13 @@ export default function ClientRegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.email')}</FormLabel>
+              <FormLabel>{t("fields.email")}</FormLabel>
               <FormControl>
-                <Input type="email" placeholder={t('placeholders.email')} {...field} />
+                <Input
+                  type="email"
+                  placeholder={t("placeholders.email")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -115,9 +119,13 @@ export default function ClientRegisterForm() {
           name="phoneNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.phoneNumber')}</FormLabel>
+              <FormLabel>{t("fields.phoneNumber")}</FormLabel>
               <FormControl>
-                <Input type="tel" placeholder={t('placeholders.phoneNumber')} {...field} />
+                <Input
+                  type="tel"
+                  placeholder={t("placeholders.phoneNumber")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -129,9 +137,9 @@ export default function ClientRegisterForm() {
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.address')}</FormLabel>
+              <FormLabel>{t("fields.address")}</FormLabel>
               <FormControl>
-                <Input placeholder={t('placeholders.address')} {...field} />
+                <Input placeholder={t("placeholders.address")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -144,9 +152,9 @@ export default function ClientRegisterForm() {
             name="city"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.city')}</FormLabel>
+                <FormLabel>{t("fields.city")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.city')} {...field} />
+                  <Input placeholder={t("placeholders.city")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -158,9 +166,12 @@ export default function ClientRegisterForm() {
             name="postalCode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.postalCode')}</FormLabel>
+                <FormLabel>{t("fields.postalCode")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.postalCode')} {...field} />
+                  <Input
+                    placeholder={t("placeholders.postalCode")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -174,9 +185,9 @@ export default function ClientRegisterForm() {
             name="state"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.state')}</FormLabel>
+                <FormLabel>{t("fields.state")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.state')} {...field} />
+                  <Input placeholder={t("placeholders.state")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -188,9 +199,9 @@ export default function ClientRegisterForm() {
             name="country"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.country')}</FormLabel>
+                <FormLabel>{t("fields.country")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.country')} {...field} />
+                  <Input placeholder={t("placeholders.country")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -203,9 +214,13 @@ export default function ClientRegisterForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.password')}</FormLabel>
+              <FormLabel>{t("fields.password")}</FormLabel>
               <FormControl>
-                <Input type="password" placeholder={t('placeholders.password')} {...field} />
+                <Input
+                  type="password"
+                  placeholder={t("placeholders.password")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -217,9 +232,13 @@ export default function ClientRegisterForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('fields.confirmPassword')}</FormLabel>
+              <FormLabel>{t("fields.confirmPassword")}</FormLabel>
               <FormControl>
-                <Input type="password" placeholder={t('placeholders.confirmPassword')} {...field} />
+                <Input
+                  type="password"
+                  placeholder={t("placeholders.confirmPassword")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -232,17 +251,24 @@ export default function ClientRegisterForm() {
           render={({ field }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel>{t('fields.newsletter')}</FormLabel>
+                <FormLabel>{t("fields.newsletter")}</FormLabel>
               </div>
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-          {registerMutation.isPending ? t('submitting') : t('register')}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={registerMutation.isPending}
+        >
+          {registerMutation.isPending ? t("submitting") : t("register")}
         </Button>
       </form>
     </Form>

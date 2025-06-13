@@ -1,23 +1,26 @@
-import { db } from '@/server/db';
-import { hash, compare } from 'bcryptjs';
-import { UserRole, UserStatus } from '@/server/db/enums';
-import { randomBytes } from 'crypto';
-import { TRPCError } from '@trpc/server';
-import { LoginSchemaType } from '@/schemas/auth/login.schema';
-import { PrismaClient } from '@prisma/client';
-import { sendVerificationEmail, sendPasswordResetEmail } from '@/lib/services/email.service';
-import { EmailService } from '@/server/services/common/email.service';
-import { TokenService } from '@/server/services/auth/token.service';
+import { db } from "@/server/db";
+import { hash, compare } from "bcryptjs";
+import { UserRole, UserStatus } from "@/server/db/enums";
+import { randomBytes } from "crypto";
+import { TRPCError } from "@trpc/server";
+import { LoginSchemaType } from "@/schemas/auth/login.schema";
+import { PrismaClient } from "@prisma/client";
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} from "@/lib/services/email.service";
+import { EmailService } from "@/server/services/common/email.service";
+import { TokenService } from "@/server/services/auth/token.service";
 import {
   ClientRegisterSchemaType,
   DelivererRegisterSchemaType,
   MerchantRegisterSchemaType,
   ProviderRegisterSchemaType,
-} from '@/schemas/validation';
-import { VerificationStatus } from '@prisma/client';
-import { DocumentService } from '@/server/services/common/document.service';
-import { NotificationService } from '@/lib/services/notification.service';
-import { SupportedLanguage } from '@/types/i18n/translation';
+} from "@/schemas/validation";
+import { VerificationStatus } from "@prisma/client";
+import { DocumentService } from "@/server/services/common/document.service";
+import { NotificationService } from "@/lib/services/notification.service";
+import { SupportedLanguage } from "@/types/i18n/translation";
 
 type RegisterBaseParams = {
   email: string;
@@ -75,8 +78,8 @@ export class AuthService {
     const userExists = await this.userExists(data.email);
     if (userExists) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Un utilisateur avec cet email existe déjà',
+        code: "BAD_REQUEST",
+        message: "Un utilisateur avec cet email existe déjà",
       });
     }
 
@@ -94,9 +97,13 @@ export class AuthService {
     });
 
     // Création et envoi du token de vérification
-    const verificationToken = await this.tokenService.createEmailVerificationToken(user.id);
+    const verificationToken =
+      await this.tokenService.createEmailVerificationToken(user.id);
     if (user.email) {
-      await this.emailService.sendVerificationEmail(user.email, verificationToken);
+      await this.emailService.sendVerificationEmail(
+        user.email,
+        verificationToken,
+      );
     }
 
     return user;
@@ -113,8 +120,8 @@ export class AuthService {
 
     if (existingUser) {
       throw new TRPCError({
-        code: 'CONFLICT',
-        message: 'Un utilisateur avec cet email existe déjà',
+        code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà",
       });
     }
 
@@ -146,7 +153,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Compte client créé. Veuillez vérifier votre email.',
+      message: "Compte client créé. Veuillez vérifier votre email.",
       userId: user.id,
     };
   }
@@ -162,8 +169,8 @@ export class AuthService {
 
     if (existingUser) {
       throw new TRPCError({
-        code: 'CONFLICT',
-        message: 'Un utilisateur avec cet email existe déjà',
+        code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà",
       });
     }
 
@@ -199,7 +206,8 @@ export class AuthService {
 
     return {
       success: true,
-      message: "Compte livreur créé. Veuillez vérifier votre email pour passer à l'étape suivante.",
+      message:
+        "Compte livreur créé. Veuillez vérifier votre email pour passer à l'étape suivante.",
       userId: user.id,
     };
   }
@@ -215,8 +223,8 @@ export class AuthService {
 
     if (existingUser) {
       throw new TRPCError({
-        code: 'CONFLICT',
-        message: 'Un utilisateur avec cet email existe déjà',
+        code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà",
       });
     }
 
@@ -252,7 +260,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Compte commerçant créé. Veuillez vérifier votre email.',
+      message: "Compte commerçant créé. Veuillez vérifier votre email.",
       userId: user.id,
     };
   }
@@ -268,8 +276,8 @@ export class AuthService {
 
     if (existingUser) {
       throw new TRPCError({
-        code: 'CONFLICT',
-        message: 'Un utilisateur avec cet email existe déjà',
+        code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà",
       });
     }
 
@@ -300,7 +308,9 @@ export class AuthService {
             isVerified: false,
             serviceType: data.serviceType,
             description: data.description,
-            availability: data.availability ? JSON.stringify(data.availability) : null,
+            availability: data.availability
+              ? JSON.stringify(data.availability)
+              : null,
           },
         },
       },
@@ -314,7 +324,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Compte prestataire créé. Veuillez vérifier votre email.',
+      message: "Compte prestataire créé. Veuillez vérifier votre email.",
       userId: user.id,
     };
   }
@@ -334,8 +344,8 @@ export class AuthService {
 
       if (!user) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Utilisateur non trouvé',
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
         });
       }
 
@@ -352,10 +362,10 @@ export class AuthService {
 
       return true;
     } catch (error) {
-      console.error('Erreur lors de la vérification du token:', error);
+      console.error("Erreur lors de la vérification du token:", error);
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Token de vérification invalide ou expiré',
+        code: "NOT_FOUND",
+        message: "Token de vérification invalide ou expiré",
       });
     }
   }
@@ -374,7 +384,9 @@ export class AuthService {
     }
 
     // Création du token de réinitialisation
-    const resetToken = await this.tokenService.createPasswordResetToken(user.id);
+    const resetToken = await this.tokenService.createPasswordResetToken(
+      user.id,
+    );
 
     // Envoi de l'email de réinitialisation
     if (user.email) {
@@ -397,8 +409,8 @@ export class AuthService {
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
@@ -437,8 +449,8 @@ export class AuthService {
 
     if (!user || !user.password) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Identifiants invalides',
+        code: "UNAUTHORIZED",
+        message: "Identifiants invalides",
       });
     }
 
@@ -447,33 +459,33 @@ export class AuthService {
 
     if (!isValidPassword) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Identifiants invalides',
+        code: "UNAUTHORIZED",
+        message: "Identifiants invalides",
       });
     }
 
     // Vérification du statut du compte
-    if (user.status === 'INACTIVE' || user.status === 'SUSPENDED') {
+    if (user.status === "INACTIVE" || user.status === "SUSPENDED") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Ce compte a été désactivé ou suspendu',
+        code: "FORBIDDEN",
+        message: "Ce compte a été désactivé ou suspendu",
       });
     }
 
     // Vérification de l'email pour les rôles autres qu'admin
-    if (user.role !== 'ADMIN' && user.status === 'PENDING_VERIFICATION') {
+    if (user.role !== "ADMIN" && user.status === "PENDING_VERIFICATION") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Veuillez vérifier votre email pour activer votre compte',
+        code: "FORBIDDEN",
+        message: "Veuillez vérifier votre email pour activer votre compte",
       });
     }
 
     // Vérification de la 2FA si activée
     if (user.twoFactorEnabled && !data.totp) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Authentification à deux facteurs requise',
-        cause: 'REQUIRES_2FA',
+        code: "UNAUTHORIZED",
+        message: "Authentification à deux facteurs requise",
+        cause: "REQUIRES_2FA",
       });
     }
 
@@ -483,7 +495,7 @@ export class AuthService {
 
       if (!isValidTotp) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
+          code: "UNAUTHORIZED",
           message: "Code d'authentification à deux facteurs invalide",
         });
       }
@@ -498,19 +510,19 @@ export class AuthService {
     // Convert role from string to UserRole enum
     let userRole: UserRole;
     switch (user.role) {
-      case 'CLIENT':
+      case "CLIENT":
         userRole = UserRole.CLIENT;
         break;
-      case 'DELIVERER':
+      case "DELIVERER":
         userRole = UserRole.DELIVERER;
         break;
-      case 'MERCHANT':
+      case "MERCHANT":
         userRole = UserRole.MERCHANT;
         break;
-      case 'PROVIDER':
+      case "PROVIDER":
         userRole = UserRole.PROVIDER;
         break;
-      case 'ADMIN':
+      case "ADMIN":
         userRole = UserRole.ADMIN;
         break;
       default:
@@ -519,8 +531,8 @@ export class AuthService {
 
     return {
       id: user.id,
-      email: user.email || '',
-      name: user.name || '',
+      email: user.email || "",
+      name: user.name || "",
       role: userRole,
       profileId:
         user.client?.id ||
@@ -546,13 +558,13 @@ export class AuthService {
 
     if (!user?.twoFactorEnabled || !user?.twoFactorSecret) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
+        code: "BAD_REQUEST",
         message: "La configuration 2FA n'est pas activée",
       });
     }
 
     // Vérification simple pour le développement
-    return totp === '123456';
+    return totp === "123456";
   }
 
   /**
@@ -560,7 +572,7 @@ export class AuthService {
    */
   async enableTwoFactor(userId: string) {
     // Générer un secret temporaire
-    const secret = randomBytes(20).toString('hex');
+    const secret = randomBytes(20).toString("hex");
 
     // Enregistrer le secret dans la base de données
     await this.db.user.update({
@@ -599,13 +611,13 @@ export class AuthService {
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
     // Générer un secret temporaire
-    const secret = randomBytes(20).toString('hex');
+    const secret = randomBytes(20).toString("hex");
 
     // Update user with secret
     await this.db.user.update({
@@ -627,13 +639,13 @@ export class AuthService {
 
     if (!user?.twoFactorSecret) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
+        code: "BAD_REQUEST",
         message: "La configuration 2FA n'est pas activée",
       });
     }
 
     // Vérification simple pour le développement
-    const isValid = token === '123456';
+    const isValid = token === "123456";
 
     if (isValid) {
       await this.db.user.update({
@@ -652,7 +664,7 @@ export class AuthService {
     delivererId: string,
     adminId: string,
     approved: boolean,
-    notes?: string
+    notes?: string,
   ) {
     // Vérifier que l'administrateur existe
     const admin = await this.db.user.findUnique({
@@ -661,8 +673,8 @@ export class AuthService {
 
     if (!admin) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Seul un administrateur peut effectuer cette action',
+        code: "UNAUTHORIZED",
+        message: "Seul un administrateur peut effectuer cette action",
       });
     }
 
@@ -674,8 +686,8 @@ export class AuthService {
 
     if (!deliverer) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Livreur non trouvé',
+        code: "NOT_FOUND",
+        message: "Livreur non trouvé",
       });
     }
 
@@ -690,7 +702,9 @@ export class AuthService {
       });
 
       // Envoyer un email d'approbation
-      await this.emailService.sendAccountApprovalNotification(deliverer.user.email);
+      await this.emailService.sendAccountApprovalNotification(
+        deliverer.user.email,
+      );
     } else {
       // Rejeter avec un message
       await this.db.deliverer.update({
@@ -703,13 +717,13 @@ export class AuthService {
       // Envoyer un email de rejet avec les notes
       await this.emailService.sendAccountRejectionNotification(
         deliverer.user.email,
-        notes || 'Aucune raison spécifiée'
+        notes || "Aucune raison spécifiée",
       );
     }
 
     return {
       success: true,
-      message: approved ? 'Compte livreur approuvé' : 'Compte livreur rejeté',
+      message: approved ? "Compte livreur approuvé" : "Compte livreur rejeté",
     };
   }
 
@@ -720,7 +734,7 @@ export class AuthService {
     merchantId: string,
     adminId: string,
     approved: boolean,
-    notes?: string
+    notes?: string,
   ) {
     // Vérifier que l'administrateur existe
     const admin = await this.db.user.findUnique({
@@ -729,8 +743,8 @@ export class AuthService {
 
     if (!admin) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Seul un administrateur peut effectuer cette action',
+        code: "UNAUTHORIZED",
+        message: "Seul un administrateur peut effectuer cette action",
       });
     }
 
@@ -742,8 +756,8 @@ export class AuthService {
 
     if (!merchant) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Commerçant non trouvé',
+        code: "NOT_FOUND",
+        message: "Commerçant non trouvé",
       });
     }
 
@@ -758,7 +772,9 @@ export class AuthService {
       });
 
       // Envoyer un email d'approbation
-      await this.emailService.sendAccountApprovalNotification(merchant.user.email);
+      await this.emailService.sendAccountApprovalNotification(
+        merchant.user.email,
+      );
     } else {
       // Rejeter avec un message
       await this.db.merchant.update({
@@ -771,13 +787,15 @@ export class AuthService {
       // Envoyer un email de rejet avec les notes
       await this.emailService.sendAccountRejectionNotification(
         merchant.user.email,
-        notes || 'Aucune raison spécifiée'
+        notes || "Aucune raison spécifiée",
       );
     }
 
     return {
       success: true,
-      message: approved ? 'Compte commerçant approuvé' : 'Compte commerçant rejeté',
+      message: approved
+        ? "Compte commerçant approuvé"
+        : "Compte commerçant rejeté",
     };
   }
 
@@ -788,7 +806,7 @@ export class AuthService {
     providerId: string,
     adminId: string,
     approved: boolean,
-    notes?: string
+    notes?: string,
   ) {
     // Vérifier que l'administrateur existe
     const admin = await this.db.user.findUnique({
@@ -797,8 +815,8 @@ export class AuthService {
 
     if (!admin) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Seul un administrateur peut effectuer cette action',
+        code: "UNAUTHORIZED",
+        message: "Seul un administrateur peut effectuer cette action",
       });
     }
 
@@ -810,8 +828,8 @@ export class AuthService {
 
     if (!provider) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Prestataire non trouvé',
+        code: "NOT_FOUND",
+        message: "Prestataire non trouvé",
       });
     }
 
@@ -826,7 +844,9 @@ export class AuthService {
       });
 
       // Envoyer un email d'approbation
-      await this.emailService.sendAccountApprovalNotification(provider.user.email);
+      await this.emailService.sendAccountApprovalNotification(
+        provider.user.email,
+      );
     } else {
       // Rejeter avec un message
       await this.db.provider.update({
@@ -839,13 +859,15 @@ export class AuthService {
       // Envoyer un email de rejet avec les notes
       await this.emailService.sendAccountRejectionNotification(
         provider.user.email,
-        notes || 'Aucune raison spécifiée'
+        notes || "Aucune raison spécifiée",
       );
     }
 
     return {
       success: true,
-      message: approved ? 'Compte prestataire approuvé' : 'Compte prestataire rejeté',
+      message: approved
+        ? "Compte prestataire approuvé"
+        : "Compte prestataire rejeté",
     };
   }
 
@@ -860,7 +882,7 @@ export class AuthService {
       password: string;
       permissions: string[];
       department?: string;
-    }
+    },
   ) {
     // Vérifier que le super-admin existe
     const superAdmin = await this.db.user.findUnique({
@@ -868,10 +890,10 @@ export class AuthService {
       include: { admin: true },
     });
 
-    if (!superAdmin || !superAdmin.admin?.permissions.includes('SUPER_ADMIN')) {
+    if (!superAdmin || !superAdmin.admin?.permissions.includes("SUPER_ADMIN")) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Seul un super-administrateur peut effectuer cette action',
+        code: "UNAUTHORIZED",
+        message: "Seul un super-administrateur peut effectuer cette action",
       });
     }
 
@@ -882,8 +904,8 @@ export class AuthService {
 
     if (existingUser) {
       throw new TRPCError({
-        code: 'CONFLICT',
-        message: 'Un utilisateur avec cet email existe déjà',
+        code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà",
       });
     }
 
@@ -917,7 +939,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Compte administrateur créé.',
+      message: "Compte administrateur créé.",
       userId: user.id,
     };
   }
@@ -950,10 +972,15 @@ export class AuthService {
     await this.createRoleSpecificProfile(user.id, role);
 
     // Générer un token de vérification via TokenService
-    const verificationToken = await this.tokenService.createEmailVerificationToken(user.id);
+    const verificationToken =
+      await this.tokenService.createEmailVerificationToken(user.id);
 
     // Envoyer l'email de vérification
-    await this.emailService.sendVerificationEmail(user.email, verificationToken, locale);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      verificationToken,
+      locale,
+    );
 
     return { id: user.id, name: user.name, email: user.email, role: user.role };
   }
@@ -1009,7 +1036,9 @@ export class AuthService {
     }
 
     // Générer le token de réinitialisation
-    const resetToken = await this.tokenService.createPasswordResetToken(user.id);
+    const resetToken = await this.tokenService.createPasswordResetToken(
+      user.id,
+    );
     const expires = new Date();
     expires.setHours(expires.getHours() + 1); // Expire après 1h
 
@@ -1023,7 +1052,11 @@ export class AuthService {
     });
 
     // Envoyer l'email de réinitialisation
-    await this.emailService.sendPasswordResetEmail(user.email, resetToken, locale);
+    await this.emailService.sendPasswordResetEmail(
+      user.email,
+      resetToken,
+      locale,
+    );
 
     return true;
   }
@@ -1042,8 +1075,8 @@ export class AuthService {
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Token de réinitialisation invalide ou expiré',
+        code: "NOT_FOUND",
+        message: "Token de réinitialisation invalide ou expiré",
       });
     }
 
@@ -1071,8 +1104,8 @@ export class AuthService {
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
@@ -1082,7 +1115,8 @@ export class AuthService {
     }
 
     // Récupérer les types de documents requis pour ce rôle
-    const requiredDocuments = this.documentService.getRequiredDocumentTypesByRole(user.role);
+    const requiredDocuments =
+      this.documentService.getRequiredDocumentTypesByRole(user.role);
 
     // Récupérer les documents approuvés de l'utilisateur
     const approvedDocuments = await this.db.document.findMany({
@@ -1090,9 +1124,9 @@ export class AuthService {
     });
 
     // Déterminer quels documents sont manquants
-    const approvedDocumentTypes = approvedDocuments.map(doc => doc.type);
+    const approvedDocumentTypes = approvedDocuments.map((doc) => doc.type);
     const missingDocuments = requiredDocuments.filter(
-      type => !approvedDocumentTypes.includes(type)
+      (type) => !approvedDocumentTypes.includes(type),
     );
 
     // L'utilisateur est vérifié si tous les documents requis sont approuvés
@@ -1113,7 +1147,7 @@ export class AuthService {
     userId: string,
     status: VerificationStatus,
     notes: string | null,
-    locale: SupportedLanguage
+    locale: SupportedLanguage,
   ) {
     const user = await this.db.user.findUnique({
       where: { id: userId },
@@ -1127,8 +1161,8 @@ export class AuthService {
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
@@ -1136,7 +1170,7 @@ export class AuthService {
     await this.db.user.update({
       where: { id: userId },
       data: {
-        status: status === 'APPROVED' ? 'ACTIVE' : 'REJECTED',
+        status: status === "APPROVED" ? "ACTIVE" : "REJECTED",
       },
     });
 
@@ -1147,7 +1181,7 @@ export class AuthService {
           await this.db.deliverer.update({
             where: { id: user.deliverer.id },
             data: {
-              isVerified: status === 'APPROVED',
+              isVerified: status === "APPROVED",
               verificationNotes: notes,
             },
           });
@@ -1158,7 +1192,7 @@ export class AuthService {
           await this.db.merchant.update({
             where: { id: user.merchant.id },
             data: {
-              isVerified: status === 'APPROVED',
+              isVerified: status === "APPROVED",
               verificationNotes: notes,
             },
           });
@@ -1169,7 +1203,7 @@ export class AuthService {
           await this.db.provider.update({
             where: { id: user.provider.id },
             data: {
-              isVerified: status === 'APPROVED',
+              isVerified: status === "APPROVED",
               verificationNotes: notes,
             },
           });
@@ -1178,27 +1212,31 @@ export class AuthService {
     }
 
     // Envoyer notification à l'utilisateur
-    if (status === 'APPROVED') {
+    if (status === "APPROVED") {
       await NotificationService.sendNotification({
         userId,
-        title: 'Compte vérifié',
+        title: "Compte vérifié",
         content:
-          'Votre compte a été approuvé. Vous pouvez maintenant utiliser toutes les fonctionnalités.',
-        type: 'ACCOUNT',
+          "Votre compte a été approuvé. Vous pouvez maintenant utiliser toutes les fonctionnalités.",
+        type: "ACCOUNT",
       });
-      await this.emailService.sendAccountVerifiedEmail(user.email, user.name || '', locale);
+      await this.emailService.sendAccountVerifiedEmail(
+        user.email,
+        user.name || "",
+        locale,
+      );
     } else {
       await NotificationService.sendNotification({
         userId,
-        title: 'Vérification du compte',
-        content: `Votre compte a été refusé${notes ? ': ' + notes : '.'}`,
-        type: 'ACCOUNT',
+        title: "Vérification du compte",
+        content: `Votre compte a été refusé${notes ? ": " + notes : "."}`,
+        type: "ACCOUNT",
       });
       await this.emailService.sendAccountRejectedEmail(
         user.email,
-        user.name || '',
-        notes || '',
-        locale
+        user.name || "",
+        notes || "",
+        locale,
       );
     }
 
@@ -1252,8 +1290,8 @@ export class AuthService {
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
@@ -1275,14 +1313,14 @@ export class AuthService {
         profileId = user.merchant?.id || null;
         additionalInfo = {
           isVerified: user.merchant?.isVerified || false,
-          companyName: user.merchant?.companyName || '',
+          companyName: user.merchant?.companyName || "",
         };
         break;
       case UserRole.PROVIDER:
         profileId = user.provider?.id || null;
         additionalInfo = {
           isVerified: user.provider?.isVerified || false,
-          serviceName: user.provider?.companyName || '',
+          serviceName: user.provider?.companyName || "",
         };
         break;
     }
@@ -1301,7 +1339,10 @@ export class AuthService {
   }
 
   // Renvoyer l'email de vérification
-  async resendVerificationEmail(email: string, locale: SupportedLanguage = 'fr'): Promise<boolean> {
+  async resendVerificationEmail(
+    email: string,
+    locale: SupportedLanguage = "fr",
+  ): Promise<boolean> {
     // Trouver l'utilisateur
     const user = await this.db.user.findUnique({
       where: { email },
@@ -1309,23 +1350,28 @@ export class AuthService {
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
     if (user.emailVerified) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Cet email est déjà vérifié',
+        code: "BAD_REQUEST",
+        message: "Cet email est déjà vérifié",
       });
     }
 
     // Générer un nouveau token de vérification
-    const verificationToken = await this.tokenService.createEmailVerificationToken(user.id);
+    const verificationToken =
+      await this.tokenService.createEmailVerificationToken(user.id);
 
     // Envoyer l'email de vérification
-    await this.emailService.sendVerificationEmail(user.email, verificationToken, locale);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      verificationToken,
+      locale,
+    );
 
     return true;
   }

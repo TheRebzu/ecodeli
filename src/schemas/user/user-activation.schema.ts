@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Schéma pour la désactivation/activation d'un compte utilisateur
@@ -8,4 +8,6 @@ export const toggleUserActivationSchema = z.object({
   isActive: z.boolean(),
 });
 
-export type ToggleUserActivationInput = z.infer<typeof toggleUserActivationSchema>;
+export type ToggleUserActivationInput = z.infer<
+  typeof toggleUserActivationSchema
+>;

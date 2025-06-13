@@ -1,6 +1,6 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Document Verifications',
-  description: 'Manage document verifications for deliverers',
+  title: "Document Verifications",
+  description: "Manage document verifications for deliverers",
 };

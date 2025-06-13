@@ -1,15 +1,21 @@
-import { useState, useCallback, useEffect } from 'react';
-import { api } from '@/trpc/react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import useAnnouncementStore, { useAnnouncementList } from '@/store/use-announcement-store';
-import type { AnnouncementStatus, AnnouncementType, Announcement } from '@prisma/client';
+import { useState, useCallback, useEffect } from "react";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import useAnnouncementStore, {
+  useAnnouncementList,
+} from "@/store/use-announcement-store";
+import type {
+  AnnouncementStatus,
+  AnnouncementType,
+  Announcement,
+} from "@prisma/client";
 import {
   CreateAnnouncementInput,
   UpdateAnnouncementInput,
   AnnouncementFilterInput,
   CreateAnnouncementApplicationInput,
-} from '@/schemas/delivery/announcement.schema';
+} from "@/schemas/delivery/announcement.schema";
 
 type AnnouncementWithDetails = Announcement & {
   client?: {
@@ -62,14 +68,16 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [announcements, setAnnouncements] = useState<AnnouncementWithDetails[]>([]);
-  const [currentAnnouncement, setCurrentAnnouncement] = useState<AnnouncementWithDetails | null>(
-    null
+  const [announcements, setAnnouncements] = useState<AnnouncementWithDetails[]>(
+    [],
   );
+  const [currentAnnouncement, setCurrentAnnouncement] =
+    useState<AnnouncementWithDetails | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<Partial<AnnouncementFilterInput>>(initialFilter);
+  const [filters, setFilters] =
+    useState<Partial<AnnouncementFilterInput>>(initialFilter);
 
   const router = useRouter();
 
@@ -89,7 +97,11 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsLoading(true);
         setError(null);
 
-        const mergedFilter = { ...filters, ...filter, page } as AnnouncementFilterInput;
+        const mergedFilter = {
+          ...filters,
+          ...filter,
+          page,
+        } as AnnouncementFilterInput;
         setFilters(mergedFilter);
 
         // Note : Store Zustand retiré
@@ -105,7 +117,9 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         return response;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'Erreur lors du chargement des annonces';
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du chargement des annonces";
         setError(message);
         toast.error(message);
         return null;
@@ -113,7 +127,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsLoading(false);
       }
     },
-    [filters, setStoreFilters]
+    [filters, setStoreFilters],
   );
 
   /**
@@ -130,7 +144,9 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
       return response;
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : `Erreur lors du chargement de l'annonce ${id}`;
+        err instanceof Error
+          ? err.message
+          : `Erreur lors du chargement de l'annonce ${id}`;
       setError(message);
       toast.error(message);
       return null;
@@ -142,26 +158,31 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
   /**
    * Crée une nouvelle annonce
    */
-  const createAnnouncement = useCallback(async (data: CreateAnnouncementInput) => {
-    try {
-      setIsSaving(true);
-      setError(null);
+  const createAnnouncement = useCallback(
+    async (data: CreateAnnouncementInput) => {
+      try {
+        setIsSaving(true);
+        setError(null);
 
-      const response = await api.announcement.create.mutate(data);
+        const response = await api.announcement.create.mutate(data);
 
-      toast.success('Annonce créée avec succès');
+        toast.success("Annonce créée avec succès");
 
-      return response;
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Erreur lors de la création de l'annonce";
-      setError(message);
-      toast.error(message);
-      return null;
-    } finally {
-      setIsSaving(false);
-    }
-  }, []);
+        return response;
+      } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la création de l'annonce";
+        setError(message);
+        toast.error(message);
+        return null;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [],
+  );
 
   /**
    * Met à jour une annonce existante
@@ -182,12 +203,14 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
           setCurrentAnnouncement({ ...currentAnnouncement, ...response });
         }
 
-        toast.success('Annonce mise à jour avec succès');
+        toast.success("Annonce mise à jour avec succès");
 
         return response;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Erreur lors de la mise à jour de l'annonce";
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la mise à jour de l'annonce";
         setError(message);
         toast.error(message);
         return null;
@@ -195,7 +218,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(false);
       }
     },
-    [currentAnnouncement]
+    [currentAnnouncement],
   );
 
   /**
@@ -210,19 +233,21 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         await api.announcement.delete.mutate({ id });
 
         // Retirer l'annonce de la liste locale
-        setAnnouncements(prev => prev.filter(a => a.id !== id));
+        setAnnouncements((prev) => prev.filter((a) => a.id !== id));
 
         // Réinitialiser l'annonce courante si c'est celle-ci
         if (currentAnnouncement && currentAnnouncement.id === id) {
           setCurrentAnnouncement(null);
         }
 
-        toast.success('Annonce supprimée avec succès');
+        toast.success("Annonce supprimée avec succès");
 
         return true;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Erreur lors de la suppression de l'annonce";
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la suppression de l'annonce";
         setError(message);
         toast.error(message);
         return false;
@@ -230,7 +255,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsDeleting(false);
       }
     },
-    [currentAnnouncement]
+    [currentAnnouncement],
   );
 
   /**
@@ -248,16 +273,18 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         if (currentAnnouncement && currentAnnouncement.id === id) {
           setCurrentAnnouncement({
             ...currentAnnouncement,
-            status: 'PUBLISHED' as AnnouncementStatus,
+            status: "PUBLISHED" as AnnouncementStatus,
           });
         }
 
-        toast.success('Annonce publiée avec succès');
+        toast.success("Annonce publiée avec succès");
 
         return true;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Erreur lors de la publication de l'annonce";
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la publication de l'annonce";
         setError(message);
         toast.error(message);
         return false;
@@ -265,7 +292,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(false);
       }
     },
-    [currentAnnouncement]
+    [currentAnnouncement],
   );
 
   /**
@@ -279,7 +306,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
 
         await api.announcement.updateStatus.mutate({
           id,
-          status: 'CANCELLED',
+          status: "CANCELLED",
           cancelReason: reason,
         });
 
@@ -287,17 +314,19 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         if (currentAnnouncement && currentAnnouncement.id === id) {
           setCurrentAnnouncement({
             ...currentAnnouncement,
-            status: 'CANCELLED' as AnnouncementStatus,
+            status: "CANCELLED" as AnnouncementStatus,
             cancelReason: reason,
           });
         }
 
-        toast.success('Annonce annulée avec succès');
+        toast.success("Annonce annulée avec succès");
 
         return true;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Erreur lors de l'annulation de l'annonce";
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de l'annulation de l'annonce";
         setError(message);
         toast.error(message);
         return false;
@@ -305,7 +334,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(false);
       }
     },
-    [currentAnnouncement]
+    [currentAnnouncement],
   );
 
   /**
@@ -326,29 +355,31 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         if (currentAnnouncement && currentAnnouncement.id === announcementId) {
           // Trouver les détails de l'application sélectionnée
           const selectedApplication = currentAnnouncement.applications?.find(
-            app => app.id === applicationId
+            (app) => app.id === applicationId,
           );
 
           if (selectedApplication) {
             setCurrentAnnouncement({
               ...currentAnnouncement,
-              status: 'ASSIGNED' as AnnouncementStatus,
+              status: "ASSIGNED" as AnnouncementStatus,
               delivererId: selectedApplication.delivererId,
               // Mettre à jour les applications pour montrer celle qui a été acceptée
-              applications: currentAnnouncement.applications?.map(app => ({
+              applications: currentAnnouncement.applications?.map((app) => ({
                 ...app,
-                status: app.id === applicationId ? 'ACCEPTED' : 'REJECTED',
+                status: app.id === applicationId ? "ACCEPTED" : "REJECTED",
               })),
             });
           }
         }
 
-        toast.success('Livreur assigné avec succès');
+        toast.success("Livreur assigné avec succès");
 
         return true;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Erreur lors de l'assignation du livreur";
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de l'assignation du livreur";
         setError(message);
         toast.error(message);
         return false;
@@ -356,7 +387,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(false);
       }
     },
-    [currentAnnouncement]
+    [currentAnnouncement],
   );
 
   /**
@@ -377,13 +408,14 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         if (result && result.clientSecret) {
           // Redirection vers la page de confirmation de paiement
           router.push(
-            `/client/announcements/${announcementId}/payment/confirm?session=${result.clientSecret}`
+            `/client/announcements/${announcementId}/payment/confirm?session=${result.clientSecret}`,
           );
         }
 
         return result;
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Erreur lors du paiement';
+        const message =
+          err instanceof Error ? err.message : "Erreur lors du paiement";
         setError(message);
         toast.error(message);
         return null;
@@ -391,7 +423,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(false);
       }
     },
-    [router]
+    [router],
   );
 
   /**
@@ -407,16 +439,20 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
       });
 
       if (result.success) {
-        toast.success('Paiement confirmé avec succès');
+        toast.success("Paiement confirmé avec succès");
       } else {
-        setError(result.error || 'Erreur lors de la confirmation du paiement');
-        toast.error(result.error || 'Erreur lors de la confirmation du paiement');
+        setError(result.error || "Erreur lors de la confirmation du paiement");
+        toast.error(
+          result.error || "Erreur lors de la confirmation du paiement",
+        );
       }
 
       return result;
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Erreur lors de la confirmation du paiement';
+        err instanceof Error
+          ? err.message
+          : "Erreur lors de la confirmation du paiement";
       setError(message);
       toast.error(message);
       return null;
@@ -429,7 +465,10 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
    * Postule pour une annonce (livreur)
    */
   const applyForAnnouncement = useCallback(
-    async (announcementId: string, data: CreateAnnouncementApplicationInput) => {
+    async (
+      announcementId: string,
+      data: CreateAnnouncementApplicationInput,
+    ) => {
       try {
         setIsSaving(true);
         setError(null);
@@ -448,11 +487,12 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
           });
         }
 
-        toast.success('Candidature envoyée avec succès');
+        toast.success("Candidature envoyée avec succès");
 
         return result;
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Erreur lors de la candidature';
+        const message =
+          err instanceof Error ? err.message : "Erreur lors de la candidature";
         setError(message);
         toast.error(message);
         return null;
@@ -460,7 +500,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(false);
       }
     },
-    [currentAnnouncement]
+    [currentAnnouncement],
   );
 
   /**
@@ -474,23 +514,27 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
 
         await api.announcement.updateApplicationStatus.mutate({
           applicationId,
-          status: 'WITHDRAWN',
+          status: "WITHDRAWN",
         });
 
         // Mettre à jour l'annonce courante si c'est celle-ci
         if (currentAnnouncement && currentAnnouncement.id === announcementId) {
           setCurrentAnnouncement({
             ...currentAnnouncement,
-            applications: currentAnnouncement.applications?.filter(app => app.id !== applicationId),
+            applications: currentAnnouncement.applications?.filter(
+              (app) => app.id !== applicationId,
+            ),
           });
         }
 
-        toast.success('Candidature retirée avec succès');
+        toast.success("Candidature retirée avec succès");
 
         return true;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'Erreur lors du retrait de candidature';
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du retrait de candidature";
         setError(message);
         toast.error(message);
         return false;
@@ -498,7 +542,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(false);
       }
     },
-    [currentAnnouncement]
+    [currentAnnouncement],
   );
 
   /**
@@ -510,8 +554,10 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
       toggleFavorite(id);
 
       // Mettre à jour la liste locale
-      setAnnouncements(prev =>
-        prev.map(ann => (ann.id === id ? { ...ann, isFavorite: !ann.isFavorite } : ann))
+      setAnnouncements((prev) =>
+        prev.map((ann) =>
+          ann.id === id ? { ...ann, isFavorite: !ann.isFavorite } : ann,
+        ),
       );
 
       // Mettre à jour l'annonce courante si c'est celle-ci
@@ -522,7 +568,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         });
       }
     },
-    [toggleFavorite, currentAnnouncement]
+    [toggleFavorite, currentAnnouncement],
   );
 
   // Effet pour l'auto-refresh si activé
@@ -538,7 +584,13 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [enableAutoRefresh, refreshInterval, currentPage, filters, fetchAnnouncements]);
+  }, [
+    enableAutoRefresh,
+    refreshInterval,
+    currentPage,
+    filters,
+    fetchAnnouncements,
+  ]);
 
   return {
     // États
@@ -587,8 +639,12 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
 /**
  * Hook pour gérer les annonces d'un client spécifique
  */
-export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => {
-  const [myAnnouncements, setMyAnnouncements] = useState<AnnouncementWithDetails[]>([]);
+export const useClientAnnouncements = (
+  options: UseAnnouncementOptions = {},
+) => {
+  const [myAnnouncements, setMyAnnouncements] = useState<
+    AnnouncementWithDetails[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -599,7 +655,8 @@ export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => 
     },
   } = options;
 
-  const [filters, setFilters] = useState<Partial<AnnouncementFilterInput>>(initialFilter);
+  const [filters, setFilters] =
+    useState<Partial<AnnouncementFilterInput>>(initialFilter);
 
   /**
    * Récupère les annonces du client connecté
@@ -612,14 +669,17 @@ export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => 
 
         const updatedFilters = { ...filters, page } as AnnouncementFilterInput;
 
-        const response = await api.announcement.getMyAnnouncements.query(updatedFilters);
+        const response =
+          await api.announcement.getMyAnnouncements.query(updatedFilters);
 
         setMyAnnouncements(response.items);
 
         return response;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'Erreur lors du chargement de vos annonces';
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du chargement de vos annonces";
         setError(message);
         toast.error(message);
         return null;
@@ -627,7 +687,7 @@ export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => 
         setIsLoading(false);
       }
     },
-    [filters]
+    [filters],
   );
 
   /**
@@ -640,18 +700,26 @@ export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => 
 
       const activeFilters = {
         ...filters,
-        status: ['PUBLISHED', 'IN_APPLICATION', 'ASSIGNED', 'IN_PROGRESS'] as AnnouncementStatus[],
+        status: [
+          "PUBLISHED",
+          "IN_APPLICATION",
+          "ASSIGNED",
+          "IN_PROGRESS",
+        ] as AnnouncementStatus[],
         page: 1,
       } as AnnouncementFilterInput;
 
-      const response = await api.announcement.getMyAnnouncements.query(activeFilters);
+      const response =
+        await api.announcement.getMyAnnouncements.query(activeFilters);
       setMyAnnouncements(response.items);
       setFilters(activeFilters);
 
       return response;
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Erreur lors du chargement des annonces actives';
+        err instanceof Error
+          ? err.message
+          : "Erreur lors du chargement des annonces actives";
       setError(message);
       toast.error(message);
       return null;
@@ -670,18 +738,21 @@ export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => 
 
       const historyFilters = {
         ...filters,
-        status: ['COMPLETED', 'CANCELLED', 'PAID'] as AnnouncementStatus[],
+        status: ["COMPLETED", "CANCELLED", "PAID"] as AnnouncementStatus[],
         page: 1,
       } as AnnouncementFilterInput;
 
-      const response = await api.announcement.getMyAnnouncements.query(historyFilters);
+      const response =
+        await api.announcement.getMyAnnouncements.query(historyFilters);
       setMyAnnouncements(response.items);
       setFilters(historyFilters);
 
       return response;
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Erreur lors du chargement de l'historique";
+        err instanceof Error
+          ? err.message
+          : "Erreur lors du chargement de l'historique";
       setError(message);
       toast.error(message);
       return null;
@@ -718,13 +789,15 @@ export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => 
 /**
  * Hook pour gérer les annonces disponibles pour un livreur
  */
-export const useDelivererAnnouncements = (options: UseAnnouncementOptions = {}) => {
-  const [availableAnnouncements, setAvailableAnnouncements] = useState<AnnouncementWithDetails[]>(
-    []
-  );
-  const [myAssignedAnnouncements, setMyAssignedAnnouncements] = useState<AnnouncementWithDetails[]>(
-    []
-  );
+export const useDelivererAnnouncements = (
+  options: UseAnnouncementOptions = {},
+) => {
+  const [availableAnnouncements, setAvailableAnnouncements] = useState<
+    AnnouncementWithDetails[]
+  >([]);
+  const [myAssignedAnnouncements, setMyAssignedAnnouncements] = useState<
+    AnnouncementWithDetails[]
+  >([]);
   const [myApplications, setMyApplications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingApplications, setIsLoadingApplications] = useState(false);
@@ -737,7 +810,8 @@ export const useDelivererAnnouncements = (options: UseAnnouncementOptions = {}) 
     },
   } = options;
 
-  const [filters, setFilters] = useState<Partial<AnnouncementFilterInput>>(initialFilter);
+  const [filters, setFilters] =
+    useState<Partial<AnnouncementFilterInput>>(initialFilter);
 
   /**
    * Récupère les annonces disponibles pour les livreurs
@@ -750,7 +824,7 @@ export const useDelivererAnnouncements = (options: UseAnnouncementOptions = {}) 
 
         const updatedFilters = {
           ...filters,
-          status: ['PUBLISHED', 'IN_APPLICATION'] as AnnouncementStatus[],
+          status: ["PUBLISHED", "IN_APPLICATION"] as AnnouncementStatus[],
           page,
         } as AnnouncementFilterInput;
 
@@ -762,7 +836,9 @@ export const useDelivererAnnouncements = (options: UseAnnouncementOptions = {}) 
         return response;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'Erreur lors du chargement des annonces disponibles';
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du chargement des annonces disponibles";
         setError(message);
         toast.error(message);
         return null;
@@ -770,7 +846,7 @@ export const useDelivererAnnouncements = (options: UseAnnouncementOptions = {}) 
         setIsLoading(false);
       }
     },
-    [filters]
+    [filters],
   );
 
   /**
@@ -788,7 +864,9 @@ export const useDelivererAnnouncements = (options: UseAnnouncementOptions = {}) 
       return response;
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Erreur lors du chargement de vos livraisons';
+        err instanceof Error
+          ? err.message
+          : "Erreur lors du chargement de vos livraisons";
       setError(message);
       toast.error(message);
       return null;
@@ -817,7 +895,9 @@ export const useDelivererAnnouncements = (options: UseAnnouncementOptions = {}) 
       return response;
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Erreur lors du chargement de vos candidatures';
+        err instanceof Error
+          ? err.message
+          : "Erreur lors du chargement de vos candidatures";
       setError(message);
       toast.error(message);
       return null;
@@ -843,7 +923,7 @@ export const useDelivererAnnouncements = (options: UseAnnouncementOptions = {}) 
       setFilters(proximityFilter);
       return fetchAvailableAnnouncements(1);
     },
-    [filters, fetchAvailableAnnouncements]
+    [filters, fetchAvailableAnnouncements],
   );
 
   useEffect(() => {

@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import {
   Wallet,
   TrendingUp,
@@ -23,26 +23,25 @@ import {
   CreditCard,
   PieChart,
   BarChart3,
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { api } from '@/trpc/react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils/common';
+} from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils/common";
 
 interface WalletDashboardProps {
   userId: string;
-  isDemo?: boolean;
 }
 
 // Types pour les données du portefeuille
 interface Transaction {
   id: string;
-  type: 'EARNING' | 'WITHDRAWAL' | 'COMMISSION' | 'BONUS' | 'REFUND';
+  type: "EARNING" | "WITHDRAWAL" | "COMMISSION" | "BONUS" | "REFUND";
   amount: number;
   currency: string;
   description: string;
-  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  status: "PENDING" | "COMPLETED" | "FAILED";
   createdAt: Date;
   metadata?: Record<string, any>;
 }
@@ -57,138 +56,85 @@ interface WalletStats {
   currency: string;
 }
 
-export default function WalletDashboard({ userId, isDemo = false }: WalletDashboardProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month');
-  const [transactionFilter, setTransactionFilter] = useState<'all' | 'earnings' | 'withdrawals'>('all');
+export default function WalletDashboard({ userId }: WalletDashboardProps) {
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    "week" | "month" | "year"
+  >("month");
+  const [transactionFilter, setTransactionFilter] = useState<
+    "all" | "earnings" | "withdrawals"
+  >("all");
 
   // Récupérer les données du portefeuille
-  const { data: walletData, isLoading: loadingWallet } = api.deliverer.wallet.getStats.useQuery({
-    period: selectedPeriod,
-  });
+  const { data: walletData, isLoading: loadingWallet } =
+    api.deliverer.wallet.getStats.useQuery({
+      period: selectedPeriod,
+    });
 
   // Récupérer les transactions
-  const { data: transactions, isLoading: loadingTransactions } = api.deliverer.wallet.getTransactions.useQuery({
-    filter: transactionFilter,
-    limit: 50,
-  });
+  const { data: transactions, isLoading: loadingTransactions } =
+    api.deliverer.wallet.getTransactions.useQuery({
+      filter: transactionFilter,
+      limit: 50,
+    });
 
   // Récupérer les retraits en attente
   const { data: withdrawals } = api.deliverer.wallet.getWithdrawals.useQuery({
-    status: 'PENDING',
+    status: "PENDING",
   });
 
-  // Données simulées pour la démo
-  const mockStats: WalletStats = {
-    totalBalance: 1247.83,
-    availableBalance: 1127.83,
-    pendingBalance: 120.00,
-    totalEarnings: 3456.78,
-    thisMonthEarnings: 567.45,
-    lastMonthEarnings: 489.32,
-    currency: 'EUR',
-  };
+  const stats = walletData;
+  const transactionList = transactions?.transactions || [];
 
-  const mockTransactions: Transaction[] = [
-    {
-      id: '1',
-      type: 'EARNING',
-      amount: 25.50,
-      currency: 'EUR',
-      description: 'Livraison #LIV-001234',
-      status: 'COMPLETED',
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: '2',
-      type: 'WITHDRAWAL',
-      amount: -150.00,
-      currency: 'EUR',
-      description: 'Retrait vers compte bancaire',
-      status: 'COMPLETED',
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: '3',
-      type: 'EARNING',
-      amount: 32.75,
-      currency: 'EUR',
-      description: 'Livraison #LIV-001235',
-      status: 'COMPLETED',
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: '4',
-      type: 'BONUS',
-      amount: 50.00,
-      currency: 'EUR',
-      description: 'Prime performance mensuelle',
-      status: 'COMPLETED',
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: '5',
-      type: 'WITHDRAWAL',
-      amount: -200.00,
-      currency: 'EUR',
-      description: 'Retrait vers compte bancaire',
-      status: 'PENDING',
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    },
-  ];
-
-  const stats = isDemo ? mockStats : walletData;
-  const transactionList = isDemo ? mockTransactions : transactions?.transactions || [];
-
-  const getTransactionIcon = (type: Transaction['type']) => {
+  const getTransactionIcon = (type: Transaction["type"]) => {
     switch (type) {
-      case 'EARNING':
+      case "EARNING":
         return <ArrowUpRight className="h-4 w-4 text-green-500" />;
-      case 'WITHDRAWAL':
+      case "WITHDRAWAL":
         return <ArrowDownRight className="h-4 w-4 text-red-500" />;
-      case 'COMMISSION':
+      case "COMMISSION":
         return <DollarSign className="h-4 w-4 text-blue-500" />;
-      case 'BONUS':
+      case "BONUS":
         return <TrendingUp className="h-4 w-4 text-purple-500" />;
-      case 'REFUND':
+      case "REFUND":
         return <ArrowUpRight className="h-4 w-4 text-orange-500" />;
       default:
         return <DollarSign className="h-4 w-4" />;
     }
   };
 
-  const getTransactionLabel = (type: Transaction['type']) => {
+  const getTransactionLabel = (type: Transaction["type"]) => {
     switch (type) {
-      case 'EARNING':
-        return 'Gain';
-      case 'WITHDRAWAL':
-        return 'Retrait';
-      case 'COMMISSION':
-        return 'Commission';
-      case 'BONUS':
-        return 'Prime';
-      case 'REFUND':
-        return 'Remboursement';
+      case "EARNING":
+        return "Gain";
+      case "WITHDRAWAL":
+        return "Retrait";
+      case "COMMISSION":
+        return "Commission";
+      case "BONUS":
+        return "Prime";
+      case "REFUND":
+        return "Remboursement";
       default:
         return type;
     }
   };
 
-  const getStatusIcon = (status: Transaction['status']) => {
+  const getStatusIcon = (status: Transaction["status"]) => {
     switch (status) {
-      case 'COMPLETED':
+      case "COMPLETED":
         return <CheckCircle className="h-3 w-3 text-green-500" />;
-      case 'PENDING':
+      case "PENDING":
         return <Clock className="h-3 w-3 text-yellow-500" />;
-      case 'FAILED':
+      case "FAILED":
         return <XCircle className="h-3 w-3 text-red-500" />;
       default:
         return null;
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = 'EUR') => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
+  const formatCurrency = (amount: number, currency: string = "EUR") => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
       currency,
     }).format(amount);
   };
@@ -196,32 +142,40 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
   const calculateGrowth = () => {
     if (!stats) return 0;
     if (stats.lastMonthEarnings === 0) return 100;
-    return ((stats.thisMonthEarnings - stats.lastMonthEarnings) / stats.lastMonthEarnings) * 100;
+    return (
+      ((stats.thisMonthEarnings - stats.lastMonthEarnings) /
+        stats.lastMonthEarnings) *
+      100
+    );
   };
 
   const exportTransactions = async () => {
     try {
       // Simuler l'export
       const csvContent = [
-        'Date,Type,Description,Montant,Statut',
-        ...transactionList.map(t => 
-          `${format(t.createdAt, 'dd/MM/yyyy', { locale: fr })},${getTransactionLabel(t.type)},${t.description},${t.amount},${t.status}`
-        )
-      ].join('\n');
+        "Date,Type,Description,Montant,Statut",
+        ...transactionList.map(
+          (t) =>
+            `${format(t.createdAt, "dd/MM/yyyy", { locale: fr })},${getTransactionLabel(t.type)},${t.description},${t.amount},${t.status}`,
+        ),
+      ].join("\n");
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `transactions_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-      link.style.visibility = 'hidden';
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `transactions_${format(new Date(), "yyyy-MM-dd")}.csv`,
+      );
+      link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      toast.success('Export téléchargé avec succès');
+      toast.success("Export téléchargé avec succès");
     } catch (error) {
-      toast.error('Erreur lors de l\'export');
+      toast.error("Erreur lors de l'export");
     }
   };
 
@@ -258,7 +212,9 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(stats.availableBalance)}</div>
+              <div className="text-2xl font-bold">
+                {formatCurrency(stats.availableBalance)}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Disponible pour retrait
               </p>
@@ -297,10 +253,16 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
                 ) : (
                   <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
                 )}
-                <span className={calculateGrowth() >= 0 ? 'text-green-500' : 'text-red-500'}>
+                <span
+                  className={
+                    calculateGrowth() >= 0 ? "text-green-500" : "text-red-500"
+                  }
+                >
                   {Math.abs(calculateGrowth()).toFixed(1)}%
                 </span>
-                <span className="text-muted-foreground ml-1">vs mois dernier</span>
+                <span className="text-muted-foreground ml-1">
+                  vs mois dernier
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -312,7 +274,9 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(stats.totalEarnings)}</div>
+              <div className="text-2xl font-bold">
+                {formatCurrency(stats.totalEarnings)}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Depuis votre inscription
               </p>
@@ -325,7 +289,10 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
       <Tabs defaultValue="transactions" className="space-y-4">
         <div className="flex items-center justify-between">
           <TabsList>
-            <TabsTrigger value="transactions" className="flex items-center gap-2">
+            <TabsTrigger
+              value="transactions"
+              className="flex items-center gap-2"
+            >
               <FileText className="h-4 w-4" />
               Transactions
             </TabsTrigger>
@@ -352,13 +319,15 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
             </div>
             <div className="flex gap-2">
               {[
-                { value: 'all', label: 'Tout' },
-                { value: 'earnings', label: 'Gains' },
-                { value: 'withdrawals', label: 'Retraits' },
+                { value: "all", label: "Tout" },
+                { value: "earnings", label: "Gains" },
+                { value: "withdrawals", label: "Retraits" },
               ].map((filter) => (
                 <Button
                   key={filter.value}
-                  variant={transactionFilter === filter.value ? 'default' : 'outline'}
+                  variant={
+                    transactionFilter === filter.value ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => setTransactionFilter(filter.value as any)}
                 >
@@ -385,7 +354,10 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
                   </div>
                 ) : (
                   transactionList.map((transaction) => (
-                    <div key={transaction.id} className="p-4 flex items-center justify-between">
+                    <div
+                      key={transaction.id}
+                      className="p-4 flex items-center justify-between"
+                    >
                       <div className="flex items-center gap-3">
                         {getTransactionIcon(transaction.type)}
                         <div>
@@ -393,22 +365,33 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
                             {transaction.description}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {format(transaction.createdAt, 'dd MMM yyyy à HH:mm', { locale: fr })}
+                            {format(
+                              transaction.createdAt,
+                              "dd MMM yyyy à HH:mm",
+                              { locale: fr },
+                            )}
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <div className={cn(
-                            "font-medium",
-                            transaction.amount > 0 ? "text-green-600" : "text-red-600"
-                          )}>
-                            {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount)}
+                          <div
+                            className={cn(
+                              "font-medium",
+                              transaction.amount > 0
+                                ? "text-green-600"
+                                : "text-red-600",
+                            )}
+                          >
+                            {transaction.amount > 0 ? "+" : ""}
+                            {formatCurrency(transaction.amount)}
                           </div>
                           <div className="flex items-center gap-1 text-xs">
                             {getStatusIcon(transaction.status)}
-                            <span className="capitalize">{transaction.status.toLowerCase()}</span>
+                            <span className="capitalize">
+                              {transaction.status.toLowerCase()}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -429,13 +412,15 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
             </div>
             <div className="flex gap-2">
               {[
-                { value: 'week', label: 'Semaine' },
-                { value: 'month', label: 'Mois' },
-                { value: 'year', label: 'Année' },
+                { value: "week", label: "Semaine" },
+                { value: "month", label: "Mois" },
+                { value: "year", label: "Année" },
               ].map((period) => (
                 <Button
                   key={period.value}
-                  variant={selectedPeriod === period.value ? 'default' : 'outline'}
+                  variant={
+                    selectedPeriod === period.value ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => setSelectedPeriod(period.value as any)}
                 >
@@ -497,8 +482,9 @@ export default function WalletDashboard({ userId, isDemo = false }: WalletDashbo
                   Retraits en cours de traitement
                 </h4>
                 <p className="text-sm text-amber-700 mt-1">
-                  Vous avez {withdrawals.withdrawals.length} retrait(s) en attente de traitement. 
-                  Le délai habituel est de 1-3 jours ouvrés.
+                  Vous avez {withdrawals.withdrawals.length} retrait(s) en
+                  attente de traitement. Le délai habituel est de 1-3 jours
+                  ouvrés.
                 </p>
               </div>
             </div>

@@ -4,7 +4,7 @@
  */
 
 // Détection de l'environnement
-export const isClient = typeof window !== 'undefined';
+export const isClient = typeof window !== "undefined";
 export const isServer = !isClient;
 
 /**
@@ -19,7 +19,7 @@ export async function getClientSocket() {
 
   try {
     // Import dynamique côté client uniquement
-    const { getSocket } = await import('./socket-client-browser');
+    const { getSocket } = await import("./socket-client-browser");
     return getSocket();
   } catch (error) {
     console.error("Erreur lors de l'import du client socket:", error);
@@ -40,7 +40,7 @@ export async function initializeClientSocket(token: string) {
 
   try {
     // Import dynamique côté client uniquement
-    const { initializeSocket } = await import('./socket-client-browser');
+    const { initializeSocket } = await import("./socket-client-browser");
     return initializeSocket(token);
   } catch (error) {
     console.error("Erreur lors de l'initialisation du socket:", error);
@@ -59,10 +59,10 @@ export async function closeClientSocket() {
 
   try {
     // Import dynamique côté client uniquement
-    const { closeSocket } = await import('./socket-client-browser');
+    const { closeSocket } = await import("./socket-client-browser");
     closeSocket();
   } catch (error) {
-    console.error('Erreur lors de la fermeture du socket:', error);
+    console.error("Erreur lors de la fermeture du socket:", error);
   }
 }
 
@@ -78,16 +78,16 @@ export async function getSocketServer() {
 
   try {
     // Import dynamique côté serveur uniquement
-    const serverModule = await import('./server');
+    const serverModule = await import("./server");
 
     // Utiliser la fonction getSocketServer si elle existe
     // Cette fonction a été ajoutée dans server.ts
-    if ('getSocketServer' in serverModule) {
+    if ("getSocketServer" in serverModule) {
       return serverModule.getSocketServer();
     }
 
     // Si la fonction n'est pas disponible
-    console.warn('Fonction getSocketServer non trouvée dans le module serveur');
+    console.warn("Fonction getSocketServer non trouvée dans le module serveur");
     return null;
   } catch (error) {
     console.error("Erreur lors de l'import du serveur socket:", error);

@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 // Schémas de validation
 const ContractFiltersSchema = z.object({
@@ -18,20 +18,20 @@ const ContractFiltersSchema = z.object({
 });
 
 const ContractFormSchema = z.object({
-  merchantId: z.string().min(1, 'Commerçant requis'),
+  merchantId: z.string().min(1, "Commerçant requis"),
   templateId: z.string().optional(),
-  title: z.string().min(1, 'Titre requis'),
-  content: z.string().min(1, 'Contenu requis'),
+  title: z.string().min(1, "Titre requis"),
+  content: z.string().min(1, "Contenu requis"),
   status: z.enum([
-    'DRAFT',
-    'PENDING_SIGNATURE',
-    'ACTIVE',
-    'SUSPENDED',
-    'TERMINATED',
-    'EXPIRED',
-    'CANCELLED',
+    "DRAFT",
+    "PENDING_SIGNATURE",
+    "ACTIVE",
+    "SUSPENDED",
+    "TERMINATED",
+    "EXPIRED",
+    "CANCELLED",
   ]),
-  type: z.enum(['STANDARD', 'PREMIUM', 'PARTNER', 'TRIAL', 'CUSTOM']),
+  type: z.enum(["STANDARD", "PREMIUM", "PARTNER", "TRIAL", "CUSTOM"]),
   monthlyFee: z.number().min(0).optional(),
   commissionRate: z.number().min(0).max(1).optional(),
   minimumVolume: z.number().min(0).optional(),
@@ -49,11 +49,11 @@ const ContractFormSchema = z.object({
 });
 
 const TemplateFormSchema = z.object({
-  name: z.string().min(1, 'Nom requis'),
+  name: z.string().min(1, "Nom requis"),
   description: z.string().optional(),
-  content: z.string().min(1, 'Contenu requis'),
-  version: z.string().min(1, 'Version requise'),
-  defaultType: z.enum(['STANDARD', 'PREMIUM', 'PARTNER', 'TRIAL', 'CUSTOM']),
+  content: z.string().min(1, "Contenu requis"),
+  version: z.string().min(1, "Version requise"),
+  defaultType: z.enum(["STANDARD", "PREMIUM", "PARTNER", "TRIAL", "CUSTOM"]),
   defaultMonthlyFee: z.number().min(0).optional(),
   defaultCommissionRate: z.number().min(0).max(1).optional(),
   defaultDuration: z.number().min(0).optional(),
@@ -75,7 +75,7 @@ export const adminContractsRouter = createTRPCRouter({
         page: z.number(),
         pageSize: z.number(),
         filters: ContractFiltersSchema.default({}),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -99,9 +99,25 @@ export const adminContractsRouter = createTRPCRouter({
 
         if (filters.search) {
           where.OR = [
-            { merchant: { companyName: { contains: filters.search, mode: 'insensitive' } } },
-            { merchant: { user: { name: { contains: filters.search, mode: 'insensitive' } } } },
-            { merchant: { user: { email: { contains: filters.search, mode: 'insensitive' } } } },
+            {
+              merchant: {
+                companyName: { contains: filters.search, mode: "insensitive" },
+              },
+            },
+            {
+              merchant: {
+                user: {
+                  name: { contains: filters.search, mode: "insensitive" },
+                },
+              },
+            },
+            {
+              merchant: {
+                user: {
+                  email: { contains: filters.search, mode: "insensitive" },
+                },
+              },
+            },
           ];
         }
 
@@ -131,11 +147,11 @@ export const adminContractsRouter = createTRPCRouter({
                 },
               },
               negotiations: {
-                orderBy: { createdAt: 'desc' },
+                orderBy: { createdAt: "desc" },
                 take: 1,
               },
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             skip,
             take: pageSize,
           }),
@@ -149,7 +165,7 @@ export const adminContractsRouter = createTRPCRouter({
           currentPage: page,
         };
       } catch (error) {
-        console.error('Erreur lors de la récupération des contrats:', error);
+        console.error("Erreur lors de la récupération des contrats:", error);
 
         // Retourner des données par défaut en cas d'erreur
         return {
@@ -176,33 +192,33 @@ export const adminContractsRouter = createTRPCRouter({
         totalMonthlyRevenue,
       ] = await Promise.all([
         ctx.db.contract.count(),
-        ctx.db.contract.count({ where: { status: 'ACTIVE' } }),
+        ctx.db.contract.count({ where: { status: "ACTIVE" } }),
         ctx.db.contract.count({
           where: {
-            status: 'ACTIVE',
+            status: "ACTIVE",
             expiresAt: {
               lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
             },
           },
         }),
-        ctx.db.contract.count({ where: { status: 'DRAFT' } }),
-        ctx.db.contract.count({ where: { status: 'SUSPENDED' } }),
+        ctx.db.contract.count({ where: { status: "DRAFT" } }),
+        ctx.db.contract.count({ where: { status: "SUSPENDED" } }),
         ctx.db.contract.groupBy({
-          by: ['type'],
+          by: ["type"],
           _count: true,
         }),
         ctx.db.contract.groupBy({
-          by: ['merchantCategory'],
+          by: ["merchantCategory"],
           where: { merchantCategory: { not: null } },
           _count: true,
         }),
         ctx.db.contract.aggregate({
           _avg: { commissionRate: true },
-          where: { status: 'ACTIVE', commissionRate: { not: null } },
+          where: { status: "ACTIVE", commissionRate: { not: null } },
         }),
         ctx.db.contract.aggregate({
           _sum: { monthlyFee: true },
-          where: { status: 'ACTIVE', monthlyFee: { not: null } },
+          where: { status: "ACTIVE", monthlyFee: { not: null } },
         }),
       ]);
 
@@ -218,7 +234,10 @@ export const adminContractsRouter = createTRPCRouter({
         totalMonthlyRevenue: totalMonthlyRevenue._sum.monthlyFee || 0,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques de contrats:', error);
+      console.error(
+        "Erreur lors de la récupération des statistiques de contrats:",
+        error,
+      );
 
       // Retourner des données par défaut en cas d'erreur
       return {
@@ -256,49 +275,51 @@ export const adminContractsRouter = createTRPCRouter({
           },
         },
         orderBy: {
-          companyName: 'asc',
+          companyName: "asc",
         },
       });
     } catch (error) {
-      console.error('Erreur lors de la récupération des commerçants:', error);
+      console.error("Erreur lors de la récupération des commerçants:", error);
       return [];
     }
   }),
 
   // Créer un nouveau contrat
-  create: protectedProcedure.input(ContractFormSchema).mutation(async ({ ctx, input }) => {
-    // Vérifier que le commerçant existe
-    const merchant = await ctx.db.merchant.findUnique({
-      where: { id: input.merchantId },
-    });
-
-    if (!merchant) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Commerçant non trouvé',
+  create: protectedProcedure
+    .input(ContractFormSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Vérifier que le commerçant existe
+      const merchant = await ctx.db.merchant.findUnique({
+        where: { id: input.merchantId },
       });
-    }
 
-    // Générer un numéro de contrat unique
-    const contractNumber = `CT-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+      if (!merchant) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Commerçant non trouvé",
+        });
+      }
 
-    return ctx.db.contract.create({
-      data: {
-        ...input,
-        contractNumber,
-        signedById: ctx.session.user.id,
-      },
-      include: {
-        merchant: {
-          select: {
-            id: true,
-            companyName: true,
-            businessType: true,
+      // Générer un numéro de contrat unique
+      const contractNumber = `CT-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+      return ctx.db.contract.create({
+        data: {
+          ...input,
+          contractNumber,
+          signedById: ctx.session.user.id,
+        },
+        include: {
+          merchant: {
+            select: {
+              id: true,
+              companyName: true,
+              businessType: true,
+            },
           },
         },
-      },
-    });
-  }),
+      });
+    }),
 
   // Mettre à jour un contrat
   update: protectedProcedure
@@ -307,7 +328,7 @@ export const adminContractsRouter = createTRPCRouter({
         .object({
           id: z.string(),
         })
-        .merge(ContractFormSchema.partial())
+        .merge(ContractFormSchema.partial()),
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
@@ -318,8 +339,8 @@ export const adminContractsRouter = createTRPCRouter({
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
@@ -348,16 +369,16 @@ export const adminContractsRouter = createTRPCRouter({
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
       // Empêcher la suppression des contrats actifs
-      if (contract.status === 'ACTIVE') {
+      if (contract.status === "ACTIVE") {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Impossible de supprimer un contrat actif',
+          code: "BAD_REQUEST",
+          message: "Impossible de supprimer un contrat actif",
         });
       }
 
@@ -373,7 +394,7 @@ export const adminContractsRouter = createTRPCRouter({
       return ctx.db.contract.update({
         where: { id: input.id },
         data: {
-          status: 'ACTIVE',
+          status: "ACTIVE",
           validatedAt: new Date(),
           signedById: ctx.session.user.id,
         },
@@ -386,13 +407,13 @@ export const adminContractsRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         reason: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       return ctx.db.contract.update({
         where: { id: input.id },
         data: {
-          status: 'SUSPENDED',
+          status: "SUSPENDED",
           notes: input.reason ? `Suspendu: ${input.reason}` : undefined,
         },
       });
@@ -412,8 +433,8 @@ export const adminContractsRouter = createTRPCRouter({
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
@@ -443,25 +464,27 @@ export const adminContractsRouter = createTRPCRouter({
           select: { contracts: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }),
 
   getActiveTemplates: protectedProcedure.query(async ({ ctx }) => {
     return ctx.db.contractTemplate.findMany({
       where: { isActive: true },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
     });
   }),
 
-  createTemplate: protectedProcedure.input(TemplateFormSchema).mutation(async ({ ctx, input }) => {
-    return ctx.db.contractTemplate.create({
-      data: {
-        ...input,
-        createdById: ctx.session.user.id,
-      },
-    });
-  }),
+  createTemplate: protectedProcedure
+    .input(TemplateFormSchema)
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.contractTemplate.create({
+        data: {
+          ...input,
+          createdById: ctx.session.user.id,
+        },
+      });
+    }),
 
   updateTemplate: protectedProcedure
     .input(
@@ -469,7 +492,7 @@ export const adminContractsRouter = createTRPCRouter({
         .object({
           id: z.string(),
         })
-        .merge(TemplateFormSchema.partial())
+        .merge(TemplateFormSchema.partial()),
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
@@ -489,15 +512,16 @@ export const adminContractsRouter = createTRPCRouter({
 
       if (!template) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Template non trouvé',
+          code: "NOT_FOUND",
+          message: "Template non trouvé",
         });
       }
 
       if (template._count.contracts > 0) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Impossible de supprimer un template utilisé par des contrats',
+          code: "BAD_REQUEST",
+          message:
+            "Impossible de supprimer un template utilisé par des contrats",
         });
       }
 

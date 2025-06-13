@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export { default as NotificationBadge } from './notification-badge';
-export * from './notification-badge';
-export { default as NotificationDropdown } from './notification-dropdown';
-export * from './notification-dropdown';
-export { default as NotificationToast } from './notification-toast';
-export * from './notification-toast';
+export { default as NotificationBadge } from "./notification-badge";
+export * from "./notification-badge";
+export { default as NotificationDropdown } from "./notification-dropdown";
+export * from "./notification-dropdown";
+export { default as NotificationToast } from "./notification-toast";
+export * from "./notification-toast";

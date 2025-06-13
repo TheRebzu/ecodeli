@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface ServiceCategory {
   id: string;
@@ -26,73 +26,77 @@ export function useServiceCategories() {
   } = api.adminServices.categories.getAll.useQuery();
 
   // Mutations
-  const createCategoryMutation = api.adminServices.categories.create.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Catégorie créée',
-        description: 'La catégorie a été créée avec succès.',
-      });
-      refetch();
-    },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  const createCategoryMutation =
+    api.adminServices.categories.create.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Catégorie créée",
+          description: "La catégorie a été créée avec succès.",
+        });
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
 
-  const updateCategoryMutation = api.adminServices.categories.update.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Catégorie mise à jour',
-        description: 'La catégorie a été mise à jour avec succès.',
-      });
-      refetch();
-    },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  const updateCategoryMutation =
+    api.adminServices.categories.update.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Catégorie mise à jour",
+          description: "La catégorie a été mise à jour avec succès.",
+        });
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
 
-  const toggleStatusMutation = api.adminServices.categories.toggleStatus.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Statut mis à jour',
-        description: 'Le statut de la catégorie a été mis à jour.',
-      });
-      refetch();
-    },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  const toggleStatusMutation =
+    api.adminServices.categories.toggleStatus.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Statut mis à jour",
+          description: "Le statut de la catégorie a été mis à jour.",
+        });
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
 
-  const deleteCategoryMutation = api.adminServices.categories.delete.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Catégorie supprimée',
-        description: 'La catégorie a été supprimée avec succès.',
-      });
-      refetch();
-    },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  const deleteCategoryMutation =
+    api.adminServices.categories.delete.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Catégorie supprimée",
+          description: "La catégorie a été supprimée avec succès.",
+        });
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
 
   // Fonctions utilitaires
   const createCategory = (data: {

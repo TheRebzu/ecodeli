@@ -1,11 +1,11 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { ServiceDetail } from '@/components/shared/services/service-detail';
-import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
-import { api } from '@/trpc/server';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { ServiceDetail } from "@/components/shared/services/service-detail";
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
+import { api } from "@/trpc/server";
+import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 
 interface ServicePageProps {
   params: Promise<{
@@ -13,8 +13,10 @@ interface ServicePageProps {
   }>;
 }
 
-export async function generateMetadata({ params }: ServicePageProps): Promise<Metadata> {
-  const t = await getTranslations('services');
+export async function generateMetadata({
+  params,
+}: ServicePageProps): Promise<Metadata> {
+  const t = await getTranslations("services");
 
   try {
     const service = await api.service.getServiceById.query({
@@ -22,19 +24,19 @@ export async function generateMetadata({ params }: ServicePageProps): Promise<Me
     });
 
     return {
-      title: `${service.name} | ${t('detail.service')}`,
+      title: `${service.name} | ${t("detail.service")}`,
       description: service.description.substring(0, 160),
     };
   } catch (error) {
     return {
-      title: t('detail.serviceNotFound'),
-      description: t('detail.serviceNotFoundDesc'),
+      title: t("detail.serviceNotFound"),
+      description: t("detail.serviceNotFoundDesc"),
     };
   }
 }
 
 export default async function ServicePage({ params }: ServicePageProps) {
-  const t = await getTranslations('services');
+  const t = await getTranslations("services");
 
   try {
     const service = await api.service.getServiceById.query({

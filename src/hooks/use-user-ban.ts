@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
-import type { UserBanInput } from '@/schemas/user/user-ban.schema';
-import { UserBanAction } from '@/types/users/verification';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
+import type { UserBanInput } from "@/schemas/user/user-ban.schema";
+import { UserBanAction } from "@/types/users/verification";
 
 /**
  * Hook pour gérer le bannissement/débannissement des utilisateurs
@@ -18,18 +18,19 @@ export function useUserBan() {
       setIsLoading(true);
     },
     onSuccess: (data, variables) => {
-      const action = variables.action === UserBanAction.BAN ? 'banni' : 'débanni';
+      const action =
+        variables.action === UserBanAction.BAN ? "banni" : "débanni";
       toast({
-        title: 'Succès',
+        title: "Succès",
         description: `Utilisateur ${action} avec succès`,
-        variant: 'default',
+        variant: "default",
       });
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: `Erreur lors du bannissement : ${error.message}`,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
     onSettled: () => {

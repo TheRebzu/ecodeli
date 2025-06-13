@@ -5,6 +5,7 @@ Application mobile Android native pour la plateforme de crowdshipping EcoDeli.
 ## 📱 Fonctionnalités
 
 ### ✅ Implémentées
+
 - **Authentification** : Connexion, inscription, 2FA
 - **Dashboard** : Vue d'ensemble des activités
 - **Livraisons** : Liste, détails, validation par code/NFC
@@ -13,6 +14,7 @@ Application mobile Android native pour la plateforme de crowdshipping EcoDeli.
 - **API** : Intégration complète avec l'API tRPC
 
 ### 🚧 En développement
+
 - **Services** : Réservation de prestations
 - **Portefeuille** : Gestion des paiements Stripe
 - **Profil** : Modification des informations utilisateur
@@ -47,12 +49,14 @@ app/
 ## 🚀 Installation et Build
 
 ### Prérequis
+
 - Android Studio Arctic Fox ou plus récent
 - JDK 17
 - Android SDK 34
 - Kotlin 1.9.22
 
 ### Configuration
+
 1. Cloner le repository
 2. Ouvrir le projet dans Android Studio
 3. Configurer les variables d'environnement :
@@ -63,6 +67,7 @@ app/
    ```
 
 ### Build avec les scripts
+
 ```bash
 # Build debug
 ./scripts/build.sh debug
@@ -81,6 +86,7 @@ app/
 ```
 
 ### Build manuel
+
 ```bash
 # Debug
 ./gradlew assembleDebug
@@ -96,16 +102,20 @@ app/
 ## 🔧 Configuration
 
 ### API Backend
+
 L'application se connecte à l'API tRPC EcoDeli. Configurez l'URL dans :
+
 - `build.gradle.kts` : `buildConfigField("String", "API_BASE_URL", "...")`
 - Pour le développement local : `http://10.0.2.2:3000`
 
 ### OneSignal (Notifications)
+
 1. Créer un projet sur [OneSignal](https://onesignal.com)
 2. Ajouter l'App ID dans `build.gradle.kts`
 3. Configurer les certificats FCM
 
 ### Google Maps (Optionnel)
+
 1. Créer une clé API Google Maps
 2. L'ajouter dans `AndroidManifest.xml`
 
@@ -114,15 +124,18 @@ L'application se connecte à l'API tRPC EcoDeli. Configurez l'URL dans :
 L'application utilise la technologie NFC pour valider les livraisons :
 
 ### Activation NFC
+
 - L'utilisateur doit activer le NFC dans les paramètres Android
 - L'application détecte automatiquement la disponibilité NFC
 
 ### Validation de livraison
+
 1. Scanner la carte NFC du livreur
 2. Vérification de l'authenticité
 3. Validation automatique de la livraison
 
 ### Format des tags NFC
+
 - Préfixe : `ECODELI_DELIVERER:`
 - Format : `ECODELI_DELIVERER:{deliverer_id}`
 - Signature cryptographique pour la sécurité
@@ -130,21 +143,25 @@ L'application utilise la technologie NFC pour valider les livraisons :
 ## 🧪 Tests
 
 ### Tests unitaires
+
 ```bash
 ./gradlew testDebugUnitTest
 ```
 
 ### Tests d'interface (UI)
+
 ```bash
 ./gradlew connectedDebugAndroidTest
 ```
 
 ### Analyse statique
+
 ```bash
 ./gradlew lintDebug
 ```
 
 ### Couverture de code
+
 ```bash
 ./gradlew jacocoTestReport
 ```
@@ -152,16 +169,19 @@ L'application utilise la technologie NFC pour valider les livraisons :
 ## 🔒 Sécurité
 
 ### Network Security
+
 - Certificate pinning en production
 - Chiffrement TLS 1.3
 - Validation des certificats SSL
 
 ### Stockage sécurisé
+
 - EncryptedSharedPreferences pour les tokens
 - DataStore pour les préférences
 - Aucune donnée sensible en stockage local
 
 ### Obfuscation
+
 - ProGuard/R8 pour la release
 - Obfuscation du code et des ressources
 - Suppression du code inutilisé
@@ -169,6 +189,7 @@ L'application utilise la technologie NFC pour valider les livraisons :
 ## 🌍 Internationalisation
 
 L'application supporte plusieurs langues :
+
 - 🇫🇷 Français (par défaut)
 - 🇬🇧 Anglais
 - 🇪🇸 Espagnol (à venir)
@@ -179,23 +200,28 @@ Fichiers de traduction dans `res/values-{lang}/strings.xml`
 ## 📊 Analytics et Monitoring
 
 ### OneSignal
+
 - Notifications push
 - Segmentation des utilisateurs
 - Analytics des notifications
 
 ### Crash Reporting
+
 - Intégration Firebase Crashlytics (optionnel)
 - Logs d'erreur détaillés
 
 ## 🚀 Déploiement
 
 ### Environnements
+
 - **Development** : `http://localhost:3000`
 - **Staging** : Firebase App Distribution
 - **Production** : Google Play Store
 
 ### CI/CD
+
 GitHub Actions pour :
+
 - Build automatique
 - Tests unitaires
 - Analyse statique
@@ -204,12 +230,14 @@ GitHub Actions pour :
 ## 📈 Performance
 
 ### Optimisations
+
 - ProGuard/R8 pour réduire la taille
 - Compression des images avec WebP
 - Lazy loading des listes
 - Mise en cache intelligente
 
 ### Monitoring
+
 - Android Vitals
 - Métriques de performance
 - Analyse de la batterie
@@ -219,6 +247,7 @@ GitHub Actions pour :
 ### Problèmes courants
 
 #### Build échoue
+
 ```bash
 # Nettoyer le projet
 ./gradlew clean
@@ -228,16 +257,19 @@ GitHub Actions pour :
 ```
 
 #### Erreur NFC
+
 - Vérifier que l'appareil supporte NFC
 - Activer NFC dans les paramètres Android
 - Vérifier les permissions dans AndroidManifest.xml
 
 #### Erreur API
+
 - Vérifier l'URL de l'API
 - Contrôler la connectivité réseau
 - Examiner les logs avec Logcat
 
 ### Logs
+
 ```bash
 # Afficher les logs de l'application
 adb logcat | grep EcoDeli
@@ -255,6 +287,7 @@ adb logcat | grep NfcManager
 5. Ouvrir une Pull Request
 
 ### Standards de code
+
 - Kotlin Coding Conventions
 - Material Design Guidelines
 - Clean Architecture

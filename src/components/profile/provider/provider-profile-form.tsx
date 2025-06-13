@@ -1,9 +1,15 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -11,24 +17,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { SaveIcon, XIcon } from 'lucide-react';
-import { useProfile } from '@/hooks/shared/use-profile';
-import { useProfileStore } from '@/store/use-profile-store';
+} from "@/components/ui/form";
+import { SaveIcon, XIcon } from "lucide-react";
+import { useProfile } from "@/hooks/shared/use-profile";
+import { useProfileStore } from "@/store/use-profile-store";
 import {
   updateProviderProfileSchema,
   type UpdateProviderProfile,
-} from '@/schemas/user/profile.schema';
+} from "@/schemas/user/profile.schema";
 
 export function ProviderProfileForm() {
-  const { profile, roleSpecificProfile, updateProfile, isUpdatingProfile } = useProfile();
+  const { profile, roleSpecificProfile, updateProfile, isUpdatingProfile } =
+    useProfile();
   const { setIsEditingProfile } = useProfileStore();
 
   const form = useForm<UpdateProviderProfile>({
     resolver: zodResolver(updateProviderProfileSchema),
     defaultValues: {
-      companyName: roleSpecificProfile?.companyName || '',
-      serviceType: roleSpecificProfile?.serviceType || '',
+      companyName: roleSpecificProfile?.companyName || "",
+      serviceType: roleSpecificProfile?.serviceType || "",
       serviceRadius: roleSpecificProfile?.serviceRadius || 0,
     },
   });
@@ -85,7 +92,11 @@ export function ProviderProfileForm() {
                 <FormItem>
                   <FormLabel>Rayon de service (km)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Rayon de service" {...field} />
+                    <Input
+                      type="number"
+                      placeholder="Rayon de service"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

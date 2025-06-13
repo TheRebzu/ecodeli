@@ -1,5 +1,5 @@
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { z } from "zod";
 
 export const messagingRouter = router({
   getConversations: protectedProcedure.query(async ({ ctx }) => {
@@ -17,7 +17,7 @@ export const messagingRouter = router({
       z.object({
         conversationId: z.string(),
         content: z.string().min(1),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Envoyer un message
@@ -28,7 +28,7 @@ export const messagingRouter = router({
       z.object({
         recipientId: z.string(),
         initialMessage: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Créer une nouvelle conversation

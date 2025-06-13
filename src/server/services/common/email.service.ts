@@ -1,8 +1,8 @@
-import { SupportedLanguage } from '@/lib/i18n/user-locale';
-import { DocumentType } from '@/server/db/enums';
-import { TRPCError } from '@trpc/server';
-import formData from 'form-data';
-import Mailgun from 'mailgun.js';
+import { SupportedLanguage } from "@/lib/i18n/user-locale";
+import { DocumentType } from "@/server/db/enums";
+import { TRPCError } from "@trpc/server";
+import formData from "form-data";
+import Mailgun from "mailgun.js";
 // Types et fonctions temporaires pour les emails en attendant la correction
 type EmailTemplate = {
   to: string;
@@ -13,19 +13,23 @@ type EmailTemplate = {
 // Fonctions utilitaires temporaires (à remplacer par les vraies)
 const sendVerificationEmailUtil = (email: string, token: string) => ({
   to: email,
-  subject: 'Vérification de votre compte',
+  subject: "Vérification de votre compte",
   html: `<p>Cliquez sur ce lien pour vérifier votre compte: <a href="${process.env.NEXTAUTH_URL}/verify?token=${token}">Vérifier</a></p>`,
 });
 
-const sendPasswordResetEmailUtil = (email: string, name: string, token: string) => ({
+const sendPasswordResetEmailUtil = (
+  email: string,
+  name: string,
+  token: string,
+) => ({
   to: email,
-  subject: 'Réinitialisation de votre mot de passe',
+  subject: "Réinitialisation de votre mot de passe",
   html: `<p>Bonjour ${name}, cliquez sur ce lien pour réinitialiser votre mot de passe: <a href="${process.env.NEXTAUTH_URL}/reset-password?token=${token}">Réinitialiser</a></p>`,
 });
 
 const sendWelcomeEmailUtil = (email: string, name: string) => ({
   to: email,
-  subject: 'Bienvenue sur EcoDeli',
+  subject: "Bienvenue sur EcoDeli",
   html: `<p>Bonjour ${name}, bienvenue sur EcoDeli !</p>`,
 });
 
@@ -39,15 +43,15 @@ export class EmailService {
   private domain: string;
 
   constructor() {
-    this.fromEmail = process.env.EMAIL_FROM || 'noreply@ecodeli.me';
-    this.appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    this.domain = process.env.MAILGUN_DOMAIN || '';
+    this.fromEmail = process.env.EMAIL_FROM || "noreply@ecodeli.me";
+    this.appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    this.domain = process.env.MAILGUN_DOMAIN || "";
 
     // Initialisation de Mailgun
     const mailgun = new Mailgun(formData);
     this.mailgun = mailgun.client({
-      username: 'api',
-      key: process.env.MAILGUN_API_KEY || '',
+      username: "api",
+      key: process.env.MAILGUN_API_KEY || "",
     });
 
     // Pas d'avertissement même si Mailgun n'est pas configuré
@@ -58,7 +62,11 @@ export class EmailService {
    * Envoie un email avec Mailgun
    * @private
    */
-  private async sendEmail(to: string, subject: string, html: string): Promise<void> {
+  private async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+  ): Promise<void> {
     if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
       // Les emails sont réellement envoyés par Nodemailer (src/lib/email.ts)
       // Ce message est juste un log informationnel, pas une simulation
@@ -77,7 +85,7 @@ export class EmailService {
     } catch (error) {
       console.error("Erreur lors de l'envoi d'email:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de l'envoi d'email",
       });
     }
@@ -89,7 +97,7 @@ export class EmailService {
   async sendWelcomeEmail(
     email: string,
     name: string,
-    locale: SupportedLanguage = 'fr'
+    locale: SupportedLanguage = "fr",
   ): Promise<void> {
     await sendWelcomeEmailUtil(email, name, locale);
   }
@@ -100,12 +108,17 @@ export class EmailService {
   async sendVerificationEmail(
     email: string,
     token: string,
-    locale: SupportedLanguage = 'fr'
+    locale: SupportedLanguage = "fr",
   ): Promise<void> {
     // Utilise la méthode de la librairie d'email pour assurer la cohérence
     // entre le token généré et le lien de vérification
     const userName = await this.getUserNameByEmail(email);
-    await sendVerificationEmailUtil(email, userName || 'Utilisateur', token, locale);
+    await sendVerificationEmailUtil(
+      email,
+      userName || "Utilisateur",
+      token,
+      locale,
+    );
   }
 
   /**
@@ -114,10 +127,15 @@ export class EmailService {
   async sendPasswordResetEmail(
     email: string,
     token: string,
-    locale: SupportedLanguage = 'fr'
+    locale: SupportedLanguage = "fr",
   ): Promise<void> {
     const userName = await this.getUserNameByEmail(email);
-    await sendPasswordResetEmailUtil(email, userName || 'Utilisateur', token, locale);
+    await sendPasswordResetEmailUtil(
+      email,
+      userName || "Utilisateur",
+      token,
+      locale,
+    );
   }
 
   /**
@@ -130,7 +148,10 @@ export class EmailService {
       // depuis la base de données, mais pour l'instant, on renvoie simplement null
       return null;
     } catch (error) {
-      console.error("Erreur lors de la récupération du nom d'utilisateur:", error);
+      console.error(
+        "Erreur lors de la récupération du nom d'utilisateur:",
+        error,
+      );
       return null;
     }
   }
@@ -140,11 +161,11 @@ export class EmailService {
    */
   async sendAccountActivationNotification(
     email: string,
-    locale: SupportedLanguage = 'fr'
+    locale: SupportedLanguage = "fr",
   ): Promise<void> {
     const loginUrl = `${this.appUrl}/login`;
 
-    const subject = 'Votre compte est activé - EcoDeli';
+    const subject = "Votre compte est activé - EcoDeli";
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Compte activé avec succès</h1>
@@ -163,8 +184,11 @@ export class EmailService {
   /**
    * Envoie un email de bienvenue spécifique aux clients
    */
-  async sendClientWelcomeEmail(email: string, locale: SupportedLanguage = 'fr'): Promise<void> {
-    const subject = 'Bienvenue chez EcoDeli !';
+  async sendClientWelcomeEmail(
+    email: string,
+    locale: SupportedLanguage = "fr",
+  ): Promise<void> {
+    const subject = "Bienvenue chez EcoDeli !";
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Bienvenue chez EcoDeli !</h1>
@@ -182,11 +206,11 @@ export class EmailService {
    */
   async sendDelivererVerificationInstructions(
     email: string,
-    locale: SupportedLanguage = 'fr'
+    locale: SupportedLanguage = "fr",
   ): Promise<void> {
     const dashboardUrl = `${this.appUrl}/dashboard`;
 
-    const subject = 'Prochaines étapes pour devenir livreur EcoDeli';
+    const subject = "Prochaines étapes pour devenir livreur EcoDeli";
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Finalisez votre inscription comme livreur</h1>
@@ -212,11 +236,11 @@ export class EmailService {
    */
   async sendMerchantContractInstructions(
     email: string,
-    locale: SupportedLanguage = 'fr'
+    locale: SupportedLanguage = "fr",
   ): Promise<void> {
     const dashboardUrl = `${this.appUrl}/dashboard`;
 
-    const subject = 'Finalisez votre inscription comme commerçant EcoDeli';
+    const subject = "Finalisez votre inscription comme commerçant EcoDeli";
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Finalisez votre inscription comme commerçant</h1>
@@ -241,11 +265,11 @@ export class EmailService {
    */
   async sendProviderVerificationInstructions(
     email: string,
-    locale: SupportedLanguage = 'fr'
+    locale: SupportedLanguage = "fr",
   ): Promise<void> {
     const dashboardUrl = `${this.appUrl}/dashboard`;
 
-    const subject = 'Finalisez votre inscription comme prestataire EcoDeli';
+    const subject = "Finalisez votre inscription comme prestataire EcoDeli";
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Finalisez votre inscription comme prestataire</h1>
@@ -272,9 +296,9 @@ export class EmailService {
     email: string,
     name: string,
     documentType: DocumentType,
-    locale: SupportedLanguage = 'fr'
+    locale: SupportedLanguage = "fr",
   ): Promise<void> {
-    const subject = 'Document approuvé - EcoDeli';
+    const subject = "Document approuvé - EcoDeli";
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Document approuvé</h1>
@@ -295,9 +319,9 @@ export class EmailService {
     name: string,
     documentType: DocumentType,
     reason: string,
-    locale: SupportedLanguage = 'fr'
+    locale: SupportedLanguage = "fr",
   ): Promise<void> {
-    const subject = 'Document rejeté - EcoDeli';
+    const subject = "Document rejeté - EcoDeli";
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Document rejeté</h1>

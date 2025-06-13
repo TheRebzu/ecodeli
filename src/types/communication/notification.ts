@@ -1,12 +1,12 @@
 export type NotificationType =
-  | 'DOCUMENT_SUBMISSION'
-  | 'DOCUMENT_APPROVED'
-  | 'DOCUMENT_REJECTED'
-  | 'SYSTEM'
-  | 'USER'
-  | 'ANNOUNCEMENT'
-  | 'DELIVERY'
-  | 'VERIFICATION';
+  | "DOCUMENT_SUBMISSION"
+  | "DOCUMENT_APPROVED"
+  | "DOCUMENT_REJECTED"
+  | "SYSTEM"
+  | "USER"
+  | "ANNOUNCEMENT"
+  | "DELIVERY"
+  | "VERIFICATION";
 
 export interface Notification {
   id: string;

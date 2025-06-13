@@ -1,6 +1,10 @@
-import { z } from 'zod';
-import { router as router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import {
+  router as router,
+  protectedProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Router pour admin deliverers
@@ -20,7 +24,7 @@ export const adminDeliverersRouter = router({
         .default({
           page: 1,
           limit: 10,
-        })
+        }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -29,11 +33,11 @@ export const adminDeliverersRouter = router({
 
         // Construction de la requête de base
         const where = {
-          role: 'DELIVERER',
+          role: "DELIVERER",
           ...(input.search && {
             OR: [
-              { name: { contains: input.search, mode: 'insensitive' } },
-              { email: { contains: input.search, mode: 'insensitive' } },
+              { name: { contains: input.search, mode: "insensitive" } },
+              { email: { contains: input.search, mode: "insensitive" } },
             ],
           }),
         };
@@ -75,7 +79,7 @@ export const adminDeliverersRouter = router({
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           skip: (input.page - 1) * input.limit,
           take: input.limit,
         });
@@ -83,14 +87,16 @@ export const adminDeliverersRouter = router({
         // Transformer les données pour correspondre à l'interface attendue
         const transformedDeliverers = deliverers.map((user: any) => ({
           id: user.id,
-          firstName: user.name?.split(' ')[0] || '',
-          lastName: user.name?.split(' ').slice(1).join(' ') || '',
+          firstName: user.name?.split(" ")[0] || "",
+          lastName: user.name?.split(" ").slice(1).join(" ") || "",
           email: user.email,
           phone: user.phoneNumber || user.deliverer?.phone,
           image: user.image,
           status: user.status,
           isVerified: user.isVerified,
-          verificationStatus: user.deliverer?.verificationDate ? 'APPROVED' : 'PENDING',
+          verificationStatus: user.deliverer?.verificationDate
+            ? "APPROVED"
+            : "PENDING",
           createdAt: user.createdAt,
           lastActiveAt: user.lastLoginAt,
           totalDeliveries: 0, // À calculer depuis les livraisons
@@ -115,10 +121,10 @@ export const adminDeliverersRouter = router({
           hasPrev: input.page > 1,
         };
       } catch (error) {
-        console.error('Erreur lors de la récupération des livreurs:', error);
+        console.error("Erreur lors de la récupération des livreurs:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des données',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des données",
         });
       }
     }),
@@ -131,26 +137,26 @@ export const adminDeliverersRouter = router({
 
       // Statistiques depuis la base de données
       const totalDeliverers = await ctx.db.user.count({
-        where: { role: 'DELIVERER' },
+        where: { role: "DELIVERER" },
       });
 
       const activeDeliverers = await ctx.db.user.count({
-        where: { role: 'DELIVERER', status: 'ACTIVE' },
+        where: { role: "DELIVERER", status: "ACTIVE" },
       });
 
       const pendingApplications = await ctx.db.user.count({
         where: {
-          role: 'DELIVERER',
-          status: 'PENDING_VERIFICATION',
+          role: "DELIVERER",
+          status: "PENDING_VERIFICATION",
         },
       });
 
       const suspendedDeliverers = await ctx.db.user.count({
-        where: { role: 'DELIVERER', status: 'SUSPENDED' },
+        where: { role: "DELIVERER", status: "SUSPENDED" },
       });
 
       const verifiedDeliverers = await ctx.db.user.count({
-        where: { role: 'DELIVERER', isVerified: true },
+        where: { role: "DELIVERER", isVerified: true },
       });
 
       // Agrégations pour les données des profils livreurs
@@ -168,7 +174,7 @@ export const adminDeliverersRouter = router({
       // Statistiques depuis les livraisons réelles
       const deliveryStats = await ctx.db.delivery.aggregate({
         where: {
-          status: 'DELIVERED',
+          status: "DELIVERED",
         },
         _count: {
           id: true,
@@ -178,9 +184,9 @@ export const adminDeliverersRouter = router({
       // Statistiques depuis les paiements
       const earningsStats = await ctx.db.payment.aggregate({
         where: {
-          status: 'COMPLETED',
+          status: "COMPLETED",
           user: {
-            role: 'DELIVERER',
+            role: "DELIVERER",
           },
         },
         _sum: {
@@ -198,30 +204,46 @@ export const adminDeliverersRouter = router({
 
       // Calculer la croissance mensuelle (simple exemple - pourrait être plus sophistiqué)
       const currentMonth = new Date();
-      const lastMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+      const lastMonth = new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth() - 1,
+        1,
+      );
 
       const currentMonthDeliverers = await ctx.db.user.count({
         where: {
-          role: 'DELIVERER',
+          role: "DELIVERER",
           createdAt: {
-            gte: new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1),
+            gte: new Date(
+              currentMonth.getFullYear(),
+              currentMonth.getMonth(),
+              1,
+            ),
           },
         },
       });
 
       const lastMonthDeliverers = await ctx.db.user.count({
         where: {
-          role: 'DELIVERER',
+          role: "DELIVERER",
           createdAt: {
             gte: lastMonth,
-            lt: new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1),
+            lt: new Date(
+              currentMonth.getFullYear(),
+              currentMonth.getMonth(),
+              1,
+            ),
           },
         },
       });
 
       const monthlyGrowth =
         lastMonthDeliverers > 0
-          ? Math.round(((currentMonthDeliverers - lastMonthDeliverers) / lastMonthDeliverers) * 100)
+          ? Math.round(
+              ((currentMonthDeliverers - lastMonthDeliverers) /
+                lastMonthDeliverers) *
+                100,
+            )
           : 0;
 
       return {
@@ -239,95 +261,99 @@ export const adminDeliverersRouter = router({
         satisfactionRate: Number(satisfactionRate.toFixed(1)),
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques:', error);
+      console.error("Erreur lors de la récupération des statistiques:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des statistiques',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des statistiques",
       });
     }
   }),
 
   // Récupérer un livreur par son ID
-  getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
-    try {
-      const deliverer = await ctx.db.user.findUnique({
-        where: {
-          id: input.id,
-          role: 'DELIVERER',
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phoneNumber: true,
-          image: true,
-          status: true,
-          isVerified: true,
-          createdAt: true,
-          lastLoginAt: true,
-          delivererProfile: {
-            select: {
-              isActive: true,
-              hasVehicle: true,
-              vehicleType: true,
-              preferredZones: true,
-              rating: true,
-              totalDeliveries: true,
-              completedDeliveries: true,
-              earnings: true,
-              verificationStatus: true,
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const deliverer = await ctx.db.user.findUnique({
+          where: {
+            id: input.id,
+            role: "DELIVERER",
+          },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phoneNumber: true,
+            image: true,
+            status: true,
+            isVerified: true,
+            createdAt: true,
+            lastLoginAt: true,
+            delivererProfile: {
+              select: {
+                isActive: true,
+                hasVehicle: true,
+                vehicleType: true,
+                preferredZones: true,
+                rating: true,
+                totalDeliveries: true,
+                completedDeliveries: true,
+                earnings: true,
+                verificationStatus: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      if (!deliverer) {
+        if (!deliverer) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Livreur non trouvé",
+          });
+        }
+
+        // Transformer les données pour correspondre à l'interface attendue
+        return {
+          id: deliverer.id,
+          firstName: deliverer.firstName || "",
+          lastName: deliverer.lastName || "",
+          email: deliverer.email,
+          phone: deliverer.phoneNumber,
+          image: deliverer.image,
+          status: deliverer.status,
+          isVerified: deliverer.isVerified,
+          verificationStatus:
+            deliverer.delivererProfile?.verificationStatus || "PENDING",
+          createdAt: deliverer.createdAt,
+          lastActiveAt: deliverer.lastLoginAt,
+          totalDeliveries: deliverer.delivererProfile?.totalDeliveries || 0,
+          completedDeliveries:
+            deliverer.delivererProfile?.completedDeliveries || 0,
+          rating: deliverer.delivererProfile?.rating || 0,
+          earnings: deliverer.delivererProfile?.earnings || 0,
+          hasVehicle: deliverer.delivererProfile?.hasVehicle || false,
+          vehicleType: deliverer.delivererProfile?.vehicleType,
+          preferredZones: deliverer.delivererProfile?.preferredZones || [],
+        };
+      } catch (error) {
+        console.error("Erreur lors de la récupération du livreur:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Livreur non trouvé',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des données du livreur",
         });
       }
-
-      // Transformer les données pour correspondre à l'interface attendue
-      return {
-        id: deliverer.id,
-        firstName: deliverer.firstName || '',
-        lastName: deliverer.lastName || '',
-        email: deliverer.email,
-        phone: deliverer.phoneNumber,
-        image: deliverer.image,
-        status: deliverer.status,
-        isVerified: deliverer.isVerified,
-        verificationStatus: deliverer.delivererProfile?.verificationStatus || 'PENDING',
-        createdAt: deliverer.createdAt,
-        lastActiveAt: deliverer.lastLoginAt,
-        totalDeliveries: deliverer.delivererProfile?.totalDeliveries || 0,
-        completedDeliveries: deliverer.delivererProfile?.completedDeliveries || 0,
-        rating: deliverer.delivererProfile?.rating || 0,
-        earnings: deliverer.delivererProfile?.earnings || 0,
-        hasVehicle: deliverer.delivererProfile?.hasVehicle || false,
-        vehicleType: deliverer.delivererProfile?.vehicleType,
-        preferredZones: deliverer.delivererProfile?.preferredZones || [],
-      };
-    } catch (error) {
-      console.error('Erreur lors de la récupération du livreur:', error);
-      if (error instanceof TRPCError) {
-        throw error;
-      }
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des données du livreur',
-      });
-    }
-  }),
+    }),
 
   // Créer une nouvelle entrée
   create: protectedProcedure
     .input(
       z.object({
         // TODO: Définir le schéma de validation
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -339,8 +365,8 @@ export const adminDeliverersRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la création',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la création",
         });
       }
     }),
@@ -350,15 +376,20 @@ export const adminDeliverersRouter = router({
     .input(
       z.object({
         userId: z.string(),
-        status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING_VERIFICATION']),
-      })
+        status: z.enum([
+          "ACTIVE",
+          "INACTIVE",
+          "SUSPENDED",
+          "PENDING_VERIFICATION",
+        ]),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         // TODO: Vérifier les permissions admin
         // TODO: Implémenter la mise à jour du statut dans la DB
         console.log(
-          `Mise à jour du statut pour l'utilisateur ${input.userId} vers ${input.status}`
+          `Mise à jour du statut pour l'utilisateur ${input.userId} vers ${input.status}`,
         );
 
         return {
@@ -371,8 +402,8 @@ export const adminDeliverersRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la mise à jour du statut',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la mise à jour du statut",
         });
       }
     }),
@@ -383,29 +414,31 @@ export const adminDeliverersRouter = router({
       z.object({
         userId: z.string(),
         approved: z.boolean().default(true),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         // TODO: Vérifier les permissions admin
         // TODO: Implémenter la vérification dans la DB
         console.log(
-          `Vérification du livreur ${input.userId} : ${input.approved ? 'approuvé' : 'rejeté'}`
+          `Vérification du livreur ${input.userId} : ${input.approved ? "approuvé" : "rejeté"}`,
         );
 
         return {
           success: true,
-          message: input.approved ? 'Livreur vérifié avec succès' : 'Livreur rejeté',
+          message: input.approved
+            ? "Livreur vérifié avec succès"
+            : "Livreur rejeté",
           data: {
             userId: input.userId,
             verified: input.approved,
-            verificationStatus: input.approved ? 'APPROVED' : 'REJECTED',
+            verificationStatus: input.approved ? "APPROVED" : "REJECTED",
           },
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors de la vérification',
+          code: "BAD_REQUEST",
+          message: "Erreur lors de la vérification",
         });
       }
     }),

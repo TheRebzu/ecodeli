@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export * from './commission-rules.schema';
-export * from './delivery-rules.schema';
-export * from './matching-rules.schema';
-export * from './pricing-rules.schema';
+export * from "./commission-rules.schema";
+export * from "./delivery-rules.schema";
+export * from "./matching-rules.schema";
+export * from "./pricing-rules.schema";

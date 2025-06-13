@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Home,
   Megaphone,
@@ -33,10 +33,13 @@ import {
   Globe,
   Layers,
   Crown,
-} from 'lucide-react';
-import { BaseSidebar, type SidebarSection } from '@/components/layout/sidebars/base-sidebar';
-import { useAuth } from '@/hooks/auth/use-auth';
-import { useSession } from 'next-auth/react';
+} from "lucide-react";
+import {
+  BaseSidebar,
+  type SidebarSection,
+} from "@/components/layout/sidebars/base-sidebar";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { useSession } from "next-auth/react";
 
 interface ClientSidebarProps {
   locale: string;
@@ -49,18 +52,18 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
   // Récupérer les informations de l'utilisateur connecté
   const userInfo = {
-    name: session?.user?.name || user?.name || 'Utilisateur',
-    email: session?.user?.email || user?.email || 'utilisateur@ecodeli.me',
+    name: session?.user?.name || user?.name || "Utilisateur",
+    email: session?.user?.email || user?.email || "utilisateur@ecodeli.me",
     avatar: user?.image || undefined,
   };
 
   const sections: SidebarSection[] = [
     // Section principale - Dashboard
     {
-      title: 'Accueil',
+      title: "Accueil",
       items: [
         {
-          label: 'Tableau de bord',
+          label: "Tableau de bord",
           href: `/${locale}/client`,
           icon: Home,
           badge: 3,
@@ -70,31 +73,31 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
     // Section Annonces et Services
     {
-      title: 'Services',
+      title: "Services",
       items: [
         {
-          label: 'Mes annonces',
+          label: "Mes annonces",
           href: `/${locale}/client/announcements`,
           icon: Megaphone,
           badge: 2,
         },
         {
-          label: 'Créer annonce',
+          label: "Créer annonce",
           href: `/${locale}/client/announcements/create`,
           icon: Megaphone,
         },
         {
-          label: 'Services disponibles',
+          label: "Services disponibles",
           href: `/${locale}/client/services`,
           icon: Briefcase,
         },
         {
-          label: 'Réserver service',
+          label: "Réserver service",
           href: `/${locale}/client/services/book`,
           icon: Calendar,
         },
         {
-          label: 'Mes réservations',
+          label: "Mes réservations",
           href: `/${locale}/client/services/bookings`,
           icon: Calendar,
         },
@@ -103,10 +106,10 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
     // Section Livraisons
     {
-      title: 'Livraisons',
+      title: "Livraisons",
       items: [
         {
-          label: 'Mes livraisons',
+          label: "Mes livraisons",
           href: `/${locale}/client/deliveries`,
           icon: Package,
           badge: 1,
@@ -116,15 +119,15 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
     // Section Storage/Entreposage
     {
-      title: 'Entreposage',
+      title: "Entreposage",
       items: [
         {
-          label: 'Mes boxes',
+          label: "Mes boxes",
           href: `/${locale}/client/storage`,
           icon: Archive,
         },
         {
-          label: 'Rechercher box',
+          label: "Rechercher box",
           href: `/${locale}/client/storage/search`,
           icon: Search,
         },
@@ -133,15 +136,15 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
     // Section Rendez-vous
     {
-      title: 'Rendez-vous',
+      title: "Rendez-vous",
       items: [
         {
-          label: 'Mes rendez-vous',
+          label: "Mes rendez-vous",
           href: `/${locale}/client/appointments`,
           icon: Calendar,
         },
         {
-          label: 'Historique RDV',
+          label: "Historique RDV",
           href: `/${locale}/client/appointments/history`,
           icon: Clock,
         },
@@ -150,15 +153,15 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
     // Section Contrats et Documents
     {
-      title: 'Documents',
+      title: "Documents",
       items: [
         {
-          label: 'Mes contrats',
+          label: "Mes contrats",
           href: `/${locale}/client/contracts`,
           icon: FileText,
         },
         {
-          label: 'Factures',
+          label: "Factures",
           href: `/${locale}/client/invoices`,
           icon: Receipt,
         },
@@ -167,15 +170,15 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
     // Section Paiements et Facturation
     {
-      title: 'Paiements',
+      title: "Paiements",
       items: [
         {
-          label: 'Mes paiements',
+          label: "Mes paiements",
           href: `/${locale}/client/payments`,
           icon: CreditCard,
         },
         {
-          label: 'Abonnement',
+          label: "Abonnement",
           href: `/${locale}/client/subscription`,
           icon: Crown,
         },
@@ -184,15 +187,15 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
     // Section Évaluations
     {
-      title: 'Évaluations',
+      title: "Évaluations",
       items: [
         {
-          label: 'Mes avis',
+          label: "Mes avis",
           href: `/${locale}/client/reviews`,
           icon: Star,
         },
         {
-          label: 'Avis en attente',
+          label: "Avis en attente",
           href: `/${locale}/client/reviews/pending`,
           icon: Clock,
           badge: 2,
@@ -202,16 +205,16 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
     // Section Communication
     {
-      title: 'Communication',
+      title: "Communication",
       items: [
         {
-          label: 'Messages',
+          label: "Messages",
           href: `/${locale}/client/messages`,
           icon: MessageSquare,
           badge: 4,
         },
         {
-          label: 'Notifications',
+          label: "Notifications",
           href: `/${locale}/client/notifications`,
           icon: Bell,
           badge: notifications,
@@ -221,10 +224,10 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
     // Section Profil et Paramètres
     {
-      title: 'Mon compte',
+      title: "Mon compte",
       items: [
         {
-          label: 'Mon profil',
+          label: "Mon profil",
           href: `/${locale}/client/profile`,
           icon: User,
         },
@@ -233,13 +236,13 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
   ];
 
   const quickAction = {
-    label: 'Nouvelle annonce',
+    label: "Nouvelle annonce",
     icon: Megaphone,
     href: `/${locale}/client/announcements/create`,
   };
 
   const subscriptionInfo = {
-    plan: 'Premium',
+    plan: "Premium",
     href: `/${locale}/client/subscription`,
   };
 

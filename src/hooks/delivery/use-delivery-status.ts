@@ -1,9 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
-import { toast } from 'sonner';
-import { api } from '@/trpc/react';
-import { useDeliveryTrackingStore, useStatusHistory } from '@/store/use-delivery-tracking-store';
-import { DeliveryStatus } from '@prisma/client';
-import { socket, emitDeliveryTrackingEvent } from '@/socket';
+import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
+import { api } from "@/trpc/react";
+import {
+  useDeliveryTrackingStore,
+  useStatusHistory,
+} from "@/store/use-delivery-tracking-store";
+import { DeliveryStatus } from "@prisma/client";
+import { socket, emitDeliveryTrackingEvent } from "@/socket";
 
 /**
  * Type d'options pour la mise à jour du statut
@@ -21,7 +24,9 @@ type StatusUpdateOptions = {
  * @param deliveryId - ID de la livraison
  */
 export function useDeliveryStatusUpdate(deliveryId?: string) {
-  const [availableStatuses, setAvailableStatuses] = useState<DeliveryStatus[]>([]);
+  const [availableStatuses, setAvailableStatuses] = useState<DeliveryStatus[]>(
+    [],
+  );
   const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastStatusUpdate, setLastStatusUpdate] = useState<{
@@ -36,10 +41,15 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
 
     setIsLoadingStatuses(true);
     try {
-      const statuses = await api.delivery.getAvailableStatuses.query({ id: deliveryId });
+      const statuses = await api.delivery.getAvailableStatuses.query({
+        id: deliveryId,
+      });
       setAvailableStatuses(statuses);
     } catch (error) {
-      console.error('Erreur lors du chargement des statuts disponibles:', error);
+      console.error(
+        "Erreur lors du chargement des statuts disponibles:",
+        error,
+      );
     } finally {
       setIsLoadingStatuses(false);
     }
@@ -47,8 +57,14 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
 
   // Fonction pour mettre à jour le statut
   const updateStatus = useCallback(
-    async ({ status, options = {} }: { status: DeliveryStatus; options?: StatusUpdateOptions }) => {
-      if (!deliveryId) throw new Error('ID de livraison non spécifié');
+    async ({
+      status,
+      options = {},
+    }: {
+      status: DeliveryStatus;
+      options?: StatusUpdateOptions;
+    }) => {
+      if (!deliveryId) throw new Error("ID de livraison non spécifié");
 
       setIsUpdating(true);
       try {
@@ -77,14 +93,15 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
         // Recharger les données
         await fetchAvailableStatuses();
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+        const errorMessage =
+          error instanceof Error ? error.message : "Erreur inconnue";
         toast.error(`Erreur lors de la mise à jour du statut: ${errorMessage}`);
         throw error;
       } finally {
         setIsUpdating(false);
       }
     },
-    [deliveryId, fetchAvailableStatuses]
+    [deliveryId, fetchAvailableStatuses],
   );
 
   // Charger les statuts disponibles au montage
@@ -97,7 +114,7 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
     (status: DeliveryStatus): boolean => {
       return availableStatuses.includes(status);
     },
-    [availableStatuses]
+    [availableStatuses],
   );
 
   return {
@@ -136,12 +153,18 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
     setIsLoading(true);
     setError(null);
     try {
-      const history = await api.delivery.getStatusHistory.query({ id: deliveryId });
+      const history = await api.delivery.getStatusHistory.query({
+        id: deliveryId,
+      });
       setStatusHistory(history);
     } catch (err) {
-      const errorObj = err instanceof Error ? err : new Error('Erreur inconnue');
+      const errorObj =
+        err instanceof Error ? err : new Error("Erreur inconnue");
       setError(errorObj);
-      console.error("Erreur lors du chargement de l'historique des statuts:", errorObj);
+      console.error(
+        "Erreur lors du chargement de l'historique des statuts:",
+        errorObj,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -161,7 +184,7 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
 
     // Créer un Map des statuts en temps réel par timestamp pour déduplication
     const realtimeMap = new Map();
-    realtimeStatusHistory.forEach(status => {
+    realtimeStatusHistory.forEach((status) => {
       realtimeMap.set(status.timestamp.getTime(), status);
     });
 
@@ -169,9 +192,9 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
     const merged = [...statusHistory];
 
     // Ajouter les entrées en temps réel qui ne sont pas dans l'historique de l'API
-    realtimeStatusHistory.forEach(status => {
+    realtimeStatusHistory.forEach((status) => {
       const exists = statusHistory.some(
-        s => new Date(s.timestamp).getTime() === status.timestamp.getTime()
+        (s) => new Date(s.timestamp).getTime() === status.timestamp.getTime(),
       );
 
       if (!exists) {
@@ -211,8 +234,10 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
         return dateA - dateB; // Ordre croissant pour le calcul
       });
 
-      const startIndex = sortedHistory.findIndex(s => s.status === startStatus);
-      const endIndex = sortedHistory.findIndex(s => s.status === endStatus);
+      const startIndex = sortedHistory.findIndex(
+        (s) => s.status === startStatus,
+      );
+      const endIndex = sortedHistory.findIndex((s) => s.status === endStatus);
 
       if (startIndex === -1 || endIndex === -1) return null;
 
@@ -221,7 +246,7 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
 
       return endTime - startTime; // Durée en millisecondes
     },
-    [mergedStatusHistory]
+    [mergedStatusHistory],
   );
 
   return {
@@ -253,7 +278,11 @@ export function useDeliveryETA(deliveryId?: string) {
     setIsCalculating(true);
     try {
       const etaData = await api.delivery.calculateETA.query({ id: deliveryId });
-      setEta(etaData.estimatedDeliveryTime ? new Date(etaData.estimatedDeliveryTime) : null);
+      setEta(
+        etaData.estimatedDeliveryTime
+          ? new Date(etaData.estimatedDeliveryTime)
+          : null,
+      );
     } catch (error) {
       console.error("Erreur lors du calcul de l'ETA:", error);
     } finally {
@@ -272,11 +301,12 @@ export function useDeliveryETA(deliveryId?: string) {
   };
 }
 
-
 // Hook pour obtenir les détails d'une livraison
 export function useDeliveryDetails(deliveryId: string) {
-  const { data: delivery, isLoading } = api.delivery.getDetails.useQuery({ deliveryId });
-  
+  const { data: delivery, isLoading } = api.delivery.getDetails.useQuery({
+    deliveryId,
+  });
+
   return {
     delivery,
     isLoading,

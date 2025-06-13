@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Package, Truck, Star, Leaf } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Package, Truck, Star, Leaf } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type StatItemProps = {
   title: string;
@@ -43,13 +43,17 @@ const StatItem = ({ title, value, icon, trend, isLoading }: StatItemProps) => {
           <div className="flex items-center space-x-4">
             <div className="bg-primary/10 p-3 rounded-full">{icon}</div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {title}
+              </p>
               <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
             </div>
           </div>
           {trend && (
-            <p className={`text-xs ${trend.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {trend.value >= 0 ? '+' : ''}
+            <p
+              className={`text-xs ${trend.value >= 0 ? "text-green-600" : "text-red-600"}`}
+            >
+              {trend.value >= 0 ? "+" : ""}
               {trend.value}% {trend.label}
             </p>
           )}
@@ -71,34 +75,34 @@ type StatsSummaryProps = {
 };
 
 export function StatsSummary({ stats, isLoading = false }: StatsSummaryProps) {
-  const t = useTranslations('dashboard.client');
+  const t = useTranslations("dashboard.client");
 
   return (
     <Card className="col-span-4">
       <CardHeader>
-        <CardTitle>{t('statsTitle')}</CardTitle>
+        <CardTitle>{t("statsTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         <StatItem
-          title={t('announcementsCount')}
+          title={t("announcementsCount")}
           value={stats?.announcementsCount || 0}
           icon={<Package className="h-4 w-4 text-primary" />}
           isLoading={isLoading}
         />
         <StatItem
-          title={t('deliveriesCount')}
+          title={t("deliveriesCount")}
           value={stats?.deliveriesCount || 0}
           icon={<Truck className="h-4 w-4 text-primary" />}
           isLoading={isLoading}
         />
         <StatItem
-          title={t('averageRating')}
+          title={t("averageRating")}
           value={(stats?.averageRating || 0).toFixed(1)}
           icon={<Star className="h-4 w-4 text-primary" />}
           isLoading={isLoading}
         />
         <StatItem
-          title={t('estimatedSavings')}
+          title={t("estimatedSavings")}
           value={`${stats?.estimatedSavings || 0}€`}
           icon={<Leaf className="h-4 w-4 text-primary" />}
           isLoading={isLoading}

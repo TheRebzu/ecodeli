@@ -1,5 +1,5 @@
 // register-type-selector
-import React from 'react';
+import React from "react";
 
 export default function registertypeselector() {
   return (

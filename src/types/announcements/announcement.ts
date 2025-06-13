@@ -1,30 +1,30 @@
-import { User } from '@prisma/client';
+import { User } from "@prisma/client";
 
 // Énumérations pour les annonces
 export enum AnnouncementStatus {
-  DRAFT = 'DRAFT',
-  PENDING = 'PENDING',
-  PUBLISHED = 'PUBLISHED',
-  ASSIGNED = 'ASSIGNED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
+  DRAFT = "DRAFT",
+  PENDING = "PENDING",
+  PUBLISHED = "PUBLISHED",
+  ASSIGNED = "ASSIGNED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum AnnouncementType {
-  PACKAGE = 'PACKAGE',
-  GROCERIES = 'GROCERIES',
-  DOCUMENTS = 'DOCUMENTS',
-  MEAL = 'MEAL',
-  FURNITURE = 'FURNITURE',
-  OTHER = 'OTHER',
+  PACKAGE = "PACKAGE",
+  GROCERIES = "GROCERIES",
+  DOCUMENTS = "DOCUMENTS",
+  MEAL = "MEAL",
+  FURNITURE = "FURNITURE",
+  OTHER = "OTHER",
 }
 
 export enum AnnouncementPriority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  URGENT = 'URGENT',
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  URGENT = "URGENT",
 }
 
 // Interface pour une annonce complète
@@ -200,7 +200,7 @@ export interface AnnouncementFilters {
   limit?: number;
   offset?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   // Nouveaux filtres
   maxDistance?: number;
   nearbyAddress?: string;

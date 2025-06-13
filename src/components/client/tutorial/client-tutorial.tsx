@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useOnboarding } from '@/components/shared/onboarding/onboarding-context';
-import { TutorialStep } from '@/components/shared/onboarding/tutorial-step';
-import { TutorialProgress } from '@/components/shared/onboarding/tutorial-progress';
-import { TutorialNavigation } from '@/components/shared/onboarding/tutorial-navigation';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { useOnboarding } from "@/components/shared/onboarding/onboarding-context";
+import { TutorialStep } from "@/components/shared/onboarding/tutorial-step";
+import { TutorialProgress } from "@/components/shared/onboarding/tutorial-progress";
+import { TutorialNavigation } from "@/components/shared/onboarding/tutorial-navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   CheckCircle,
   AlertTriangle,
@@ -18,81 +24,83 @@ import {
   Truck,
   Leaf,
   Shield,
-} from 'lucide-react';
+} from "lucide-react";
 
 // Labels pour les boutons de navigation du tutoriel
 const navigationLabels = {
-  skip: 'Passer le tutoriel',
-  previous: 'Précédent',
-  next: 'Suivant',
-  finish: 'Terminer Mission 1',
+  skip: "Passer le tutoriel",
+  previous: "Précédent",
+  next: "Suivant",
+  finish: "Terminer Mission 1",
 };
 
 // Définition complète des étapes du tutoriel client Mission 1
 const CLIENT_TUTORIAL_STEPS = [
   {
-    id: 'welcome',
-    title: '🌱 Bienvenue chez EcoDeli - Mission 1',
+    id: "welcome",
+    title: "🌱 Bienvenue chez EcoDeli - Mission 1",
     description:
-      'Commençons votre aventure écologique ! Ce tutoriel obligatoire vous guide à travers les fonctionnalités essentielles de notre plateforme de livraison durable.',
-    image: '/images/onboarding/client/welcome.png',
+      "Commençons votre aventure écologique ! Ce tutoriel obligatoire vous guide à travers les fonctionnalités essentielles de notre plateforme de livraison durable.",
+    image: "/images/onboarding/client/welcome.png",
     isMission1: true,
     isRequired: true,
     content: {
       intro:
-        'EcoDeli révolutionne la livraison urbaine en privilégiant les moyens de transport écologiques et les pratiques durables.',
+        "EcoDeli révolutionne la livraison urbaine en privilégiant les moyens de transport écologiques et les pratiques durables.",
       objectives: [
-        'Découvrir le concept de livraison écologique',
-        'Apprendre à utiliser la plateforme efficacement',
-        'Comprendre notre écosystème de services',
-        'Maîtriser les bonnes pratiques environnementales',
+        "Découvrir le concept de livraison écologique",
+        "Apprendre à utiliser la plateforme efficacement",
+        "Comprendre notre écosystème de services",
+        "Maîtriser les bonnes pratiques environnementales",
       ],
     },
   },
   {
-    id: 'ecodeli-concept',
-    title: '🌍 Le concept EcoDeli',
+    id: "ecodeli-concept",
+    title: "🌍 Le concept EcoDeli",
     description:
-      'EcoDeli révolutionne la livraison en privilégiant les moyens de transport écologiques : vélos, trottinettes électriques, marche à pied, et transports en commun.',
-    image: '/images/onboarding/client/concept.png',
+      "EcoDeli révolutionne la livraison en privilégiant les moyens de transport écologiques : vélos, trottinettes électriques, marche à pied, et transports en commun.",
+    image: "/images/onboarding/client/concept.png",
     content: {
       highlights: [
-        '🚴‍♂️ Livraisons à vélo et moyens durables',
-        '📦 Emballages réutilisables et consignés',
+        "🚴‍♂️ Livraisons à vélo et moyens durables",
+        "📦 Emballages réutilisables et consignés",
         "🌱 Réduction de l'empreinte carbone",
         "💚 Contribution à l'économie circulaire",
       ],
       impact: {
-        co2Reduction: '75% de CO2 en moins',
+        co2Reduction: "75% de CO2 en moins",
         packaging: "90% d'emballages réutilisés",
-        localJobs: '500+ emplois locaux créés',
+        localJobs: "500+ emplois locaux créés",
       },
     },
     isMission1: true,
     isRequired: true,
   },
   {
-    id: 'dashboard-overview',
-    title: '📊 Votre tableau de bord',
+    id: "dashboard-overview",
+    title: "📊 Votre tableau de bord",
     description:
       "Le tableau de bord est votre centre de contrôle. Vous y retrouvez toutes vos informations importantes en un coup d'œil.",
-    image: '/images/onboarding/client/dashboard.png',
+    image: "/images/onboarding/client/dashboard.png",
     content: {
       features: [
         {
-          title: 'Statistiques personnelles',
-          description: 'Suivez vos livraisons, économies CO2, et points fidélité',
-          icon: '📈',
+          title: "Statistiques personnelles",
+          description:
+            "Suivez vos livraisons, économies CO2, et points fidélité",
+          icon: "📈",
         },
         {
-          title: 'Activité récente',
-          description: 'Historique de vos dernières commandes et livraisons',
-          icon: '📋',
+          title: "Activité récente",
+          description: "Historique de vos dernières commandes et livraisons",
+          icon: "📋",
         },
         {
-          title: 'Actions rapides',
-          description: 'Créer une annonce, réserver un service, accéder au stockage',
-          icon: '⚡',
+          title: "Actions rapides",
+          description:
+            "Créer une annonce, réserver un service, accéder au stockage",
+          icon: "⚡",
         },
       ],
     },
@@ -100,55 +108,55 @@ const CLIENT_TUTORIAL_STEPS = [
     isRequired: true,
   },
   {
-    id: 'create-announcement',
-    title: '📢 Créer votre première annonce',
+    id: "create-announcement",
+    title: "📢 Créer votre première annonce",
     description:
-      'Les annonces sont le cœur du système EcoDeli. Apprenez à créer une demande de livraison efficace.',
-    image: '/images/onboarding/client/announcements.png',
+      "Les annonces sont le cœur du système EcoDeli. Apprenez à créer une demande de livraison efficace.",
+    image: "/images/onboarding/client/announcements.png",
     content: {
       steps: [
-        '1. Définissez les points de collecte et livraison',
-        '2. Choisissez le type de transport souhaité',
-        '3. Indiquez les caractéristiques de votre colis',
-        '4. Fixez votre budget et délais',
-        '5. Publiez et attendez les propositions',
+        "1. Définissez les points de collecte et livraison",
+        "2. Choisissez le type de transport souhaité",
+        "3. Indiquez les caractéristiques de votre colis",
+        "4. Fixez votre budget et délais",
+        "5. Publiez et attendez les propositions",
       ],
       tips: [
-        '💡 Soyez précis dans vos descriptions',
+        "💡 Soyez précis dans vos descriptions",
         "⏰ Planifiez à l'avance pour de meilleurs tarifs",
-        '🏷️ Utilisez des tags pour faciliter la recherche',
+        "🏷️ Utilisez des tags pour faciliter la recherche",
       ],
     },
     isMission1: true,
     isRequired: true,
   },
   {
-    id: 'delivery-tracking',
-    title: '📦 Suivi en temps réel',
+    id: "delivery-tracking",
+    title: "📦 Suivi en temps réel",
     description:
-      'Une fois votre annonce acceptée, suivez votre livraison en temps réel avec notre système de tracking avancé.',
-    image: '/images/onboarding/client/deliveries.png',
+      "Une fois votre annonce acceptée, suivez votre livraison en temps réel avec notre système de tracking avancé.",
+    image: "/images/onboarding/client/deliveries.png",
     content: {
       features: [
         {
-          title: 'Géolocalisation temps réel',
-          description: 'Suivez votre livreur sur la carte',
-          icon: '🗺️',
+          title: "Géolocalisation temps réel",
+          description: "Suivez votre livreur sur la carte",
+          icon: "🗺️",
         },
         {
-          title: 'Notifications automatiques',
-          description: 'Soyez alerté des étapes importantes',
-          icon: '🔔',
+          title: "Notifications automatiques",
+          description: "Soyez alerté des étapes importantes",
+          icon: "🔔",
         },
         {
-          title: 'Code de récupération',
-          description: 'Système sécurisé pour la remise du colis',
-          icon: '🔐',
+          title: "Code de récupération",
+          description: "Système sécurisé pour la remise du colis",
+          icon: "🔐",
         },
         {
-          title: 'Évaluation du service',
-          description: 'Notez votre expérience après livraison',
-          icon: '⭐',
+          title: "Évaluation du service",
+          description: "Notez votre expérience après livraison",
+          icon: "⭐",
         },
       ],
     },
@@ -156,32 +164,40 @@ const CLIENT_TUTORIAL_STEPS = [
     isRequired: true,
   },
   {
-    id: 'services-ecosystem',
+    id: "services-ecosystem",
     title: "🛍️ L'écosystème de services",
     description:
-      'Au-delà de la livraison, découvrez nos services partenaires : réparation, nettoyage écologique, courses responsables...',
-    image: '/images/onboarding/client/services.png',
+      "Au-delà de la livraison, découvrez nos services partenaires : réparation, nettoyage écologique, courses responsables...",
+    image: "/images/onboarding/client/services.png",
     content: {
       categories: [
         {
-          title: '🔧 Services de réparation',
-          description: 'Réparez au lieu de jeter',
-          examples: ['Réparation électronique', 'Couture et retouches', 'Réparation vélo'],
+          title: "🔧 Services de réparation",
+          description: "Réparez au lieu de jeter",
+          examples: [
+            "Réparation électronique",
+            "Couture et retouches",
+            "Réparation vélo",
+          ],
         },
         {
-          title: '🧽 Nettoyage écologique',
+          title: "🧽 Nettoyage écologique",
           description: "Services d'entretien responsables",
-          examples: ['Produits biodégradables', 'Techniques économes en eau', 'Équipes locales'],
+          examples: [
+            "Produits biodégradables",
+            "Techniques économes en eau",
+            "Équipes locales",
+          ],
         },
         {
-          title: '🛒 Courses responsables',
-          description: 'Approvisionnement local et bio',
-          examples: ['Producteurs locaux', 'Produits de saison', 'Zero déchet'],
+          title: "🛒 Courses responsables",
+          description: "Approvisionnement local et bio",
+          examples: ["Producteurs locaux", "Produits de saison", "Zero déchet"],
         },
         {
-          title: '♻️ Services de recyclage',
-          description: 'Gestion des déchets optimisée',
-          examples: ['Tri sélectif', 'Compostage', 'Valorisation'],
+          title: "♻️ Services de recyclage",
+          description: "Gestion des déchets optimisée",
+          examples: ["Tri sélectif", "Compostage", "Valorisation"],
         },
       ],
     },
@@ -189,140 +205,150 @@ const CLIENT_TUTORIAL_STEPS = [
     isRequired: true,
   },
   {
-    id: 'storage-system',
-    title: '📦 Système de stockage intelligent',
+    id: "storage-system",
+    title: "📦 Système de stockage intelligent",
     description:
       "Notre réseau de consignes et d'emballages réutilisables révolutionne la logistique urbaine.",
-    image: '/images/onboarding/client/storage.png',
+    image: "/images/onboarding/client/storage.png",
     content: {
       benefits: [
-        '📍 Réseau de points de collecte dans votre ville',
-        '♻️ Emballages consignés et réutilisables',
-        '⏰ Disponibilité 24h/7j pour plus de flexibilité',
+        "📍 Réseau de points de collecte dans votre ville",
+        "♻️ Emballages consignés et réutilisables",
+        "⏰ Disponibilité 24h/7j pour plus de flexibilité",
         "💰 Économies sur les frais d'emballage",
-        '🌱 Impact environnemental réduit',
+        "🌱 Impact environnemental réduit",
       ],
       howItWorks: [
-        '1. Réservez une boîte de la taille adaptée',
-        '2. Déposez votre colis dans un point relais',
-        '3. Le livreur récupère et livre avec la même boîte',
-        '4. La boîte est nettoyée et remise en circulation',
+        "1. Réservez une boîte de la taille adaptée",
+        "2. Déposez votre colis dans un point relais",
+        "3. Le livreur récupère et livre avec la même boîte",
+        "4. La boîte est nettoyée et remise en circulation",
       ],
       stats: {
-        boxes: '10,000+ boîtes en circulation',
-        reuse: '50x réutilisations moyennes',
-        locations: '200+ points de collecte',
+        boxes: "10,000+ boîtes en circulation",
+        reuse: "50x réutilisations moyennes",
+        locations: "200+ points de collecte",
       },
     },
     isMission1: true,
     isRequired: true,
   },
   {
-    id: 'payment-system',
-    title: '💳 Système de paiement sécurisé',
+    id: "payment-system",
+    title: "💳 Système de paiement sécurisé",
     description:
-      'Découvrez notre système de paiement transparent avec séquestre automatique pour votre sécurité.',
-    image: '/images/onboarding/client/payment.png',
+      "Découvrez notre système de paiement transparent avec séquestre automatique pour votre sécurité.",
+    image: "/images/onboarding/client/payment.png",
     content: {
       features: [
         {
-          title: 'Paiement sécurisé',
+          title: "Paiement sécurisé",
           description: "Vos fonds sont bloqués jusqu'à la livraison confirmée",
-          icon: '🔒',
+          icon: "🔒",
         },
         {
-          title: 'Tarification transparente',
-          description: 'Pas de frais cachés, tout est affiché clairement',
-          icon: '💎',
+          title: "Tarification transparente",
+          description: "Pas de frais cachés, tout est affiché clairement",
+          icon: "💎",
         },
         {
-          title: 'Remboursement garanti',
-          description: 'Protection automatique en cas de problème',
-          icon: '🛡️',
+          title: "Remboursement garanti",
+          description: "Protection automatique en cas de problème",
+          icon: "🛡️",
         },
         {
-          title: 'Points de fidélité',
-          description: 'Gagnez des EcoPoints à chaque livraison',
-          icon: '🌟',
+          title: "Points de fidélité",
+          description: "Gagnez des EcoPoints à chaque livraison",
+          icon: "🌟",
         },
       ],
       security: [
-        'Chiffrement SSL 256 bits',
-        'Conformité PCI DSS',
-        'Audit de sécurité mensuel',
-        'Assurance couvrant 100% des transactions',
+        "Chiffrement SSL 256 bits",
+        "Conformité PCI DSS",
+        "Audit de sécurité mensuel",
+        "Assurance couvrant 100% des transactions",
       ],
     },
     isMission1: true,
     isRequired: true,
   },
   {
-    id: 'environmental-impact',
-    title: '🌱 Votre impact environnemental',
-    description: 'Découvrez comment chacune de vos livraisons contribue à un monde plus durable.',
-    image: '/images/onboarding/client/environment.png',
+    id: "environmental-impact",
+    title: "🌱 Votre impact environnemental",
+    description:
+      "Découvrez comment chacune de vos livraisons contribue à un monde plus durable.",
+    image: "/images/onboarding/client/environment.png",
     content: {
       calculator: {
         title: "Calculateur d'impact",
-        description: 'Chaque livraison EcoDeli vs livraison traditionnelle',
+        description: "Chaque livraison EcoDeli vs livraison traditionnelle",
       },
       metrics: [
         {
-          title: 'CO2 économisé',
-          traditional: '2.5 kg CO2',
-          ecodeli: '0.5 kg CO2',
-          saving: '80% de réduction',
+          title: "CO2 économisé",
+          traditional: "2.5 kg CO2",
+          ecodeli: "0.5 kg CO2",
+          saving: "80% de réduction",
         },
         {
-          title: 'Emballages',
-          traditional: '3 emballages jetables',
-          ecodeli: '1 emballage réutilisable',
-          saving: '90% de déchets en moins',
+          title: "Emballages",
+          traditional: "3 emballages jetables",
+          ecodeli: "1 emballage réutilisable",
+          saving: "90% de déchets en moins",
         },
         {
-          title: 'Emploi local',
-          traditional: 'Automatisation',
-          ecodeli: 'Emploi local créé',
-          saving: '100% humain',
+          title: "Emploi local",
+          traditional: "Automatisation",
+          ecodeli: "Emploi local créé",
+          saving: "100% humain",
         },
       ],
       gamification: {
-        title: 'Programme EcoWarrior',
-        levels: ['Débutant Vert', 'Eco-Citoyen', 'Champion Durable', 'EcoWarrior'],
-        rewards: ['Réductions exclusives', 'Accès prioritaire', 'Cadeaux durables'],
+        title: "Programme EcoWarrior",
+        levels: [
+          "Débutant Vert",
+          "Eco-Citoyen",
+          "Champion Durable",
+          "EcoWarrior",
+        ],
+        rewards: [
+          "Réductions exclusives",
+          "Accès prioritaire",
+          "Cadeaux durables",
+        ],
       },
     },
     isMission1: true,
     isRequired: true,
   },
   {
-    id: 'mission1-complete',
-    title: '🎉 Mission 1 accomplie !',
+    id: "mission1-complete",
+    title: "🎉 Mission 1 accomplie !",
     description:
       "Félicitations ! Vous maîtrisez maintenant les bases d'EcoDeli. Vous êtes prêt à commencer votre aventure écologique.",
-    image: '/images/onboarding/client/completion.png',
+    image: "/images/onboarding/client/completion.png",
     content: {
       achievements: [
-        '✅ Concept EcoDeli maîtrisé',
-        '✅ Navigation dans la plateforme',
+        "✅ Concept EcoDeli maîtrisé",
+        "✅ Navigation dans la plateforme",
         "✅ Création d'annonces",
-        '✅ Système de tracking',
-        '✅ Écosystème de services',
-        '✅ Stockage intelligent',
-        '✅ Paiements sécurisés',
-        '✅ Impact environnemental',
+        "✅ Système de tracking",
+        "✅ Écosystème de services",
+        "✅ Stockage intelligent",
+        "✅ Paiements sécurisés",
+        "✅ Impact environnemental",
       ],
       nextSteps: [
-        '🚀 Créez votre première annonce',
-        '🔍 Explorez les services disponibles',
-        '📦 Testez le système de stockage',
-        '🌟 Gagnez vos premiers EcoPoints',
+        "🚀 Créez votre première annonce",
+        "🔍 Explorez les services disponibles",
+        "📦 Testez le système de stockage",
+        "🌟 Gagnez vos premiers EcoPoints",
       ],
       unlocked: [
-        'Accès complet à la plateforme',
-        'Programme de fidélité EcoWarrior',
-        'Support client prioritaire',
-        'Notifications personnalisées',
+        "Accès complet à la plateforme",
+        "Programme de fidélité EcoWarrior",
+        "Support client prioritaire",
+        "Notifications personnalisées",
       ],
     },
     isMission1: true,
@@ -343,7 +369,11 @@ type ClientTutorialProps = {
 /**
  * Tutoriel client étendu avec Mission 1 complète
  */
-export function ClientTutorial({ options, isMission1 = false, mission1Hook }: ClientTutorialProps) {
+export function ClientTutorial({
+  options,
+  isMission1 = false,
+  mission1Hook,
+}: ClientTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
 
@@ -370,7 +400,7 @@ export function ClientTutorial({ options, isMission1 = false, mission1Hook }: Cl
           await options.onComplete();
         }
       } catch (error) {
-        console.error('Erreur lors de la completion:', error);
+        console.error("Erreur lors de la completion:", error);
       } finally {
         setIsCompleting(false);
       }
@@ -411,8 +441,12 @@ export function ClientTutorial({ options, isMission1 = false, mission1Hook }: Cl
       <div className="space-y-6">
         {/* En-tête de l'étape */}
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{step.title}</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300">{step.description}</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {step.title}
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300">
+            {step.description}
+          </p>
 
           {step.isMission1 && (
             <Badge variant="destructive" className="mt-2">
@@ -423,25 +457,37 @@ export function ClientTutorial({ options, isMission1 = false, mission1Hook }: Cl
 
         {/* Contenu spécifique à chaque étape */}
         <div className="max-h-96 overflow-y-auto">
-          {step.id === 'welcome' && <WelcomeStepContent step={step} />}
+          {step.id === "welcome" && <WelcomeStepContent step={step} />}
 
-          {step.id === 'ecodeli-concept' && <ConceptStepContent step={step} />}
+          {step.id === "ecodeli-concept" && <ConceptStepContent step={step} />}
 
-          {step.id === 'dashboard-overview' && <DashboardStepContent step={step} />}
+          {step.id === "dashboard-overview" && (
+            <DashboardStepContent step={step} />
+          )}
 
-          {step.id === 'create-announcement' && <AnnouncementStepContent step={step} />}
+          {step.id === "create-announcement" && (
+            <AnnouncementStepContent step={step} />
+          )}
 
-          {step.id === 'delivery-tracking' && <TrackingStepContent step={step} />}
+          {step.id === "delivery-tracking" && (
+            <TrackingStepContent step={step} />
+          )}
 
-          {step.id === 'services-ecosystem' && <ServicesStepContent step={step} />}
+          {step.id === "services-ecosystem" && (
+            <ServicesStepContent step={step} />
+          )}
 
-          {step.id === 'storage-system' && <StorageStepContent step={step} />}
+          {step.id === "storage-system" && <StorageStepContent step={step} />}
 
-          {step.id === 'payment-system' && <PaymentStepContent step={step} />}
+          {step.id === "payment-system" && <PaymentStepContent step={step} />}
 
-          {step.id === 'environmental-impact' && <EnvironmentStepContent step={step} />}
+          {step.id === "environmental-impact" && (
+            <EnvironmentStepContent step={step} />
+          )}
 
-          {step.id === 'mission1-complete' && <CompletionStepContent step={step} />}
+          {step.id === "mission1-complete" && (
+            <CompletionStepContent step={step} />
+          )}
         </div>
       </div>
     );
@@ -450,7 +496,10 @@ export function ClientTutorial({ options, isMission1 = false, mission1Hook }: Cl
   return (
     <div className="w-full max-w-4xl mx-auto p-6 space-y-6">
       {/* Barre de progression */}
-      <TutorialProgress currentStep={currentStepIndex} totalSteps={totalSteps} />
+      <TutorialProgress
+        currentStep={currentStepIndex}
+        totalSteps={totalSteps}
+      />
 
       {/* Contenu de l'étape */}
       {renderStepContent()}
@@ -477,7 +526,9 @@ function WelcomeStepContent({ step }: { step: any }) {
     <div className="space-y-4">
       <div className="bg-green-50 p-6 rounded-lg border border-green-200">
         <p className="text-green-800 mb-4">{step.content.intro}</p>
-        <h4 className="font-semibold text-green-900 mb-2">Objectifs de Mission 1 :</h4>
+        <h4 className="font-semibold text-green-900 mb-2">
+          Objectifs de Mission 1 :
+        </h4>
         <ul className="space-y-1">
           {step.content.objectives.map((objective: string, index: number) => (
             <li key={index} className="flex items-center gap-2 text-green-700">
@@ -496,7 +547,10 @@ function ConceptStepContent({ step }: { step: any }) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {step.content.highlights.map((highlight: string, index: number) => (
-          <div key={index} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <div
+            key={index}
+            className="bg-blue-50 p-4 rounded-lg border border-blue-200"
+          >
             <p className="text-blue-800">{highlight}</p>
           </div>
         ))}
@@ -512,11 +566,17 @@ function ConceptStepContent({ step }: { step: any }) {
             <div className="text-sm text-green-700">de CO2 en moins</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-green-600">{step.content.impact.packaging}</div>
-            <div className="text-sm text-green-700">d'emballages réutilisés</div>
+            <div className="text-2xl font-bold text-green-600">
+              {step.content.impact.packaging}
+            </div>
+            <div className="text-sm text-green-700">
+              d'emballages réutilisés
+            </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-green-600">{step.content.impact.localJobs}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {step.content.impact.localJobs}
+            </div>
             <div className="text-sm text-green-700">emplois locaux créés</div>
           </div>
         </div>
@@ -547,7 +607,9 @@ function AnnouncementStepContent({ step }: { step: any }) {
   return (
     <div className="space-y-6">
       <div className="bg-blue-50 p-6 rounded-lg">
-        <h4 className="font-semibold text-blue-900 mb-4">Étapes de création :</h4>
+        <h4 className="font-semibold text-blue-900 mb-4">
+          Étapes de création :
+        </h4>
         <ol className="space-y-2">
           {step.content.steps.map((stepItem: string, index: number) => (
             <li key={index} className="text-blue-800">
@@ -558,7 +620,9 @@ function AnnouncementStepContent({ step }: { step: any }) {
       </div>
 
       <div className="bg-yellow-50 p-6 rounded-lg">
-        <h4 className="font-semibold text-yellow-900 mb-4">Conseils d'expert :</h4>
+        <h4 className="font-semibold text-yellow-900 mb-4">
+          Conseils d'expert :
+        </h4>
         <ul className="space-y-2">
           {step.content.tips.map((tip: string, index: number) => (
             <li key={index} className="text-yellow-800">
@@ -632,7 +696,9 @@ function StorageStepContent({ step }: { step: any }) {
       </div>
 
       <div className="bg-orange-50 p-6 rounded-lg">
-        <h4 className="font-semibold text-orange-900 mb-4">Comment ça marche :</h4>
+        <h4 className="font-semibold text-orange-900 mb-4">
+          Comment ça marche :
+        </h4>
         <ol className="space-y-2">
           {step.content.howItWorks.map((stepItem: string, index: number) => (
             <li key={index} className="text-orange-800">
@@ -644,15 +710,21 @@ function StorageStepContent({ step }: { step: any }) {
 
       <div className="grid grid-cols-3 gap-4 text-center">
         <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="text-xl font-bold text-gray-700">{step.content.stats.boxes}</div>
+          <div className="text-xl font-bold text-gray-700">
+            {step.content.stats.boxes}
+          </div>
           <div className="text-sm text-gray-600">en circulation</div>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="text-xl font-bold text-gray-700">{step.content.stats.reuse}</div>
+          <div className="text-xl font-bold text-gray-700">
+            {step.content.stats.reuse}
+          </div>
           <div className="text-sm text-gray-600">réutilisations</div>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="text-xl font-bold text-gray-700">{step.content.stats.locations}</div>
+          <div className="text-xl font-bold text-gray-700">
+            {step.content.stats.locations}
+          </div>
           <div className="text-sm text-gray-600">points de collecte</div>
         </div>
       </div>
@@ -680,7 +752,9 @@ function PaymentStepContent({ step }: { step: any }) {
       </div>
 
       <div className="bg-gray-50 p-6 rounded-lg">
-        <h4 className="font-semibold text-gray-900 mb-4">Sécurité garantie :</h4>
+        <h4 className="font-semibold text-gray-900 mb-4">
+          Sécurité garantie :
+        </h4>
         <ul className="grid grid-cols-2 gap-2">
           {step.content.security.map((item: string, index: number) => (
             <li key={index} className="flex items-center gap-2 text-gray-700">
@@ -698,15 +772,23 @@ function EnvironmentStepContent({ step }: { step: any }) {
   return (
     <div className="space-y-6">
       <div className="bg-green-50 p-6 rounded-lg">
-        <h4 className="font-semibold text-green-900 mb-4">{step.content.calculator.title}</h4>
-        <p className="text-green-700 mb-4">{step.content.calculator.description}</p>
+        <h4 className="font-semibold text-green-900 mb-4">
+          {step.content.calculator.title}
+        </h4>
+        <p className="text-green-700 mb-4">
+          {step.content.calculator.description}
+        </p>
 
         <div className="space-y-4">
           {step.content.metrics.map((metric: any, index: number) => (
             <div key={index} className="bg-white p-4 rounded border">
-              <div className="font-medium text-gray-900 mb-2">{metric.title}</div>
+              <div className="font-medium text-gray-900 mb-2">
+                {metric.title}
+              </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="text-red-600">Traditionnel: {metric.traditional}</div>
+                <div className="text-red-600">
+                  Traditionnel: {metric.traditional}
+                </div>
                 <div className="text-green-600">EcoDeli: {metric.ecodeli}</div>
                 <div className="font-medium text-blue-600">{metric.saving}</div>
               </div>
@@ -716,28 +798,40 @@ function EnvironmentStepContent({ step }: { step: any }) {
       </div>
 
       <div className="bg-blue-50 p-6 rounded-lg">
-        <h4 className="font-semibold text-blue-900 mb-4">{step.content.gamification.title}</h4>
+        <h4 className="font-semibold text-blue-900 mb-4">
+          {step.content.gamification.title}
+        </h4>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <h5 className="font-medium mb-2">Niveaux :</h5>
             <ul className="space-y-1">
-              {step.content.gamification.levels.map((level: string, index: number) => (
-                <li key={index} className="flex items-center gap-2 text-blue-700">
-                  <Star className="h-4 w-4" />
-                  {level}
-                </li>
-              ))}
+              {step.content.gamification.levels.map(
+                (level: string, index: number) => (
+                  <li
+                    key={index}
+                    className="flex items-center gap-2 text-blue-700"
+                  >
+                    <Star className="h-4 w-4" />
+                    {level}
+                  </li>
+                ),
+              )}
             </ul>
           </div>
           <div>
             <h5 className="font-medium mb-2">Récompenses :</h5>
             <ul className="space-y-1">
-              {step.content.gamification.rewards.map((reward: string, index: number) => (
-                <li key={index} className="flex items-center gap-2 text-blue-700">
-                  <CheckCircle className="h-4 w-4" />
-                  {reward}
-                </li>
-              ))}
+              {step.content.gamification.rewards.map(
+                (reward: string, index: number) => (
+                  <li
+                    key={index}
+                    className="flex items-center gap-2 text-blue-700"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    {reward}
+                  </li>
+                ),
+              )}
             </ul>
           </div>
         </div>
@@ -752,18 +846,24 @@ function CompletionStepContent({ step }: { step: any }) {
       <div className="text-6xl mb-4">🎉</div>
 
       <div className="bg-green-50 p-6 rounded-lg">
-        <h4 className="font-semibold text-green-900 mb-4">Compétences acquises :</h4>
+        <h4 className="font-semibold text-green-900 mb-4">
+          Compétences acquises :
+        </h4>
         <div className="grid grid-cols-2 gap-2">
-          {step.content.achievements.map((achievement: string, index: number) => (
-            <div key={index} className="text-green-700 text-sm">
-              {achievement}
-            </div>
-          ))}
+          {step.content.achievements.map(
+            (achievement: string, index: number) => (
+              <div key={index} className="text-green-700 text-sm">
+                {achievement}
+              </div>
+            ),
+          )}
         </div>
       </div>
 
       <div className="bg-blue-50 p-6 rounded-lg">
-        <h4 className="font-semibold text-blue-900 mb-4">Prochaines étapes :</h4>
+        <h4 className="font-semibold text-blue-900 mb-4">
+          Prochaines étapes :
+        </h4>
         <div className="grid grid-cols-2 gap-2">
           {step.content.nextSteps.map((nextStep: string, index: number) => (
             <div key={index} className="text-blue-700 text-sm">
@@ -774,7 +874,9 @@ function CompletionStepContent({ step }: { step: any }) {
       </div>
 
       <div className="bg-yellow-50 p-6 rounded-lg">
-        <h4 className="font-semibold text-yellow-900 mb-4">Fonctionnalités débloquées :</h4>
+        <h4 className="font-semibold text-yellow-900 mb-4">
+          Fonctionnalités débloquées :
+        </h4>
         <div className="grid grid-cols-2 gap-2">
           {step.content.unlocked.map((unlocked: string, index: number) => (
             <div key={index} className="text-yellow-700 text-sm">

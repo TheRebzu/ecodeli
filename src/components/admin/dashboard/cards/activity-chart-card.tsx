@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { AreaChart, BarChart, LineChart } from '@/components/ui/charts';
-import { Activity, TrendingUp, TrendingDown } from 'lucide-react';
-import { formatCurrency } from '@/utils/document-utils';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AreaChart, BarChart, LineChart } from "@/components/ui/charts";
+import { Activity, TrendingUp, TrendingDown } from "lucide-react";
+import { formatCurrency } from "@/utils/document-utils";
 
 interface ActivityData {
   period: string;
@@ -17,7 +23,7 @@ interface ActivityChartCardProps {
   description?: string;
   data: ActivityData[];
   comparisonData?: ActivityData[];
-  type?: 'line' | 'area' | 'bar';
+  type?: "line" | "area" | "bar";
   categories: string[];
   colors?: string[];
   valueFormatter?: (value: number) => string;
@@ -33,15 +39,15 @@ export function ActivityChartCard({
   description,
   data,
   comparisonData,
-  type = 'line',
+  type = "line",
   categories,
-  colors = ['#3b82f6', '#22c55e'],
-  valueFormatter = value => value.toString(),
+  colors = ["#3b82f6", "#22c55e"],
+  valueFormatter = (value) => value.toString(),
   showComparison = false,
   showTrend = true,
   totalValue,
   percentChange,
-  className = '',
+  className = "",
 }: ActivityChartCardProps) {
   // Calcul automatique du pourcentage de changement si pas fourni
   const calculatedPercentChange =
@@ -55,13 +61,14 @@ export function ActivityChartCard({
     })();
 
   // Calcul automatique de la valeur totale si pas fournie
-  const calculatedTotalValue = totalValue ?? data.reduce((sum, item) => sum + item.value, 0);
+  const calculatedTotalValue =
+    totalValue ?? data.reduce((sum, item) => sum + item.value, 0);
 
   const renderChart = () => {
     const chartProps = {
       data,
       categories,
-      index: 'period',
+      index: "period",
       colors,
       valueFormatter,
       showLegend: showComparison,
@@ -70,17 +77,26 @@ export function ActivityChartCard({
     };
 
     switch (type) {
-      case 'area':
+      case "area":
         return (
-          <AreaChart {...chartProps} comparisonData={showComparison ? comparisonData : undefined} />
+          <AreaChart
+            {...chartProps}
+            comparisonData={showComparison ? comparisonData : undefined}
+          />
         );
-      case 'bar':
+      case "bar":
         return (
-          <BarChart {...chartProps} comparisonData={showComparison ? comparisonData : undefined} />
+          <BarChart
+            {...chartProps}
+            comparisonData={showComparison ? comparisonData : undefined}
+          />
         );
       default:
         return (
-          <LineChart {...chartProps} comparisonData={showComparison ? comparisonData : undefined} />
+          <LineChart
+            {...chartProps}
+            comparisonData={showComparison ? comparisonData : undefined}
+          />
         );
     }
   };
@@ -94,13 +110,15 @@ export function ActivityChartCard({
             <CardTitle className="text-base">{title}</CardTitle>
           </div>
           {showTrend && (
-            <Badge variant={calculatedPercentChange >= 0 ? 'default' : 'destructive'}>
+            <Badge
+              variant={calculatedPercentChange >= 0 ? "default" : "destructive"}
+            >
               {calculatedPercentChange >= 0 ? (
                 <TrendingUp className="h-3 w-3 mr-1" />
               ) : (
                 <TrendingDown className="h-3 w-3 mr-1" />
               )}
-              {calculatedPercentChange >= 0 ? '+' : ''}
+              {calculatedPercentChange >= 0 ? "+" : ""}
               {calculatedPercentChange.toFixed(1)}%
             </Badge>
           )}
@@ -112,9 +130,13 @@ export function ActivityChartCard({
           {/* Valeur totale */}
           {totalValue !== undefined && (
             <div>
-              <p className="text-2xl font-bold">{valueFormatter(calculatedTotalValue)}</p>
+              <p className="text-2xl font-bold">
+                {valueFormatter(calculatedTotalValue)}
+              </p>
               <p className="text-xs text-muted-foreground">
-                {showComparison ? 'Période actuelle vs précédente' : 'Total sur la période'}
+                {showComparison
+                  ? "Période actuelle vs précédente"
+                  : "Total sur la période"}
               </p>
             </div>
           )}
@@ -126,7 +148,9 @@ export function ActivityChartCard({
           {data && data.length > 0 && (
             <div className="flex justify-between items-center text-sm text-muted-foreground border-t pt-2">
               <span>Début: {valueFormatter(data[0]?.value || 0)}</span>
-              <span>Fin: {valueFormatter(data[data.length - 1]?.value || 0)}</span>
+              <span>
+                Fin: {valueFormatter(data[data.length - 1]?.value || 0)}
+              </span>
             </div>
           )}
 
@@ -136,13 +160,18 @@ export function ActivityChartCard({
               <span className="text-xs text-muted-foreground">Tendance:</span>
               <div className="flex items-end gap-px h-6 flex-1 max-w-[100px]">
                 {data.slice(-5).map((item, index) => {
-                  const maxValue = Math.max(...data.slice(-5).map(d => d.value));
-                  const height = maxValue > 0 ? (item.value / maxValue) * 100 : 0;
+                  const maxValue = Math.max(
+                    ...data.slice(-5).map((d) => d.value),
+                  );
+                  const height =
+                    maxValue > 0 ? (item.value / maxValue) * 100 : 0;
                   return (
                     <div
                       key={index}
                       className={`flex-1 rounded-sm ${
-                        calculatedPercentChange >= 0 ? 'bg-green-400' : 'bg-red-400'
+                        calculatedPercentChange >= 0
+                          ? "bg-green-400"
+                          : "bg-red-400"
                       }`}
                       style={{ height: `${Math.max(height, 4)}%` }}
                     />

@@ -1,13 +1,13 @@
-﻿'use client';
+﻿"use client";
 
-import { useTranslations } from 'next-intl';
-import { PageHeader } from '@/components/ui/page-header';
-import { Card } from '@/components/ui/card';
-import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card } from "@/components/ui/card";
+import { Suspense } from "react";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const SwaggerUI = dynamic(() => import('@/components/ui/swagger-ui'), {
+const SwaggerUI = dynamic(() => import("@/components/ui/swagger-ui"), {
   ssr: false,
   loading: () => <SwaggerUILoading />,
 });
@@ -28,8 +28,8 @@ export default function APIDocsPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <PageHeader 
-        title="Documentation API" 
+      <PageHeader
+        title="Documentation API"
         description="Documentation interactive de l'API EcoDeli - Explorez et testez tous les endpoints disponibles"
       />
 
@@ -40,13 +40,16 @@ export default function APIDocsPage() {
             <div>
               <h3 className="text-lg font-semibold">API EcoDeli</h3>
               <p className="text-muted-foreground">
-                L'API EcoDeli est une API REST complète qui permet d'interagir avec toutes les fonctionnalités de la plateforme :
+                L'API EcoDeli est une API REST complète qui permet d'interagir
+                avec toutes les fonctionnalités de la plateforme :
               </p>
             </div>
-            
+
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div>
-                <h4 className="font-medium mb-2">Fonctionnalités principales :</h4>
+                <h4 className="font-medium mb-2">
+                  Fonctionnalités principales :
+                </h4>
                 <ul className="space-y-1 text-muted-foreground">
                   <li>• Authentification et gestion des utilisateurs</li>
                   <li>• Gestion des annonces et livraisons</li>
@@ -55,7 +58,7 @@ export default function APIDocsPage() {
                   <li>• Stockage et réservations de boxes</li>
                 </ul>
               </div>
-              
+
               <div>
                 <h4 className="font-medium mb-2">Informations techniques :</h4>
                 <ul className="space-y-1 text-muted-foreground">
@@ -74,15 +77,17 @@ export default function APIDocsPage() {
         <Card className="p-6">
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold">Documentation Interactive</h3>
+              <h3 className="text-lg font-semibold">
+                Documentation Interactive
+              </h3>
               <p className="text-muted-foreground">
-                Explorez et testez l'API directement depuis cette interface. 
+                Explorez et testez l'API directement depuis cette interface.
                 Authentifiez-vous pour accéder aux endpoints protégés.
               </p>
             </div>
-            
+
             <Suspense fallback={<SwaggerUILoading />}>
-              <SwaggerUI 
+              <SwaggerUI
                 url="/api/openapi"
                 docExpansion="list"
                 tryItOutEnabled={true}
@@ -100,36 +105,33 @@ export default function APIDocsPage() {
             <p className="text-sm text-muted-foreground mb-3">
               Gérez vos clés d'API pour l'intégration
             </p>
-            <a 
-              href="/developers/api-keys" 
+            <a
+              href="/developers/api-keys"
               className="text-sm text-primary hover:underline"
             >
               Gérer les clés →
             </a>
           </Card>
-          
+
           <Card className="p-4">
             <h4 className="font-medium mb-2">Exemples de code</h4>
             <p className="text-sm text-muted-foreground mb-3">
               Exemples d'intégration dans différents langages
             </p>
-            <a 
-              href="/developers/examples" 
+            <a
+              href="/developers/examples"
               className="text-sm text-primary hover:underline"
             >
               Voir les exemples →
             </a>
           </Card>
-          
+
           <Card className="p-4">
             <h4 className="font-medium mb-2">Support</h4>
             <p className="text-sm text-muted-foreground mb-3">
               Besoin d'aide avec l'API ?
             </p>
-            <a 
-              href="/contact" 
-              className="text-sm text-primary hover:underline"
-            >
+            <a href="/contact" className="text-sm text-primary hover:underline">
               Nous contacter →
             </a>
           </Card>

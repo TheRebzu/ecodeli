@@ -1,5 +1,5 @@
-import { db } from '@/server/db';
-import { TRPCError } from '@trpc/server';
+import { db } from "@/server/db";
+import { TRPCError } from "@trpc/server";
 import {
   type ClientProfile,
   type DelivererProfile,
@@ -9,8 +9,8 @@ import {
   type UpdateDelivererProfile,
   type UpdateMerchantProfile,
   type UpdateProviderProfile,
-} from '@/schemas/user/profile.schema';
-import { Prisma, UserRole } from '@prisma/client';
+} from "@/schemas/user/profile.schema";
+import { Prisma, UserRole } from "@prisma/client";
 
 class ProfileService {
   /**
@@ -37,8 +37,8 @@ class ProfileService {
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
@@ -87,8 +87,8 @@ class ProfileService {
 
     if (!profileMap[role]) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Rôle utilisateur non valide',
+        code: "BAD_REQUEST",
+        message: "Rôle utilisateur non valide",
       });
     }
 
@@ -96,8 +96,8 @@ class ProfileService {
 
     if (!profile) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Profil spécifique non trouvé',
+        code: "NOT_FOUND",
+        message: "Profil spécifique non trouvé",
       });
     }
 
@@ -109,7 +109,12 @@ class ProfileService {
    */
   async updateUserBaseInfo(
     userId: string,
-    data: { name?: string; email?: string; phoneNumber?: string; image?: string }
+    data: {
+      name?: string;
+      email?: string;
+      phoneNumber?: string;
+      image?: string;
+    },
   ) {
     const { name, email, phoneNumber, image } = data;
 
@@ -121,7 +126,7 @@ class ProfileService {
     if (image) updateData.image = image;
 
     if (Object.keys(updateData).length === 0) {
-      return { success: false, message: 'Aucune donnée à mettre à jour' };
+      return { success: false, message: "Aucune donnée à mettre à jour" };
     }
 
     await db.user.update({
@@ -145,7 +150,12 @@ class ProfileService {
     try {
       // Mettre à jour l'utilisateur de base si nécessaire
       if (name || email || phoneNumber || image) {
-        await this.updateUserBaseInfo(userId, { name, email, phoneNumber, image });
+        await this.updateUserBaseInfo(userId, {
+          name,
+          email,
+          phoneNumber,
+          image,
+        });
       }
 
       // Mettre à jour le profil client
@@ -166,8 +176,8 @@ class ProfileService {
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Client non trouvé',
+            code: "NOT_FOUND",
+            message: "Client non trouvé",
           });
         }
 
@@ -206,10 +216,10 @@ class ProfileService {
 
       return { success: true };
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du profil client:', error);
+      console.error("Erreur lors de la mise à jour du profil client:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour du profil',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du profil",
       });
     }
   }
@@ -223,7 +233,12 @@ class ProfileService {
     try {
       // Mettre à jour l'utilisateur de base si nécessaire
       if (name || email || phoneNumber || image) {
-        await this.updateUserBaseInfo(userId, { name, email, phoneNumber, image });
+        await this.updateUserBaseInfo(userId, {
+          name,
+          email,
+          phoneNumber,
+          image,
+        });
       }
 
       // Mettre à jour le profil livreur
@@ -236,10 +251,10 @@ class ProfileService {
 
       return { success: true };
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du profil livreur:', error);
+      console.error("Erreur lors de la mise à jour du profil livreur:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour du profil',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du profil",
       });
     }
   }
@@ -253,7 +268,12 @@ class ProfileService {
     try {
       // Mettre à jour l'utilisateur de base si nécessaire
       if (name || email || phoneNumber || image) {
-        await this.updateUserBaseInfo(userId, { name, email, phoneNumber, image });
+        await this.updateUserBaseInfo(userId, {
+          name,
+          email,
+          phoneNumber,
+          image,
+        });
       }
 
       // Mettre à jour le profil commerçant
@@ -266,10 +286,13 @@ class ProfileService {
 
       return { success: true };
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du profil commerçant:', error);
+      console.error(
+        "Erreur lors de la mise à jour du profil commerçant:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour du profil',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du profil",
       });
     }
   }
@@ -283,7 +306,12 @@ class ProfileService {
     try {
       // Mettre à jour l'utilisateur de base si nécessaire
       if (name || email || phoneNumber || image) {
-        await this.updateUserBaseInfo(userId, { name, email, phoneNumber, image });
+        await this.updateUserBaseInfo(userId, {
+          name,
+          email,
+          phoneNumber,
+          image,
+        });
       }
 
       // Mettre à jour le profil prestataire
@@ -296,10 +324,13 @@ class ProfileService {
 
       return { success: true };
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du profil prestataire:', error);
+      console.error(
+        "Erreur lors de la mise à jour du profil prestataire:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour du profil',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du profil",
       });
     }
   }
@@ -323,14 +354,14 @@ class ProfileService {
 
       if (!address) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Adresse non trouvée',
+          code: "NOT_FOUND",
+          message: "Adresse non trouvée",
         });
       }
 
       if (address.client.userId !== userId) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'avez pas le droit de supprimer cette adresse",
         });
       }
@@ -343,7 +374,7 @@ class ProfileService {
     } catch (error) {
       console.error("Erreur lors de la suppression de l'adresse:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la suppression de l'adresse",
       });
     }

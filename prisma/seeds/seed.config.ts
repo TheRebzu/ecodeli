@@ -139,53 +139,59 @@ export const defaultSeedConfig = {
 
   geography: {
     mainCities: [
-      'Paris',
-      'Marseille',
-      'Lyon',
-      'Toulouse',
-      'Nice',
-      'Nantes',
-      'Montpellier',
-      'Strasbourg',
-      'Bordeaux',
-      'Lille',
+      "Paris",
+      "Marseille",
+      "Lyon",
+      "Toulouse",
+      "Nice",
+      "Nantes",
+      "Montpellier",
+      "Strasbourg",
+      "Bordeaux",
+      "Lille",
     ],
   },
 
   requiredDocuments: {
     DELIVERER: [
-      'DRIVING_LICENSE',
-      'INSURANCE_CERTIFICATE',
-      'VEHICLE_REGISTRATION',
-      'IDENTITY_CARD',
-      'BANK_RIB',
+      "DRIVING_LICENSE",
+      "INSURANCE_CERTIFICATE",
+      "VEHICLE_REGISTRATION",
+      "IDENTITY_CARD",
+      "BANK_RIB",
     ],
-    MERCHANT: ['KBIS', 'IDENTITY_CARD', 'BANK_RIB', 'TAX_CERTIFICATE', 'INSURANCE_CERTIFICATE'],
+    MERCHANT: [
+      "KBIS",
+      "IDENTITY_CARD",
+      "BANK_RIB",
+      "TAX_CERTIFICATE",
+      "INSURANCE_CERTIFICATE",
+    ],
     PROVIDER: [
-      'IDENTITY_CARD',
-      'PROFESSIONAL_DIPLOMA',
-      'INSURANCE_CERTIFICATE',
-      'BANK_RIB',
-      'CRIMINAL_RECORD',
+      "IDENTITY_CARD",
+      "PROFESSIONAL_DIPLOMA",
+      "INSURANCE_CERTIFICATE",
+      "BANK_RIB",
+      "CRIMINAL_RECORD",
     ],
   },
 
   serviceCategories: [
     {
-      name: 'Réparation électroménager',
+      name: "Réparation électroménager",
       description: "Réparation et maintenance d'appareils électroménagers",
       averagePrice: 6000, // 60€
       duration: 120, // 2h
     },
     {
-      name: 'Jardinage',
+      name: "Jardinage",
       description: "Entretien d'espaces verts et jardins",
       averagePrice: 4000, // 40€
       duration: 180, // 3h
     },
     {
-      name: 'Plomberie',
-      description: 'Interventions de plomberie et sanitaire',
+      name: "Plomberie",
+      description: "Interventions de plomberie et sanitaire",
       averagePrice: 8000, // 80€
       duration: 90, // 1h30
     },

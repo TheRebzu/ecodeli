@@ -1,17 +1,24 @@
-import { db } from '@/server/db';
-import { Decimal } from '@prisma/client/runtime/library';
-import { format, startOfMonth, endOfMonth, addMonths, isSameMonth, parseISO } from 'date-fns';
-import { fr, enUS } from 'date-fns/locale';
-import { Prisma } from '@prisma/client';
+import { db } from "@/server/db";
+import { Decimal } from "@prisma/client/runtime/library";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  addMonths,
+  isSameMonth,
+  parseISO,
+} from "date-fns";
+import { fr, enUS } from "date-fns/locale";
+import { Prisma } from "@prisma/client";
 
 // Import des services nécessaires
-import { PaymentService } from '@/server/services/shared/payment.service';
-import { WalletService } from '@/server/services/shared/wallet.service';
-import { InvoiceService } from '@/server/services/shared/invoice.service';
-import { CommissionService } from '@/server/services/admin/commission.service';
-import { NotificationService } from '@/lib/services/notification.service';
-import { EmailService } from '@/lib/services/email.service';
-import { AuditService } from '@/server/services/admin/audit.service';
+import { PaymentService } from "@/server/services/shared/payment.service";
+import { WalletService } from "@/server/services/shared/wallet.service";
+import { InvoiceService } from "@/server/services/shared/invoice.service";
+import { CommissionService } from "@/server/services/admin/commission.service";
+import { NotificationService } from "@/lib/services/notification.service";
+import { EmailService } from "@/lib/services/email.service";
+import { AuditService } from "@/server/services/admin/audit.service";
 
 interface BillingPeriod {
   startDate: Date;
@@ -45,13 +52,13 @@ export class BillingService {
       const billingPeriodStart = startOfMonth(billingPeriodEnd);
 
       // Formatage du mois pour le titre de la facture
-      const monthYear = format(billingPeriodEnd, 'MMMM yyyy', { locale: fr });
+      const monthYear = format(billingPeriodEnd, "MMMM yyyy", { locale: fr });
 
       // Récupérer tous les prestataires actifs
       const activeProviders = await db.user.findMany({
         where: {
-          role: 'PROVIDER',
-          status: 'ACTIVE',
+          role: "PROVIDER",
+          status: "ACTIVE",
           provider: {
             isVerified: true,
           },
@@ -93,7 +100,7 @@ export class BillingService {
           const periodPayments = await db.payment.findMany({
             where: {
               userId: provider.id,
-              status: 'COMPLETED',
+              status: "COMPLETED",
               serviceId: {
                 not: null,
               },
@@ -122,8 +129,11 @@ export class BillingService {
           let totalAmount = new Decimal(0);
           let totalCommission = new Decimal(0);
 
-          const invoiceItems = periodPayments.map(payment => {
-            const serviceInfo = payment.service || { name: 'Service inconnu', description: '' };
+          const invoiceItems = periodPayments.map((payment) => {
+            const serviceInfo = payment.service || {
+              name: "Service inconnu",
+              description: "",
+            };
             const commission = payment.commission || {
               rate: new Decimal(0.15),
               amount: new Decimal(0),
@@ -137,10 +147,12 @@ export class BillingService {
               quantity: 1,
               unitPrice: parseFloat(payment.amount.toString()),
               taxRate: 20,
-              taxAmount: parseFloat(payment.amount.mul(new Decimal(0.2)).toString()),
+              taxAmount: parseFloat(
+                payment.amount.mul(new Decimal(0.2)).toString(),
+              ),
               totalAmount: parseFloat(payment.amount.toString()),
               serviceId: payment.serviceId,
-              itemType: 'SERVICE',
+              itemType: "SERVICE",
             };
           });
 
@@ -150,48 +162,55 @@ export class BillingService {
             quantity: 1,
             unitPrice: -parseFloat(totalCommission.toString()),
             taxRate: 20,
-            taxAmount: parseFloat(totalCommission.mul(new Decimal(0.2)).toString()),
+            taxAmount: parseFloat(
+              totalCommission.mul(new Decimal(0.2)).toString(),
+            ),
             totalAmount: -parseFloat(totalCommission.toString()),
             serviceId: null, // Pas de service associé pour la commission
-            itemType: 'COMMISSION',
+            itemType: "COMMISSION",
           });
 
           // Montant final après déduction des commissions
           const finalAmount = totalAmount.sub(totalCommission);
 
           // Créer la facture
-          const invoiceNumber = `INV-${format(date, 'yyyyMM')}-${provider.id.substring(0, 4)}`;
+          const invoiceNumber = `INV-${format(date, "yyyyMM")}-${provider.id.substring(0, 4)}`;
 
           // Récupérer la langue préférée de l'utilisateur (par défaut français)
-          const userLocale = provider.locale || 'fr';
+          const userLocale = provider.locale || "fr";
 
           const invoice = await db.invoice.create({
             data: {
               number: invoiceNumber,
               userId: provider.id,
               amount: finalAmount,
-              currency: 'EUR',
-              status: 'DRAFT',
+              currency: "EUR",
+              status: "DRAFT",
               dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Échéance à 30 jours
               issuedDate: new Date(),
               billingPeriodStart,
               billingPeriodEnd,
               language: userLocale,
-              notes: `Facture des services du ${format(billingPeriodStart, 'dd/MM/yyyy')} au ${format(billingPeriodEnd, 'dd/MM/yyyy')}`,
+              notes: `Facture des services du ${format(billingPeriodStart, "dd/MM/yyyy")} au ${format(billingPeriodEnd, "dd/MM/yyyy")}`,
 
               // Informations légales
-              companyName: 'EcoDeli SAS',
-              companyAddress: '123 Avenue de la République, 75011 Paris, France',
-              companyVatNumber: 'FR12345678901',
-              companySiret: '12345678901234',
+              companyName: "EcoDeli SAS",
+              companyAddress:
+                "123 Avenue de la République, 75011 Paris, France",
+              companyVatNumber: "FR12345678901",
+              companySiret: "12345678901234",
 
               // Informations client
               clientName: provider.name,
-              clientAddress: provider.provider?.address || '',
+              clientAddress: provider.provider?.address || "",
 
               // Statistiques
-              totalBeforeTax: parseFloat(finalAmount.div(new Decimal(1.2)).toString()),
-              totalTax: parseFloat(finalAmount.sub(finalAmount.div(new Decimal(1.2))).toString()),
+              totalBeforeTax: parseFloat(
+                finalAmount.div(new Decimal(1.2)).toString(),
+              ),
+              totalTax: parseFloat(
+                finalAmount.sub(finalAmount.div(new Decimal(1.2))).toString(),
+              ),
               totalAfterTax: parseFloat(finalAmount.toString()),
 
               // Relation avec les éléments de facture
@@ -217,11 +236,14 @@ export class BillingService {
             amount: parseFloat(finalAmount.toString()),
           });
         } catch (error: unknown) {
-          console.error(`Erreur lors de la génération de la facture pour ${provider.id}:`, error);
+          console.error(
+            `Erreur lors de la génération de la facture pour ${provider.id}:`,
+            error,
+          );
           results.push({
             userId: provider.id,
             success: false,
-            message: `Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+            message: `Erreur: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
           });
         }
       }
@@ -236,10 +258,13 @@ export class BillingService {
         },
       };
     } catch (error: unknown) {
-      console.error('Erreur lors de la génération des factures mensuelles:', error);
+      console.error(
+        "Erreur lors de la génération des factures mensuelles:",
+        error,
+      );
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue',
+        error: error instanceof Error ? error.message : "Erreur inconnue",
       };
     }
   }
@@ -254,9 +279,9 @@ export class BillingService {
       // Récupérer tous les abonnements actifs payants
       const activeSubscriptions = await db.subscription.findMany({
         where: {
-          status: 'ACTIVE',
+          status: "ACTIVE",
           planType: {
-            not: 'FREE',
+            not: "FREE",
           },
           autoRenew: true,
           endDate: {
@@ -283,10 +308,10 @@ export class BillingService {
           const planData = this.getPlanDetails(subscription.planType);
 
           // Créer la facture pour l'abonnement
-          const invoiceNumber = `SUB-${format(date, 'yyyyMM')}-${subscription.id.substring(0, 4)}`;
+          const invoiceNumber = `SUB-${format(date, "yyyyMM")}-${subscription.id.substring(0, 4)}`;
 
           // Récupérer la langue préférée de l'utilisateur (par défaut français)
-          const userLocale = subscription.user.locale || 'fr';
+          const userLocale = subscription.user.locale || "fr";
 
           const invoice = await db.invoice.create({
             data: {
@@ -294,20 +319,22 @@ export class BillingService {
               userId: subscription.userId,
               subscriptionId: subscription.id,
               amount: new Decimal(planData.price),
-              currency: 'EUR',
-              status: 'DRAFT',
+              currency: "EUR",
+              status: "DRAFT",
               dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Échéance à 7 jours
               issuedDate: new Date(),
               billingPeriodStart: subscription.currentPeriodStart || new Date(),
-              billingPeriodEnd: subscription.currentPeriodEnd || addMonths(new Date(), 1),
+              billingPeriodEnd:
+                subscription.currentPeriodEnd || addMonths(new Date(), 1),
               language: userLocale,
               notes: `Abonnement ${planData.name} - Renouvellement mensuel`,
 
               // Informations légales
-              companyName: 'EcoDeli SAS',
-              companyAddress: '123 Avenue de la République, 75011 Paris, France',
-              companyVatNumber: 'FR12345678901',
-              companySiret: '12345678901234',
+              companyName: "EcoDeli SAS",
+              companyAddress:
+                "123 Avenue de la République, 75011 Paris, France",
+              companyVatNumber: "FR12345678901",
+              companySiret: "12345678901234",
 
               // Informations client
               clientName: subscription.user.name,
@@ -320,14 +347,14 @@ export class BillingService {
               // Élément de facture pour l'abonnement
               items: {
                 create: {
-                  description: `Abonnement ${planData.name} - ${format(date, 'MMMM yyyy', { locale: userLocale === 'fr' ? fr : enUS })}`,
+                  description: `Abonnement ${planData.name} - ${format(date, "MMMM yyyy", { locale: userLocale === "fr" ? fr : enUS })}`,
                   quantity: 1,
                   unitPrice: planData.price,
                   taxRate: 20,
                   taxAmount: planData.price - planData.price / 1.2,
                   totalAmount: planData.price,
                   subscriptionId: subscription.id,
-                  itemType: 'SUBSCRIPTION',
+                  itemType: "SUBSCRIPTION",
                 },
               },
             },
@@ -339,7 +366,7 @@ export class BillingService {
           // Tenter de prélever le paiement automatiquement si une méthode de paiement est enregistrée
           const paymentResult = await this.processSubscriptionPayment(
             subscription.userId,
-            invoice.id
+            invoice.id,
           );
 
           results.push({
@@ -355,13 +382,13 @@ export class BillingService {
         } catch (error: unknown) {
           console.error(
             `Erreur lors de la génération de la facture d'abonnement ${subscription.id}:`,
-            error
+            error,
           );
           results.push({
             userId: subscription.userId,
             subscriptionId: subscription.id,
             success: false,
-            message: `Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+            message: `Erreur: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
           });
         }
       }
@@ -370,13 +397,16 @@ export class BillingService {
         success: true,
         results,
         processedCount: results.length,
-        date: format(date, 'yyyy-MM-dd'),
+        date: format(date, "yyyy-MM-dd"),
       };
     } catch (error: unknown) {
-      console.error("Erreur lors de la génération des factures d'abonnement:", error);
+      console.error(
+        "Erreur lors de la génération des factures d'abonnement:",
+        error,
+      );
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue',
+        error: error instanceof Error ? error.message : "Erreur inconnue",
       };
     }
   }
@@ -398,7 +428,7 @@ export class BillingService {
       });
 
       if (!invoice) {
-        throw new Error('Facture non trouvée');
+        throw new Error("Facture non trouvée");
       }
 
       // Récupérer la méthode de paiement par défaut de l'utilisateur
@@ -412,7 +442,7 @@ export class BillingService {
       if (!defaultPaymentMethod) {
         return {
           success: false,
-          message: 'Aucune méthode de paiement par défaut trouvée',
+          message: "Aucune méthode de paiement par défaut trouvée",
         };
       }
 
@@ -422,12 +452,13 @@ export class BillingService {
         currency: invoice.currency.toLowerCase(),
         userId,
         subscriptionId: invoice.subscriptionId || undefined,
-        paymentMethodId: defaultPaymentMethod.stripePaymentMethodId || undefined,
-        description: `Abonnement ${invoice.subscription?.planType || 'Premium'} - ${format(new Date(), 'MMMM yyyy', { locale: fr })}`,
+        paymentMethodId:
+          defaultPaymentMethod.stripePaymentMethodId || undefined,
+        description: `Abonnement ${invoice.subscription?.planType || "Premium"} - ${format(new Date(), "MMMM yyyy", { locale: fr })}`,
         metadata: {
           invoiceId: invoice.id,
           invoiceNumber: invoice.number,
-          type: 'subscription_renewal',
+          type: "subscription_renewal",
         },
       });
 
@@ -436,7 +467,7 @@ export class BillingService {
         await db.invoice.update({
           where: { id: invoiceId },
           data: {
-            status: 'PAID',
+            status: "PAID",
             paidDate: new Date(),
           },
         });
@@ -457,20 +488,23 @@ export class BillingService {
 
         return {
           success: true,
-          message: 'Paiement traité avec succès',
+          message: "Paiement traité avec succès",
           paymentId: paymentResult.payment.id,
         };
       }
 
       return {
         success: false,
-        message: 'Échec du traitement du paiement',
+        message: "Échec du traitement du paiement",
       };
     } catch (error: unknown) {
-      console.error("Erreur lors du traitement du paiement d'abonnement:", error);
+      console.error(
+        "Erreur lors du traitement du paiement d'abonnement:",
+        error,
+      );
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue',
+        error: error instanceof Error ? error.message : "Erreur inconnue",
       };
     }
   }
@@ -495,49 +529,49 @@ export class BillingService {
 
     const plans: Record<string, PlanDetails> = {
       FREE: {
-        id: 'free',
-        name: 'Free',
-        description: 'Accès aux fonctionnalités de base',
+        id: "free",
+        name: "Free",
+        description: "Accès aux fonctionnalités de base",
         price: 0,
-        stripePriceId: '',
+        stripePriceId: "",
         features: [
-          'Accès limité aux services de livraison',
-          'Assurance limitée',
-          'Support client standard',
+          "Accès limité aux services de livraison",
+          "Assurance limitée",
+          "Support client standard",
         ],
         insuranceAmount: 50,
         discountPercent: 0,
         priority: false,
       },
       STARTER: {
-        id: 'starter',
-        name: 'Starter',
-        description: 'Parfait pour une utilisation régulière',
+        id: "starter",
+        name: "Starter",
+        description: "Parfait pour une utilisation régulière",
         price: 9.9,
-        stripePriceId: 'price_starter_mensuel',
+        stripePriceId: "price_starter_mensuel",
         features: [
-          'Accès complet aux services de livraison',
+          "Accès complet aux services de livraison",
           "Assurance jusqu'à 115€ par envoi",
           "Réduction de 5% sur les frais d'envoi",
-          'Support client prioritaire',
+          "Support client prioritaire",
         ],
         insuranceAmount: 115,
         discountPercent: 5,
         priority: false,
       },
       PREMIUM: {
-        id: 'premium',
-        name: 'Premium',
-        description: 'Pour les utilisateurs fréquents',
+        id: "premium",
+        name: "Premium",
+        description: "Pour les utilisateurs fréquents",
         price: 19.99,
-        stripePriceId: 'price_premium_mensuel',
+        stripePriceId: "price_premium_mensuel",
         features: [
-          'Accès illimité à tous les services',
+          "Accès illimité à tous les services",
           "Assurance jusqu'à 3000€ par envoi",
-          'Réduction de 9% sur tous les frais',
-          'Support client VIP',
-          'Livraisons prioritaires',
-          'Accès aux promotions exclusives',
+          "Réduction de 9% sur tous les frais",
+          "Support client VIP",
+          "Livraisons prioritaires",
+          "Accès aux promotions exclusives",
         ],
         insuranceAmount: 3000,
         discountPercent: 9,
@@ -558,7 +592,7 @@ export class BillingService {
       const day = today.getDate();
 
       // Configuration: jour de facturation mensuelle (par défaut le 1er)
-      const billingDay = parseInt(process.env.MONTHLY_BILLING_DAY || '1', 10);
+      const billingDay = parseInt(process.env.MONTHLY_BILLING_DAY || "1", 10);
 
       // Exécuter seulement le jour configuré
       if (day !== billingDay) {
@@ -569,22 +603,26 @@ export class BillingService {
       }
 
       // 1. Générer les factures d'abonnement
-      const subscriptionResult = await this.generateMonthlySubscriptionInvoices(today);
+      const subscriptionResult =
+        await this.generateMonthlySubscriptionInvoices(today);
 
       // 2. Générer les factures des prestataires
       const providerResult = await this.generateMonthlyProviderInvoices(today);
 
       return {
         success: true,
-        date: format(today, 'yyyy-MM-dd'),
+        date: format(today, "yyyy-MM-dd"),
         subscriptionInvoices: subscriptionResult,
         providerInvoices: providerResult,
       };
     } catch (error: unknown) {
-      console.error("Erreur lors de l'exécution de la facturation mensuelle:", error);
+      console.error(
+        "Erreur lors de l'exécution de la facturation mensuelle:",
+        error,
+      );
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue',
+        error: error instanceof Error ? error.message : "Erreur inconnue",
       };
     }
   }
@@ -598,7 +636,7 @@ export class BillingService {
       // Récupérer toutes les factures en retard
       const overdueInvoices = await db.invoice.findMany({
         where: {
-          status: 'SENT',
+          status: "SENT",
           dueDate: {
             lt: new Date(),
           },
@@ -616,7 +654,7 @@ export class BillingService {
           await db.invoice.update({
             where: { id: invoice.id },
             data: {
-              status: 'OVERDUE',
+              status: "OVERDUE",
             },
           });
 
@@ -627,15 +665,18 @@ export class BillingService {
             invoiceId: invoice.id,
             userId: invoice.userId,
             success: true,
-            message: 'Rappel envoyé',
+            message: "Rappel envoyé",
           });
         } catch (error: unknown) {
-          console.error(`Erreur lors de l'envoi du rappel pour la facture ${invoice.id}:`, error);
+          console.error(
+            `Erreur lors de l'envoi du rappel pour la facture ${invoice.id}:`,
+            error,
+          );
           results.push({
             invoiceId: invoice.id,
             userId: invoice.userId,
             success: false,
-            message: `Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+            message: `Erreur: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
           });
         }
       }
@@ -649,7 +690,7 @@ export class BillingService {
       console.error("Erreur lors de l'envoi des rappels de paiement:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue',
+        error: error instanceof Error ? error.message : "Erreur inconnue",
       };
     }
   }
@@ -683,7 +724,7 @@ export class BillingService {
             where: {
               walletId: wallet.id,
               status: {
-                in: ['PENDING', 'PROCESSING'],
+                in: ["PENDING", "PROCESSING"],
               },
             },
           });
@@ -693,7 +734,7 @@ export class BillingService {
               walletId: wallet.id,
               userId: wallet.userId,
               success: false,
-              message: 'Un retrait est déjà en cours',
+              message: "Un retrait est déjà en cours",
             });
             continue;
           }
@@ -712,9 +753,11 @@ export class BillingService {
               walletId: wallet.id,
               amount: wallet.balance,
               currency: wallet.currency,
-              status: 'PENDING',
-              reference: `Retrait automatique - ${format(new Date(), 'yyyy-MM-dd')}`,
-              preferredMethod: wallet.stripeConnectAccountId ? 'STRIPE_CONNECT' : 'BANK_TRANSFER',
+              status: "PENDING",
+              reference: `Retrait automatique - ${format(new Date(), "yyyy-MM-dd")}`,
+              preferredMethod: wallet.stripeConnectAccountId
+                ? "STRIPE_CONNECT"
+                : "BANK_TRANSFER",
             },
           });
 
@@ -722,20 +765,20 @@ export class BillingService {
             walletId: wallet.id,
             userId: wallet.userId,
             success: true,
-            message: 'Demande de retrait automatique créée',
+            message: "Demande de retrait automatique créée",
             withdrawalId: withdrawalRequest.id,
             amount: parseFloat(wallet.balance.toString()),
           });
         } catch (error: unknown) {
           console.error(
             `Erreur lors du traitement du retrait automatique pour ${wallet.id}:`,
-            error
+            error,
           );
           results.push({
             walletId: wallet.id,
             userId: wallet.userId,
             success: false,
-            message: `Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+            message: `Erreur: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
           });
         }
       }
@@ -746,10 +789,13 @@ export class BillingService {
         results,
       };
     } catch (error: unknown) {
-      console.error('Erreur lors du traitement des virements automatiques:', error);
+      console.error(
+        "Erreur lors du traitement des virements automatiques:",
+        error,
+      );
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue',
+        error: error instanceof Error ? error.message : "Erreur inconnue",
       };
     }
   }
@@ -767,22 +813,24 @@ export class BillingService {
   }) {
     // Validation des paramètres
     if (!params.merchantId && !params.providerId) {
-      throw new Error('Un ID de marchand ou de prestataire est requis');
+      throw new Error("Un ID de marchand ou de prestataire est requis");
     }
 
     // Vérifier que les dates sont valides
     if (params.periodEnd < params.periodStart) {
-      throw new Error('La date de fin doit être postérieure à la date de début');
+      throw new Error(
+        "La date de fin doit être postérieure à la date de début",
+      );
     }
 
     if (params.scheduledRunDate < params.periodEnd) {
       throw new Error(
-        "La date d'exécution prévue doit être postérieure à la période de facturation"
+        "La date d'exécution prévue doit être postérieure à la période de facturation",
       );
     }
 
     // Créer le cycle de facturation
-    return await db.$transaction(async prisma => {
+    return await db.$transaction(async (prisma) => {
       return await db.$executeRaw`
         INSERT INTO "billing_cycles" (
           "id", "merchantId", "providerId", "periodStart", "periodEnd", 
@@ -810,7 +858,7 @@ export class BillingService {
    */
   async executeBillingCycle(billingCycleId: string) {
     // Récupérer le cycle de facturation avec une requête SQL brute
-    const [billingCycle] = await db.$transaction(async prisma => {
+    const [billingCycle] = await db.$transaction(async (prisma) => {
       return await db.$queryRaw<any[]>`
         SELECT bc.*, 
           m.id as "merchant_id", m."userId" as "merchant_userId", m."companyName" as "merchant_companyName",
@@ -825,12 +873,14 @@ export class BillingService {
     });
 
     if (!billingCycle) {
-      throw new Error('Cycle de facturation non trouvé');
+      throw new Error("Cycle de facturation non trouvé");
     }
 
     // Vérifier que le cycle est en attente
-    if (billingCycle.status !== 'PENDING') {
-      throw new Error(`Cycle de facturation dans un état invalide: ${billingCycle.status}`);
+    if (billingCycle.status !== "PENDING") {
+      throw new Error(
+        `Cycle de facturation dans un état invalide: ${billingCycle.status}`,
+      );
     }
 
     // Mettre à jour le statut
@@ -853,7 +903,7 @@ export class BillingService {
         const result = await this.generateMerchantInvoice(
           billingCycle.merchantId,
           billingCycle.periodStart,
-          billingCycle.periodEnd
+          billingCycle.periodEnd,
         );
         invoice = result.invoice;
         totalAmount = result.totalAmount;
@@ -865,7 +915,7 @@ export class BillingService {
         const result = await this.generateProviderInvoice(
           billingCycle.providerId,
           billingCycle.periodStart,
-          billingCycle.periodEnd
+          billingCycle.periodEnd,
         );
         invoice = result.invoice;
         totalAmount = result.totalAmount;
@@ -893,49 +943,49 @@ export class BillingService {
         if (billingCycle.merchantId) {
           await notificationService.sendNotification({
             userId: billingCycle.merchant_userId,
-            title: 'Nouvelle facture disponible',
+            title: "Nouvelle facture disponible",
             body: `Votre facture mensuelle d'un montant de ${totalAmount}€ est disponible.`,
-            type: 'INVOICE',
+            type: "INVOICE",
             data: { invoiceId: invoice.id },
           });
 
           // Envoyer un email avec la facture
           await emailService.sendEmail({
             to: billingCycle.user_email,
-            subject: 'Votre facture EcoDeli est disponible',
-            template: 'invoice',
+            subject: "Votre facture EcoDeli est disponible",
+            template: "invoice",
             data: {
               invoiceId: invoice.id,
               name: billingCycle.user_name,
               amount: totalAmount,
-              currency: '€',
-              dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString(
-                billingCycle.user_locale || 'fr'
-              ),
+              currency: "€",
+              dueDate: new Date(
+                Date.now() + 15 * 24 * 60 * 60 * 1000,
+              ).toLocaleDateString(billingCycle.user_locale || "fr"),
             },
           });
         } else if (billingCycle.providerId) {
           await notificationService.sendNotification({
             userId: billingCycle.provider_userId,
-            title: 'Nouvelle facture disponible',
+            title: "Nouvelle facture disponible",
             body: `Votre facture mensuelle de services d'un montant de ${totalAmount}€ est disponible.`,
-            type: 'INVOICE',
+            type: "INVOICE",
             data: { invoiceId: invoice.id },
           });
 
           // Envoyer un email avec la facture
           await emailService.sendEmail({
             to: billingCycle.user_email,
-            subject: 'Votre facture EcoDeli est disponible',
-            template: 'invoice',
+            subject: "Votre facture EcoDeli est disponible",
+            template: "invoice",
             data: {
               invoiceId: invoice.id,
               name: billingCycle.user_name,
               amount: totalAmount,
-              currency: '€',
-              dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString(
-                billingCycle.user_locale || 'fr'
-              ),
+              currency: "€",
+              dueDate: new Date(
+                Date.now() + 15 * 24 * 60 * 60 * 1000,
+              ).toLocaleDateString(billingCycle.user_locale || "fr"),
             },
           });
         }
@@ -952,7 +1002,7 @@ export class BillingService {
         UPDATE "billing_cycles"
         SET 
           "status" = 'FAILED',
-          "errorMessage" = ${error instanceof Error ? error.message : 'Erreur inconnue'},
+          "errorMessage" = ${error instanceof Error ? error.message : "Erreur inconnue"},
           "retryCount" = "retryCount" + 1,
           "updatedAt" = NOW()
         WHERE id = ${billingCycleId}
@@ -961,10 +1011,12 @@ export class BillingService {
       // Logger l'erreur pour suivi
       console.error(`Échec du cycle de facturation ${billingCycleId}:`, error);
       auditService.logActivity({
-        action: 'BILLING_CYCLE_FAILED',
+        action: "BILLING_CYCLE_FAILED",
         entityId: billingCycleId,
-        entityType: 'BillingCycle',
-        details: { error: error instanceof Error ? error.message : 'Erreur inconnue' },
+        entityType: "BillingCycle",
+        details: {
+          error: error instanceof Error ? error.message : "Erreur inconnue",
+        },
       });
 
       throw error;
@@ -977,20 +1029,24 @@ export class BillingService {
    * @param startDate Début de la période de facturation
    * @param endDate Fin de la période de facturation
    */
-  async generateMerchantInvoice(merchantId: string, startDate: Date, endDate: Date) {
+  async generateMerchantInvoice(
+    merchantId: string,
+    startDate: Date,
+    endDate: Date,
+  ) {
     // Récupérer le commerçant
     const merchant = await db.merchant.findUnique({
       where: { id: merchantId },
       include: {
         user: true,
         contracts: {
-          where: { status: 'ACTIVE' },
+          where: { status: "ACTIVE" },
         },
       },
     });
 
     if (!merchant) {
-      throw new Error('Commerçant non trouvé');
+      throw new Error("Commerçant non trouvé");
     }
 
     // Récupérer les services facturables pendant la période
@@ -1016,9 +1072,9 @@ export class BillingService {
     let commissionFees = 0;
 
     // Préparer les éléments de facture
-    const invoiceItems = servicesWithPayments.map(service => {
-      const serviceAmount = parseFloat(service.payment_amount || '0');
-      const commission = parseFloat(service.commission_amount || '0');
+    const invoiceItems = servicesWithPayments.map((service) => {
+      const serviceAmount = parseFloat(service.payment_amount || "0");
+      const commission = parseFloat(service.commission_amount || "0");
 
       totalAmount += serviceAmount;
       serviceFees += serviceAmount - commission;
@@ -1036,11 +1092,13 @@ export class BillingService {
 
     // Frais fixes selon contrat
     const contract = merchant.contracts[0];
-    const contractFees = contract ? parseFloat(contract.monthlyFee?.toString() || '0') : 0;
+    const contractFees = contract
+      ? parseFloat(contract.monthlyFee?.toString() || "0")
+      : 0;
 
     if (contractFees > 0) {
       invoiceItems.push({
-        description: 'Frais mensuels fixes selon contrat',
+        description: "Frais mensuels fixes selon contrat",
         quantity: 1,
         unitPrice: contractFees,
         amount: contractFees,
@@ -1057,8 +1115,8 @@ export class BillingService {
       amount: totalAmount,
       taxAmount: totalAmount * 0.2, // TVA 20%
       totalAmount: totalAmount * 1.2, // Total TTC
-      currency: 'EUR',
-      status: 'ISSUED',
+      currency: "EUR",
+      status: "ISSUED",
       issueDate: new Date(),
       dueDate: new Date(new Date().setDate(new Date().getDate() + 15)), // Échéance à 15 jours
       items: invoiceItems,
@@ -1068,10 +1126,10 @@ export class BillingService {
       billingAddress: merchant.businessAddress || merchant.address,
       billingCity: merchant.businessCity,
       billingPostal: merchant.businessPostal,
-      billingCountry: merchant.businessCountry || 'France',
-      invoiceType: 'MERCHANT_FEE',
+      billingCountry: merchant.businessCountry || "France",
+      invoiceType: "MERCHANT_FEE",
       serviceDescription: `Facture mensuelle pour services EcoDeli du ${startDate.toLocaleDateString()} au ${endDate.toLocaleDateString()}`,
-      locale: merchant.user?.locale || 'fr',
+      locale: merchant.user?.locale || "fr",
     });
 
     // Générer le PDF
@@ -1092,7 +1150,11 @@ export class BillingService {
    * @param startDate Début de la période de facturation
    * @param endDate Fin de la période de facturation
    */
-  async generateProviderInvoice(providerId: string, startDate: Date, endDate: Date) {
+  async generateProviderInvoice(
+    providerId: string,
+    startDate: Date,
+    endDate: Date,
+  ) {
     // Récupérer le prestataire
     const provider = await db.provider.findUnique({
       where: { id: providerId },
@@ -1102,7 +1164,7 @@ export class BillingService {
     });
 
     if (!provider) {
-      throw new Error('Prestataire non trouvé');
+      throw new Error("Prestataire non trouvé");
     }
 
     // Récupérer les services fournis pendant la période avec requête SQL brute
@@ -1132,9 +1194,9 @@ export class BillingService {
     let commissionFees = 0;
 
     // Préparer les éléments de facture
-    const invoiceItems = bookingsWithPayments.map(booking => {
-      const bookingAmount = parseFloat(booking.payment_amount || '0');
-      const commission = parseFloat(booking.commission_amount || '0');
+    const invoiceItems = bookingsWithPayments.map((booking) => {
+      const bookingAmount = parseFloat(booking.payment_amount || "0");
+      const commission = parseFloat(booking.commission_amount || "0");
       const providerAmount = bookingAmount - commission;
 
       totalAmount += providerAmount;
@@ -1142,7 +1204,7 @@ export class BillingService {
       commissionFees += commission;
 
       return {
-        description: `Service ${booking.service_name || 'Prestation'} (ID: ${booking.serviceId})`,
+        description: `Service ${booking.service_name || "Prestation"} (ID: ${booking.serviceId})`,
         quantity: 1,
         unitPrice: providerAmount,
         amount: providerAmount,
@@ -1158,8 +1220,8 @@ export class BillingService {
       amount: totalAmount,
       taxAmount: totalAmount * 0.2, // TVA 20%
       totalAmount: totalAmount * 1.2, // Total TTC
-      currency: 'EUR',
-      status: 'ISSUED',
+      currency: "EUR",
+      status: "ISSUED",
       issueDate: new Date(),
       dueDate: new Date(new Date().setDate(new Date().getDate() + 15)), // Échéance à 15 jours
       items: invoiceItems,
@@ -1167,9 +1229,9 @@ export class BillingService {
       billingPeriodEnd: endDate,
       billingName: provider.companyName || `${provider.user?.name}`,
       billingAddress: provider.address,
-      invoiceType: 'SERVICE',
+      invoiceType: "SERVICE",
       serviceDescription: `Facture des services fournis du ${startDate.toLocaleDateString()} au ${endDate.toLocaleDateString()}`,
-      locale: provider.user?.locale || 'fr',
+      locale: provider.user?.locale || "fr",
     });
 
     // Générer le PDF
@@ -1194,7 +1256,11 @@ export class BillingService {
     lastMonth.setMonth(lastMonth.getMonth() - 1);
 
     // Définir la période de facturation (dernier mois)
-    const startDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
+    const startDate = new Date(
+      lastMonth.getFullYear(),
+      lastMonth.getMonth(),
+      1,
+    );
     const endDate = new Date(now.getFullYear(), now.getMonth(), 0);
 
     // Récupérer tous les commerçants avec contrat actif
@@ -1202,7 +1268,7 @@ export class BillingService {
       where: {
         contracts: {
           some: {
-            status: 'ACTIVE',
+            status: "ACTIVE",
           },
         },
       },
@@ -1240,7 +1306,7 @@ export class BillingService {
       } catch (error) {
         console.error(
           `Erreur lors de la création du cycle pour le commerçant ${merchant.id}:`,
-          error
+          error,
         );
       }
     }
@@ -1258,7 +1324,7 @@ export class BillingService {
       } catch (error) {
         console.error(
           `Erreur lors de la création du cycle pour le prestataire ${provider.id}:`,
-          error
+          error,
         );
       }
     }
@@ -1320,7 +1386,7 @@ export class BillingService {
           report.failedProviders.push(cycle.providerId);
         }
         report.errors.push(
-          `Cycle ${cycle.id}: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+          `Cycle ${cycle.id}: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
         );
       }
     }
@@ -1336,7 +1402,10 @@ export class BillingService {
    * @param date Date de référence
    * @param monthsBack Nombre de mois en arrière pour le début de la période
    */
-  calculateBillingPeriod(date: Date = new Date(), monthsBack: number = 1): BillingPeriod {
+  calculateBillingPeriod(
+    date: Date = new Date(),
+    monthsBack: number = 1,
+  ): BillingPeriod {
     const endDate = new Date(date);
     endDate.setDate(0); // Dernier jour du mois précédent
 
@@ -1361,15 +1430,17 @@ export class BillingService {
     `;
 
     if (!cycle) {
-      throw new Error('Cycle de facturation non trouvé');
+      throw new Error("Cycle de facturation non trouvé");
     }
 
-    if (cycle.status !== 'FAILED') {
+    if (cycle.status !== "FAILED") {
       throw new Error(`Le cycle n'est pas en état d'échec: ${cycle.status}`);
     }
 
     if (cycle.retryCount >= 3) {
-      throw new Error(`Nombre maximum de tentatives atteint (${cycle.retryCount})`);
+      throw new Error(
+        `Nombre maximum de tentatives atteint (${cycle.retryCount})`,
+      );
     }
 
     // Réinitialiser le statut pour permettre une nouvelle exécution
@@ -1386,24 +1457,26 @@ export class BillingService {
   /**
    * Récupère les statistiques de facturation
    */
-  async getBillingStats(period: 'MONTH' | 'QUARTER' | 'YEAR' = 'MONTH') {
+  async getBillingStats(period: "MONTH" | "QUARTER" | "YEAR" = "MONTH") {
     let startDate: Date;
     const now = new Date();
 
     switch (period) {
-      case 'MONTH':
+      case "MONTH":
         startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         break;
-      case 'QUARTER':
+      case "QUARTER":
         startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
         break;
-      case 'YEAR':
+      case "YEAR":
         startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1);
         break;
     }
 
     // Statistiques des cycles de facturation
-    const cycleStatsResult = await db.$queryRaw<Array<{ status: string; count: number }>>`
+    const cycleStatsResult = await db.$queryRaw<
+      Array<{ status: string; count: number }>
+    >`
       SELECT status, COUNT(*) as count
       FROM "billing_cycles"
       WHERE "createdAt" >= ${startDate}
@@ -1431,10 +1504,13 @@ export class BillingService {
       GROUP BY entity_type
     `;
 
-    const cycleStats = cycleStatsResult.reduce<Record<string, number>>((acc, curr) => {
-      acc[curr.status] = Number(curr.count);
-      return acc;
-    }, {});
+    const cycleStats = cycleStatsResult.reduce<Record<string, number>>(
+      (acc, curr) => {
+        acc[curr.status] = Number(curr.count);
+        return acc;
+      },
+      {},
+    );
 
     return {
       cycleStats,

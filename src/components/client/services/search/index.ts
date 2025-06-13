@@ -4,5 +4,5 @@
  */
 
 // Exports des fichiers locaux
-export { default as ServiceSearchForm } from './service-search-form';
-export * from './service-search-form';
+export { default as ServiceSearchForm } from "./service-search-form";
+export * from "./service-search-form";

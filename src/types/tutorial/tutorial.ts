@@ -15,16 +15,21 @@ export interface Tutorial {
   updatedAt: Date;
 }
 
-export type TutorialCategory = 
-  | 'ONBOARDING'
-  | 'FEATURE_INTRODUCTION'
-  | 'WORKFLOW'
-  | 'TROUBLESHOOTING'
-  | 'ADVANCED';
+export type TutorialCategory =
+  | "ONBOARDING"
+  | "FEATURE_INTRODUCTION"
+  | "WORKFLOW"
+  | "TROUBLESHOOTING"
+  | "ADVANCED";
 
-export type TutorialDifficulty = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+export type TutorialDifficulty = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
-export type UserRole = 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER' | 'ADMIN';
+export type UserRole =
+  | "CLIENT"
+  | "DELIVERER"
+  | "MERCHANT"
+  | "PROVIDER"
+  | "ADMIN";
 
 export interface TutorialConfig {
   autoStart: boolean;
@@ -32,7 +37,7 @@ export interface TutorialConfig {
   allowSkip: boolean;
   showHints: boolean;
   pauseOnFocus: boolean;
-  theme: 'LIGHT' | 'DARK' | 'AUTO';
+  theme: "LIGHT" | "DARK" | "AUTO";
 }
 
 export interface TutorialContext {

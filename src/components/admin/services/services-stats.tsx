@@ -1,8 +1,14 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart3,
   Package,
@@ -12,7 +18,7 @@ import {
   DollarSign,
   Activity,
   Calendar,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface ServicesStatsProps {
   stats?: {
@@ -65,7 +71,9 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-6">
-            <p className="text-muted-foreground text-center">Aucune donnée disponible</p>
+            <p className="text-muted-foreground text-center">
+              Aucune donnée disponible
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -73,17 +81,17 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   const getStatusColor = (count: number, total: number) => {
     const percentage = (count / total) * 100;
-    if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (percentage >= 80) return "text-green-600";
+    if (percentage >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   return (
@@ -92,17 +100,26 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Services</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Services
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalServices}</div>
             <p className="text-xs text-muted-foreground">
-              <span className={getStatusColor(stats.activeServices, stats.totalServices)}>
+              <span
+                className={getStatusColor(
+                  stats.activeServices,
+                  stats.totalServices,
+                )}
+              >
                 {stats.activeServices} actifs
               </span>
-              {' • '}
-              <span className="text-muted-foreground">{stats.inactiveServices} inactifs</span>
+              {" • "}
+              <span className="text-muted-foreground">
+                {stats.inactiveServices} inactifs
+              </span>
             </p>
           </CardContent>
         </Card>
@@ -113,7 +130,9 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(stats.totalRevenue)}
+            </div>
             <p className="text-xs text-muted-foreground">
               {formatCurrency(stats.monthlyRevenue)} ce mois
             </p>
@@ -130,7 +149,9 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
               {stats.averageRating.toFixed(1)}
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             </div>
-            <p className="text-xs text-muted-foreground">Sur {stats.totalBookings} réservations</p>
+            <p className="text-xs text-muted-foreground">
+              Sur {stats.totalBookings} réservations
+            </p>
           </CardContent>
         </Card>
 
@@ -141,7 +162,9 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCategories}</div>
-            <p className="text-xs text-muted-foreground">Types de services disponibles</p>
+            <p className="text-xs text-muted-foreground">
+              Types de services disponibles
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -154,10 +177,15 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
             <CardDescription>Services les plus demandés</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {stats.recentServices.map(service => (
-              <div key={service.id} className="flex items-center justify-between">
+            {stats.recentServices.map((service) => (
+              <div
+                key={service.id}
+                className="flex items-center justify-between"
+              >
                 <div className="space-y-1">
-                  <p className="text-sm font-medium leading-none">{service.name}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {service.name}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     <Badge variant="outline" className="text-xs">
                       {service.category}
@@ -165,7 +193,9 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
                   </p>
                 </div>
                 <div className="text-right space-y-1">
-                  <p className="text-sm font-medium">{formatCurrency(service.revenue)}</p>
+                  <p className="text-sm font-medium">
+                    {formatCurrency(service.revenue)}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {service.bookingsCount} réservations
                   </p>
@@ -181,11 +211,15 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
             <CardDescription>Services et revenus par catégorie</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {stats.categoryStats.map(category => (
+            {stats.categoryStats.map((category) => (
               <div key={category.category} className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{category.category}</span>
-                  <span className="text-sm text-muted-foreground">{category.count} services</span>
+                  <span className="text-sm font-medium">
+                    {category.category}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {category.count} services
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="w-full bg-secondary rounded-full h-2 mr-2">

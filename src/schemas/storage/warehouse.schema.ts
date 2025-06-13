@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Warehouse schemas
 export const warehouseFiltersSchema = z.object({
   search: z.string().optional(),
   isActive: z.boolean().optional(),
   sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   page: z.number().int().positive().optional().default(1),
   limit: z.number().int().positive().optional().default(10),
 });
@@ -32,7 +32,7 @@ export const boxFiltersSchema = z.object({
   clientId: z.string().uuid().optional(),
   search: z.string().optional(),
   sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   page: z.number().int().positive().optional().default(1),
   limit: z.number().int().positive().optional().default(10),
 });
@@ -61,7 +61,7 @@ export const reservationFiltersSchema = z.object({
   endDateFrom: z.date().optional(),
   endDateTo: z.date().optional(),
   sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   page: z.number().int().positive().optional().default(1),
   limit: z.number().int().positive().optional().default(10),
 });
@@ -73,9 +73,9 @@ export const createReservationSchema = z
     startDate: z.date(),
     endDate: z.date(),
   })
-  .refine(data => data.endDate > data.startDate, {
-    message: 'End date must be after start date',
-    path: ['endDate'],
+  .refine((data) => data.endDate > data.startDate, {
+    message: "End date must be after start date",
+    path: ["endDate"],
   });
 
 export const updateReservationSchema = z
@@ -85,16 +85,16 @@ export const updateReservationSchema = z
     endDate: z.date().optional(),
   })
   .refine(
-    data => {
+    (data) => {
       if (data.startDate && data.endDate) {
         return data.endDate > data.startDate;
       }
       return true;
     },
     {
-      message: 'End date must be after start date',
-      path: ['endDate'],
-    }
+      message: "End date must be after start date",
+      path: ["endDate"],
+    },
   );
 
 export const reservationIdSchema = z.object({

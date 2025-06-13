@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils/common';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils/common";
 
 // Définition des libellés par défaut directement dans le composant
 const DEFAULT_LABELS = {
-  skip: 'Passer le tutoriel',
-  previous: 'Précédent',
-  next: 'Suivant',
-  finish: 'Terminer',
+  skip: "Passer le tutoriel",
+  previous: "Précédent",
+  next: "Suivant",
+  finish: "Terminer",
 };
 
 type TutorialNavigationProps = {
@@ -57,21 +57,32 @@ export function TutorialNavigation({
   };
 
   return (
-    <div className={cn('flex justify-between w-full', className)}>
+    <div className={cn("flex justify-between w-full", className)}>
       <div>
         {isFirstStep ? (
-          <Button variant="ghost" onClick={handleSkip} disabled={isLoading || isSkipping}>
-            {isSkipping ? 'Fermeture...' : mergedLabels.skip}
+          <Button
+            variant="ghost"
+            onClick={handleSkip}
+            disabled={isLoading || isSkipping}
+          >
+            {isSkipping ? "Fermeture..." : mergedLabels.skip}
           </Button>
         ) : (
-          <Button variant="outline" onClick={onPrevious} disabled={isLoading || isSkipping}>
+          <Button
+            variant="outline"
+            onClick={onPrevious}
+            disabled={isLoading || isSkipping}
+          >
             {mergedLabels.previous}
           </Button>
         )}
       </div>
 
       <div>
-        <Button onClick={isLastStep ? onComplete : onNext} disabled={isLoading || isSkipping}>
+        <Button
+          onClick={isLastStep ? onComplete : onNext}
+          disabled={isLoading || isSkipping}
+        >
           {isLastStep ? mergedLabels.finish : mergedLabels.next}
         </Button>
       </div>

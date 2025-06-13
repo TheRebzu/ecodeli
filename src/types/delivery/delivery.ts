@@ -1,18 +1,18 @@
 // Définition locale de DeliveryStatus pour éviter les problèmes d'import Prisma
 export enum DeliveryStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  PICKED_UP = 'PICKED_UP',
-  IN_TRANSIT = 'IN_TRANSIT',
-  DELIVERED = 'DELIVERED',
-  CONFIRMED = 'CONFIRMED',
-  CANCELLED = 'CANCELLED',
-  DISPUTED = 'DISPUTED',
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  PICKED_UP = "PICKED_UP",
+  IN_TRANSIT = "IN_TRANSIT",
+  DELIVERED = "DELIVERED",
+  CONFIRMED = "CONFIRMED",
+  CANCELLED = "CANCELLED",
+  DISPUTED = "DISPUTED",
   // Statuts étendus
-  EN_ROUTE_TO_PICKUP = 'EN_ROUTE_TO_PICKUP',
-  AT_PICKUP = 'AT_PICKUP',
-  EN_ROUTE_TO_DROPOFF = 'EN_ROUTE_TO_DROPOFF',
-  AT_DROPOFF = 'AT_DROPOFF',
+  EN_ROUTE_TO_PICKUP = "EN_ROUTE_TO_PICKUP",
+  AT_PICKUP = "AT_PICKUP",
+  EN_ROUTE_TO_DROPOFF = "EN_ROUTE_TO_DROPOFF",
+  AT_DROPOFF = "AT_DROPOFF",
 }
 
 // Export explicite pour assurer la compatibilité

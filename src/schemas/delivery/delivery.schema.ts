@@ -1,20 +1,20 @@
-import { z } from 'zod';
-import { DeliveryStatus } from '@prisma/client';
+import { z } from "zod";
+import { DeliveryStatus } from "@prisma/client";
 
 // Schéma étendu pour les statuts incluant les valeurs personnalisées
 export const extendedDeliveryStatusSchema = z.enum([
   // Statuts Prisma
-  'PENDING',
-  'ACCEPTED',
-  'PICKED_UP',
-  'IN_TRANSIT',
-  'DELIVERED',
-  'CANCELLED',
+  "PENDING",
+  "ACCEPTED",
+  "PICKED_UP",
+  "IN_TRANSIT",
+  "DELIVERED",
+  "CANCELLED",
   // Statuts étendus
-  'EN_ROUTE_TO_PICKUP',
-  'AT_PICKUP',
-  'EN_ROUTE_TO_DROPOFF',
-  'AT_DROPOFF',
+  "EN_ROUTE_TO_PICKUP",
+  "AT_PICKUP",
+  "EN_ROUTE_TO_DROPOFF",
+  "AT_DROPOFF",
 ]);
 
 export const deliverySchema = z.object({
@@ -24,8 +24,14 @@ export const deliverySchema = z.object({
   weight: z.number().optional(),
   dimensions: z.string().optional(),
   description: z.string().optional(),
-  price: z.number().min(1, 'Le prix doit être supérieur à 0'),
-  type: z.enum(['PACKAGE', 'SHOPPING_CART', 'AIRPORT_TRANSFER', 'GROCERY', 'FOREIGN_PRODUCT']),
+  price: z.number().min(1, "Le prix doit être supérieur à 0"),
+  type: z.enum([
+    "PACKAGE",
+    "SHOPPING_CART",
+    "AIRPORT_TRANSFER",
+    "GROCERY",
+    "FOREIGN_PRODUCT",
+  ]),
 });
 
 export type DeliverySchemaType = z.infer<typeof deliverySchema>;
@@ -56,7 +62,7 @@ export const deliveryStatusUpdateSchema = z.object({
 export const deliveryConfirmationSchema = z.object({
   deliveryId: z.string().min(1),
   confirmationCode: z.string().min(4).max(10),
-  proofType: z.enum(['PHOTO', 'SIGNATURE', 'CODE']).optional(),
+  proofType: z.enum(["PHOTO", "SIGNATURE", "CODE"]).optional(),
   proofUrl: z.string().url().optional(),
 });
 
@@ -95,7 +101,7 @@ export const generateConfirmationCodeSchema = z.object({
 // Schéma pour le signalement d'un problème
 export const deliveryIssueReportSchema = z.object({
   deliveryId: z.string().min(1),
-  issueType: z.enum(['DELAY', 'DAMAGE', 'LOSS', 'OTHER']),
+  issueType: z.enum(["DELAY", "DAMAGE", "LOSS", "OTHER"]),
   description: z.string().min(10).max(500),
   attachmentUrl: z.string().url().optional(),
 });
@@ -153,7 +159,7 @@ export const routeOptimizationSchema = z.object({
 // Schéma pour les preuves de livraison
 export const deliveryProofSchema = z.object({
   deliveryId: z.string().min(1),
-  type: z.enum(['PHOTO', 'SIGNATURE', 'DOCUMENT']),
+  type: z.enum(["PHOTO", "SIGNATURE", "DOCUMENT"]),
   fileUrl: z.string().url(),
   notes: z.string().max(200).optional(),
 });
@@ -161,15 +167,20 @@ export const deliveryProofSchema = z.object({
 // Schéma pour les notifications de livraison
 export const deliveryNotificationSchema = z.object({
   deliveryId: z.string().min(1),
-  type: z.enum(['STATUS_UPDATE', 'DELAY_ALERT', 'ARRIVAL_NOTICE', 'COMPLETION']),
-  recipientRole: z.enum(['CLIENT', 'DELIVERER', 'BOTH']),
+  type: z.enum([
+    "STATUS_UPDATE",
+    "DELAY_ALERT",
+    "ARRIVAL_NOTICE",
+    "COMPLETION",
+  ]),
+  recipientRole: z.enum(["CLIENT", "DELIVERER", "BOTH"]),
   customMessage: z.string().max(150).optional(),
 });
 
 // Schéma pour l'historique de livraison
 export const deliveryHistoryFilterSchema = z.object({
   userId: z.string().min(1),
-  role: z.enum(['CLIENT', 'DELIVERER']),
+  role: z.enum(["CLIENT", "DELIVERER"]),
   status: extendedDeliveryStatusSchema.optional(),
   dateRange: z
     .object({
@@ -182,16 +193,24 @@ export const deliveryHistoryFilterSchema = z.object({
 });
 
 // Type pour les entrées de création de livraison
-export type CreateDeliveryTrackingInput = z.infer<typeof createDeliveryTrackingSchema>;
+export type CreateDeliveryTrackingInput = z.infer<
+  typeof createDeliveryTrackingSchema
+>;
 
 // Type pour les entrées de mise à jour de statut
-export type DeliveryStatusUpdateInput = z.infer<typeof deliveryStatusUpdateSchema>;
+export type DeliveryStatusUpdateInput = z.infer<
+  typeof deliveryStatusUpdateSchema
+>;
 
 // Type pour les entrées de mise à jour de coordonnées
-export type DeliveryCoordinatesUpdateInput = z.infer<typeof deliveryCoordinatesUpdateSchema>;
+export type DeliveryCoordinatesUpdateInput = z.infer<
+  typeof deliveryCoordinatesUpdateSchema
+>;
 
 // Type pour les entrées de confirmation
-export type DeliveryConfirmationInput = z.infer<typeof deliveryConfirmationSchema>;
+export type DeliveryConfirmationInput = z.infer<
+  typeof deliveryConfirmationSchema
+>;
 
 // Type pour les entrées d'évaluation
 export type DeliveryRatingInput = z.infer<typeof deliveryRatingSchema>;
@@ -200,13 +219,25 @@ export type DeliveryRatingInput = z.infer<typeof deliveryRatingSchema>;
 export type DeliveryFilterInput = z.infer<typeof deliveryFilterSchema>;
 
 // Type pour les entrées de signalement de problème
-export type DeliveryIssueReportInput = z.infer<typeof deliveryIssueReportSchema>;
+export type DeliveryIssueReportInput = z.infer<
+  typeof deliveryIssueReportSchema
+>;
 
 // Types additionnels pour les nouvelles fonctionnalités
-export type AutoAssignDelivererInput = z.infer<typeof autoAssignDelivererSchema>;
-export type DelivererSearchCriteriaInput = z.infer<typeof delivererSearchCriteriaSchema>;
-export type DelivererAvailabilityInput = z.infer<typeof delivererAvailabilitySchema>;
+export type AutoAssignDelivererInput = z.infer<
+  typeof autoAssignDelivererSchema
+>;
+export type DelivererSearchCriteriaInput = z.infer<
+  typeof delivererSearchCriteriaSchema
+>;
+export type DelivererAvailabilityInput = z.infer<
+  typeof delivererAvailabilitySchema
+>;
 export type RouteOptimizationInput = z.infer<typeof routeOptimizationSchema>;
 export type DeliveryProofInput = z.infer<typeof deliveryProofSchema>;
-export type DeliveryNotificationInput = z.infer<typeof deliveryNotificationSchema>;
-export type DeliveryHistoryFilterInput = z.infer<typeof deliveryHistoryFilterSchema>;
+export type DeliveryNotificationInput = z.infer<
+  typeof deliveryNotificationSchema
+>;
+export type DeliveryHistoryFilterInput = z.infer<
+  typeof deliveryHistoryFilterSchema
+>;

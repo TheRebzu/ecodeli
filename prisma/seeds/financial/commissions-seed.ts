@@ -1,7 +1,12 @@
-import { PrismaClient } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+import { PrismaClient } from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import {
+  SeedResult,
+  SeedOptions,
+  getRandomElement,
+  getRandomDate,
+} from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Interface pour définir une commission
@@ -22,12 +27,12 @@ interface CommissionData {
 export async function seedCommissions(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('COMMISSIONS');
+  logger.startSeed("COMMISSIONS");
 
   const result: SeedResult = {
-    entity: 'commissions',
+    entity: "commissions",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -38,8 +43,8 @@ export async function seedCommissions(
 
   if (existingCommissions > 0 && !options.force) {
     logger.warning(
-      'COMMISSIONS',
-      `${existingCommissions} commissions déjà présentes - utiliser force:true pour recréer`
+      "COMMISSIONS",
+      `${existingCommissions} commissions déjà présentes - utiliser force:true pour recréer`,
     );
     result.skipped = existingCommissions;
     return result;
@@ -49,116 +54,116 @@ export async function seedCommissions(
   if (options.force) {
     await prisma.commission.deleteMany({});
     await prisma.promotionRecord.deleteMany({});
-    logger.database('NETTOYAGE', 'commissions et promotion records', 0);
+    logger.database("NETTOYAGE", "commissions et promotion records", 0);
   }
 
   // Configuration des taux de commission par service (réalistes du marché)
   const COMMISSION_CONFIGS = [
     {
-      serviceType: 'DELIVERY',
+      serviceType: "DELIVERY",
       rate: 0.15, // 15% sur livraisons
-      description: 'Commission plateforme sur livraisons',
-      applicableRoles: ['DELIVERER'],
-      calculationType: 'PERCENTAGE',
+      description: "Commission plateforme sur livraisons",
+      applicableRoles: ["DELIVERER"],
+      calculationType: "PERCENTAGE",
       isActive: true,
       minimumAmount: 0.5, // Minimum 50 centimes
       maximumAmount: 5.0, // Maximum 5 euros par livraison
       flatFee: null,
     },
     {
-      serviceType: 'PLUMBING',
+      serviceType: "PLUMBING",
       rate: 0.12, // 12% sur plomberie
-      description: 'Commission plateforme sur services plomberie',
-      applicableRoles: ['PROVIDER'],
-      calculationType: 'PERCENTAGE',
+      description: "Commission plateforme sur services plomberie",
+      applicableRoles: ["PROVIDER"],
+      calculationType: "PERCENTAGE",
       isActive: true,
       minimumAmount: 5.0,
       maximumAmount: 50.0,
       flatFee: null,
     },
     {
-      serviceType: 'ELECTRICITY',
+      serviceType: "ELECTRICITY",
       rate: 0.12, // 12% sur électricité
-      description: 'Commission plateforme sur services électricité',
-      applicableRoles: ['PROVIDER'],
-      calculationType: 'PERCENTAGE',
+      description: "Commission plateforme sur services électricité",
+      applicableRoles: ["PROVIDER"],
+      calculationType: "PERCENTAGE",
       isActive: true,
       minimumAmount: 7.5,
       maximumAmount: 60.0,
       flatFee: null,
     },
     {
-      serviceType: 'CLEANING',
+      serviceType: "CLEANING",
       rate: 0.1, // 10% sur nettoyage
-      description: 'Commission plateforme sur services nettoyage',
-      applicableRoles: ['PROVIDER'],
-      calculationType: 'PERCENTAGE',
+      description: "Commission plateforme sur services nettoyage",
+      applicableRoles: ["PROVIDER"],
+      calculationType: "PERCENTAGE",
       isActive: true,
       minimumAmount: 2.5,
       maximumAmount: 15.0,
       flatFee: null,
     },
     {
-      serviceType: 'IT_SUPPORT',
+      serviceType: "IT_SUPPORT",
       rate: 0.15, // 15% sur support IT
-      description: 'Commission plateforme sur services informatiques',
-      applicableRoles: ['PROVIDER'],
-      calculationType: 'PERCENTAGE',
+      description: "Commission plateforme sur services informatiques",
+      applicableRoles: ["PROVIDER"],
+      calculationType: "PERCENTAGE",
       isActive: true,
       minimumAmount: 6.0,
       maximumAmount: 40.0,
       flatFee: null,
     },
     {
-      serviceType: 'GARDENING',
+      serviceType: "GARDENING",
       rate: 0.1, // 10% sur jardinage
-      description: 'Commission plateforme sur services jardinage',
-      applicableRoles: ['PROVIDER'],
-      calculationType: 'PERCENTAGE',
+      description: "Commission plateforme sur services jardinage",
+      applicableRoles: ["PROVIDER"],
+      calculationType: "PERCENTAGE",
       isActive: true,
       minimumAmount: 3.5,
       maximumAmount: 25.0,
       flatFee: null,
     },
     {
-      serviceType: 'SUBSCRIPTION_MERCHANT',
+      serviceType: "SUBSCRIPTION_MERCHANT",
       rate: 29.99, // Abonnement fixe commerçants
-      description: 'Abonnement mensuel EcoDeli Pro pour commerçants',
-      applicableRoles: ['MERCHANT'],
-      calculationType: 'FLAT_FEE',
+      description: "Abonnement mensuel EcoDeli Pro pour commerçants",
+      applicableRoles: ["MERCHANT"],
+      calculationType: "FLAT_FEE",
       isActive: true,
       minimumAmount: null,
       maximumAmount: null,
       flatFee: 29.99,
     },
     {
-      serviceType: 'SUBSCRIPTION_PROVIDER',
+      serviceType: "SUBSCRIPTION_PROVIDER",
       rate: 19.99, // Abonnement fixe prestataires
-      description: 'Abonnement mensuel EcoDeli Services pour prestataires',
-      applicableRoles: ['PROVIDER'],
-      calculationType: 'FLAT_FEE',
+      description: "Abonnement mensuel EcoDeli Services pour prestataires",
+      applicableRoles: ["PROVIDER"],
+      calculationType: "FLAT_FEE",
       isActive: true,
       minimumAmount: null,
       maximumAmount: null,
       flatFee: 19.99,
     },
     {
-      serviceType: 'ADVERTISING_BOOST',
+      serviceType: "ADVERTISING_BOOST",
       rate: 2.5, // Frais fixe mise en avant
-      description: 'Mise en avant des annonces (boost 24h)',
-      applicableRoles: ['MERCHANT', 'PROVIDER'],
-      calculationType: 'FLAT_FEE',
+      description: "Mise en avant des annonces (boost 24h)",
+      applicableRoles: ["MERCHANT", "PROVIDER"],
+      calculationType: "FLAT_FEE",
       isActive: true,
       minimumAmount: null,
       maximumAmount: null,
       flatFee: 2.5,
     },
     {
-      serviceType: 'PAYMENT_PROCESSING',
+      serviceType: "PAYMENT_PROCESSING",
       rate: 0.029, // 2.9% frais de paiement
-      description: 'Frais de traitement des paiements (Stripe)',
-      applicableRoles: ['CLIENT', 'MERCHANT', 'PROVIDER'],
-      calculationType: 'PERCENTAGE',
+      description: "Frais de traitement des paiements (Stripe)",
+      applicableRoles: ["CLIENT", "MERCHANT", "PROVIDER"],
+      calculationType: "PERCENTAGE",
       isActive: true,
       minimumAmount: 0.3, // Frais minimum Stripe
       maximumAmount: null,
@@ -170,10 +175,10 @@ export async function seedCommissions(
   for (const config of COMMISSION_CONFIGS) {
     try {
       logger.progress(
-        'COMMISSIONS',
+        "COMMISSIONS",
         result.created + 1,
         COMMISSION_CONFIGS.length,
-        `Création commission: ${config.serviceType}`
+        `Création commission: ${config.serviceType}`,
       );
 
       await prisma.commission.create({
@@ -184,13 +189,15 @@ export async function seedCommissions(
           applicableRoles: config.applicableRoles,
           calculationType: config.calculationType,
           isActive: config.isActive,
-          currency: 'EUR',
+          currency: "EUR",
           minimumAmount: config.minimumAmount,
           maximumAmount: config.maximumAmount,
           flatFee: config.flatFee,
           startDate: getRandomDate(180, 30), // Actif depuis 1-6 mois
-          payoutSchedule: config.applicableRoles.includes('DELIVERER') ? 'WEEKLY' : 'MONTHLY',
-          countryCode: 'FR',
+          payoutSchedule: config.applicableRoles.includes("DELIVERER")
+            ? "WEEKLY"
+            : "MONTHLY",
+          countryCode: "FR",
           tierThresholds: generateTierThresholds(config.serviceType),
         },
       });
@@ -198,8 +205,8 @@ export async function seedCommissions(
       result.created++;
     } catch (error: any) {
       logger.error(
-        'COMMISSIONS',
-        `❌ Erreur création commission ${config.serviceType}: ${error.message}`
+        "COMMISSIONS",
+        `❌ Erreur création commission ${config.serviceType}: ${error.message}`,
       );
       result.errors++;
     }
@@ -219,55 +226,76 @@ export async function seedCommissions(
 
   if (finalCommissions.length >= result.created - result.errors) {
     logger.validation(
-      'COMMISSIONS',
-      'PASSED',
-      `${finalCommissions.length} commissions créées avec succès`
+      "COMMISSIONS",
+      "PASSED",
+      `${finalCommissions.length} commissions créées avec succès`,
     );
   } else {
     logger.validation(
-      'COMMISSIONS',
-      'FAILED',
-      `Attendu: ${result.created}, Créé: ${finalCommissions.length}`
+      "COMMISSIONS",
+      "FAILED",
+      `Attendu: ${result.created}, Créé: ${finalCommissions.length}`,
     );
   }
 
   // Statistiques par type de calcul
-  const byCalculationType = finalCommissions.reduce((acc: Record<string, number>, commission) => {
-    acc[commission.calculationType] = (acc[commission.calculationType] || 0) + 1;
-    return acc;
-  }, {});
-
-  logger.info('COMMISSIONS', `📊 Par type de calcul: ${JSON.stringify(byCalculationType)}`);
-
-  // Statistiques par statut
-  const activeCommissions = finalCommissions.filter(c => c.isActive);
-  const inactiveCommissions = finalCommissions.filter(c => !c.isActive);
-
-  logger.info('COMMISSIONS', `✅ Commissions actives: ${activeCommissions.length}`);
-  logger.info('COMMISSIONS', `❌ Commissions inactives: ${inactiveCommissions.length}`);
-
-  // Calcul des revenus théoriques moyens
-  const percentageCommissions = activeCommissions.filter(c => c.calculationType === 'PERCENTAGE');
-  const avgCommissionRate =
-    percentageCommissions.reduce((sum, c) => sum + parseFloat(c.rate.toString()), 0) /
-    percentageCommissions.length;
+  const byCalculationType = finalCommissions.reduce(
+    (acc: Record<string, number>, commission) => {
+      acc[commission.calculationType] =
+        (acc[commission.calculationType] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
   logger.info(
-    'COMMISSIONS',
-    `📈 Taux moyen de commission: ${(avgCommissionRate * 100).toFixed(2)}%`
+    "COMMISSIONS",
+    `📊 Par type de calcul: ${JSON.stringify(byCalculationType)}`,
+  );
+
+  // Statistiques par statut
+  const activeCommissions = finalCommissions.filter((c) => c.isActive);
+  const inactiveCommissions = finalCommissions.filter((c) => !c.isActive);
+
+  logger.info(
+    "COMMISSIONS",
+    `✅ Commissions actives: ${activeCommissions.length}`,
+  );
+  logger.info(
+    "COMMISSIONS",
+    `❌ Commissions inactives: ${inactiveCommissions.length}`,
+  );
+
+  // Calcul des revenus théoriques moyens
+  const percentageCommissions = activeCommissions.filter(
+    (c) => c.calculationType === "PERCENTAGE",
+  );
+  const avgCommissionRate =
+    percentageCommissions.reduce(
+      (sum, c) => sum + parseFloat(c.rate.toString()),
+      0,
+    ) / percentageCommissions.length;
+
+  logger.info(
+    "COMMISSIONS",
+    `📈 Taux moyen de commission: ${(avgCommissionRate * 100).toFixed(2)}%`,
   );
 
   // Frais fixes mensuels
   const flatFees = activeCommissions
-    .filter(c => c.calculationType === 'FLAT_FEE' && c.serviceType.includes('SUBSCRIPTION'))
-    .reduce((sum, c) => sum + parseFloat(c.flatFee?.toString() || '0'), 0);
+    .filter(
+      (c) =>
+        c.calculationType === "FLAT_FEE" &&
+        c.serviceType.includes("SUBSCRIPTION"),
+    )
+    .reduce((sum, c) => sum + parseFloat(c.flatFee?.toString() || "0"), 0);
 
   logger.info(
-    'COMMISSIONS',
-    `💰 Revenus abonnements: ${flatFees.toFixed(2)} EUR/mois par utilisateur`
+    "COMMISSIONS",
+    `💰 Revenus abonnements: ${flatFees.toFixed(2)} EUR/mois par utilisateur`,
   );
 
-  logger.endSeed('COMMISSIONS', result);
+  logger.endSeed("COMMISSIONS", result);
   return result;
 }
 
@@ -318,42 +346,42 @@ function generateTierThresholds(serviceType: string): any {
 async function createPromotionRecords(
   prisma: PrismaClient,
   logger: SeedLogger,
-  result: SeedResult
+  result: SeedResult,
 ): Promise<void> {
   const PROMOTIONS = [
     {
-      type: 'LAUNCH_PROMO',
-      serviceType: 'DELIVERY',
+      type: "LAUNCH_PROMO",
+      serviceType: "DELIVERY",
       rate: 0.05, // 5% au lieu de 15% (promotion lancement)
-      description: 'Promotion lancement - commission réduite livreurs',
+      description: "Promotion lancement - commission réduite livreurs",
       durationDays: 30,
     },
     {
-      type: 'SUMMER_PROMO',
-      serviceType: 'GARDENING',
+      type: "SUMMER_PROMO",
+      serviceType: "GARDENING",
       rate: 0.06, // 6% au lieu de 10% (promotion été)
-      description: 'Promotion été - commission réduite jardinage',
+      description: "Promotion été - commission réduite jardinage",
       durationDays: 45,
     },
     {
-      type: 'FIRST_MONTH_FREE',
-      serviceType: 'SUBSCRIPTION_PROVIDER',
+      type: "FIRST_MONTH_FREE",
+      serviceType: "SUBSCRIPTION_PROVIDER",
       rate: 0, // Premier mois gratuit
       description: "Premier mois d'abonnement gratuit nouveaux prestataires",
       durationDays: 30,
     },
     {
-      type: 'BLACK_FRIDAY',
-      serviceType: 'ADVERTISING_BOOST',
+      type: "BLACK_FRIDAY",
+      serviceType: "ADVERTISING_BOOST",
       rate: 1.25, // 1.25€ au lieu de 2.50€
-      description: 'Black Friday - mise en avant à prix réduit',
+      description: "Black Friday - mise en avant à prix réduit",
       durationDays: 3,
     },
     {
-      type: 'REFERRAL_BONUS',
-      serviceType: 'CLEANING',
+      type: "REFERRAL_BONUS",
+      serviceType: "CLEANING",
       rate: 0.05, // 5% au lieu de 10% (bonus parrainage)
-      description: 'Bonus parrainage - commission réduite nettoyage',
+      description: "Bonus parrainage - commission réduite nettoyage",
       durationDays: 60,
     },
   ];
@@ -379,7 +407,10 @@ async function createPromotionRecords(
 
       result.created++;
     } catch (error: any) {
-      logger.error('COMMISSIONS', `❌ Erreur création promotion ${promo.type}: ${error.message}`);
+      logger.error(
+        "COMMISSIONS",
+        `❌ Erreur création promotion ${promo.type}: ${error.message}`,
+      );
       result.errors++;
     }
   }
@@ -391,25 +422,26 @@ async function createPromotionRecords(
 async function createHistoricalCommissions(
   prisma: PrismaClient,
   logger: SeedLogger,
-  result: SeedResult
+  result: SeedResult,
 ): Promise<void> {
   const HISTORICAL_RATES = [
     {
-      serviceType: 'DELIVERY',
+      serviceType: "DELIVERY",
       rate: 0.18, // Ancien taux plus élevé
-      description: 'Commission plateforme sur livraisons (ancien taux)',
+      description: "Commission plateforme sur livraisons (ancien taux)",
       endedMonthsAgo: 3,
     },
     {
-      serviceType: 'PLUMBING',
+      serviceType: "PLUMBING",
       rate: 0.15, // Ancien taux plus élevé
-      description: 'Commission plateforme sur services plomberie (ancien taux)',
+      description: "Commission plateforme sur services plomberie (ancien taux)",
       endedMonthsAgo: 2,
     },
     {
-      serviceType: 'SUBSCRIPTION_MERCHANT',
+      serviceType: "SUBSCRIPTION_MERCHANT",
       rate: 39.99, // Ancien prix plus cher
-      description: 'Abonnement mensuel EcoDeli Pro pour commerçants (ancien prix)',
+      description:
+        "Abonnement mensuel EcoDeli Pro pour commerçants (ancien prix)",
       endedMonthsAgo: 4,
     },
   ];
@@ -429,27 +461,31 @@ async function createHistoricalCommissions(
           serviceType: historical.serviceType,
           description: historical.description,
           applicableRoles:
-            historical.serviceType === 'DELIVERY'
-              ? ['DELIVERER']
-              : historical.serviceType.includes('SUBSCRIPTION')
-                ? [historical.serviceType.includes('MERCHANT') ? 'MERCHANT' : 'PROVIDER']
-                : ['PROVIDER'],
-          calculationType: historical.serviceType.includes('SUBSCRIPTION')
-            ? 'FLAT_FEE'
-            : 'PERCENTAGE',
+            historical.serviceType === "DELIVERY"
+              ? ["DELIVERER"]
+              : historical.serviceType.includes("SUBSCRIPTION")
+                ? [
+                    historical.serviceType.includes("MERCHANT")
+                      ? "MERCHANT"
+                      : "PROVIDER",
+                  ]
+                : ["PROVIDER"],
+          calculationType: historical.serviceType.includes("SUBSCRIPTION")
+            ? "FLAT_FEE"
+            : "PERCENTAGE",
           isActive: false, // Inactif
-          currency: 'EUR',
+          currency: "EUR",
           startDate: startDate,
           endDate: endDate,
-          payoutSchedule: 'MONTHLY',
+          payoutSchedule: "MONTHLY",
         },
       });
 
       result.created++;
     } catch (error: any) {
       logger.error(
-        'COMMISSIONS',
-        `❌ Erreur création commission historique ${historical.serviceType}: ${error.message}`
+        "COMMISSIONS",
+        `❌ Erreur création commission historique ${historical.serviceType}: ${error.message}`,
       );
       result.errors++;
     }
@@ -462,20 +498,20 @@ async function createHistoricalCommissions(
 async function createScenarioCommissions(
   prisma: PrismaClient,
   logger: SeedLogger,
-  result: SeedResult
+  result: SeedResult,
 ): Promise<void> {
   try {
     // Récupérer les paiements et livraisons du scénario
     const jeanDupont = await prisma.user.findUnique({
-      where: { email: 'jean.dupont@orange.fr' },
+      where: { email: "jean.dupont@orange.fr" },
     });
 
     const marieLaurent = await prisma.user.findUnique({
-      where: { email: 'marie.laurent@orange.fr' },
+      where: { email: "marie.laurent@orange.fr" },
     });
 
     if (!jeanDupont || !marieLaurent) {
-      logger.warning('COMMISSIONS', 'Utilisateurs du scénario non trouvés');
+      logger.warning("COMMISSIONS", "Utilisateurs du scénario non trouvés");
       return;
     }
 
@@ -483,26 +519,26 @@ async function createScenarioCommissions(
     const jeanPayment = await prisma.payment.findFirst({
       where: {
         userId: jeanDupont.id,
-        description: { contains: 'ordinateur portable' },
+        description: { contains: "ordinateur portable" },
       },
     });
 
     if (jeanPayment) {
       // Commission EcoDeli sur le paiement de Jean
       logger.info(
-        'COMMISSIONS',
-        `📝 Commission Jean Dupont enregistrée: ${(jeanPayment.commissionAmount || 4.5).toString()}€ sur paiement ${jeanPayment.id}`
+        "COMMISSIONS",
+        `📝 Commission Jean Dupont enregistrée: ${(jeanPayment.commissionAmount || 4.5).toString()}€ sur paiement ${jeanPayment.id}`,
       );
 
       result.created++;
-      logger.success('COMMISSIONS', `✅ Commission Jean Dupont créée (4.50€)`);
+      logger.success("COMMISSIONS", `✅ Commission Jean Dupont créée (4.50€)`);
     }
 
     // Commissions sur les livraisons historiques de Marie
     const marieDeliveries = await prisma.delivery.findMany({
       where: {
         delivererId: marieLaurent.id,
-        status: 'DELIVERED',
+        status: "DELIVERED",
       },
       include: { client: true },
     });
@@ -511,28 +547,36 @@ async function createScenarioCommissions(
       const commissionAmount = parseFloat(delivery.price.toString()) * 0.1; // 10% commission
 
       logger.info(
-        'COMMISSIONS',
-        `📝 Commission historique ${delivery.trackingCode}: ${commissionAmount.toFixed(2)}€`
+        "COMMISSIONS",
+        `📝 Commission historique ${delivery.trackingCode}: ${commissionAmount.toFixed(2)}€`,
       );
       result.created++;
     }
 
     logger.success(
-      'COMMISSIONS',
-      `✅ ${marieDeliveries.length} commissions historiques Marie Laurent créées`
+      "COMMISSIONS",
+      `✅ ${marieDeliveries.length} commissions historiques Marie Laurent créées`,
     );
 
     // Commission totale EcoDeli
-    const jeanCommission = parseFloat((jeanPayment?.commissionAmount || 4.5).toString());
+    const jeanCommission = parseFloat(
+      (jeanPayment?.commissionAmount || 4.5).toString(),
+    );
     const marieCommissions = marieDeliveries.reduce(
       (sum, d) => sum + parseFloat(d.price.toString()) * 0.1,
-      0
+      0,
     );
     const totalCommission = jeanCommission + marieCommissions;
 
-    logger.info('COMMISSIONS', `💰 Commission totale EcoDeli: ${totalCommission.toFixed(2)}€`);
+    logger.info(
+      "COMMISSIONS",
+      `💰 Commission totale EcoDeli: ${totalCommission.toFixed(2)}€`,
+    );
   } catch (error: any) {
-    logger.error('COMMISSIONS', `❌ Erreur création commissions scénario: ${error.message}`);
+    logger.error(
+      "COMMISSIONS",
+      `❌ Erreur création commissions scénario: ${error.message}`,
+    );
     result.errors++;
   }
 }
@@ -542,9 +586,9 @@ async function createScenarioCommissions(
  */
 export async function validateCommissions(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des commissions...');
+  logger.info("VALIDATION", "🔍 Validation des commissions...");
 
   let isValid = true;
 
@@ -552,34 +596,41 @@ export async function validateCommissions(
   const commissions = await prisma.commission.findMany();
 
   if (commissions.length === 0) {
-    logger.error('VALIDATION', '❌ Aucune commission trouvée');
+    logger.error("VALIDATION", "❌ Aucune commission trouvée");
     isValid = false;
   } else {
-    logger.success('VALIDATION', `✅ ${commissions.length} commissions trouvées`);
+    logger.success(
+      "VALIDATION",
+      `✅ ${commissions.length} commissions trouvées`,
+    );
   }
 
   // Vérifier qu'il y a des commissions actives pour chaque service principal
-  const mainServices = ['DELIVERY', 'PLUMBING', 'ELECTRICITY', 'CLEANING'];
+  const mainServices = ["DELIVERY", "PLUMBING", "ELECTRICITY", "CLEANING"];
   const missingServices = mainServices.filter(
-    service => !commissions.some(c => c.serviceType === service && c.isActive)
+    (service) =>
+      !commissions.some((c) => c.serviceType === service && c.isActive),
   );
 
   if (missingServices.length === 0) {
-    logger.success('VALIDATION', '✅ Tous les services principaux ont des commissions actives');
+    logger.success(
+      "VALIDATION",
+      "✅ Tous les services principaux ont des commissions actives",
+    );
   } else {
     logger.warning(
-      'VALIDATION',
-      `⚠️ Services sans commission active: ${missingServices.join(', ')}`
+      "VALIDATION",
+      `⚠️ Services sans commission active: ${missingServices.join(", ")}`,
     );
   }
 
   // Vérifier les taux de commission (réalistes)
-  const invalidRates = commissions.filter(c => {
-    if (c.calculationType === 'PERCENTAGE') {
+  const invalidRates = commissions.filter((c) => {
+    if (c.calculationType === "PERCENTAGE") {
       const rate = parseFloat(c.rate.toString());
       return rate < 0.01 || rate > 0.3; // Entre 1% et 30%
     }
-    if (c.calculationType === 'FLAT_FEE') {
+    if (c.calculationType === "FLAT_FEE") {
       const rate = parseFloat(c.rate.toString());
       return rate < 0 || rate > 100; // Entre 0 et 100€
     }
@@ -587,15 +638,24 @@ export async function validateCommissions(
   });
 
   if (invalidRates.length === 0) {
-    logger.success('VALIDATION', '✅ Tous les taux de commission sont réalistes');
+    logger.success(
+      "VALIDATION",
+      "✅ Tous les taux de commission sont réalistes",
+    );
   } else {
-    logger.warning('VALIDATION', `⚠️ ${invalidRates.length} commissions avec taux anormaux`);
+    logger.warning(
+      "VALIDATION",
+      `⚠️ ${invalidRates.length} commissions avec taux anormaux`,
+    );
   }
 
   // Vérifier les promotions
   const promotions = await prisma.promotionRecord.findMany();
-  logger.info('VALIDATION', `🎁 ${promotions.length} promotions historiques trouvées`);
+  logger.info(
+    "VALIDATION",
+    `🎁 ${promotions.length} promotions historiques trouvées`,
+  );
 
-  logger.success('VALIDATION', '✅ Validation des commissions terminée');
+  logger.success("VALIDATION", "✅ Validation des commissions terminée");
   return isValid;
 }

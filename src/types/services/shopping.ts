@@ -1,5 +1,5 @@
 // Types pour les services de shopping
-import type { ServiceAvailability } from './service-base';
+import type { ServiceAvailability } from "./service-base";
 
 export interface ShoppingService {
   id: string;
@@ -12,23 +12,23 @@ export interface ShoppingService {
   restrictions: ShoppingRestriction[];
 }
 
-export type ShoppingSpecialty = 
-  | 'GROCERY'
-  | 'PHARMACY'
-  | 'ELECTRONICS'
-  | 'CLOTHING'
-  | 'LUXURY_ITEMS'
-  | 'BULK_SHOPPING'
-  | 'SPECIALTY_STORES'
-  | 'GIFTS';
+export type ShoppingSpecialty =
+  | "GROCERY"
+  | "PHARMACY"
+  | "ELECTRONICS"
+  | "CLOTHING"
+  | "LUXURY_ITEMS"
+  | "BULK_SHOPPING"
+  | "SPECIALTY_STORES"
+  | "GIFTS";
 
-export type ShoppingType = 
-  | 'PERSONAL_SHOPPING'
-  | 'GROCERY_DELIVERY'
-  | 'BULK_PURCHASE'
-  | 'GIFT_SHOPPING'
-  | 'COMPARISON_SHOPPING'
-  | 'URGENT_SHOPPING';
+export type ShoppingType =
+  | "PERSONAL_SHOPPING"
+  | "GROCERY_DELIVERY"
+  | "BULK_PURCHASE"
+  | "GIFT_SHOPPING"
+  | "COMPARISON_SHOPPING"
+  | "URGENT_SHOPPING";
 
 export interface ShoppingPricing {
   baseRate: number; // taux de base par heure
@@ -40,7 +40,7 @@ export interface ShoppingPricing {
 }
 
 export interface ShoppingRestriction {
-  type: 'ITEM_TYPE' | 'QUANTITY' | 'VALUE' | 'STORE_TYPE';
+  type: "ITEM_TYPE" | "QUANTITY" | "VALUE" | "STORE_TYPE";
   description: string;
   limit?: number;
   excludedItems?: string[];
@@ -55,7 +55,7 @@ export interface ShoppingRequest {
   preferences: ShoppingPreferences;
   deliveryLocation: string;
   requestedDate: Date;
-  urgency: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  urgency: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   status: ShoppingRequestStatus;
 }
 
@@ -84,7 +84,7 @@ export interface ShoppingPreferences {
   preferredStores: string[];
   avoidStores: string[];
   brandPreferences: BrandPreference[];
-  qualityLevel: 'BUDGET' | 'STANDARD' | 'PREMIUM';
+  qualityLevel: "BUDGET" | "STANDARD" | "PREMIUM";
   organicPreferred: boolean;
   localPreferred: boolean;
   receiptRequired: boolean;
@@ -96,14 +96,14 @@ export interface BrandPreference {
   avoidedBrands: string[];
 }
 
-export type ShoppingRequestStatus = 
-  | 'PENDING'
-  | 'ACCEPTED'
-  | 'SHOPPING'
-  | 'COMPLETED'
-  | 'DELIVERED'
-  | 'CANCELLED'
-  | 'REFUNDED';
+export type ShoppingRequestStatus =
+  | "PENDING"
+  | "ACCEPTED"
+  | "SHOPPING"
+  | "COMPLETED"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "REFUNDED";
 
 export interface ShoppingResult {
   requestId: string;

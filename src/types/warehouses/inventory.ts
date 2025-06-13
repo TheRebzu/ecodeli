@@ -24,29 +24,29 @@ export interface InventoryItem {
   tags: string[];
 }
 
-export type ItemCategory = 
-  | 'ELECTRONICS'
-  | 'CLOTHING'
-  | 'DOCUMENTS'
-  | 'FURNITURE'
-  | 'FRAGILE'
-  | 'PERISHABLE'
-  | 'HAZARDOUS'
-  | 'OTHER';
+export type ItemCategory =
+  | "ELECTRONICS"
+  | "CLOTHING"
+  | "DOCUMENTS"
+  | "FURNITURE"
+  | "FRAGILE"
+  | "PERISHABLE"
+  | "HAZARDOUS"
+  | "OTHER";
 
 export interface Dimensions {
   length: number;
   width: number;
   height: number;
-  unit: 'cm' | 'm';
+  unit: "cm" | "m";
 }
 
-export type StorageCondition = 
-  | 'TEMPERATURE_CONTROLLED'
-  | 'HUMIDITY_CONTROLLED'
-  | 'SECURE'
-  | 'FRAGILE_HANDLING'
-  | 'UPRIGHT_ONLY';
+export type StorageCondition =
+  | "TEMPERATURE_CONTROLLED"
+  | "HUMIDITY_CONTROLLED"
+  | "SECURE"
+  | "FRAGILE_HANDLING"
+  | "UPRIGHT_ONLY";
 
 export interface InventoryCapacity {
   totalBoxes: number;

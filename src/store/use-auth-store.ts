@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { Session } from 'next-auth';
-import type { UserRole } from '@prisma/client';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { Session } from "next-auth";
+import type { UserRole } from "@prisma/client";
 
 // Interface pour l'utilisateur avec ses données étendues
 interface ExtendedUser {
@@ -60,7 +60,7 @@ export const useAuthStore = create<AuthState>()(
       error: null,
 
       // Définir la session
-      setSession: session => {
+      setSession: (session) => {
         set({
           session,
           isAuthenticated: !!session,
@@ -70,7 +70,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // Définir l'utilisateur
-      setUser: user => {
+      setUser: (user) => {
         set({
           user,
           role: (user?.role as UserRole) || null,
@@ -78,17 +78,17 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // Définir l'état d'authentification
-      setIsAuthenticated: isAuthenticated => {
+      setIsAuthenticated: (isAuthenticated) => {
         set({ isAuthenticated });
       },
 
       // Définir l'état de chargement
-      setIsLoading: isLoading => {
+      setIsLoading: (isLoading) => {
         set({ isLoading });
       },
 
       // Définir l'erreur
-      setError: error => {
+      setError: (error) => {
         set({ error });
       },
 
@@ -109,7 +109,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // Vérifier si l'utilisateur a un des rôles spécifiés
-      hasRole: roles => {
+      hasRole: (roles) => {
         const userRole = get().role;
         if (!userRole) return false;
 
@@ -121,8 +121,8 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'ecodeli-auth-storage',
-      partialize: state => ({
+      name: "ecodeli-auth-storage",
+      partialize: (state) => ({
         // Ne persistez pas les données sensibles comme le mot de passe
         user: state.user
           ? {
@@ -136,6 +136,6 @@ export const useAuthStore = create<AuthState>()(
         role: state.role,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );

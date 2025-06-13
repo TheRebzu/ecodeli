@@ -1,7 +1,13 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Users,
   UserCheck,
@@ -12,7 +18,7 @@ import {
   Star,
   Truck,
   MapPin,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface DeliverersStatsProps {
   data?: {
@@ -39,9 +45,9 @@ interface DeliverersStatsProps {
 
 export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
@@ -56,10 +62,10 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
   };
 
   const getGrowthColor = (rate: number | undefined) => {
-    if (!rate || rate === undefined) return 'text-muted-foreground';
-    if (rate > 0) return 'text-green-600';
-    if (rate < 0) return 'text-red-600';
-    return 'text-muted-foreground';
+    if (!rate || rate === undefined) return "text-muted-foreground";
+    if (rate > 0) return "text-green-600";
+    if (rate < 0) return "text-red-600";
+    return "text-muted-foreground";
   };
 
   // Valeurs par défaut pendant le chargement
@@ -82,8 +88,13 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
   let actualData: any = data;
 
   // Si les données sont emballées dans une propriété 'json', les extraire
-  if (data && typeof data === 'object' && 'json' in data && (data as any).json) {
-    console.log('🔧 Extraction des données depuis data.json');
+  if (
+    data &&
+    typeof data === "object" &&
+    "json" in data &&
+    (data as any).json
+  ) {
+    console.log("🔧 Extraction des données depuis data.json");
     actualData = (data as any).json;
   }
 
@@ -105,14 +116,14 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {isLoading ? '...' : safeStatsData.totalDeliverers}
+            {isLoading ? "..." : safeStatsData.totalDeliverers}
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             {!isLoading && getGrowthIcon(safeStatsData.growthRate)}
             <span className={getGrowthColor(safeStatsData.growthRate)}>
               {isLoading
-                ? 'Chargement...'
-                : `${safeStatsData.growthRate > 0 ? '+' : ''}${safeStatsData.growthRate.toFixed(1)}% ce mois`}
+                ? "Chargement..."
+                : `${safeStatsData.growthRate > 0 ? "+" : ""}${safeStatsData.growthRate.toFixed(1)}% ce mois`}
             </span>
           </div>
         </CardContent>
@@ -126,11 +137,11 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {isLoading ? '...' : safeStatsData.activeDeliverers}
+            {isLoading ? "..." : safeStatsData.activeDeliverers}
           </div>
           <p className="text-xs text-muted-foreground">
             {isLoading
-              ? 'Chargement...'
+              ? "Chargement..."
               : `${Math.round((safeStatsData.activeDeliverers / safeStatsData.totalDeliverers) * 100)}% du total`}
           </p>
         </CardContent>
@@ -149,11 +160,11 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {isLoading ? '...' : safeStatsData.verifiedDeliverers}
+            {isLoading ? "..." : safeStatsData.verifiedDeliverers}
           </div>
           <p className="text-xs text-muted-foreground">
             {isLoading
-              ? 'Chargement...'
+              ? "Chargement..."
               : `${safeStatsData.pendingVerification} en attente de vérification`}
           </p>
         </CardContent>
@@ -167,10 +178,12 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {isLoading ? '...' : safeStatsData.averageRating.toFixed(1)}
+            {isLoading ? "..." : safeStatsData.averageRating.toFixed(1)}
           </div>
           <p className="text-xs text-muted-foreground">
-            {isLoading ? 'Chargement...' : `Sur ${safeStatsData.totalDeliveries} livraisons`}
+            {isLoading
+              ? "Chargement..."
+              : `Sur ${safeStatsData.totalDeliveries} livraisons`}
           </p>
         </CardContent>
       </Card>
@@ -194,7 +207,7 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {isLoading ? '...' : formatCurrency(safeStatsData.averageEarnings)}
+            {isLoading ? "..." : formatCurrency(safeStatsData.averageEarnings)}
           </div>
           <p className="text-xs text-muted-foreground">Par livreur ce mois</p>
         </CardContent>
@@ -208,11 +221,11 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {isLoading ? '...' : safeStatsData.vehicledDeliverers}
+            {isLoading ? "..." : safeStatsData.vehicledDeliverers}
           </div>
           <p className="text-xs text-muted-foreground">
             {isLoading
-              ? 'Chargement...'
+              ? "Chargement..."
               : `${Math.round((safeStatsData.vehicledDeliverers / safeStatsData.totalDeliverers) * 100)}% ont un véhicule`}
           </p>
         </CardContent>
@@ -225,8 +238,12 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
           <MapPin className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{isLoading ? '...' : safeStatsData.activeZones}</div>
-          <p className="text-xs text-muted-foreground">Zones avec livreurs actifs</p>
+          <div className="text-2xl font-bold">
+            {isLoading ? "..." : safeStatsData.activeZones}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Zones avec livreurs actifs
+          </p>
         </CardContent>
       </Card>
 
@@ -238,9 +255,11 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-red-600">
-            {isLoading ? '...' : safeStatsData.suspendedDeliverers}
+            {isLoading ? "..." : safeStatsData.suspendedDeliverers}
           </div>
-          <p className="text-xs text-muted-foreground">Nécessitent une attention</p>
+          <p className="text-xs text-muted-foreground">
+            Nécessitent une attention
+          </p>
         </CardContent>
       </Card>
 
@@ -263,7 +282,9 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{performer.name}</p>
+                  <p className="text-sm font-medium truncate">
+                    {performer.name}
+                  </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />

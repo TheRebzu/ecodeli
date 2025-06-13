@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { PaymentStatus, PaymentMethod, WithdrawalStatus } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { PaymentStatus, PaymentMethod, WithdrawalStatus } from "@prisma/client";
 
 /**
  * Router pour la gestion des paiements et revenus des commerçants
@@ -17,8 +17,8 @@ const paymentFiltersSchema = z.object({
   orderId: z.string().optional(),
   minAmount: z.number().optional(),
   maxAmount: z.number().optional(),
-  sortBy: z.enum(['createdAt', 'amount', 'status']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  sortBy: z.enum(["createdAt", "amount", "status"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
   limit: z.number().min(1).max(100).default(20),
   offset: z.number().min(0).default(0),
 });
@@ -31,12 +31,12 @@ const withdrawalRequestSchema = z.object({
     accountHolder: z.string().min(2).max(100),
   }),
   reason: z.string().max(500).optional(),
-  urgency: z.enum(['NORMAL', 'URGENT']).default('NORMAL'),
+  urgency: z.enum(["NORMAL", "URGENT"]).default("NORMAL"),
 });
 
 const paymentStatsSchema = z.object({
-  period: z.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR']).default('MONTH'),
-  groupBy: z.enum(['day', 'week', 'month']).default('day'),
+  period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
+  groupBy: z.enum(["day", "week", "month"]).default("day"),
 });
 
 export const merchantPaymentsRouter = router({
@@ -46,10 +46,10 @@ export const merchantPaymentsRouter = router({
   getWallet: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'MERCHANT') {
+    if (user.role !== "MERCHANT") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les commerçants peuvent consulter leur wallet',
+        code: "FORBIDDEN",
+        message: "Seuls les commerçants peuvent consulter leur wallet",
       });
     }
 
@@ -60,8 +60,8 @@ export const merchantPaymentsRouter = router({
 
       if (!merchant) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil commerçant non trouvé',
+          code: "NOT_FOUND",
+          message: "Profil commerçant non trouvé",
         });
       }
 
@@ -70,11 +70,11 @@ export const merchantPaymentsRouter = router({
         where: { merchantId: merchant.id },
         include: {
           transactions: {
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             take: 10,
           },
           pendingWithdrawals: {
-            where: { status: { in: ['PENDING', 'PROCESSING'] } },
+            where: { status: { in: ["PENDING", "PROCESSING"] } },
           },
         },
       });
@@ -103,7 +103,7 @@ export const merchantPaymentsRouter = router({
       const monthlyEarnings = await ctx.db.payment.aggregate({
         where: {
           merchantId: merchant.id,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           createdAt: { gte: startOfMonth },
         },
         _sum: { amount: true },
@@ -135,8 +135,8 @@ export const merchantPaymentsRouter = router({
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération du wallet',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération du wallet",
       });
     }
   }),
@@ -144,119 +144,15 @@ export const merchantPaymentsRouter = router({
   /**
    * Obtenir l'historique des paiements reçus
    */
-  getPayments: protectedProcedure.input(paymentFiltersSchema).query(async ({ ctx, input }) => {
-    const { user } = ctx.session;
-
-    if (user.role !== 'MERCHANT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les commerçants peuvent consulter leurs paiements',
-      });
-    }
-
-    try {
-      const merchant = await ctx.db.merchant.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!merchant) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil commerçant non trouvé',
-        });
-      }
-
-      // Construire les filtres
-      const where: any = {
-        merchantId: merchant.id,
-        ...(input.status && { status: input.status }),
-        ...(input.method && { method: input.method }),
-        ...(input.orderId && { orderId: input.orderId }),
-        ...(input.minAmount && { amount: { gte: input.minAmount } }),
-        ...(input.maxAmount && { amount: { lte: input.maxAmount } }),
-        ...(input.dateFrom &&
-          input.dateTo && {
-            createdAt: { gte: input.dateFrom, lte: input.dateTo },
-          }),
-      };
-
-      const orderBy: any = {};
-      orderBy[input.sortBy] = input.sortOrder;
-
-      const [payments, totalCount] = await Promise.all([
-        ctx.db.payment.findMany({
-          where,
-          include: {
-            order: {
-              select: {
-                id: true,
-                orderNumber: true,
-                client: {
-                  select: {
-                    name: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-            refunds: {
-              select: {
-                id: true,
-                amount: true,
-                reason: true,
-                createdAt: true,
-              },
-            },
-          },
-          orderBy,
-          skip: input.offset,
-          take: input.limit,
-        }),
-        ctx.db.payment.count({ where }),
-      ]);
-
-      // Formatter les données
-      const formattedPayments = payments.map(payment => ({
-        ...payment,
-        amount: payment.amount.toNumber(),
-        netAmount: payment.netAmount?.toNumber(),
-        feeAmount: payment.feeAmount?.toNumber(),
-        refundedAmount: payment.refunds.reduce((sum, refund) => sum + refund.amount.toNumber(), 0),
-        customerName: payment.order?.client?.name || 'Client anonyme',
-        orderNumber: payment.order?.orderNumber,
-      }));
-
-      return {
-        success: true,
-        data: formattedPayments,
-        pagination: {
-          total: totalCount,
-          offset: input.offset,
-          limit: input.limit,
-          hasMore: input.offset + input.limit < totalCount,
-        },
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des paiements',
-      });
-    }
-  }),
-
-  /**
-   * Demander un retrait de fonds
-   */
-  requestWithdrawal: protectedProcedure
-    .input(withdrawalRequestSchema)
-    .mutation(async ({ ctx, input }) => {
+  getPayments: protectedProcedure
+    .input(paymentFiltersSchema)
+    .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent demander des retraits',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent consulter leurs paiements",
         });
       }
 
@@ -267,8 +163,117 @@ export const merchantPaymentsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
+          });
+        }
+
+        // Construire les filtres
+        const where: any = {
+          merchantId: merchant.id,
+          ...(input.status && { status: input.status }),
+          ...(input.method && { method: input.method }),
+          ...(input.orderId && { orderId: input.orderId }),
+          ...(input.minAmount && { amount: { gte: input.minAmount } }),
+          ...(input.maxAmount && { amount: { lte: input.maxAmount } }),
+          ...(input.dateFrom &&
+            input.dateTo && {
+              createdAt: { gte: input.dateFrom, lte: input.dateTo },
+            }),
+        };
+
+        const orderBy: any = {};
+        orderBy[input.sortBy] = input.sortOrder;
+
+        const [payments, totalCount] = await Promise.all([
+          ctx.db.payment.findMany({
+            where,
+            include: {
+              order: {
+                select: {
+                  id: true,
+                  orderNumber: true,
+                  client: {
+                    select: {
+                      name: true,
+                      email: true,
+                    },
+                  },
+                },
+              },
+              refunds: {
+                select: {
+                  id: true,
+                  amount: true,
+                  reason: true,
+                  createdAt: true,
+                },
+              },
+            },
+            orderBy,
+            skip: input.offset,
+            take: input.limit,
+          }),
+          ctx.db.payment.count({ where }),
+        ]);
+
+        // Formatter les données
+        const formattedPayments = payments.map((payment) => ({
+          ...payment,
+          amount: payment.amount.toNumber(),
+          netAmount: payment.netAmount?.toNumber(),
+          feeAmount: payment.feeAmount?.toNumber(),
+          refundedAmount: payment.refunds.reduce(
+            (sum, refund) => sum + refund.amount.toNumber(),
+            0,
+          ),
+          customerName: payment.order?.client?.name || "Client anonyme",
+          orderNumber: payment.order?.orderNumber,
+        }));
+
+        return {
+          success: true,
+          data: formattedPayments,
+          pagination: {
+            total: totalCount,
+            offset: input.offset,
+            limit: input.limit,
+            hasMore: input.offset + input.limit < totalCount,
+          },
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des paiements",
+        });
+      }
+    }),
+
+  /**
+   * Demander un retrait de fonds
+   */
+  requestWithdrawal: protectedProcedure
+    .input(withdrawalRequestSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
+
+      if (user.role !== "MERCHANT") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent demander des retraits",
+        });
+      }
+
+      try {
+        const merchant = await ctx.db.merchant.findUnique({
+          where: { userId: user.id },
+        });
+
+        if (!merchant) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -279,16 +284,16 @@ export const merchantPaymentsRouter = router({
 
         if (!wallet) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Wallet non trouvé',
+            code: "NOT_FOUND",
+            message: "Wallet non trouvé",
           });
         }
 
         // Vérifier le solde
         if (wallet.balance.toNumber() < input.amount) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Solde insuffisant',
+            code: "BAD_REQUEST",
+            message: "Solde insuffisant",
           });
         }
 
@@ -296,19 +301,19 @@ export const merchantPaymentsRouter = router({
         const pendingWithdrawals = await ctx.db.merchantWithdrawal.count({
           where: {
             merchantId: merchant.id,
-            status: { in: ['PENDING', 'PROCESSING'] },
+            status: { in: ["PENDING", "PROCESSING"] },
           },
         });
 
         if (pendingWithdrawals >= 3) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Limite de retraits en attente atteinte (3 max)',
+            code: "BAD_REQUEST",
+            message: "Limite de retraits en attente atteinte (3 max)",
           });
         }
 
         // Calculer les frais (2% pour urgence, 1% normal)
-        const feeRate = input.urgency === 'URGENT' ? 0.02 : 0.01;
+        const feeRate = input.urgency === "URGENT" ? 0.02 : 0.01;
         const feeAmount = input.amount * feeRate;
         const netAmount = input.amount - feeAmount;
 
@@ -322,7 +327,7 @@ export const merchantPaymentsRouter = router({
             bankAccount: input.bankAccount,
             reason: input.reason,
             urgency: input.urgency,
-            status: 'PENDING',
+            status: "PENDING",
           },
         });
 
@@ -339,7 +344,7 @@ export const merchantPaymentsRouter = router({
         await ctx.db.merchantWalletTransaction.create({
           data: {
             walletId: wallet.id,
-            type: 'WITHDRAWAL_REQUEST',
+            type: "WITHDRAWAL_REQUEST",
             amount: -input.amount,
             description: `Demande de retrait ${input.urgency}`,
             relatedId: withdrawal.id,
@@ -355,15 +360,15 @@ export const merchantPaymentsRouter = router({
             netAmount: withdrawal.netAmount.toNumber(),
           },
           message:
-            input.urgency === 'URGENT'
-              ? 'Demande de retrait urgent créée (traitement sous 24h)'
-              : 'Demande de retrait créée (traitement sous 3-5 jours)',
+            input.urgency === "URGENT"
+              ? "Demande de retrait urgent créée (traitement sous 24h)"
+              : "Demande de retrait créée (traitement sous 3-5 jours)",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la demande de retrait',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la demande de retrait",
         });
       }
     }),
@@ -377,15 +382,15 @@ export const merchantPaymentsRouter = router({
         status: z.nativeEnum(WithdrawalStatus).optional(),
         limit: z.number().min(1).max(100).default(20),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent consulter leurs retraits',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent consulter leurs retraits",
         });
       }
 
@@ -396,8 +401,8 @@ export const merchantPaymentsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -409,7 +414,7 @@ export const merchantPaymentsRouter = router({
         const [withdrawals, totalCount] = await Promise.all([
           ctx.db.merchantWithdrawal.findMany({
             where,
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             skip: input.offset,
             take: input.limit,
           }),
@@ -417,12 +422,12 @@ export const merchantPaymentsRouter = router({
         ]);
 
         // Formatter les données
-        const formattedWithdrawals = withdrawals.map(withdrawal => ({
+        const formattedWithdrawals = withdrawals.map((withdrawal) => ({
           ...withdrawal,
           amount: withdrawal.amount.toNumber(),
           feeAmount: withdrawal.feeAmount.toNumber(),
           netAmount: withdrawal.netAmount.toNumber(),
-          canCancel: withdrawal.status === 'PENDING',
+          canCancel: withdrawal.status === "PENDING",
         }));
 
         return {
@@ -438,8 +443,8 @@ export const merchantPaymentsRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des retraits',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des retraits",
         });
       }
     }),
@@ -452,10 +457,10 @@ export const merchantPaymentsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent annuler leurs retraits',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent annuler leurs retraits",
         });
       }
 
@@ -466,8 +471,8 @@ export const merchantPaymentsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -475,24 +480,24 @@ export const merchantPaymentsRouter = router({
           where: {
             id: input.withdrawalId,
             merchantId: merchant.id,
-            status: 'PENDING',
+            status: "PENDING",
           },
         });
 
         if (!withdrawal) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Retrait non trouvé ou ne peut pas être annulé',
+            code: "NOT_FOUND",
+            message: "Retrait non trouvé ou ne peut pas être annulé",
           });
         }
 
         // Transaction pour annuler le retrait
-        const result = await ctx.db.$transaction(async tx => {
+        const result = await ctx.db.$transaction(async (tx) => {
           // Annuler le retrait
           const cancelledWithdrawal = await tx.merchantWithdrawal.update({
             where: { id: input.withdrawalId },
             data: {
-              status: 'CANCELLED',
+              status: "CANCELLED",
               cancelledAt: new Date(),
             },
           });
@@ -514,9 +519,9 @@ export const merchantPaymentsRouter = router({
           await tx.merchantWalletTransaction.create({
             data: {
               walletId: wallet!.id,
-              type: 'WITHDRAWAL_CANCELLED',
+              type: "WITHDRAWAL_CANCELLED",
               amount: withdrawal.amount.toNumber(),
-              description: 'Annulation demande de retrait',
+              description: "Annulation demande de retrait",
               relatedId: withdrawal.id,
             },
           });
@@ -527,12 +532,12 @@ export const merchantPaymentsRouter = router({
         return {
           success: true,
           data: result,
-          message: 'Demande de retrait annulée avec succès',
+          message: "Demande de retrait annulée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'annulation du retrait",
         });
       }
@@ -541,88 +546,91 @@ export const merchantPaymentsRouter = router({
   /**
    * Obtenir les statistiques de paiements
    */
-  getPaymentStats: protectedProcedure.input(paymentStatsSchema).query(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  getPaymentStats: protectedProcedure
+    .input(paymentStatsSchema)
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'MERCHANT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Accès non autorisé',
-      });
-    }
-
-    try {
-      const merchant = await ctx.db.merchant.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!merchant) {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil commerçant non trouvé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
-      // Calculer les dates
-      const now = new Date();
-      let startDate: Date;
+      try {
+        const merchant = await ctx.db.merchant.findUnique({
+          where: { userId: user.id },
+        });
 
-      switch (input.period) {
-        case 'WEEK':
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case 'MONTH':
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case 'QUARTER':
-          const quarter = Math.floor(now.getMonth() / 3);
-          startDate = new Date(now.getFullYear(), quarter * 3, 1);
-          break;
-        case 'YEAR':
-          startDate = new Date(now.getFullYear(), 0, 1);
-          break;
-      }
+        if (!merchant) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
+          });
+        }
 
-      // Statistiques générales
-      const [totalRevenue, totalPayments, avgPayment, byMethod] = await Promise.all([
-        ctx.db.payment.aggregate({
-          where: {
-            merchantId: merchant.id,
-            status: 'COMPLETED',
-            createdAt: { gte: startDate },
-          },
-          _sum: { amount: true },
-        }),
-        ctx.db.payment.count({
-          where: {
-            merchantId: merchant.id,
-            status: 'COMPLETED',
-            createdAt: { gte: startDate },
-          },
-        }),
-        ctx.db.payment.aggregate({
-          where: {
-            merchantId: merchant.id,
-            status: 'COMPLETED',
-            createdAt: { gte: startDate },
-          },
-          _avg: { amount: true },
-        }),
-        ctx.db.payment.groupBy({
-          by: ['method'],
-          where: {
-            merchantId: merchant.id,
-            status: 'COMPLETED',
-            createdAt: { gte: startDate },
-          },
-          _sum: { amount: true },
-          _count: true,
-        }),
-      ]);
+        // Calculer les dates
+        const now = new Date();
+        let startDate: Date;
 
-      // Timeline des paiements
-      const interval = input.groupBy;
-      const timeline = (await ctx.db.$queryRaw`
+        switch (input.period) {
+          case "WEEK":
+            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case "MONTH":
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case "QUARTER":
+            const quarter = Math.floor(now.getMonth() / 3);
+            startDate = new Date(now.getFullYear(), quarter * 3, 1);
+            break;
+          case "YEAR":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            break;
+        }
+
+        // Statistiques générales
+        const [totalRevenue, totalPayments, avgPayment, byMethod] =
+          await Promise.all([
+            ctx.db.payment.aggregate({
+              where: {
+                merchantId: merchant.id,
+                status: "COMPLETED",
+                createdAt: { gte: startDate },
+              },
+              _sum: { amount: true },
+            }),
+            ctx.db.payment.count({
+              where: {
+                merchantId: merchant.id,
+                status: "COMPLETED",
+                createdAt: { gte: startDate },
+              },
+            }),
+            ctx.db.payment.aggregate({
+              where: {
+                merchantId: merchant.id,
+                status: "COMPLETED",
+                createdAt: { gte: startDate },
+              },
+              _avg: { amount: true },
+            }),
+            ctx.db.payment.groupBy({
+              by: ["method"],
+              where: {
+                merchantId: merchant.id,
+                status: "COMPLETED",
+                createdAt: { gte: startDate },
+              },
+              _sum: { amount: true },
+              _count: true,
+            }),
+          ]);
+
+        // Timeline des paiements
+        const interval = input.groupBy;
+        const timeline = (await ctx.db.$queryRaw`
           SELECT 
             DATE_TRUNC(${interval}, created_at) as period,
             COUNT(*)::int as payments_count,
@@ -634,40 +642,42 @@ export const merchantPaymentsRouter = router({
           GROUP BY DATE_TRUNC(${interval}, created_at)
           ORDER BY period ASC
         `) as Array<{
-        period: Date;
-        payments_count: number;
-        total_amount: number;
-      }>;
+          period: Date;
+          payments_count: number;
+          total_amount: number;
+        }>;
 
-      return {
-        success: true,
-        data: {
-          summary: {
-            totalRevenue: totalRevenue._sum.amount || 0,
-            totalPayments,
-            averagePayment: avgPayment._avg.amount || 0,
-            period: input.period,
+        return {
+          success: true,
+          data: {
+            summary: {
+              totalRevenue: totalRevenue._sum.amount || 0,
+              totalPayments,
+              averagePayment: avgPayment._avg.amount || 0,
+              period: input.period,
+            },
+            byMethod: byMethod.map((method) => ({
+              method: method.method,
+              amount: method._sum.amount || 0,
+              count: method._count,
+              percentage: totalRevenue._sum.amount
+                ? ((method._sum.amount || 0) /
+                    (totalRevenue._sum.amount || 1)) *
+                  100
+                : 0,
+            })),
+            timeline: timeline.map((item) => ({
+              date: item.period,
+              payments: item.payments_count,
+              amount: item.total_amount,
+            })),
           },
-          byMethod: byMethod.map(method => ({
-            method: method.method,
-            amount: method._sum.amount || 0,
-            count: method._count,
-            percentage: totalRevenue._sum.amount
-              ? ((method._sum.amount || 0) / (totalRevenue._sum.amount || 1)) * 100
-              : 0,
-          })),
-          timeline: timeline.map(item => ({
-            date: item.period,
-            payments: item.payments_count,
-            amount: item.total_amount,
-          })),
-        },
-      };
-    } catch (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des statistiques',
-      });
-    }
-  }),
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques",
+        });
+      }
+    }),
 });

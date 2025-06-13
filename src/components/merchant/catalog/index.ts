@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export { default as PricingRules } from './pricing-rules';
-export * from './pricing-rules';
-export { default as ProductManager } from './product-manager';
-export * from './product-manager';
+export { default as PricingRules } from "./pricing-rules";
+export * from "./pricing-rules";
+export { default as ProductManager } from "./product-manager";
+export * from "./product-manager";

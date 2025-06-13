@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
-import { UserRole, UserStatus } from '@prisma/client';
-import { useTranslations } from 'next-intl';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { UserRole, UserStatus } from "@prisma/client";
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -12,20 +12,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pagination } from '@/components/ui/pagination';
-import { Input } from '@/components/ui/input';
-import { Eye, Search, UserCheck, UserX } from 'lucide-react';
-import { api } from '@/trpc/react';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Pagination } from "@/components/ui/pagination";
+import { Input } from "@/components/ui/input";
+import { Eye, Search, UserCheck, UserX } from "lucide-react";
+import { api } from "@/trpc/react";
 
 export default function UsersVerificationList() {
-  const t = useTranslations('Admin.verification');
+  const t = useTranslations("Admin.verification");
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>("all");
   const [filters, setFilters] = useState<{
     role?: UserRole;
     status?: UserStatus;
@@ -36,13 +42,13 @@ export default function UsersVerificationList() {
     page: 1,
     limit: 10,
   });
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Query to fetch users
   const { data: usersData, isLoading } = api.adminUser.getUsers.useQuery({
     ...filters,
-    sortBy: 'createdAt',
-    sortDirection: 'desc',
+    sortBy: "createdAt",
+    sortDirection: "desc",
   });
 
   const handleTabChange = (value: string) => {
@@ -50,28 +56,28 @@ export default function UsersVerificationList() {
     let newFilters: { role?: UserRole; status?: UserStatus } = {};
 
     switch (value) {
-      case 'clients':
+      case "clients":
         newFilters = { role: UserRole.CLIENT };
         break;
-      case 'deliverers':
+      case "deliverers":
         newFilters = { role: UserRole.DELIVERER };
         break;
-      case 'merchants':
+      case "merchants":
         newFilters = { role: UserRole.MERCHANT };
         break;
-      case 'providers':
+      case "providers":
         newFilters = { role: UserRole.PROVIDER };
         break;
-      case 'pending':
+      case "pending":
         newFilters = { status: UserStatus.PENDING_VERIFICATION };
         break;
-      case 'all':
+      case "all":
       default:
         // No filters for "all" tab
         break;
     }
 
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       ...newFilters,
       page: 1,
@@ -79,15 +85,15 @@ export default function UsersVerificationList() {
   };
 
   const handlePageChange = (page: number) => {
-    setFilters(prev => ({ ...prev, page }));
+    setFilters((prev) => ({ ...prev, page }));
   };
 
   const handleSearch = () => {
-    setFilters(prev => ({ ...prev, search: searchQuery, page: 1 }));
+    setFilters((prev) => ({ ...prev, search: searchQuery, page: 1 }));
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
@@ -132,9 +138,11 @@ export default function UsersVerificationList() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>{t('usersVerification.title', 'Users Verification')}</CardTitle>
+        <CardTitle>
+          {t("usersVerification.title", "Users Verification")}
+        </CardTitle>
         <CardDescription>
-          {t('usersVerification.description', 'View and verify user documents')}
+          {t("usersVerification.description", "View and verify user documents")}
         </CardDescription>
       </CardHeader>
 
@@ -146,65 +154,86 @@ export default function UsersVerificationList() {
             <Input
               type="search"
               placeholder={t(
-                'usersVerification.searchPlaceholder',
-                'Search users by name or email'
+                "usersVerification.searchPlaceholder",
+                "Search users by name or email",
               )}
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleSearchKeyDown}
               className="pl-8"
             />
           </div>
-          <Button onClick={handleSearch}>{t('usersVerification.search', 'Search')}</Button>
+          <Button onClick={handleSearch}>
+            {t("usersVerification.search", "Search")}
+          </Button>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="grid grid-cols-6">
-            <TabsTrigger value="all">{t('tabs.all', 'All')}</TabsTrigger>
-            <TabsTrigger value="clients">{t('tabs.clients', 'Clients')}</TabsTrigger>
-            <TabsTrigger value="deliverers">{t('tabs.deliverers', 'Deliverers')}</TabsTrigger>
-            <TabsTrigger value="merchants">{t('tabs.merchants', 'Merchants')}</TabsTrigger>
-            <TabsTrigger value="providers">{t('tabs.providers', 'Providers')}</TabsTrigger>
-            <TabsTrigger value="pending">{t('tabs.pending', 'Pending')}</TabsTrigger>
+            <TabsTrigger value="all">{t("tabs.all", "All")}</TabsTrigger>
+            <TabsTrigger value="clients">
+              {t("tabs.clients", "Clients")}
+            </TabsTrigger>
+            <TabsTrigger value="deliverers">
+              {t("tabs.deliverers", "Deliverers")}
+            </TabsTrigger>
+            <TabsTrigger value="merchants">
+              {t("tabs.merchants", "Merchants")}
+            </TabsTrigger>
+            <TabsTrigger value="providers">
+              {t("tabs.providers", "Providers")}
+            </TabsTrigger>
+            <TabsTrigger value="pending">
+              {t("tabs.pending", "Pending")}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('table.user', 'User')}</TableHead>
-                  <TableHead>{t('table.role', 'Role')}</TableHead>
-                  <TableHead>{t('table.status', 'Status')}</TableHead>
-                  <TableHead>{t('table.documents', 'Documents')}</TableHead>
-                  <TableHead>{t('table.created', 'Created')}</TableHead>
-                  <TableHead className="text-right">{t('table.actions', 'Actions')}</TableHead>
+                  <TableHead>{t("table.user", "User")}</TableHead>
+                  <TableHead>{t("table.role", "Role")}</TableHead>
+                  <TableHead>{t("table.status", "Status")}</TableHead>
+                  <TableHead>{t("table.documents", "Documents")}</TableHead>
+                  <TableHead>{t("table.created", "Created")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("table.actions", "Actions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center">
-                      {t('loading', 'Loading...')}
+                      {t("loading", "Loading...")}
                     </TableCell>
                   </TableRow>
                 ) : usersData?.users && usersData.users.length > 0 ? (
-                  usersData.users.map(user => (
+                  usersData.users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{user.name}</div>
-                          <div className="text-sm text-muted-foreground">{user.email}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {user.email}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell>{getVerificationBadge(user.isVerified)}</TableCell>
+                      <TableCell>
+                        {getVerificationBadge(user.isVerified)}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {user.documentsCount || 0} {t('documents', 'documents')}
+                          {user.documentsCount || 0}{" "}
+                          {t("documents", "documents")}
                         </Badge>
                       </TableCell>
-                      <TableCell>{format(new Date(user.createdAt), 'MMM d, yyyy')}</TableCell>
+                      <TableCell>
+                        {format(new Date(user.createdAt), "MMM d, yyyy")}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="outline"
@@ -212,7 +241,7 @@ export default function UsersVerificationList() {
                           onClick={() => handleViewUserDocuments(user.id)}
                         >
                           <Eye className="mr-2 h-4 w-4" />
-                          {t('actions.viewDocuments', 'View Documents')}
+                          {t("actions.viewDocuments", "View Documents")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -220,7 +249,7 @@ export default function UsersVerificationList() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center">
-                      {t('usersVerification.noUsers', 'No users found')}
+                      {t("usersVerification.noUsers", "No users found")}
                     </TableCell>
                   </TableRow>
                 )}
@@ -228,15 +257,17 @@ export default function UsersVerificationList() {
             </Table>
 
             {/* Pagination */}
-            {!isLoading && usersData?.totalPages && usersData.totalPages > 1 && (
-              <div className="mt-4 flex justify-center">
-                <Pagination
-                  currentPage={filters.page}
-                  totalPages={usersData.totalPages}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            )}
+            {!isLoading &&
+              usersData?.totalPages &&
+              usersData.totalPages > 1 && (
+                <div className="mt-4 flex justify-center">
+                  <Pagination
+                    currentPage={filters.page}
+                    totalPages={usersData.totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
           </TabsContent>
         </Tabs>
       </CardContent>

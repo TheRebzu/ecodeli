@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { TutorialStepType, TutorialOverlayType } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { TutorialStepType, TutorialOverlayType } from "@prisma/client";
 
 /**
  * Router pour le syst�me de tutoriel client selon le cahier des charges
@@ -21,7 +21,7 @@ const tutorialConfigSchema = z.object({
   isEnabled: z.boolean(),
   allowSkipping: z.boolean(),
   showOnEveryLogin: z.boolean(),
-  language: z.enum(['fr', 'en']).default('fr'),
+  language: z.enum(["fr", "en"]).default("fr"),
 });
 
 export const clientTutorialRouter = router({
@@ -31,10 +31,10 @@ export const clientTutorialRouter = router({
   getTutorialState: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'CLIENT') {
+    if (user.role !== "CLIENT") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les clients peuvent acc�der au tutoriel',
+        code: "FORBIDDEN",
+        message: "Seuls les clients peuvent acc�der au tutoriel",
       });
     }
 
@@ -46,8 +46,8 @@ export const clientTutorialRouter = router({
 
       if (!client) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil client non trouv�',
+          code: "NOT_FOUND",
+          message: "Profil client non trouv�",
         });
       }
 
@@ -58,10 +58,10 @@ export const clientTutorialRouter = router({
           progress: {
             include: {
               step: {
-                orderBy: { sequence: 'asc' },
+                orderBy: { sequence: "asc" },
               },
             },
-            orderBy: { createdAt: 'asc' },
+            orderBy: { createdAt: "asc" },
           },
         },
       });
@@ -73,22 +73,27 @@ export const clientTutorialRouter = router({
 
       // R�cup�rer toutes les �tapes disponibles
       const allSteps = await ctx.db.clientTutorialStep.findMany({
-        orderBy: { sequence: 'asc' },
+        orderBy: { sequence: "asc" },
       });
 
       // Calculer le progr�s
-      const completedSteps = tutorialConfig.progress.filter(p => p.completed);
+      const completedSteps = tutorialConfig.progress.filter((p) => p.completed);
       const totalSteps = allSteps.length;
-      const progressPercentage = totalSteps > 0 ? (completedSteps.length / totalSteps) * 100 : 0;
+      const progressPercentage =
+        totalSteps > 0 ? (completedSteps.length / totalSteps) * 100 : 0;
 
       // D�terminer l'�tape actuelle
       const currentStep = allSteps.find(
-        step => !tutorialConfig.progress.some(p => p.stepId === step.id && p.completed)
+        (step) =>
+          !tutorialConfig.progress.some(
+            (p) => p.stepId === step.id && p.completed,
+          ),
       );
 
       // V�rifier si le tutoriel doit �tre affich�
       const shouldShowTutorial =
-        tutorialConfig.isEnabled && (progressPercentage < 100 || tutorialConfig.showOnEveryLogin);
+        tutorialConfig.isEnabled &&
+        (progressPercentage < 100 || tutorialConfig.showOnEveryLogin);
 
       return {
         success: true,
@@ -101,11 +106,17 @@ export const clientTutorialRouter = router({
             currentStep,
             isCompleted: progressPercentage >= 100,
           },
-          steps: allSteps.map(step => ({
+          steps: allSteps.map((step) => ({
             ...step,
-            isCompleted: tutorialConfig.progress.some(p => p.stepId === step.id && p.completed),
-            isSkipped: tutorialConfig.progress.some(p => p.stepId === step.id && p.skipped),
-            timeSpent: tutorialConfig.progress.find(p => p.stepId === step.id)?.timeSpent || 0,
+            isCompleted: tutorialConfig.progress.some(
+              (p) => p.stepId === step.id && p.completed,
+            ),
+            isSkipped: tutorialConfig.progress.some(
+              (p) => p.stepId === step.id && p.skipped,
+            ),
+            timeSpent:
+              tutorialConfig.progress.find((p) => p.stepId === step.id)
+                ?.timeSpent || 0,
           })),
           shouldShow: shouldShowTutorial,
           canSkip: tutorialConfig.allowSkipping,
@@ -114,8 +125,8 @@ export const clientTutorialRouter = router({
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la r�cup�ration du tutoriel',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la r�cup�ration du tutoriel",
       });
     }
   }),
@@ -128,10 +139,10 @@ export const clientTutorialRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent mettre � jour leur progr�s',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent mettre � jour leur progr�s",
         });
       }
 
@@ -142,8 +153,8 @@ export const clientTutorialRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouv�',
+            code: "NOT_FOUND",
+            message: "Profil client non trouv�",
           });
         }
 
@@ -154,8 +165,8 @@ export const clientTutorialRouter = router({
 
         if (!step) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: '�tape de tutoriel non trouv�e',
+            code: "NOT_FOUND",
+            message: "�tape de tutoriel non trouv�e",
           });
         }
 
@@ -232,16 +243,16 @@ export const clientTutorialRouter = router({
             nextStep: await getNextStep(ctx, tutorialConfig.id),
           },
           message: input.completed
-            ? '�tape marqu�e comme termin�e'
+            ? "�tape marqu�e comme termin�e"
             : input.skipped
-              ? '�tape ignor�e'
-              : 'Progr�s mis � jour',
+              ? "�tape ignor�e"
+              : "Progr�s mis � jour",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la mise � jour du progr�s',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise � jour du progr�s",
         });
       }
     }),
@@ -252,10 +263,10 @@ export const clientTutorialRouter = router({
   resetTutorial: protectedProcedure.mutation(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'CLIENT') {
+    if (user.role !== "CLIENT") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les clients peuvent r�initialiser leur tutoriel',
+        code: "FORBIDDEN",
+        message: "Seuls les clients peuvent r�initialiser leur tutoriel",
       });
     }
 
@@ -266,8 +277,8 @@ export const clientTutorialRouter = router({
 
       if (!client) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil client non trouv�',
+          code: "NOT_FOUND",
+          message: "Profil client non trouv�",
         });
       }
 
@@ -282,13 +293,13 @@ export const clientTutorialRouter = router({
       return {
         success: true,
         data: newConfig,
-        message: 'Tutoriel r�initialis� avec succ�s',
+        message: "Tutoriel r�initialis� avec succ�s",
       };
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la r�initialisation',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la r�initialisation",
       });
     }
   }),
@@ -296,62 +307,64 @@ export const clientTutorialRouter = router({
   /**
    * Mettre � jour la configuration du tutoriel
    */
-  updateConfig: protectedProcedure.input(tutorialConfigSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  updateConfig: protectedProcedure
+    .input(tutorialConfigSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'CLIENT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les clients peuvent modifier leur configuration',
-      });
-    }
-
-    try {
-      const client = await ctx.db.client.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!client) {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil client non trouv�',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent modifier leur configuration",
         });
       }
 
-      // R�cup�rer ou cr�er la configuration
-      let tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
-        where: { clientId: client.id },
-      });
+      try {
+        const client = await ctx.db.client.findUnique({
+          where: { userId: user.id },
+        });
 
-      if (!tutorialConfig) {
-        tutorialConfig = await createDefaultTutorialConfig(ctx, client.id);
+        if (!client) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil client non trouv�",
+          });
+        }
+
+        // R�cup�rer ou cr�er la configuration
+        let tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
+          where: { clientId: client.id },
+        });
+
+        if (!tutorialConfig) {
+          tutorialConfig = await createDefaultTutorialConfig(ctx, client.id);
+        }
+
+        // Mettre � jour la configuration
+        const updatedConfig = await ctx.db.clientTutorialConfig.update({
+          where: { id: tutorialConfig.id },
+          data: {
+            isEnabled: input.isEnabled,
+            allowSkipping: input.allowSkipping,
+            showOnEveryLogin: input.showOnEveryLogin,
+            language: input.language,
+            updatedAt: new Date(),
+          },
+        });
+
+        return {
+          success: true,
+          data: updatedConfig,
+          message: "Configuration mise � jour",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise � jour de la configuration",
+        });
       }
-
-      // Mettre � jour la configuration
-      const updatedConfig = await ctx.db.clientTutorialConfig.update({
-        where: { id: tutorialConfig.id },
-        data: {
-          isEnabled: input.isEnabled,
-          allowSkipping: input.allowSkipping,
-          showOnEveryLogin: input.showOnEveryLogin,
-          language: input.language,
-          updatedAt: new Date(),
-        },
-      });
-
-      return {
-        success: true,
-        data: updatedConfig,
-        message: 'Configuration mise � jour',
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise � jour de la configuration',
-      });
-    }
-  }),
+    }),
 
   /**
    * Marquer le tutoriel comme termin� (skip all)
@@ -359,10 +372,10 @@ export const clientTutorialRouter = router({
   completeTutorial: protectedProcedure.mutation(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'CLIENT') {
+    if (user.role !== "CLIENT") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les clients peuvent terminer leur tutoriel',
+        code: "FORBIDDEN",
+        message: "Seuls les clients peuvent terminer leur tutoriel",
       });
     }
 
@@ -373,8 +386,8 @@ export const clientTutorialRouter = router({
 
       if (!client) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil client non trouv�',
+          code: "NOT_FOUND",
+          message: "Profil client non trouv�",
         });
       }
 
@@ -390,8 +403,8 @@ export const clientTutorialRouter = router({
       // V�rifier si le skip est autoris�
       if (!tutorialConfig.allowSkipping) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Le tutoriel ne peut pas �tre ignor�',
+          code: "BAD_REQUEST",
+          message: "Le tutoriel ne peut pas �tre ignor�",
         });
       }
 
@@ -399,13 +412,14 @@ export const clientTutorialRouter = router({
       const allSteps = await ctx.db.clientTutorialStep.findMany();
 
       await Promise.all(
-        allSteps.map(async step => {
-          const existingProgress = await ctx.db.clientTutorialProgress.findFirst({
-            where: {
-              configId: tutorialConfig.id,
-              stepId: step.id,
-            },
-          });
+        allSteps.map(async (step) => {
+          const existingProgress =
+            await ctx.db.clientTutorialProgress.findFirst({
+              where: {
+                configId: tutorialConfig.id,
+                stepId: step.id,
+              },
+            });
 
           if (!existingProgress) {
             await ctx.db.clientTutorialProgress.create({
@@ -414,7 +428,7 @@ export const clientTutorialRouter = router({
                 stepId: step.id,
                 completed: false,
                 skipped: true,
-                userAction: 'TUTORIAL_SKIPPED_ALL',
+                userAction: "TUTORIAL_SKIPPED_ALL",
               },
             });
           } else if (!existingProgress.completed) {
@@ -422,11 +436,11 @@ export const clientTutorialRouter = router({
               where: { id: existingProgress.id },
               data: {
                 skipped: true,
-                userAction: 'TUTORIAL_SKIPPED_ALL',
+                userAction: "TUTORIAL_SKIPPED_ALL",
               },
             });
           }
-        })
+        }),
       );
 
       // Marquer la configuration comme termin�e
@@ -441,13 +455,13 @@ export const clientTutorialRouter = router({
       return {
         success: true,
         data: updatedConfig,
-        message: 'Tutoriel termin�',
+        message: "Tutoriel termin�",
       };
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la finalisation du tutoriel',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la finalisation du tutoriel",
       });
     }
   }),
@@ -458,10 +472,10 @@ export const clientTutorialRouter = router({
   getCurrentOverlay: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'CLIENT') {
+    if (user.role !== "CLIENT") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Acc�s non autoris�',
+        code: "FORBIDDEN",
+        message: "Acc�s non autoris�",
       });
     }
 
@@ -483,18 +497,24 @@ export const clientTutorialRouter = router({
         },
       });
 
-      if (!tutorialConfig || !tutorialConfig.isEnabled || tutorialConfig.completedAt) {
+      if (
+        !tutorialConfig ||
+        !tutorialConfig.isEnabled ||
+        tutorialConfig.completedAt
+      ) {
         return { success: true, data: null };
       }
 
       // Trouver la prochaine �tape non termin�e
       const allSteps = await ctx.db.clientTutorialStep.findMany({
-        orderBy: { sequence: 'asc' },
+        orderBy: { sequence: "asc" },
       });
 
       const nextStep = allSteps.find(
-        step =>
-          !tutorialConfig.progress.some(p => p.stepId === step.id && (p.completed || p.skipped))
+        (step) =>
+          !tutorialConfig.progress.some(
+            (p) => p.stepId === step.id && (p.completed || p.skipped),
+          ),
       );
 
       if (!nextStep) {
@@ -506,13 +526,13 @@ export const clientTutorialRouter = router({
         data: {
           step: nextStep,
           config: tutorialConfig,
-          shouldBlock: nextStep.overlayType === 'BLOCKING',
+          shouldBlock: nextStep.overlayType === "BLOCKING",
           canSkip: tutorialConfig.allowSkipping,
         },
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la r�cup�ration de l'overlay",
       });
     }
@@ -527,7 +547,7 @@ async function createDefaultTutorialConfig(ctx: any, clientId: string) {
       isEnabled: true,
       allowSkipping: true,
       showOnEveryLogin: false,
-      language: 'fr',
+      language: "fr",
     },
     include: {
       progress: {
@@ -539,7 +559,7 @@ async function createDefaultTutorialConfig(ctx: any, clientId: string) {
 
 async function getNextStep(ctx: any, configId: string) {
   const allSteps = await ctx.db.clientTutorialStep.findMany({
-    orderBy: { sequence: 'asc' },
+    orderBy: { sequence: "asc" },
   });
 
   const progress = await ctx.db.clientTutorialProgress.findMany({
@@ -547,6 +567,7 @@ async function getNextStep(ctx: any, configId: string) {
   });
 
   return allSteps.find(
-    step => !progress.some(p => p.stepId === step.id && (p.completed || p.skipped))
+    (step) =>
+      !progress.some((p) => p.stepId === step.id && (p.completed || p.skipped)),
   );
 }

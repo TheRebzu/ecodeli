@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,12 +29,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Pagination } from '@/components/ui/pagination';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
 import {
   EllipsisVertical,
   Eye,
@@ -45,11 +45,11 @@ import {
   MapPin,
   MessageSquare,
   ClipboardCheck,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/trpc/react';
-import { DeliveryStatus } from '@prisma/client';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { api } from "@/trpc/react";
+import { DeliveryStatus } from "@prisma/client";
+import { toast } from "sonner";
 
 // Types pour les livraisons basées sur le modèle Prisma
 interface Delivery {
@@ -96,11 +96,11 @@ export function DeliveryTable({
   currentPage,
   onPageChange,
 }: DeliveryTableProps) {
-  const t = useTranslations('admin.deliveries');
+  const t = useTranslations("admin.deliveries");
   const router = useRouter();
   const [selectedDeliveries, setSelectedDeliveries] = useState<string[]>([]);
-  const [sortColumn, setSortColumn] = useState<string>('createdAt');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortColumn, setSortColumn] = useState<string>("createdAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [deliveryToUpdate, setDeliveryToUpdate] = useState<{
     id: string;
@@ -110,21 +110,21 @@ export function DeliveryTable({
   // Mutation tRPC pour la mise à jour du statut de livraison
   const updateStatusMutation = api.delivery.updateStatus.useMutation({
     onSuccess: () => {
-      toast.success(t('statusUpdateSuccess'));
+      toast.success(t("statusUpdateSuccess"));
       setConfirmDialogOpen(false);
       setDeliveryToUpdate(null);
       // Rafraîchir les données
       router.refresh();
     },
-    onError: error => {
-      toast.error(t('statusUpdateError', { error: error.message }));
+    onError: (error) => {
+      toast.error(t("statusUpdateError", { error: error.message }));
     },
   });
 
   const handleSelectDelivery = (deliveryId: string) => {
-    setSelectedDeliveries(prev => {
+    setSelectedDeliveries((prev) => {
       if (prev.includes(deliveryId)) {
-        return prev.filter(id => id !== deliveryId);
+        return prev.filter((id) => id !== deliveryId);
       } else {
         return [...prev, deliveryId];
       }
@@ -135,16 +135,16 @@ export function DeliveryTable({
     if (selectedDeliveries.length === deliveries.length) {
       setSelectedDeliveries([]);
     } else {
-      setSelectedDeliveries(deliveries.map(d => d.id));
+      setSelectedDeliveries(deliveries.map((d) => d.id));
     }
   };
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
-      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortColumn(column);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
@@ -173,20 +173,20 @@ export function DeliveryTable({
 
   const renderStatusBadge = (status: DeliveryStatus) => {
     switch (status) {
-      case 'PENDING':
-        return <Badge variant="outline">{t('status.pending')}</Badge>;
-      case 'PICKED_UP':
-        return <Badge variant="secondary">{t('status.pickedUp')}</Badge>;
-      case 'IN_TRANSIT':
-        return <Badge variant="secondary">{t('status.inTransit')}</Badge>;
-      case 'DELIVERED':
-        return <Badge variant="success">{t('status.delivered')}</Badge>;
-      case 'CONFIRMED':
-        return <Badge variant="success">{t('status.confirmed')}</Badge>;
-      case 'PROBLEM':
-        return <Badge variant="destructive">{t('status.problem')}</Badge>;
-      case 'CANCELLED':
-        return <Badge variant="destructive">{t('status.cancelled')}</Badge>;
+      case "PENDING":
+        return <Badge variant="outline">{t("status.pending")}</Badge>;
+      case "PICKED_UP":
+        return <Badge variant="secondary">{t("status.pickedUp")}</Badge>;
+      case "IN_TRANSIT":
+        return <Badge variant="secondary">{t("status.inTransit")}</Badge>;
+      case "DELIVERED":
+        return <Badge variant="success">{t("status.delivered")}</Badge>;
+      case "CONFIRMED":
+        return <Badge variant="success">{t("status.confirmed")}</Badge>;
+      case "PROBLEM":
+        return <Badge variant="destructive">{t("status.problem")}</Badge>;
+      case "CANCELLED":
+        return <Badge variant="destructive">{t("status.cancelled")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -200,12 +200,14 @@ export function DeliveryTable({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12"></TableHead>
-                <TableHead>{t('columns.trackingNumber')}</TableHead>
-                <TableHead>{t('columns.status')}</TableHead>
-                <TableHead>{t('columns.client')}</TableHead>
-                <TableHead>{t('columns.deliverer')}</TableHead>
-                <TableHead>{t('columns.date')}</TableHead>
-                <TableHead className="text-right">{t('columns.actions')}</TableHead>
+                <TableHead>{t("columns.trackingNumber")}</TableHead>
+                <TableHead>{t("columns.status")}</TableHead>
+                <TableHead>{t("columns.client")}</TableHead>
+                <TableHead>{t("columns.deliverer")}</TableHead>
+                <TableHead>{t("columns.date")}</TableHead>
+                <TableHead className="text-right">
+                  {t("columns.actions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -252,34 +254,48 @@ export function DeliveryTable({
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedDeliveries.length === deliveries.length && deliveries.length > 0}
+                  checked={
+                    selectedDeliveries.length === deliveries.length &&
+                    deliveries.length > 0
+                  }
                   onCheckedChange={handleSelectAllDeliveries}
                   aria-label="Sélectionner toutes les livraisons"
                 />
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort('trackingNumber')}>
-                {t('columns.trackingNumber')}
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("trackingNumber")}
+              >
+                {t("columns.trackingNumber")}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort('status')}>
-                {t('columns.status')}
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("status")}
+              >
+                {t("columns.status")}
               </TableHead>
-              <TableHead>{t('columns.client')}</TableHead>
-              <TableHead>{t('columns.deliverer')}</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort('createdAt')}>
-                {t('columns.date')}
+              <TableHead>{t("columns.client")}</TableHead>
+              <TableHead>{t("columns.deliverer")}</TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("createdAt")}
+              >
+                {t("columns.date")}
               </TableHead>
-              <TableHead className="text-right">{t('columns.actions')}</TableHead>
+              <TableHead className="text-right">
+                {t("columns.actions")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {deliveries.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
-                  {t('noDeliveries')}
+                  {t("noDeliveries")}
                 </TableCell>
               </TableRow>
             ) : (
-              deliveries.map(delivery => (
+              deliveries.map((delivery) => (
                 <TableRow key={delivery.id}>
                   <TableCell>
                     <Checkbox
@@ -288,12 +304,18 @@ export function DeliveryTable({
                       aria-label={`Sélectionner la livraison ${delivery.trackingNumber}`}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{delivery.trackingNumber}</TableCell>
+                  <TableCell className="font-medium">
+                    {delivery.trackingNumber}
+                  </TableCell>
                   <TableCell>{renderStatusBadge(delivery.status)}</TableCell>
                   <TableCell>{delivery.client.name}</TableCell>
-                  <TableCell>{delivery.deliverer ? delivery.deliverer.name : '-'}</TableCell>
                   <TableCell>
-                    {format(new Date(delivery.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                    {delivery.deliverer ? delivery.deliverer.name : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(delivery.createdAt), "dd/MM/yyyy", {
+                      locale: fr,
+                    })}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -304,75 +326,97 @@ export function DeliveryTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleView(delivery.id)}>
+                        <DropdownMenuLabel>{t("actions")}</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onClick={() => handleView(delivery.id)}
+                        >
                           <Eye className="h-4 w-4 mr-2" />
-                          {t('view')}
+                          {t("view")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleTrack(delivery.id)}>
+                        <DropdownMenuItem
+                          onClick={() => handleTrack(delivery.id)}
+                        >
                           <MapPin className="h-4 w-4 mr-2" />
-                          {t('track')}
+                          {t("track")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleSendMessage(delivery.id)}>
+                        <DropdownMenuItem
+                          onClick={() => handleSendMessage(delivery.id)}
+                        >
                           <MessageSquare className="h-4 w-4 mr-2" />
-                          {t('sendMessage')}
+                          {t("sendMessage")}
                         </DropdownMenuItem>
 
                         <DropdownMenuSeparator />
 
-                        <DropdownMenuLabel>{t('changeStatus')}</DropdownMenuLabel>
+                        <DropdownMenuLabel>
+                          {t("changeStatus")}
+                        </DropdownMenuLabel>
 
-                        {delivery.status === 'PENDING' && (
+                        {delivery.status === "PENDING" && (
                           <DropdownMenuItem
-                            onClick={() => handleUpdateStatus(delivery.id, 'PICKED_UP')}
+                            onClick={() =>
+                              handleUpdateStatus(delivery.id, "PICKED_UP")
+                            }
                           >
                             <ClipboardCheck className="h-4 w-4 mr-2" />
-                            {t('markAsPickedUp')}
+                            {t("markAsPickedUp")}
                           </DropdownMenuItem>
                         )}
 
-                        {delivery.status === 'PICKED_UP' && (
+                        {delivery.status === "PICKED_UP" && (
                           <DropdownMenuItem
-                            onClick={() => handleUpdateStatus(delivery.id, 'IN_TRANSIT')}
+                            onClick={() =>
+                              handleUpdateStatus(delivery.id, "IN_TRANSIT")
+                            }
                           >
                             <Truck className="h-4 w-4 mr-2" />
-                            {t('markAsInTransit')}
+                            {t("markAsInTransit")}
                           </DropdownMenuItem>
                         )}
 
-                        {delivery.status === 'IN_TRANSIT' && (
+                        {delivery.status === "IN_TRANSIT" && (
                           <DropdownMenuItem
-                            onClick={() => handleUpdateStatus(delivery.id, 'DELIVERED')}
+                            onClick={() =>
+                              handleUpdateStatus(delivery.id, "DELIVERED")
+                            }
                           >
                             <Check className="h-4 w-4 mr-2" />
-                            {t('markAsDelivered')}
+                            {t("markAsDelivered")}
                           </DropdownMenuItem>
                         )}
 
-                        {['PENDING', 'PICKED_UP', 'IN_TRANSIT'].includes(delivery.status) && (
+                        {["PENDING", "PICKED_UP", "IN_TRANSIT"].includes(
+                          delivery.status,
+                        ) && (
                           <DropdownMenuItem
-                            onClick={() => handleUpdateStatus(delivery.id, 'PROBLEM')}
+                            onClick={() =>
+                              handleUpdateStatus(delivery.id, "PROBLEM")
+                            }
                           >
                             <AlertTriangle className="h-4 w-4 mr-2" />
-                            {t('reportProblem')}
+                            {t("reportProblem")}
                           </DropdownMenuItem>
                         )}
 
-                        {delivery.status === 'PROBLEM' && (
+                        {delivery.status === "PROBLEM" && (
                           <DropdownMenuItem
-                            onClick={() => handleUpdateStatus(delivery.id, 'IN_TRANSIT')}
+                            onClick={() =>
+                              handleUpdateStatus(delivery.id, "IN_TRANSIT")
+                            }
                           >
                             <Check className="h-4 w-4 mr-2" />
-                            {t('markAsResolved')}
+                            {t("markAsResolved")}
                           </DropdownMenuItem>
                         )}
 
-                        {['PENDING', 'PICKED_UP'].includes(delivery.status) && (
+                        {["PENDING", "PICKED_UP"].includes(delivery.status) && (
                           <DropdownMenuItem
-                            onClick={() => handleUpdateStatus(delivery.id, 'CANCELLED')}
+                            onClick={() =>
+                              handleUpdateStatus(delivery.id, "CANCELLED")
+                            }
                           >
                             <X className="h-4 w-4 mr-2" />
-                            {t('cancel')}
+                            {t("cancel")}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -398,24 +442,26 @@ export function DeliveryTable({
       <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('confirmStatusUpdate.title')}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("confirmStatusUpdate.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {deliveryToUpdate?.status === 'CANCELLED'
-                ? t('confirmStatusUpdate.cancelMessage')
-                : t('confirmStatusUpdate.message')}
+              {deliveryToUpdate?.status === "CANCELLED"
+                ? t("confirmStatusUpdate.cancelMessage")
+                : t("confirmStatusUpdate.message")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmUpdateStatus}
               className={
-                deliveryToUpdate?.status === 'CANCELLED'
-                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                  : ''
+                deliveryToUpdate?.status === "CANCELLED"
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  : ""
               }
             >
-              {t('confirm')}
+              {t("confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

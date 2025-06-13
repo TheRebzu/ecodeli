@@ -3,28 +3,28 @@
  */
 
 export type AuthErrorCode =
-  | 'OAuthSignin'
-  | 'OAuthCallback'
-  | 'OAuthCreateAccount'
-  | 'EmailCreateAccount'
-  | 'Callback'
-  | 'OAuthAccountNotLinked'
-  | 'EmailSignin'
-  | 'CredentialsSignin'
-  | 'SessionRequired'
-  | 'InvalidToken'
-  | 'ExpiredToken'
-  | 'TwoFactorRequired'
-  | 'UserNotFound'
-  | 'EmailNotVerified'
-  | 'InvalidCredentials'
-  | 'AccountSuspended'
-  | 'AccountInactive'
-  | 'PasswordMismatch'
-  | 'WeakPassword'
-  | 'EmailAlreadyInUse'
-  | 'pending_verification'
-  | 'default';
+  | "OAuthSignin"
+  | "OAuthCallback"
+  | "OAuthCreateAccount"
+  | "EmailCreateAccount"
+  | "Callback"
+  | "OAuthAccountNotLinked"
+  | "EmailSignin"
+  | "CredentialsSignin"
+  | "SessionRequired"
+  | "InvalidToken"
+  | "ExpiredToken"
+  | "TwoFactorRequired"
+  | "UserNotFound"
+  | "EmailNotVerified"
+  | "InvalidCredentials"
+  | "AccountSuspended"
+  | "AccountInactive"
+  | "PasswordMismatch"
+  | "WeakPassword"
+  | "EmailAlreadyInUse"
+  | "pending_verification"
+  | "default";
 
 /**
  * Type de la fonction de traduction
@@ -39,15 +39,15 @@ type TranslationFunction = (key: string) => string;
  */
 export function getAuthErrorMessage(
   error: string | null | undefined,
-  t: TranslationFunction
+  t: TranslationFunction,
 ): string {
-  if (!error) return t('errors.default');
+  if (!error) return t("errors.default");
 
   const errorCode = error as AuthErrorCode;
 
   try {
     return t(`errors.${errorCode}`);
   } catch {
-    return t('errors.default');
+    return t("errors.default");
   }
 }

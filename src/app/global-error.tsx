@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 export default function GlobalError({
   error,
@@ -11,7 +11,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     // Loguer l'erreur sur la console
-    console.error('Erreur globale:', error);
+    console.error("Erreur globale:", error);
   }, [error]);
 
   return (
@@ -19,25 +19,25 @@ export default function GlobalError({
       <body>
         <div
           style={{
-            padding: '2rem',
-            maxWidth: '600px',
-            margin: '0 auto',
-            textAlign: 'center',
-            fontFamily: 'system-ui, sans-serif',
+            padding: "2rem",
+            maxWidth: "600px",
+            margin: "0 auto",
+            textAlign: "center",
+            fontFamily: "system-ui, sans-serif",
           }}
         >
-          <h1 style={{ color: '#e11d48' }}>Une erreur est survenue</h1>
+          <h1 style={{ color: "#e11d48" }}>Une erreur est survenue</h1>
           <p>Nous sommes désolés, quelque chose s&apos;est mal passé.</p>
           <button
             onClick={() => reset()}
             style={{
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.25rem',
-              cursor: 'pointer',
-              marginTop: '1rem',
+              backgroundColor: "#2563eb",
+              color: "white",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "0.25rem",
+              cursor: "pointer",
+              marginTop: "1rem",
             }}
           >
             Réessayer

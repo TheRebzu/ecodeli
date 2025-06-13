@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -21,14 +21,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { ButtonWithLoading } from '@/app/[locale]/(public)/loading';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { useDeliveryConfirmation } from '@/hooks/delivery/use-delivery-confirmation';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { useDeliveryConfirmation } from "@/hooks/delivery/use-delivery-confirmation";
 import {
   CheckCircle2,
   AlertCircle,
@@ -38,21 +38,21 @@ import {
   Star,
   ThumbsUp,
   Delete,
-} from 'lucide-react';
-import { cn } from '@/lib/utils/common';
+} from "lucide-react";
+import { cn } from "@/lib/utils/common";
 
 // Schéma de validation
 const confirmationSchema = z.object({
   code: z
     .string()
-    .min(4, { message: 'Le code doit contenir au moins 4 caractères' })
-    .max(8, { message: 'Le code ne doit pas dépasser 8 caractères' }),
+    .min(4, { message: "Le code doit contenir au moins 4 caractères" })
+    .max(8, { message: "Le code ne doit pas dépasser 8 caractères" }),
   feedback: z
     .string()
-    .max(500, { message: 'Le feedback ne doit pas dépasser 500 caractères' })
+    .max(500, { message: "Le feedback ne doit pas dépasser 500 caractères" })
     .optional(),
-  acknowledgement: z.boolean().refine(val => val === true, {
-    message: 'Vous devez confirmer la réception de votre commande',
+  acknowledgement: z.boolean().refine((val) => val === true, {
+    message: "Vous devez confirmer la réception de votre commande",
   }),
   saveAsDefaultAddress: z.boolean().optional(),
 });
@@ -63,7 +63,7 @@ interface DeliveryConfirmationFormProps {
   deliveryId: string;
   onCancel?: () => void;
   onSuccess?: () => void;
-  afterConfirmation?: 'rating' | 'details' | 'list';
+  afterConfirmation?: "rating" | "details" | "list";
   className?: string;
 }
 
@@ -71,10 +71,10 @@ export default function DeliveryConfirmationForm({
   deliveryId,
   onCancel,
   onSuccess,
-  afterConfirmation = 'details',
-  className = '',
+  afterConfirmation = "details",
+  className = "",
 }: DeliveryConfirmationFormProps) {
-  const t = useTranslations('deliveries.confirmation');
+  const t = useTranslations("deliveries.confirmation");
   const [showSuccess, setShowSuccess] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,8 +87,8 @@ export default function DeliveryConfirmationForm({
   const form = useForm<ConfirmationFormValues>({
     resolver: zodResolver(confirmationSchema),
     defaultValues: {
-      code: '',
-      feedback: '',
+      code: "",
+      feedback: "",
       acknowledgement: false,
       saveAsDefaultAddress: false,
     },
@@ -101,10 +101,13 @@ export default function DeliveryConfirmationForm({
     try {
       // Préparer les données du formulaire avec les photos
       const formData = new FormData();
-      formData.append('code', data.code);
-      if (data.feedback) formData.append('feedback', data.feedback);
-      formData.append('acknowledgement', String(data.acknowledgement));
-      formData.append('saveAsDefaultAddress', String(data.saveAsDefaultAddress));
+      formData.append("code", data.code);
+      if (data.feedback) formData.append("feedback", data.feedback);
+      formData.append("acknowledgement", String(data.acknowledgement));
+      formData.append(
+        "saveAsDefaultAddress",
+        String(data.saveAsDefaultAddress),
+      );
       photos.forEach((photo, index) => {
         formData.append(`photo_${index}`, photo);
       });
@@ -123,7 +126,7 @@ export default function DeliveryConfirmationForm({
         if (onSuccess) onSuccess();
       }
     } catch (err) {
-      console.error('Erreur lors de la confirmation:', err);
+      console.error("Erreur lors de la confirmation:", err);
     }
   };
 
@@ -131,7 +134,7 @@ export default function DeliveryConfirmationForm({
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newPhotos = Array.from(e.target.files);
-      setPhotos(prev => [...prev, ...newPhotos].slice(0, 3)); // Limiter à 3 photos
+      setPhotos((prev) => [...prev, ...newPhotos].slice(0, 3)); // Limiter à 3 photos
     }
   };
 
@@ -150,12 +153,12 @@ export default function DeliveryConfirmationForm({
   // Messages de succès en fonction de l'action suivante
   const getSuccessMessage = () => {
     switch (afterConfirmation) {
-      case 'rating':
-        return t('successMessageRating');
-      case 'list':
-        return t('successMessageList');
+      case "rating":
+        return t("successMessageRating");
+      case "list":
+        return t("successMessageList");
       default:
-        return t('successMessage');
+        return t("successMessage");
     }
   };
 
@@ -166,7 +169,7 @@ export default function DeliveryConfirmationForm({
         <CardHeader>
           <CardTitle className="text-center text-green-600 flex items-center justify-center">
             <CheckCircle2 className="mr-2 h-6 w-6" />
-            {t('successTitle')}
+            {t("successTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center">
@@ -175,30 +178,34 @@ export default function DeliveryConfirmationForm({
           </div>
           <p className="text-center mb-4">{getSuccessMessage()}</p>
 
-          {afterConfirmation === 'rating' && (
+          {afterConfirmation === "rating" && (
             <div className="flex items-center justify-center space-x-1 my-4">
-              {[1, 2, 3, 4, 5].map(star => (
-                <Star key={star} className="h-8 w-8 text-yellow-400" fill="rgb(250 204 21)" />
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className="h-8 w-8 text-yellow-400"
+                  fill="rgb(250 204 21)"
+                />
               ))}
             </div>
           )}
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button onClick={onCancel} className="flex items-center">
-            {afterConfirmation === 'rating' ? (
+            {afterConfirmation === "rating" ? (
               <>
                 <ThumbsUp className="mr-2 h-4 w-4" />
-                {t('leaveRating')}
+                {t("leaveRating")}
               </>
-            ) : afterConfirmation === 'list' ? (
+            ) : afterConfirmation === "list" ? (
               <>
                 <Package className="mr-2 h-4 w-4" />
-                {t('viewOrders')}
+                {t("viewOrders")}
               </>
             ) : (
               <>
                 <Package className="mr-2 h-4 w-4" />
-                {t('viewDetails')}
+                {t("viewDetails")}
               </>
             )}
           </Button>
@@ -210,22 +217,22 @@ export default function DeliveryConfirmationForm({
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
-        <CardDescription>{t('description')}</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         {!canConfirm && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('cannotConfirmTitle')}</AlertTitle>
-            <AlertDescription>{t('cannotConfirmDescription')}</AlertDescription>
+            <AlertTitle>{t("cannotConfirmTitle")}</AlertTitle>
+            <AlertDescription>{t("cannotConfirmDescription")}</AlertDescription>
           </Alert>
         )}
 
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('errorTitle')}</AlertTitle>
+            <AlertTitle>{t("errorTitle")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -237,24 +244,24 @@ export default function DeliveryConfirmationForm({
               name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('codeLabel')}</FormLabel>
+                  <FormLabel>{t("codeLabel")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={t('codePlaceholder')}
+                      placeholder={t("codePlaceholder")}
                       {...field}
                       disabled={!canConfirm || isConfirming}
                       className="text-center text-lg font-semibold tracking-widest"
                       maxLength={8}
                     />
                   </FormControl>
-                  <FormDescription>{t('codeHelp')}</FormDescription>
+                  <FormDescription>{t("codeHelp")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
             <div className="space-y-2">
-              <FormLabel>{t('photoEvidenceLabel')}</FormLabel>
+              <FormLabel>{t("photoEvidenceLabel")}</FormLabel>
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
@@ -264,7 +271,7 @@ export default function DeliveryConfirmationForm({
                   disabled={!canConfirm || isConfirming || photos.length >= 3}
                 >
                   <Camera className="mr-2 h-4 w-4" />
-                  {t('takePhotoButton')}
+                  {t("takePhotoButton")}
                 </Button>
                 <Button
                   type="button"
@@ -274,7 +281,7 @@ export default function DeliveryConfirmationForm({
                   disabled={!canConfirm || isConfirming || photos.length >= 3}
                 >
                   <Upload className="mr-2 h-4 w-4" />
-                  {t('uploadPhotoButton')}
+                  {t("uploadPhotoButton")}
                 </Button>
                 <input
                   type="file"
@@ -286,7 +293,9 @@ export default function DeliveryConfirmationForm({
                   disabled={!canConfirm || isConfirming || photos.length >= 3}
                 />
               </div>
-              <p className="text-xs text-muted-foreground text-center">{t('photoOptional')}</p>
+              <p className="text-xs text-muted-foreground text-center">
+                {t("photoOptional")}
+              </p>
 
               {photos.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
@@ -316,16 +325,16 @@ export default function DeliveryConfirmationForm({
               name="feedback"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('feedbackLabel')}</FormLabel>
+                  <FormLabel>{t("feedbackLabel")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder={t('feedbackPlaceholder')}
+                      placeholder={t("feedbackPlaceholder")}
                       className="min-h-[80px]"
                       {...field}
                       disabled={!canConfirm || isConfirming}
                     />
                   </FormControl>
-                  <FormDescription>{t('feedbackHelp')}</FormDescription>
+                  <FormDescription>{t("feedbackHelp")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -345,9 +354,11 @@ export default function DeliveryConfirmationForm({
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel className="text-sm font-medium">{t('saveAddressLabel')}</FormLabel>
+                      <FormLabel className="text-sm font-medium">
+                        {t("saveAddressLabel")}
+                      </FormLabel>
                       <FormDescription className="text-xs">
-                        {t('saveAddressDescription')}
+                        {t("saveAddressDescription")}
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -368,8 +379,12 @@ export default function DeliveryConfirmationForm({
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel className="font-medium">{t('acknowledgeLabel')}</FormLabel>
-                    <FormDescription>{t('acknowledgeDescription')}</FormDescription>
+                    <FormLabel className="font-medium">
+                      {t("acknowledgeLabel")}
+                    </FormLabel>
+                    <FormDescription>
+                      {t("acknowledgeDescription")}
+                    </FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -379,14 +394,14 @@ export default function DeliveryConfirmationForm({
       </CardContent>
       <CardFooter className="flex justify-between border-t pt-6">
         <Button variant="outline" onClick={onCancel} disabled={isConfirming}>
-          {t('cancelButton')}
+          {t("cancelButton")}
         </Button>
         <ButtonWithLoading
           onClick={form.handleSubmit(onSubmit)}
           disabled={!canConfirm || isConfirming}
           loading={isConfirming}
         >
-          {t('confirmButton')}
+          {t("confirmButton")}
         </ButtonWithLoading>
       </CardFooter>
     </Card>

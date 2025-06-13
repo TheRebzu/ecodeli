@@ -1,19 +1,25 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import {
   MessageSquare,
   Clock,
@@ -35,9 +41,9 @@ import {
   FileText,
   ArrowRight,
   AlertCircle,
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+} from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface ContractNegotiation {
   id: string;
@@ -57,7 +63,7 @@ interface ContractNegotiation {
     name: string;
     email: string;
   };
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   merchantProposal?: any;
   adminCounterProposal?: any;
   finalTerms?: any;
@@ -98,34 +104,41 @@ export function ContractNegotiations({
   onCancelNegotiation,
   isLoading,
 }: ContractNegotiationsProps) {
-  const [selectedNegotiation, setSelectedNegotiation] = useState<ContractNegotiation | null>(null);
-  const [counterProposal, setCounterProposal] = useState('');
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedNegotiation, setSelectedNegotiation] =
+    useState<ContractNegotiation | null>(null);
+  const [counterProposal, setCounterProposal] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
 
-  const getStatusBadge = (status: ContractNegotiation['status']) => {
+  const getStatusBadge = (status: ContractNegotiation["status"]) => {
     switch (status) {
-      case 'PENDING':
+      case "PENDING":
         return (
           <Badge variant="outline" className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             En attente
           </Badge>
         );
-      case 'IN_PROGRESS':
+      case "IN_PROGRESS":
         return (
-          <Badge variant="default" className="bg-blue-100 text-blue-800 flex items-center gap-1">
+          <Badge
+            variant="default"
+            className="bg-blue-100 text-blue-800 flex items-center gap-1"
+          >
             <MessageSquare className="h-3 w-3" />
             En cours
           </Badge>
         );
-      case 'COMPLETED':
+      case "COMPLETED":
         return (
-          <Badge variant="default" className="bg-green-100 text-green-800 flex items-center gap-1">
+          <Badge
+            variant="default"
+            className="bg-green-100 text-green-800 flex items-center gap-1"
+          >
             <CheckCircle className="h-3 w-3" />
             Terminé
           </Badge>
         );
-      case 'CANCELLED':
+      case "CANCELLED":
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <XCircle className="h-3 w-3" />
@@ -138,14 +151,16 @@ export function ContractNegotiations({
   };
 
   const formatDate = (date: Date) => {
-    return format(new Date(date), 'dd/MM/yyyy à HH:mm', { locale: fr });
+    return format(new Date(date), "dd/MM/yyyy à HH:mm", { locale: fr });
   };
 
   const isExpiringSoon = (expiresAt?: Date) => {
     if (!expiresAt) return false;
     const now = new Date();
     const expiry = new Date(expiresAt);
-    const diffDays = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil(
+      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+    );
     return diffDays <= 3 && diffDays > 0;
   };
 
@@ -180,7 +195,7 @@ export function ContractNegotiations({
       </div>
 
       <div className="grid gap-4">
-        {negotiations.map(negotiation => (
+        {negotiations.map((negotiation) => (
           <Card key={negotiation.id} className="relative">
             {isExpired(negotiation.expiresAt) && (
               <div className="absolute top-2 right-2">
@@ -189,21 +204,27 @@ export function ContractNegotiations({
                 </Badge>
               </div>
             )}
-            {isExpiringSoon(negotiation.expiresAt) && !isExpired(negotiation.expiresAt) && (
-              <div className="absolute top-2 right-2">
-                <Badge variant="outline" className="text-xs flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  Expire bientôt
-                </Badge>
-              </div>
-            )}
+            {isExpiringSoon(negotiation.expiresAt) &&
+              !isExpired(negotiation.expiresAt) && (
+                <div className="absolute top-2 right-2">
+                  <Badge
+                    variant="outline"
+                    className="text-xs flex items-center gap-1"
+                  >
+                    <AlertCircle className="h-3 w-3" />
+                    Expire bientôt
+                  </Badge>
+                </div>
+              )}
 
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">{negotiation.contract.title}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {negotiation.contract.title}
+                  </CardTitle>
                   <CardDescription>
-                    Contrat #{negotiation.contract.contractNumber} •{' '}
+                    Contrat #{negotiation.contract.contractNumber} •{" "}
                     {negotiation.merchant.companyName}
                   </CardDescription>
                 </div>
@@ -256,7 +277,11 @@ export function ContractNegotiations({
                     </h4>
                     <div className="text-sm text-orange-800">
                       <pre className="whitespace-pre-wrap font-sans">
-                        {JSON.stringify(negotiation.adminCounterProposal, null, 2)}
+                        {JSON.stringify(
+                          negotiation.adminCounterProposal,
+                          null,
+                          2,
+                        )}
                       </pre>
                     </div>
                   </div>
@@ -301,14 +326,17 @@ export function ContractNegotiations({
                         <DialogTitle>Historique de la négociation</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4 max-h-96 overflow-y-auto">
-                        {negotiation.history.map(entry => (
-                          <div key={entry.id} className="flex gap-3 p-3 rounded-lg bg-gray-50">
+                        {negotiation.history.map((entry) => (
+                          <div
+                            key={entry.id}
+                            className="flex gap-3 p-3 rounded-lg bg-gray-50"
+                          >
                             <Avatar className="h-8 w-8">
                               <AvatarFallback className="text-xs">
                                 {entry.performedBy.name
-                                  .split(' ')
-                                  .map(n => n[0])
-                                  .join('')
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
                                   .substring(0, 2)}
                               </AvatarFallback>
                             </Avatar>
@@ -316,7 +344,10 @@ export function ContractNegotiations({
                               <div className="flex items-center justify-between">
                                 <p className="text-sm font-medium">
                                   {entry.performedBy.name}
-                                  <Badge variant="outline" className="ml-2 text-xs">
+                                  <Badge
+                                    variant="outline"
+                                    className="ml-2 text-xs"
+                                  >
                                     {entry.performedBy.role}
                                   </Badge>
                                 </p>
@@ -327,7 +358,9 @@ export function ContractNegotiations({
                               <p className="text-sm text-muted-foreground">
                                 Action: {entry.action}
                               </p>
-                              {entry.comment && <p className="text-sm">{entry.comment}</p>}
+                              {entry.comment && (
+                                <p className="text-sm">{entry.comment}</p>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -335,11 +368,13 @@ export function ContractNegotiations({
                     </DialogContent>
                   </Dialog>
 
-                  {negotiation.status === 'PENDING' && (
+                  {negotiation.status === "PENDING" && (
                     <div className="flex items-center gap-2">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button size="sm">Faire une contre-proposition</Button>
+                          <Button size="sm">
+                            Faire une contre-proposition
+                          </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
@@ -349,11 +384,16 @@ export function ContractNegotiations({
                             <Textarea
                               placeholder="Décrivez votre contre-proposition..."
                               value={counterProposal}
-                              onChange={e => setCounterProposal(e.target.value)}
+                              onChange={(e) =>
+                                setCounterProposal(e.target.value)
+                              }
                               className="min-h-32"
                             />
                             <div className="flex justify-end gap-2">
-                              <Button variant="outline" onClick={() => setCounterProposal('')}>
+                              <Button
+                                variant="outline"
+                                onClick={() => setCounterProposal("")}
+                              >
                                 Annuler
                               </Button>
                               <Button
@@ -361,7 +401,7 @@ export function ContractNegotiations({
                                   onMakeCounterProposal(negotiation.id, {
                                     content: counterProposal,
                                   });
-                                  setCounterProposal('');
+                                  setCounterProposal("");
                                 }}
                                 disabled={!counterProposal.trim() || isLoading}
                               >
@@ -376,7 +416,10 @@ export function ContractNegotiations({
                         size="sm"
                         variant="default"
                         onClick={() =>
-                          onAcceptProposal(negotiation.id, negotiation.merchantProposal)
+                          onAcceptProposal(
+                            negotiation.id,
+                            negotiation.merchantProposal,
+                          )
                         }
                         disabled={isLoading}
                       >
@@ -391,24 +434,32 @@ export function ContractNegotiations({
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Rejeter la proposition</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              Rejeter la proposition
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Veuillez indiquer la raison du rejet de cette proposition.
+                              Veuillez indiquer la raison du rejet de cette
+                              proposition.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <Textarea
                             placeholder="Raison du rejet..."
                             value={rejectionReason}
-                            onChange={e => setRejectionReason(e.target.value)}
+                            onChange={(e) => setRejectionReason(e.target.value)}
                           />
                           <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setRejectionReason('')}>
+                            <AlertDialogCancel
+                              onClick={() => setRejectionReason("")}
+                            >
                               Annuler
                             </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => {
-                                onRejectProposal(negotiation.id, rejectionReason);
-                                setRejectionReason('');
+                                onRejectProposal(
+                                  negotiation.id,
+                                  rejectionReason,
+                                );
+                                setRejectionReason("");
                               }}
                               disabled={!rejectionReason.trim()}
                             >
@@ -420,11 +471,14 @@ export function ContractNegotiations({
                     </div>
                   )}
 
-                  {negotiation.status === 'IN_PROGRESS' && (
+                  {negotiation.status === "IN_PROGRESS" && (
                     <Button
                       size="sm"
                       onClick={() =>
-                        onCompleteNegotiation(negotiation.id, negotiation.adminCounterProposal)
+                        onCompleteNegotiation(
+                          negotiation.id,
+                          negotiation.adminCounterProposal,
+                        )
                       }
                       disabled={isLoading}
                     >
@@ -432,7 +486,7 @@ export function ContractNegotiations({
                     </Button>
                   )}
 
-                  {['PENDING', 'IN_PROGRESS'].includes(negotiation.status) && (
+                  {["PENDING", "IN_PROGRESS"].includes(negotiation.status) && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button size="sm" variant="outline">
@@ -441,17 +495,22 @@ export function ContractNegotiations({
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Annuler la négociation</AlertDialogTitle>
+                          <AlertDialogTitle>
+                            Annuler la négociation
+                          </AlertDialogTitle>
                           <AlertDialogDescription>
-                            Cette action est irréversible. La négociation sera définitivement
-                            annulée.
+                            Cette action est irréversible. La négociation sera
+                            définitivement annulée.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Retour</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() =>
-                              onCancelNegotiation(negotiation.id, "Annulé par l'administrateur")
+                              onCancelNegotiation(
+                                negotiation.id,
+                                "Annulé par l'administrateur",
+                              )
                             }
                           >
                             Annuler la négociation

@@ -1,17 +1,17 @@
-import { db } from '@/server/db';
-import { Decimal } from '@prisma/client/runtime/library';
-import { paymentService } from '@/server/services/shared/payment.service';
-import { walletService } from '@/server/services/shared/wallet.service';
-import { TRPCError } from '@trpc/server';
-import { endOfMonth, startOfMonth, format, subMonths } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { invoiceService } from '@/server/services/shared/invoice.service';
-import { CommissionStatus, ServiceType, UserRole } from '@prisma/client';
+import { db } from "@/server/db";
+import { Decimal } from "@prisma/client/runtime/library";
+import { paymentService } from "@/server/services/shared/payment.service";
+import { walletService } from "@/server/services/shared/wallet.service";
+import { TRPCError } from "@trpc/server";
+import { endOfMonth, startOfMonth, format, subMonths } from "date-fns";
+import { fr } from "date-fns/locale";
+import { invoiceService } from "@/server/services/shared/invoice.service";
+import { CommissionStatus, ServiceType, UserRole } from "@prisma/client";
 
 // Vérifier si le wallet service est correctement initialisé
 const isWalletServiceAvailable = () => {
   try {
-    return walletService && typeof walletService.getWallet === 'function';
+    return walletService && typeof walletService.getWallet === "function";
   } catch (error) {
     console.warn("WalletService n'est pas disponible:", error);
     return false;
@@ -56,11 +56,13 @@ export const commissionService = {
     });
 
     if (!payment) {
-      throw new Error('Paiement non trouvé');
+      throw new Error("Paiement non trouvé");
     }
 
-    if (payment.status !== 'COMPLETED') {
-      throw new Error('Impossible de calculer la commission pour un paiement non complété');
+    if (payment.status !== "COMPLETED") {
+      throw new Error(
+        "Impossible de calculer la commission pour un paiement non complété",
+      );
     }
 
     // Vérifier si une commission existe déjà
@@ -79,17 +81,17 @@ export const commissionService = {
     }
 
     // Déterminer le type de paiement et le taux de commission applicable
-    let serviceType = 'DELIVERY';
+    let serviceType = "DELIVERY";
     let rate = 0;
 
     if (payment.deliveryId) {
-      serviceType = 'DELIVERY';
+      serviceType = "DELIVERY";
       rate = this.DEFAULT_RATES.DELIVERY;
     } else if (payment.serviceId) {
-      serviceType = 'SERVICE';
+      serviceType = "SERVICE";
       rate = this.DEFAULT_RATES.SERVICE;
     } else if (payment.subscriptionId) {
-      serviceType = 'SUBSCRIPTION';
+      serviceType = "SUBSCRIPTION";
       rate = this.DEFAULT_RATES.SUBSCRIPTION;
     }
 
@@ -102,7 +104,7 @@ export const commissionService = {
         endDate: { gte: new Date() },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -125,7 +127,7 @@ export const commissionService = {
         serviceType,
         description: `Commission sur ${serviceType.toLowerCase()} - Paiement #${paymentId}`,
         isActive: true,
-        calculationType: 'PERCENTAGE',
+        calculationType: "PERCENTAGE",
         currency: payment.currency,
         promotionId: promotion?.id,
       },
@@ -169,12 +171,12 @@ export const commissionService = {
     });
 
     if (!commission) {
-      throw new Error('Commission non trouvée');
+      throw new Error("Commission non trouvée");
     }
 
     const payment = commission.payments[0];
     if (!payment) {
-      throw new Error('Paiement associé non trouvé');
+      throw new Error("Paiement associé non trouvé");
     }
 
     // Déterminer l'utilisateur et le portefeuille
@@ -187,14 +189,16 @@ export const commissionService = {
     }
 
     if (!userId) {
-      throw new Error("Impossible de déterminer l'utilisateur pour cette commission");
+      throw new Error(
+        "Impossible de déterminer l'utilisateur pour cette commission",
+      );
     }
 
     // Récupérer le portefeuille de l'utilisateur
     const wallet = await walletService.getOrCreateWallet(userId);
 
     if (!wallet) {
-      throw new Error('Portefeuille non trouvé pour cet utilisateur');
+      throw new Error("Portefeuille non trouvé pour cet utilisateur");
     }
 
     // Calculer le montant de commission basé sur le paiement
@@ -204,9 +208,9 @@ export const commissionService = {
     try {
       await walletService.createWalletTransaction(wallet.id, {
         amount: -commissionAmount, // Montant négatif pour déduction
-        type: 'PLATFORM_FEE',
+        type: "PLATFORM_FEE",
         description: `Commission EcoDeli pour ${
-          payment.deliveryId ? 'livraison' : 'service'
+          payment.deliveryId ? "livraison" : "service"
         } (${Number(commission.rate) * 100}%)`,
         reference: `commission-${commission.id}`,
         paymentId: payment.id,
@@ -223,7 +227,7 @@ export const commissionService = {
         commissionAmount,
       };
     } catch (error) {
-      console.error('Erreur lors du traitement de la commission:', error);
+      console.error("Erreur lors du traitement de la commission:", error);
       throw error;
     }
   },
@@ -239,7 +243,14 @@ export const commissionService = {
     page?: number;
     limit?: number;
   }) {
-    const { startDate, endDate, serviceType, isActive, page = 1, limit = 20 } = filters;
+    const {
+      startDate,
+      endDate,
+      serviceType,
+      isActive,
+      page = 1,
+      limit = 20,
+    } = filters;
 
     // Construire les filtres
     const where: any = {};
@@ -274,7 +285,7 @@ export const commissionService = {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: limit,
       }),
@@ -286,7 +297,7 @@ export const commissionService = {
       const commissionPayments = commission.payments || [];
       const paymentSum = commissionPayments.reduce(
         (paySum, payment) => paySum.plus(payment.commissionAmount || 0),
-        new Decimal(0)
+        new Decimal(0),
       );
       return sum.plus(paymentSum);
     }, new Decimal(0));
@@ -347,9 +358,10 @@ export const commissionService = {
       // Calculer le total des commissions pour ce type
       const commissionTotal = commission.payments.reduce(
         (sum, payment) => sum.plus(payment.commissionAmount || 0),
-        new Decimal(0)
+        new Decimal(0),
       );
-      acc[commission.serviceType].total = acc[commission.serviceType].total.plus(commissionTotal);
+      acc[commission.serviceType].total =
+        acc[commission.serviceType].total.plus(commissionTotal);
 
       return acc;
     }, {});
@@ -358,7 +370,7 @@ export const commissionService = {
     const totalCommissions = commissions.reduce((sum, commission) => {
       const commissionTotal = commission.payments.reduce(
         (paySum, payment) => paySum.plus(payment.commissionAmount || 0),
-        new Decimal(0)
+        new Decimal(0),
       );
       return sum.plus(commissionTotal);
     }, new Decimal(0));
@@ -380,13 +392,13 @@ export const commissionService = {
     // Créer l'enregistrement de rapport financier
     const report = await db.financialReport.create({
       data: {
-        reportType: 'COMMISSION',
+        reportType: "COMMISSION",
         periodStart: startDate,
         periodEnd: endDate,
         data: reportData,
         totalRevenue: totalCommissions,
         totalCommissions,
-        status: 'GENERATED',
+        status: "GENERATED",
         generatedAt: new Date(),
       },
     });
@@ -410,21 +422,21 @@ export const commissionService = {
 
     if (newRates.DELIVERY !== undefined) {
       if (newRates.DELIVERY < 0 || newRates.DELIVERY > 1) {
-        throw new Error('Le taux de commission doit être entre 0 et 1');
+        throw new Error("Le taux de commission doit être entre 0 et 1");
       }
       this.DEFAULT_RATES.DELIVERY = newRates.DELIVERY;
     }
 
     if (newRates.SERVICE !== undefined) {
       if (newRates.SERVICE < 0 || newRates.SERVICE > 1) {
-        throw new Error('Le taux de commission doit être entre 0 et 1');
+        throw new Error("Le taux de commission doit être entre 0 et 1");
       }
       this.DEFAULT_RATES.SERVICE = newRates.SERVICE;
     }
 
     if (newRates.SUBSCRIPTION !== undefined) {
       if (newRates.SUBSCRIPTION < 0 || newRates.SUBSCRIPTION > 1) {
-        throw new Error('Le taux de commission doit être entre 0 et 1');
+        throw new Error("Le taux de commission doit être entre 0 et 1");
       }
       this.DEFAULT_RATES.SUBSCRIPTION = newRates.SUBSCRIPTION;
     }
@@ -432,7 +444,7 @@ export const commissionService = {
     // Créer un enregistrement de promotion pour suivre ce changement
     await db.promotionRecord.create({
       data: {
-        type: 'COMMISSION_RATE_CHANGE',
+        type: "COMMISSION_RATE_CHANGE",
         serviceType: null, // Affecte tous les services
         rate: new Decimal(0), // Non utilisé pour ce type d'enregistrement
         startDate: new Date(),
@@ -462,18 +474,18 @@ export const commissionService = {
 
     // Vérifier que le taux est valide
     if (rate < 0 || rate > 1) {
-      throw new Error('Le taux de commission doit être entre 0 et 1');
+      throw new Error("Le taux de commission doit être entre 0 et 1");
     }
 
     // Vérifier que les dates sont valides
     if (startDate >= endDate) {
-      throw new Error('La date de début doit être antérieure à la date de fin');
+      throw new Error("La date de début doit être antérieure à la date de fin");
     }
 
     // Créer la promotion
     const promotion = await db.promotionRecord.create({
       data: {
-        type: 'COMMISSION',
+        type: "COMMISSION",
         serviceType,
         rate: new Decimal(rate),
         startDate,
@@ -501,7 +513,7 @@ export const commissionService = {
   async calculateCommission(
     amount: number,
     serviceType: ServiceType,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<{
     commissionAmount: number;
     commissionRate: number;
@@ -514,7 +526,7 @@ export const commissionService = {
         isActive: true,
       },
       orderBy: {
-        updatedAt: 'desc',
+        updatedAt: "desc",
       },
     });
 
@@ -546,7 +558,13 @@ export const commissionService = {
     paymentIds?: string[];
     metadata?: Record<string, any>;
   }) {
-    const { rate, serviceType, description, paymentIds = [], metadata = {} } = data;
+    const {
+      rate,
+      serviceType,
+      description,
+      paymentIds = [],
+      metadata = {},
+    } = data;
 
     // Créer l'enregistrement de commission
     const commission = await db.commission.create({
@@ -555,7 +573,7 @@ export const commissionService = {
         serviceType,
         description,
         isActive: true,
-        calculationType: 'PERCENTAGE',
+        calculationType: "PERCENTAGE",
       },
     });
 
@@ -587,8 +605,8 @@ export const commissionService = {
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
@@ -619,7 +637,7 @@ export async function createCommission(data: {
       serviceType,
       description: description || `Commission sur ${serviceType.toLowerCase()}`,
       isActive: true,
-      calculationType: 'PERCENTAGE',
+      calculationType: "PERCENTAGE",
     },
   });
 

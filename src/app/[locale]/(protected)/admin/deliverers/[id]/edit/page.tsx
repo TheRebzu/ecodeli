@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
   Save,
@@ -15,24 +15,30 @@ import {
   Shield,
   Calendar,
   Truck,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { api } from '@/trpc/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { api } from "@/trpc/react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -41,19 +47,29 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/components/ui/use-toast";
 
-type DelivererStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING_VERIFICATION';
+type DelivererStatus =
+  | "ACTIVE"
+  | "INACTIVE"
+  | "SUSPENDED"
+  | "PENDING_VERIFICATION";
 
 // Schema de validation pour l'édition d'un livreur
 const editDelivererSchema = z.object({
-  firstName: z.string().min(1, 'Le prénom est requis').max(50, 'Le prénom est trop long'),
-  lastName: z.string().min(1, 'Le nom est requis').max(50, 'Le nom est trop long'),
-  email: z.string().email('Email invalide'),
+  firstName: z
+    .string()
+    .min(1, "Le prénom est requis")
+    .max(50, "Le prénom est trop long"),
+  lastName: z
+    .string()
+    .min(1, "Le nom est requis")
+    .max(50, "Le nom est trop long"),
+  email: z.string().email("Email invalide"),
   phone: z.string().optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING_VERIFICATION']),
+  status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING_VERIFICATION"]),
   hasVehicle: z.boolean(),
   vehicleType: z.string().optional(),
   preferredZones: z.array(z.string()).optional(),
@@ -66,7 +82,7 @@ export default function DelivererEditPage() {
   const router = useRouter();
   const params = useParams();
   const delivererId = params.id as string;
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState("general");
   const { toast } = useToast();
 
   // Récupérer les données du livreur
@@ -83,16 +99,17 @@ export default function DelivererEditPage() {
   const updateDelivererMutation = api.admin.deliverers.update.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Livreur mis à jour',
-        description: 'Les informations du livreur ont été mises à jour avec succès.',
+        title: "Livreur mis à jour",
+        description:
+          "Les informations du livreur ont été mises à jour avec succès.",
       });
       router.push(`/admin/deliverers/${delivererId}`);
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la mise à jour: ' + error.message,
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Erreur lors de la mise à jour: " + error.message,
+        variant: "destructive",
       });
     },
   });
@@ -100,15 +117,15 @@ export default function DelivererEditPage() {
   const form = useForm<EditDelivererFormData>({
     resolver: zodResolver(editDelivererSchema),
     defaultValues: {
-      firstName: deliverer?.firstName || '',
-      lastName: deliverer?.lastName || '',
-      email: deliverer?.email || '',
-      phone: deliverer?.phone || '',
-      status: deliverer?.status || 'PENDING_VERIFICATION',
+      firstName: deliverer?.firstName || "",
+      lastName: deliverer?.lastName || "",
+      email: deliverer?.email || "",
+      phone: deliverer?.phone || "",
+      status: deliverer?.status || "PENDING_VERIFICATION",
       hasVehicle: deliverer?.hasVehicle || false,
-      vehicleType: deliverer?.vehicleType || '',
+      vehicleType: deliverer?.vehicleType || "",
       preferredZones: deliverer?.preferredZones || [],
-      notes: '',
+      notes: "",
     },
   });
 
@@ -118,12 +135,12 @@ export default function DelivererEditPage() {
       firstName: deliverer.firstName,
       lastName: deliverer.lastName,
       email: deliverer.email,
-      phone: deliverer.phone || '',
+      phone: deliverer.phone || "",
       status: deliverer.status,
       hasVehicle: deliverer.hasVehicle || false,
-      vehicleType: deliverer.vehicleType || '',
+      vehicleType: deliverer.vehicleType || "",
       preferredZones: deliverer.preferredZones || [],
-      notes: '',
+      notes: "",
     });
   }
 
@@ -134,20 +151,22 @@ export default function DelivererEditPage() {
         ...data,
       });
     } catch (error) {
-      console.error('Error updating deliverer:', error);
+      console.error("Error updating deliverer:", error);
     }
   };
 
   // Helper functions for badges
   const getStatusBadge = (status: DelivererStatus) => {
     switch (status) {
-      case 'ACTIVE':
+      case "ACTIVE":
         return <Badge className="bg-green-500">Actif</Badge>;
-      case 'PENDING_VERIFICATION':
-        return <Badge className="bg-yellow-500">En attente de vérification</Badge>;
-      case 'SUSPENDED':
+      case "PENDING_VERIFICATION":
+        return (
+          <Badge className="bg-yellow-500">En attente de vérification</Badge>
+        );
+      case "SUSPENDED":
         return <Badge className="bg-red-500">Suspendu</Badge>;
-      case 'INACTIVE':
+      case "INACTIVE":
         return <Badge className="bg-gray-500">Inactif</Badge>;
       default:
         return <Badge>{status}</Badge>;
@@ -187,13 +206,19 @@ export default function DelivererEditPage() {
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">Livreur introuvable</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Livreur introuvable
+          </h1>
         </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-64">
-            <h2 className="text-xl font-semibold mb-4">Le livreur demandé est introuvable</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Le livreur demandé est introuvable
+            </h2>
             <Button asChild>
-              <Link href="/admin/deliverers">Retour à la gestion des livreurs</Link>
+              <Link href="/admin/deliverers">
+                Retour à la gestion des livreurs
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -219,21 +244,30 @@ export default function DelivererEditPage() {
               </CardTitle>
               <CardDescription className="mt-1 flex items-center gap-2 text-base">
                 {getStatusBadge(deliverer.status)}
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
+                <Badge
+                  variant="outline"
+                  className="bg-yellow-50 text-yellow-600 border-yellow-200"
+                >
                   🧪 Mode Test
                 </Badge>
               </CardDescription>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" asChild>
-                <Link href={`/admin/deliverers/${delivererId}`}>Voir les détails</Link>
+                <Link href={`/admin/deliverers/${delivererId}`}>
+                  Voir les détails
+                </Link>
               </Button>
             </div>
           </div>
         </CardHeader>
 
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="general">Informations générales</TabsTrigger>
               <TabsTrigger value="vehicle">Véhicule et zones</TabsTrigger>
@@ -241,7 +275,10 @@ export default function DelivererEditPage() {
 
             <TabsContent value="general" className="space-y-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
@@ -305,7 +342,10 @@ export default function DelivererEditPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Statut</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner un statut" />
@@ -314,7 +354,9 @@ export default function DelivererEditPage() {
                             <SelectContent>
                               <SelectItem value="ACTIVE">Actif</SelectItem>
                               <SelectItem value="INACTIVE">Inactif</SelectItem>
-                              <SelectItem value="SUSPENDED">Suspendu</SelectItem>
+                              <SelectItem value="SUSPENDED">
+                                Suspendu
+                              </SelectItem>
                               <SelectItem value="PENDING_VERIFICATION">
                                 En attente de vérification
                               </SelectItem>
@@ -339,7 +381,8 @@ export default function DelivererEditPage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Ces notes seront enregistrées dans l'historique des modifications.
+                          Ces notes seront enregistrées dans l'historique des
+                          modifications.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -347,12 +390,21 @@ export default function DelivererEditPage() {
                   />
 
                   <div className="flex justify-end space-x-4">
-                    <Button type="button" variant="outline" onClick={() => router.back()}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.back()}
+                    >
                       Annuler
                     </Button>
-                    <Button type="submit" disabled={updateDelivererMutation.isPending}>
+                    <Button
+                      type="submit"
+                      disabled={updateDelivererMutation.isPending}
+                    >
                       <Save className="mr-2 h-4 w-4" />
-                      {updateDelivererMutation.isPending ? 'Sauvegarde...' : 'Sauvegarder'}
+                      {updateDelivererMutation.isPending
+                        ? "Sauvegarde..."
+                        : "Sauvegarder"}
                     </Button>
                   </div>
                 </form>
@@ -372,33 +424,43 @@ export default function DelivererEditPage() {
                 </CardHeader>
                 <CardContent>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-6"
+                    >
                       <FormField
                         control={form.control}
                         name="hasVehicle"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                             <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
                             </FormControl>
                             <div className="space-y-1 leading-none">
                               <FormLabel>Possède un véhicule</FormLabel>
                               <FormDescription>
-                                Cochez si le livreur possède un véhicule de transport
+                                Cochez si le livreur possède un véhicule de
+                                transport
                               </FormDescription>
                             </div>
                           </FormItem>
                         )}
                       />
 
-                      {form.watch('hasVehicle') && (
+                      {form.watch("hasVehicle") && (
                         <FormField
                           control={form.control}
                           name="vehicleType"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Type de véhicule</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Sélectionner un type de véhicule" />
@@ -406,10 +468,16 @@ export default function DelivererEditPage() {
                                 </FormControl>
                                 <SelectContent>
                                   <SelectItem value="BICYCLE">Vélo</SelectItem>
-                                  <SelectItem value="SCOOTER">Scooter</SelectItem>
-                                  <SelectItem value="MOTORCYCLE">Moto</SelectItem>
+                                  <SelectItem value="SCOOTER">
+                                    Scooter
+                                  </SelectItem>
+                                  <SelectItem value="MOTORCYCLE">
+                                    Moto
+                                  </SelectItem>
                                   <SelectItem value="CAR">Voiture</SelectItem>
-                                  <SelectItem value="VAN">Camionnette</SelectItem>
+                                  <SelectItem value="VAN">
+                                    Camionnette
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -419,12 +487,21 @@ export default function DelivererEditPage() {
                       )}
 
                       <div className="flex justify-end space-x-4">
-                        <Button type="button" variant="outline" onClick={() => router.back()}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => router.back()}
+                        >
                           Annuler
                         </Button>
-                        <Button type="submit" disabled={updateDelivererMutation.isPending}>
+                        <Button
+                          type="submit"
+                          disabled={updateDelivererMutation.isPending}
+                        >
                           <Save className="mr-2 h-4 w-4" />
-                          {updateDelivererMutation.isPending ? 'Sauvegarde...' : 'Sauvegarder'}
+                          {updateDelivererMutation.isPending
+                            ? "Sauvegarde..."
+                            : "Sauvegarder"}
                         </Button>
                       </div>
                     </form>

@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export * from './csrf';
-export * from './passwords';
-export * from './tokens';
-export * from './totp';
+export * from "./csrf";
+export * from "./passwords";
+export * from "./tokens";
+export * from "./totp";

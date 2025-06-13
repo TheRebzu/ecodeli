@@ -46,7 +46,9 @@ export function getBearing(point1: GeoPoint, point2: GeoPoint): number {
   const lat2 = toRadians(point2.latitude);
 
   const y = Math.sin(dLon) * Math.cos(lat2);
-  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  const x =
+    Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
 
   const bearing = Math.atan2(y, x);
   return (bearing + 360) % 360; // Normaliser à 0-360
@@ -59,7 +61,11 @@ export function getBearing(point1: GeoPoint, point2: GeoPoint): number {
  * @param bearing Direction en degrés
  * @returns Point de destination
  */
-export function getDestinationPoint(point: GeoPoint, distance: number, bearing: number): GeoPoint {
+export function getDestinationPoint(
+  point: GeoPoint,
+  distance: number,
+  bearing: number,
+): GeoPoint {
   const R = 6371; // Rayon de la Terre en kilomètres
   const lat1 = toRadians(point.latitude);
   const lon1 = toRadians(point.longitude);
@@ -67,14 +73,14 @@ export function getDestinationPoint(point: GeoPoint, distance: number, bearing: 
 
   const lat2 = Math.asin(
     Math.sin(lat1) * Math.cos(distance / R) +
-      Math.cos(lat1) * Math.sin(distance / R) * Math.cos(bearingRad)
+      Math.cos(lat1) * Math.sin(distance / R) * Math.cos(bearingRad),
   );
 
   const lon2 =
     lon1 +
     Math.atan2(
       Math.sin(bearingRad) * Math.sin(distance / R) * Math.cos(lat1),
-      Math.cos(distance / R) - Math.sin(lat1) * Math.sin(lat2)
+      Math.cos(distance / R) - Math.sin(lat1) * Math.sin(lat2),
     );
 
   return {
@@ -90,7 +96,11 @@ export function getDestinationPoint(point: GeoPoint, distance: number, bearing: 
  * @param radiusKm Rayon en kilomètres
  * @returns true si le point est dans le rayon
  */
-export function isWithinRadius(center: GeoPoint, point: GeoPoint, radiusKm: number): boolean {
+export function isWithinRadius(
+  center: GeoPoint,
+  point: GeoPoint,
+  radiusKm: number,
+): boolean {
   return getDistance(center, point) <= radiusKm;
 }
 
@@ -102,7 +112,7 @@ export function isWithinRadius(center: GeoPoint, point: GeoPoint, radiusKm: numb
  */
 export function getClosestPoint(
   reference: GeoPoint,
-  points: GeoPoint[]
+  points: GeoPoint[],
 ): { point: GeoPoint; distance: number } | null {
   if (points.length === 0) return null;
 
@@ -147,14 +157,16 @@ export function getCentroid(points: GeoPoint[]): GeoPoint | null {
 export function calculateDetourPercentage(
   origin: GeoPoint,
   destination: GeoPoint,
-  waypoint: GeoPoint
+  waypoint: GeoPoint,
 ): number {
   const directDistance = getDistance(origin, destination);
-  const detourDistance = getDistance(origin, waypoint) + getDistance(waypoint, destination);
+  const detourDistance =
+    getDistance(origin, waypoint) + getDistance(waypoint, destination);
 
   if (directDistance === 0) return 0;
 
-  const detourPercentage = ((detourDistance - directDistance) / directDistance) * 100;
+  const detourPercentage =
+    ((detourDistance - directDistance) / directDistance) * 100;
   return Math.round(detourPercentage * 100) / 100; // Arrondi à 2 décimales
 }
 
@@ -201,7 +213,9 @@ export function calculatePolygonArea(points: GeoPoint[]): number {
     const j = (i + 1) % points.length;
     area +=
       toRadians(points[j].longitude - points[i].longitude) *
-      (2 + Math.sin(toRadians(points[i].latitude)) + Math.sin(toRadians(points[j].latitude)));
+      (2 +
+        Math.sin(toRadians(points[i].latitude)) +
+        Math.sin(toRadians(points[j].latitude)));
   }
 
   area = (Math.abs(area) * R * R) / 2;
@@ -216,7 +230,7 @@ export function calculatePolygonArea(points: GeoPoint[]): number {
  */
 export function findClosestIntersection(
   route1: GeoPoint[],
-  route2: GeoPoint[]
+  route2: GeoPoint[],
 ): {
   point1: GeoPoint;
   point2: GeoPoint;

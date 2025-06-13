@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/hooks/auth/use-auth';
-import { UserRole } from '@prisma/client';
-import { useToast } from '@/components/ui/use-toast';
-import { useSession } from 'next-auth/react';
-import { api } from '@/trpc/react';
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/hooks/auth/use-auth";
+import { UserRole } from "@prisma/client";
+import { useToast } from "@/components/ui/use-toast";
+import { useSession } from "next-auth/react";
+import { api } from "@/trpc/react";
 
 /**
  * Hook pour gérer les redirections liées à la vérification d'utilisateur
@@ -21,7 +21,7 @@ export function useVerificationRedirect(
     redirectTo?: string;
     showToast?: boolean;
     locale: string;
-  } = {}
+  } = {},
 ) {
   const {
     requireVerified = true,
@@ -37,38 +37,57 @@ export function useVerificationRedirect(
   const { toast } = useToast();
   const { data: session } = useSession();
 
-  const verificationRequired = searchParams.get('verification_required') === 'true';
+  const verificationRequired =
+    searchParams.get("verification_required") === "true";
 
-  const { data: verificationStatus } = api.verification.getUserVerificationStatus.useQuery(
-    undefined,
-    { enabled: !!session?.user?.id, staleTime: 60 * 1000 }
-  );
+  const { data: verificationStatus } =
+    api.verification.getUserVerificationStatus.useQuery(undefined, {
+      enabled: !!session?.user?.id,
+      staleTime: 60 * 1000,
+    });
 
   useEffect(() => {
     // Ne rien faire pendant le chargement
-    if (status === 'loading' || isLoading) return;
+    if (status === "loading" || isLoading) return;
 
     // Rediriger vers la connexion si non connecté
-    if (status === 'unauthenticated') {
-      router.push(`/${locale}/login?callbackUrl=${encodeURIComponent(window.location.href)}`);
+    if (status === "unauthenticated") {
+      router.push(
+        `/${locale}/login?callbackUrl=${encodeURIComponent(window.location.href)}`,
+      );
       return;
     }
 
-    if (status === 'authenticated' && session?.user) {
+    if (status === "authenticated" && session?.user) {
       // Pas besoin de vérification pour les clients ou les admins
-      if (session.user.role === UserRole.CLIENT || session.user.role === UserRole.ADMIN) {
+      if (
+        session.user.role === UserRole.CLIENT ||
+        session.user.role === UserRole.ADMIN
+      ) {
         return;
       }
 
       // Vérifier si l'utilisateur est vérifié et rediriger si nécessaire
-      if (requireVerified && verificationStatus && !verificationStatus.isVerified) {
+      if (
+        requireVerified &&
+        verificationStatus &&
+        !verificationStatus.isVerified
+      ) {
         router.push(`/${locale}/${session.user.role.toLowerCase()}/profile`);
       }
     }
-  }, [status, isLoading, session, verificationStatus, router, requireVerified, locale]);
+  }, [
+    status,
+    isLoading,
+    session,
+    verificationStatus,
+    router,
+    requireVerified,
+    locale,
+  ]);
 
   return {
-    isLoading: status === 'loading' || isLoading,
+    isLoading: status === "loading" || isLoading,
     verificationStatus,
     isVerified: verificationStatus?.isVerified,
   };
@@ -80,17 +99,17 @@ export function useVerificationRedirect(
 function getDashboardPathByRole(role: UserRole): string {
   switch (role) {
     case UserRole.CLIENT:
-      return '/client';
+      return "/client";
     case UserRole.DELIVERER:
-      return '/deliverer';
+      return "/deliverer";
     case UserRole.MERCHANT:
-      return '/merchant';
+      return "/merchant";
     case UserRole.PROVIDER:
-      return '/provider';
+      return "/provider";
     case UserRole.ADMIN:
-      return '/admin';
+      return "/admin";
     default:
-      return '/';
+      return "/";
   }
 }
 
@@ -100,12 +119,12 @@ function getDashboardPathByRole(role: UserRole): string {
 function getVerificationPathByRole(role: UserRole): string {
   switch (role) {
     case UserRole.DELIVERER:
-      return '/deliverer/documents';
+      return "/deliverer/documents";
     case UserRole.MERCHANT:
-      return '/merchant/documents';
+      return "/merchant/documents";
     case UserRole.PROVIDER:
-      return '/provider/documents';
+      return "/provider/documents";
     default:
-      return '/';
+      return "/";
   }
 }

@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { router as router, protectedProcedure } from '@/server/api/trpc';
+import { z } from "zod";
+import { router as router, protectedProcedure } from "@/server/api/trpc";
 
 // Gestion des assurances colis
 export const insuranceRouter = router({

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet.heat';
+import { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet.heat";
 
 // Importation des marqueurs personnalisés
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 // Fix pour les images de marqueurs dans Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -20,7 +20,7 @@ L.Icon.Default.mergeOptions({
 
 // Styles des marqueurs par type
 const pickupIcon = new L.Icon({
-  iconUrl: '/images/pickup-marker.png', // À remplacer par l'image réelle
+  iconUrl: "/images/pickup-marker.png", // À remplacer par l'image réelle
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -29,7 +29,7 @@ const pickupIcon = new L.Icon({
 });
 
 const deliveryIcon = new L.Icon({
-  iconUrl: '/images/delivery-marker.png', // À remplacer par l'image réelle
+  iconUrl: "/images/delivery-marker.png", // À remplacer par l'image réelle
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -38,7 +38,7 @@ const deliveryIcon = new L.Icon({
 });
 
 const currentIcon = new L.Icon({
-  iconUrl: '/images/current-marker.png', // À remplacer par l'image réelle
+  iconUrl: "/images/current-marker.png", // À remplacer par l'image réelle
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -49,7 +49,7 @@ const currentIcon = new L.Icon({
 // Types
 interface DeliveryMarker {
   id: string;
-  type: 'pickup' | 'delivery' | 'current';
+  type: "pickup" | "delivery" | "current";
   latitude: number;
   longitude: number;
   label: string;
@@ -91,12 +91,15 @@ export default function MapComponent({
 
     // Initialiser la carte si elle n'existe pas
     if (!mapRef.current) {
-      mapRef.current = L.map(mapContainerRef.current).setView([48.856614, 2.3522219], 13);
+      mapRef.current = L.map(mapContainerRef.current).setView(
+        [48.856614, 2.3522219],
+        13,
+      );
 
       // Ajouter le fond de carte
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        attribution: '© OpenStreetMap contributors',
+        attribution: "© OpenStreetMap contributors",
       }).addTo(mapRef.current);
 
       // Créer le groupe de couches pour les marqueurs
@@ -122,18 +125,19 @@ export default function MapComponent({
     markersLayerRef.current.clearLayers();
 
     // Ajouter les nouveaux marqueurs
-    markers.forEach(marker => {
-      const { id, type, latitude, longitude, label, deliveryId, status } = marker;
+    markers.forEach((marker) => {
+      const { id, type, latitude, longitude, label, deliveryId, status } =
+        marker;
 
       let icon;
       switch (type) {
-        case 'pickup':
+        case "pickup":
           icon = pickupIcon;
           break;
-        case 'delivery':
+        case "delivery":
           icon = deliveryIcon;
           break;
-        case 'current':
+        case "current":
           icon = currentIcon;
           break;
         default:
@@ -149,13 +153,13 @@ export default function MapComponent({
         markerInstance.setZIndexOffset(1000); // Mettre en avant
         const el = markerInstance.getElement();
         if (el) {
-          el.classList.add('selected-marker');
+          el.classList.add("selected-marker");
         }
       }
 
       // Gestion des clics sur les marqueurs
       if (onMarkerClick) {
-        markerInstance.on('click', () => {
+        markerInstance.on("click", () => {
           onMarkerClick(id);
         });
       }
@@ -166,7 +170,9 @@ export default function MapComponent({
       mapRef.current.fitBounds(bounds);
     } else if (markers.length > 0) {
       // Si pas de limites spécifiées mais des marqueurs existent
-      const group = L.featureGroup(markers.map(m => L.marker([m.latitude, m.longitude])));
+      const group = L.featureGroup(
+        markers.map((m) => L.marker([m.latitude, m.longitude])),
+      );
       mapRef.current.fitBounds(group.getBounds(), { padding: [50, 50] });
     }
   }, [markers, selectedDeliveryId, bounds, onMarkerClick]);
@@ -183,7 +189,7 @@ export default function MapComponent({
 
     // Ajouter la nouvelle couche thermique si activée et points disponibles
     if (heatmapEnabled && heatmapPoints.length > 0) {
-      const heatData = heatmapPoints.map(point => {
+      const heatData = heatmapPoints.map((point) => {
         return [point.lat, point.lng, point.intensity || 0.5];
       });
 
@@ -194,16 +200,21 @@ export default function MapComponent({
           blur: 15,
           maxZoom: 17,
           gradient: {
-            0.4: 'blue',
-            0.6: 'lime',
-            0.7: 'yellow',
-            0.8: 'orange',
-            1.0: 'red',
+            0.4: "blue",
+            0.6: "lime",
+            0.7: "yellow",
+            0.8: "orange",
+            1.0: "red",
           },
         })
         .addTo(mapRef.current);
     }
   }, [heatmapEnabled, heatmapPoints]);
 
-  return <div ref={mapContainerRef} className="w-full h-full rounded-md overflow-hidden" />;
+  return (
+    <div
+      ref={mapContainerRef}
+      className="w-full h-full rounded-md overflow-hidden"
+    />
+  );
 }

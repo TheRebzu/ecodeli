@@ -1,7 +1,7 @@
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
-import { authOptions } from '@/server/auth/next-auth';
-import ProviderDashboard from '@/components/providers/provider-dashboard';
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/server/auth/next-auth";
+import ProviderDashboard from "@/components/providers/provider-dashboard";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -19,7 +19,7 @@ export default async function ProviderDashboardPage({ params }: Props) {
   }
 
   // Vérifier que l'utilisateur est bien un prestataire
-  if (session.user.role !== 'PROVIDER') {
+  if (session.user.role !== "PROVIDER") {
     redirect(`/${locale}/dashboard`);
   }
 

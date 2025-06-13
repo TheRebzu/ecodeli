@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { FileText } from 'lucide-react';
-import { VerificationStatus } from '@prisma/client';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { FileText } from "lucide-react";
+import { VerificationStatus } from "@prisma/client";
 
 type Verification = {
   id: string;
@@ -26,11 +26,13 @@ type ProviderVerificationListProps = {
   verifications: Verification[];
 };
 
-export function ProviderVerificationList({ verifications }: ProviderVerificationListProps) {
-  const [activeTab, setActiveTab] = useState('pending');
+export function ProviderVerificationList({
+  verifications,
+}: ProviderVerificationListProps) {
+  const [activeTab, setActiveTab] = useState("pending");
 
   const pendingVerifications = verifications.filter(
-    verification => verification.status === 'PENDING'
+    (verification) => verification.status === "PENDING",
   );
 
   const renderPendingVerifications = () => {
@@ -40,20 +42,24 @@ export function ProviderVerificationList({ verifications }: ProviderVerification
           <CardContent className="py-8">
             <div className="flex flex-col items-center justify-center">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-center text-muted-foreground">Aucune vérification en attente</p>
+              <p className="text-center text-muted-foreground">
+                Aucune vérification en attente
+              </p>
             </div>
           </CardContent>
         </Card>
       );
     }
 
-    return pendingVerifications.map(verification => (
+    return pendingVerifications.map((verification) => (
       <Card key={verification.id} className="mb-4">
         <CardContent className="py-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium">{verification.submitter.name}</h3>
-              <p className="text-sm text-muted-foreground">{verification.document.type}</p>
+              <p className="text-sm text-muted-foreground">
+                {verification.document.type}
+              </p>
             </div>
             <Badge>En attente</Badge>
           </div>
@@ -67,11 +73,17 @@ export function ProviderVerificationList({ verifications }: ProviderVerification
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-medium">Documents des prestataires</h2>
         {pendingVerifications && pendingVerifications.length > 0 && (
-          <Badge variant="secondary">{pendingVerifications.length} en attente</Badge>
+          <Badge variant="secondary">
+            {pendingVerifications.length} en attente
+          </Badge>
         )}
       </div>
 
-      <Tabs defaultValue="pending" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        defaultValue="pending"
+        value={activeTab}
+        onValueChange={setActiveTab}
+      >
         <TabsList>
           <TabsTrigger value="pending">En attente</TabsTrigger>
           <TabsTrigger value="approved">Approuvés</TabsTrigger>
@@ -88,7 +100,9 @@ export function ProviderVerificationList({ verifications }: ProviderVerification
               <CardTitle>Documents approuvés</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground">Fonctionnalité à implémenter</p>
+              <p className="text-center text-muted-foreground">
+                Fonctionnalité à implémenter
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -99,7 +113,9 @@ export function ProviderVerificationList({ verifications }: ProviderVerification
               <CardTitle>Documents rejetés</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground">Fonctionnalité à implémenter</p>
+              <p className="text-center text-muted-foreground">
+                Fonctionnalité à implémenter
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

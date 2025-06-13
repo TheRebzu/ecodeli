@@ -1,43 +1,62 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const serviceSchema = z.object({
-  type: z.enum(['TRANSPORT', 'AIRPORT_TRANSFER', 'PET_SITTING', 'HOUSEKEEPING', 'GARDENING']),
-  description: z.string().min(10, 'La description doit contenir au moins 10 caractères'),
+  type: z.enum([
+    "TRANSPORT",
+    "AIRPORT_TRANSFER",
+    "PET_SITTING",
+    "HOUSEKEEPING",
+    "GARDENING",
+  ]),
+  description: z
+    .string()
+    .min(10, "La description doit contenir au moins 10 caractères"),
   date: z.date(),
-  duration: z.number().min(15, 'La durée minimale est de 15 minutes'),
+  duration: z.number().min(15, "La durée minimale est de 15 minutes"),
   address: z.string().min(5, "L'adresse est requise"),
-  price: z.number().min(1, 'Le prix doit être supérieur à 0'),
+  price: z.number().min(1, "Le prix doit être supérieur à 0"),
 });
 
 export type ServiceSchemaType = z.infer<typeof serviceSchema>;
 
 // Schéma pour la création d'un service
 export const createServiceSchema = z.object({
-  name: z.string().min(3, { message: 'Le nom doit contenir au moins 3 caractères' }),
+  name: z
+    .string()
+    .min(3, { message: "Le nom doit contenir au moins 3 caractères" }),
   description: z
     .string()
-    .min(10, { message: 'La description doit contenir au moins 10 caractères' }),
-  price: z.number().positive({ message: 'Le prix doit être positif' }),
-  duration: z.number().int().positive({ message: 'La durée doit être un nombre entier positif' }),
-  categoryId: z.string().cuid({ message: 'ID de catégorie invalide' }),
+    .min(10, {
+      message: "La description doit contenir au moins 10 caractères",
+    }),
+  price: z.number().positive({ message: "Le prix doit être positif" }),
+  duration: z
+    .number()
+    .int()
+    .positive({ message: "La durée doit être un nombre entier positif" }),
+  categoryId: z.string().cuid({ message: "ID de catégorie invalide" }),
 });
 
 // Schéma pour la mise à jour d'un service
 export const updateServiceSchema = createServiceSchema.partial().extend({
-  id: z.string().cuid({ message: 'ID de service invalide' }),
+  id: z.string().cuid({ message: "ID de service invalide" }),
   isActive: z.boolean().optional(),
 });
 
 // Schéma pour la création d'une catégorie de service
 export const createServiceCategorySchema = z.object({
-  name: z.string().min(2, { message: 'Le nom doit contenir au moins 2 caractères' }),
+  name: z
+    .string()
+    .min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
   description: z.string().optional(),
 });
 
 // Schéma pour la mise à jour d'une catégorie de service
-export const updateServiceCategorySchema = createServiceCategorySchema.partial().extend({
-  id: z.string().cuid({ message: 'ID de catégorie invalide' }),
-});
+export const updateServiceCategorySchema = createServiceCategorySchema
+  .partial()
+  .extend({
+    id: z.string().cuid({ message: "ID de catégorie invalide" }),
+  });
 
 // Schéma pour la création d'une disponibilité
 export const createAvailabilitySchema = z
@@ -51,9 +70,9 @@ export const createAvailabilitySchema = z
     }),
   })
   .refine(
-    data => {
-      const start = data.startTime.split(':').map(Number);
-      const end = data.endTime.split(':').map(Number);
+    (data) => {
+      const start = data.startTime.split(":").map(Number);
+      const end = data.endTime.split(":").map(Number);
 
       const startMinutes = start[0] * 60 + start[1];
       const endMinutes = end[0] * 60 + end[1];
@@ -62,8 +81,8 @@ export const createAvailabilitySchema = z
     },
     {
       message: "L'heure de fin doit être postérieure à l'heure de début",
-      path: ['endTime'],
-    }
+      path: ["endTime"],
+    },
   );
 
 // Schéma pour la recherche de services
@@ -72,7 +91,7 @@ export const searchServicesSchema = z.object({
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, {
-      message: 'La date doit être au format YYYY-MM-DD',
+      message: "La date doit être au format YYYY-MM-DD",
     })
     .optional(),
   location: z
@@ -90,10 +109,10 @@ export const searchServicesSchema = z.object({
 
 // Schéma pour la création d'une réservation
 export const createBookingSchema = z.object({
-  serviceId: z.string().cuid({ message: 'ID de service invalide' }),
-  providerId: z.string().cuid({ message: 'ID de prestataire invalide' }),
+  serviceId: z.string().cuid({ message: "ID de service invalide" }),
+  providerId: z.string().cuid({ message: "ID de prestataire invalide" }),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
-    message: 'La date doit être au format YYYY-MM-DD',
+    message: "La date doit être au format YYYY-MM-DD",
   }),
   startTime: z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, {
     message: "L'heure de début doit être au format HH:MM",
@@ -103,12 +122,14 @@ export const createBookingSchema = z.object({
 
 // Schéma pour la mise à jour d'une réservation
 export const updateBookingSchema = z.object({
-  id: z.string().cuid({ message: 'ID de réservation invalide' }),
-  status: z.enum(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'RESCHEDULED']).optional(),
+  id: z.string().cuid({ message: "ID de réservation invalide" }),
+  status: z
+    .enum(["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "RESCHEDULED"])
+    .optional(),
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, {
-      message: 'La date doit être au format YYYY-MM-DD',
+      message: "La date doit être au format YYYY-MM-DD",
     })
     .optional(),
   startTime: z
@@ -122,21 +143,30 @@ export const updateBookingSchema = z.object({
 
 // Schéma pour la création d'une évaluation
 export const createReviewSchema = z.object({
-  bookingId: z.string().cuid({ message: 'ID de réservation invalide' }),
+  bookingId: z.string().cuid({ message: "ID de réservation invalide" }),
   rating: z.number().int().min(1).max(5),
   comment: z.string().optional(),
 });
 
 // Schéma pour l'annulation d'une réservation
 export const cancelBookingSchema = z.object({
-  bookingId: z.string().cuid({ message: 'ID de réservation invalide' }),
-  reason: z.string().min(5, { message: "Veuillez fournir une raison d'annulation" }).optional(),
+  bookingId: z.string().cuid({ message: "ID de réservation invalide" }),
+  reason: z
+    .string()
+    .min(5, { message: "Veuillez fournir une raison d'annulation" })
+    .optional(),
 });
 
 // Schéma pour la recherche avancée de services
 export const serviceSearchSchema = z.object({
   type: z
-    .enum(['TRANSPORT', 'AIRPORT_TRANSFER', 'PET_SITTING', 'HOUSEKEEPING', 'GARDENING'])
+    .enum([
+      "TRANSPORT",
+      "AIRPORT_TRANSFER",
+      "PET_SITTING",
+      "HOUSEKEEPING",
+      "GARDENING",
+    ])
     .optional(),
   location: z
     .object({
@@ -164,8 +194,8 @@ export const serviceSearchSchema = z.object({
   keywords: z.string().optional(),
   page: z.number().int().positive().default(1),
   limit: z.number().int().positive().default(10),
-  sortBy: z.enum(['price', 'rating', 'distance', 'date']).optional(),
-  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  sortBy: z.enum(["price", "rating", "distance", "date"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).default("asc"),
 });
 
 // Type pour les paramètres de recherche de services

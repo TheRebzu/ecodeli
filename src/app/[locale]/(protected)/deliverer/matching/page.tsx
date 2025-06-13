@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import {
   Bell,
   RefreshCw,
@@ -21,11 +27,11 @@ import {
   CheckCircle,
   X,
   MessageCircle,
-} from 'lucide-react';
-import { useRoleProtection } from '@/hooks/auth/use-role-protection';
-import { toast } from 'sonner';
-import { AnnouncementMatchingDisplay } from '@/components/shared/announcements/announcement-matching-display';
-import { api } from '@/trpc/react';
+} from "lucide-react";
+import { useRoleProtection } from "@/hooks/auth/use-role-protection";
+import { toast } from "sonner";
+import { AnnouncementMatchingDisplay } from "@/components/shared/announcements/announcement-matching-display";
+import { api } from "@/trpc/react";
 
 // Types pour les matches (adaptés des données réelles)
 interface AnnouncementMatch {
@@ -85,8 +91,8 @@ interface AnnouncementMatch {
 }
 
 export default function DelivererMatchingPage() {
-  useRoleProtection(['DELIVERER']);
-  const t = useTranslations('matching');
+  useRoleProtection(["DELIVERER"]);
+  const t = useTranslations("matching");
   const [enableNotifications, setEnableNotifications] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [minCompatibility, setMinCompatibility] = useState(60);
@@ -116,9 +122,9 @@ export default function DelivererMatchingPage() {
 
   // Filtrer les matches selon les critères
   const filteredMatches = matches.filter(
-    match =>
+    (match) =>
       match.matching.compatibilityScore >= minCompatibility &&
-      match.matching.distance <= maxDistance
+      match.matching.distance <= maxDistance,
   );
 
   // Gérer les actions sur les matches
@@ -126,7 +132,7 @@ export default function DelivererMatchingPage() {
     try {
       // Utiliser l'API tRPC pour postuler
       await api.matching.applyToMatch.mutate({ matchId });
-      toast.success('Candidature envoyée avec succès');
+      toast.success("Candidature envoyée avec succès");
     } catch (error) {
       toast.error("Erreur lors de l'envoi de la candidature");
     }
@@ -136,15 +142,19 @@ export default function DelivererMatchingPage() {
     try {
       // Utiliser l'API tRPC pour rejeter
       await api.matching.rejectMatch.mutate({ matchId });
-      toast.success('Match rejeté');
+      toast.success("Match rejeté");
     } catch (error) {
-      toast.error('Erreur lors du rejet');
+      toast.error("Erreur lors du rejet");
     }
   };
 
   const toggleNotifications = () => {
     setEnableNotifications(!enableNotifications);
-    toast.success(enableNotifications ? 'Notifications désactivées' : 'Notifications activées');
+    toast.success(
+      enableNotifications
+        ? "Notifications désactivées"
+        : "Notifications activées",
+    );
   };
 
   if (isLoading) {
@@ -164,7 +174,7 @@ export default function DelivererMatchingPage() {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Erreur</AlertTitle>
           <AlertDescription>
-            {error.message || 'Erreur lors du chargement des correspondances'}
+            {error.message || "Erreur lors du chargement des correspondances"}
           </AlertDescription>
         </Alert>
       </div>
@@ -177,17 +187,18 @@ export default function DelivererMatchingPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {t('title', "Correspondances d'annonces")}
+            {t("title", "Correspondances d'annonces")}
           </h1>
           <p className="text-muted-foreground">
-            {t('subtitle') || 'Trouvez des livraisons compatibles avec vos trajets planifiés'}
+            {t("subtitle") ||
+              "Trouvez des livraisons compatibles avec vos trajets planifiés"}
           </p>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Bell
-              className={`h-4 w-4 ${enableNotifications ? 'text-blue-600' : 'text-gray-400'}`}
+              className={`h-4 w-4 ${enableNotifications ? "text-blue-600" : "text-gray-400"}`}
             />
             <Switch
               checked={enableNotifications}
@@ -197,7 +208,9 @@ export default function DelivererMatchingPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'text-green-600' : 'text-gray-400'}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${autoRefresh ? "text-green-600" : "text-gray-400"}`}
+            />
             <Switch
               checked={autoRefresh}
               onCheckedChange={setAutoRefresh}
@@ -214,7 +227,9 @@ export default function DelivererMatchingPage() {
             <Filter className="h-5 w-5" />
             Critères de correspondance
           </CardTitle>
-          <CardDescription>Ajustez les paramètres pour affiner vos correspondances</CardDescription>
+          <CardDescription>
+            Ajustez les paramètres pour affiner vos correspondances
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
@@ -223,7 +238,7 @@ export default function DelivererMatchingPage() {
             </label>
             <Slider
               value={[minCompatibility]}
-              onValueChange={value => setMinCompatibility(value[0])}
+              onValueChange={(value) => setMinCompatibility(value[0])}
               max={100}
               min={0}
               step={5}
@@ -232,10 +247,12 @@ export default function DelivererMatchingPage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium">Distance maximum: {maxDistance} km</label>
+            <label className="text-sm font-medium">
+              Distance maximum: {maxDistance} km
+            </label>
             <Slider
               value={[maxDistance]}
-              onValueChange={value => setMaxDistance(value[0])}
+              onValueChange={(value) => setMaxDistance(value[0])}
               max={50}
               min={5}
               step={5}
@@ -252,7 +269,9 @@ export default function DelivererMatchingPage() {
             <TrendingUp className="h-4 w-4 text-green-600" />
             <div>
               <div className="text-2xl font-bold">{filteredMatches.length}</div>
-              <div className="text-xs text-muted-foreground">Correspondances</div>
+              <div className="text-xs text-muted-foreground">
+                Correspondances
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -262,7 +281,11 @@ export default function DelivererMatchingPage() {
             <MapPin className="h-4 w-4 text-blue-600" />
             <div>
               <div className="text-2xl font-bold">
-                {filteredMatches.filter(m => m.matching.compatibilityScore >= 80).length}
+                {
+                  filteredMatches.filter(
+                    (m) => m.matching.compatibilityScore >= 80,
+                  ).length
+                }
               </div>
               <div className="text-xs text-muted-foreground">Score ≥ 80%</div>
             </div>
@@ -274,7 +297,7 @@ export default function DelivererMatchingPage() {
             <Clock className="h-4 w-4 text-orange-600" />
             <div>
               <div className="text-2xl font-bold">
-                {filteredMatches.filter(m => !m.notified).length}
+                {filteredMatches.filter((m) => !m.notified).length}
               </div>
               <div className="text-xs text-muted-foreground">Nouvelles</div>
             </div>
@@ -287,8 +310,10 @@ export default function DelivererMatchingPage() {
             <div>
               <div className="text-2xl font-bold">
                 {Math.round(
-                  filteredMatches.reduce((acc, m) => acc + m.matching.compatibilityScore, 0) /
-                    filteredMatches.length
+                  filteredMatches.reduce(
+                    (acc, m) => acc + m.matching.compatibilityScore,
+                    0,
+                  ) / filteredMatches.length,
                 ) || 0}
                 %
               </div>
@@ -304,7 +329,9 @@ export default function DelivererMatchingPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Aucune correspondance trouvée</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Aucune correspondance trouvée
+              </h3>
               <p className="text-muted-foreground text-center">
                 Aucune annonce ne correspond à vos critères actuels.
                 <br />
@@ -313,11 +340,14 @@ export default function DelivererMatchingPage() {
             </CardContent>
           </Card>
         ) : (
-          filteredMatches.map(match => (
+          filteredMatches.map((match) => (
             <Card key={match.id} className="relative">
               {!match.notified && (
                 <div className="absolute top-2 right-2">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-100 text-blue-800"
+                  >
                     Nouveau
                   </Badge>
                 </div>
@@ -326,8 +356,12 @@ export default function DelivererMatchingPage() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold mb-2">{match.announcement.title}</h3>
-                    <p className="text-muted-foreground mb-2">{match.announcement.description}</p>
+                    <h3 className="text-xl font-semibold mb-2">
+                      {match.announcement.title}
+                    </h3>
+                    <p className="text-muted-foreground mb-2">
+                      {match.announcement.description}
+                    </p>
 
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
@@ -339,11 +373,15 @@ export default function DelivererMatchingPage() {
                         {match.matching.estimatedDuration}
                       </span>
                       <Badge
-                        variant={match.matching.compatibilityScore >= 80 ? 'default' : 'secondary'}
+                        variant={
+                          match.matching.compatibilityScore >= 80
+                            ? "default"
+                            : "secondary"
+                        }
                         className={
                           match.matching.compatibilityScore >= 80
-                            ? 'bg-green-100 text-green-800'
-                            : ''
+                            ? "bg-green-100 text-green-800"
+                            : ""
                         }
                       >
                         {match.matching.compatibilityScore}% compatible
@@ -355,7 +393,9 @@ export default function DelivererMatchingPage() {
                     <div className="text-2xl font-bold text-green-600">
                       {match.matching.priceEstimate}€
                     </div>
-                    <div className="text-sm text-muted-foreground">Estimation</div>
+                    <div className="text-sm text-muted-foreground">
+                      Estimation
+                    </div>
                   </div>
                 </div>
 
@@ -369,19 +409,25 @@ export default function DelivererMatchingPage() {
                     </p>
                     {match.announcement.pickupDate && (
                       <p className="text-sm text-muted-foreground">
-                        {match.announcement.pickupDate.toLocaleDateString('fr-FR')}
+                        {match.announcement.pickupDate.toLocaleDateString(
+                          "fr-FR",
+                        )}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <h4 className="font-medium mb-2">Détails de la livraison</h4>
+                    <h4 className="font-medium mb-2">
+                      Détails de la livraison
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       {match.announcement.deliveryAddress}
                     </p>
                     {match.announcement.deliveryDate && (
                       <p className="text-sm text-muted-foreground">
-                        {match.announcement.deliveryDate.toLocaleDateString('fr-FR')}
+                        {match.announcement.deliveryDate.toLocaleDateString(
+                          "fr-FR",
+                        )}
                       </p>
                     )}
                   </div>
@@ -390,16 +436,23 @@ export default function DelivererMatchingPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="text-sm">
-                      <span className="font-medium">{match.announcement.client.name}</span>
+                      <span className="font-medium">
+                        {match.announcement.client.name}
+                      </span>
                       <span className="text-muted-foreground ml-2">
                         ⭐ {match.announcement.client.rating} (
-                        {match.announcement.client.completedDeliveries} livraisons)
+                        {match.announcement.client.completedDeliveries}{" "}
+                        livraisons)
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleReject(match.id)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReject(match.id)}
+                    >
                       <X className="h-4 w-4 mr-1" />
                       Rejeter
                     </Button>

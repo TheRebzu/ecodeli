@@ -1,6 +1,6 @@
-import { TRPCError } from '@trpc/server';
-import { db } from '@/server/db';
-import { UserRole } from '@prisma/client';
+import { TRPCError } from "@trpc/server";
+import { db } from "@/server/db";
+import { UserRole } from "@prisma/client";
 
 // Vérification spécifique pour les livreurs vérifiés
 export const isVerifiedDeliverer = async (userId: string) => {
@@ -10,8 +10,8 @@ export const isVerifiedDeliverer = async (userId: string) => {
 
   if (!deliverer) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Cette action nécessite un compte livreur vérifié.',
+      code: "FORBIDDEN",
+      message: "Cette action nécessite un compte livreur vérifié.",
     });
   }
 
@@ -26,8 +26,8 @@ export const isVerifiedProvider = async (userId: string) => {
 
   if (!provider) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Cette action nécessite un compte prestataire vérifié.',
+      code: "FORBIDDEN",
+      message: "Cette action nécessite un compte prestataire vérifié.",
     });
   }
 
@@ -35,17 +35,21 @@ export const isVerifiedProvider = async (userId: string) => {
 };
 
 // Vérification pour les actions sur les ressources possédées
-export const ownsResource = async (resourceType: string, resourceId: string, userId: string) => {
+export const ownsResource = async (
+  resourceType: string,
+  resourceId: string,
+  userId: string,
+) => {
   let resource: any = null;
 
   switch (resourceType) {
-    case 'announcement':
+    case "announcement":
       resource = await db.announcement.findUnique({
         where: { id: resourceId },
         select: { clientId: true, merchantId: true, delivererId: true },
       });
       break;
-    case 'delivery':
+    case "delivery":
       // Vérification pour livraison
       break;
     // Autres cas
@@ -53,8 +57,8 @@ export const ownsResource = async (resourceType: string, resourceId: string, use
 
   if (!resource) {
     throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'Ressource non trouvée',
+      code: "NOT_FOUND",
+      message: "Ressource non trouvée",
     });
   }
 

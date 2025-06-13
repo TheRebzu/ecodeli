@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import { UserRole, UserStatus } from '@prisma/client';
-import { api } from '@/trpc/react';
+import { useState } from "react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { UserRole, UserStatus } from "@prisma/client";
+import { api } from "@/trpc/react";
 import {
   UserFilters,
   UserSortOptions,
@@ -10,17 +10,19 @@ import {
   UserActionType,
   NoteCategory,
   NoteVisibility,
-} from '@/types/actors/admin';
+} from "@/types/actors/admin";
 
 export function useAdminUsers() {
   const router = useRouter();
-  const [filters, setFilters] = useState<UserFilters & { page: number; limit: number }>({
+  const [filters, setFilters] = useState<
+    UserFilters & { page: number; limit: number }
+  >({
     page: 1,
     limit: 10,
   });
   const [sortOptions, setSortOptions] = useState<UserSortOptions>({
-    field: 'createdAt',
-    direction: 'desc',
+    field: "createdAt",
+    direction: "desc",
   });
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
@@ -37,21 +39,19 @@ export function useAdminUsers() {
     },
     {
       keepPreviousData: true,
-      onError: error => {
+      onError: (error) => {
         toast.error(`Erreur de chargement des utilisateurs: ${error.message}`);
       },
-    }
+    },
   );
 
   // Query for user statistics
-  const { data: userStats, isLoading: isLoadingStats } = api.adminUser.getUserStats.useQuery(
-    undefined,
-    {
-      onError: error => {
+  const { data: userStats, isLoading: isLoadingStats } =
+    api.adminUser.getUserStats.useQuery(undefined, {
+      onError: (error) => {
         toast.error(`Erreur de chargement des statistiques: ${error.message}`);
       },
-    }
-  );
+    });
 
   // Query to fetch a specific user - TEMPORAIRE: Désactivé pour éviter les erreurs d'auth
   const getUserDetail = (
@@ -60,25 +60,18 @@ export function useAdminUsers() {
       includeActivityLogs: false,
       includeLoginHistory: false,
       includeNotes: false,
-    }
+    },
   ) => {
-    // TODO: Remettre l'API réelle quand l'authentification admin sera configurée
-    // return api.adminUser.getUserDetail.useQuery(
-    //   { userId, ...options },
-    //   {
-    //     enabled: !!userId,
-    //     onError: error => {
-    //       toast.error(`Erreur de chargement des détails utilisateur: ${error.message}`);
-    //     },
-    //   }
-    // );
-
-    // Retour fictif pour éviter les erreurs
-    return {
-      data: null,
-      isLoading: false,
-      error: null,
-    };
+    // API réelle pour récupérer les détails utilisateur
+    return api.admin.users.getUserDetail.useQuery(
+      { userId, ...options },
+      {
+        enabled: !!userId,
+        onError: (error) => {
+          toast.error(`Erreur de chargement des détails utilisateur: ${error.message}`);
+        },
+      }
+    );
   };
 
   // Query to fetch user activity logs
@@ -87,20 +80,22 @@ export function useAdminUsers() {
       { userId, ...options },
       {
         enabled: !!userId,
-        onError: error => {
-          toast.error(`Erreur de chargement des logs d'activité: ${error.message}`);
+        onError: (error) => {
+          toast.error(
+            `Erreur de chargement des logs d'activité: ${error.message}`,
+          );
         },
-      }
+      },
     );
   };
 
   // Mutation to update user status
   const updateUserStatusMutation = api.adminUser.updateUserStatus.useMutation({
     onSuccess: () => {
-      toast.success('Statut utilisateur mis à jour avec succès');
+      toast.success("Statut utilisateur mis à jour avec succès");
       refetchUsers();
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur de mise à jour du statut: ${error.message}`);
     },
   });
@@ -108,31 +103,32 @@ export function useAdminUsers() {
   // Mutation to update user role
   const updateUserRoleMutation = api.adminUser.updateUserRole.useMutation({
     onSuccess: () => {
-      toast.success('Rôle utilisateur mis à jour avec succès');
+      toast.success("Rôle utilisateur mis à jour avec succès");
       refetchUsers();
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur de mise à jour du rôle: ${error.message}`);
     },
   });
 
   // Mutation to update admin permissions
-  const updateAdminPermissionsMutation = api.adminUser.updateAdminPermissions.useMutation({
-    onSuccess: () => {
-      toast.success('Permissions administrateur mises à jour avec succès');
-      refetchUsers();
-    },
-    onError: error => {
-      toast.error(`Erreur de mise à jour des permissions: ${error.message}`);
-    },
-  });
+  const updateAdminPermissionsMutation =
+    api.adminUser.updateAdminPermissions.useMutation({
+      onSuccess: () => {
+        toast.success("Permissions administrateur mises à jour avec succès");
+        refetchUsers();
+      },
+      onError: (error) => {
+        toast.error(`Erreur de mise à jour des permissions: ${error.message}`);
+      },
+    });
 
   // Mutation to add a note to a user
   const addUserNoteMutation = api.adminUser.addUserNote.useMutation({
     onSuccess: () => {
-      toast.success('Note ajoutée avec succès');
+      toast.success("Note ajoutée avec succès");
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur d'ajout de note: ${error.message}`);
     },
   });
@@ -142,18 +138,18 @@ export function useAdminUsers() {
     onSuccess: () => {
       toast.success("Journal d'activité ajouté avec succès");
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur d'ajout de journal d'activité: ${error.message}`);
     },
   });
 
   // Mutation to export users
   const exportUsersMutation = api.adminUser.exportUsers.useMutation({
-    onSuccess: data => {
+    onSuccess: (data) => {
       // Create download link for exported data
       const blob = new Blob([data.data], { type: data.mimeType });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = data.filename;
       document.body.appendChild(a);
@@ -161,67 +157,74 @@ export function useAdminUsers() {
       URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success('Utilisateurs exportés avec succès');
+      toast.success("Utilisateurs exportés avec succès");
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur d'exportation: ${error.message}`);
     },
   });
 
   // Mutation for force password reset
-  const forcePasswordResetMutation = api.adminUser.forcePasswordReset.useMutation({
-    onSuccess: () => {
-      toast.success('Réinitialisation du mot de passe initiée avec succès');
-      refetchUsers();
-    },
-    onError: error => {
-      toast.error(`Erreur de réinitialisation du mot de passe: ${error.message}`);
-    },
-  });
+  const forcePasswordResetMutation =
+    api.adminUser.forcePasswordReset.useMutation({
+      onSuccess: () => {
+        toast.success("Réinitialisation du mot de passe initiée avec succès");
+        refetchUsers();
+      },
+      onError: (error) => {
+        toast.error(
+          `Erreur de réinitialisation du mot de passe: ${error.message}`,
+        );
+      },
+    });
 
   // Mutation for bulk user actions
   const bulkUserActionMutation = api.adminUser.bulkUserAction.useMutation({
-    onSuccess: data => {
-      toast.success(`Action en masse effectuée sur ${data.processed} utilisateurs`);
+    onSuccess: (data) => {
+      toast.success(
+        `Action en masse effectuée sur ${data.processed} utilisateurs`,
+      );
       setSelectedUsers([]); // Clear selections after action
       refetchUsers();
     },
-    onError: error => {
+    onError: (error) => {
       toast.error(`Erreur lors de l'action en masse: ${error.message}`);
     },
   });
 
   // Mutation for permanently deleting a user
-  const permanentlyDeleteUserMutation = api.adminUser.permanentlyDeleteUser.useMutation({
-    onSuccess: () => {
-      toast.success('Utilisateur définitivement supprimé');
-      router.push('/admin/users');
-    },
-    onError: error => {
-      toast.error(`Erreur de suppression: ${error.message}`);
-    },
-  });
+  const permanentlyDeleteUserMutation =
+    api.adminUser.permanentlyDeleteUser.useMutation({
+      onSuccess: () => {
+        toast.success("Utilisateur définitivement supprimé");
+        router.push("/admin/users");
+      },
+      onError: (error) => {
+        toast.error(`Erreur de suppression: ${error.message}`);
+      },
+    });
 
   // Function to handle pagination
   const handlePageChange = (page: number) => {
-    setFilters(prev => ({ ...prev, page }));
+    setFilters((prev) => ({ ...prev, page }));
   };
 
   // Function to handle limit change
   const handleLimitChange = (limit: number) => {
-    setFilters(prev => ({ ...prev, limit, page: 1 }));
+    setFilters((prev) => ({ ...prev, limit, page: 1 }));
   };
 
   // Function to handle filter change
   const handleFilterChange = (newFilters: Partial<UserFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
   };
 
   // Function to handle sort change
-  const handleSortChange = (field: UserSortOptions['field']) => {
-    setSortOptions(prev => ({
+  const handleSortChange = (field: UserSortOptions["field"]) => {
+    setSortOptions((prev) => ({
       field,
-      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc',
+      direction:
+        prev.field === field && prev.direction === "asc" ? "desc" : "asc",
     }));
   };
 
@@ -231,9 +234,15 @@ export function useAdminUsers() {
     status: UserStatus,
     reason?: string,
     notifyUser = true,
-    expiresAt?: Date
+    expiresAt?: Date,
   ) => {
-    updateUserStatusMutation.mutate({ userId, status, reason, notifyUser, expiresAt });
+    updateUserStatusMutation.mutate({
+      userId,
+      status,
+      reason,
+      notifyUser,
+      expiresAt,
+    });
   };
 
   // Function to update user role
@@ -242,7 +251,7 @@ export function useAdminUsers() {
     role: UserRole,
     reason?: string,
     createRoleSpecificProfile = true,
-    transferExistingData = false
+    transferExistingData = false,
   ) => {
     updateUserRoleMutation.mutate({
       userId,
@@ -254,7 +263,11 @@ export function useAdminUsers() {
   };
 
   // Function to update admin permissions
-  const updateAdminPermissions = (userId: string, permissions: string[], expiresAt?: Date) => {
+  const updateAdminPermissions = (
+    userId: string,
+    permissions: string[],
+    expiresAt?: Date,
+  ) => {
     updateAdminPermissionsMutation.mutate({ userId, permissions, expiresAt });
   };
 
@@ -263,7 +276,7 @@ export function useAdminUsers() {
     userId: string,
     note: string,
     category: NoteCategory = NoteCategory.GENERAL,
-    visibility: NoteVisibility = NoteVisibility.ADMIN_ONLY
+    visibility: NoteVisibility = NoteVisibility.ADMIN_ONLY,
   ) => {
     addUserNoteMutation.mutate({ userId, note, category, visibility });
   };
@@ -273,16 +286,21 @@ export function useAdminUsers() {
     userId: string,
     activityType: ActivityType,
     details?: string,
-    importance: 'LOW' | 'MEDIUM' | 'HIGH' = 'MEDIUM'
+    importance: "LOW" | "MEDIUM" | "HIGH" = "MEDIUM",
   ) => {
-    addActivityLogMutation.mutate({ userId, activityType, details, importance });
+    addActivityLogMutation.mutate({
+      userId,
+      activityType,
+      details,
+      importance,
+    });
   };
 
   // Function to export users
   const exportUsers = (
-    format: 'csv' | 'excel' | 'pdf',
+    format: "csv" | "excel" | "pdf",
     fields: string[],
-    exportFilters?: UserFilters
+    exportFilters?: UserFilters,
   ) => {
     exportUsersMutation.mutate({
       format,
@@ -298,7 +316,7 @@ export function useAdminUsers() {
       reason?: string;
       notifyUser?: boolean;
       expireExistingTokens?: boolean;
-    } = {}
+    } = {},
   ) => {
     forcePasswordResetMutation.mutate({
       userId,
@@ -313,10 +331,10 @@ export function useAdminUsers() {
       reason?: string;
       notifyUsers?: boolean;
       additionalData?: Record<string, any>;
-    } = {}
+    } = {},
   ) => {
     if (selectedUsers.length === 0) {
-      toast.error('Aucun utilisateur sélectionné pour cette action.');
+      toast.error("Aucun utilisateur sélectionné pour cette action.");
       return;
     }
 
@@ -328,7 +346,11 @@ export function useAdminUsers() {
   };
 
   // Function to permanently delete a user (with admin password confirmation)
-  const permanentlyDeleteUser = (userId: string, adminPassword: string, reason: string) => {
+  const permanentlyDeleteUser = (
+    userId: string,
+    adminPassword: string,
+    reason: string,
+  ) => {
     permanentlyDeleteUserMutation.mutate({
       userId,
       adminPassword,
@@ -338,8 +360,10 @@ export function useAdminUsers() {
 
   // Function to handle user selection for bulk actions
   const toggleUserSelection = (userId: string) => {
-    setSelectedUsers(prev =>
-      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId],
     );
   };
 
@@ -348,16 +372,18 @@ export function useAdminUsers() {
     if (!usersData?.users) return;
 
     if (selectAll) {
-      const currentPageUserIds = usersData.users.map(user => user.id);
-      setSelectedUsers(prev => {
+      const currentPageUserIds = usersData.users.map((user) => user.id);
+      setSelectedUsers((prev) => {
         // Add only new IDs, avoid duplicates
-        const newIds = currentPageUserIds.filter(id => !prev.includes(id));
+        const newIds = currentPageUserIds.filter((id) => !prev.includes(id));
         return [...prev, ...newIds];
       });
     } else {
       // Only remove users from current page
-      const currentPageUserIds = usersData.users.map(user => user.id);
-      setSelectedUsers(prev => prev.filter(id => !currentPageUserIds.includes(id)));
+      const currentPageUserIds = usersData.users.map((user) => user.id);
+      setSelectedUsers((prev) =>
+        prev.filter((id) => !currentPageUserIds.includes(id)),
+      );
     }
   };
 

@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from "@prisma/client";
 
 /**
  * Vérifie si un rôle a l'autorisation d'effectuer une action spécifique
@@ -6,7 +6,10 @@ import { UserRole } from '@prisma/client';
  * @param allowedRoles - Les rôles autorisés pour cette action
  * @returns boolean - true si le rôle est autorisé
  */
-export function isRoleAllowed(userRole: UserRole, allowedRoles: UserRole[]): boolean {
+export function isRoleAllowed(
+  userRole: UserRole,
+  allowedRoles: UserRole[],
+): boolean {
   return allowedRoles.includes(userRole);
 }
 
@@ -20,7 +23,7 @@ export function isRoleAllowed(userRole: UserRole, allowedRoles: UserRole[]): boo
 export function checkPaymentAccessRights(
   userRole: UserRole,
   userId: string,
-  resourceOwnerId?: string
+  resourceOwnerId?: string,
 ): boolean {
   // Admin a accès à tout
   if (userRole === UserRole.ADMIN) {
@@ -61,7 +64,7 @@ export function canModifyPayment(userRole: UserRole): boolean {
 export function hasDocumentAccess(
   userRole: UserRole,
   userId: string,
-  documentOwnerId?: string
+  documentOwnerId?: string,
 ): boolean {
   // Admin a accès à tous les documents
   if (userRole === UserRole.ADMIN) {

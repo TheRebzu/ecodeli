@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useTranslations } from 'next-intl';
-import { MapPin, Search, Loader2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils/common';
+import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
+import { MapPin, Search, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils/common";
 
 // Type pour les coordonnées géographiques
 interface GeoCoordinates {
@@ -38,9 +38,9 @@ export function AnnouncementAddressMap({
   onCoordinatesChange,
   placeholder,
   disabled = false,
-  mapHeight = '300px',
+  mapHeight = "300px",
 }: AnnouncementAddressMapProps) {
-  const t = useTranslations('announcements');
+  const t = useTranslations("announcements");
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
   const [searchResults, setSearchResults] = useState<AddressSearchResult[]>([]);
@@ -48,19 +48,22 @@ export function AnnouncementAddressMap({
   const [isSearching, setIsSearching] = useState(false);
   const [inputValue, setInputValue] = useState(address);
   const mapRef = useRef<HTMLDivElement>(null);
-  const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
+  const autocompleteService =
+    useRef<google.maps.places.AutocompleteService | null>(null);
   const placesService = useRef<google.maps.places.PlacesService | null>(null);
   const geocoder = useRef<google.maps.Geocoder | null>(null);
 
   // Initialisation de la carte Google Maps
   useEffect(() => {
     // Vérifier si l'API Google Maps est chargée
-    if (typeof window !== 'undefined' && window.google && window.google.maps) {
+    if (typeof window !== "undefined" && window.google && window.google.maps) {
       if (mapRef.current && !map) {
         // Position par défaut (Paris)
         const defaultPosition = { lat: 48.8566, lng: 2.3522 };
         const position =
-          latitude && longitude ? { lat: latitude, lng: longitude } : defaultPosition;
+          latitude && longitude
+            ? { lat: latitude, lng: longitude }
+            : defaultPosition;
 
         // Créer la carte
         const mapInstance = new google.maps.Map(mapRef.current, {
@@ -82,7 +85,7 @@ export function AnnouncementAddressMap({
         });
 
         // Gérer le déplacement du marqueur
-        markerInstance.addListener('dragend', () => {
+        markerInstance.addListener("dragend", () => {
           const position = markerInstance.getPosition();
           if (position) {
             onCoordinatesChange(position.lat(), position.lng());
@@ -91,7 +94,7 @@ export function AnnouncementAddressMap({
         });
 
         // Gérer le clic sur la carte
-        mapInstance.addListener('click', (e: google.maps.MapMouseEvent) => {
+        mapInstance.addListener("click", (e: google.maps.MapMouseEvent) => {
           if (!disabled && e.latLng) {
             markerInstance.setPosition(e.latLng);
             onCoordinatesChange(e.latLng.lat(), e.latLng.lng());
@@ -100,8 +103,11 @@ export function AnnouncementAddressMap({
         });
 
         // Initialiser les services
-        autocompleteService.current = new google.maps.places.AutocompleteService();
-        placesService.current = new google.maps.places.PlacesService(mapInstance);
+        autocompleteService.current =
+          new google.maps.places.AutocompleteService();
+        placesService.current = new google.maps.places.PlacesService(
+          mapInstance,
+        );
         geocoder.current = new google.maps.Geocoder();
 
         setMap(mapInstance);
@@ -128,35 +134,39 @@ export function AnnouncementAddressMap({
       autocompleteService.current.getPlacePredictions(
         {
           input: query,
-          types: ['address'],
-          componentRestrictions: { country: 'fr' }, // Restreindre à la France
+          types: ["address"],
+          componentRestrictions: { country: "fr" }, // Restreindre à la France
         },
         (predictions, status) => {
-          if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
+          if (
+            status !== google.maps.places.PlacesServiceStatus.OK ||
+            !predictions
+          ) {
             setSearchResults([]);
             setShowResults(false);
             setIsSearching(false);
             return;
           }
 
-          const results = predictions.slice(0, 5).map(prediction => ({
+          const results = predictions.slice(0, 5).map((prediction) => ({
             address: prediction.description,
             placeId: prediction.place_id,
           }));
 
           // Récupérer les coordonnées pour chaque résultat
-          const resultPromises = results.map(async result => {
+          const resultPromises = results.map(async (result) => {
             if (!placesService.current) return null;
 
-            return new Promise<AddressSearchResult | null>(resolve => {
+            return new Promise<AddressSearchResult | null>((resolve) => {
               placesService.current!.getDetails(
                 {
                   placeId: result.placeId,
-                  fields: ['geometry', 'formatted_address'],
+                  fields: ["geometry", "formatted_address"],
                 },
                 (place, detailsStatus) => {
                   if (
-                    detailsStatus !== google.maps.places.PlacesServiceStatus.OK ||
+                    detailsStatus !==
+                      google.maps.places.PlacesServiceStatus.OK ||
                     !place ||
                     !place.geometry ||
                     !place.geometry.location
@@ -172,20 +182,20 @@ export function AnnouncementAddressMap({
                       lng: place.geometry.location.lng(),
                     },
                   });
-                }
+                },
               );
             });
           });
 
-          Promise.all(resultPromises).then(resolvedResults => {
+          Promise.all(resultPromises).then((resolvedResults) => {
             const validResults = resolvedResults.filter(
-              (result): result is AddressSearchResult => result !== null
+              (result): result is AddressSearchResult => result !== null,
             );
             setSearchResults(validResults);
             setShowResults(validResults.length > 0);
             setIsSearching(false);
           });
-        }
+        },
       );
     } catch (error) {
       console.error("Erreur lors de la recherche d'adresse:", error);
@@ -200,8 +210,12 @@ export function AnnouncementAddressMap({
     setIsSearching(true);
     geocoder.current.geocode({ address }, (results, status) => {
       setIsSearching(false);
-      if (status !== google.maps.GeocoderStatus.OK || !results || results.length === 0) {
-        console.error('Erreur de géocodage:', status);
+      if (
+        status !== google.maps.GeocoderStatus.OK ||
+        !results ||
+        results.length === 0
+      ) {
+        console.error("Erreur de géocodage:", status);
         return;
       }
 
@@ -222,8 +236,12 @@ export function AnnouncementAddressMap({
     setIsSearching(true);
     geocoder.current.geocode({ location: { lat, lng } }, (results, status) => {
       setIsSearching(false);
-      if (status !== google.maps.GeocoderStatus.OK || !results || results.length === 0) {
-        console.error('Erreur de géocodage inverse:', status);
+      if (
+        status !== google.maps.GeocoderStatus.OK ||
+        !results ||
+        results.length === 0
+      ) {
+        console.error("Erreur de géocodage inverse:", status);
         return;
       }
 
@@ -269,7 +287,7 @@ export function AnnouncementAddressMap({
   const useCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        position => {
+        (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           onCoordinatesChange(lat, lng);
@@ -281,9 +299,9 @@ export function AnnouncementAddressMap({
             map.panTo(pos);
           }
         },
-        error => {
-          console.error('Erreur de géolocalisation:', error);
-        }
+        (error) => {
+          console.error("Erreur de géolocalisation:", error);
+        },
       );
     }
   };
@@ -296,7 +314,7 @@ export function AnnouncementAddressMap({
             <Input
               value={inputValue}
               onChange={handleInputChange}
-              placeholder={placeholder || t('searchAddress')}
+              placeholder={placeholder || t("searchAddress")}
               disabled={disabled}
               className="pr-10"
             />
@@ -312,7 +330,7 @@ export function AnnouncementAddressMap({
             size="icon"
             onClick={useCurrentLocation}
             disabled={disabled}
-            title={t('useCurrentLocation')}
+            title={t("useCurrentLocation")}
           >
             <MapPin className="h-4 w-4" />
           </Button>
@@ -343,15 +361,15 @@ export function AnnouncementAddressMap({
       <div
         ref={mapRef}
         className={cn(
-          'w-full rounded-md border border-input overflow-hidden',
-          disabled && 'opacity-70'
+          "w-full rounded-md border border-input overflow-hidden",
+          disabled && "opacity-70",
         )}
         style={{ height: mapHeight }}
       />
 
       {latitude && longitude && (
         <p className="text-xs text-muted-foreground">
-          {t('coordinates')}: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+          {t("coordinates")}: {latitude.toFixed(6)}, {longitude.toFixed(6)}
         </p>
       )}
     </div>

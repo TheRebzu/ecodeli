@@ -4,13 +4,13 @@
  */
 
 // Exports des fichiers locaux
-export * from './box-reservation.schema';
-export * from './box.schema';
-export * from './inter-warehouse-transfer.schema';
-export * from './inventory.schema';
-export * from './stock-movement.schema';
-export * from './storage-capacity.schema';
-export * from './storage.schema';
-export * from './warehouse-inventory.schema';
-export * from './warehouse-location.schema';
-export * from './warehouse.schema';
+export * from "./box-reservation.schema";
+export * from "./box.schema";
+export * from "./inter-warehouse-transfer.schema";
+export * from "./inventory.schema";
+export * from "./stock-movement.schema";
+export * from "./storage-capacity.schema";
+export * from "./storage.schema";
+export * from "./warehouse-inventory.schema";
+export * from "./warehouse-location.schema";
+export * from "./warehouse.schema";

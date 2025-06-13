@@ -1,13 +1,13 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 // Schémas de validation pour la génération PDF
 const contractPdfSchema = z.object({
   contractId: z.string(),
-  templateType: z.enum(['merchant', 'provider', 'deliverer']).optional(),
+  templateType: z.enum(["merchant", "provider", "deliverer"]).optional(),
 });
 
 const invoicePdfSchema = z.object({
@@ -46,15 +46,18 @@ export const pdfRouter = router({
 
         if (!contract) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Contrat non trouvé',
+            code: "NOT_FOUND",
+            message: "Contrat non trouvé",
           });
         }
 
         // Vérifier que l'utilisateur a le droit d'accéder à ce contrat
-        if (contract.userId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN') {
+        if (
+          contract.userId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
+        ) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
+            code: "FORBIDDEN",
             message: "Vous n'êtes pas autorisé à accéder à ce contrat",
           });
         }
@@ -63,26 +66,29 @@ export const pdfRouter = router({
         const htmlContent = generateContractHTML(contract, templateType);
 
         // Générer le nom de fichier
-        const timestamp = format(new Date(), 'yyyy-MM-dd-HHmm', { locale: fr });
-        const filename = `contrat-${contract.title.replace(/\s+/g, '-')}-${timestamp}.pdf`;
+        const timestamp = format(new Date(), "yyyy-MM-dd-HHmm", { locale: fr });
+        const filename = `contrat-${contract.title.replace(/\s+/g, "-")}-${timestamp}.pdf`;
 
         // En production, vous utiliseriez une librairie comme puppeteer ou jsPDF
         // Pour cette implémentation, nous retournons le HTML qui peut être converti en PDF côté client
         return {
           content: htmlContent,
           filename,
-          mimeType: 'text/html', // En attendant la conversion PDF
+          mimeType: "text/html", // En attendant la conversion PDF
           contractInfo: {
             title: contract.title,
             createdAt: contract.createdAt,
-            userName: contract.user.profile?.firstName + ' ' + contract.user.profile?.lastName,
+            userName:
+              contract.user.profile?.firstName +
+              " " +
+              contract.user.profile?.lastName,
           },
         };
       } catch (error) {
-        console.error('Erreur génération PDF contrat:', error);
+        console.error("Erreur génération PDF contrat:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la génération du PDF de contrat',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la génération du PDF de contrat",
         });
       }
     }),
@@ -125,15 +131,18 @@ export const pdfRouter = router({
 
         if (!invoice) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Facture non trouvée',
+            code: "NOT_FOUND",
+            message: "Facture non trouvée",
           });
         }
 
         // Vérifier que l'utilisateur a le droit d'accéder à cette facture
-        if (invoice.userId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN') {
+        if (
+          invoice.userId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
+        ) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
+            code: "FORBIDDEN",
             message: "Vous n'êtes pas autorisé à accéder à cette facture",
           });
         }
@@ -142,13 +151,13 @@ export const pdfRouter = router({
         const htmlContent = generateInvoiceHTML(invoice, includePaymentDetails);
 
         // Générer le nom de fichier
-        const timestamp = format(new Date(), 'yyyy-MM-dd-HHmm', { locale: fr });
+        const timestamp = format(new Date(), "yyyy-MM-dd-HHmm", { locale: fr });
         const filename = `facture-${invoice.number}-${timestamp}.pdf`;
 
         return {
           content: htmlContent,
           filename,
-          mimeType: 'text/html', // En attendant la conversion PDF
+          mimeType: "text/html", // En attendant la conversion PDF
           invoiceInfo: {
             number: invoice.number,
             amount: invoice.amount,
@@ -158,10 +167,10 @@ export const pdfRouter = router({
           },
         };
       } catch (error) {
-        console.error('Erreur génération PDF facture:', error);
+        console.error("Erreur génération PDF facture:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la génération du PDF de facture',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la génération du PDF de facture",
         });
       }
     }),
@@ -174,7 +183,7 @@ export const pdfRouter = router({
           OR: [
             { userId: ctx.session.user.id },
             { isPublic: true },
-            ...(ctx.session.user.role === 'ADMIN' ? [{}] : []),
+            ...(ctx.session.user.role === "ADMIN" ? [{}] : []),
           ],
         },
         select: {
@@ -186,16 +195,16 @@ export const pdfRouter = router({
           userId: true,
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
       });
 
       return contracts;
     } catch (error) {
-      console.error('Erreur récupération contrats:', error);
+      console.error("Erreur récupération contrats:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des contrats',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des contrats",
       });
     }
   }),
@@ -204,7 +213,10 @@ export const pdfRouter = router({
   getAvailableInvoices: protectedProcedure.query(async ({ ctx }) => {
     try {
       const invoices = await ctx.db.invoice.findMany({
-        where: ctx.session.user.role === 'ADMIN' ? {} : { userId: ctx.session.user.id },
+        where:
+          ctx.session.user.role === "ADMIN"
+            ? {}
+            : { userId: ctx.session.user.id },
         select: {
           id: true,
           number: true,
@@ -216,16 +228,16 @@ export const pdfRouter = router({
           paidDate: true,
         },
         orderBy: {
-          issuedDate: 'desc',
+          issuedDate: "desc",
         },
       });
 
       return invoices;
     } catch (error) {
-      console.error('Erreur récupération factures:', error);
+      console.error("Erreur récupération factures:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des factures',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des factures",
       });
     }
   }),
@@ -233,8 +245,8 @@ export const pdfRouter = router({
 
 // Fonction pour générer le HTML du contrat
 function generateContractHTML(contract: any, templateType?: string): string {
-  const today = format(new Date(), 'dd MMMM yyyy', { locale: fr });
-  
+  const today = format(new Date(), "dd MMMM yyyy", { locale: fr });
+
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -312,15 +324,15 @@ function generateContractHTML(contract: any, templateType?: string): string {
 <body>
     <div class="header">
         <div class="logo">EcoDeli</div>
-        <h1>Contrat de ${templateType || 'Service'}</h1>
+        <h1>Contrat de ${templateType || "Service"}</h1>
         <p>Document généré le ${today}</p>
     </div>
 
     <div class="contract-info">
         <h2>${contract.title}</h2>
         <p><strong>Référence:</strong> ${contract.id}</p>
-        <p><strong>Date de création:</strong> ${format(new Date(contract.createdAt), 'dd MMMM yyyy', { locale: fr })}</p>
-        ${contract.description ? `<p><strong>Description:</strong> ${contract.description}</p>` : ''}
+        <p><strong>Date de création:</strong> ${format(new Date(contract.createdAt), "dd MMMM yyyy", { locale: fr })}</p>
+        ${contract.description ? `<p><strong>Description:</strong> ${contract.description}</p>` : ""}
     </div>
 
     <div class="parties">
@@ -333,10 +345,10 @@ function generateContractHTML(contract: any, templateType?: string): string {
         </div>
         <div class="party">
             <div class="party-title">Contractant</div>
-            <p><strong>Nom:</strong> ${contract.user.profile?.firstName || ''} ${contract.user.profile?.lastName || ''}<br>
+            <p><strong>Nom:</strong> ${contract.user.profile?.firstName || ""} ${contract.user.profile?.lastName || ""}<br>
             <strong>Email:</strong> ${contract.user.email}<br>
-            ${contract.user.profile?.phone ? `<strong>Téléphone:</strong> ${contract.user.profile.phone}<br>` : ''}
-            ${contract.user.profile?.address ? `<strong>Adresse:</strong> ${contract.user.profile.address}` : ''}</p>
+            ${contract.user.profile?.phone ? `<strong>Téléphone:</strong> ${contract.user.profile.phone}<br>` : ""}
+            ${contract.user.profile?.address ? `<strong>Adresse:</strong> ${contract.user.profile.address}` : ""}</p>
         </div>
     </div>
 
@@ -344,7 +356,7 @@ function generateContractHTML(contract: any, templateType?: string): string {
         <h3>Termes et Conditions</h3>
         <div class="term">
             <strong>Article 1 - Objet du contrat</strong><br>
-            Le présent contrat définit les conditions d'utilisation de la plateforme EcoDeli pour les services de ${templateType || 'livraison collaborative'}.
+            Le présent contrat définit les conditions d'utilisation de la plateforme EcoDeli pour les services de ${templateType || "livraison collaborative"}.
         </div>
         <div class="term">
             <strong>Article 2 - Obligations du contractant</strong><br>
@@ -383,9 +395,12 @@ function generateContractHTML(contract: any, templateType?: string): string {
 }
 
 // Fonction pour générer le HTML de la facture
-function generateInvoiceHTML(invoice: any, includePaymentDetails: boolean): string {
-  const today = format(new Date(), 'dd MMMM yyyy', { locale: fr });
-  
+function generateInvoiceHTML(
+  invoice: any,
+  includePaymentDetails: boolean,
+): string {
+  const today = format(new Date(), "dd MMMM yyyy", { locale: fr });
+
   // Calculer les totaux
   let subtotal = 0;
   let totalTax = 0;
@@ -521,9 +536,9 @@ function generateInvoiceHTML(invoice: any, includePaymentDetails: boolean): stri
         <div class="invoice-info">
             <div class="invoice-number">FACTURE</div>
             <div class="invoice-number">${invoice.number}</div>
-            <p><strong>Date d'émission:</strong> ${format(new Date(invoice.issuedDate), 'dd/MM/yyyy')}<br>
-            <strong>Date d'échéance:</strong> ${format(new Date(invoice.dueDate), 'dd/MM/yyyy')}<br>
-            ${invoice.paidDate ? `<strong>Date de paiement:</strong> ${format(new Date(invoice.paidDate), 'dd/MM/yyyy')}<br>` : ''}</p>
+            <p><strong>Date d'émission:</strong> ${format(new Date(invoice.issuedDate), "dd/MM/yyyy")}<br>
+            <strong>Date d'échéance:</strong> ${format(new Date(invoice.dueDate), "dd/MM/yyyy")}<br>
+            ${invoice.paidDate ? `<strong>Date de paiement:</strong> ${format(new Date(invoice.paidDate), "dd/MM/yyyy")}<br>` : ""}</p>
             <span class="status-badge status-${invoice.status.toLowerCase()}">${invoice.status}</span>
         </div>
     </div>
@@ -538,10 +553,10 @@ function generateInvoiceHTML(invoice: any, includePaymentDetails: boolean): stri
         </div>
         <div class="billing-section">
             <div class="section-title">Destinataire</div>
-            <p><strong>${invoice.user.profile?.firstName || ''} ${invoice.user.profile?.lastName || ''}</strong><br>
+            <p><strong>${invoice.user.profile?.firstName || ""} ${invoice.user.profile?.lastName || ""}</strong><br>
             ${invoice.user.email}<br>
-            ${invoice.user.profile?.phone ? `${invoice.user.profile.phone}<br>` : ''}
-            ${invoice.user.profile?.address || 'Adresse non renseignée'}</p>
+            ${invoice.user.profile?.phone ? `${invoice.user.profile.phone}<br>` : ""}
+            ${invoice.user.profile?.address || "Adresse non renseignée"}</p>
         </div>
     </div>
 
@@ -556,7 +571,9 @@ function generateInvoiceHTML(invoice: any, includePaymentDetails: boolean): stri
             </tr>
         </thead>
         <tbody>
-            ${invoice.invoiceItems.map((item: any) => `
+            ${invoice.invoiceItems
+              .map(
+                (item: any) => `
                 <tr>
                     <td>${item.description}</td>
                     <td>${item.quantity}</td>
@@ -564,7 +581,9 @@ function generateInvoiceHTML(invoice: any, includePaymentDetails: boolean): stri
                     <td>${Number(item.taxRate).toFixed(0)}%</td>
                     <td>${Number(item.totalAmount).toFixed(2)} ${invoice.currency}</td>
                 </tr>
-            `).join('')}
+            `,
+              )
+              .join("")}
         </tbody>
     </table>
 
@@ -583,16 +602,20 @@ function generateInvoiceHTML(invoice: any, includePaymentDetails: boolean): stri
         </div>
     </div>
 
-    ${includePaymentDetails ? `
+    ${
+      includePaymentDetails
+        ? `
     <div class="payment-info">
         <h3 style="margin-top: 0;">Informations de paiement</h3>
         <p><strong>Statut:</strong> ${invoice.status}<br>
-        ${invoice.paidDate ? `<strong>Payée le:</strong> ${format(new Date(invoice.paidDate), 'dd MMMM yyyy', { locale: fr })}<br>` : ''}
-        ${invoice.subscription ? `<strong>Abonnement:</strong> ${invoice.subscription.planType}<br>` : ''}
+        ${invoice.paidDate ? `<strong>Payée le:</strong> ${format(new Date(invoice.paidDate), "dd MMMM yyyy", { locale: fr })}<br>` : ""}
+        ${invoice.subscription ? `<strong>Abonnement:</strong> ${invoice.subscription.planType}<br>` : ""}
         <strong>Conditions de paiement:</strong> Paiement à réception<br>
         <strong>Pénalités de retard:</strong> 3 fois le taux d'intérêt légal</p>
     </div>
-    ` : ''}
+    `
+        : ""
+    }
 
     <div style="margin-top: 50px; text-align: center; font-size: 0.9em; color: #666;">
         <p>Document généré automatiquement le ${today}</p>

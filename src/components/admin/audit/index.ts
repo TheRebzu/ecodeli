@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export { default as AuditLogDetails } from './audit-log-details';
-export * from './audit-log-details';
-export { default as AuditLogTable } from './audit-log-table';
-export * from './audit-log-table';
+export { default as AuditLogDetails } from "./audit-log-details";
+export * from "./audit-log-details";
+export { default as AuditLogTable } from "./audit-log-table";
+export * from "./audit-log-table";

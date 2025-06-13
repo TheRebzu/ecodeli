@@ -21,8 +21,14 @@ export interface PurchaseItem {
   specifications?: Record<string, string>;
 }
 
-export type ShippingMethod = 'EXPRESS' | 'STANDARD' | 'ECONOMY';
-export type PurchaseStatus = 'REQUESTED' | 'QUOTED' | 'CONFIRMED' | 'PURCHASED' | 'SHIPPED' | 'DELIVERED';
+export type ShippingMethod = "EXPRESS" | "STANDARD" | "ECONOMY";
+export type PurchaseStatus =
+  | "REQUESTED"
+  | "QUOTED"
+  | "CONFIRMED"
+  | "PURCHASED"
+  | "SHIPPED"
+  | "DELIVERED";
 
 export interface CustomsInfo {
   value: number;

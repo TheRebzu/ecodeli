@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Timeline,
   TimelineItem,
@@ -10,8 +10,8 @@ import {
   TimelineConnector,
   TimelineContent,
   TimelineDot,
-} from '@/components/ui/timeline';
-import { formatDate, formatTime } from '@/utils/document-utils';
+} from "@/components/ui/timeline";
+import { formatDate, formatTime } from "@/utils/document-utils";
 
 interface DeliveryTimelineProps {
   deliveryId: string;
@@ -24,13 +24,13 @@ export function DeliveryTimeline({
   events = [],
   isLoading = false,
 }: DeliveryTimelineProps) {
-  const t = useTranslations('deliveries');
+  const t = useTranslations("deliveries");
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t('timeline.title')}</CardTitle>
+          <CardTitle>{t("timeline.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse">
@@ -47,10 +47,12 @@ export function DeliveryTimeline({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t('timeline.title')}</CardTitle>
+          <CardTitle>{t("timeline.title")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="py-8 text-center text-muted-foreground">{t('timeline.noEvents')}</div>
+          <div className="py-8 text-center text-muted-foreground">
+            {t("timeline.noEvents")}
+          </div>
         </CardContent>
       </Card>
     );
@@ -59,7 +61,7 @@ export function DeliveryTimeline({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('timeline.title')}</CardTitle>
+        <CardTitle>{t("timeline.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Timeline>
@@ -71,12 +73,15 @@ export function DeliveryTimeline({
               </TimelineSeparator>
               <TimelineContent>
                 <div className="ml-4">
-                  <h4 className="font-medium">{getEventTitle(event.type, t)}</h4>
+                  <h4 className="font-medium">
+                    {getEventTitle(event.type, t)}
+                  </h4>
                   <p className="text-sm text-muted-foreground">
                     {event.description || getDefaultDescription(event.type, t)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {formatDate(event.timestamp)} à {formatTime(event.timestamp)}
+                    {formatDate(event.timestamp)} à{" "}
+                    {formatTime(event.timestamp)}
                   </p>
                 </div>
               </TimelineContent>
@@ -89,23 +94,25 @@ export function DeliveryTimeline({
 }
 
 // Helper functions
-function getStatusColor(eventType: string): 'default' | 'success' | 'warning' | 'error' | 'info' {
+function getStatusColor(
+  eventType: string,
+): "default" | "success" | "warning" | "error" | "info" {
   switch (eventType) {
-    case 'CREATED':
-    case 'ASSIGNED':
-      return 'info';
-    case 'PICKUP_STARTED':
-    case 'PICKUP_COMPLETED':
-    case 'DELIVERY_STARTED':
-      return 'warning';
-    case 'DELIVERED':
-    case 'COMPLETED':
-      return 'success';
-    case 'CANCELLED':
-    case 'FAILED':
-      return 'error';
+    case "CREATED":
+    case "ASSIGNED":
+      return "info";
+    case "PICKUP_STARTED":
+    case "PICKUP_COMPLETED":
+    case "DELIVERY_STARTED":
+      return "warning";
+    case "DELIVERED":
+    case "COMPLETED":
+      return "success";
+    case "CANCELLED":
+    case "FAILED":
+      return "error";
     default:
-      return 'default';
+      return "default";
   }
 }
 

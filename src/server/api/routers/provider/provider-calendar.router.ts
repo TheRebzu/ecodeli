@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { DayOfWeek, AvailabilityType, BookingStatus } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { DayOfWeek, AvailabilityType, BookingStatus } from "@prisma/client";
 
 /**
  * Router pour la gestion du calendrier et des disponibilit�s des prestataires
@@ -54,7 +54,7 @@ const updateAvailabilitySchema = createAvailabilitySchema.partial().extend({
 
 const createExceptionSchema = z.object({
   date: z.date(),
-  type: z.enum(['UNAVAILABLE', 'SPECIAL_HOURS', 'HOLIDAY']),
+  type: z.enum(["UNAVAILABLE", "SPECIAL_HOURS", "HOLIDAY"]),
   reason: z.string().min(2).max(100),
 
   // Pour les horaires sp�ciaux
@@ -83,7 +83,7 @@ const calendarFiltersSchema = z.object({
   includeBookings: z.boolean().default(true),
   includeAvailabilities: z.boolean().default(true),
   includeExceptions: z.boolean().default(true),
-  view: z.enum(['day', 'week', 'month']).default('week'),
+  view: z.enum(["day", "week", "month"]).default("week"),
 });
 
 const timeSlotsSchema = z.object({
@@ -111,184 +111,15 @@ export const providerCalendarRouter = router({
   /**
    * Obtenir le calendrier complet du prestataire
    */
-  getCalendar: protectedProcedure.input(calendarFiltersSchema).query(async ({ ctx, input }) => {
-    const { user } = ctx.session;
-
-    if (user.role !== 'PROVIDER') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les prestataires peuvent consulter leur calendrier',
-      });
-    }
-
-    try {
-      const provider = await ctx.db.provider.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!provider) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil prestataire non trouv�',
-        });
-      }
-
-      const promises: Promise<any>[] = [];
-
-      // Disponibilit�s r�currentes et ponctuelles
-      if (input.includeAvailabilities) {
-        promises.push(
-          ctx.db.providerAvailability.findMany({
-            where: {
-              providerId: provider.id,
-              isActive: true,
-              OR: [
-                { type: 'RECURRING' },
-                {
-                  type: 'ONE_TIME',
-                  specificDate: {
-                    gte: input.startDate,
-                    lte: input.endDate,
-                  },
-                },
-              ],
-              ...(input.serviceId && {
-                OR: [
-                  { serviceIds: { has: input.serviceId } },
-                  { serviceIds: { isEmpty: true } }, // Disponible pour tous les services
-                ],
-              }),
-            },
-            include: {
-              services: {
-                select: {
-                  id: true,
-                  name: true,
-                  duration: true,
-                },
-              },
-            },
-          })
-        );
-      } else {
-        promises.push(Promise.resolve([]));
-      }
-
-      // R�servations existantes
-      if (input.includeBookings) {
-        promises.push(
-          ctx.db.serviceBooking.findMany({
-            where: {
-              providerId: provider.id,
-              scheduledAt: {
-                gte: input.startDate,
-                lte: input.endDate,
-              },
-              status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] },
-              ...(input.serviceId && { serviceId: input.serviceId }),
-            },
-            include: {
-              service: {
-                select: {
-                  name: true,
-                  duration: true,
-                  category: true,
-                },
-              },
-              client: {
-                include: {
-                  user: {
-                    select: {
-                      name: true,
-                      email: true,
-                      phoneNumber: true,
-                    },
-                  },
-                },
-              },
-            },
-            orderBy: { scheduledAt: 'asc' },
-          })
-        );
-      } else {
-        promises.push(Promise.resolve([]));
-      }
-
-      // Exceptions et absences
-      if (input.includeExceptions) {
-        promises.push(
-          ctx.db.providerException.findMany({
-            where: {
-              providerId: provider.id,
-              date: {
-                gte: input.startDate,
-                lte: input.endDate,
-              },
-              ...(input.serviceId && {
-                OR: [{ affectsAllServices: true }, { serviceIds: { has: input.serviceId } }],
-              }),
-            },
-          })
-        );
-      } else {
-        promises.push(Promise.resolve([]));
-      }
-
-      const [availabilities, bookings, exceptions] = await Promise.all(promises);
-
-      // G�n�rer les cr�neaux disponibles pour la p�riode
-      const availableSlots = await generateAvailableSlots(
-        ctx.db,
-        provider.id,
-        input.startDate,
-        input.endDate,
-        availabilities,
-        bookings,
-        exceptions,
-        input.serviceId
-      );
-
-      return {
-        success: true,
-        data: {
-          period: {
-            startDate: input.startDate,
-            endDate: input.endDate,
-            view: input.view,
-          },
-          availabilities: availabilities.map(formatAvailability),
-          bookings: bookings.map(formatBooking),
-          exceptions: exceptions.map(formatException),
-          availableSlots,
-          summary: {
-            totalAvailableHours: calculateTotalAvailableHours(availableSlots),
-            bookedHours: calculateBookedHours(bookings),
-            freeSlots: availableSlots.length,
-            upcomingBookings: bookings.filter(b => new Date(b.scheduledAt) > new Date()).length,
-          },
-        },
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la r�cup�ration du calendrier',
-      });
-    }
-  }),
-
-  /**
-   * Cr�er une nouvelle disponibilit�
-   */
-  createAvailability: protectedProcedure
-    .input(createAvailabilitySchema)
-    .mutation(async ({ ctx, input }) => {
+  getCalendar: protectedProcedure
+    .input(calendarFiltersSchema)
+    .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'PROVIDER') {
+      if (user.role !== "PROVIDER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les prestataires peuvent cr�er des disponibilit�s',
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent consulter leur calendrier",
         });
       }
 
@@ -299,24 +130,202 @@ export const providerCalendarRouter = router({
 
         if (!provider) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil prestataire non trouv�',
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouv�",
+          });
+        }
+
+        const promises: Promise<any>[] = [];
+
+        // Disponibilit�s r�currentes et ponctuelles
+        if (input.includeAvailabilities) {
+          promises.push(
+            ctx.db.providerAvailability.findMany({
+              where: {
+                providerId: provider.id,
+                isActive: true,
+                OR: [
+                  { type: "RECURRING" },
+                  {
+                    type: "ONE_TIME",
+                    specificDate: {
+                      gte: input.startDate,
+                      lte: input.endDate,
+                    },
+                  },
+                ],
+                ...(input.serviceId && {
+                  OR: [
+                    { serviceIds: { has: input.serviceId } },
+                    { serviceIds: { isEmpty: true } }, // Disponible pour tous les services
+                  ],
+                }),
+              },
+              include: {
+                services: {
+                  select: {
+                    id: true,
+                    name: true,
+                    duration: true,
+                  },
+                },
+              },
+            }),
+          );
+        } else {
+          promises.push(Promise.resolve([]));
+        }
+
+        // R�servations existantes
+        if (input.includeBookings) {
+          promises.push(
+            ctx.db.serviceBooking.findMany({
+              where: {
+                providerId: provider.id,
+                scheduledAt: {
+                  gte: input.startDate,
+                  lte: input.endDate,
+                },
+                status: { in: ["PENDING", "CONFIRMED", "IN_PROGRESS"] },
+                ...(input.serviceId && { serviceId: input.serviceId }),
+              },
+              include: {
+                service: {
+                  select: {
+                    name: true,
+                    duration: true,
+                    category: true,
+                  },
+                },
+                client: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        email: true,
+                        phoneNumber: true,
+                      },
+                    },
+                  },
+                },
+              },
+              orderBy: { scheduledAt: "asc" },
+            }),
+          );
+        } else {
+          promises.push(Promise.resolve([]));
+        }
+
+        // Exceptions et absences
+        if (input.includeExceptions) {
+          promises.push(
+            ctx.db.providerException.findMany({
+              where: {
+                providerId: provider.id,
+                date: {
+                  gte: input.startDate,
+                  lte: input.endDate,
+                },
+                ...(input.serviceId && {
+                  OR: [
+                    { affectsAllServices: true },
+                    { serviceIds: { has: input.serviceId } },
+                  ],
+                }),
+              },
+            }),
+          );
+        } else {
+          promises.push(Promise.resolve([]));
+        }
+
+        const [availabilities, bookings, exceptions] =
+          await Promise.all(promises);
+
+        // G�n�rer les cr�neaux disponibles pour la p�riode
+        const availableSlots = await generateAvailableSlots(
+          ctx.db,
+          provider.id,
+          input.startDate,
+          input.endDate,
+          availabilities,
+          bookings,
+          exceptions,
+          input.serviceId,
+        );
+
+        return {
+          success: true,
+          data: {
+            period: {
+              startDate: input.startDate,
+              endDate: input.endDate,
+              view: input.view,
+            },
+            availabilities: availabilities.map(formatAvailability),
+            bookings: bookings.map(formatBooking),
+            exceptions: exceptions.map(formatException),
+            availableSlots,
+            summary: {
+              totalAvailableHours: calculateTotalAvailableHours(availableSlots),
+              bookedHours: calculateBookedHours(bookings),
+              freeSlots: availableSlots.length,
+              upcomingBookings: bookings.filter(
+                (b) => new Date(b.scheduledAt) > new Date(),
+              ).length,
+            },
+          },
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la r�cup�ration du calendrier",
+        });
+      }
+    }),
+
+  /**
+   * Cr�er une nouvelle disponibilit�
+   */
+  createAvailability: protectedProcedure
+    .input(createAvailabilitySchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
+
+      if (user.role !== "PROVIDER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent cr�er des disponibilit�s",
+        });
+      }
+
+      try {
+        const provider = await ctx.db.provider.findUnique({
+          where: { userId: user.id },
+        });
+
+        if (!provider) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouv�",
           });
         }
 
         // Validation des horaires
         if (input.startTime >= input.endTime) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: "L'heure de fin doit �tre post�rieure � l'heure de d�but",
           });
         }
 
         // Validation des dates pour les disponibilit�s ponctuelles
-        if (input.type === 'ONE_TIME' && !input.specificDate) {
+        if (input.type === "ONE_TIME" && !input.specificDate) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Une date sp�cifique est requise pour les disponibilit�s ponctuelles',
+            code: "BAD_REQUEST",
+            message:
+              "Une date sp�cifique est requise pour les disponibilit�s ponctuelles",
           });
         }
 
@@ -331,8 +340,9 @@ export const providerCalendarRouter = router({
 
           if (serviceCount !== input.serviceIds.length) {
             throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Certains services s�lectionn�s ne vous appartiennent pas',
+              code: "BAD_REQUEST",
+              message:
+                "Certains services s�lectionn�s ne vous appartiennent pas",
             });
           }
         }
@@ -342,12 +352,12 @@ export const providerCalendarRouter = router({
           ctx.db,
           provider.id,
           input,
-          null // Pas d'ID � exclure pour une cr�ation
+          null, // Pas d'ID � exclure pour une cr�ation
         );
 
         if (conflicts.length > 0) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: `Conflit d�tect� avec ${conflicts.length} disponibilit�(s) existante(s)`,
           });
         }
@@ -356,7 +366,7 @@ export const providerCalendarRouter = router({
           data: {
             ...input,
             providerId: provider.id,
-            type: input.type || (input.dayOfWeek ? 'RECURRING' : 'ONE_TIME'),
+            type: input.type || (input.dayOfWeek ? "RECURRING" : "ONE_TIME"),
             isActive: true,
           },
           include: {
@@ -372,13 +382,13 @@ export const providerCalendarRouter = router({
         return {
           success: true,
           data: formatAvailability(availability),
-          message: 'Disponibilit� cr��e avec succ�s',
+          message: "Disponibilit� cr��e avec succ�s",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la cr�ation de la disponibilit�',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la cr�ation de la disponibilit�",
         });
       }
     }),
@@ -391,10 +401,11 @@ export const providerCalendarRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'PROVIDER') {
+      if (user.role !== "PROVIDER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les prestataires peuvent modifier leurs disponibilit�s',
+          code: "FORBIDDEN",
+          message:
+            "Seuls les prestataires peuvent modifier leurs disponibilit�s",
         });
       }
 
@@ -405,8 +416,8 @@ export const providerCalendarRouter = router({
 
         if (!provider) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil prestataire non trouv�',
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouv�",
           });
         }
 
@@ -419,18 +430,27 @@ export const providerCalendarRouter = router({
 
         if (!availability) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Disponibilit� non trouv�e',
+            code: "NOT_FOUND",
+            message: "Disponibilit� non trouv�e",
           });
         }
 
         // V�rifier s'il y a des r�servations affect�es par cette modification
-        if (input.startTime || input.endTime || input.dayOfWeek || input.specificDate) {
-          const affectedBookings = await getAffectedBookings(ctx.db, availability, input);
+        if (
+          input.startTime ||
+          input.endTime ||
+          input.dayOfWeek ||
+          input.specificDate
+        ) {
+          const affectedBookings = await getAffectedBookings(
+            ctx.db,
+            availability,
+            input,
+          );
 
           if (affectedBookings.length > 0) {
             throw new TRPCError({
-              code: 'BAD_REQUEST',
+              code: "BAD_REQUEST",
               message: `${affectedBookings.length} r�servation(s) seraient affect�e(s) par cette modification`,
             });
           }
@@ -449,12 +469,12 @@ export const providerCalendarRouter = router({
             ctx.db,
             provider.id,
             updateData,
-            input.id
+            input.id,
           );
 
           if (conflicts.length > 0) {
             throw new TRPCError({
-              code: 'BAD_REQUEST',
+              code: "BAD_REQUEST",
               message: `Conflit d�tect� avec ${conflicts.length} disponibilit�(s) existante(s)`,
             });
           }
@@ -479,13 +499,13 @@ export const providerCalendarRouter = router({
         return {
           success: true,
           data: formatAvailability(updatedAvailability),
-          message: 'Disponibilit� mise � jour avec succ�s',
+          message: "Disponibilit� mise � jour avec succ�s",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la mise � jour',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise � jour",
         });
       }
     }),
@@ -498,10 +518,11 @@ export const providerCalendarRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'PROVIDER') {
+      if (user.role !== "PROVIDER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les prestataires peuvent supprimer leurs disponibilit�s',
+          code: "FORBIDDEN",
+          message:
+            "Seuls les prestataires peuvent supprimer leurs disponibilit�s",
         });
       }
 
@@ -512,8 +533,8 @@ export const providerCalendarRouter = router({
 
         if (!provider) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil prestataire non trouv�',
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouv�",
           });
         }
 
@@ -526,8 +547,8 @@ export const providerCalendarRouter = router({
 
         if (!availability) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Disponibilit� non trouv�e',
+            code: "NOT_FOUND",
+            message: "Disponibilit� non trouv�e",
           });
         }
 
@@ -536,15 +557,16 @@ export const providerCalendarRouter = router({
           where: {
             providerId: provider.id,
             scheduledAt: { gte: new Date() },
-            status: { in: ['PENDING', 'CONFIRMED'] },
+            status: { in: ["PENDING", "CONFIRMED"] },
             // TODO: Ajouter la logique pour v�rifier si la r�servation est dans cette disponibilit�
           },
         });
 
         if (futureBookings > 0) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Impossible de supprimer une disponibilit� avec des r�servations futures',
+            code: "BAD_REQUEST",
+            message:
+              "Impossible de supprimer une disponibilit� avec des r�servations futures",
           });
         }
 
@@ -554,13 +576,13 @@ export const providerCalendarRouter = router({
 
         return {
           success: true,
-          message: 'Disponibilit� supprim�e avec succ�s',
+          message: "Disponibilit� supprim�e avec succ�s",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la suppression',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la suppression",
         });
       }
     }),
@@ -573,10 +595,10 @@ export const providerCalendarRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'PROVIDER') {
+      if (user.role !== "PROVIDER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les prestataires peuvent cr�er des exceptions',
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent cr�er des exceptions",
         });
       }
 
@@ -587,8 +609,8 @@ export const providerCalendarRouter = router({
 
         if (!provider) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil prestataire non trouv�',
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouv�",
           });
         }
 
@@ -602,8 +624,8 @@ export const providerCalendarRouter = router({
 
         if (existingException) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Une exception existe d�j� pour cette date',
+            code: "BAD_REQUEST",
+            message: "Une exception existe d�j� pour cette date",
           });
         }
 
@@ -615,7 +637,7 @@ export const providerCalendarRouter = router({
               gte: new Date(input.date.toDateString()),
               lt: new Date(input.date.getTime() + 24 * 60 * 60 * 1000),
             },
-            status: { in: ['PENDING', 'CONFIRMED'] },
+            status: { in: ["PENDING", "CONFIRMED"] },
           },
           include: {
             client: {
@@ -650,7 +672,7 @@ export const providerCalendarRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la cr�ation de l'exception",
         });
       }
@@ -659,129 +681,15 @@ export const providerCalendarRouter = router({
   /**
    * Obtenir les cr�neaux disponibles pour un service et une date
    */
-  getAvailableSlots: protectedProcedure.input(timeSlotsSchema).query(async ({ ctx, input }) => {
-    const { user } = ctx.session;
-
-    if (user.role !== 'PROVIDER') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les prestataires peuvent consulter leurs cr�neaux',
-      });
-    }
-
-    try {
-      const provider = await ctx.db.provider.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!provider) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil prestataire non trouv�',
-        });
-      }
-
-      // R�cup�rer le service
-      const service = await ctx.db.service.findFirst({
-        where: {
-          id: input.serviceId,
-          providerId: provider.id,
-        },
-      });
-
-      if (!service) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Service non trouv�',
-        });
-      }
-
-      const duration = input.duration || service.duration;
-      const endDate = new Date(input.date.getTime() + 24 * 60 * 60 * 1000);
-
-      // R�cup�rer les disponibilit�s, r�servations et exceptions
-      const [availabilities, bookings, exceptions] = await Promise.all([
-        ctx.db.providerAvailability.findMany({
-          where: {
-            providerId: provider.id,
-            isActive: true,
-            OR: [
-              { type: 'RECURRING', dayOfWeek: input.date.getDay() },
-              { type: 'ONE_TIME', specificDate: input.date },
-            ],
-            OR: [{ serviceIds: { has: input.serviceId } }, { serviceIds: { isEmpty: true } }],
-          },
-        }),
-        ctx.db.serviceBooking.findMany({
-          where: {
-            providerId: provider.id,
-            scheduledAt: {
-              gte: input.date,
-              lt: endDate,
-            },
-            status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] },
-          },
-        }),
-        ctx.db.providerException.findMany({
-          where: {
-            providerId: provider.id,
-            date: input.date,
-            OR: [{ affectsAllServices: true }, { serviceIds: { has: input.serviceId } }],
-          },
-        }),
-      ]);
-
-      const slots = await generateAvailableSlots(
-        ctx.db,
-        provider.id,
-        input.date,
-        endDate,
-        availabilities,
-        bookings,
-        exceptions,
-        input.serviceId,
-        duration
-      );
-
-      return {
-        success: true,
-        data: {
-          date: input.date,
-          serviceId: input.serviceId,
-          serviceName: service.name,
-          duration,
-          slots: slots.map(slot => ({
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            isAvailable: slot.isAvailable,
-            price: slot.basePrice,
-            priceMultiplier: slot.priceMultiplier,
-            maxBookings: slot.maxBookings,
-            currentBookings: slot.currentBookings,
-          })),
-        },
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la r�cup�ration des cr�neaux',
-      });
-    }
-  }),
-
-  /**
-   * Cr�er plusieurs disponibilit�s en lot
-   */
-  createBulkAvailability: protectedProcedure
-    .input(bulkAvailabilitySchema)
-    .mutation(async ({ ctx, input }) => {
+  getAvailableSlots: protectedProcedure
+    .input(timeSlotsSchema)
+    .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'PROVIDER') {
+      if (user.role !== "PROVIDER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les prestataires peuvent cr�er des disponibilit�s',
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent consulter leurs cr�neaux",
         });
       }
 
@@ -792,8 +700,130 @@ export const providerCalendarRouter = router({
 
         if (!provider) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil prestataire non trouv�',
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouv�",
+          });
+        }
+
+        // R�cup�rer le service
+        const service = await ctx.db.service.findFirst({
+          where: {
+            id: input.serviceId,
+            providerId: provider.id,
+          },
+        });
+
+        if (!service) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Service non trouv�",
+          });
+        }
+
+        const duration = input.duration || service.duration;
+        const endDate = new Date(input.date.getTime() + 24 * 60 * 60 * 1000);
+
+        // R�cup�rer les disponibilit�s, r�servations et exceptions
+        const [availabilities, bookings, exceptions] = await Promise.all([
+          ctx.db.providerAvailability.findMany({
+            where: {
+              providerId: provider.id,
+              isActive: true,
+              OR: [
+                { type: "RECURRING", dayOfWeek: input.date.getDay() },
+                { type: "ONE_TIME", specificDate: input.date },
+              ],
+              OR: [
+                { serviceIds: { has: input.serviceId } },
+                { serviceIds: { isEmpty: true } },
+              ],
+            },
+          }),
+          ctx.db.serviceBooking.findMany({
+            where: {
+              providerId: provider.id,
+              scheduledAt: {
+                gte: input.date,
+                lt: endDate,
+              },
+              status: { in: ["PENDING", "CONFIRMED", "IN_PROGRESS"] },
+            },
+          }),
+          ctx.db.providerException.findMany({
+            where: {
+              providerId: provider.id,
+              date: input.date,
+              OR: [
+                { affectsAllServices: true },
+                { serviceIds: { has: input.serviceId } },
+              ],
+            },
+          }),
+        ]);
+
+        const slots = await generateAvailableSlots(
+          ctx.db,
+          provider.id,
+          input.date,
+          endDate,
+          availabilities,
+          bookings,
+          exceptions,
+          input.serviceId,
+          duration,
+        );
+
+        return {
+          success: true,
+          data: {
+            date: input.date,
+            serviceId: input.serviceId,
+            serviceName: service.name,
+            duration,
+            slots: slots.map((slot) => ({
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+              isAvailable: slot.isAvailable,
+              price: slot.basePrice,
+              priceMultiplier: slot.priceMultiplier,
+              maxBookings: slot.maxBookings,
+              currentBookings: slot.currentBookings,
+            })),
+          },
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la r�cup�ration des cr�neaux",
+        });
+      }
+    }),
+
+  /**
+   * Cr�er plusieurs disponibilit�s en lot
+   */
+  createBulkAvailability: protectedProcedure
+    .input(bulkAvailabilitySchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
+
+      if (user.role !== "PROVIDER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent cr�er des disponibilit�s",
+        });
+      }
+
+      try {
+        const provider = await ctx.db.provider.findUnique({
+          where: { userId: user.id },
+        });
+
+        if (!provider) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouv�",
           });
         }
 
@@ -802,30 +832,30 @@ export const providerCalendarRouter = router({
           input.dateRange.startDate,
           input.dateRange.endDate,
           input.pattern.dayOfWeek,
-          input.exceptions || []
+          input.exceptions || [],
         );
 
         if (dates.length === 0) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Aucune date valide trouv�e pour cette p�riode',
+            code: "BAD_REQUEST",
+            message: "Aucune date valide trouv�e pour cette p�riode",
           });
         }
 
         if (dates.length > 100) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Limite de 100 cr�neaux par op�ration',
+            code: "BAD_REQUEST",
+            message: "Limite de 100 cr�neaux par op�ration",
           });
         }
 
         // Cr�er les disponibilit�s
         const availabilities = await ctx.db.$transaction(
-          dates.map(date =>
+          dates.map((date) =>
             ctx.db.providerAvailability.create({
               data: {
                 providerId: provider.id,
-                type: 'ONE_TIME',
+                type: "ONE_TIME",
                 specificDate: date,
                 startTime: input.pattern.startTime,
                 endTime: input.pattern.endTime,
@@ -833,8 +863,8 @@ export const providerCalendarRouter = router({
                 serviceIds: input.serviceIds || [],
                 isActive: true,
               },
-            })
-          )
+            }),
+          ),
         );
 
         return {
@@ -849,8 +879,8 @@ export const providerCalendarRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la cr�ation en lot',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la cr�ation en lot",
         });
       }
     }),
@@ -861,16 +891,17 @@ export const providerCalendarRouter = router({
   getCalendarStats: protectedProcedure
     .input(
       z.object({
-        period: z.enum(['WEEK', 'MONTH', 'QUARTER']).default('MONTH'),
-      })
+        period: z.enum(["WEEK", "MONTH", "QUARTER"]).default("MONTH"),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'PROVIDER') {
+      if (user.role !== "PROVIDER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les prestataires peuvent consulter leurs statistiques',
+          code: "FORBIDDEN",
+          message:
+            "Seuls les prestataires peuvent consulter leurs statistiques",
         });
       }
 
@@ -881,8 +912,8 @@ export const providerCalendarRouter = router({
 
         if (!provider) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil prestataire non trouv�',
+            code: "NOT_FOUND",
+            message: "Profil prestataire non trouv�",
           });
         }
 
@@ -912,21 +943,21 @@ export const providerCalendarRouter = router({
             where: {
               providerId: provider.id,
               scheduledAt: { gte: startDate, lte: endDate },
-              status: 'CONFIRMED',
+              status: "CONFIRMED",
             },
           }),
           ctx.db.serviceBooking.count({
             where: {
               providerId: provider.id,
               scheduledAt: { gte: startDate, lte: endDate },
-              status: 'CANCELLED',
+              status: "CANCELLED",
             },
           }),
           ctx.db.serviceBooking.aggregate({
             where: {
               providerId: provider.id,
               scheduledAt: { gte: startDate, lte: endDate },
-              status: 'COMPLETED',
+              status: "COMPLETED",
             },
             _sum: { totalPrice: true },
           }),
@@ -939,10 +970,12 @@ export const providerCalendarRouter = router({
         ]);
 
         // Calculer le taux d'occupation
-        const occupancyRate = totalBookings > 0 ? (confirmedBookings / totalBookings) * 100 : 0;
+        const occupancyRate =
+          totalBookings > 0 ? (confirmedBookings / totalBookings) * 100 : 0;
 
         // Calculer le taux d'annulation
-        const cancellationRate = totalBookings > 0 ? (cancelledBookings / totalBookings) * 100 : 0;
+        const cancellationRate =
+          totalBookings > 0 ? (cancelledBookings / totalBookings) * 100 : 0;
 
         return {
           success: true,
@@ -966,14 +999,16 @@ export const providerCalendarRouter = router({
             revenue: {
               total: totalRevenue._sum.totalPrice || 0,
               averagePerBooking:
-                confirmedBookings > 0 ? (totalRevenue._sum.totalPrice || 0) / confirmedBookings : 0,
+                confirmedBookings > 0
+                  ? (totalRevenue._sum.totalPrice || 0) / confirmedBookings
+                  : 0,
             },
           },
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la r�cup�ration des statistiques',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la r�cup�ration des statistiques",
         });
       }
     }),
@@ -989,7 +1024,7 @@ async function generateAvailableSlots(
   bookings: any[],
   exceptions: any[],
   serviceId?: string,
-  duration?: number
+  duration?: number,
 ): Promise<any[]> {
   const slots: any[] = [];
   const currentDate = new Date(startDate);
@@ -1000,40 +1035,50 @@ async function generateAvailableSlots(
 
     // 2. Appliquer les disponibilités récurrentes pour ce jour
     const dayAvailabilities = availabilities.filter(
-      avail =>
-        (avail.type === 'RECURRING' && avail.dayOfWeek === dayOfWeek) ||
-        (avail.type === 'SPECIFIC' &&
-          new Date(avail.specificDate).toDateString() === currentDate.toDateString())
+      (avail) =>
+        (avail.type === "RECURRING" && avail.dayOfWeek === dayOfWeek) ||
+        (avail.type === "SPECIFIC" &&
+          new Date(avail.specificDate).toDateString() ===
+            currentDate.toDateString()),
     );
 
     for (const availability of dayAvailabilities) {
       // 3. Vérifier les exceptions pour ce jour
       const dayExceptions = exceptions.filter(
-        exception => new Date(exception.date).toDateString() === currentDate.toDateString()
+        (exception) =>
+          new Date(exception.date).toDateString() ===
+          currentDate.toDateString(),
       );
 
       // Si jour complètement bloqué
-      const fullDayException = dayExceptions.find(ex => ex.type === 'UNAVAILABLE' && !ex.startTime);
+      const fullDayException = dayExceptions.find(
+        (ex) => ex.type === "UNAVAILABLE" && !ex.startTime,
+      );
       if (fullDayException) continue;
 
       // 4. Calculer les créneaux disponibles
       const startTime = new Date(currentDate);
-      const [startHour, startMinute] = availability.startTime.split(':').map(Number);
+      const [startHour, startMinute] = availability.startTime
+        .split(":")
+        .map(Number);
       startTime.setHours(startHour, startMinute, 0, 0);
 
       const endTime = new Date(currentDate);
-      const [endHour, endMinute] = availability.endTime.split(':').map(Number);
+      const [endHour, endMinute] = availability.endTime.split(":").map(Number);
       endTime.setHours(endHour, endMinute, 0, 0);
 
       // 5. Découper en créneaux selon la durée du service
       const slotDuration = duration || availability.slotDuration || 60;
       const slotTime = new Date(startTime);
 
-      while (slotTime.getTime() + slotDuration * 60 * 1000 <= endTime.getTime()) {
+      while (
+        slotTime.getTime() + slotDuration * 60 * 1000 <=
+        endTime.getTime()
+      ) {
         const slotEnd = new Date(slotTime.getTime() + slotDuration * 60 * 1000);
 
         // Vérifier conflits avec réservations existantes
-        const hasConflict = bookings.some(booking => {
+        const hasConflict = bookings.some((booking) => {
           const bookingStart = new Date(booking.startTime);
           const bookingEnd = new Date(booking.endTime);
           return slotTime < bookingEnd && slotEnd > bookingStart;
@@ -1042,7 +1087,9 @@ async function generateAvailableSlots(
         // Respecter le préavis minimum
         const now = new Date();
         const minimumNoticeHours = availability.minimumNotice || 24;
-        const minimumStartTime = new Date(now.getTime() + minimumNoticeHours * 60 * 60 * 1000);
+        const minimumStartTime = new Date(
+          now.getTime() + minimumNoticeHours * 60 * 60 * 1000,
+        );
 
         if (!hasConflict && slotTime >= minimumStartTime) {
           slots.push({
@@ -1061,7 +1108,9 @@ async function generateAvailableSlots(
 
         // Passer au créneau suivant (avec buffer time)
         const bufferTime = availability.bufferTime || 15;
-        slotTime.setTime(slotTime.getTime() + (slotDuration + bufferTime) * 60 * 1000);
+        slotTime.setTime(
+          slotTime.getTime() + (slotDuration + bufferTime) * 60 * 1000,
+        );
       }
     }
 
@@ -1076,7 +1125,7 @@ async function checkAvailabilityConflicts(
   db: any,
   providerId: string,
   availability: any,
-  excludeId?: string
+  excludeId?: string,
 ): Promise<any[]> {
   try {
     const conflicts: any[] = [];
@@ -1092,9 +1141,9 @@ async function checkAvailabilityConflicts(
     }
 
     // Rechercher les disponibilités existantes qui pourraient entrer en conflit
-    if (availability.type === 'RECURRING') {
+    if (availability.type === "RECURRING") {
       // Pour les disponibilités récurrentes, vérifier les chevauchements sur le même jour
-      whereConditions.type = 'RECURRING';
+      whereConditions.type = "RECURRING";
       whereConditions.dayOfWeek = availability.dayOfWeek;
 
       const existingAvailabilities = await db.providerAvailability.findMany({
@@ -1110,13 +1159,13 @@ async function checkAvailabilityConflicts(
 
         if (timeOverlaps(newStart, newEnd, existingStart, existingEnd)) {
           conflicts.push({
-            type: 'TIME_OVERLAP',
+            type: "TIME_OVERLAP",
             conflictWith: existing,
             message: `Chevauchement horaire avec la disponibilité existante de ${existingStart} à ${existingEnd}`,
           });
         }
       }
-    } else if (availability.type === 'SPECIFIC') {
+    } else if (availability.type === "SPECIFIC") {
       // Pour les disponibilités spécifiques, vérifier sur la date exacte
       const specificDate = new Date(availability.specificDate);
       const dayOfWeek = specificDate.getDay();
@@ -1125,7 +1174,7 @@ async function checkAvailabilityConflicts(
       const recurringAvailabilities = await db.providerAvailability.findMany({
         where: {
           providerId,
-          type: 'RECURRING',
+          type: "RECURRING",
           dayOfWeek,
           isActive: true,
         },
@@ -1137,11 +1186,11 @@ async function checkAvailabilityConflicts(
             availability.startTime,
             availability.endTime,
             recurring.startTime,
-            recurring.endTime
+            recurring.endTime,
           )
         ) {
           conflicts.push({
-            type: 'RECURRING_CONFLICT',
+            type: "RECURRING_CONFLICT",
             conflictWith: recurring,
             message: `Conflit avec la disponibilité récurrente du ${getDayName(dayOfWeek)}`,
           });
@@ -1152,7 +1201,7 @@ async function checkAvailabilityConflicts(
       const specificAvailabilities = await db.providerAvailability.findMany({
         where: {
           providerId,
-          type: 'SPECIFIC',
+          type: "SPECIFIC",
           specificDate: specificDate,
           isActive: true,
           ...(excludeId && { id: { not: excludeId } }),
@@ -1165,11 +1214,11 @@ async function checkAvailabilityConflicts(
             availability.startTime,
             availability.endTime,
             specific.startTime,
-            specific.endTime
+            specific.endTime,
           )
         ) {
           conflicts.push({
-            type: 'SPECIFIC_CONFLICT',
+            type: "SPECIFIC_CONFLICT",
             conflictWith: specific,
             message: `Conflit avec une autre disponibilité spécifique sur la même date`,
           });
@@ -1178,17 +1227,25 @@ async function checkAvailabilityConflicts(
     }
 
     // Vérifier les conflits avec les réservations existantes
-    const bookingConflicts = await checkBookingConflicts(db, providerId, availability);
+    const bookingConflicts = await checkBookingConflicts(
+      db,
+      providerId,
+      availability,
+    );
     conflicts.push(...bookingConflicts);
 
     return conflicts;
   } catch (error) {
-    console.error('Error checking availability conflicts:', error);
+    console.error("Error checking availability conflicts:", error);
     return [];
   }
 }
 
-async function getAffectedBookings(db: any, availability: any, updates: any): Promise<any[]> {
+async function getAffectedBookings(
+  db: any,
+  availability: any,
+  updates: any,
+): Promise<any[]> {
   try {
     const affectedBookings: any[] = [];
 
@@ -1196,12 +1253,12 @@ async function getAffectedBookings(db: any, availability: any, updates: any): Pr
     let startDate: Date;
     let endDate: Date;
 
-    if (availability.type === 'RECURRING') {
+    if (availability.type === "RECURRING") {
       // Pour les disponibilités récurrentes, chercher sur les 6 prochains mois
       startDate = new Date();
       endDate = new Date();
       endDate.setMonth(endDate.getMonth() + 6);
-    } else if (availability.type === 'SPECIFIC') {
+    } else if (availability.type === "SPECIFIC") {
       // Pour les disponibilités spécifiques, chercher sur la date exacte
       startDate = new Date(availability.specificDate);
       endDate = new Date(availability.specificDate);
@@ -1219,7 +1276,7 @@ async function getAffectedBookings(db: any, availability: any, updates: any): Pr
           lt: endDate,
         },
         status: {
-          in: ['PENDING', 'CONFIRMED'],
+          in: ["PENDING", "CONFIRMED"],
         },
       },
       include: {
@@ -1244,12 +1301,16 @@ async function getAffectedBookings(db: any, availability: any, updates: any): Pr
       let isAffected = false;
       const bookingDate = new Date(booking.startTime);
 
-      if (availability.type === 'RECURRING') {
+      if (availability.type === "RECURRING") {
         // Vérifier si la réservation tombe sur le jour de la semaine modifié
         const bookingDayOfWeek = bookingDate.getDay();
         if (bookingDayOfWeek === availability.dayOfWeek) {
           // Vérifier si l'horaire de la réservation est affecté par les changements
-          if (updates.startTime || updates.endTime || updates.isActive === false) {
+          if (
+            updates.startTime ||
+            updates.endTime ||
+            updates.isActive === false
+          ) {
             const bookingTime = bookingDate.toTimeString().substring(0, 5);
             const originalStart = availability.startTime;
             const originalEnd = availability.endTime;
@@ -1257,17 +1318,25 @@ async function getAffectedBookings(db: any, availability: any, updates: any): Pr
             const newEnd = updates.endTime || originalEnd;
 
             // Si la réservation sort des nouveaux créneaux ou si la disponibilité est désactivée
-            if (updates.isActive === false || bookingTime < newStart || bookingTime >= newEnd) {
+            if (
+              updates.isActive === false ||
+              bookingTime < newStart ||
+              bookingTime >= newEnd
+            ) {
               isAffected = true;
             }
           }
         }
-      } else if (availability.type === 'SPECIFIC') {
+      } else if (availability.type === "SPECIFIC") {
         // Vérifier si la réservation tombe sur la date spécifique
         const availabilityDate = new Date(availability.specificDate);
         if (bookingDate.toDateString() === availabilityDate.toDateString()) {
           // Vérifier l'impact des modifications
-          if (updates.isActive === false || updates.startTime || updates.endTime) {
+          if (
+            updates.isActive === false ||
+            updates.startTime ||
+            updates.endTime
+          ) {
             isAffected = true;
           }
         }
@@ -1276,18 +1345,21 @@ async function getAffectedBookings(db: any, availability: any, updates: any): Pr
       if (isAffected) {
         affectedBookings.push({
           ...booking,
-          impactType: updates.isActive === false ? 'CANCELLATION_REQUIRED' : 'RESCHEDULE_REQUIRED',
+          impactType:
+            updates.isActive === false
+              ? "CANCELLATION_REQUIRED"
+              : "RESCHEDULE_REQUIRED",
           recommendedAction:
             updates.isActive === false
-              ? 'Annuler la réservation et notifier le client'
-              : 'Proposer une reprogrammation au client',
+              ? "Annuler la réservation et notifier le client"
+              : "Proposer une reprogrammation au client",
         });
       }
     }
 
     return affectedBookings;
   } catch (error) {
-    console.error('Error finding affected bookings:', error);
+    console.error("Error finding affected bookings:", error);
     return [];
   }
 }
@@ -1323,20 +1395,23 @@ function calculateBookedHours(bookings: any[]): number {
   return 0;
 }
 
-function calculatePeriodDates(period: string): { startDate: Date; endDate: Date } {
+function calculatePeriodDates(period: string): {
+  startDate: Date;
+  endDate: Date;
+} {
   const now = new Date();
   let startDate: Date, endDate: Date;
 
   switch (period) {
-    case 'WEEK':
+    case "WEEK":
       startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       endDate = now;
       break;
-    case 'MONTH':
+    case "MONTH":
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       break;
-    case 'QUARTER':
+    case "QUARTER":
       const quarter = Math.floor(now.getMonth() / 3);
       startDate = new Date(now.getFullYear(), quarter * 3, 1);
       endDate = new Date(now.getFullYear(), quarter * 3 + 3, 0);
@@ -1353,14 +1428,17 @@ function generateDateRange(
   startDate: Date,
   endDate: Date,
   dayOfWeek: number,
-  exceptions: Date[]
+  exceptions: Date[],
 ): Date[] {
   const dates: Date[] = [];
   const current = new Date(startDate);
-  const exceptionsSet = new Set(exceptions.map(d => d.toDateString()));
+  const exceptionsSet = new Set(exceptions.map((d) => d.toDateString()));
 
   while (current <= endDate) {
-    if (current.getDay() === dayOfWeek && !exceptionsSet.has(current.toDateString())) {
+    if (
+      current.getDay() === dayOfWeek &&
+      !exceptionsSet.has(current.toDateString())
+    ) {
       dates.push(new Date(current));
     }
     current.setDate(current.getDate() + 1);
@@ -1371,10 +1449,15 @@ function generateDateRange(
 
 // Fonctions helper manquantes ajoutées pour corriger les références
 
-function timeOverlaps(start1: string, end1: string, start2: string, end2: string): boolean {
+function timeOverlaps(
+  start1: string,
+  end1: string,
+  start2: string,
+  end2: string,
+): boolean {
   // Convertir les heures en minutes pour faciliter la comparaison
   const timeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number);
+    const [hours, minutes] = time.split(":").map(Number);
     return hours * 60 + minutes;
   };
 
@@ -1388,14 +1471,22 @@ function timeOverlaps(start1: string, end1: string, start2: string, end2: string
 }
 
 function getDayName(dayOfWeek: number): string {
-  const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-  return days[dayOfWeek] || 'Jour inconnu';
+  const days = [
+    "Dimanche",
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+  ];
+  return days[dayOfWeek] || "Jour inconnu";
 }
 
 async function checkBookingConflicts(
   db: any,
   providerId: string,
-  availability: any
+  availability: any,
 ): Promise<any[]> {
   const conflicts: any[] = [];
 
@@ -1403,17 +1494,17 @@ async function checkBookingConflicts(
     // Rechercher les réservations qui pourraient entrer en conflit
     const whereCondition: any = {
       providerId,
-      status: { in: ['PENDING', 'CONFIRMED'] },
+      status: { in: ["PENDING", "CONFIRMED"] },
     };
 
-    if (availability.type === 'RECURRING') {
+    if (availability.type === "RECURRING") {
       // Pour les disponibilités récurrentes, on doit chercher sur plusieurs semaines
       const startDate = new Date();
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + 3); // 3 mois en avant
 
       whereCondition.startTime = { gte: startDate, lt: endDate };
-    } else if (availability.type === 'SPECIFIC') {
+    } else if (availability.type === "SPECIFIC") {
       // Pour les disponibilités spécifiques, chercher sur la date exacte
       const specificDate = new Date(availability.specificDate);
       const nextDay = new Date(specificDate);
@@ -1435,17 +1526,22 @@ async function checkBookingConflicts(
       const bookingDate = new Date(booking.startTime);
       let hasConflict = false;
 
-      if (availability.type === 'RECURRING') {
+      if (availability.type === "RECURRING") {
         // Vérifier si la réservation tombe sur le jour modifié
         if (bookingDate.getDay() === availability.dayOfWeek) {
           const bookingTime = bookingDate.toTimeString().substring(0, 5);
           if (
-            timeOverlaps(bookingTime, bookingTime, availability.startTime, availability.endTime)
+            timeOverlaps(
+              bookingTime,
+              bookingTime,
+              availability.startTime,
+              availability.endTime,
+            )
           ) {
             hasConflict = true;
           }
         }
-      } else if (availability.type === 'SPECIFIC') {
+      } else if (availability.type === "SPECIFIC") {
         // Vérifier conflit sur la date spécifique
         const availDate = new Date(availability.specificDate);
         if (bookingDate.toDateString() === availDate.toDateString()) {
@@ -1455,14 +1551,14 @@ async function checkBookingConflicts(
 
       if (hasConflict) {
         conflicts.push({
-          type: 'BOOKING_CONFLICT',
+          type: "BOOKING_CONFLICT",
           conflictWith: booking,
           message: `Conflit avec une réservation existante pour ${booking.client.name} le ${bookingDate.toLocaleDateString()}`,
         });
       }
     }
   } catch (error) {
-    console.error('Error checking booking conflicts:', error);
+    console.error("Error checking booking conflicts:", error);
   }
 
   return conflicts;

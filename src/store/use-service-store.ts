@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface ServiceState {
   services: any[];
@@ -9,18 +9,22 @@ interface ServiceState {
   updateService: (id: string, updates: any) => void;
 }
 
-export const useServiceStore = create<ServiceState>(set => ({
+export const useServiceStore = create<ServiceState>((set) => ({
   services: [],
   userServices: [],
-  setServices: services => set({ services }),
-  setUserServices: services => set({ userServices: services }),
-  addService: service =>
-    set(state => ({
+  setServices: (services) => set({ services }),
+  setUserServices: (services) => set({ userServices: services }),
+  addService: (service) =>
+    set((state) => ({
       services: [...state.services, service],
     })),
   updateService: (id, updates) =>
-    set(state => ({
-      services: state.services.map(s => (s.id === id ? { ...s, ...updates } : s)),
-      userServices: state.userServices.map(s => (s.id === id ? { ...s, ...updates } : s)),
+    set((state) => ({
+      services: state.services.map((s) =>
+        s.id === id ? { ...s, ...updates } : s,
+      ),
+      userServices: state.userServices.map((s) =>
+        s.id === id ? { ...s, ...updates } : s,
+      ),
     })),
 }));

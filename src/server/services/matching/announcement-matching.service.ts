@@ -3,13 +3,13 @@
  * Implémente l'algorithme de correspondance selon le cahier des charges
  */
 
-import { PrismaClient } from '@prisma/client';
-import { logger } from '@/lib/utils/logger';
+import { PrismaClient } from "@prisma/client";
+import { logger } from "@/lib/utils/logger";
 import {
   getDistance,
   getBearing,
   getDestinationPoint,
-} from '@/server/utils/distance-calculator.util';
+} from "@/server/utils/distance-calculator.util";
 
 export interface MatchingCriteria {
   routeId: string;
@@ -93,7 +93,7 @@ export class AnnouncementMatchingService {
    */
   async findMatches(
     announcement: AnnouncementData,
-    availableRoutes: RouteData[]
+    availableRoutes: RouteData[],
   ): Promise<MatchingCriteria[]> {
     try {
       const matches: MatchingCriteria[] = [];
@@ -107,10 +107,12 @@ export class AnnouncementMatchingService {
       }
 
       // Trier par score de compatibilité décroissant
-      return matches.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+      return matches.sort(
+        (a, b) => b.compatibilityScore - a.compatibilityScore,
+      );
     } catch (error) {
-      logger.error('Erreur lors du matching:', error);
-      throw new Error('Erreur lors de la recherche de correspondances');
+      logger.error("Erreur lors du matching:", error);
+      throw new Error("Erreur lors de la recherche de correspondances");
     }
   }
 
@@ -119,23 +121,32 @@ export class AnnouncementMatchingService {
    */
   private async evaluateMatch(
     announcement: AnnouncementData,
-    route: RouteData
+    route: RouteData,
   ): Promise<MatchingCriteria | null> {
     try {
       // 1. Vérifier la compatibilité géographique
-      const geographicMatch = this.checkGeographicCompatibility(announcement, route);
+      const geographicMatch = this.checkGeographicCompatibility(
+        announcement,
+        route,
+      );
       if (!geographicMatch.isCompatible) {
         return null;
       }
 
       // 2. Vérifier la compatibilité temporelle
-      const temporalMatch = this.checkTemporalCompatibility(announcement, route);
+      const temporalMatch = this.checkTemporalCompatibility(
+        announcement,
+        route,
+      );
       if (!temporalMatch.isCompatible) {
         return null;
       }
 
       // 3. Vérifier la compatibilité des capacités
-      const capacityMatch = this.checkCapacityCompatibility(announcement, route);
+      const capacityMatch = this.checkCapacityCompatibility(
+        announcement,
+        route,
+      );
       if (!capacityMatch.isCompatible) {
         return null;
       }
@@ -146,11 +157,15 @@ export class AnnouncementMatchingService {
         temporalMatch,
         capacityMatch,
         announcement,
-        route
+        route,
       );
 
       // 5. Calculer les détails du trajet
-      const routeDetails = this.calculateRouteDetails(announcement, route, geographicMatch);
+      const routeDetails = this.calculateRouteDetails(
+        announcement,
+        route,
+        geographicMatch,
+      );
 
       // 6. Générer les raisons du matching
       const reasons = this.generateMatchingReasons(
@@ -158,7 +173,7 @@ export class AnnouncementMatchingService {
         temporalMatch,
         capacityMatch,
         announcement,
-        route
+        route,
       );
 
       return {
@@ -168,8 +183,14 @@ export class AnnouncementMatchingService {
         reasons,
         distance: geographicMatch.totalDistance,
         detourPercentage: geographicMatch.detourPercentage,
-        priceEstimate: this.calculatePriceEstimate(announcement, route, routeDetails),
-        estimatedDuration: this.calculateEstimatedDuration(routeDetails.totalDistance),
+        priceEstimate: this.calculatePriceEstimate(
+          announcement,
+          route,
+          routeDetails,
+        ),
+        estimatedDuration: this.calculateEstimatedDuration(
+          routeDetails.totalDistance,
+        ),
         matchingPoints: {
           pickup: {
             latitude: announcement.pickupLatitude,
@@ -192,13 +213,16 @@ export class AnnouncementMatchingService {
   /**
    * Vérifie la compatibilité géographique
    */
-  private checkGeographicCompatibility(announcement: AnnouncementData, route: RouteData) {
+  private checkGeographicCompatibility(
+    announcement: AnnouncementData,
+    route: RouteData,
+  ) {
     // Distance originale du trajet
     const originalDistance = getDistance(
       route.departureLatitude,
       route.departureLongitude,
       route.arrivalLatitude,
-      route.arrivalLongitude
+      route.arrivalLongitude,
     );
 
     // Vérifier si les points de l'annonce sont sur le trajet ou à proximité
@@ -206,7 +230,11 @@ export class AnnouncementMatchingService {
     let minDetour = Infinity;
 
     // Vérifier le trajet direct
-    const directMatch = this.checkDirectRouteMatch(announcement, route, originalDistance);
+    const directMatch = this.checkDirectRouteMatch(
+      announcement,
+      route,
+      originalDistance,
+    );
     if (directMatch && directMatch.detourPercentage <= route.maxDetour) {
       bestMatch = directMatch;
       minDetour = directMatch.detourPercentage;
@@ -218,7 +246,7 @@ export class AnnouncementMatchingService {
         announcement,
         route,
         point,
-        originalDistance
+        originalDistance,
       );
       if (intermediateMatch && intermediateMatch.detourPercentage < minDetour) {
         bestMatch = intermediateMatch;
@@ -235,14 +263,14 @@ export class AnnouncementMatchingService {
   private checkDirectRouteMatch(
     announcement: AnnouncementData,
     route: RouteData,
-    originalDistance: number
+    originalDistance: number,
   ) {
     // Distance du point de départ à la collecte
     const distanceToDeparture = getDistance(
       route.departureLatitude,
       route.departureLongitude,
       announcement.pickupLatitude,
-      announcement.pickupLongitude
+      announcement.pickupLongitude,
     );
 
     // Distance de la collecte à la livraison
@@ -250,7 +278,7 @@ export class AnnouncementMatchingService {
       announcement.pickupLatitude,
       announcement.pickupLongitude,
       announcement.deliveryLatitude,
-      announcement.deliveryLongitude
+      announcement.deliveryLongitude,
     );
 
     // Distance de la livraison à l'arrivée
@@ -258,11 +286,12 @@ export class AnnouncementMatchingService {
       announcement.deliveryLatitude,
       announcement.deliveryLongitude,
       route.arrivalLatitude,
-      route.arrivalLongitude
+      route.arrivalLongitude,
     );
 
     // Distance totale avec détour
-    const totalWithDetour = distanceToDeparture + distancePickupToDelivery + distanceToArrival;
+    const totalWithDetour =
+      distanceToDeparture + distancePickupToDelivery + distanceToArrival;
 
     // Vérifier si c'est dans la distance minimale de matching
     if (
@@ -272,13 +301,14 @@ export class AnnouncementMatchingService {
       return null;
     }
 
-    const detourPercentage = ((totalWithDetour - originalDistance) / originalDistance) * 100;
+    const detourPercentage =
+      ((totalWithDetour - originalDistance) / originalDistance) * 100;
 
     return {
       isCompatible: true,
       totalDistance: distancePickupToDelivery,
       detourPercentage: Math.max(0, detourPercentage),
-      matchType: 'DIRECT_ROUTE',
+      matchType: "DIRECT_ROUTE",
     };
   }
 
@@ -289,14 +319,14 @@ export class AnnouncementMatchingService {
     announcement: AnnouncementData,
     route: RouteData,
     intermediatePoint: any,
-    originalDistance: number
+    originalDistance: number,
   ) {
     // Distance du point intermédiaire à la collecte
     const distanceToPickup = getDistance(
       intermediatePoint.latitude,
       intermediatePoint.longitude,
       announcement.pickupLatitude,
-      announcement.pickupLongitude
+      announcement.pickupLongitude,
     );
 
     // Distance de la collecte à la livraison
@@ -304,7 +334,7 @@ export class AnnouncementMatchingService {
       announcement.pickupLatitude,
       announcement.pickupLongitude,
       announcement.deliveryLatitude,
-      announcement.deliveryLongitude
+      announcement.deliveryLongitude,
     );
 
     // Vérifier si dans le rayon du point intermédiaire
@@ -320,7 +350,7 @@ export class AnnouncementMatchingService {
       isCompatible: true,
       totalDistance: distancePickupToDelivery,
       detourPercentage,
-      matchType: 'INTERMEDIATE_POINT',
+      matchType: "INTERMEDIATE_POINT",
       intermediatePoint: intermediatePoint.address,
     };
   }
@@ -328,11 +358,14 @@ export class AnnouncementMatchingService {
   /**
    * Vérifie la compatibilité temporelle
    */
-  private checkTemporalCompatibility(announcement: AnnouncementData, route: RouteData) {
+  private checkTemporalCompatibility(
+    announcement: AnnouncementData,
+    route: RouteData,
+  ) {
     // Si le trajet est récurrent
     if (route.isRecurring) {
       if (!announcement.pickupDate) {
-        return { isCompatible: true, flexibility: 'RECURRING_FLEXIBLE' };
+        return { isCompatible: true, flexibility: "RECURRING_FLEXIBLE" };
       }
 
       const dayOfWeek = announcement.pickupDate.getDay();
@@ -340,13 +373,15 @@ export class AnnouncementMatchingService {
 
       return {
         isCompatible,
-        flexibility: isCompatible ? 'RECURRING_MATCH' : 'RECURRING_NO_MATCH',
+        flexibility: isCompatible ? "RECURRING_MATCH" : "RECURRING_NO_MATCH",
       };
     }
 
     // Si des dates spécifiques sont définies
     if (route.departureDate && announcement.pickupDate) {
-      const timeDiff = Math.abs(route.departureDate.getTime() - announcement.pickupDate.getTime());
+      const timeDiff = Math.abs(
+        route.departureDate.getTime() - announcement.pickupDate.getTime(),
+      );
       const hoursDiff = timeDiff / (1000 * 60 * 60);
 
       // Flexibilité de 24h
@@ -354,54 +389,64 @@ export class AnnouncementMatchingService {
 
       return {
         isCompatible,
-        flexibility: isCompatible ? 'TIME_FLEXIBLE' : 'TIME_INCOMPATIBLE',
+        flexibility: isCompatible ? "TIME_FLEXIBLE" : "TIME_INCOMPATIBLE",
         hoursDifference: hoursDiff,
       };
     }
 
     // Si flexible ou pas de contrainte temporelle spécifique
-    return { isCompatible: true, flexibility: 'FLEXIBLE' };
+    return { isCompatible: true, flexibility: "FLEXIBLE" };
   }
 
   /**
    * Vérifie la compatibilité des capacités
    */
-  private checkCapacityCompatibility(announcement: AnnouncementData, route: RouteData) {
+  private checkCapacityCompatibility(
+    announcement: AnnouncementData,
+    route: RouteData,
+  ) {
     const reasons = [];
     let isCompatible = true;
 
     // Vérifier le poids
     if (announcement.weight && announcement.weight > route.maxWeight) {
       isCompatible = false;
-      reasons.push('WEIGHT_EXCEEDED');
+      reasons.push("WEIGHT_EXCEEDED");
     } else if (announcement.weight) {
-      reasons.push('WEIGHT_COMPATIBLE');
+      reasons.push("WEIGHT_COMPATIBLE");
     }
 
     // Vérifier le volume
-    if (announcement.width && announcement.height && announcement.length && route.maxVolume) {
-      const volume = (announcement.width * announcement.height * announcement.length) / 1000000; // m³
+    if (
+      announcement.width &&
+      announcement.height &&
+      announcement.length &&
+      route.maxVolume
+    ) {
+      const volume =
+        (announcement.width * announcement.height * announcement.length) /
+        1000000; // m³
       if (volume > route.maxVolume) {
         isCompatible = false;
-        reasons.push('VOLUME_EXCEEDED');
+        reasons.push("VOLUME_EXCEEDED");
       } else {
-        reasons.push('VOLUME_COMPATIBLE');
+        reasons.push("VOLUME_COMPATIBLE");
       }
     }
 
     // Vérifier les exigences spéciales
     if (announcement.isFragile && !route.acceptsFragile) {
       isCompatible = false;
-      reasons.push('FRAGILE_NOT_ACCEPTED');
+      reasons.push("FRAGILE_NOT_ACCEPTED");
     } else if (announcement.isFragile && route.acceptsFragile) {
-      reasons.push('ACCEPTS_FRAGILE');
+      reasons.push("ACCEPTS_FRAGILE");
     }
 
     if (announcement.needsCooling && !route.acceptsCooling) {
       isCompatible = false;
-      reasons.push('COOLING_NOT_ACCEPTED');
+      reasons.push("COOLING_NOT_ACCEPTED");
     } else if (announcement.needsCooling && route.acceptsCooling) {
-      reasons.push('ACCEPTS_COOLING');
+      reasons.push("ACCEPTS_COOLING");
     }
 
     return { isCompatible, reasons };
@@ -415,26 +460,30 @@ export class AnnouncementMatchingService {
     temporalMatch: any,
     capacityMatch: any,
     announcement: AnnouncementData,
-    route: RouteData
+    route: RouteData,
   ): number {
     let score = 0;
 
     // Score géographique (40%)
-    const maxDetourPenalty = Math.min(geographicMatch.detourPercentage / route.maxDetour, 1);
+    const maxDetourPenalty = Math.min(
+      geographicMatch.detourPercentage / route.maxDetour,
+      1,
+    );
     const geographicScore = Math.max(0, 40 * (1 - maxDetourPenalty));
     score += geographicScore;
 
     // Score temporel (25%)
     let temporalScore = 0;
     switch (temporalMatch.flexibility) {
-      case 'RECURRING_MATCH':
-      case 'FLEXIBLE':
+      case "RECURRING_MATCH":
+      case "FLEXIBLE":
         temporalScore = 25;
         break;
-      case 'TIME_FLEXIBLE':
-        temporalScore = 25 * Math.max(0, 1 - (temporalMatch.hoursDifference || 0) / 24);
+      case "TIME_FLEXIBLE":
+        temporalScore =
+          25 * Math.max(0, 1 - (temporalMatch.hoursDifference || 0) / 24);
         break;
-      case 'RECURRING_FLEXIBLE':
+      case "RECURRING_FLEXIBLE":
         temporalScore = 20;
         break;
       default:
@@ -452,7 +501,8 @@ export class AnnouncementMatchingService {
       priceScore = 10;
     } else if (
       route.fixedPrice &&
-      Math.abs(route.fixedPrice - announcement.suggestedPrice) <= announcement.suggestedPrice * 0.2
+      Math.abs(route.fixedPrice - announcement.suggestedPrice) <=
+        announcement.suggestedPrice * 0.2
     ) {
       priceScore = 10;
     }
@@ -460,9 +510,12 @@ export class AnnouncementMatchingService {
 
     // Score de priorité (5%)
     let priorityScore = 0;
-    if (announcement.priority === 'HIGH' || announcement.priority === 'URGENT') {
+    if (
+      announcement.priority === "HIGH" ||
+      announcement.priority === "URGENT"
+    ) {
       priorityScore = 5;
-    } else if (announcement.priority === 'MEDIUM') {
+    } else if (announcement.priority === "MEDIUM") {
       priorityScore = 3;
     }
     score += priorityScore;
@@ -476,7 +529,7 @@ export class AnnouncementMatchingService {
   private calculateRouteDetails(
     announcement: AnnouncementData,
     route: RouteData,
-    geographicMatch: any
+    geographicMatch: any,
   ) {
     return {
       totalDistance: geographicMatch.totalDistance,
@@ -493,28 +546,28 @@ export class AnnouncementMatchingService {
     temporalMatch: any,
     capacityMatch: any,
     announcement: AnnouncementData,
-    route: RouteData
+    route: RouteData,
   ): string[] {
     const reasons = [];
 
     // Raisons géographiques
-    if (geographicMatch.matchType === 'DIRECT_ROUTE') {
-      reasons.push('SAME_ROUTE');
-    } else if (geographicMatch.matchType === 'INTERMEDIATE_POINT') {
-      reasons.push('INTERMEDIATE_POINT');
+    if (geographicMatch.matchType === "DIRECT_ROUTE") {
+      reasons.push("SAME_ROUTE");
+    } else if (geographicMatch.matchType === "INTERMEDIATE_POINT") {
+      reasons.push("INTERMEDIATE_POINT");
     }
 
     if (geographicMatch.detourPercentage <= 10) {
-      reasons.push('MINIMAL_DETOUR');
+      reasons.push("MINIMAL_DETOUR");
     } else if (geographicMatch.detourPercentage <= 20) {
-      reasons.push('ACCEPTABLE_DETOUR');
+      reasons.push("ACCEPTABLE_DETOUR");
     }
 
     // Raisons temporelles
-    if (temporalMatch.flexibility === 'RECURRING_MATCH') {
-      reasons.push('TIMING_COMPATIBLE');
-    } else if (temporalMatch.flexibility === 'FLEXIBLE') {
-      reasons.push('SCHEDULE_FLEXIBLE');
+    if (temporalMatch.flexibility === "RECURRING_MATCH") {
+      reasons.push("TIMING_COMPATIBLE");
+    } else if (temporalMatch.flexibility === "FLEXIBLE") {
+      reasons.push("SCHEDULE_FLEXIBLE");
     }
 
     // Raisons de capacité
@@ -522,12 +575,12 @@ export class AnnouncementMatchingService {
 
     // Raisons de prix
     if (route.isNegotiable && announcement.isNegotiable) {
-      reasons.push('PRICE_NEGOTIABLE');
+      reasons.push("PRICE_NEGOTIABLE");
     }
 
     // Raisons de type
-    if (announcement.type === 'PACKAGE_DELIVERY') {
-      reasons.push('PACKAGE_COMPATIBLE');
+    if (announcement.type === "PACKAGE_DELIVERY") {
+      reasons.push("PACKAGE_COMPATIBLE");
     }
 
     return reasons;
@@ -539,7 +592,7 @@ export class AnnouncementMatchingService {
   private calculatePriceEstimate(
     announcement: AnnouncementData,
     route: RouteData,
-    routeDetails: any
+    routeDetails: any,
   ): number {
     if (route.fixedPrice) {
       return route.fixedPrice;
@@ -557,9 +610,9 @@ export class AnnouncementMatchingService {
       basePrice *= 1.15; // +15% pour réfrigération
     }
 
-    if (announcement.priority === 'HIGH') {
+    if (announcement.priority === "HIGH") {
       basePrice *= 1.1; // +10% pour priorité élevée
-    } else if (announcement.priority === 'URGENT') {
+    } else if (announcement.priority === "URGENT") {
       basePrice *= 1.25; // +25% pour urgent
     }
 
@@ -628,14 +681,14 @@ export class AnnouncementMatchingService {
   private async notifyDeliverer(
     route: any,
     announcement: any,
-    match: MatchingCriteria
+    match: MatchingCriteria,
   ): Promise<void> {
     // Créer une notification dans la base de données
     await this.prisma.delivererNotification.create({
       data: {
         delivererId: route.delivererId,
-        type: 'NEW_MATCH',
-        title: 'Nouvelle correspondance trouvée !',
+        type: "NEW_MATCH",
+        title: "Nouvelle correspondance trouvée !",
         message: `Une annonce correspond à votre trajet "${route.title}" avec ${match.compatibilityScore}% de compatibilité.`,
         data: {
           matchId: `${match.routeId}-${match.announcementId}`,
@@ -650,7 +703,9 @@ export class AnnouncementMatchingService {
 
     // Envoyer une notification push (via OneSignal)
     // Cette partie serait implémentée avec le service OneSignal
-    logger.info(`Notification de matching envoyée au livreur ${route.delivererId}`);
+    logger.info(
+      `Notification de matching envoyée au livreur ${route.delivererId}`,
+    );
   }
 
   /**
@@ -659,14 +714,14 @@ export class AnnouncementMatchingService {
   private async notifyClient(
     route: any,
     announcement: any,
-    match: MatchingCriteria
+    match: MatchingCriteria,
   ): Promise<void> {
     // Créer une notification pour le client
     await this.prisma.clientNotification.create({
       data: {
         clientId: announcement.clientId,
-        type: 'MATCHING_FOUND',
-        title: 'Livreur trouvé pour votre annonce',
+        type: "MATCHING_FOUND",
+        title: "Livreur trouvé pour votre annonce",
         message: `Un livreur qualifié est disponible pour votre livraison "${announcement.title}".`,
         data: {
           matchId: `${match.routeId}-${match.announcementId}`,
@@ -679,6 +734,8 @@ export class AnnouncementMatchingService {
       },
     });
 
-    logger.info(`Notification de matching envoyée au client ${announcement.clientId}`);
+    logger.info(
+      `Notification de matching envoyée au client ${announcement.clientId}`,
+    );
   }
 }

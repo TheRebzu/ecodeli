@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export * from './deliverer-availability.schema';
-export * from './deliverer-document.schema';
-export * from './deliverer-earnings.schema';
-export * from './deliverer-register.schema';
-export * from './nfc-card.schema';
-export * from './planned-route.schema';
+export * from "./deliverer-availability.schema";
+export * from "./deliverer-document.schema";
+export * from "./deliverer-earnings.schema";
+export * from "./deliverer-register.schema";
+export * from "./nfc-card.schema";
+export * from "./planned-route.schema";

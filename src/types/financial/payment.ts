@@ -4,28 +4,28 @@
 
 // Types pour les transactions du portefeuille
 export enum TransactionType {
-  EARNING = 'EARNING',
-  WITHDRAWAL = 'WITHDRAWAL',
-  REFUND = 'REFUND',
-  SUBSCRIPTION_FEE = 'SUBSCRIPTION_FEE',
-  PLATFORM_FEE = 'PLATFORM_FEE',
-  ADJUSTMENT = 'ADJUSTMENT',
-  BONUS = 'BONUS',
+  EARNING = "EARNING",
+  WITHDRAWAL = "WITHDRAWAL",
+  REFUND = "REFUND",
+  SUBSCRIPTION_FEE = "SUBSCRIPTION_FEE",
+  PLATFORM_FEE = "PLATFORM_FEE",
+  ADJUSTMENT = "ADJUSTMENT",
+  BONUS = "BONUS",
 }
 
 export enum TransactionStatus {
-  PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-  CANCELLED = 'CANCELLED',
+  PENDING = "PENDING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum WithdrawalStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-  CANCELLED = 'CANCELLED',
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  CANCELLED = "CANCELLED",
 }
 
 // Interface pour les transactions
@@ -66,7 +66,7 @@ export interface Wallet {
   isActive: boolean;
   stripeAccountId?: string | null;
   accountVerified: boolean;
-  accountType?: 'express' | 'standard' | 'custom' | null;
+  accountType?: "express" | "standard" | "custom" | null;
   createdAt: Date;
   updatedAt: Date;
   lastTransactionAt?: Date | null;

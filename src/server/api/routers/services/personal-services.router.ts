@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { PersonalServiceType, ServiceBookingStatus } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { PersonalServiceType, ServiceBookingStatus } from "@prisma/client";
 
 /**
  * Router pour les services personnels selon le cahier des charges
@@ -20,18 +20,18 @@ const baseServiceSchema = z.object({
 });
 
 const personTransportSchema = baseServiceSchema.extend({
-  type: z.literal('PERSON_TRANSPORT'),
+  type: z.literal("PERSON_TRANSPORT"),
   maxPassengers: z.number().min(1).max(8),
   hasChildSeat: z.boolean().default(false),
   hasWheelchairAccess: z.boolean().default(false),
-  vehicleType: z.enum(['CAR', 'VAN', 'TAXI', 'BUS']),
+  vehicleType: z.enum(["CAR", "VAN", "TAXI", "BUS"]),
   pickupAddress: z.string().min(5),
   destinationAddress: z.string().min(5),
   isRecurring: z.boolean().default(false),
 });
 
 const airportTransferSchema = baseServiceSchema.extend({
-  type: z.literal('AIRPORT_TRANSFER'),
+  type: z.literal("AIRPORT_TRANSFER"),
   airportCoverage: z.array(z.string()).min(1), // CDG, ORY, BVA
   flightTrackingIncluded: z.boolean().default(true),
   waitingTimeIncluded: z.number().min(0).max(120).default(30), // minutes
@@ -40,7 +40,7 @@ const airportTransferSchema = baseServiceSchema.extend({
 });
 
 const groceryShoppingSchema = baseServiceSchema.extend({
-  type: z.literal('GROCERY_SHOPPING'),
+  type: z.literal("GROCERY_SHOPPING"),
   storesAvailable: z.array(z.string()).min(1), // Carrefour, Monoprix, etc.
   maxItems: z.number().min(1).max(100),
   specialtyItems: z.boolean().default(false), // produits spécialisés
@@ -49,7 +49,7 @@ const groceryShoppingSchema = baseServiceSchema.extend({
 });
 
 const internationalPurchaseSchema = baseServiceSchema.extend({
-  type: z.literal('INTERNATIONAL_PURCHASE'),
+  type: z.literal("INTERNATIONAL_PURCHASE"),
   countriesCovered: z.array(z.string()).min(1),
   maxValue: z.number().min(0), // valeur max des achats
   customsHandling: z.boolean().default(true),
@@ -58,8 +58,10 @@ const internationalPurchaseSchema = baseServiceSchema.extend({
 });
 
 const petSittingSchema = baseServiceSchema.extend({
-  type: z.literal('PET_SITTING'),
-  petTypesAccepted: z.array(z.enum(['DOG', 'CAT', 'BIRD', 'FISH', 'RABBIT', 'OTHER'])),
+  type: z.literal("PET_SITTING"),
+  petTypesAccepted: z.array(
+    z.enum(["DOG", "CAT", "BIRD", "FISH", "RABBIT", "OTHER"]),
+  ),
   maxPets: z.number().min(1).max(10),
   atOwnerHome: z.boolean().default(true),
   atProviderHome: z.boolean().default(false),
@@ -68,9 +70,9 @@ const petSittingSchema = baseServiceSchema.extend({
 });
 
 const homeServiceSchema = baseServiceSchema.extend({
-  type: z.literal('HOME_SERVICE'),
+  type: z.literal("HOME_SERVICE"),
   serviceCategories: z.array(
-    z.enum(['CLEANING', 'MAINTENANCE', 'GARDENING', 'REPAIR', 'ASSEMBLY'])
+    z.enum(["CLEANING", "MAINTENANCE", "GARDENING", "REPAIR", "ASSEMBLY"]),
   ),
   toolsProvided: z.boolean().default(false),
   materialsIncluded: z.boolean().default(false),
@@ -78,7 +80,7 @@ const homeServiceSchema = baseServiceSchema.extend({
   warrantyOffered: z.boolean().default(false),
 });
 
-const createServiceSchema = z.discriminatedUnion('type', [
+const createServiceSchema = z.discriminatedUnion("type", [
   personTransportSchema,
   airportTransferSchema,
   groceryShoppingSchema,
@@ -114,274 +116,287 @@ export const personalServicesRouter = router({
   /**
    * Rechercher des services personnels
    */
-  searchServices: protectedProcedure.input(serviceFiltersSchema).query(async ({ ctx, input }) => {
-    try {
-      const where: any = {};
+  searchServices: protectedProcedure
+    .input(serviceFiltersSchema)
+    .query(async ({ ctx, input }) => {
+      try {
+        const where: any = {};
 
-      if (input.type) where.type = input.type;
-      if (input.isActive !== undefined) where.isActive = input.isActive;
-      if (input.providerId) where.providerId = input.providerId;
+        if (input.type) where.type = input.type;
+        if (input.isActive !== undefined) where.isActive = input.isActive;
+        if (input.providerId) where.providerId = input.providerId;
 
-      if (input.priceMin || input.priceMax) {
-        where.basePrice = {};
-        if (input.priceMin) where.basePrice.gte = input.priceMin;
-        if (input.priceMax) where.basePrice.lte = input.priceMax;
-      }
+        if (input.priceMin || input.priceMax) {
+          where.basePrice = {};
+          if (input.priceMin) where.basePrice.gte = input.priceMin;
+          if (input.priceMax) where.basePrice.lte = input.priceMax;
+        }
 
-      const services = await ctx.db.personalService.findMany({
-        where,
-        include: {
-          provider: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-              providerVerified: true,
-            },
-          },
-          reviews: {
-            select: {
-              rating: true,
-              comment: true,
-              createdAt: true,
-              reviewer: {
-                select: {
-                  name: true,
-                  image: true,
-                },
+        const services = await ctx.db.personalService.findMany({
+          where,
+          include: {
+            provider: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                providerVerified: true,
               },
             },
-            orderBy: { createdAt: 'desc' },
-            take: 3,
-          },
-          photos: true,
-          _count: {
-            select: {
-              bookings: true,
-              reviews: true,
+            reviews: {
+              select: {
+                rating: true,
+                comment: true,
+                createdAt: true,
+                reviewer: {
+                  select: {
+                    name: true,
+                    image: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "desc" },
+              take: 3,
+            },
+            photos: true,
+            _count: {
+              select: {
+                bookings: true,
+                reviews: true,
+              },
             },
           },
-        },
-        orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
-        skip: input.offset,
-        take: input.limit,
-      });
+          orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
+          skip: input.offset,
+          take: input.limit,
+        });
 
-      // Calculer la note moyenne pour chaque service
-      const servicesWithRating = services.map(service => {
-        const avgRating =
-          service.reviews.length > 0
-            ? service.reviews.reduce((sum, review) => sum + review.rating, 0) /
-              service.reviews.length
-            : 0;
+        // Calculer la note moyenne pour chaque service
+        const servicesWithRating = services.map((service) => {
+          const avgRating =
+            service.reviews.length > 0
+              ? service.reviews.reduce(
+                  (sum, review) => sum + review.rating,
+                  0,
+                ) / service.reviews.length
+              : 0;
+
+          return {
+            ...service,
+            averageRating: Math.round(avgRating * 10) / 10,
+          };
+        });
+
+        const totalCount = await ctx.db.personalService.count({ where });
 
         return {
-          ...service,
-          averageRating: Math.round(avgRating * 10) / 10,
+          services: servicesWithRating,
+          pagination: {
+            total: totalCount,
+            offset: input.offset,
+            limit: input.limit,
+            hasMore: input.offset + input.limit < totalCount,
+          },
         };
-      });
-
-      const totalCount = await ctx.db.personalService.count({ where });
-
-      return {
-        services: servicesWithRating,
-        pagination: {
-          total: totalCount,
-          offset: input.offset,
-          limit: input.limit,
-          hasMore: input.offset + input.limit < totalCount,
-        },
-      };
-    } catch (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la recherche de services',
-      });
-    }
-  }),
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la recherche de services",
+        });
+      }
+    }),
 
   /**
    * Créer un nouveau service personnel (prestataires uniquement)
    */
-  createService: protectedProcedure.input(createServiceSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  createService: protectedProcedure
+    .input(createServiceSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'PROVIDER') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les prestataires peuvent créer des services',
-      });
-    }
-
-    // Vérifier que le prestataire est vérifié
-    if (!user.providerVerified) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Votre compte prestataire doit être vérifié avant de créer des services',
-      });
-    }
-
-    try {
-      const { photos, ...serviceData } = input;
-
-      const service = await ctx.db.personalService.create({
-        data: {
-          ...serviceData,
-          providerId: user.id,
-          isApproved: false, // Nécessite approbation admin
-          // Stocker les données spécifiques selon le type
-          specificData: extractSpecificData(input),
-        },
-      });
-
-      // Créer les photos si fournies
-      if (photos && photos.length > 0) {
-        await ctx.db.personalServicePhoto.createMany({
-          data: photos.map((url, index) => ({
-            serviceId: service.id,
-            url,
-            isPrimary: index === 0,
-            order: index,
-          })),
+      if (user.role !== "PROVIDER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les prestataires peuvent créer des services",
         });
       }
 
-      return {
-        success: true,
-        service,
-        message: 'Service créé avec succès. Il sera examiné par nos équipes avant publication.',
-      };
-    } catch (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la création du service',
-      });
-    }
-  }),
+      // Vérifier que le prestataire est vérifié
+      if (!user.providerVerified) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Votre compte prestataire doit être vérifié avant de créer des services",
+        });
+      }
+
+      try {
+        const { photos, ...serviceData } = input;
+
+        const service = await ctx.db.personalService.create({
+          data: {
+            ...serviceData,
+            providerId: user.id,
+            isApproved: false, // Nécessite approbation admin
+            // Stocker les données spécifiques selon le type
+            specificData: extractSpecificData(input),
+          },
+        });
+
+        // Créer les photos si fournies
+        if (photos && photos.length > 0) {
+          await ctx.db.personalServicePhoto.createMany({
+            data: photos.map((url, index) => ({
+              serviceId: service.id,
+              url,
+              isPrimary: index === 0,
+              order: index,
+            })),
+          });
+        }
+
+        return {
+          success: true,
+          service,
+          message:
+            "Service créé avec succès. Il sera examiné par nos équipes avant publication.",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création du service",
+        });
+      }
+    }),
 
   /**
    * Réserver un service
    */
-  bookService: protectedProcedure.input(bookingSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  bookService: protectedProcedure
+    .input(bookingSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'CLIENT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les clients peuvent réserver des services',
-      });
-    }
-
-    try {
-      // Vérifier que le service existe et est actif
-      const service = await ctx.db.personalService.findFirst({
-        where: {
-          id: input.serviceId,
-          isActive: true,
-          isApproved: true,
-        },
-        include: {
-          provider: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
-
-      if (!service) {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Service non trouvé ou non disponible',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent réserver des services",
         });
       }
 
-      // Vérifier les conflits de planning
-      const requestedDateTime = new Date(input.requestedDate);
-      const [hours, minutes] = input.requestedTime.split(':').map(Number);
-      requestedDateTime.setHours(hours, minutes);
-
-      const endDateTime = new Date(requestedDateTime);
-      endDateTime.setMinutes(
-        endDateTime.getMinutes() + (input.estimatedDuration || service.duration)
-      );
-
-      const conflictingBooking = await ctx.db.personalServiceBooking.findFirst({
-        where: {
-          serviceId: input.serviceId,
-          status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
-          OR: [
-            {
-              requestedDateTime: {
-                gte: requestedDateTime,
-                lt: endDateTime,
+      try {
+        // Vérifier que le service existe et est actif
+        const service = await ctx.db.personalService.findFirst({
+          where: {
+            id: input.serviceId,
+            isActive: true,
+            isApproved: true,
+          },
+          include: {
+            provider: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
               },
             },
-            {
-              AND: [
-                { requestedDateTime: { lte: requestedDateTime } },
-                { endDateTime: { gt: requestedDateTime } },
+          },
+        });
+
+        if (!service) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Service non trouvé ou non disponible",
+          });
+        }
+
+        // Vérifier les conflits de planning
+        const requestedDateTime = new Date(input.requestedDate);
+        const [hours, minutes] = input.requestedTime.split(":").map(Number);
+        requestedDateTime.setHours(hours, minutes);
+
+        const endDateTime = new Date(requestedDateTime);
+        endDateTime.setMinutes(
+          endDateTime.getMinutes() +
+            (input.estimatedDuration || service.duration),
+        );
+
+        const conflictingBooking =
+          await ctx.db.personalServiceBooking.findFirst({
+            where: {
+              serviceId: input.serviceId,
+              status: { in: ["CONFIRMED", "IN_PROGRESS"] },
+              OR: [
+                {
+                  requestedDateTime: {
+                    gte: requestedDateTime,
+                    lt: endDateTime,
+                  },
+                },
+                {
+                  AND: [
+                    { requestedDateTime: { lte: requestedDateTime } },
+                    { endDateTime: { gt: requestedDateTime } },
+                  ],
+                },
               ],
             },
-          ],
-        },
-      });
+          });
 
-      if (conflictingBooking) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: "Ce créneau n'est pas disponible",
-        });
-      }
+        if (conflictingBooking) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Ce créneau n'est pas disponible",
+          });
+        }
 
-      // Calculer le prix final
-      const finalPrice = calculateServicePrice(service, input);
+        // Calculer le prix final
+        const finalPrice = calculateServicePrice(service, input);
 
-      // Créer la réservation
-      const booking = await ctx.db.personalServiceBooking.create({
-        data: {
-          serviceId: input.serviceId,
-          clientId: user.id,
-          requestedDateTime,
-          endDateTime,
-          clientAddress: input.clientAddress,
-          specialRequests: input.specialRequests,
-          estimatedPrice: finalPrice,
-          status: 'PENDING',
-          specificData: input.specificData,
-        },
-        include: {
-          service: {
-            include: {
-              provider: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
+        // Créer la réservation
+        const booking = await ctx.db.personalServiceBooking.create({
+          data: {
+            serviceId: input.serviceId,
+            clientId: user.id,
+            requestedDateTime,
+            endDateTime,
+            clientAddress: input.clientAddress,
+            specialRequests: input.specialRequests,
+            estimatedPrice: finalPrice,
+            status: "PENDING",
+            specificData: input.specificData,
+          },
+          include: {
+            service: {
+              include: {
+                provider: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
                 },
               },
             },
           },
-        },
-      });
+        });
 
-      // TODO: Envoyer notification au prestataire
+        // TODO: Envoyer notification au prestataire
 
-      return {
-        success: true,
-        booking,
-        message: 'Réservation créée avec succès. Le prestataire va vous confirmer sous 24h.',
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la réservation',
-      });
-    }
-  }),
+        return {
+          success: true,
+          booking,
+          message:
+            "Réservation créée avec succès. Le prestataire va vous confirmer sous 24h.",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la réservation",
+        });
+      }
+    }),
 
   /**
    * Récupérer les réservations d'un client
@@ -392,15 +407,15 @@ export const personalServicesRouter = router({
         status: z.nativeEnum(ServiceBookingStatus).optional(),
         limit: z.number().min(1).max(50).default(20),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent consulter leurs réservations',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent consulter leurs réservations",
         });
       }
 
@@ -428,7 +443,7 @@ export const personalServicesRouter = router({
               },
             },
           },
-          orderBy: { requestedDateTime: 'desc' },
+          orderBy: { requestedDateTime: "desc" },
           skip: input.offset,
           take: input.limit,
         });
@@ -446,8 +461,8 @@ export const personalServicesRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des réservations',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des réservations",
         });
       }
     }),
@@ -460,17 +475,21 @@ export const personalServicesRouter = router({
       z.object({
         providerId: z.string().optional(),
         includeInactive: z.boolean().default(false),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
       const targetProviderId = input.providerId || user.id;
 
       // Vérifier les permissions
-      if (input.providerId && user.id !== input.providerId && user.role !== 'ADMIN') {
+      if (
+        input.providerId &&
+        user.id !== input.providerId &&
+        user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Vous ne pouvez consulter que vos propres services',
+          code: "FORBIDDEN",
+          message: "Vous ne pouvez consulter que vos propres services",
         });
       }
 
@@ -482,7 +501,7 @@ export const personalServicesRouter = router({
           where,
           include: {
             photos: {
-              orderBy: { order: 'asc' },
+              orderBy: { order: "asc" },
             },
             bookings: {
               include: {
@@ -494,7 +513,7 @@ export const personalServicesRouter = router({
                   },
                 },
               },
-              orderBy: { requestedDateTime: 'desc' },
+              orderBy: { requestedDateTime: "desc" },
             },
             reviews: {
               include: {
@@ -505,7 +524,7 @@ export const personalServicesRouter = router({
                   },
                 },
               },
-              orderBy: { createdAt: 'desc' },
+              orderBy: { createdAt: "desc" },
             },
             _count: {
               select: {
@@ -514,14 +533,14 @@ export const personalServicesRouter = router({
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         });
 
         return { services };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des services',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des services",
         });
       }
     }),
@@ -537,15 +556,15 @@ export const personalServicesRouter = router({
         rating: z.number().min(1).max(5),
         comment: z.string().min(10).max(500),
         photos: z.array(z.string().url()).max(3).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent laisser des avis',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent laisser des avis",
         });
       }
 
@@ -556,14 +575,14 @@ export const personalServicesRouter = router({
             id: input.bookingId,
             serviceId: input.serviceId,
             clientId: user.id,
-            status: 'COMPLETED',
+            status: "COMPLETED",
           },
         });
 
         if (!booking) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Réservation non trouvée ou non terminée',
+            code: "NOT_FOUND",
+            message: "Réservation non trouvée ou non terminée",
           });
         }
 
@@ -578,8 +597,8 @@ export const personalServicesRouter = router({
 
         if (existingReview) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Vous avez déjà laissé un avis pour cette réservation',
+            code: "BAD_REQUEST",
+            message: "Vous avez déjà laissé un avis pour cette réservation",
           });
         }
 
@@ -598,12 +617,12 @@ export const personalServicesRouter = router({
         return {
           success: true,
           review,
-          message: 'Avis ajouté avec succès',
+          message: "Avis ajouté avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'ajout de l'avis",
         });
       }
@@ -629,7 +648,7 @@ export const personalServicesRouter = router({
               },
             },
             photos: {
-              orderBy: { order: 'asc' },
+              orderBy: { order: "asc" },
             },
             reviews: {
               include: {
@@ -641,12 +660,12 @@ export const personalServicesRouter = router({
                 },
               },
               where: { isModerated: true },
-              orderBy: { createdAt: 'desc' },
+              orderBy: { createdAt: "desc" },
             },
             _count: {
               select: {
                 bookings: {
-                  where: { status: 'COMPLETED' },
+                  where: { status: "COMPLETED" },
                 },
                 reviews: {
                   where: { isModerated: true },
@@ -658,8 +677,8 @@ export const personalServicesRouter = router({
 
         if (!service) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Service non trouvé',
+            code: "NOT_FOUND",
+            message: "Service non trouvé",
           });
         }
 
@@ -679,8 +698,8 @@ export const personalServicesRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération du service',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération du service",
         });
       }
     }),
@@ -692,16 +711,16 @@ export const personalServicesRouter = router({
     .input(
       z.object({
         serviceId: z.string().cuid(),
-        action: z.enum(['APPROVE', 'REJECT']),
+        action: z.enum(["APPROVE", "REJECT"]),
         reason: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const service = await ctx.db.personalService.update({
           where: { id: input.serviceId },
           data: {
-            isApproved: input.action === 'APPROVE',
+            isApproved: input.action === "APPROVE",
             moderatedAt: new Date(),
             moderatedById: ctx.session.user.id,
             moderationReason: input.reason,
@@ -711,12 +730,12 @@ export const personalServicesRouter = router({
         return {
           success: true,
           service,
-          message: `Service ${input.action === 'APPROVE' ? 'approuvé' : 'rejeté'} avec succès`,
+          message: `Service ${input.action === "APPROVE" ? "approuvé" : "rejeté"} avec succès`,
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la modération',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la modération",
         });
       }
     }),
@@ -724,8 +743,16 @@ export const personalServicesRouter = router({
 
 // Helper functions
 function extractSpecificData(input: any) {
-  const { type, title, description, basePrice, duration, isActive, photos, ...specificData } =
-    input;
+  const {
+    type,
+    title,
+    description,
+    basePrice,
+    duration,
+    isActive,
+    photos,
+    ...specificData
+  } = input;
   return specificData;
 }
 
@@ -735,13 +762,13 @@ function calculateServicePrice(service: any, booking: any): number {
 
   // Appliquer des modificateurs selon le type de service
   switch (service.type) {
-    case 'PERSON_TRANSPORT':
+    case "PERSON_TRANSPORT":
       // Prix selon la distance (à intégrer avec service de géolocalisation)
       break;
-    case 'AIRPORT_TRANSFER':
+    case "AIRPORT_TRANSFER":
       // Prix fixe + suppléments
       break;
-    case 'GROCERY_SHOPPING':
+    case "GROCERY_SHOPPING":
       // Prix de base + pourcentage sur les achats
       break;
     // ... autres types

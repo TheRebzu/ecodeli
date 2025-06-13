@@ -1,7 +1,7 @@
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
-import { authOptions } from '@/server/auth/next-auth';
-import MerchantDashboard from '@/components/merchant/dashboard/merchant-dashboard';
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/server/auth/next-auth";
+import MerchantDashboard from "@/components/merchant/dashboard/merchant-dashboard";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -19,7 +19,7 @@ export default async function MerchantDashboardPage({ params }: Props) {
   }
 
   // Vérifier que l'utilisateur est bien un marchand
-  if (session.user.role !== 'MERCHANT') {
+  if (session.user.role !== "MERCHANT") {
     redirect(`/${locale}/dashboard`);
   }
 

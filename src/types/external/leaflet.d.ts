@@ -1,7 +1,7 @@
 // This file provides TypeScript declarations for the leaflet.heat plugin
 
-declare module 'leaflet.heat' {
-  import * as L from 'leaflet';
+declare module "leaflet.heat" {
+  import * as L from "leaflet";
 
   namespace HeatLayer {
     interface HeatLayerOptions {
@@ -15,7 +15,10 @@ declare module 'leaflet.heat' {
   }
 
   class HeatLayer extends L.Layer {
-    constructor(latlngs: L.LatLngExpression[], options?: HeatLayer.HeatLayerOptions);
+    constructor(
+      latlngs: L.LatLngExpression[],
+      options?: HeatLayer.HeatLayerOptions,
+    );
     setOptions(options: HeatLayer.HeatLayerOptions): this;
     addLatLng(latlng: L.LatLngExpression): this;
     setLatLngs(latlngs: L.LatLngExpression[]): this;
@@ -25,7 +28,7 @@ declare module 'leaflet.heat' {
   namespace L {
     function heatLayer(
       latlngs: L.LatLngExpression[],
-      options?: HeatLayer.HeatLayerOptions
+      options?: HeatLayer.HeatLayerOptions,
     ): HeatLayer;
   }
 }

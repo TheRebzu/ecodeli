@@ -3,22 +3,26 @@
  * Gère la séquestration des fonds jusqu'à validation de livraison
  */
 
-import { PrismaClient } from '@prisma/client';
-import { logger } from '@/lib/utils/logger';
+import { PrismaClient } from "@prisma/client";
+import { logger } from "@/lib/utils/logger";
 
 export type EscrowStatus =
-  | 'PENDING'
-  | 'AUTHORIZED'
-  | 'CAPTURED'
-  | 'HELD'
-  | 'RELEASED'
-  | 'REFUNDED'
-  | 'PARTIALLY_REFUNDED'
-  | 'DISPUTED'
-  | 'CANCELLED'
-  | 'EXPIRED';
+  | "PENDING"
+  | "AUTHORIZED"
+  | "CAPTURED"
+  | "HELD"
+  | "RELEASED"
+  | "REFUNDED"
+  | "PARTIALLY_REFUNDED"
+  | "DISPUTED"
+  | "CANCELLED"
+  | "EXPIRED";
 
-export type PaymentMethod = 'CARD' | 'BANK_TRANSFER' | 'DIGITAL_WALLET' | 'CASH';
+export type PaymentMethod =
+  | "CARD"
+  | "BANK_TRANSFER"
+  | "DIGITAL_WALLET"
+  | "CASH";
 
 export interface EscrowTransaction {
   id: string;
@@ -56,7 +60,7 @@ export interface EscrowTransaction {
   metadata: {
     ipAddress: string;
     userAgent: string;
-    paymentSource: 'WEB' | 'MOBILE' | 'API';
+    paymentSource: "WEB" | "MOBILE" | "API";
     riskScore?: number;
   };
 
@@ -108,7 +112,7 @@ export interface EscrowConfig {
   };
   paymentMethods: {
     enabled: PaymentMethod[];
-    cardProcessor: 'STRIPE' | 'PAYPAL';
+    cardProcessor: "STRIPE" | "PAYPAL";
     bankTransferEnabled: boolean;
   };
 }
@@ -116,7 +120,7 @@ export interface EscrowConfig {
 export class EscrowPaymentService {
   constructor(
     private prisma: PrismaClient,
-    private config: EscrowConfig
+    private config: EscrowConfig,
   ) {}
 
   /**
@@ -132,7 +136,7 @@ export class EscrowPaymentService {
     metadata: {
       ipAddress: string;
       userAgent: string;
-      paymentSource: 'WEB' | 'MOBILE' | 'API';
+      paymentSource: "WEB" | "MOBILE" | "API";
     };
   }): Promise<EscrowTransaction> {
     try {
@@ -150,9 +154,11 @@ export class EscrowPaymentService {
         amount: params.amount,
         currency: params.currency,
         paymentMethod: params.paymentMethod,
-        status: 'PENDING',
+        status: "PENDING",
         breakdown,
-        heldUntil: new Date(Date.now() + this.config.defaultHoldPeriodHours * 60 * 60 * 1000),
+        heldUntil: new Date(
+          Date.now() + this.config.defaultHoldPeriodHours * 60 * 60 * 1000,
+        ),
         metadata: {
           ...params.metadata,
           riskScore,
@@ -167,31 +173,40 @@ export class EscrowPaymentService {
 
       // Traiter l'autorisation selon la méthode de paiement
       switch (params.paymentMethod) {
-        case 'CARD':
-          await this.processCardAuthorization(escrowTransaction, params.paymentDetails);
+        case "CARD":
+          await this.processCardAuthorization(
+            escrowTransaction,
+            params.paymentDetails,
+          );
           break;
-        case 'BANK_TRANSFER':
-          await this.processBankTransfer(escrowTransaction, params.paymentDetails);
+        case "BANK_TRANSFER":
+          await this.processBankTransfer(
+            escrowTransaction,
+            params.paymentDetails,
+          );
           break;
-        case 'DIGITAL_WALLET':
-          await this.processDigitalWalletPayment(escrowTransaction, params.paymentDetails);
+        case "DIGITAL_WALLET":
+          await this.processDigitalWalletPayment(
+            escrowTransaction,
+            params.paymentDetails,
+          );
           break;
-        case 'CASH':
+        case "CASH":
           await this.processCashPayment(escrowTransaction);
           break;
       }
 
       await this.logEvent(
         escrowTransaction.id,
-        'ESCROW_INITIATED',
-        'PENDING',
-        'AUTHORIZED',
-        'SYSTEM',
-        { amount: params.amount, paymentMethod: params.paymentMethod }
+        "ESCROW_INITIATED",
+        "PENDING",
+        "AUTHORIZED",
+        "SYSTEM",
+        { amount: params.amount, paymentMethod: params.paymentMethod },
       );
 
       logger.info(
-        `Paiement escrow initié: ${escrowTransaction.id} pour ${params.amount}${params.currency}`
+        `Paiement escrow initié: ${escrowTransaction.id} pour ${params.amount}${params.currency}`,
       );
       return escrowTransaction;
     } catch (error) {
@@ -203,15 +218,18 @@ export class EscrowPaymentService {
   /**
    * Capture et séquestre les fonds
    */
-  async captureAndHoldFunds(escrowTransactionId: string, delivererId?: string): Promise<boolean> {
+  async captureAndHoldFunds(
+    escrowTransactionId: string,
+    delivererId?: string,
+  ): Promise<boolean> {
     try {
       const transaction = await this.getEscrowTransaction(escrowTransactionId);
       if (!transaction) {
-        throw new Error('Transaction escrow non trouvée');
+        throw new Error("Transaction escrow non trouvée");
       }
 
-      if (transaction.status !== 'AUTHORIZED') {
-        throw new Error('Transaction non autorisée');
+      if (transaction.status !== "AUTHORIZED") {
+        throw new Error("Transaction non autorisée");
       }
 
       // Capturer les fonds selon la méthode de paiement
@@ -221,7 +239,7 @@ export class EscrowPaymentService {
       }
 
       // Mettre à jour la transaction
-      transaction.status = 'HELD';
+      transaction.status = "HELD";
       transaction.capturedAt = new Date();
       transaction.delivererId = delivererId;
       transaction.updatedAt = new Date();
@@ -230,11 +248,11 @@ export class EscrowPaymentService {
 
       await this.logEvent(
         escrowTransactionId,
-        'FUNDS_CAPTURED_AND_HELD',
-        'AUTHORIZED',
-        'HELD',
-        'SYSTEM',
-        { delivererId, captureId: captureResult.captureId }
+        "FUNDS_CAPTURED_AND_HELD",
+        "AUTHORIZED",
+        "HELD",
+        "SYSTEM",
+        { delivererId, captureId: captureResult.captureId },
       );
 
       // Programmer la libération automatique
@@ -243,7 +261,7 @@ export class EscrowPaymentService {
       logger.info(`Fonds capturés et séquestrés: ${escrowTransactionId}`);
       return true;
     } catch (error) {
-      logger.error('Erreur lors de la capture et séquestration:', error);
+      logger.error("Erreur lors de la capture et séquestration:", error);
       return false;
     }
   }
@@ -260,16 +278,16 @@ export class EscrowPaymentService {
       clientComment?: string;
       photos?: string[];
       signature?: string;
-    }
+    },
   ): Promise<boolean> {
     try {
       const transaction = await this.getEscrowTransaction(escrowTransactionId);
       if (!transaction) {
-        throw new Error('Transaction escrow non trouvée');
+        throw new Error("Transaction escrow non trouvée");
       }
 
-      if (transaction.status !== 'HELD') {
-        throw new Error('Fonds non séquestrés');
+      if (transaction.status !== "HELD") {
+        throw new Error("Fonds non séquestrés");
       }
 
       // Vérifier les conditions de libération
@@ -277,22 +295,30 @@ export class EscrowPaymentService {
       const canRelease = await this.validateReleaseConditions(
         transaction,
         validationData,
-        releaseRules
+        releaseRules,
       );
 
       if (!canRelease.isValid) {
-        throw new Error(`Conditions de libération non remplies: ${canRelease.reason}`);
+        throw new Error(
+          `Conditions de libération non remplies: ${canRelease.reason}`,
+        );
       }
 
       // Calculer la répartition finale (avec d'éventuelles pénalités)
-      const finalBreakdown = await this.calculateFinalBreakdown(transaction, validationData);
+      const finalBreakdown = await this.calculateFinalBreakdown(
+        transaction,
+        validationData,
+      );
 
       // Effectuer les transferts
-      const transferResults = await this.executeTransfers(transaction, finalBreakdown);
+      const transferResults = await this.executeTransfers(
+        transaction,
+        finalBreakdown,
+      );
 
       if (transferResults.success) {
         // Mettre à jour la transaction
-        transaction.status = 'RELEASED';
+        transaction.status = "RELEASED";
         transaction.releasedAt = new Date();
         transaction.updatedAt = new Date();
 
@@ -300,11 +326,11 @@ export class EscrowPaymentService {
 
         await this.logEvent(
           escrowTransactionId,
-          'FUNDS_RELEASED',
-          'HELD',
-          'RELEASED',
+          "FUNDS_RELEASED",
+          "HELD",
+          "RELEASED",
           validatedBy,
-          { validationData, finalBreakdown, transferResults }
+          { validationData, finalBreakdown, transferResults },
         );
 
         // Notifier les parties concernées
@@ -316,7 +342,7 @@ export class EscrowPaymentService {
         throw new Error(`Échec des transferts: ${transferResults.error}`);
       }
     } catch (error) {
-      logger.error('Erreur lors de la libération des fonds:', error);
+      logger.error("Erreur lors de la libération des fonds:", error);
       return false;
     }
   }
@@ -328,36 +354,45 @@ export class EscrowPaymentService {
     escrowTransactionId: string,
     refundAmount: number,
     reason: string,
-    initiatedBy: string
+    initiatedBy: string,
   ): Promise<boolean> {
     try {
       const transaction = await this.getEscrowTransaction(escrowTransactionId);
       if (!transaction) {
-        throw new Error('Transaction escrow non trouvée');
+        throw new Error("Transaction escrow non trouvée");
       }
 
-      if (!['HELD', 'RELEASED'].includes(transaction.status)) {
-        throw new Error('Statut de transaction incorrect pour remboursement');
+      if (!["HELD", "RELEASED"].includes(transaction.status)) {
+        throw new Error("Statut de transaction incorrect pour remboursement");
       }
 
       // Vérifier la fenêtre de remboursement
       const daysSinceTransaction =
         (Date.now() - transaction.createdAt.getTime()) / (1000 * 60 * 60 * 24);
       if (daysSinceTransaction > this.config.maxRefundPeriodDays) {
-        throw new Error('Période de remboursement expirée');
+        throw new Error("Période de remboursement expirée");
       }
 
       // Vérifier le montant de remboursement
       if (refundAmount > transaction.amount) {
-        throw new Error('Montant de remboursement supérieur au montant de la transaction');
+        throw new Error(
+          "Montant de remboursement supérieur au montant de la transaction",
+        );
       }
 
       // Effectuer le remboursement selon la méthode de paiement
-      const refundResult = await this.executeRefund(transaction, refundAmount, reason);
+      const refundResult = await this.executeRefund(
+        transaction,
+        refundAmount,
+        reason,
+      );
 
       if (refundResult.success) {
         // Mettre à jour le statut
-        const newStatus = refundAmount === transaction.amount ? 'REFUNDED' : 'PARTIALLY_REFUNDED';
+        const newStatus =
+          refundAmount === transaction.amount
+            ? "REFUNDED"
+            : "PARTIALLY_REFUNDED";
 
         transaction.status = newStatus;
         transaction.refundedAt = new Date();
@@ -367,25 +402,25 @@ export class EscrowPaymentService {
 
         await this.logEvent(
           escrowTransactionId,
-          'REFUND_PROCESSED',
-          'HELD',
+          "REFUND_PROCESSED",
+          "HELD",
           newStatus,
           initiatedBy,
-          { refundAmount, reason, refundId: refundResult.refundId }
+          { refundAmount, reason, refundId: refundResult.refundId },
         );
 
         // Notifier les parties concernées
         await this.notifyRefundProcessed(transaction, refundAmount, reason);
 
         logger.info(
-          `Remboursement traité: ${escrowTransactionId} - ${refundAmount}${transaction.currency}`
+          `Remboursement traité: ${escrowTransactionId} - ${refundAmount}${transaction.currency}`,
         );
         return true;
       } else {
         throw new Error(`Échec du remboursement: ${refundResult.error}`);
       }
     } catch (error) {
-      logger.error('Erreur lors du traitement du remboursement:', error);
+      logger.error("Erreur lors du traitement du remboursement:", error);
       return false;
     }
   }
@@ -397,35 +432,35 @@ export class EscrowPaymentService {
     escrowTransactionId: string,
     disputeData: {
       disputeType:
-        | 'UNAUTHORIZED'
-        | 'DUPLICATE'
-        | 'FRAUDULENT'
-        | 'PRODUCT_NOT_RECEIVED'
-        | 'PRODUCT_UNACCEPTABLE';
+        | "UNAUTHORIZED"
+        | "DUPLICATE"
+        | "FRAUDULENT"
+        | "PRODUCT_NOT_RECEIVED"
+        | "PRODUCT_UNACCEPTABLE";
       description: string;
       evidence?: string[];
       disputedBy: string;
-    }
+    },
   ): Promise<void> {
     try {
       const transaction = await this.getEscrowTransaction(escrowTransactionId);
       if (!transaction) {
-        throw new Error('Transaction escrow non trouvée');
+        throw new Error("Transaction escrow non trouvée");
       }
 
       // Mettre en statut de dispute
-      transaction.status = 'DISPUTED';
+      transaction.status = "DISPUTED";
       transaction.updatedAt = new Date();
 
       await this.updateEscrowTransaction(transaction);
 
       await this.logEvent(
         escrowTransactionId,
-        'DISPUTE_INITIATED',
+        "DISPUTE_INITIATED",
         transaction.status,
-        'DISPUTED',
+        "DISPUTED",
         disputeData.disputedBy,
-        { disputeData }
+        { disputeData },
       );
 
       // Bloquer la libération automatique des fonds
@@ -437,9 +472,11 @@ export class EscrowPaymentService {
       // Créer un dossier de dispute
       await this.createDisputeCase(transaction, disputeData);
 
-      logger.info(`Dispute initiée pour la transaction: ${escrowTransactionId}`);
+      logger.info(
+        `Dispute initiée pour la transaction: ${escrowTransactionId}`,
+      );
     } catch (error) {
-      logger.error('Erreur lors de la gestion de dispute:', error);
+      logger.error("Erreur lors de la gestion de dispute:", error);
       throw error;
     }
   }
@@ -454,7 +491,7 @@ export class EscrowPaymentService {
         return;
       }
 
-      if (transaction.status !== 'HELD') {
+      if (transaction.status !== "HELD") {
         return;
       }
 
@@ -462,24 +499,29 @@ export class EscrowPaymentService {
       const holdPeriodExpired = Date.now() > transaction.heldUntil.getTime();
       const autoReleaseTime = transaction.capturedAt
         ? new Date(
-            transaction.capturedAt.getTime() + this.config.autoReleaseAfterHours * 60 * 60 * 1000
+            transaction.capturedAt.getTime() +
+              this.config.autoReleaseAfterHours * 60 * 60 * 1000,
           )
-        : new Date(Date.now() + this.config.autoReleaseAfterHours * 60 * 60 * 1000);
+        : new Date(
+            Date.now() + this.config.autoReleaseAfterHours * 60 * 60 * 1000,
+          );
 
       if (holdPeriodExpired || Date.now() > autoReleaseTime.getTime()) {
-        await this.releaseFunds(escrowTransactionId, 'SYSTEM', {
+        await this.releaseFunds(escrowTransactionId, "SYSTEM", {
           deliveryValidated: true, // Validation automatique
         });
 
         logger.info(`Libération automatique des fonds: ${escrowTransactionId}`);
       }
     } catch (error) {
-      logger.error('Erreur lors de la libération automatique:', error);
+      logger.error("Erreur lors de la libération automatique:", error);
     }
   }
 
   // Méthodes privées de calcul et utilitaires
-  private calculatePaymentBreakdown(totalAmount: number): EscrowTransaction['breakdown'] {
+  private calculatePaymentBreakdown(
+    totalAmount: number,
+  ): EscrowTransaction["breakdown"] {
     const platformFee = totalAmount * (this.config.platformFeePercentage / 100);
     const vatAmount = totalAmount * 0.2; // TVA 20%
     const serviceAmount = totalAmount - platformFee - vatAmount;
@@ -498,7 +540,7 @@ export class EscrowPaymentService {
 
     // Facteurs de risque basiques (simulation)
     if (params.amount > 500) riskScore += 10;
-    if (params.paymentMethod === 'CARD') riskScore += 5;
+    if (params.paymentMethod === "CARD") riskScore += 5;
     if (!params.metadata.ipAddress) riskScore += 20;
 
     // Dans une vraie implémentation, utiliser des services comme Stripe Radar
@@ -512,7 +554,7 @@ export class EscrowPaymentService {
   private async validateReleaseConditions(
     transaction: EscrowTransaction,
     validationData: any,
-    rules: EscrowReleaseRule[]
+    rules: EscrowReleaseRule[],
   ): Promise<{ isValid: boolean; reason?: string }> {
     // Vérifier les conditions selon les règles applicables
     for (const rule of rules) {
@@ -521,23 +563,24 @@ export class EscrowPaymentService {
       const conditions = rule.conditions;
 
       if (conditions.deliveryValidated && !validationData.deliveryValidated) {
-        return { isValid: false, reason: 'Livraison non validée' };
+        return { isValid: false, reason: "Livraison non validée" };
       }
 
       if (
         conditions.photoProofRequired &&
         (!validationData.photos || validationData.photos.length === 0)
       ) {
-        return { isValid: false, reason: 'Preuve photo requise' };
+        return { isValid: false, reason: "Preuve photo requise" };
       }
 
       if (conditions.signatureRequired && !validationData.signature) {
-        return { isValid: false, reason: 'Signature requise' };
+        return { isValid: false, reason: "Signature requise" };
       }
 
       // Vérifier la période de détention minimale
       const holdPeriod =
-        (Date.now() - (transaction.capturedAt?.getTime() || Date.now())) / (1000 * 60 * 60);
+        (Date.now() - (transaction.capturedAt?.getTime() || Date.now())) /
+        (1000 * 60 * 60);
       if (holdPeriod < conditions.minimumHoldPeriod) {
         return {
           isValid: false,
@@ -551,8 +594,8 @@ export class EscrowPaymentService {
 
   private async calculateFinalBreakdown(
     transaction: EscrowTransaction,
-    validationData: any
-  ): Promise<EscrowTransaction['breakdown']> {
+    validationData: any,
+  ): Promise<EscrowTransaction["breakdown"]> {
     let breakdown = { ...transaction.breakdown };
 
     // Appliquer des bonus/pénalités selon la qualité de service
@@ -572,42 +615,44 @@ export class EscrowPaymentService {
   // Méthodes de traitement des paiements (simulation)
   private async processCardAuthorization(
     transaction: EscrowTransaction,
-    paymentDetails: any
+    paymentDetails: any,
   ): Promise<void> {
     // Simulation d'autorisation Stripe
     transaction.paymentIntentId = `pi_${Math.random().toString(36).substr(2, 20)}`;
-    transaction.cardLast4 = paymentDetails.cardNumber?.slice(-4) || '4242';
-    transaction.status = 'AUTHORIZED';
+    transaction.cardLast4 = paymentDetails.cardNumber?.slice(-4) || "4242";
+    transaction.status = "AUTHORIZED";
     transaction.authorizedAt = new Date();
   }
 
   private async processBankTransfer(
     transaction: EscrowTransaction,
-    paymentDetails: any
+    paymentDetails: any,
   ): Promise<void> {
     // Simulation de virement bancaire
-    transaction.bankAccountLast4 = paymentDetails.iban?.slice(-4) || '0123';
-    transaction.status = 'AUTHORIZED';
+    transaction.bankAccountLast4 = paymentDetails.iban?.slice(-4) || "0123";
+    transaction.status = "AUTHORIZED";
     transaction.authorizedAt = new Date();
   }
 
   private async processDigitalWalletPayment(
     transaction: EscrowTransaction,
-    paymentDetails: any
+    paymentDetails: any,
   ): Promise<void> {
     // Simulation de paiement portefeuille numérique
-    transaction.status = 'AUTHORIZED';
+    transaction.status = "AUTHORIZED";
     transaction.authorizedAt = new Date();
   }
 
-  private async processCashPayment(transaction: EscrowTransaction): Promise<void> {
+  private async processCashPayment(
+    transaction: EscrowTransaction,
+  ): Promise<void> {
     // Paiement en espèces - autorisation immédiate
-    transaction.status = 'AUTHORIZED';
+    transaction.status = "AUTHORIZED";
     transaction.authorizedAt = new Date();
   }
 
   private async captureFunds(
-    transaction: EscrowTransaction
+    transaction: EscrowTransaction,
   ): Promise<{ success: boolean; captureId?: string; error?: string }> {
     // Simulation de capture de fonds
     return {
@@ -618,7 +663,7 @@ export class EscrowPaymentService {
 
   private async executeTransfers(
     transaction: EscrowTransaction,
-    breakdown: EscrowTransaction['breakdown']
+    breakdown: EscrowTransaction["breakdown"],
   ): Promise<{ success: boolean; transferIds?: string[]; error?: string }> {
     // Simulation de transferts vers les comptes des bénéficiaires
     const transferIds = [
@@ -635,7 +680,7 @@ export class EscrowPaymentService {
   private async executeRefund(
     transaction: EscrowTransaction,
     amount: number,
-    reason: string
+    reason: string,
   ): Promise<{ success: boolean; refundId?: string; error?: string }> {
     // Simulation de remboursement
     return {
@@ -645,15 +690,21 @@ export class EscrowPaymentService {
   }
 
   // Méthodes de persistance (simulation)
-  private async saveEscrowTransaction(transaction: EscrowTransaction): Promise<void> {
+  private async saveEscrowTransaction(
+    transaction: EscrowTransaction,
+  ): Promise<void> {
     logger.info(`Transaction escrow sauvegardée: ${transaction.id}`);
   }
 
-  private async updateEscrowTransaction(transaction: EscrowTransaction): Promise<void> {
+  private async updateEscrowTransaction(
+    transaction: EscrowTransaction,
+  ): Promise<void> {
     logger.info(`Transaction escrow mise à jour: ${transaction.id}`);
   }
 
-  private async getEscrowTransaction(id: string): Promise<EscrowTransaction | null> {
+  private async getEscrowTransaction(
+    id: string,
+  ): Promise<EscrowTransaction | null> {
     // Simulation de récupération
     return null;
   }
@@ -662,9 +713,9 @@ export class EscrowPaymentService {
     // Simulation de règles de libération
     return [
       {
-        id: 'standard',
-        name: 'Règle standard',
-        description: 'Conditions standard de libération',
+        id: "standard",
+        name: "Règle standard",
+        description: "Conditions standard de libération",
         conditions: {
           deliveryValidated: true,
           clientConfirmation: false,
@@ -679,16 +730,20 @@ export class EscrowPaymentService {
     ];
   }
 
-  private async scheduleAutoRelease(escrowTransactionId: string): Promise<void> {
+  private async scheduleAutoRelease(
+    escrowTransactionId: string,
+  ): Promise<void> {
     // Programmer la libération automatique
     setTimeout(
       () => {
         this.autoReleaseFunds(escrowTransactionId);
       },
-      this.config.autoReleaseAfterHours * 60 * 60 * 1000
+      this.config.autoReleaseAfterHours * 60 * 60 * 1000,
     );
 
-    logger.info(`Libération automatique programmée pour ${escrowTransactionId}`);
+    logger.info(
+      `Libération automatique programmée pour ${escrowTransactionId}`,
+    );
   }
 
   private async cancelAutoRelease(escrowTransactionId: string): Promise<void> {
@@ -696,7 +751,10 @@ export class EscrowPaymentService {
     logger.info(`Libération automatique annulée pour ${escrowTransactionId}`);
   }
 
-  private async createDisputeCase(transaction: EscrowTransaction, disputeData: any): Promise<void> {
+  private async createDisputeCase(
+    transaction: EscrowTransaction,
+    disputeData: any,
+  ): Promise<void> {
     logger.info(`Dossier de dispute créé pour ${transaction.id}`);
   }
 
@@ -708,7 +766,7 @@ export class EscrowPaymentService {
     toStatus: EscrowStatus,
     triggeredBy: string,
     metadata?: Record<string, any>,
-    reason?: string
+    reason?: string,
   ): Promise<void> {
     const event: EscrowEvent = {
       id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -723,24 +781,32 @@ export class EscrowPaymentService {
     };
 
     logger.info(
-      `Événement escrow: ${eventType} pour ${escrowTransactionId} (${fromStatus} → ${toStatus})`
+      `Événement escrow: ${eventType} pour ${escrowTransactionId} (${fromStatus} → ${toStatus})`,
     );
   }
 
   // Méthodes de notification (simulation)
-  private async notifyFundsReleased(transaction: EscrowTransaction, breakdown: any): Promise<void> {
+  private async notifyFundsReleased(
+    transaction: EscrowTransaction,
+    breakdown: any,
+  ): Promise<void> {
     logger.info(`Notification libération fonds envoyée pour ${transaction.id}`);
   }
 
   private async notifyRefundProcessed(
     transaction: EscrowTransaction,
     amount: number,
-    reason: string
+    reason: string,
   ): Promise<void> {
-    logger.info(`Notification remboursement envoyée pour ${transaction.id}: ${amount}`);
+    logger.info(
+      `Notification remboursement envoyée pour ${transaction.id}: ${amount}`,
+    );
   }
 
-  private async notifyDisputeTeam(transaction: EscrowTransaction, disputeData: any): Promise<void> {
+  private async notifyDisputeTeam(
+    transaction: EscrowTransaction,
+    disputeData: any,
+  ): Promise<void> {
     logger.info(`Notification équipe dispute envoyée pour ${transaction.id}`);
   }
 }

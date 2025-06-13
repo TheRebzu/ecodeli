@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { api } from '@/trpc/react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { api } from "@/trpc/react";
 import {
   Truck,
   Euro,
@@ -24,17 +24,17 @@ import {
   Wallet,
   Map,
   ArrowRight,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { formatDistanceToNow, format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import DocumentVerificationStatus from '@/components/deliverer/documents/document-verification-status';
-import DeliveryTrackingMap from '@/components/shared/maps/delivery-tracking-map';
-import { useWalletBalance } from '@/hooks/payment/use-wallet';
-import { useSocket } from '@/hooks/system/use-socket';
-import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils/common';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { formatDistanceToNow, format } from "date-fns";
+import { fr } from "date-fns/locale";
+import DocumentVerificationStatus from "@/components/deliverer/documents/document-verification-status";
+import DeliveryTrackingMap from "@/components/shared/maps/delivery-tracking-map";
+import { useWalletBalance } from "@/hooks/payment/use-wallet";
+import { useSocket } from "@/hooks/system/use-socket";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils/common";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const StatCard = ({
   title,
@@ -53,7 +53,11 @@ const StatCard = ({
 }) => {
   if (isLoading) {
     return (
-      <Card className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}>
+      <Card
+        className={
+          onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+        }
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -72,7 +76,9 @@ const StatCard = ({
 
   return (
     <Card
-      className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
+      className={
+        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+      }
       onClick={onClick}
     >
       <CardContent className="p-6">
@@ -80,7 +86,9 @@ const StatCard = ({
           <div className="flex items-center space-x-4">
             <div className="bg-primary/10 p-3 rounded-full">{icon}</div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {title}
+              </p>
               <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
             </div>
           </div>
@@ -88,11 +96,11 @@ const StatCard = ({
             <div className="text-right">
               <p
                 className={`text-xs flex items-center gap-1 ${
-                  trend.value >= 0 ? 'text-green-600' : 'text-red-600'
+                  trend.value >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 <TrendingUp className="h-3 w-3" />
-                {trend.value >= 0 ? '+' : ''}
+                {trend.value >= 0 ? "+" : ""}
                 {trend.value}%
               </p>
               <p className="text-xs text-muted-foreground">{trend.label}</p>
@@ -113,25 +121,25 @@ const ActiveDeliveryCard = ({
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ACCEPTED':
-        return 'bg-blue-100 text-blue-800';
-      case 'PICKED_UP':
-        return 'bg-purple-100 text-purple-800';
-      case 'IN_TRANSIT':
-        return 'bg-orange-100 text-orange-800';
+      case "ACCEPTED":
+        return "bg-blue-100 text-blue-800";
+      case "PICKED_UP":
+        return "bg-purple-100 text-purple-800";
+      case "IN_TRANSIT":
+        return "bg-orange-100 text-orange-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'ACCEPTED':
-        return 'Acceptée';
-      case 'PICKED_UP':
-        return 'Récupérée';
-      case 'IN_TRANSIT':
-        return 'En transit';
+      case "ACCEPTED":
+        return "Acceptée";
+      case "PICKED_UP":
+        return "Récupérée";
+      case "IN_TRANSIT":
+        return "En transit";
       default:
         return status;
     }
@@ -144,7 +152,9 @@ const ActiveDeliveryCard = ({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Package className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-sm">{delivery.trackingCode}</span>
+              <span className="font-medium text-sm">
+                {delivery.trackingCode}
+              </span>
               <Badge className={getStatusColor(delivery.status)}>
                 {getStatusLabel(delivery.status)}
               </Badge>
@@ -153,16 +163,24 @@ const ActiveDeliveryCard = ({
             <div className="space-y-1 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <MapPin className="h-3 w-3" />
-                <span className="truncate">{delivery.announcement?.pickupAddress}</span>
+                <span className="truncate">
+                  {delivery.announcement?.pickupAddress}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Navigation className="h-3 w-3" />
-                <span className="truncate">{delivery.announcement?.deliveryAddress}</span>
+                <span className="truncate">
+                  {delivery.announcement?.deliveryAddress}
+                </span>
               </div>
             </div>
           </div>
 
-          <Button size="sm" variant="outline" onClick={() => onNavigate(delivery.id)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onNavigate(delivery.id)}
+          >
             Voir
           </Button>
         </div>
@@ -289,7 +307,11 @@ const PlannedDeliveries = ({ deliveries }: { deliveries: any[] }) => {
             <Calendar className="h-5 w-5" />
             Prochaines livraisons
           </div>
-          <Button size="sm" variant="ghost" onClick={() => router.push('/deliverer/schedule')}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => router.push("/deliverer/schedule")}
+          >
             Voir tout
           </Button>
         </CardTitle>
@@ -298,20 +320,24 @@ const PlannedDeliveries = ({ deliveries }: { deliveries: any[] }) => {
         <ScrollArea className="h-[200px] pr-4">
           {deliveries.length > 0 ? (
             <div className="space-y-3">
-              {deliveries.map(delivery => (
+              {deliveries.map((delivery) => (
                 <div
                   key={delivery.id}
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => router.push(`/deliverer/deliveries/${delivery.id}`)}
+                  onClick={() =>
+                    router.push(`/deliverer/deliveries/${delivery.id}`)
+                  }
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <Clock className="h-3 w-3 text-muted-foreground" />
                       <span className="text-sm font-medium">
-                        {format(new Date(delivery.plannedDate), 'HH:mm', { locale: fr })}
+                        {format(new Date(delivery.plannedDate), "HH:mm", {
+                          locale: fr,
+                        })}
                       </span>
                       <Badge variant="outline" className="text-xs">
-                        {delivery.priority === 'HIGH' ? 'Urgent' : 'Normal'}
+                        {delivery.priority === "HIGH" ? "Urgent" : "Normal"}
                       </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -337,12 +363,14 @@ const PlannedDeliveries = ({ deliveries }: { deliveries: any[] }) => {
           ) : (
             <div className="text-center py-8">
               <Calendar className="h-8 w-8 mx-auto text-muted-foreground opacity-25 mb-2" />
-              <p className="text-sm text-muted-foreground">Aucune livraison planifiée</p>
+              <p className="text-sm text-muted-foreground">
+                Aucune livraison planifiée
+              </p>
               <Button
                 variant="outline"
                 size="sm"
                 className="mt-3"
-                onClick={() => router.push('/deliverer/my-routes')}
+                onClick={() => router.push("/deliverer/my-routes")}
               >
                 Planifier des trajets
               </Button>
@@ -369,19 +397,26 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
   } = api.delivery.deliverer.getMobileDashboard.useQuery();
 
   // Récupérer le statut de vérification
-  const { data: verificationStatus } = api.delivery.verification.getDelivererStatus.useQuery();
+  const { data: verificationStatus } =
+    api.delivery.verification.getDelivererStatus.useQuery();
 
   // Récupérer le solde du portefeuille
-  const { balance, isLoading: isLoadingWallet, refreshBalance } = useWalletBalance();
+  const {
+    balance,
+    isLoading: isLoadingWallet,
+    refreshBalance,
+  } = useWalletBalance();
 
   // Récupérer les notifications urgentes
-  const { data: notificationsData } = api.notification.getUrgentNotifications.useQuery();
+  const { data: notificationsData } =
+    api.notification.getUrgentNotifications.useQuery();
 
   // Récupérer les livraisons planifiées
-  const { data: plannedDeliveries } = api.delivery.deliverer.getPlannedDeliveries.useQuery({
-    date: new Date(),
-    limit: 5,
-  });
+  const { data: plannedDeliveries } =
+    api.delivery.deliverer.getPlannedDeliveries.useQuery({
+      date: new Date(),
+      limit: 5,
+    });
 
   const stats = dashboardData?.stats;
   const activeDeliveries = dashboardData?.activeDeliveries || [];
@@ -392,27 +427,27 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
     if (!socket) return;
 
     // Connecté
-    socket.on('connect', () => {
+    socket.on("connect", () => {
       setIsConnected(true);
     });
 
     // Déconnecté
-    socket.on('disconnect', () => {
+    socket.on("disconnect", () => {
       setIsConnected(false);
     });
 
     // Écouter les mises à jour de stats
-    socket.on('deliverer:stats:update', data => {
+    socket.on("deliverer:stats:update", (data) => {
       setRealtimeStats(data);
       refetch();
     });
 
     // Écouter les nouvelles annonces matching
-    socket.on('announcement:matched', data => {
-      setUrgentNotifications(prev => [
+    socket.on("announcement:matched", (data) => {
+      setUrgentNotifications((prev) => [
         {
           id: Date.now().toString(),
-          title: 'Nouvelle annonce correspondante !',
+          title: "Nouvelle annonce correspondante !",
           message: `Une nouvelle livraison de ${data.price}€ correspond à votre trajet`,
           createdAt: new Date(),
           data,
@@ -422,16 +457,16 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
     });
 
     // Écouter les notifications urgentes
-    socket.on('notification:urgent', notification => {
-      setUrgentNotifications(prev => [notification, ...prev]);
+    socket.on("notification:urgent", (notification) => {
+      setUrgentNotifications((prev) => [notification, ...prev]);
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('deliverer:stats:update');
-      socket.off('announcement:matched');
-      socket.off('notification:urgent');
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("deliverer:stats:update");
+      socket.off("announcement:matched");
+      socket.off("notification:urgent");
     };
   }, [socket, refetch]);
 
@@ -447,10 +482,12 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
   };
 
   const handleDismissNotification = (notificationId: string) => {
-    setUrgentNotifications(prev => prev.filter(n => n.id !== notificationId));
+    setUrgentNotifications((prev) =>
+      prev.filter((n) => n.id !== notificationId),
+    );
   };
 
-  const isVerified = verificationStatus?.overallStatus === 'APPROVED';
+  const isVerified = verificationStatus?.overallStatus === "APPROVED";
   const hasActiveDeliveries = activeDeliveries.length > 0;
 
   return (
@@ -458,7 +495,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
       {/* Notifications urgentes */}
       {urgentNotifications.length > 0 && (
         <div className="space-y-3">
-          {urgentNotifications.slice(0, 2).map(notification => (
+          {urgentNotifications.slice(0, 2).map((notification) => (
             <UrgentNotification
               key={notification.id}
               notification={notification}
@@ -479,9 +516,13 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
           </CardHeader>
           <CardContent>
             <p className="text-yellow-700 dark:text-yellow-300 mb-4">
-              Votre compte doit être vérifié avant de pouvoir accepter des livraisons.
+              Votre compte doit être vérifié avant de pouvoir accepter des
+              livraisons.
             </p>
-            <Button onClick={() => router.push('/deliverer/documents')} variant="default">
+            <Button
+              onClick={() => router.push("/deliverer/documents")}
+              variant="default"
+            >
               <FileText className="h-4 w-4 mr-2" />
               Gérer mes documents
             </Button>
@@ -496,20 +537,22 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
           value={realtimeStats?.todayDeliveries || stats?.todayDeliveries || 0}
           icon={<Truck className="h-4 w-4 text-primary" />}
           isLoading={isLoading}
-          onClick={() => router.push('/deliverer/deliveries')}
+          onClick={() => router.push("/deliverer/deliveries")}
         />
 
         <StatCard
           title="Gains aujourd'hui"
           value={`${realtimeStats?.todayEarnings || earnings?.today || 0}€`}
           icon={<Euro className="h-4 w-4 text-green-500" />}
-          trend={{ value: 12, label: 'vs hier' }}
+          trend={{ value: 12, label: "vs hier" }}
           isLoading={isLoading}
         />
 
         <StatCard
           title="Note moyenne"
-          value={stats?.averageRating ? `${stats.averageRating.toFixed(1)}/5` : 'N/A'}
+          value={
+            stats?.averageRating ? `${stats.averageRating.toFixed(1)}/5` : "N/A"
+          }
           icon={<Star className="h-4 w-4 text-yellow-500" />}
           isLoading={isLoading}
         />
@@ -518,15 +561,15 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
           title="Gains du mois"
           value={`${earnings?.month || 0}€`}
           icon={<Euro className="h-4 w-4 text-green-500" />}
-          trend={{ value: 8, label: 'vs mois dernier' }}
+          trend={{ value: 8, label: "vs mois dernier" }}
           isLoading={isLoading}
-          onClick={() => router.push('/deliverer/wallet')}
+          onClick={() => router.push("/deliverer/wallet")}
         />
 
         {/* Solde portefeuille avec retrait rapide */}
         <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => router.push('/deliverer/wallet')}
+          onClick={() => router.push("/deliverer/wallet")}
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -535,7 +578,9 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
                   <Wallet className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Solde disponible</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Solde disponible
+                  </p>
                   <h3 className="text-2xl font-bold tracking-tight">
                     {balance?.availableBalance || 0}€
                   </h3>
@@ -544,9 +589,9 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={e => {
+                onClick={(e) => {
                   e.stopPropagation();
-                  router.push('/deliverer/wallet/withdrawal');
+                  router.push("/deliverer/wallet/withdrawal");
                 }}
               >
                 Retirer
@@ -576,7 +621,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
           <CardContent>
             {isLoading ? (
               <div className="space-y-4">
-                {[1, 2].map(i => (
+                {[1, 2].map((i) => (
                   <Skeleton key={i} className="h-24 w-full" />
                 ))}
               </div>
@@ -594,7 +639,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => router.push('/deliverer/deliveries')}
+                    onClick={() => router.push("/deliverer/deliveries")}
                   >
                     Voir toutes les livraisons ({activeDeliveries.length})
                   </Button>
@@ -607,7 +652,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
                 <Button
                   variant="outline"
                   className="mt-4"
-                  onClick={() => router.push('/deliverer/announcements')}
+                  onClick={() => router.push("/deliverer/announcements")}
                 >
                   Parcourir les annonces
                 </Button>
@@ -636,20 +681,35 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Livraisons effectuées</span>
+                <span className="text-sm text-muted-foreground">
+                  Livraisons effectuées
+                </span>
                 <span className="font-medium">
-                  {realtimeStats?.todayCompleted || dashboardData?.todayDeliveries || 0}
+                  {realtimeStats?.todayCompleted ||
+                    dashboardData?.todayDeliveries ||
+                    0}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Distance parcourue</span>
-                <span className="font-medium">{realtimeStats?.todayDistance || 0} km</span>
+                <span className="text-sm text-muted-foreground">
+                  Distance parcourue
+                </span>
+                <span className="font-medium">
+                  {realtimeStats?.todayDistance || 0} km
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Temps de conduite</span>
-                <span className="font-medium">{realtimeStats?.todayDrivingTime || '0h00'}</span>
+                <span className="text-sm text-muted-foreground">
+                  Temps de conduite
+                </span>
+                <span className="font-medium">
+                  {realtimeStats?.todayDrivingTime || "0h00"}
+                </span>
               </div>
-              <Progress value={realtimeStats?.todayCompletionRate || 0} className="mt-2" />
+              <Progress
+                value={realtimeStats?.todayCompletionRate || 0}
+                className="mt-2"
+              />
               <p className="text-xs text-muted-foreground text-center">
                 {realtimeStats?.todayCompletionRate || 0}% d'objectif atteint
               </p>
@@ -665,7 +725,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => router.push('/deliverer/announcements')}
+                onClick={() => router.push("/deliverer/announcements")}
               >
                 <MapPin className="h-4 w-4 mr-2" />
                 Nouvelles annonces
@@ -679,7 +739,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => router.push('/deliverer/my-routes')}
+                onClick={() => router.push("/deliverer/my-routes")}
               >
                 <Map className="h-4 w-4 mr-2" />
                 Planifier trajets
@@ -688,7 +748,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => router.push('/deliverer/stats')}
+                onClick={() => router.push("/deliverer/stats")}
               >
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Mes statistiques
@@ -697,7 +757,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => router.push('/deliverer/notifications')}
+                onClick={() => router.push("/deliverer/notifications")}
               >
                 <Bell className="h-4 w-4 mr-2" />
                 Notifications
@@ -727,7 +787,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
                   size="sm"
                   variant="default"
                   className="w-full"
-                  onClick={() => router.push('/deliverer/documents')}
+                  onClick={() => router.push("/deliverer/documents")}
                 >
                   Compléter
                 </Button>

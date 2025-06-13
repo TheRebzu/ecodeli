@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export * from './azure-keyvault.schema';
-export * from './cloud-services.schema';
-export * from './datadog.schema';
-export * from './firebase.schema';
-export * from './onesignal.schema';
-export * from './stripe-webhook.schema';
+export * from "./azure-keyvault.schema";
+export * from "./cloud-services.schema";
+export * from "./datadog.schema";
+export * from "./firebase.schema";
+export * from "./onesignal.schema";
+export * from "./stripe-webhook.schema";

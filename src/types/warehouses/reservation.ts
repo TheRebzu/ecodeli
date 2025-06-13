@@ -15,13 +15,13 @@ export interface BoxReservation {
   updatedAt: Date;
 }
 
-export type ReservationStatus = 
-  | 'PENDING'
-  | 'CONFIRMED'
-  | 'ACTIVE'
-  | 'EXPIRED'
-  | 'CANCELLED'
-  | 'COMPLETED';
+export type ReservationStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "ACTIVE"
+  | "EXPIRED"
+  | "CANCELLED"
+  | "COMPLETED";
 
 export interface ReservationPrice {
   basePrice: number;
@@ -30,7 +30,7 @@ export interface ReservationPrice {
   discount?: number;
   total: number;
   currency: string;
-  billingPeriod: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  billingPeriod: "DAILY" | "WEEKLY" | "MONTHLY";
 }
 
 export interface AdditionalService {
@@ -40,16 +40,16 @@ export interface AdditionalService {
   required: boolean;
 }
 
-export type ServiceType = 
-  | 'INSURANCE'
-  | 'CLIMATE_CONTROL'
-  | 'SECURITY_MONITORING'
-  | 'PICKUP_DELIVERY'
-  | 'INVENTORY_MANAGEMENT'
-  | 'PHOTOGRAPHY';
+export type ServiceType =
+  | "INSURANCE"
+  | "CLIMATE_CONTROL"
+  | "SECURITY_MONITORING"
+  | "PICKUP_DELIVERY"
+  | "INVENTORY_MANAGEMENT"
+  | "PHOTOGRAPHY";
 
 export interface AccessCode {
-  type: 'ENTRY' | 'BOX' | 'ZONE';
+  type: "ENTRY" | "BOX" | "ZONE";
   code: string;
   validFrom: Date;
   validUntil: Date;
@@ -81,6 +81,6 @@ export interface ExtensionPolicy {
 
 export interface AccessRule {
   description: string;
-  type: 'RESTRICTION' | 'REQUIREMENT' | 'PERMISSION';
+  type: "RESTRICTION" | "REQUIREMENT" | "PERMISSION";
   value: string;
 }

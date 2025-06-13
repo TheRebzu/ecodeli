@@ -1,6 +1,6 @@
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
-import { financialTaskService } from '@/server/services/shared/financial-task.service';
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { z } from "zod";
+import { financialTaskService } from "@/server/services/shared/financial-task.service";
 import {
   createFinancialTaskSchema,
   updateFinancialTaskSchema,
@@ -8,7 +8,7 @@ import {
   deleteFinancialTaskSchema,
   financialTaskListOptionsSchema,
   financialTaskFiltersSchema,
-} from '@/schemas/payment/financial-task.schema';
+} from "@/schemas/payment/financial-task.schema";
 
 export const financialTaskRouter = router({
   // Récupérer toutes les tâches financières de l'utilisateur (avec filtres et pagination)
@@ -17,18 +17,24 @@ export const financialTaskRouter = router({
       financialTaskListOptionsSchema.optional().default({
         page: 1,
         limit: 10,
-        sortField: 'createdAt',
-        sortDirection: 'desc',
-      })
+        sortField: "createdAt",
+        sortDirection: "desc",
+      }),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const { page, limit, sortField, sortDirection, filters } = input;
 
-      return await financialTaskService.getFinancialTasks(userId, page, limit, filters, {
-        field: sortField,
-        direction: sortDirection,
-      });
+      return await financialTaskService.getFinancialTasks(
+        userId,
+        page,
+        limit,
+        filters,
+        {
+          field: sortField,
+          direction: sortDirection,
+        },
+      );
     }),
 
   // Récupérer une tâche financière par ID
@@ -63,7 +69,7 @@ export const financialTaskRouter = router({
       return await financialTaskService.toggleFinancialTaskStatus(
         input.id,
         input.completed,
-        userId
+        userId,
       );
     }),
 

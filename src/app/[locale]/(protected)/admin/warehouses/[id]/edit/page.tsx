@@ -1,8 +1,8 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { WarehouseForm } from '@/components/admin/warehouses/warehouse-form';
-import { createCaller } from '@/trpc/server';
-import { notFound } from 'next/navigation';
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { WarehouseForm } from "@/components/admin/warehouses/warehouse-form";
+import { createCaller } from "@/trpc/server";
+import { notFound } from "next/navigation";
 
 export async function generateMetadata({
   params,
@@ -12,7 +12,7 @@ export async function generateMetadata({
   const { locale, id } = await params;
   const t = await getTranslations({
     locale,
-    namespace: 'admin.warehouses.form.meta',
+    namespace: "admin.warehouses.form.meta",
   });
 
   try {
@@ -20,20 +20,24 @@ export async function generateMetadata({
     const warehouse = await caller.adminWarehouse.getWarehouseById({ id });
 
     return {
-      title: `${t('editTitle')} - ${warehouse.warehouse.name}`,
-      description: t('editDescription'),
+      title: `${t("editTitle")} - ${warehouse.warehouse.name}`,
+      description: t("editDescription"),
     };
   } catch {
     return {
-      title: t('editTitle'),
-      description: t('editDescription'),
+      title: t("editTitle"),
+      description: t("editDescription"),
     };
   }
 }
 
-export default async function EditWarehousePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditWarehousePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
-  
+
   try {
     const caller = await createCaller();
     const warehouseData = await caller.adminWarehouse.getWarehouseById({ id });
@@ -48,7 +52,7 @@ export default async function EditWarehousePage({ params }: { params: Promise<{ 
             location: warehouse.location,
             address: warehouse.address,
             capacity: warehouse.capacity,
-            description: warehouse.description || '',
+            description: warehouse.description || "",
             isActive: warehouse.isActive,
           }}
           isEditing={true}

@@ -1,24 +1,36 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, AlertCircle, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
-import { useAnnouncement } from '@/hooks/delivery/use-announcement';
-import AnnouncementForm from '@/components/ui/form';
-import { UpdateAnnouncementInput } from '@/schemas/delivery/announcement.schema';
-import { toast } from 'sonner';
-import { Separator } from '@/components/ui/separator';
-import { Link } from '@/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useRoleProtection } from '@/hooks/auth/use-role-protection';
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useParams, useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowLeft,
+  AlertCircle,
+  ArrowRight,
+  CheckCircle,
+  Loader2,
+} from "lucide-react";
+import { useAnnouncement } from "@/hooks/delivery/use-announcement";
+import AnnouncementForm from "@/components/ui/form";
+import { UpdateAnnouncementInput } from "@/schemas/delivery/announcement.schema";
+import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
+import { Link } from "@/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 
 export default function EditAnnouncementPage() {
-  useRoleProtection(['CLIENT']);
-  const t = useTranslations('announcements');
+  useRoleProtection(["CLIENT"]);
+  const t = useTranslations("announcements");
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,8 +66,8 @@ export default function EditAnnouncementPage() {
         setSuccess(true);
 
         // Notification de succès
-        toast.success(t('updateSuccess'), {
-          description: t('announcementUpdated'),
+        toast.success(t("updateSuccess"), {
+          description: t("announcementUpdated"),
         });
       }
     } catch (err) {
@@ -63,7 +75,7 @@ export default function EditAnnouncementPage() {
       setError(message);
 
       // Notification d'erreur
-      toast.error(t('updateError'), {
+      toast.error(t("updateError"), {
         description: message,
       });
     } finally {
@@ -114,15 +126,17 @@ export default function EditAnnouncementPage() {
       <div className="container py-6">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('error')}</AlertTitle>
-          <AlertDescription>{fetchError || t('announcementNotFound')}</AlertDescription>
+          <AlertTitle>{t("error")}</AlertTitle>
+          <AlertDescription>
+            {fetchError || t("announcementNotFound")}
+          </AlertDescription>
         </Alert>
 
         <div className="mt-6">
           <Button asChild>
             <Link href="/client/announcements">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('backToList')}
+              {t("backToList")}
             </Link>
           </Button>
         </div>
@@ -131,22 +145,24 @@ export default function EditAnnouncementPage() {
   }
 
   // Vérifier que l'annonce peut être modifiée (statuts valides: DRAFT, PUBLISHED, PENDING)
-  const canEdit = ['DRAFT', 'PUBLISHED', 'PENDING'].includes(currentAnnouncement.status);
+  const canEdit = ["DRAFT", "PUBLISHED", "PENDING"].includes(
+    currentAnnouncement.status,
+  );
 
   if (!canEdit) {
     return (
       <div className="container py-6">
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('cannotEditTitle')}</AlertTitle>
-          <AlertDescription>{t('cannotEditDescription')}</AlertDescription>
+          <AlertTitle>{t("cannotEditTitle")}</AlertTitle>
+          <AlertDescription>{t("cannotEditDescription")}</AlertDescription>
         </Alert>
 
         <div className="mt-6">
           <Button asChild>
             <Link href={`/client/announcements/${params.id}`}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('backToDetails')}
+              {t("backToDetails")}
             </Link>
           </Button>
         </div>
@@ -163,21 +179,23 @@ export default function EditAnnouncementPage() {
             <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-green-100 mb-4">
               <CheckCircle className="h-6 w-6 text-green-600" />
             </div>
-            <CardTitle className="text-2xl">{t('updateSuccess')}</CardTitle>
-            <CardDescription>{t('announcementUpdatedDescription')}</CardDescription>
+            <CardTitle className="text-2xl">{t("updateSuccess")}</CardTitle>
+            <CardDescription>
+              {t("announcementUpdatedDescription")}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Button variant="outline" className="flex-1" asChild>
                 <Link href="/client/announcements">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t('backToList')}
+                  {t("backToList")}
                 </Link>
               </Button>
 
               <Button className="flex-1" asChild>
                 <Link href={`/client/announcements/${params.id}`}>
-                  {t('viewAnnouncement')}
+                  {t("viewAnnouncement")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -192,13 +210,17 @@ export default function EditAnnouncementPage() {
     <div className="container py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('editAnnouncement')}</h1>
-          <p className="text-muted-foreground mt-1">{t('editAnnouncementDescription')}</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("editAnnouncement")}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {t("editAnnouncementDescription")}
+          </p>
         </div>
         <Button variant="outline" asChild>
           <Link href={`/client/announcements/${params.id}`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('back')}
+            {t("back")}
           </Link>
         </Button>
       </div>
@@ -208,7 +230,7 @@ export default function EditAnnouncementPage() {
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('error')}</AlertTitle>
+          <AlertTitle>{t("error")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -216,8 +238,10 @@ export default function EditAnnouncementPage() {
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>{t('announcementDetails')}</CardTitle>
-            <CardDescription>{t('editAnnouncementInstructions')}</CardDescription>
+            <CardTitle>{t("announcementDetails")}</CardTitle>
+            <CardDescription>
+              {t("editAnnouncementInstructions")}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <AnnouncementForm

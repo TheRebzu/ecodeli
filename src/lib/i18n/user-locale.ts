@@ -1,7 +1,7 @@
 export function getUserPreferredLocale(userId?: string): string {
-  return 'fr';
+  return "fr";
 }
 
 export function setUserPreferredLocale(userId: string, locale: string): void {
-  console.log('Setting locale:', locale, 'for user:', userId);
+  console.log("Setting locale:", locale, "for user:", userId);
 }

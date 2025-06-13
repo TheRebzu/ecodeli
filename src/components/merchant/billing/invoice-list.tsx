@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   FileText,
   Download,
@@ -13,12 +13,18 @@ import {
   DollarSign,
   TrendingUp,
   AlertTriangle,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -26,17 +32,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+} from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 // import { DatePickerWithRange } from '@/components/ui/date-range-picker';
-import { api } from '@/trpc/react';
+import { api } from "@/trpc/react";
 
 interface MerchantInvoiceListProps {
   className?: string;
@@ -47,32 +53,33 @@ interface MerchantInvoiceListProps {
  * Réutilise les services invoice et billing existants
  */
 export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
-  const t = useTranslations('merchant.invoices');
+  const t = useTranslations("merchant.invoices");
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<
-    'ALL' | 'DRAFT' | 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED'
-  >('ALL');
+    "ALL" | "DRAFT" | "PENDING" | "PAID" | "CANCELLED" | "REFUNDED"
+  >("ALL");
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
-  const [invoiceTypeFilter, setInvoiceTypeFilter] = useState<'MERCHANT_FEE' | 'SERVICE' | 'OTHER'>(
-    'MERCHANT_FEE'
-  );
+  const [invoiceTypeFilter, setInvoiceTypeFilter] = useState<
+    "MERCHANT_FEE" | "SERVICE" | "OTHER"
+  >("MERCHANT_FEE");
 
   // Récupérer les factures du merchant
   const { data: invoicesData, isLoading: invoicesLoading } =
     api.invoice.getMerchantInvoices.useQuery({
       page: currentPage,
       limit: 10,
-      status: statusFilter === 'ALL' ? undefined : statusFilter,
+      status: statusFilter === "ALL" ? undefined : statusFilter,
       startDate: dateRange.from,
       endDate: dateRange.to,
       invoiceType: invoiceTypeFilter,
-      sortOrder: 'desc',
+      sortOrder: "desc",
     });
 
   // Récupérer les statistiques de facturation
-  const { data: stats, isLoading: statsLoading } = api.invoice.getMerchantBillingStats.useQuery({
-    period: 'MONTH',
-  });
+  const { data: stats, isLoading: statsLoading } =
+    api.invoice.getMerchantBillingStats.useQuery({
+      period: "MONTH",
+    });
 
   const invoices = invoicesData?.invoices || [];
   const pagination = invoicesData?.pagination;
@@ -80,29 +87,50 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
 
   // Formatage des montants
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   // Formatage des dates
   const formatDate = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return format(dateObj, 'dd/MM/yyyy', { locale: fr });
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return format(dateObj, "dd/MM/yyyy", { locale: fr });
   };
 
   // Badge de statut de facture
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      DRAFT: { variant: 'secondary' as const, label: 'Brouillon', color: 'text-gray-600' },
-      PENDING: { variant: 'default' as const, label: 'En attente', color: 'text-orange-600' },
-      PAID: { variant: 'default' as const, label: 'Payée', color: 'text-green-600' },
-      CANCELLED: { variant: 'destructive' as const, label: 'Annulée', color: 'text-red-600' },
-      REFUNDED: { variant: 'outline' as const, label: 'Remboursée', color: 'text-blue-600' },
+      DRAFT: {
+        variant: "secondary" as const,
+        label: "Brouillon",
+        color: "text-gray-600",
+      },
+      PENDING: {
+        variant: "default" as const,
+        label: "En attente",
+        color: "text-orange-600",
+      },
+      PAID: {
+        variant: "default" as const,
+        label: "Payée",
+        color: "text-green-600",
+      },
+      CANCELLED: {
+        variant: "destructive" as const,
+        label: "Annulée",
+        color: "text-red-600",
+      },
+      REFUNDED: {
+        variant: "outline" as const,
+        label: "Remboursée",
+        color: "text-blue-600",
+      },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT;
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT;
     return (
       <Badge variant={config.variant} className={config.color}>
         {config.label}
@@ -112,7 +140,7 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
 
   // Actions sur les factures
   const handleViewInvoice = (invoiceId: string) => {
-    window.open(`/merchant/invoices/${invoiceId}`, '_blank');
+    window.open(`/merchant/invoices/${invoiceId}`, "_blank");
   };
 
   const handleDownloadInvoice = async (invoiceId: string) => {
@@ -121,7 +149,7 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `facture-${invoiceId}.pdf`;
         document.body.appendChild(a);
@@ -130,7 +158,7 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Erreur téléchargement facture:', error);
+      console.error("Erreur téléchargement facture:", error);
     }
   };
 
@@ -140,12 +168,18 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Factures ce mois</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Factures ce mois
+            </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? <Skeleton className="h-8 w-12" /> : stats?.totalInvoices || 0}
+              {loading ? (
+                <Skeleton className="h-8 w-12" />
+              ) : (
+                stats?.totalInvoices || 0
+              )}
             </div>
             <p className="text-xs text-muted-foreground">Total des factures</p>
           </CardContent>
@@ -170,12 +204,18 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Factures payées</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Factures payées
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? <Skeleton className="h-8 w-12" /> : stats?.paidInvoices || 0}
+              {loading ? (
+                <Skeleton className="h-8 w-12" />
+              ) : (
+                stats?.paidInvoices || 0
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
               {loading ? (
@@ -194,9 +234,15 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? <Skeleton className="h-8 w-12" /> : stats?.pendingInvoices || 0}
+              {loading ? (
+                <Skeleton className="h-8 w-12" />
+              ) : (
+                stats?.pendingInvoices || 0
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">Paiements à recevoir</p>
+            <p className="text-xs text-muted-foreground">
+              Paiements à recevoir
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -207,8 +253,10 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Factures en attente</AlertTitle>
           <AlertDescription>
-            Vous avez {stats.pendingInvoices} facture(s) en attente de paiement pour un montant
-            total de {formatCurrency((stats.totalAmount || 0) - (stats.paidAmount || 0))}.
+            Vous avez {stats.pendingInvoices} facture(s) en attente de paiement
+            pour un montant total de{" "}
+            {formatCurrency((stats.totalAmount || 0) - (stats.paidAmount || 0))}
+            .
           </AlertDescription>
         </Alert>
       )}
@@ -224,7 +272,10 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Filtre par statut */}
-            <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+            <Select
+              value={statusFilter}
+              onValueChange={(value: any) => setStatusFilter(value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Statut" />
               </SelectTrigger>
@@ -257,9 +308,13 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
             <div className="flex gap-2">
               <input
                 type="date"
-                value={dateRange.from ? dateRange.from.toISOString().split('T')[0] : ''}
-                onChange={e =>
-                  setDateRange(prev => ({
+                value={
+                  dateRange.from
+                    ? dateRange.from.toISOString().split("T")[0]
+                    : ""
+                }
+                onChange={(e) =>
+                  setDateRange((prev) => ({
                     ...prev,
                     from: e.target.value ? new Date(e.target.value) : undefined,
                   }))
@@ -268,9 +323,11 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
               />
               <input
                 type="date"
-                value={dateRange.to ? dateRange.to.toISOString().split('T')[0] : ''}
-                onChange={e =>
-                  setDateRange(prev => ({
+                value={
+                  dateRange.to ? dateRange.to.toISOString().split("T")[0] : ""
+                }
+                onChange={(e) =>
+                  setDateRange((prev) => ({
                     ...prev,
                     to: e.target.value ? new Date(e.target.value) : undefined,
                   }))
@@ -283,8 +340,8 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
             <Button
               variant="outline"
               onClick={() => {
-                setStatusFilter('ALL');
-                setInvoiceTypeFilter('MERCHANT_FEE');
+                setStatusFilter("ALL");
+                setInvoiceTypeFilter("MERCHANT_FEE");
                 setDateRange({});
                 setCurrentPage(1);
               }}
@@ -299,7 +356,9 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
       <Card>
         <CardHeader>
           <CardTitle>Mes factures</CardTitle>
-          <CardDescription>Historique de vos factures et paiements</CardDescription>
+          <CardDescription>
+            Historique de vos factures et paiements
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -329,22 +388,26 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
                 : invoices.map((invoice: any) => (
                     <TableRow key={invoice.id}>
                       <TableCell>
-                        <div className="font-medium">{invoice.invoiceNumber}</div>
+                        <div className="font-medium">
+                          {invoice.invoiceNumber}
+                        </div>
                       </TableCell>
                       <TableCell>{formatDate(invoice.issuedDate)}</TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {invoice.invoiceType === 'MERCHANT_FEE'
-                            ? 'Frais merchant'
-                            : invoice.invoiceType === 'SERVICE'
-                              ? 'Service'
-                              : 'Autre'}
+                          {invoice.invoiceType === "MERCHANT_FEE"
+                            ? "Frais merchant"
+                            : invoice.invoiceType === "SERVICE"
+                              ? "Service"
+                              : "Autre"}
                         </Badge>
                       </TableCell>
                       <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                       <TableCell>
                         <div className="font-medium">
-                          {formatCurrency(parseFloat(invoice.totalAmount.toString()))}
+                          {formatCurrency(
+                            parseFloat(invoice.totalAmount.toString()),
+                          )}
                         </div>
                         {invoice.payments && invoice.payments.length > 0 && (
                           <div className="text-sm text-muted-foreground">
@@ -352,7 +415,9 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>{invoice.dueDate ? formatDate(invoice.dueDate) : '-'}</TableCell>
+                      <TableCell>
+                        {invoice.dueDate ? formatDate(invoice.dueDate) : "-"}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -381,10 +446,15 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
 
               {!loading && invoices.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>Aucune facture trouvée</p>
-                    <p className="text-sm">Vos factures apparaîtront ici une fois générées</p>
+                    <p className="text-sm">
+                      Vos factures apparaîtront ici une fois générées
+                    </p>
                   </TableCell>
                 </TableRow>
               )}
@@ -397,8 +467,9 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
       {pagination && pagination.pages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Affichage de {(currentPage - 1) * 10 + 1} à{' '}
-            {Math.min(currentPage * 10, pagination.total)} sur {pagination.total} factures
+            Affichage de {(currentPage - 1) * 10 + 1} à{" "}
+            {Math.min(currentPage * 10, pagination.total)} sur{" "}
+            {pagination.total} factures
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -416,7 +487,7 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
                 return (
                   <Button
                     key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
+                    variant={currentPage === page ? "default" : "outline"}
                     size="sm"
                     onClick={() => setCurrentPage(page)}
                   >

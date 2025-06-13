@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useRouter, useParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { ButtonWithLoading } from '@/app/[locale]/(public)/loading';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter, useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -16,7 +16,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -25,9 +25,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   Star,
@@ -37,23 +37,32 @@ import {
   Package,
   Truck,
   Clock,
-} from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { cn } from '@/lib/utils/common';
-import { useDeliveryRating } from '@/hooks/features/use-delivery-tracking';
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from "@/lib/utils/common";
+import { useDeliveryRating } from "@/hooks/features/use-delivery-tracking";
 
 // Schéma de validation
 const ratingSchema = z.object({
-  rating: z.number().min(1, { message: 'Veuillez attribuer au moins une étoile' }).max(5),
-  deliverySpeed: z.number().min(1, { message: 'Veuillez évaluer la rapidité de livraison' }).max(5),
+  rating: z
+    .number()
+    .min(1, { message: "Veuillez attribuer au moins une étoile" })
+    .max(5),
+  deliverySpeed: z
+    .number()
+    .min(1, { message: "Veuillez évaluer la rapidité de livraison" })
+    .max(5),
   delivererProfessionalism: z
     .number()
-    .min(1, { message: 'Veuillez évaluer le professionnalisme du livreur' })
+    .min(1, { message: "Veuillez évaluer le professionnalisme du livreur" })
     .max(5),
-  packageCondition: z.number().min(1, { message: "Veuillez évaluer l'état du colis" }).max(5),
+  packageCondition: z
+    .number()
+    .min(1, { message: "Veuillez évaluer l'état du colis" })
+    .max(5),
   comment: z
     .string()
-    .max(500, { message: 'Le commentaire ne peut pas dépasser 500 caractères' })
+    .max(500, { message: "Le commentaire ne peut pas dépasser 500 caractères" })
     .optional(),
   anonymous: z.boolean().default(false),
 });
@@ -61,7 +70,7 @@ const ratingSchema = z.object({
 type RatingFormValues = z.infer<typeof ratingSchema>;
 
 export default function DeliveryRatingPage() {
-  const t = useTranslations('client.deliveryRating');
+  const t = useTranslations("client.deliveryRating");
   const router = useRouter();
   const params = useParams();
 
@@ -80,7 +89,7 @@ export default function DeliveryRatingPage() {
       deliverySpeed: 0,
       delivererProfessionalism: 0,
       packageCondition: 0,
-      comment: '',
+      comment: "",
       anonymous: false,
     },
   });
@@ -109,27 +118,28 @@ export default function DeliveryRatingPage() {
   const StarRating = ({
     value,
     onChange,
-    size = 'default',
+    size = "default",
     disabled = false,
   }: {
     value: number;
     onChange: (value: number) => void;
-    size?: 'default' | 'sm' | 'lg';
+    size?: "default" | "sm" | "lg";
     disabled?: boolean;
   }) => {
     const [hoverValue, setHoverValue] = useState(0);
 
-    const starSize = size === 'sm' ? 'h-5 w-5' : size === 'lg' ? 'h-8 w-8' : 'h-6 w-6';
+    const starSize =
+      size === "sm" ? "h-5 w-5" : size === "lg" ? "h-8 w-8" : "h-6 w-6";
 
     return (
       <div className="flex">
-        {[1, 2, 3, 4, 5].map(star => (
+        {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
             type="button"
             className={cn(
-              'focus:outline-none transition-all',
-              disabled ? 'cursor-default' : 'cursor-pointer'
+              "focus:outline-none transition-all",
+              disabled ? "cursor-default" : "cursor-pointer",
             )}
             onClick={() => !disabled && onChange(star)}
             onMouseEnter={() => !disabled && setHoverValue(star)}
@@ -139,8 +149,10 @@ export default function DeliveryRatingPage() {
             <Star
               className={cn(
                 starSize,
-                'transition-all',
-                (hoverValue || value) >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                "transition-all",
+                (hoverValue || value) >= star
+                  ? "text-yellow-400 fill-yellow-400"
+                  : "text-gray-300",
               )}
             />
           </button>
@@ -153,9 +165,14 @@ export default function DeliveryRatingPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto py-6 max-w-xl">
-        <Button variant="ghost" size="sm" className="mb-6" onClick={handleCancel}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-6"
+          onClick={handleCancel}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t('backToDetails')}
+          {t("backToDetails")}
         </Button>
         <Skeleton className="h-[600px] w-full rounded-lg" />
       </div>
@@ -166,19 +183,26 @@ export default function DeliveryRatingPage() {
   if (error || !deliveryInfo) {
     return (
       <div className="container mx-auto py-6 max-w-xl">
-        <Button variant="ghost" size="sm" className="mb-6" onClick={handleCancel}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-6"
+          onClick={handleCancel}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t('backToDetails')}
+          {t("backToDetails")}
         </Button>
 
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('errorTitle')}</AlertTitle>
-          <AlertDescription>{error?.message || t('deliveryNotFound')}</AlertDescription>
+          <AlertTitle>{t("errorTitle")}</AlertTitle>
+          <AlertDescription>
+            {error?.message || t("deliveryNotFound")}
+          </AlertDescription>
         </Alert>
 
         <div className="flex justify-center mt-6">
-          <Button onClick={handleCancel}>{t('backToDetails')}</Button>
+          <Button onClick={handleCancel}>{t("backToDetails")}</Button>
         </div>
       </div>
     );
@@ -188,30 +212,35 @@ export default function DeliveryRatingPage() {
   if (!canRate) {
     return (
       <div className="container mx-auto py-6 max-w-xl">
-        <Button variant="ghost" size="sm" className="mb-6" onClick={handleCancel}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-6"
+          onClick={handleCancel}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t('backToDetails')}
+          {t("backToDetails")}
         </Button>
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('cannotRateTitle')}</CardTitle>
-            <CardDescription>{t('cannotRateDescription')}</CardDescription>
+            <CardTitle>{t("cannotRateTitle")}</CardTitle>
+            <CardDescription>{t("cannotRateDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {deliveryInfo.alreadyRated
-                  ? t('alreadyRated')
+                  ? t("alreadyRated")
                   : !deliveryInfo.isConfirmed
-                    ? t('notConfirmedYet')
-                    : t('contactSupport')}
+                    ? t("notConfirmedYet")
+                    : t("contactSupport")}
               </AlertDescription>
             </Alert>
 
             <div className="mt-6 flex justify-end">
-              <Button onClick={handleCancel}>{t('backToDetails')}</Button>
+              <Button onClick={handleCancel}>{t("backToDetails")}</Button>
             </div>
           </CardContent>
         </Card>
@@ -228,14 +257,21 @@ export default function DeliveryRatingPage() {
             <div className="mx-auto mt-4 bg-green-100 p-3 rounded-full">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <CardTitle className="text-xl mt-3">{t('thankYouTitle')}</CardTitle>
-            <CardDescription>{t('thankYouDescription')}</CardDescription>
+            <CardTitle className="text-xl mt-3">{t("thankYouTitle")}</CardTitle>
+            <CardDescription>{t("thankYouDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex justify-center my-2">
-              <StarRating value={form.getValues('rating')} onChange={() => {}} size="lg" disabled />
+              <StarRating
+                value={form.getValues("rating")}
+                onChange={() => {}}
+                size="lg"
+                disabled
+              />
             </div>
-            <p className="text-muted-foreground text-sm mt-2">{t('redirecting')}</p>
+            <p className="text-muted-foreground text-sm mt-2">
+              {t("redirecting")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -247,15 +283,17 @@ export default function DeliveryRatingPage() {
     <div className="container mx-auto py-6 max-w-xl">
       <Button variant="ghost" size="sm" className="mb-6" onClick={handleCancel}>
         <ArrowLeft className="mr-2 h-4 w-4" />
-        {t('backToDetails')}
+        {t("backToDetails")}
       </Button>
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('pageTitle')}</CardTitle>
+          <CardTitle>{t("pageTitle")}</CardTitle>
           <CardDescription>
-            {t('pageDescription', {
-              date: new Date(deliveryInfo.deliveryDate).toLocaleDateString('fr-FR'),
+            {t("pageDescription", {
+              date: new Date(deliveryInfo.deliveryDate).toLocaleDateString(
+                "fr-FR",
+              ),
             })}
           </CardDescription>
         </CardHeader>
@@ -269,7 +307,7 @@ export default function DeliveryRatingPage() {
                 render={({ field }) => (
                   <FormItem className="space-y-1">
                     <FormLabel className="text-center block text-lg">
-                      {t('overallRating')}
+                      {t("overallRating")}
                     </FormLabel>
                     <div className="flex justify-center pt-2 pb-4">
                       <StarRating
@@ -286,7 +324,7 @@ export default function DeliveryRatingPage() {
 
               <Separator />
 
-              <h3 className="font-medium">{t('detailedRatings')}</h3>
+              <h3 className="font-medium">{t("detailedRatings")}</h3>
 
               <div className="grid gap-6 md:grid-cols-1">
                 {/* Vitesse de livraison */}
@@ -298,7 +336,7 @@ export default function DeliveryRatingPage() {
                       <div className="flex items-center justify-between">
                         <FormLabel className="flex items-center">
                           <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                          {t('deliverySpeed')}
+                          {t("deliverySpeed")}
                         </FormLabel>
                         <StarRating
                           value={field.value}
@@ -321,7 +359,7 @@ export default function DeliveryRatingPage() {
                       <div className="flex items-center justify-between">
                         <FormLabel className="flex items-center">
                           <Truck className="h-4 w-4 mr-2 text-muted-foreground" />
-                          {t('delivererProfessionalism')}
+                          {t("delivererProfessionalism")}
                         </FormLabel>
                         <StarRating
                           value={field.value}
@@ -344,7 +382,7 @@ export default function DeliveryRatingPage() {
                       <div className="flex items-center justify-between">
                         <FormLabel className="flex items-center">
                           <Package className="h-4 w-4 mr-2 text-muted-foreground" />
-                          {t('packageCondition')}
+                          {t("packageCondition")}
                         </FormLabel>
                         <StarRating
                           value={field.value}
@@ -365,16 +403,16 @@ export default function DeliveryRatingPage() {
                 name="comment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('commentLabel')}</FormLabel>
+                    <FormLabel>{t("commentLabel")}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder={t('commentPlaceholder')}
+                        placeholder={t("commentPlaceholder")}
                         className="resize-none min-h-[100px]"
                         {...field}
                         disabled={isSaving}
                       />
                     </FormControl>
-                    <FormDescription>{t('commentHelp')}</FormDescription>
+                    <FormDescription>{t("commentHelp")}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -396,8 +434,10 @@ export default function DeliveryRatingPage() {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>{t('anonymousRating')}</FormLabel>
-                      <FormDescription>{t('anonymousDescription')}</FormDescription>
+                      <FormLabel>{t("anonymousRating")}</FormLabel>
+                      <FormDescription>
+                        {t("anonymousDescription")}
+                      </FormDescription>
                     </div>
                   </FormItem>
                 )}
@@ -407,7 +447,7 @@ export default function DeliveryRatingPage() {
         </CardContent>
         <CardFooter className="flex justify-between border-t pt-6">
           <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-            {t('cancelButton')}
+            {t("cancelButton")}
           </Button>
           <ButtonWithLoading
             onClick={form.handleSubmit(onSubmit)}
@@ -415,7 +455,7 @@ export default function DeliveryRatingPage() {
             disabled={!form.formState.isValid || isSaving}
           >
             <ThumbsUp className="mr-2 h-4 w-4" />
-            {t('submitButton')}
+            {t("submitButton")}
           </ButtonWithLoading>
         </CardFooter>
       </Card>

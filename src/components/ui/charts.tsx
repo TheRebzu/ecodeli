@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { AreaChart as TremorAreaChart } from '@tremor/react';
-import { BarChart as TremorBarChart } from '@tremor/react';
-import { LineChart as TremorLineChart } from '@tremor/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import * as React from "react";
+import { AreaChart as TremorAreaChart } from "@tremor/react";
+import { BarChart as TremorBarChart } from "@tremor/react";
+import { LineChart as TremorLineChart } from "@tremor/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Types communs pour les graphiques
 interface BaseChartProps {
@@ -28,7 +28,7 @@ interface LineChartProps extends BaseChartProps {
 }
 
 interface BarChartProps extends BaseChartProps {
-  layout?: 'vertical' | 'horizontal';
+  layout?: "vertical" | "horizontal";
 }
 
 interface PieChartProps {
@@ -50,21 +50,23 @@ export function LineChart({
   comparisonData,
   categories,
   index,
-  colors = ['#3b82f6'],
-  valueFormatter = value => `${value}`,
+  colors = ["#3b82f6"],
+  valueFormatter = (value) => `${value}`,
   showLegend = true,
   showGridLines = true,
   showXAxis = true,
   showYAxis = true,
   startEndOnly = false,
-  className = '',
+  className = "",
 }: LineChartProps) {
   return (
     <div className={className}>
       {title && (
         <div className="mb-4">
           <h3 className="text-base font-semibold">{title}</h3>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
         </div>
       )}
 
@@ -94,19 +96,21 @@ export function BarChart({
   data,
   categories,
   index,
-  colors = ['#3b82f6'],
-  valueFormatter = value => `${value}`,
+  colors = ["#3b82f6"],
+  valueFormatter = (value) => `${value}`,
   showLegend = true,
   showGridLines = true,
-  layout = 'horizontal',
-  className = '',
+  layout = "horizontal",
+  className = "",
 }: BarChartProps) {
   return (
     <div className={className}>
       {title && (
         <div className="mb-4">
           <h3 className="text-base font-semibold">{title}</h3>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
         </div>
       )}
 
@@ -132,21 +136,23 @@ export function AreaChart({
   data,
   categories,
   index,
-  colors = ['#3b82f6'],
-  valueFormatter = value => `${value}`,
+  colors = ["#3b82f6"],
+  valueFormatter = (value) => `${value}`,
   showLegend = true,
   showGridLines = true,
   showXAxis = true,
   showYAxis = true,
   startEndOnly = false,
-  className = '',
+  className = "",
 }: BaseChartProps) {
   return (
     <div className={className}>
       {title && (
         <div className="mb-4">
           <h3 className="text-base font-semibold">{title}</h3>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
         </div>
       )}
 
@@ -176,8 +182,8 @@ export function PieChart({
   category,
   index,
   colors,
-  valueFormatter = value => `${value}`,
-  className = '',
+  valueFormatter = (value) => `${value}`,
+  className = "",
 }: PieChartProps) {
   // TODO: Implémenter avec recharts ou autre, car @tremor/react n'a pas de PieChart
   return (
@@ -185,11 +191,15 @@ export function PieChart({
       {title && (
         <div className="mb-4">
           <h3 className="text-base font-semibold">{title}</h3>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
         </div>
       )}
       <div className="h-64 flex items-center justify-center text-muted-foreground">
-        <span>PieChart non supporté par @tremor/react. À implémenter avec recharts.</span>
+        <span>
+          PieChart non supporté par @tremor/react. À implémenter avec recharts.
+        </span>
       </div>
     </div>
   );
@@ -209,7 +219,9 @@ export function ChartCard({
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base">{title}</CardTitle>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>

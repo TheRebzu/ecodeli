@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+import { useCallback, useState } from "react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useClientDashboard = () => {
   const { toast } = useToast();
@@ -48,19 +48,25 @@ export const useClientDashboard = () => {
         refetchActiveItems(),
       ]);
       toast({
-        title: 'Succès',
-        description: 'Tableau de bord actualisé',
+        title: "Succès",
+        description: "Tableau de bord actualisé",
       });
     } catch {
       toast({
-        variant: 'destructive',
-        title: 'Erreur',
+        variant: "destructive",
+        title: "Erreur",
         description: "Impossible d'actualiser le tableau de bord",
       });
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetchStats, refetchActivity, refetchFinancial, refetchActiveItems, toast]);
+  }, [
+    refetchStats,
+    refetchActivity,
+    refetchFinancial,
+    refetchActiveItems,
+    toast,
+  ]);
 
   // État global de chargement
   const isLoading =
@@ -71,7 +77,8 @@ export const useClientDashboard = () => {
     isRefreshing;
 
   // Agrégation des erreurs
-  const hasError = !!statsError || !!activityError || !!financialError || !!activeItemsError;
+  const hasError =
+    !!statsError || !!activityError || !!financialError || !!activeItemsError;
 
   return {
     // Données

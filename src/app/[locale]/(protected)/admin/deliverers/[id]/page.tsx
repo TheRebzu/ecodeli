@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
-import { api } from '@/trpc/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from "react";
+import { useParams } from "next/navigation";
+import { api } from "@/trpc/react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +24,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import {
   CheckCircle,
   XCircle,
@@ -35,12 +41,16 @@ import {
   Edit,
   Ban,
   UserCheck,
-} from 'lucide-react';
-import { Link } from '@/navigation';
-import { useToast } from '@/components/ui/use-toast';
+} from "lucide-react";
+import { Link } from "@/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
-type DelivererStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING_VERIFICATION';
-type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+type DelivererStatus =
+  | "ACTIVE"
+  | "INACTIVE"
+  | "SUSPENDED"
+  | "PENDING_VERIFICATION";
+type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export default function DelivererDetailPage() {
   const params = useParams();
@@ -64,22 +74,24 @@ export default function DelivererDetailPage() {
   });
 
   // Mutations pour les actions
-  const updateDelivererStatusMutation = api.admin.deliverers.updateStatus.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Statut mis à jour',
-        description: 'Le statut du livreur a été mis à jour avec succès.',
-      });
-      refetch();
-    },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la mise à jour du statut: ' + error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  const updateDelivererStatusMutation =
+    api.admin.deliverers.updateStatus.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Statut mis à jour",
+          description: "Le statut du livreur a été mis à jour avec succès.",
+        });
+        refetch();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description:
+            "Erreur lors de la mise à jour du statut: " + error.message,
+          variant: "destructive",
+        });
+      },
+    });
 
   // Gestion des états de chargement et d'erreur
   if (isLoading) {
@@ -104,27 +116,33 @@ export default function DelivererDetailPage() {
 
   const getStatusBadge = (status: DelivererStatus) => {
     switch (status) {
-      case 'ACTIVE':
+      case "ACTIVE":
         return (
           <Badge variant="default" className="bg-green-100 text-green-800">
             Actif
           </Badge>
         );
-      case 'INACTIVE':
+      case "INACTIVE":
         return <Badge variant="secondary">Inactif</Badge>;
-      case 'SUSPENDED':
+      case "SUSPENDED":
         return <Badge variant="destructive">Suspendu</Badge>;
-      case 'PENDING_VERIFICATION':
+      case "PENDING_VERIFICATION":
         return <Badge variant="outline">En attente</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const getVerificationBadge = (status: VerificationStatus, isVerified: boolean) => {
+  const getVerificationBadge = (
+    status: VerificationStatus,
+    isVerified: boolean,
+  ) => {
     if (isVerified) {
       return (
-        <Badge variant="default" className="bg-green-100 text-green-800 flex items-center gap-1">
+        <Badge
+          variant="default"
+          className="bg-green-100 text-green-800 flex items-center gap-1"
+        >
           <CheckCircle className="h-3 w-3" />
           Vérifié
         </Badge>
@@ -132,14 +150,14 @@ export default function DelivererDetailPage() {
     }
 
     switch (status) {
-      case 'PENDING':
+      case "PENDING":
         return (
           <Badge variant="outline" className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             En attente
           </Badge>
         );
-      case 'REJECTED':
+      case "REJECTED":
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <XCircle className="h-3 w-3" />
@@ -152,35 +170,37 @@ export default function DelivererDetailPage() {
   };
 
   const formatDate = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return new Intl.DateTimeFormat("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     }).format(dateObj);
   };
 
   const formatEarnings = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   const getCompletionRate = () => {
     if (deliverer.totalDeliveries === 0) return 0;
-    return Math.round((deliverer.completedDeliveries / deliverer.totalDeliveries) * 100);
+    return Math.round(
+      (deliverer.completedDeliveries / deliverer.totalDeliveries) * 100,
+    );
   };
 
   // Fonctions pour gérer les actions
   const handleActivateDeliverer = () => {
     setDialogAction({
-      title: 'Activer le livreur',
-      description: 'Êtes-vous sûr de vouloir activer ce livreur ?',
+      title: "Activer le livreur",
+      description: "Êtes-vous sûr de vouloir activer ce livreur ?",
       action: () => {
         updateDelivererStatusMutation.mutate({
           userId: delivererId,
-          status: 'ACTIVE',
+          status: "ACTIVE",
         });
         setIsDialogOpen(false);
       },
@@ -190,13 +210,13 @@ export default function DelivererDetailPage() {
 
   const handleSuspendDeliverer = () => {
     setDialogAction({
-      title: 'Suspendre le livreur',
+      title: "Suspendre le livreur",
       description:
         "Êtes-vous sûr de vouloir suspendre ce livreur ? Il perdra l'accès à la plateforme.",
       action: () => {
         updateDelivererStatusMutation.mutate({
           userId: delivererId,
-          status: 'SUSPENDED',
+          status: "SUSPENDED",
         });
         setIsDialogOpen(false);
       },
@@ -222,7 +242,10 @@ export default function DelivererDetailPage() {
             <p className="text-muted-foreground">{deliverer.email}</p>
             <div className="flex items-center gap-2 mt-2">
               {getStatusBadge(deliverer.status)}
-              {getVerificationBadge(deliverer.verificationStatus, deliverer.isVerified)}
+              {getVerificationBadge(
+                deliverer.verificationStatus,
+                deliverer.isVerified,
+              )}
             </div>
           </div>
         </div>
@@ -234,7 +257,7 @@ export default function DelivererDetailPage() {
               Modifier
             </Link>
           </Button>
-          {deliverer.status === 'ACTIVE' ? (
+          {deliverer.status === "ACTIVE" ? (
             <Button
               variant="destructive"
               onClick={handleSuspendDeliverer}
@@ -262,13 +285,18 @@ export default function DelivererDetailPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Livraisons totales</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Livraisons totales
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{deliverer.totalDeliveries}</div>
+            <div className="text-2xl font-bold">
+              {deliverer.totalDeliveries}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {deliverer.completedDeliveries} complétées ({getCompletionRate()}%)
+              {deliverer.completedDeliveries} complétées ({getCompletionRate()}
+              %)
             </p>
           </CardContent>
         </Card>
@@ -285,10 +313,10 @@ export default function DelivererDetailPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               {deliverer.rating >= 4
-                ? 'Excellent service'
+                ? "Excellent service"
                 : deliverer.rating >= 3
-                  ? 'Bon service'
-                  : 'Service à améliorer'}
+                  ? "Bon service"
+                  : "Service à améliorer"}
             </p>
           </CardContent>
         </Card>
@@ -299,7 +327,9 @@ export default function DelivererDetailPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatEarnings(deliverer.earnings)}</div>
+            <div className="text-2xl font-bold">
+              {formatEarnings(deliverer.earnings)}
+            </div>
             <p className="text-xs text-muted-foreground">
               Depuis {formatDate(deliverer.createdAt)}
             </p>
@@ -308,12 +338,18 @@ export default function DelivererDetailPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Zones couvertes</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Zones couvertes
+            </CardTitle>
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{deliverer.preferredZones.length}</div>
-            <p className="text-xs text-muted-foreground">{deliverer.preferredZones.join(', ')}</p>
+            <div className="text-2xl font-bold">
+              {deliverer.preferredZones.length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {deliverer.preferredZones.join(", ")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -323,7 +359,8 @@ export default function DelivererDetailPage() {
         <CardHeader>
           <CardTitle>Informations du livreur</CardTitle>
           <CardDescription>
-            Détails complets du profil de {deliverer.firstName} {deliverer.lastName}
+            Détails complets du profil de {deliverer.firstName}{" "}
+            {deliverer.lastName}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -344,14 +381,18 @@ export default function DelivererDetailPage() {
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">{deliverer.email}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {deliverer.email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Téléphone</p>
-                    <p className="text-sm text-muted-foreground">{deliverer.phone}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {deliverer.phone}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -367,7 +408,9 @@ export default function DelivererDetailPage() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Informations de livraison</h3>
+              <h3 className="text-lg font-semibold">
+                Informations de livraison
+              </h3>
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-medium mb-1">Véhicule</p>
@@ -392,11 +435,17 @@ export default function DelivererDetailPage() {
                 <div>
                   <p className="text-sm font-medium mb-2">Zones préférées</p>
                   <div className="flex flex-wrap gap-1">
-                    {deliverer.preferredZones.map((zone: string, index: number) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {zone}
-                      </Badge>
-                    ))}
+                    {deliverer.preferredZones.map(
+                      (zone: string, index: number) => (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {zone}
+                        </Badge>
+                      ),
+                    )}
                   </div>
                 </div>
 
@@ -408,7 +457,10 @@ export default function DelivererDetailPage() {
                       {deliverer.totalDeliveries})
                     </div>
                     {getCompletionRate() >= 90 ? (
-                      <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
+                      <Badge
+                        variant="default"
+                        className="bg-green-100 text-green-800 text-xs"
+                      >
                         Excellent
                       </Badge>
                     ) : getCompletionRate() >= 70 ? (
@@ -436,7 +488,9 @@ export default function DelivererDetailPage() {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
-              <Link href={`/admin/verification/deliverer/${deliverer.id}`}>Voir les documents</Link>
+              <Link href={`/admin/verification/deliverer/${deliverer.id}`}>
+                Voir les documents
+              </Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href={`/admin/deliverers/${deliverer.id}/deliveries`}>
@@ -444,10 +498,14 @@ export default function DelivererDetailPage() {
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href={`/admin/messaging/deliverer/${deliverer.id}`}>Contacter le livreur</Link>
+              <Link href={`/admin/messaging/deliverer/${deliverer.id}`}>
+                Contacter le livreur
+              </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href={`/admin/reports/deliverer/${deliverer.id}`}>Générer un rapport</Link>
+              <Link href={`/admin/reports/deliverer/${deliverer.id}`}>
+                Générer un rapport
+              </Link>
             </Button>
           </div>
         </CardContent>
@@ -459,11 +517,15 @@ export default function DelivererDetailPage() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{dialogAction.title}</AlertDialogTitle>
-              <AlertDialogDescription>{dialogAction.description}</AlertDialogDescription>
+              <AlertDialogDescription>
+                {dialogAction.description}
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Annuler</AlertDialogCancel>
-              <AlertDialogAction onClick={dialogAction.action}>Confirmer</AlertDialogAction>
+              <AlertDialogAction onClick={dialogAction.action}>
+                Confirmer
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         )}

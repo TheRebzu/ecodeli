@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { formatDate, formatFileSize } from '@/utils/document-utils';
-import { Button } from '@/components/ui/button';
-import { TrashIcon, EyeIcon, DownloadIcon } from 'lucide-react';
-import { getDocumentTypeName } from '@/utils/document-utils';
-import { DocumentStatusBadge } from '@/components/shared/documents/document-status-badge';
-import { DocumentTypeIcon } from '@/components/shared/documents/document-type-icon';
-import { DocumentCardProps } from '@/components/shared/documents/document-types';
+import { formatDate, formatFileSize } from "@/utils/document-utils";
+import { Button } from "@/components/ui/button";
+import { TrashIcon, EyeIcon, DownloadIcon } from "lucide-react";
+import { getDocumentTypeName } from "@/utils/document-utils";
+import { DocumentStatusBadge } from "@/components/shared/documents/document-status-badge";
+import { DocumentTypeIcon } from "@/components/shared/documents/document-type-icon";
+import { DocumentCardProps } from "@/components/shared/documents/document-types";
 
 /**
  * A reusable card component for displaying document information
@@ -31,11 +31,15 @@ export function DocumentCard({
         <div className="flex items-center">
           <DocumentTypeIcon type={document.type} size={4} />
           <div className="ml-2">
-            <div className="font-medium text-sm">{getDocumentTypeName(document.type)}</div>
+            <div className="font-medium text-sm">
+              {getDocumentTypeName(document.type)}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-1">
-          {showStatus && status && <DocumentStatusBadge status={status} variant="compact" />}
+          {showStatus && status && (
+            <DocumentStatusBadge status={status} variant="compact" />
+          )}
           {showActions && (
             <>
               {onView && (
@@ -83,7 +87,9 @@ export function DocumentCard({
                 <span className="inline-block h-1 w-1 bg-muted-foreground rounded-full"></span>
               </>
             )}
-            <span>Ajouté le {formatDate(document.uploadedAt || document.createdAt)}</span>
+            <span>
+              Ajouté le {formatDate(document.uploadedAt || document.createdAt)}
+            </span>
           </div>
         </div>
       </div>

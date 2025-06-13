@@ -4,8 +4,8 @@
  */
 
 // Exports des fichiers locaux
-export * from './use-merchant-announcements';
-export * from './use-merchant-catalog';
-export * from './use-merchant-contract';
-export * from './use-merchant-invoices';
-export * from './use-merchant-stats';
+export * from "./use-merchant-announcements";
+export * from "./use-merchant-catalog";
+export * from "./use-merchant-contract";
+export * from "./use-merchant-invoices";
+export * from "./use-merchant-stats";

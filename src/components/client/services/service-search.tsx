@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useSearchServices } from '@/hooks/services/use-search-services';
-import { ServiceCard } from '@/components/shared/services/service-card';
-import { ServiceSearchForm } from '@/components/client/services/search/service-search-form';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Pagination } from '@/components/ui/pagination';
-import { FilterIcon } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useSearchServices } from "@/hooks/services/use-search-services";
+import { ServiceCard } from "@/components/shared/services/service-card";
+import { ServiceSearchForm } from "@/components/client/services/search/service-search-form";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Pagination } from "@/components/ui/pagination";
+import { FilterIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Interface complète pour le service
 interface Service {
@@ -33,7 +33,7 @@ interface Service {
  * Utilisé sur la page principale des services pour les clients
  */
 export function ServiceList() {
-  const t = useTranslations('services');
+  const t = useTranslations("services");
   const [showFilters, setShowFilters] = useState(false);
   const {
     services,
@@ -56,17 +56,22 @@ export function ServiceList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{t('title')}</h2>
+        <h2 className="text-2xl font-bold">{t("title")}</h2>
         <Button variant="outline" onClick={toggleFilters} className="md:hidden">
           <FilterIcon className="h-4 w-4 mr-2" />
-          {t('search.filters')}
+          {t("search.filters")}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Formulaire de recherche - visible en desktop ou quand le toggle est activé */}
-        <div className={`md:col-span-4 lg:col-span-3 ${showFilters ? 'block' : 'hidden md:block'}`}>
-          <ServiceSearchForm onSearch={values => handleSearch(values)} className="sticky top-24" />
+        <div
+          className={`md:col-span-4 lg:col-span-3 ${showFilters ? "block" : "hidden md:block"}`}
+        >
+          <ServiceSearchForm
+            onSearch={(values) => handleSearch(values)}
+            className="sticky top-24"
+          />
         </div>
 
         {/* Liste des services */}
@@ -115,7 +120,7 @@ export function ServiceList() {
             /* Aucun service trouvé */
             <Card>
               <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">{t('search.noResults')}</p>
+                <p className="text-muted-foreground">{t("search.noResults")}</p>
               </CardContent>
             </Card>
           )}

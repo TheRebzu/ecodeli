@@ -4,4 +4,4 @@
  */
 
 // Exports des sous-dossiers
-export * from './provider';
+export * from "./provider";

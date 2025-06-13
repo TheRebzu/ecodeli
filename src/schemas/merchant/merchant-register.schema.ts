@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { UserRole, registerBaseFields } from '@/schemas/auth/register.schema';
+import { z } from "zod";
+import { UserRole, registerBaseFields } from "@/schemas/auth/register.schema";
 
 /**
  * Schéma d'inscription pour les commerçants
@@ -11,7 +11,7 @@ export const merchantRegisterSchema = z
     // Informations de l'entreprise
     companyName: z.string().min(2, "Le nom de l'entreprise est requis"),
     address: z.string().min(5, "L'adresse est requise"),
-    phone: z.string().min(5, 'Le numéro de téléphone est requis'),
+    phone: z.string().min(5, "Le numéro de téléphone est requis"),
 
     // Informations commerciales
     businessType: z.string().optional(),
@@ -31,9 +31,9 @@ export const merchantRegisterSchema = z
     // Le rôle est forcément MERCHANT pour ce schéma
     role: z.literal(UserRole.MERCHANT),
   })
-  .refine(data => data.password === data.confirmPassword, {
-    message: 'Les mots de passe ne correspondent pas',
-    path: ['confirmPassword'],
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
   });
 
 export type MerchantRegisterSchemaType = z.infer<typeof merchantRegisterSchema>;

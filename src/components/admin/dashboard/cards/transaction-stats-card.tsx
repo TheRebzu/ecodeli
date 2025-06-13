@@ -1,8 +1,14 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { AreaChart, BarChart, PieChart } from '@/components/ui/charts';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AreaChart, BarChart, PieChart } from "@/components/ui/charts";
 import {
   DollarSign,
   CreditCard,
@@ -11,9 +17,14 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Info,
-} from 'lucide-react';
-import { formatCurrency, generateChartColors } from '@/utils/document-utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+} from "lucide-react";
+import { formatCurrency, generateChartColors } from "@/utils/document-utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TransactionData {
   period: string;
@@ -35,7 +46,7 @@ interface TransactionStatsCardProps {
   description?: string;
   data: TransactionData[];
   categoryBreakdown?: CategoryData[];
-  type?: 'revenue' | 'commissions' | 'transactions' | 'combined';
+  type?: "revenue" | "commissions" | "transactions" | "combined";
   showComparison?: boolean;
   comparisonPeriod?: string;
   totalRevenue?: number;
@@ -52,19 +63,20 @@ export function TransactionStatsCard({
   description,
   data,
   categoryBreakdown,
-  type = 'combined',
+  type = "combined",
   showComparison = true,
-  comparisonPeriod = 'mois précédent',
+  comparisonPeriod = "mois précédent",
   totalRevenue,
   totalCommissions,
   totalTransactions,
   revenueGrowth,
   commissionRate,
   averageTransactionValue,
-  className = '',
+  className = "",
 }: TransactionStatsCardProps) {
   // Calculs automatiques si les valeurs ne sont pas fournies
-  const calculatedTotalRevenue = totalRevenue ?? data.reduce((sum, item) => sum + item.revenue, 0);
+  const calculatedTotalRevenue =
+    totalRevenue ?? data.reduce((sum, item) => sum + item.revenue, 0);
   const calculatedTotalCommissions =
     totalCommissions ?? data.reduce((sum, item) => sum + item.commissions, 0);
   const calculatedTotalTransactions =
@@ -81,19 +93,27 @@ export function TransactionStatsCard({
         .slice(0, Math.floor(data.length / 2))
         .reduce((sum, item) => sum + item.revenue, 0);
       if (previousPeriodRevenue === 0) return 0;
-      return ((currentPeriodRevenue - previousPeriodRevenue) / previousPeriodRevenue) * 100;
+      return (
+        ((currentPeriodRevenue - previousPeriodRevenue) /
+          previousPeriodRevenue) *
+        100
+      );
     })();
 
   const calculatedCommissionRate =
     commissionRate ??
-    (calculatedTotalRevenue > 0 ? (calculatedTotalCommissions / calculatedTotalRevenue) * 100 : 0);
+    (calculatedTotalRevenue > 0
+      ? (calculatedTotalCommissions / calculatedTotalRevenue) * 100
+      : 0);
 
   const calculatedAverageTransactionValue =
     averageTransactionValue ??
-    (calculatedTotalTransactions > 0 ? calculatedTotalRevenue / calculatedTotalTransactions : 0);
+    (calculatedTotalTransactions > 0
+      ? calculatedTotalRevenue / calculatedTotalTransactions
+      : 0);
 
   // Préparation des données pour les graphiques
-  const chartData = data.map(item => ({
+  const chartData = data.map((item) => ({
     period: item.period,
     revenue: item.revenue,
     commissions: item.commissions,
@@ -104,27 +124,27 @@ export function TransactionStatsCard({
 
   const getChartCategories = () => {
     switch (type) {
-      case 'revenue':
-        return ['revenue', 'netRevenue'];
-      case 'commissions':
-        return ['commissions'];
-      case 'transactions':
-        return ['transactions'];
+      case "revenue":
+        return ["revenue", "netRevenue"];
+      case "commissions":
+        return ["commissions"];
+      case "transactions":
+        return ["transactions"];
       default:
-        return ['revenue', 'commissions', 'netRevenue'];
+        return ["revenue", "commissions", "netRevenue"];
     }
   };
 
   const getChartColors = () => {
     switch (type) {
-      case 'revenue':
-        return ['#22c55e', '#16a34a'];
-      case 'commissions':
-        return ['#f59e0b'];
-      case 'transactions':
-        return ['#3b82f6'];
+      case "revenue":
+        return ["#22c55e", "#16a34a"];
+      case "commissions":
+        return ["#f59e0b"];
+      case "transactions":
+        return ["#3b82f6"];
       default:
-        return ['#22c55e', '#f59e0b', '#16a34a'];
+        return ["#22c55e", "#f59e0b", "#16a34a"];
     }
   };
 
@@ -135,10 +155,12 @@ export function TransactionStatsCard({
         categories={getChartCategories()}
         index="period"
         colors={getChartColors()}
-        valueFormatter={value =>
-          type === 'transactions' ? value.toLocaleString() : formatCurrency(value)
+        valueFormatter={(value) =>
+          type === "transactions"
+            ? value.toLocaleString()
+            : formatCurrency(value)
         }
-        showLegend={type === 'combined'}
+        showLegend={type === "combined"}
         showGridLines={false}
         startEndOnly={true}
       />
@@ -149,7 +171,8 @@ export function TransactionStatsCard({
     if (!categoryBreakdown || categoryBreakdown.length === 0) return null;
 
     const colors =
-      categoryBreakdown.map(cat => cat.color) || generateChartColors(categoryBreakdown.length);
+      categoryBreakdown.map((cat) => cat.color) ||
+      generateChartColors(categoryBreakdown.length);
 
     return (
       <div className="space-y-3">
@@ -158,19 +181,27 @@ export function TransactionStatsCard({
             data={categoryBreakdown}
             category="value"
             index="name"
-            valueFormatter={value => formatCurrency(value)}
+            valueFormatter={(value) => formatCurrency(value)}
             colors={colors}
           />
         </div>
         <div className="space-y-2">
           {categoryBreakdown.slice(0, 4).map((category, index) => (
-            <div key={category.name} className="flex justify-between items-center text-sm">
+            <div
+              key={category.name}
+              className="flex justify-between items-center text-sm"
+            >
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors[index] }} />
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: colors[index] }}
+                />
                 <span className="truncate max-w-[100px]">{category.name}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-medium">{formatCurrency(category.value)}</span>
+                <span className="font-medium">
+                  {formatCurrency(category.value)}
+                </span>
                 <Badge variant="outline" className="text-xs">
                   {category.percentage.toFixed(1)}%
                 </Badge>
@@ -191,13 +222,15 @@ export function TransactionStatsCard({
             <CardTitle className="text-base">{title}</CardTitle>
           </div>
           {showComparison && (
-            <Badge variant={calculatedRevenueGrowth >= 0 ? 'default' : 'destructive'}>
+            <Badge
+              variant={calculatedRevenueGrowth >= 0 ? "default" : "destructive"}
+            >
               {calculatedRevenueGrowth >= 0 ? (
                 <TrendingUp className="h-3 w-3 mr-1" />
               ) : (
                 <TrendingDown className="h-3 w-3 mr-1" />
               )}
-              {calculatedRevenueGrowth >= 0 ? '+' : ''}
+              {calculatedRevenueGrowth >= 0 ? "+" : ""}
               {calculatedRevenueGrowth.toFixed(1)}%
             </Badge>
           )}
@@ -210,7 +243,9 @@ export function TransactionStatsCard({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Revenus totaux</p>
-              <p className="text-2xl font-bold">{formatCurrency(calculatedTotalRevenue)}</p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(calculatedTotalRevenue)}
+              </p>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 {calculatedRevenueGrowth >= 0 ? (
                   <ArrowUpRight className="h-3 w-3 text-green-500" />
@@ -229,12 +264,17 @@ export function TransactionStatsCard({
                       <Info className="h-3 w-3 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Taux de commission: {calculatedCommissionRate.toFixed(1)}%</p>
+                      <p>
+                        Taux de commission:{" "}
+                        {calculatedCommissionRate.toFixed(1)}%
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <p className="text-xl font-semibold">{formatCurrency(calculatedTotalCommissions)}</p>
+              <p className="text-xl font-semibold">
+                {formatCurrency(calculatedTotalCommissions)}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {calculatedCommissionRate.toFixed(1)}% du CA
               </p>
@@ -266,20 +306,20 @@ export function TransactionStatsCard({
               <span>Performance vs objectif</span>
               <span className="font-medium">
                 {calculatedRevenueGrowth > 10
-                  ? 'Excellent'
+                  ? "Excellent"
                   : calculatedRevenueGrowth > 0
-                    ? 'Bon'
-                    : 'À améliorer'}
+                    ? "Bon"
+                    : "À améliorer"}
               </span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
                 className={`h-full ${
                   calculatedRevenueGrowth > 10
-                    ? 'bg-green-500'
+                    ? "bg-green-500"
                     : calculatedRevenueGrowth > 0
-                      ? 'bg-yellow-500'
-                      : 'bg-red-500'
+                      ? "bg-yellow-500"
+                      : "bg-red-500"
                 }`}
                 style={{
                   width: `${Math.min(100, Math.max(0, calculatedRevenueGrowth + 50))}%`,

@@ -4,19 +4,19 @@ export interface PetSittingService {
   providerId: string;
   services: PetService[];
   acceptedPets: PetType[];
-  location: 'AT_HOME' | 'AT_PROVIDER' | 'BOTH';
+  location: "AT_HOME" | "AT_PROVIDER" | "BOTH";
   experience: number;
   certifications: string[];
   hourlyRate: number;
 }
 
 export interface PetService {
-  type: 'WALKING' | 'FEEDING' | 'PLAYING' | 'GROOMING' | 'OVERNIGHT';
+  type: "WALKING" | "FEEDING" | "PLAYING" | "GROOMING" | "OVERNIGHT";
   duration: number;
   price: number;
 }
 
-export type PetType = 'DOG' | 'CAT' | 'BIRD' | 'FISH' | 'RABBIT' | 'OTHER';
+export type PetType = "DOG" | "CAT" | "BIRD" | "FISH" | "RABBIT" | "OTHER";
 
 export interface PetSittingBooking {
   id: string;

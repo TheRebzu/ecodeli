@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { calculateDistance } from '@/server/utils/geo-calculations';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { calculateDistance } from "@/server/utils/geo-calculations";
 
 /**
  * Router pour les performances et gains des livreurs selon le cahier des charges
@@ -10,7 +10,7 @@ import { calculateDistance } from '@/server/utils/geo-calculations';
 
 // Schémas de validation
 const performanceFiltersSchema = z.object({
-  period: z.enum(['day', 'week', 'month', 'quarter', 'year']).default('month'),
+  period: z.enum(["day", "week", "month", "quarter", "year"]).default("month"),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
   routeId: z.string().cuid().optional(),
@@ -30,23 +30,32 @@ const routeOptimizationSchema = z.object({
           end: z.string(), // Format HH:MM
         })
         .optional(),
-      priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']).default('NORMAL'),
+      priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).default("NORMAL"),
       estimatedDuration: z.number().min(5).max(120).default(15), // minutes
-    })
+    }),
   ),
   startLocation: z.object({
     address: z.string(),
     latitude: z.number(),
     longitude: z.number(),
   }),
-  vehicleType: z.enum(['CAR', 'MOTORCYCLE', 'BICYCLE', 'SCOOTER', 'VAN', 'FOOT']),
+  vehicleType: z.enum([
+    "CAR",
+    "MOTORCYCLE",
+    "BICYCLE",
+    "SCOOTER",
+    "VAN",
+    "FOOT",
+  ]),
   maxWorkingHours: z.number().min(1).max(14).default(8),
   includeBreaks: z.boolean().default(true),
-  optimizationGoal: z.enum(['DISTANCE', 'TIME', 'EARNINGS', 'FUEL']).default('TIME'),
+  optimizationGoal: z
+    .enum(["DISTANCE", "TIME", "EARNINGS", "FUEL"])
+    .default("TIME"),
 });
 
 const planningExportSchema = z.object({
-  format: z.enum(['PDF', 'ICAL', 'JSON']),
+  format: z.enum(["PDF", "ICAL", "JSON"]),
   period: z.object({
     start: z.date(),
     end: z.date(),
@@ -54,7 +63,7 @@ const planningExportSchema = z.object({
   includeCompleted: z.boolean().default(true),
   includePlanned: z.boolean().default(true),
   includeStats: z.boolean().default(true),
-  language: z.enum(['fr', 'en']).default('fr'),
+  language: z.enum(["fr", "en"]).default("fr"),
 });
 
 export const delivererPerformanceRouter = router({
@@ -66,10 +75,10 @@ export const delivererPerformanceRouter = router({
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent consulter leurs performances',
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent consulter leurs performances",
         });
       }
 
@@ -79,51 +88,63 @@ export const delivererPerformanceRouter = router({
           calculatePeriodDates(input);
 
         // Performances de la période actuelle
-        const currentPerformances = await ctx.db.delivererRoutePerformance.findMany({
-          where: {
-            route: { delivererId: user.id },
-            executionDate: { gte: startDate, lte: endDate },
-            ...(input.routeId && { routeId: input.routeId }),
-          },
-          include: {
-            route: {
-              select: {
-                title: true,
-                departureAddress: true,
-                arrivalAddress: true,
-                estimatedDistance: true,
-                estimatedDuration: true,
+        const currentPerformances =
+          await ctx.db.delivererRoutePerformance.findMany({
+            where: {
+              route: { delivererId: user.id },
+              executionDate: { gte: startDate, lte: endDate },
+              ...(input.routeId && { routeId: input.routeId }),
+            },
+            include: {
+              route: {
+                select: {
+                  title: true,
+                  departureAddress: true,
+                  arrivalAddress: true,
+                  estimatedDistance: true,
+                  estimatedDuration: true,
+                },
               },
             },
-          },
-        });
+          });
 
         // Performances de la période précédente pour comparaison
-        const previousPerformances = await ctx.db.delivererRoutePerformance.findMany({
-          where: {
-            route: { delivererId: user.id },
-            executionDate: { gte: previousStartDate, lte: previousEndDate },
-            ...(input.routeId && { routeId: input.routeId }),
-          },
-        });
+        const previousPerformances =
+          await ctx.db.delivererRoutePerformance.findMany({
+            where: {
+              route: { delivererId: user.id },
+              executionDate: { gte: previousStartDate, lte: previousEndDate },
+              ...(input.routeId && { routeId: input.routeId }),
+            },
+          });
 
         // Calculer les métriques agrégées
         const currentMetrics = calculateMetrics(currentPerformances);
         const previousMetrics = calculateMetrics(previousPerformances);
 
         // Gains et commissions
-        const currentEarnings = await getEarningsForPeriod(ctx, user.id, startDate, endDate);
+        const currentEarnings = await getEarningsForPeriod(
+          ctx,
+          user.id,
+          startDate,
+          endDate,
+        );
         const previousEarnings = await getEarningsForPeriod(
           ctx,
           user.id,
           previousStartDate,
-          previousEndDate
+          previousEndDate,
         );
 
         // Projections si demandées
         let projections = null;
         if (input.includeProjections) {
-          projections = await calculateProjections(ctx, user.id, currentMetrics, input.period);
+          projections = await calculateProjections(
+            ctx,
+            user.id,
+            currentMetrics,
+            input.period,
+          );
         }
 
         // Top routes de la période
@@ -146,29 +167,35 @@ export const delivererPerformanceRouter = router({
               earnings: previousEarnings,
             },
             comparison: {
-              earnings: calculateGrowth(currentEarnings.total, previousEarnings.total),
+              earnings: calculateGrowth(
+                currentEarnings.total,
+                previousEarnings.total,
+              ),
               deliveries: calculateGrowth(
                 currentMetrics.totalDeliveries,
-                previousMetrics.totalDeliveries
+                previousMetrics.totalDeliveries,
               ),
               efficiency: calculateGrowth(
                 currentMetrics.averageEfficiency,
-                previousMetrics.averageEfficiency
+                previousMetrics.averageEfficiency,
               ),
               satisfaction: calculateGrowth(
                 currentMetrics.averageRating,
-                previousMetrics.averageRating
+                previousMetrics.averageRating,
               ),
             },
             topRoutes,
             projections,
-            recommendations: generateRecommendations(currentMetrics, previousMetrics),
+            recommendations: generateRecommendations(
+              currentMetrics,
+              previousMetrics,
+            ),
           },
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des performances',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des performances",
         });
       }
     }),
@@ -181,10 +208,10 @@ export const delivererPerformanceRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent optimiser des trajets',
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent optimiser des trajets",
         });
       }
 
@@ -201,7 +228,7 @@ export const delivererPerformanceRouter = router({
               includeBreaks: input.includeBreaks,
               optimizationGoal: input.optimizationGoal,
             },
-            status: 'PROCESSING',
+            status: "PROCESSING",
           },
         });
 
@@ -222,7 +249,7 @@ export const delivererPerformanceRouter = router({
             totalDistance: optimizedRoute.totalDistance,
             totalDuration: optimizedRoute.totalDuration,
             estimatedEarnings: optimizedRoute.estimatedEarnings,
-            status: 'COMPLETED',
+            status: "COMPLETED",
             completedAt: new Date(),
           },
         });
@@ -239,11 +266,11 @@ export const delivererPerformanceRouter = router({
               earnings: optimizedRoute.earningsIncrease || 0,
             },
           },
-          message: 'Trajet optimisé avec succès',
+          message: "Trajet optimisé avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'optimisation du trajet",
         });
       }
@@ -259,15 +286,15 @@ export const delivererPerformanceRouter = router({
         endDate: z.date(),
         includeCompleted: z.boolean().default(true),
         includeRoutes: z.boolean().default(true),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent consulter leur planning',
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent consulter leur planning",
         });
       }
 
@@ -283,7 +310,7 @@ export const delivererPerformanceRouter = router({
             ...(input.includeCompleted
               ? {}
               : {
-                  status: { notIn: ['DELIVERED', 'COMPLETED', 'CANCELLED'] },
+                  status: { notIn: ["DELIVERED", "COMPLETED", "CANCELLED"] },
                 }),
           },
           include: {
@@ -297,7 +324,7 @@ export const delivererPerformanceRouter = router({
               },
             },
           },
-          orderBy: { scheduledAt: 'asc' },
+          orderBy: { scheduledAt: "asc" },
         });
 
         // Routes planifiées si demandées
@@ -310,7 +337,7 @@ export const delivererPerformanceRouter = router({
                 gte: input.startDate,
                 lte: input.endDate,
               },
-              status: { in: ['PUBLISHED', 'ACTIVE', 'IN_PROGRESS'] },
+              status: { in: ["PUBLISHED", "ACTIVE", "IN_PROGRESS"] },
             },
             include: {
               matchedAnnouncements: {
@@ -321,7 +348,7 @@ export const delivererPerformanceRouter = router({
                 },
               },
             },
-            orderBy: { departureTime: 'asc' },
+            orderBy: { departureTime: "asc" },
           });
         }
 
@@ -330,7 +357,7 @@ export const delivererPerformanceRouter = router({
           deliveries,
           plannedRoutes,
           input.startDate,
-          input.endDate
+          input.endDate,
         );
 
         // Calculer les statistiques du planning
@@ -339,12 +366,13 @@ export const delivererPerformanceRouter = router({
           totalRoutes: plannedRoutes.length,
           estimatedEarnings: deliveries.reduce(
             (sum, d) => sum + (d.announcement?.suggestedPrice?.toNumber() || 0),
-            0
+            0,
           ),
-          completedDeliveries: deliveries.filter(d => ['DELIVERED', 'COMPLETED'].includes(d.status))
-            .length,
+          completedDeliveries: deliveries.filter((d) =>
+            ["DELIVERED", "COMPLETED"].includes(d.status),
+          ).length,
           upcomingDeliveries: deliveries.filter(
-            d => !['DELIVERED', 'COMPLETED', 'CANCELLED'].includes(d.status)
+            (d) => !["DELIVERED", "COMPLETED", "CANCELLED"].includes(d.status),
           ).length,
         };
 
@@ -357,15 +385,16 @@ export const delivererPerformanceRouter = router({
               start: input.startDate,
               end: input.endDate,
               days: Math.ceil(
-                (input.endDate.getTime() - input.startDate.getTime()) / (1000 * 60 * 60 * 24)
+                (input.endDate.getTime() - input.startDate.getTime()) /
+                  (1000 * 60 * 60 * 24),
               ),
             },
           },
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération du planning',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération du planning",
         });
       }
     }),
@@ -378,10 +407,10 @@ export const delivererPerformanceRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent exporter leur planning',
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent exporter leur planning",
         });
       }
 
@@ -397,13 +426,13 @@ export const delivererPerformanceRouter = router({
             ...(input.includeCompleted
               ? {}
               : {
-                  status: { notIn: ['DELIVERED', 'COMPLETED', 'CANCELLED'] },
+                  status: { notIn: ["DELIVERED", "COMPLETED", "CANCELLED"] },
                 }),
           },
           include: {
             announcement: true,
           },
-          orderBy: { scheduledAt: 'asc' },
+          orderBy: { scheduledAt: "asc" },
         });
 
         const plannedRoutes = input.includePlanned
@@ -415,14 +444,14 @@ export const delivererPerformanceRouter = router({
                   lte: input.period.end,
                 },
               },
-              orderBy: { departureTime: 'asc' },
+              orderBy: { departureTime: "asc" },
             })
           : [];
 
         let exportResult;
 
         switch (input.format) {
-          case 'PDF':
+          case "PDF":
             exportResult = await generatePDFPlanning({
               deliverer: user,
               deliveries,
@@ -433,7 +462,7 @@ export const delivererPerformanceRouter = router({
             });
             break;
 
-          case 'ICAL':
+          case "ICAL":
             exportResult = await generateICalPlanning({
               deliverer: user,
               deliveries,
@@ -442,7 +471,7 @@ export const delivererPerformanceRouter = router({
             });
             break;
 
-          case 'JSON':
+          case "JSON":
             exportResult = {
               url: null,
               data: {
@@ -452,7 +481,7 @@ export const delivererPerformanceRouter = router({
                   email: user.email,
                 },
                 period: input.period,
-                deliveries: deliveries.map(d => ({
+                deliveries: deliveries.map((d) => ({
                   id: d.id,
                   title: d.announcement.title,
                   scheduledAt: d.scheduledAt,
@@ -461,7 +490,7 @@ export const delivererPerformanceRouter = router({
                   deliveryAddress: d.announcement.deliveryAddress,
                   price: d.announcement.suggestedPrice?.toNumber(),
                 })),
-                plannedRoutes: plannedRoutes.map(r => ({
+                plannedRoutes: plannedRoutes.map((r) => ({
                   id: r.id,
                   title: r.title,
                   departureTime: r.departureTime,
@@ -482,7 +511,7 @@ export const delivererPerformanceRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'export du planning",
         });
       }
@@ -498,15 +527,15 @@ export const delivererPerformanceRouter = router({
         routeId: z.string().cuid().optional(),
         considerTraffic: z.boolean().default(true),
         considerWeather: z.boolean().default(false),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent obtenir des estimations',
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent obtenir des estimations",
         });
       }
 
@@ -534,8 +563,9 @@ export const delivererPerformanceRouter = router({
 
         // Calculer les estimations
         const estimations = await Promise.all(
-          deliveries.map(async delivery => {
-            const baseEarnings = delivery.announcement.suggestedPrice?.toNumber() || 0;
+          deliveries.map(async (delivery) => {
+            const baseEarnings =
+              delivery.announcement.suggestedPrice?.toNumber() || 0;
             const platformFee = baseEarnings * 0.15; // 15% commission EcoDeli
             const netEarnings = baseEarnings - platformFee;
 
@@ -560,7 +590,7 @@ export const delivererPerformanceRouter = router({
               trafficDelayRisk: timeEstimation.trafficRisk,
               weatherImpact: timeEstimation.weatherImpact,
             };
-          })
+          }),
         );
 
         // Totaux
@@ -572,7 +602,13 @@ export const delivererPerformanceRouter = router({
             totalFuelCost: acc.totalFuelCost + est.fuelCost,
             totalProfit: acc.totalProfit + est.profitMargin,
           }),
-          { totalTime: 0, totalDistance: 0, totalEarnings: 0, totalFuelCost: 0, totalProfit: 0 }
+          {
+            totalTime: 0,
+            totalDistance: 0,
+            totalEarnings: 0,
+            totalFuelCost: 0,
+            totalProfit: 0,
+          },
         );
 
         return {
@@ -581,9 +617,14 @@ export const delivererPerformanceRouter = router({
             estimations,
             totals: {
               ...totals,
-              hourlyRate: totals.totalTime > 0 ? totals.totalProfit / (totals.totalTime / 60) : 0,
+              hourlyRate:
+                totals.totalTime > 0
+                  ? totals.totalProfit / (totals.totalTime / 60)
+                  : 0,
               profitMargin:
-                totals.totalEarnings > 0 ? (totals.totalProfit / totals.totalEarnings) * 100 : 0,
+                totals.totalEarnings > 0
+                  ? (totals.totalProfit / totals.totalEarnings) * 100
+                  : 0,
             },
             route: route
               ? {
@@ -596,8 +637,8 @@ export const delivererPerformanceRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors du calcul des estimations',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du calcul des estimations",
         });
       }
     }),
@@ -619,22 +660,24 @@ function calculatePeriodDates(input: any) {
     previousStartDate = new Date(previousEndDate.getTime() - duration);
   } else {
     switch (input.period) {
-      case 'day':
+      case "day":
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
         previousStartDate = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
         previousEndDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
         break;
-      case 'week':
+      case "week":
         const dayOfWeek = now.getDay();
         startDate.setDate(now.getDate() - dayOfWeek);
         startDate.setHours(0, 0, 0, 0);
         endDate = new Date(startDate.getTime() + 6 * 24 * 60 * 60 * 1000);
         endDate.setHours(23, 59, 59, 999);
-        previousStartDate = new Date(startDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(
+          startDate.getTime() - 7 * 24 * 60 * 60 * 1000,
+        );
         previousEndDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case 'month':
+      case "month":
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         endDate.setHours(23, 59, 59, 999);
@@ -669,7 +712,7 @@ function calculateMetrics(performances: any[]) {
       rating: acc.rating + (perf.averageRating || 0),
       onTime: acc.onTime + perf.onTimeDeliveries,
     }),
-    { deliveries: 0, distance: 0, duration: 0, rating: 0, onTime: 0 }
+    { deliveries: 0, distance: 0, duration: 0, rating: 0, onTime: 0 },
   );
 
   return {
@@ -677,8 +720,10 @@ function calculateMetrics(performances: any[]) {
     totalDistance: totals.distance,
     totalDuration: totals.duration,
     averageRating: totals.rating / performances.length,
-    averageEfficiency: totals.deliveries > 0 ? totals.distance / totals.deliveries : 0,
-    onTimeRate: totals.deliveries > 0 ? (totals.onTime / totals.deliveries) * 100 : 0,
+    averageEfficiency:
+      totals.deliveries > 0 ? totals.distance / totals.deliveries : 0,
+    onTimeRate:
+      totals.deliveries > 0 ? (totals.onTime / totals.deliveries) * 100 : 0,
   };
 }
 
@@ -689,40 +734,45 @@ function calculateGrowth(current: number, previous: number): number {
 
 function getPeriodLabel(period: string, date: Date): string {
   const months = [
-    'Janvier',
-    'Février',
-    'Mars',
-    'Avril',
-    'Mai',
-    'Juin',
-    'Juillet',
-    'Août',
-    'Septembre',
-    'Octobre',
-    'Novembre',
-    'Décembre',
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
   ];
 
   switch (period) {
-    case 'day':
-      return date.toLocaleDateString('fr-FR');
-    case 'week':
-      return `Semaine du ${date.toLocaleDateString('fr-FR')}`;
-    case 'month':
+    case "day":
+      return date.toLocaleDateString("fr-FR");
+    case "week":
+      return `Semaine du ${date.toLocaleDateString("fr-FR")}`;
+    case "month":
       return `${months[date.getMonth()]} ${date.getFullYear()}`;
-    case 'year':
+    case "year":
       return date.getFullYear().toString();
     default:
       return period;
   }
 }
 
-async function getEarningsForPeriod(ctx: any, userId: string, startDate: Date, endDate: Date) {
+async function getEarningsForPeriod(
+  ctx: any,
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) {
   const earnings = await ctx.db.transaction.aggregate({
     where: {
       wallet: { userId },
-      type: { in: ['EARNING', 'DELIVERY_PAYOUT'] },
-      status: 'COMPLETED',
+      type: { in: ["EARNING", "DELIVERY_PAYOUT"] },
+      status: "COMPLETED",
       createdAt: { gte: startDate, lte: endDate },
     },
     _sum: { amount: true },
@@ -731,8 +781,8 @@ async function getEarningsForPeriod(ctx: any, userId: string, startDate: Date, e
   const commissions = await ctx.db.transaction.aggregate({
     where: {
       wallet: { userId },
-      type: 'PLATFORM_FEE',
-      status: 'COMPLETED',
+      type: "PLATFORM_FEE",
+      status: "COMPLETED",
       createdAt: { gte: startDate, lte: endDate },
     },
     _sum: { amount: true },
@@ -742,22 +792,35 @@ async function getEarningsForPeriod(ctx: any, userId: string, startDate: Date, e
     total: earnings._sum.amount?.toNumber() || 0,
     commissions: Math.abs(commissions._sum.amount?.toNumber() || 0),
     net:
-      (earnings._sum.amount?.toNumber() || 0) - Math.abs(commissions._sum.amount?.toNumber() || 0),
+      (earnings._sum.amount?.toNumber() || 0) -
+      Math.abs(commissions._sum.amount?.toNumber() || 0),
   };
 }
 
-async function calculateProjections(ctx: any, userId: string, currentMetrics: any, period: string) {
+async function calculateProjections(
+  ctx: any,
+  userId: string,
+  currentMetrics: any,
+  period: string,
+) {
   // Logique de projection basée sur les tendances actuelles
-  const projectionMultiplier = period === 'month' ? 30 : period === 'week' ? 7 : 1;
+  const projectionMultiplier =
+    period === "month" ? 30 : period === "week" ? 7 : 1;
 
   return {
-    estimatedEarnings: currentMetrics.totalDeliveries * 15 * projectionMultiplier,
+    estimatedEarnings:
+      currentMetrics.totalDeliveries * 15 * projectionMultiplier,
     estimatedDeliveries: currentMetrics.totalDeliveries * projectionMultiplier,
     confidence: 85, // %
   };
 }
 
-async function getTopRoutes(ctx: any, userId: string, startDate: Date, endDate: Date) {
+async function getTopRoutes(
+  ctx: any,
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) {
   return ctx.db.delivererRoutePerformance.findMany({
     where: {
       route: { delivererId: userId },
@@ -768,7 +831,7 @@ async function getTopRoutes(ctx: any, userId: string, startDate: Date, endDate: 
         select: { title: true, departureAddress: true, arrivalAddress: true },
       },
     },
-    orderBy: { totalEarnings: 'desc' },
+    orderBy: { totalEarnings: "desc" },
     take: 5,
   });
 }
@@ -777,7 +840,7 @@ function generateRecommendations(current: any, previous: any): string[] {
   const recommendations: string[] = [];
 
   if (current.onTimeRate < 90) {
-    recommendations.push('Améliorer la ponctualité pour augmenter votre note');
+    recommendations.push("Améliorer la ponctualité pour augmenter votre note");
   }
 
   if (current.averageEfficiency > previous.averageEfficiency) {
@@ -785,7 +848,7 @@ function generateRecommendations(current: any, previous: any): string[] {
   }
 
   if (current.totalDeliveries < previous.totalDeliveries) {
-    recommendations.push('Considérer accepter plus de livraisons');
+    recommendations.push("Considérer accepter plus de livraisons");
   }
 
   return recommendations;
@@ -807,11 +870,11 @@ async function optimizeDeliveryRoute(params: any) {
     // Calculer distance depuis le point de départ
     const distA = Math.sqrt(
       Math.pow(a.latitude - startLocation.latitude, 2) +
-        Math.pow(a.longitude - startLocation.longitude, 2)
+        Math.pow(a.longitude - startLocation.longitude, 2),
     );
     const distB = Math.sqrt(
       Math.pow(b.latitude - startLocation.latitude, 2) +
-        Math.pow(b.longitude - startLocation.longitude, 2)
+        Math.pow(b.longitude - startLocation.longitude, 2),
     );
 
     return distA - distB;
@@ -839,19 +902,28 @@ async function optimizeDeliveryRoute(params: any) {
   };
 }
 
-function organizeScheduleByDay(deliveries: any[], routes: any[], startDate: Date, endDate: Date) {
+function organizeScheduleByDay(
+  deliveries: any[],
+  routes: any[],
+  startDate: Date,
+  endDate: Date,
+) {
   const schedule: any = {};
   const currentDate = new Date(startDate);
 
   while (currentDate <= endDate) {
-    const dateKey = currentDate.toISOString().split('T')[0];
+    const dateKey = currentDate.toISOString().split("T")[0];
     schedule[dateKey] = {
       date: new Date(currentDate),
       deliveries: deliveries.filter(
-        d => d.scheduledAt && d.scheduledAt.toISOString().split('T')[0] === dateKey
+        (d) =>
+          d.scheduledAt &&
+          d.scheduledAt.toISOString().split("T")[0] === dateKey,
       ),
       routes: routes.filter(
-        r => r.departureTime && r.departureTime.toISOString().split('T')[0] === dateKey
+        (r) =>
+          r.departureTime &&
+          r.departureTime.toISOString().split("T")[0] === dateKey,
       ),
     };
     currentDate.setDate(currentDate.getDate() + 1);
@@ -863,18 +935,18 @@ function organizeScheduleByDay(deliveries: any[], routes: any[], startDate: Date
 async function generatePDFPlanning(params: any) {
   // Génération PDF - en production utiliser une bibliothèque comme PDFKit
   return {
-    url: '/api/exports/planning.pdf',
-    filename: `planning_${params.deliverer.name}_${params.period.start.toISOString().split('T')[0]}.pdf`,
-    size: '2.1 MB',
+    url: "/api/exports/planning.pdf",
+    filename: `planning_${params.deliverer.name}_${params.period.start.toISOString().split("T")[0]}.pdf`,
+    size: "2.1 MB",
   };
 }
 
 async function generateICalPlanning(params: any) {
   // Génération iCal - format standard pour calendriers
   return {
-    url: '/api/exports/planning.ics',
+    url: "/api/exports/planning.ics",
     filename: `planning_${params.deliverer.name}.ics`,
-    size: '15 KB',
+    size: "15 KB",
   };
 }
 
@@ -884,8 +956,8 @@ async function estimateDeliveryTime(params: any) {
     duration: 25, // minutes
     distance: 8.5, // km
     fuelCost: 2.1, // euros
-    trafficRisk: 'MODERATE',
-    weatherImpact: 'NONE',
+    trafficRisk: "MODERATE",
+    weatherImpact: "NONE",
   };
 }
 
@@ -901,7 +973,7 @@ function calculateRouteCompatibility(route: any, deliveries: any[]) {
       route.departureLatitude,
       route.departureLongitude,
       delivery.pickupLatitude,
-      delivery.pickupLongitude
+      delivery.pickupLongitude,
     );
 
     // Pénaliser si trop loin (plus de 10km = -10 points)
@@ -912,7 +984,8 @@ function calculateRouteCompatibility(route: any, deliveries: any[]) {
     // Vérifier la compatibilité horaire
     const routeTime = new Date(route.departureTime);
     const deliveryTime = new Date(delivery.pickupTimeStart);
-    const timeDiff = Math.abs(routeTime.getTime() - deliveryTime.getTime()) / (1000 * 60 * 60); // heures
+    const timeDiff =
+      Math.abs(routeTime.getTime() - deliveryTime.getTime()) / (1000 * 60 * 60); // heures
 
     // Pénaliser si trop d'écart temporel (plus de 2h = -20 points)
     if (timeDiff > 2) {

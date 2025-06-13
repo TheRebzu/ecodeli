@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   Bar,
   BarChart,
@@ -19,9 +19,16 @@ import {
   XAxis,
   YAxis,
   Cell,
-} from 'recharts';
-import { formatDate, formatCurrency } from '@/utils/document-utils';
-import { ChevronDown, ChevronUp, Eye, Calendar, Clock, Users } from 'lucide-react';
+} from "recharts";
+import { formatDate, formatCurrency } from "@/utils/document-utils";
+import {
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Calendar,
+  Clock,
+  Users,
+} from "lucide-react";
 
 interface AnalyticsData {
   views?: {
@@ -50,11 +57,21 @@ interface AnnouncementAnalyticsProps {
   isLoading?: boolean;
 }
 
-export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementAnalyticsProps) {
-  const t = useTranslations('announcements.analytics');
-  const [activeTab, setActiveTab] = useState('views');
+export function AnnouncementAnalytics({
+  data,
+  isLoading = false,
+}: AnnouncementAnalyticsProps) {
+  const t = useTranslations("announcements.analytics");
+  const [activeTab, setActiveTab] = useState("views");
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A569BD', '#5DADE2'];
+  const COLORS = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#A569BD",
+    "#5DADE2",
+  ];
 
   if (isLoading) {
     return (
@@ -73,8 +90,10 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
   if (!data) {
     return (
       <div className="py-12 text-center">
-        <p className="text-lg text-muted-foreground">{t('noData')}</p>
-        <p className="text-sm text-muted-foreground mt-2">{t('noDataDescription')}</p>
+        <p className="text-lg text-muted-foreground">{t("noData")}</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          {t("noDataDescription")}
+        </p>
       </div>
     );
   }
@@ -85,15 +104,15 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
         <TabsList className="mb-6">
           <TabsTrigger value="views">
             <Eye className="mr-2 h-4 w-4" />
-            {t('views')}
+            {t("views")}
           </TabsTrigger>
           <TabsTrigger value="applications">
             <Users className="mr-2 h-4 w-4" />
-            {t('applications')}
+            {t("applications")}
           </TabsTrigger>
           <TabsTrigger value="performance">
             <Clock className="mr-2 h-4 w-4" />
-            {t('performance')}
+            {t("performance")}
           </TabsTrigger>
         </TabsList>
 
@@ -101,17 +120,21 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">{t('totalViews')}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("totalViews")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.views?.total || 0}</div>
+                <div className="text-2xl font-bold">
+                  {data.views?.total || 0}
+                </div>
               </CardContent>
             </Card>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('viewsOverTime')}</CardTitle>
+              <CardTitle className="text-lg">{t("viewsOverTime")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-72">
@@ -123,7 +146,7 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="date"
-                      tickFormatter={value => {
+                      tickFormatter={(value) => {
                         try {
                           return new Date(value).toLocaleDateString();
                         } catch (e) {
@@ -133,8 +156,8 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
                     />
                     <YAxis />
                     <Tooltip
-                      formatter={(value: any) => [value, t('views')]}
-                      labelFormatter={value => {
+                      formatter={(value: any) => [value, t("views")]}
+                      labelFormatter={(value) => {
                         try {
                           return new Date(value).toLocaleDateString();
                         } catch (e) {
@@ -142,7 +165,12 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
                         }
                       }}
                     />
-                    <Line type="monotone" dataKey="count" stroke="#8884d8" name={t('views')} />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#8884d8"
+                      name={t("views")}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -154,10 +182,14 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">{t('totalApplications')}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("totalApplications")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.applications?.total || 0}</div>
+                <div className="text-2xl font-bold">
+                  {data.applications?.total || 0}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -165,7 +197,9 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">{t('applicationsOverTime')}</CardTitle>
+                <CardTitle className="text-lg">
+                  {t("applicationsOverTime")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-72">
@@ -177,7 +211,7 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         dataKey="date"
-                        tickFormatter={value => {
+                        tickFormatter={(value) => {
                           try {
                             return new Date(value).toLocaleDateString();
                           } catch (e) {
@@ -187,8 +221,8 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
                       />
                       <YAxis />
                       <Tooltip
-                        formatter={(value: any) => [value, t('applications')]}
-                        labelFormatter={value => {
+                        formatter={(value: any) => [value, t("applications")]}
+                        labelFormatter={(value) => {
                           try {
                             return new Date(value).toLocaleDateString();
                           } catch (e) {
@@ -196,7 +230,11 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
                           }
                         }}
                       />
-                      <Bar dataKey="count" fill="#82ca9d" name={t('applications')} />
+                      <Bar
+                        dataKey="count"
+                        fill="#82ca9d"
+                        name={t("applications")}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -205,7 +243,9 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">{t('applicationStatus')}</CardTitle>
+                <CardTitle className="text-lg">
+                  {t("applicationStatus")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-72">
@@ -220,11 +260,18 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
                         fill="#8884d8"
                         dataKey="count"
                         nameKey="status"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
                       >
-                        {(data.applications?.statuses || []).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
+                        {(data.applications?.statuses || []).map(
+                          (entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ),
+                        )}
                       </Pie>
                       <Tooltip
                         formatter={(value: any, name: any) => [
@@ -232,7 +279,11 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
                           t(`status.${name.toLowerCase()}`),
                         ]}
                       />
-                      <Legend formatter={value => t(`status.${value.toLowerCase()}`)} />
+                      <Legend
+                        formatter={(value) =>
+                          t(`status.${value.toLowerCase()}`)
+                        }
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -245,14 +296,16 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">{t('onTimeRate')}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("onTimeRate")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center">
                   <div className="text-2xl font-bold">
                     {data.deliveryPerformance?.onTimeRate
                       ? `${(data.deliveryPerformance.onTimeRate * 100).toFixed(1)}%`
-                      : 'N/A'}
+                      : "N/A"}
                   </div>
                 </div>
               </CardContent>
@@ -260,26 +313,30 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">{t('avgDeliveryTime')}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("avgDeliveryTime")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {data.deliveryPerformance?.averageDeliveryTime
                     ? `${data.deliveryPerformance.averageDeliveryTime.toFixed(1)} h`
-                    : 'N/A'}
+                    : "N/A"}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">{t('completionRate')}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("completionRate")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {data.deliveryPerformance?.completionRate
                     ? `${(data.deliveryPerformance.completionRate * 100).toFixed(1)}%`
-                    : 'N/A'}
+                    : "N/A"}
                 </div>
               </CardContent>
             </Card>
@@ -287,26 +344,38 @@ export function AnnouncementAnalytics({ data, isLoading = false }: AnnouncementA
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('pricingAnalysis')}</CardTitle>
+              <CardTitle className="text-lg">{t("pricingAnalysis")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex flex-col">
-                  <span className="text-sm text-muted-foreground">{t('avgBid')}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("avgBid")}
+                  </span>
                   <span className="text-lg font-semibold">
-                    {data.pricing?.averageBid ? formatCurrency(data.pricing.averageBid) : 'N/A'}
+                    {data.pricing?.averageBid
+                      ? formatCurrency(data.pricing.averageBid)
+                      : "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm text-muted-foreground">{t('lowestBid')}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("lowestBid")}
+                  </span>
                   <span className="text-lg font-semibold">
-                    {data.pricing?.lowestBid ? formatCurrency(data.pricing.lowestBid) : 'N/A'}
+                    {data.pricing?.lowestBid
+                      ? formatCurrency(data.pricing.lowestBid)
+                      : "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm text-muted-foreground">{t('highestBid')}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("highestBid")}
+                  </span>
                   <span className="text-lg font-semibold">
-                    {data.pricing?.highestBid ? formatCurrency(data.pricing.highestBid) : 'N/A'}
+                    {data.pricing?.highestBid
+                      ? formatCurrency(data.pricing.highestBid)
+                      : "N/A"}
                   </span>
                 </div>
               </div>

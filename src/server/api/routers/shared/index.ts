@@ -4,12 +4,12 @@
  */
 
 // Exports des fichiers locaux
-export * from './announcement.router';
-export * from './billing.router';
-export * from './delivery-validation-codes.router';
-export * from './financial-task.router';
-export * from './insurance.router';
-export * from './invoice.router';
-export * from './warehouse-locations.router';
-export * from './warehouse.router';
-export * from './withdrawal.router';
+export * from "./announcement.router";
+export * from "./billing.router";
+export * from "./delivery-validation-codes.router";
+export * from "./financial-task.router";
+export * from "./insurance.router";
+export * from "./invoice.router";
+export * from "./warehouse-locations.router";
+export * from "./warehouse.router";
+export * from "./withdrawal.router";

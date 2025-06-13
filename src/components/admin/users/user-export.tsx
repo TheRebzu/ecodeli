@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Download, File, FileText, X } from 'lucide-react';
-import { UserRole, UserStatus } from '@prisma/client';
+import { useState } from "react";
+import { Download, File, FileText, X } from "lucide-react";
+import { UserRole, UserStatus } from "@prisma/client";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,14 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { toast } from '@/components/ui/use-toast';
-import { UserFilters } from '@/types/actors/admin';
-import { useAdminUsers } from '@/hooks/admin/use-admin-users';
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "@/components/ui/use-toast";
+import { UserFilters } from "@/types/actors/admin";
+import { useAdminUsers } from "@/hooks/admin/use-admin-users";
 
 interface UserExportProps {
   currentFilters: UserFilters;
@@ -26,43 +26,45 @@ interface UserExportProps {
 
 export function UserExport({ currentFilters }: UserExportProps) {
   const [open, setOpen] = useState(false);
-  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('csv');
+  const [exportFormat, setExportFormat] = useState<"csv" | "excel" | "pdf">(
+    "csv",
+  );
   const [selectedFields, setSelectedFields] = useState<string[]>([
-    'id',
-    'name',
-    'email',
-    'role',
-    'status',
-    'createdAt',
+    "id",
+    "name",
+    "email",
+    "role",
+    "status",
+    "createdAt",
   ]);
   const [isExporting, setIsExporting] = useState(false);
 
   const api = useAdminUsers();
 
   const availableFields = [
-    { key: 'id', label: 'User ID' },
-    { key: 'name', label: 'Name' },
-    { key: 'email', label: 'Email' },
-    { key: 'role', label: 'Role' },
-    { key: 'status', label: 'Status' },
-    { key: 'createdAt', label: 'Created At' },
-    { key: 'updatedAt', label: 'Updated At' },
-    { key: 'lastLoginAt', label: 'Last Login' },
-    { key: 'phoneNumber', label: 'Phone Number' },
-    { key: 'isVerified', label: 'Verification Status' },
-    { key: 'emailVerified', label: 'Email Verified Date' },
-    { key: 'twoFactorEnabled', label: '2FA Enabled' },
-    { key: 'hasPendingVerifications', label: 'Has Pending Verifications' },
-    { key: 'documentsCount', label: 'Documents Count' },
-    { key: 'country', label: 'Country' },
-    { key: 'city', label: 'City' },
-    { key: 'address', label: 'Address' },
+    { key: "id", label: "User ID" },
+    { key: "name", label: "Name" },
+    { key: "email", label: "Email" },
+    { key: "role", label: "Role" },
+    { key: "status", label: "Status" },
+    { key: "createdAt", label: "Created At" },
+    { key: "updatedAt", label: "Updated At" },
+    { key: "lastLoginAt", label: "Last Login" },
+    { key: "phoneNumber", label: "Phone Number" },
+    { key: "isVerified", label: "Verification Status" },
+    { key: "emailVerified", label: "Email Verified Date" },
+    { key: "twoFactorEnabled", label: "2FA Enabled" },
+    { key: "hasPendingVerifications", label: "Has Pending Verifications" },
+    { key: "documentsCount", label: "Documents Count" },
+    { key: "country", label: "Country" },
+    { key: "city", label: "City" },
+    { key: "address", label: "Address" },
   ];
 
   const handleToggleField = (field: string) => {
-    setSelectedFields(current => {
+    setSelectedFields((current) => {
       if (current.includes(field)) {
-        return current.filter(f => f !== field);
+        return current.filter((f) => f !== field);
       } else {
         return [...current, field];
       }
@@ -70,7 +72,7 @@ export function UserExport({ currentFilters }: UserExportProps) {
   };
 
   const handleSelectAllFields = () => {
-    setSelectedFields(availableFields.map(field => field.key));
+    setSelectedFields(availableFields.map((field) => field.key));
   };
 
   const handleDeselectAllFields = () => {
@@ -80,9 +82,9 @@ export function UserExport({ currentFilters }: UserExportProps) {
   const exportUsers = async () => {
     if (selectedFields.length === 0) {
       toast({
-        title: 'No fields selected',
-        description: 'Please select at least one field to export',
-        variant: 'destructive',
+        title: "No fields selected",
+        description: "Please select at least one field to export",
+        variant: "destructive",
       });
       return;
     }
@@ -92,27 +94,28 @@ export function UserExport({ currentFilters }: UserExportProps) {
       const result = await api.exportUsersBasedOnFilters(
         exportFormat,
         selectedFields,
-        currentFilters
+        currentFilters,
       );
 
       // Handle the export result - this would typically be a file download
       if (result?.fileUrl) {
-        window.open(result.fileUrl, '_blank');
+        window.open(result.fileUrl, "_blank");
         toast({
-          title: 'Export successful',
+          title: "Export successful",
           description: `Users exported to ${exportFormat.toUpperCase()} format successfully`,
         });
       } else {
-        throw new Error('Export failed - no file URL returned');
+        throw new Error("Export failed - no file URL returned");
       }
 
       setOpen(false);
     } catch (error) {
-      console.error('Export error:', error);
+      console.error("Export error:", error);
       toast({
-        title: 'Export failed',
-        description: 'There was an error exporting the users. Please try again.',
-        variant: 'destructive',
+        title: "Export failed",
+        description:
+          "There was an error exporting the users. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsExporting(false);
@@ -121,21 +124,23 @@ export function UserExport({ currentFilters }: UserExportProps) {
 
   const formatTotalUsers = () => {
     const total = api.totalUsers;
-    const role = currentFilters.role ? ` (${currentFilters.role.toLowerCase()})` : '';
+    const role = currentFilters.role
+      ? ` (${currentFilters.role.toLowerCase()})`
+      : "";
     const status = currentFilters.status
-      ? ` with status ${currentFilters.status.toLowerCase().replace('_', ' ')}`
-      : '';
+      ? ` with status ${currentFilters.status.toLowerCase().replace("_", " ")}`
+      : "";
 
     return `${total} users${role}${status}`;
   };
 
-  const getFormatIcon = (format: 'csv' | 'excel' | 'pdf') => {
+  const getFormatIcon = (format: "csv" | "excel" | "pdf") => {
     switch (format) {
-      case 'csv':
+      case "csv":
         return <FileText className="h-4 w-4 mr-2" />;
-      case 'excel':
+      case "excel":
         return <File className="h-4 w-4 mr-2 text-green-600" />;
-      case 'pdf':
+      case "pdf":
         return <File className="h-4 w-4 mr-2 text-red-600" />;
     }
   };
@@ -160,7 +165,9 @@ export function UserExport({ currentFilters }: UserExportProps) {
             <h3 className="text-sm font-medium">Export Format</h3>
             <RadioGroup
               value={exportFormat}
-              onValueChange={value => setExportFormat(value as 'csv' | 'excel' | 'pdf')}
+              onValueChange={(value) =>
+                setExportFormat(value as "csv" | "excel" | "pdf")
+              }
               className="flex flex-row gap-4"
             >
               <div className="flex items-center space-x-2">
@@ -212,7 +219,7 @@ export function UserExport({ currentFilters }: UserExportProps) {
             </div>
             <ScrollArea className="h-60 rounded-md border">
               <div className="p-4 space-y-2">
-                {availableFields.map(field => (
+                {availableFields.map((field) => (
                   <div key={field.key} className="flex items-center space-x-2">
                     <Checkbox
                       id={`field-${field.key}`}
@@ -230,8 +237,11 @@ export function UserExport({ currentFilters }: UserExportProps) {
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={exportUsers} disabled={isExporting || selectedFields.length === 0}>
-            {isExporting ? 'Exporting...' : 'Export'}
+          <Button
+            onClick={exportUsers}
+            disabled={isExporting || selectedFields.length === 0}
+          >
+            {isExporting ? "Exporting..." : "Export"}
             {!isExporting && getFormatIcon(exportFormat)}
           </Button>
         </DialogFooter>

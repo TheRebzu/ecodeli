@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function Page() {
   useEffect(() => {
     // Initialisation du composant
-    console.log('Page chargée');
+    console.log("Page chargée");
   }, []);
 
   return (

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { Delivery } from '@prisma/client';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { Delivery } from "@prisma/client";
 import {
   Table,
   TableBody,
@@ -11,29 +11,29 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Eye, ArrowUpDown, MoreHorizontal, Calendar } from 'lucide-react';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Eye, ArrowUpDown, MoreHorizontal, Calendar } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils/common';
-import { formatCurrency } from '@/utils/document-utils';
-import { Card, CardContent } from '@/components/ui/card';
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils/common";
+import { formatCurrency } from "@/utils/document-utils";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
+} from "@/components/ui/pagination";
 
 interface DeliveryWithDetails extends Delivery {
   deliverer?: {
@@ -67,22 +67,22 @@ export function DeliveryTable({
   onPageChange,
   onSortChange,
 }: DeliveryTableProps) {
-  const t = useTranslations('merchant.deliveries');
+  const t = useTranslations("merchant.deliveries");
   const router = useRouter();
   const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       // Toggle sort order if same column
-      const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+      const newOrder = sortOrder === "asc" ? "desc" : "asc";
       setSortOrder(newOrder);
     } else {
       // Set new column and default to ascending
       setSortColumn(column);
-      setSortOrder('asc');
+      setSortOrder("asc");
     }
 
     if (onSortChange) {
@@ -96,48 +96,69 @@ export function DeliveryTable({
 
   // Helper function to render the delivery status badge
   const renderStatusBadge = (status: string) => {
-    const variant = 'outline';
+    const variant = "outline";
 
     switch (status) {
-      case 'PENDING':
+      case "PENDING":
         return (
-          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+          <Badge
+            variant="outline"
+            className="bg-yellow-50 text-yellow-700 border-yellow-200"
+          >
             En attente
           </Badge>
         );
-      case 'ASSIGNED':
+      case "ASSIGNED":
         return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200"
+          >
             Assignée
           </Badge>
         );
-      case 'IN_PROGRESS':
+      case "IN_PROGRESS":
         return (
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+          <Badge
+            variant="outline"
+            className="bg-purple-50 text-purple-700 border-purple-200"
+          >
             En cours
           </Badge>
         );
-      case 'DELIVERED':
+      case "DELIVERED":
         return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200"
+          >
             Livrée
           </Badge>
         );
-      case 'COMPLETED':
+      case "COMPLETED":
         return (
-          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+          <Badge
+            variant="outline"
+            className="bg-green-100 text-green-800 border-green-300"
+          >
             Terminée
           </Badge>
         );
-      case 'CANCELLED':
+      case "CANCELLED":
         return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
             Annulée
           </Badge>
         );
-      case 'PROBLEM':
+      case "PROBLEM":
         return (
-          <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+          <Badge
+            variant="outline"
+            className="bg-red-100 text-red-800 border-red-300"
+          >
             Problème
           </Badge>
         );
@@ -162,9 +183,9 @@ export function DeliveryTable({
       <Card className="border-dashed">
         <CardContent className="pt-6 text-center">
           <Calendar className="mx-auto h-12 w-12 text-muted-foreground opacity-30" />
-          <p className="mt-2 text-lg font-medium">{t('noDeliveries')}</p>
+          <p className="mt-2 text-lg font-medium">{t("noDeliveries")}</p>
           <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">
-            {t('noDeliveriesDescription')}
+            {t("noDeliveriesDescription")}
           </p>
         </CardContent>
       </Card>
@@ -182,9 +203,9 @@ export function DeliveryTable({
                   variant="ghost"
                   size="sm"
                   className="-ml-3 h-8 data-[state=open]:bg-accent"
-                  onClick={() => handleSort('id')}
+                  onClick={() => handleSort("id")}
                 >
-                  {t('columns.id')}
+                  {t("columns.id")}
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
@@ -193,9 +214,9 @@ export function DeliveryTable({
                   variant="ghost"
                   size="sm"
                   className="-ml-3 h-8 data-[state=open]:bg-accent"
-                  onClick={() => handleSort('title')}
+                  onClick={() => handleSort("title")}
                 >
-                  {t('columns.title')}
+                  {t("columns.title")}
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
@@ -204,9 +225,9 @@ export function DeliveryTable({
                   variant="ghost"
                   size="sm"
                   className="-ml-3 h-8 data-[state=open]:bg-accent"
-                  onClick={() => handleSort('status')}
+                  onClick={() => handleSort("status")}
                 >
-                  {t('columns.status')}
+                  {t("columns.status")}
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
@@ -215,9 +236,9 @@ export function DeliveryTable({
                   variant="ghost"
                   size="sm"
                   className="-ml-3 h-8 data-[state=open]:bg-accent"
-                  onClick={() => handleSort('deliverer')}
+                  onClick={() => handleSort("deliverer")}
                 >
-                  {t('columns.deliverer')}
+                  {t("columns.deliverer")}
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
@@ -226,9 +247,9 @@ export function DeliveryTable({
                   variant="ghost"
                   size="sm"
                   className="-ml-3 h-8 data-[state=open]:bg-accent"
-                  onClick={() => handleSort('date')}
+                  onClick={() => handleSort("date")}
                 >
-                  {t('columns.date')}
+                  {t("columns.date")}
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
@@ -237,48 +258,61 @@ export function DeliveryTable({
                   variant="ghost"
                   size="sm"
                   className="-ml-3 h-8 data-[state=open]:bg-accent"
-                  onClick={() => handleSort('price')}
+                  onClick={() => handleSort("price")}
                 >
-                  {t('columns.price')}
+                  {t("columns.price")}
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
               <TableHead className="w-[100px]">
-                <span className="sr-only">{t('columns.actions')}</span>
+                <span className="sr-only">{t("columns.actions")}</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {deliveries.map(delivery => (
+            {deliveries.map((delivery) => (
               <TableRow
                 key={delivery.id}
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleViewDelivery(delivery.id)}
               >
-                <TableCell className="font-medium">#{delivery.id.substring(0, 8)}</TableCell>
-                <TableCell>{delivery.announcement?.title || t('untitled')}</TableCell>
+                <TableCell className="font-medium">
+                  #{delivery.id.substring(0, 8)}
+                </TableCell>
+                <TableCell>
+                  {delivery.announcement?.title || t("untitled")}
+                </TableCell>
                 <TableCell>{renderStatusBadge(delivery.status)}</TableCell>
-                <TableCell>{delivery.deliverer?.name || t('notAssigned')}</TableCell>
+                <TableCell>
+                  {delivery.deliverer?.name || t("notAssigned")}
+                </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {delivery.createdAt
-                    ? format(new Date(delivery.createdAt), 'PPP', { locale: fr })
-                    : ''}
+                    ? format(new Date(delivery.createdAt), "PPP", {
+                        locale: fr,
+                      })
+                    : ""}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {formatCurrency(delivery.price || 0)}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                    <DropdownMenuTrigger
+                      asChild
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">{t('openMenu')}</span>
+                        <span className="sr-only">{t("openMenu")}</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleViewDelivery(delivery.id)}>
+                      <DropdownMenuItem
+                        onClick={() => handleViewDelivery(delivery.id)}
+                      >
                         <Eye className="mr-2 h-4 w-4" />
-                        {t('view')}
+                        {t("view")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -296,7 +330,9 @@ export function DeliveryTable({
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                className={cn(currentPage === 1 && 'pointer-events-none opacity-50')}
+                className={cn(
+                  currentPage === 1 && "pointer-events-none opacity-50",
+                )}
               />
             </PaginationItem>
             {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
@@ -304,7 +340,7 @@ export function DeliveryTable({
               return (
                 <PaginationItem key={page}>
                   <Button
-                    variant={page === currentPage ? 'default' : 'outline'}
+                    variant={page === currentPage ? "default" : "outline"}
                     size="icon"
                     className="h-9 w-9"
                     onClick={() => onPageChange(page)}
@@ -317,8 +353,13 @@ export function DeliveryTable({
             {totalPages > 5 && <span className="px-2">...</span>}
             <PaginationItem>
               <PaginationNext
-                onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                className={cn(currentPage === totalPages && 'pointer-events-none opacity-50')}
+                onClick={() =>
+                  onPageChange(Math.min(totalPages, currentPage + 1))
+                }
+                className={cn(
+                  currentPage === totalPages &&
+                    "pointer-events-none opacity-50",
+                )}
               />
             </PaginationItem>
           </PaginationContent>

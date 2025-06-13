@@ -4,8 +4,8 @@
  */
 
 // Exports des fichiers locaux
-export * from './contract-document';
-export * from './document';
-export * from './invoice-document';
-export * from './justificative';
-export * from './verification';
+export * from "./contract-document";
+export * from "./document";
+export * from "./invoice-document";
+export * from "./justificative";
+export * from "./verification";

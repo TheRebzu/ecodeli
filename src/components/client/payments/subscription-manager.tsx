@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface SubscriptionManagerProps {
   currentPlan?: string;
@@ -7,10 +7,10 @@ interface SubscriptionManagerProps {
   onCancel?: () => void;
 }
 
-export function SubscriptionManager({ 
-  currentPlan = 'Free', 
-  onUpgrade, 
-  onCancel 
+export function SubscriptionManager({
+  currentPlan = "Free",
+  onUpgrade,
+  onCancel,
 }: SubscriptionManagerProps) {
   return (
     <Card>
@@ -18,7 +18,9 @@ export function SubscriptionManager({
         <CardTitle>Abonnement actuel</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p>Plan actuel: <strong>{currentPlan}</strong></p>
+        <p>
+          Plan actuel: <strong>{currentPlan}</strong>
+        </p>
         <div className="flex gap-2">
           <Button onClick={onUpgrade} variant="default">
             Mettre à niveau

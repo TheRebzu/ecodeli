@@ -1,7 +1,11 @@
-import { z } from 'zod';
-import { router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { MerchantAnnouncementType, AnnouncementStatus, AnnouncementPriority } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import {
+  MerchantAnnouncementType,
+  AnnouncementStatus,
+  AnnouncementPriority,
+} from "@prisma/client";
 
 /**
  * Router pour les annonces commerçants selon le cahier des charges
@@ -18,7 +22,7 @@ const createAnnouncementSchema = z.object({
   // Détails de l'annonce
   discount: z
     .object({
-      type: z.enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_SHIPPING']),
+      type: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "FREE_SHIPPING"]),
       value: z.number().min(0),
       minOrderAmount: z.number().min(0).optional(),
       maxDiscount: z.number().min(0).optional(), // Pour les %
@@ -36,7 +40,7 @@ const createAnnouncementSchema = z.object({
         postalCode: z.string(),
         city: z.string(),
         maxDistance: z.number().min(1).max(50),
-      })
+      }),
     )
     .min(1),
 
@@ -45,7 +49,7 @@ const createAnnouncementSchema = z.object({
   targetCategories: z.array(z.string()).optional(),
 
   // Configuration
-  priority: z.nativeEnum(AnnouncementPriority).default('NORMAL'),
+  priority: z.nativeEnum(AnnouncementPriority).default("NORMAL"),
   isPublished: z.boolean().default(false),
   allowNotifications: z.boolean().default(true),
   maxBudget: z.number().min(0).optional(), // Budget marketing
@@ -88,15 +92,17 @@ const announcementFiltersSchema = z.object({
   dateFrom: z.date().optional(),
   dateTo: z.date().optional(),
   search: z.string().optional(),
-  sortBy: z.enum(['createdAt', 'startDate', 'endDate', 'title', 'priority']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  sortBy: z
+    .enum(["createdAt", "startDate", "endDate", "title", "priority"])
+    .default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
   limit: z.number().min(1).max(100).default(20),
   offset: z.number().min(0).default(0),
 });
 
 const announcementStatsSchema = z.object({
   announcementId: z.string().cuid(),
-  period: z.enum(['DAY', 'WEEK', 'MONTH']).default('WEEK'),
+  period: z.enum(["DAY", "WEEK", "MONTH"]).default("WEEK"),
 });
 
 export const merchantAnnouncementsRouter = router({
@@ -108,10 +114,10 @@ export const merchantAnnouncementsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent créer des annonces',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent créer des annonces",
         });
       }
 
@@ -123,16 +129,16 @@ export const merchantAnnouncementsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
         // Vérifier les dates
         if (input.startDate >= input.endDate) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'La date de fin doit être postérieure à la date de début',
+            code: "BAD_REQUEST",
+            message: "La date de fin doit être postérieure à la date de début",
           });
         }
 
@@ -140,15 +146,15 @@ export const merchantAnnouncementsRouter = router({
         const activeAnnouncements = await ctx.db.merchantAnnouncement.count({
           where: {
             merchantId: merchant.id,
-            status: { in: ['ACTIVE', 'SCHEDULED'] },
+            status: { in: ["ACTIVE", "SCHEDULED"] },
             endDate: { gte: new Date() },
           },
         });
 
         if (activeAnnouncements >= 10) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Limite de 10 annonces actives atteinte',
+            code: "BAD_REQUEST",
+            message: "Limite de 10 annonces actives atteinte",
           });
         }
 
@@ -163,8 +169,9 @@ export const merchantAnnouncementsRouter = router({
 
           if (productCount !== input.targetProducts.length) {
             throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Certains produits sélectionnés ne vous appartiennent pas',
+              code: "BAD_REQUEST",
+              message:
+                "Certains produits sélectionnés ne vous appartiennent pas",
             });
           }
         }
@@ -173,13 +180,13 @@ export const merchantAnnouncementsRouter = router({
         const now = new Date();
         let status: AnnouncementStatus;
         if (!input.isPublished) {
-          status = 'DRAFT';
+          status = "DRAFT";
         } else if (input.startDate > now) {
-          status = 'SCHEDULED';
+          status = "SCHEDULED";
         } else if (input.endDate < now) {
-          status = 'EXPIRED';
+          status = "EXPIRED";
         } else {
-          status = 'ACTIVE';
+          status = "ACTIVE";
         }
 
         const announcement = await ctx.db.merchantAnnouncement.create({
@@ -214,7 +221,7 @@ export const merchantAnnouncementsRouter = router({
         });
 
         // TODO: Si publié et actif, déclencher les notifications
-        if (status === 'ACTIVE' && input.allowNotifications) {
+        if (status === "ACTIVE" && input.allowNotifications) {
           // Logique de notification aux clients dans la zone
         }
 
@@ -222,13 +229,13 @@ export const merchantAnnouncementsRouter = router({
           success: true,
           data: announcement,
           message: input.isPublished
-            ? 'Annonce créée et publiée avec succès'
-            : 'Annonce créée en brouillon',
+            ? "Annonce créée et publiée avec succès"
+            : "Annonce créée en brouillon",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la création de l'annonce",
         });
       }
@@ -242,10 +249,10 @@ export const merchantAnnouncementsRouter = router({
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent consulter leurs annonces',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent consulter leurs annonces",
         });
       }
 
@@ -256,8 +263,8 @@ export const merchantAnnouncementsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -272,8 +279,8 @@ export const merchantAnnouncementsRouter = router({
           }),
           ...(input.search && {
             OR: [
-              { title: { contains: input.search, mode: 'insensitive' } },
-              { description: { contains: input.search, mode: 'insensitive' } },
+              { title: { contains: input.search, mode: "insensitive" } },
+              { description: { contains: input.search, mode: "insensitive" } },
             ],
           }),
           ...(input.dateFrom &&
@@ -289,13 +296,13 @@ export const merchantAnnouncementsRouter = router({
             where.AND = [
               { startDate: { lte: now } },
               { endDate: { gte: now } },
-              { status: 'ACTIVE' },
+              { status: "ACTIVE" },
             ];
           } else {
             where.OR = [
               { startDate: { gt: now } },
               { endDate: { lt: now } },
-              { status: { in: ['DRAFT', 'EXPIRED', 'PAUSED'] } },
+              { status: { in: ["DRAFT", "EXPIRED", "PAUSED"] } },
             ];
           }
         }
@@ -330,10 +337,10 @@ export const merchantAnnouncementsRouter = router({
         ]);
 
         // Formatter les données
-        const formattedAnnouncements = announcements.map(announcement => {
+        const formattedAnnouncements = announcements.map((announcement) => {
           const now = new Date();
           const isActive =
-            announcement.status === 'ACTIVE' &&
+            announcement.status === "ACTIVE" &&
             announcement.startDate <= now &&
             announcement.endDate >= now;
 
@@ -341,7 +348,10 @@ export const merchantAnnouncementsRouter = router({
             ...announcement,
             isActive,
             daysRemaining: isActive
-              ? Math.ceil((announcement.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+              ? Math.ceil(
+                  (announcement.endDate.getTime() - now.getTime()) /
+                    (1000 * 60 * 60 * 24),
+                )
               : 0,
             usageCount: announcement._count.usages,
             performance: announcement.stats || {
@@ -367,8 +377,8 @@ export const merchantAnnouncementsRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des annonces',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des annonces",
         });
       }
     }),
@@ -381,10 +391,10 @@ export const merchantAnnouncementsRouter = router({
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -395,8 +405,8 @@ export const merchantAnnouncementsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -416,7 +426,7 @@ export const merchantAnnouncementsRouter = router({
             },
             stats: true,
             usages: {
-              orderBy: { createdAt: 'desc' },
+              orderBy: { createdAt: "desc" },
               take: 10,
               include: {
                 client: {
@@ -432,14 +442,14 @@ export const merchantAnnouncementsRouter = router({
 
         if (!announcement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Annonce non trouvée',
+            code: "NOT_FOUND",
+            message: "Annonce non trouvée",
           });
         }
 
         const now = new Date();
         const isActive =
-          announcement.status === 'ACTIVE' &&
+          announcement.status === "ACTIVE" &&
           announcement.startDate <= now &&
           announcement.endDate >= now;
 
@@ -448,17 +458,20 @@ export const merchantAnnouncementsRouter = router({
           data: {
             ...announcement,
             isActive,
-            canEdit: ['DRAFT', 'SCHEDULED'].includes(announcement.status),
-            canDelete: !['ACTIVE'].includes(announcement.status),
+            canEdit: ["DRAFT", "SCHEDULED"].includes(announcement.status),
+            canDelete: !["ACTIVE"].includes(announcement.status),
             daysRemaining: isActive
-              ? Math.ceil((announcement.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+              ? Math.ceil(
+                  (announcement.endDate.getTime() - now.getTime()) /
+                    (1000 * 60 * 60 * 24),
+                )
               : 0,
           },
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération de l'annonce",
         });
       }
@@ -472,10 +485,10 @@ export const merchantAnnouncementsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent modifier leurs annonces',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent modifier leurs annonces",
         });
       }
 
@@ -486,8 +499,8 @@ export const merchantAnnouncementsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -500,16 +513,16 @@ export const merchantAnnouncementsRouter = router({
 
         if (!announcement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Annonce non trouvée',
+            code: "NOT_FOUND",
+            message: "Annonce non trouvée",
           });
         }
 
         // Vérifier si l'annonce peut être modifiée
-        if (!['DRAFT', 'SCHEDULED', 'PAUSED'].includes(announcement.status)) {
+        if (!["DRAFT", "SCHEDULED", "PAUSED"].includes(announcement.status)) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette annonce ne peut plus être modifiée',
+            code: "BAD_REQUEST",
+            message: "Cette annonce ne peut plus être modifiée",
           });
         }
 
@@ -522,8 +535,8 @@ export const merchantAnnouncementsRouter = router({
           updateData.startDate >= updateData.endDate
         ) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'La date de fin doit être postérieure à la date de début',
+            code: "BAD_REQUEST",
+            message: "La date de fin doit être postérieure à la date de début",
           });
         }
 
@@ -538,13 +551,13 @@ export const merchantAnnouncementsRouter = router({
         return {
           success: true,
           data: updatedAnnouncement,
-          message: 'Annonce mise à jour avec succès',
+          message: "Annonce mise à jour avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la mise à jour',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour",
         });
       }
     }),
@@ -557,15 +570,15 @@ export const merchantAnnouncementsRouter = router({
       z.object({
         id: z.string().cuid(),
         publish: z.boolean(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent publier leurs annonces',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent publier leurs annonces",
         });
       }
 
@@ -576,8 +589,8 @@ export const merchantAnnouncementsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -590,8 +603,8 @@ export const merchantAnnouncementsRouter = router({
 
         if (!announcement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Annonce non trouvée',
+            code: "NOT_FOUND",
+            message: "Annonce non trouvée",
           });
         }
 
@@ -601,14 +614,14 @@ export const merchantAnnouncementsRouter = router({
 
         if (input.publish) {
           if (announcement.startDate > now) {
-            newStatus = 'SCHEDULED';
+            newStatus = "SCHEDULED";
           } else if (announcement.endDate < now) {
-            newStatus = 'EXPIRED';
+            newStatus = "EXPIRED";
           } else {
-            newStatus = 'ACTIVE';
+            newStatus = "ACTIVE";
           }
         } else {
-          newStatus = 'DRAFT';
+          newStatus = "DRAFT";
         }
 
         const updatedAnnouncement = await ctx.db.merchantAnnouncement.update({
@@ -622,13 +635,13 @@ export const merchantAnnouncementsRouter = router({
         return {
           success: true,
           data: updatedAnnouncement,
-          message: input.publish ? 'Annonce publiée' : 'Annonce dépubliée',
+          message: input.publish ? "Annonce publiée" : "Annonce dépubliée",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la publication',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la publication",
         });
       }
     }),
@@ -641,10 +654,10 @@ export const merchantAnnouncementsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent supprimer leurs annonces',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent supprimer leurs annonces",
         });
       }
 
@@ -655,8 +668,8 @@ export const merchantAnnouncementsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -674,23 +687,23 @@ export const merchantAnnouncementsRouter = router({
 
         if (!announcement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Annonce non trouvée',
+            code: "NOT_FOUND",
+            message: "Annonce non trouvée",
           });
         }
 
         // Vérifier si l'annonce peut être supprimée
-        if (announcement.status === 'ACTIVE') {
+        if (announcement.status === "ACTIVE") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Impossible de supprimer une annonce active',
+            code: "BAD_REQUEST",
+            message: "Impossible de supprimer une annonce active",
           });
         }
 
         if (announcement._count.usages > 0) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Impossible de supprimer une annonce déjà utilisée',
+            code: "BAD_REQUEST",
+            message: "Impossible de supprimer une annonce déjà utilisée",
           });
         }
 
@@ -700,13 +713,13 @@ export const merchantAnnouncementsRouter = router({
 
         return {
           success: true,
-          message: 'Annonce supprimée avec succès',
+          message: "Annonce supprimée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la suppression',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la suppression",
         });
       }
     }),
@@ -719,10 +732,10 @@ export const merchantAnnouncementsRouter = router({
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -733,8 +746,8 @@ export const merchantAnnouncementsRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -747,8 +760,8 @@ export const merchantAnnouncementsRouter = router({
 
         if (!announcement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Annonce non trouvée',
+            code: "NOT_FOUND",
+            message: "Annonce non trouvée",
           });
         }
 
@@ -757,13 +770,13 @@ export const merchantAnnouncementsRouter = router({
         let startDate: Date;
 
         switch (input.period) {
-          case 'DAY':
+          case "DAY":
             startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
             break;
-          case 'WEEK':
+          case "WEEK":
             startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             break;
-          case 'MONTH':
+          case "MONTH":
             startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
             break;
         }
@@ -801,14 +814,15 @@ export const merchantAnnouncementsRouter = router({
             totalDiscount: revenueData._sum.discountAmount || 0,
             conversionRate: announcement.stats?.engagementRate || 0,
             roi: announcement.maxBudget
-              ? ((revenueData._sum.orderAmount || 0) / announcement.maxBudget) * 100
+              ? ((revenueData._sum.orderAmount || 0) / announcement.maxBudget) *
+                100
               : null,
           },
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des statistiques',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques",
         });
       }
     }),
@@ -823,7 +837,7 @@ export const merchantAnnouncementsRouter = router({
         city: z.string().min(2).max(100),
         type: z.nativeEnum(MerchantAnnouncementType).optional(),
         limit: z.number().min(1).max(50).default(10),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -831,7 +845,7 @@ export const merchantAnnouncementsRouter = router({
 
         const announcements = await ctx.db.merchantAnnouncement.findMany({
           where: {
-            status: 'ACTIVE',
+            status: "ACTIVE",
             startDate: { lte: now },
             endDate: { gte: now },
             ...(input.type && { type: input.type }),
@@ -839,7 +853,7 @@ export const merchantAnnouncementsRouter = router({
               some: {
                 OR: [
                   { postalCode: input.postalCode },
-                  { city: { contains: input.city, mode: 'insensitive' } },
+                  { city: { contains: input.city, mode: "insensitive" } },
                 ],
               },
             },
@@ -857,13 +871,13 @@ export const merchantAnnouncementsRouter = router({
               },
             },
           },
-          orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+          orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
           take: input.limit,
         });
 
         return {
           success: true,
-          data: announcements.map(announcement => ({
+          data: announcements.map((announcement) => ({
             id: announcement.id,
             type: announcement.type,
             title: announcement.title,
@@ -873,15 +887,17 @@ export const merchantAnnouncementsRouter = router({
             bannerImage: announcement.bannerImage,
             endDate: announcement.endDate,
             merchant: {
-              name: announcement.merchant.businessName || announcement.merchant.user?.name,
+              name:
+                announcement.merchant.businessName ||
+                announcement.merchant.user?.name,
               city: announcement.merchant.businessCity,
             },
           })),
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des annonces',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des annonces",
         });
       }
     }),

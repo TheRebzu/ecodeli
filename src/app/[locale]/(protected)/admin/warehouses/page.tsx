@@ -1,6 +1,6 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { WarehouseList } from '@/components/admin/warehouses/warehouse-list';
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { WarehouseList } from "@/components/admin/warehouses/warehouse-list";
 
 export async function generateMetadata({
   params,
@@ -8,11 +8,14 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'admin.warehouses.meta' });
+  const t = await getTranslations({
+    locale,
+    namespace: "admin.warehouses.meta",
+  });
 
   return {
-    title: t('title'),
-    description: t('description'),
+    title: t("title"),
+    description: t("description"),
   };
 }
 

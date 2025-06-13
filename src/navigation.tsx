@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { usePathname } from 'next/navigation';
-import NextLink from 'next/link';
-import { useLocale, useTranslations } from 'next-intl';
+import React from "react";
+import { usePathname } from "next/navigation";
+import NextLink from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 interface LinkProps extends React.ComponentPropsWithoutRef<typeof NextLink> {
   children: React.ReactNode;
@@ -28,24 +28,28 @@ export function Link({
   let newHref = href;
 
   // Gérer les chemins relatifs et absolus
-  if (typeof href === 'string') {
+  if (typeof href === "string") {
     // Préserver la locale actuelle si demandé
-    if (preserveLocale && !href.startsWith('/') && !href.startsWith('#')) {
-      newHref = `/${locale}${href.startsWith('/') ? href : `/${href}`}`;
-    } else if (preserveLocale && !href.startsWith('/')) {
+    if (preserveLocale && !href.startsWith("/") && !href.startsWith("#")) {
+      newHref = `/${locale}${href.startsWith("/") ? href : `/${href}`}`;
+    } else if (preserveLocale && !href.startsWith("/")) {
       // Si c'est un lien relatif, construire le chemin complet
-      const pathParts = pathname.split('/');
+      const pathParts = pathname.split("/");
       pathParts.pop(); // Enlever la dernière partie
 
-      let basePath = pathParts.join('/');
+      let basePath = pathParts.join("/");
       if (!basePath.startsWith(`/${locale}`)) {
         basePath = `/${locale}${basePath}`;
       }
 
       newHref = `${basePath}/${href}`;
-    } else if (preserveLocale && !href.includes(`/${locale}/`) && !href.startsWith('#')) {
+    } else if (
+      preserveLocale &&
+      !href.includes(`/${locale}/`) &&
+      !href.startsWith("#")
+    ) {
       // Ajouter la locale au début du chemin si elle n'est pas déjà présente
-      newHref = `/${locale}${href.startsWith('/') ? href : `/${href}`}`;
+      newHref = `/${locale}${href.startsWith("/") ? href : `/${href}`}`;
     }
   }
 
@@ -64,7 +68,7 @@ export function useLocalizedLinks() {
   const t = useTranslations();
 
   const getLocalizedHref = (path: string): string => {
-    if (path.startsWith('/')) {
+    if (path.startsWith("/")) {
       return `/${locale}${path}`;
     }
     return `/${locale}/${path}`;

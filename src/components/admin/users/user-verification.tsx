@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -9,13 +9,13 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Check,
   X,
@@ -31,10 +31,10 @@ import {
   Mail,
   Phone,
   ArrowLeft,
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { api } from '@/trpc/react';
+} from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { api } from "@/trpc/react";
 
 // Types pour les documents et utilisateurs
 interface Document {
@@ -44,7 +44,7 @@ interface Document {
   fileUrl: string;
   mimeType: string;
   uploadedAt: Date;
-  verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED";
   rejectionReason?: string | null;
 }
 
@@ -59,8 +59,11 @@ interface UserWithDocuments {
 }
 
 // Import des utilities pour les documents
-import { getDocumentTypeName, getRequiredDocumentTypesByRole } from '@/utils/document-utils';
-import { DocumentType } from '@prisma/client';
+import {
+  getDocumentTypeName,
+  getRequiredDocumentTypesByRole,
+} from "@/utils/document-utils";
+import { DocumentType } from "@prisma/client";
 
 export function UserDocumentVerification({
   user,
@@ -72,10 +75,12 @@ export function UserDocumentVerification({
   const router = useRouter();
   const { toast } = useToast();
   const [selectedDocType, setSelectedDocType] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [rejectionReason, setRejectionReason] = useState<string>("");
   const [mounted, setMounted] = useState(false);
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null,
+  );
 
   // Use useEffect to mark when component is mounted on client
   useEffect(() => {
@@ -90,17 +95,17 @@ export function UserDocumentVerification({
     }
 
     // Client-side only logic after hydration
-    if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
 
     // Pour les fichiers uploadés, servir directement via /uploads/ (public)
-    if (url.startsWith('/uploads/')) {
+    if (url.startsWith("/uploads/")) {
       return `${window.location.origin}${url}`;
     }
 
     // Ensure the URL is properly formatted
-    if (url.startsWith('/')) {
+    if (url.startsWith("/")) {
       return `${window.location.origin}${url}`;
     }
 
@@ -123,22 +128,22 @@ export function UserDocumentVerification({
   const downloadDocument = async (doc: Document) => {
     try {
       toast({
-        title: 'Téléchargement en cours',
-        children: 'Préparation du document...',
+        title: "Téléchargement en cours",
+        children: "Préparation du document...",
       });
 
       // Construire l'URL complète pour le téléchargement
       const downloadUrl = getFullDocumentUrl(doc.fileUrl);
 
       // Créer un élément de lien temporaire pour le téléchargement
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = downloadUrl; // Extraire le nom original du fichier
       const originalFilename = doc.filename;
       // Utiliser le nom original ou générer un nom basé sur le type de document
       const fileName =
         originalFilename ||
-        `${getDocumentTypeName(doc.type as DocumentType) || doc.type}.${doc.mimeType?.split('/').pop() || 'pdf'}`;
-      link.setAttribute('download', fileName);
+        `${getDocumentTypeName(doc.type as DocumentType) || doc.type}.${doc.mimeType?.split("/").pop() || "pdf"}`;
+      link.setAttribute("download", fileName);
 
       // Cliquer sur le lien pour déclencher le téléchargement
       document.body.appendChild(link);
@@ -150,22 +155,22 @@ export function UserDocumentVerification({
       }, 100);
 
       toast({
-        title: 'Téléchargement lancé',
-        children: 'Le document est en cours de téléchargement.',
+        title: "Téléchargement lancé",
+        children: "Le document est en cours de téléchargement.",
       });
     } catch (error) {
-      console.error('Erreur lors du téléchargement:', error);
+      console.error("Erreur lors du téléchargement:", error);
       toast({
-        title: 'Erreur de téléchargement',
-        variant: 'destructive',
-        children: 'Impossible de télécharger le document. Veuillez réessayer.',
+        title: "Erreur de téléchargement",
+        variant: "destructive",
+        children: "Impossible de télécharger le document. Veuillez réessayer.",
       });
     }
   };
 
   // Regrouper les documents par type
   const documentsByType: Record<string, Document> = {};
-  documents.forEach(doc => {
+  documents.forEach((doc) => {
     documentsByType[doc.type] = doc;
   });
 
@@ -173,16 +178,16 @@ export function UserDocumentVerification({
   const approveDocument = api.verification.approveDocument.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Document approuvé',
-        children: 'Le document a été approuvé avec succès.',
+        title: "Document approuvé",
+        children: "Le document a été approuvé avec succès.",
       });
       router.refresh();
     },
     onError: (error: any) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         children: `Impossible d'approuver le document: ${error.message}`,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -191,22 +196,24 @@ export function UserDocumentVerification({
   const rejectDocument = api.verification.rejectDocument.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Document rejeté',
-        children: 'Le document a été rejeté avec succès.',
+        title: "Document rejeté",
+        children: "Le document a été rejeté avec succès.",
       });
-      setRejectionReason('');
+      setRejectionReason("");
       router.refresh();
     },
     onError: (error: any) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         children: `Impossible de rejeter le document: ${error.message}`,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
   // Utiliser la fonction centralisée pour déterminer les documents requis
-  const requiredDocuments = getRequiredDocumentTypesByRole(user.role).map(type => type.toString());
+  const requiredDocuments = getRequiredDocumentTypesByRole(user.role).map(
+    (type) => type.toString(),
+  );
 
   // Handler pour approuver un document
   const handleApprove = (documentId: string) => {
@@ -217,9 +224,9 @@ export function UserDocumentVerification({
   const handleReject = (documentId: string) => {
     if (!rejectionReason.trim()) {
       toast({
-        title: 'Erreur',
-        children: 'Veuillez fournir une raison pour le rejet du document.',
-        variant: 'destructive',
+        title: "Erreur",
+        children: "Veuillez fournir une raison pour le rejet du document.",
+        variant: "destructive",
       });
       return;
     }
@@ -231,18 +238,18 @@ export function UserDocumentVerification({
   };
 
   // Déterminer si tous les documents requis sont approuvés
-  const allRequiredDocumentsApproved = requiredDocuments.every(type => {
+  const allRequiredDocumentsApproved = requiredDocuments.every((type) => {
     const doc = documentsByType[type];
-    return doc && doc.verificationStatus === 'APPROVED';
+    return doc && doc.verificationStatus === "APPROVED";
   });
 
   // Générer l'avatar de l'utilisateur
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(part => part[0]?.toUpperCase() || '')
+      .split(" ")
+      .map((part) => part[0]?.toUpperCase() || "")
       .slice(0, 2)
-      .join('');
+      .join("");
   };
 
   return (
@@ -273,18 +280,18 @@ export function UserDocumentVerification({
             <div className="ml-auto">
               <Badge
                 variant={
-                  user.role === 'DELIVERER'
-                    ? 'secondary'
-                    : user.role === 'MERCHANT'
-                      ? 'outline'
-                      : 'default'
+                  user.role === "DELIVERER"
+                    ? "secondary"
+                    : user.role === "MERCHANT"
+                      ? "outline"
+                      : "default"
                 }
               >
-                {user.role === 'DELIVERER'
-                  ? 'Livreur'
-                  : user.role === 'MERCHANT'
-                    ? 'Commerçant'
-                    : 'Prestataire'}
+                {user.role === "DELIVERER"
+                  ? "Livreur"
+                  : user.role === "MERCHANT"
+                    ? "Commerçant"
+                    : "Prestataire"}
               </Badge>
               {allRequiredDocumentsApproved ? (
                 <Badge variant="success" className="ml-2">
@@ -297,11 +304,13 @@ export function UserDocumentVerification({
               )}
             </div>
           </div>
-        </CardHeader>{' '}
+        </CardHeader>{" "}
         <CardContent className="pb-2 pt-0">
           <div className="text-sm text-muted-foreground">
-            Documents requis:{' '}
-            {requiredDocuments.map(type => getDocumentTypeName(type as DocumentType)).join(', ')}
+            Documents requis:{" "}
+            {requiredDocuments
+              .map((type) => getDocumentTypeName(type as DocumentType))
+              .join(", ")}
           </div>
         </CardContent>
         <CardFooter className="border-t pt-4">
@@ -313,45 +322,58 @@ export function UserDocumentVerification({
 
       {/* Documents à vérifier */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {requiredDocuments.map(docType => {
+        {requiredDocuments.map((docType) => {
           const document = documentsByType[docType];
-          const isPending = document?.verificationStatus === 'PENDING';
-          const isApproved = document?.verificationStatus === 'APPROVED';
-          const isRejected = document?.verificationStatus === 'REJECTED';
+          const isPending = document?.verificationStatus === "PENDING";
+          const isApproved = document?.verificationStatus === "APPROVED";
+          const isRejected = document?.verificationStatus === "REJECTED";
 
           return (
             <Card
               key={docType}
               className={
                 isApproved
-                  ? 'border-green-200 bg-green-50/50'
+                  ? "border-green-200 bg-green-50/50"
                   : isRejected
-                    ? 'border-red-200 bg-red-50/50'
+                    ? "border-red-200 bg-red-50/50"
                     : document
-                      ? ''
-                      : 'border-dashed border-muted-foreground/20'
+                      ? ""
+                      : "border-dashed border-muted-foreground/20"
               }
             >
               <CardHeader>
-                {' '}
+                {" "}
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base font-medium">
                     {getDocumentTypeName(docType as DocumentType)}
                   </CardTitle>
                   {document && (
                     <Badge
-                      variant={isApproved ? 'success' : isRejected ? 'destructive' : 'outline'}
+                      variant={
+                        isApproved
+                          ? "success"
+                          : isRejected
+                            ? "destructive"
+                            : "outline"
+                      }
                     >
                       {isApproved && <CheckCircle2 className="mr-1 h-3 w-3" />}
                       {isRejected && <AlertTriangle className="mr-1 h-3 w-3" />}
                       {isPending && <Clock className="mr-1 h-3 w-3" />}
-                      {isApproved ? 'Approuvé' : isRejected ? 'Rejeté' : 'En attente'}
+                      {isApproved
+                        ? "Approuvé"
+                        : isRejected
+                          ? "Rejeté"
+                          : "En attente"}
                     </Badge>
                   )}
                 </div>
                 {document && (
                   <CardDescription>
-                    Soumis le {format(new Date(document.uploadedAt), 'PPP', { locale: fr })}
+                    Soumis le{" "}
+                    {format(new Date(document.uploadedAt), "PPP", {
+                      locale: fr,
+                    })}
                   </CardDescription>
                 )}
               </CardHeader>
@@ -359,7 +381,7 @@ export function UserDocumentVerification({
               <CardContent>
                 {document ? (
                   <div className="space-y-4">
-                    {document.mimeType.startsWith('image/') ? (
+                    {document.mimeType.startsWith("image/") ? (
                       <div
                         className="relative aspect-[4/3] overflow-hidden rounded-lg border cursor-pointer"
                         onClick={() => viewDocument(document)}
@@ -379,7 +401,9 @@ export function UserDocumentVerification({
                         onClick={() => viewDocument(document)}
                       >
                         <FileText className="h-10 w-10 text-muted-foreground" />
-                        <button className="mt-2 text-sm text-primary">Voir le document</button>
+                        <button className="mt-2 text-sm text-primary">
+                          Voir le document
+                        </button>
                       </div>
                     )}
 
@@ -395,19 +419,25 @@ export function UserDocumentVerification({
                         <Textarea
                           placeholder="Raison du rejet (obligatoire en cas de rejet)"
                           value={rejectionReason}
-                          onChange={e => setRejectionReason(e.target.value)}
+                          onChange={(e) => setRejectionReason(e.target.value)}
                         />
                       </div>
                     )}
 
-                    <Button variant="outline" size="sm" onClick={() => downloadDocument(document)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => downloadDocument(document)}
+                    >
                       Télécharger
                     </Button>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-32 bg-muted/20 rounded-lg border border-dashed">
                     <File className="h-10 w-10 text-muted-foreground/50" />
-                    <p className="mt-2 text-sm text-muted-foreground">Document non soumis</p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Document non soumis
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -443,33 +473,36 @@ export function UserDocumentVerification({
           <div className="relative bg-white rounded-lg shadow-lg max-w-[700px] max-h-[80vh] overflow-y-auto">
             <div className="p-4 border-b">
               <div className="flex items-center gap-2">
-                {selectedDocument?.mimeType.startsWith('image/') ? (
+                {selectedDocument?.mimeType.startsWith("image/") ? (
                   <ImageIcon className="h-5 w-5" />
                 ) : (
                   <FileText className="h-5 w-5" />
                 )}
                 {selectedDocument
-                  ? getDocumentTypeName(selectedDocument.type as DocumentType) ||
-                    selectedDocument.filename
-                  : 'Aperçu du document'}
+                  ? getDocumentTypeName(
+                      selectedDocument.type as DocumentType,
+                    ) || selectedDocument.filename
+                  : "Aperçu du document"}
               </div>
             </div>
 
             {selectedDocument && (
               <div className="p-4">
-                {selectedDocument.mimeType.startsWith('image/') ? (
+                {selectedDocument.mimeType.startsWith("image/") ? (
                   <div className="relative w-full h-[500px]">
-                    {' '}
+                    {" "}
                     <img
                       src={getFullDocumentUrl(selectedDocument.fileUrl)}
                       alt={
                         selectedDocument.filename ||
-                        getDocumentTypeName(selectedDocument.type as DocumentType)
+                        getDocumentTypeName(
+                          selectedDocument.type as DocumentType,
+                        )
                       }
                       className="w-full h-full object-contain rounded-lg"
                     />
                   </div>
-                ) : selectedDocument.mimeType === 'application/pdf' ? (
+                ) : selectedDocument.mimeType === "application/pdf" ? (
                   <iframe
                     src={`${getFullDocumentUrl(selectedDocument.fileUrl)}#toolbar=0`}
                     className="w-full h-[500px]"
@@ -484,7 +517,10 @@ export function UserDocumentVerification({
                     <p className="text-sm text-muted-foreground mb-4">
                       Ce type de fichier ne peut pas être prévisualisé
                     </p>
-                    <Button variant="outline" onClick={() => downloadDocument(selectedDocument)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => downloadDocument(selectedDocument)}
+                    >
                       Télécharger le document
                     </Button>
                   </div>
@@ -499,7 +535,10 @@ export function UserDocumentVerification({
               </Button>
 
               {selectedDocument && (
-                <Button variant="outline" onClick={() => downloadDocument(selectedDocument)}>
+                <Button
+                  variant="outline"
+                  onClick={() => downloadDocument(selectedDocument)}
+                >
                   Télécharger
                 </Button>
               )}

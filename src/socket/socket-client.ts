@@ -1,4 +1,4 @@
-import { io, Socket } from 'socket.io-client';
+import { io, Socket } from "socket.io-client";
 
 let socket: Socket | null = null;
 
@@ -10,17 +10,17 @@ let socket: Socket | null = null;
 export const initializeSocket = (token: string): Socket => {
   if (socket) return socket;
 
-  socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || '', {
+  socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "", {
     auth: { token },
     autoConnect: true,
   });
 
-  socket.on('connect', () => {
-    console.log('Socket connected');
+  socket.on("connect", () => {
+    console.log("Socket connected");
   });
 
-  socket.on('disconnect', () => {
-    console.log('Socket disconnected');
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected");
   });
 
   return socket;

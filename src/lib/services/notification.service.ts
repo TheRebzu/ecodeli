@@ -1,5 +1,5 @@
-import { db } from '@/server/db';
-import { NotificationType } from '@/types/communication/notification';
+import { db } from "@/server/db";
+import { NotificationType } from "@/types/communication/notification";
 
 export interface NotificationData {
   title: string;
@@ -71,7 +71,7 @@ export class NotificationService {
       });
 
       await db.notification.createMany({
-        data: users.map(user => ({
+        data: users.map((user) => ({
           userId: user.id,
           title: notification.title,
           message: notification.message,
@@ -92,7 +92,7 @@ export class NotificationService {
    * Envoie une notification à tous les administrateurs
    */
   static async sendToAdmins(notification: NotificationData) {
-    return this.sendToRole('ADMIN', notification);
+    return this.sendToRole("ADMIN", notification);
   }
 
   /**
@@ -101,7 +101,7 @@ export class NotificationService {
   static async sendDocumentSubmissionNotification(
     documentId: string,
     userId: string,
-    documentType: string
+    documentType: string,
   ) {
     try {
       // Récupérer les informations sur l'utilisateur
@@ -111,7 +111,7 @@ export class NotificationService {
       });
 
       if (!user) {
-        throw new Error('Utilisateur non trouvé');
+        throw new Error("Utilisateur non trouvé");
       }
 
       // Créer un lien vers la page de vérification du document
@@ -119,14 +119,17 @@ export class NotificationService {
 
       // Envoyer la notification aux administrateurs
       return this.sendToAdmins({
-        title: 'Nouveau document à vérifier',
+        title: "Nouveau document à vérifier",
         message: `${user.name} a soumis un document de type ${documentType} pour vérification.`,
-        type: 'DOCUMENT_SUBMISSION',
+        type: "DOCUMENT_SUBMISSION",
         link,
         data: { documentId, userId, documentType },
       });
     } catch (error) {
-      console.error("Erreur lors de l'envoi de la notification de soumission de document:", error);
+      console.error(
+        "Erreur lors de l'envoi de la notification de soumission de document:",
+        error,
+      );
       return false;
     }
   }
@@ -145,7 +148,10 @@ export class NotificationService {
       });
       return true;
     } catch (error) {
-      console.error('Erreur lors du marquage de la notification comme lue:', error);
+      console.error(
+        "Erreur lors du marquage de la notification comme lue:",
+        error,
+      );
       return false;
     }
   }
@@ -160,7 +166,7 @@ export class NotificationService {
         read: false,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   }

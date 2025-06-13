@@ -1,5 +1,5 @@
-import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
+import { PrismaClient, UserRole, UserStatus } from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
 import {
   SeedResult,
   SeedOptions,
@@ -8,8 +8,8 @@ import {
   generateFrenchPhone,
   generateSiret,
   TestDataGenerator,
-} from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+} from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Interface pour définir les quotas d'utilisateurs par type
@@ -45,12 +45,12 @@ interface UserQuotas {
 export async function seedCompleteUsers(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('COMPLETE_USERS');
+  logger.startSeed("COMPLETE_USERS");
 
   const result: SeedResult = {
-    entity: 'complete_users',
+    entity: "complete_users",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -90,14 +90,14 @@ export async function seedCompleteUsers(
     providers: {
       total: 25, // 25 prestataires
       specialties: [
-        'Plomberie',
-        'Électricité',
-        'Ménage et Nettoyage',
-        'Jardinage',
-        'Bricolage et Réparation',
-        'Support Informatique',
+        "Plomberie",
+        "Électricité",
+        "Ménage et Nettoyage",
+        "Jardinage",
+        "Bricolage et Réparation",
+        "Support Informatique",
         "Garde d'enfants",
-        'Cours Particuliers',
+        "Cours Particuliers",
       ],
     },
   };
@@ -110,8 +110,8 @@ export async function seedCompleteUsers(
 
   if (existingUsers > 50 && !options.force) {
     logger.warning(
-      'COMPLETE_USERS',
-      `${existingUsers} utilisateurs déjà présents - utiliser force:true pour recréer`
+      "COMPLETE_USERS",
+      `${existingUsers} utilisateurs déjà présents - utiliser force:true pour recréer`,
     );
     result.skipped = existingUsers;
     return result;
@@ -123,27 +123,62 @@ export async function seedCompleteUsers(
   }
 
   // Mot de passe par défaut hashé
-  const defaultPassword = await hashPassword('EcoDeli2024!');
+  const defaultPassword = await hashPassword("EcoDeli2024!");
 
   // 1. Créer les administrateurs
-  logger.info('COMPLETE_USERS', '👨‍💼 Création des administrateurs...');
-  await createAdministrators(prisma, logger, result, QUOTAS.admins, defaultPassword, dataGenerator);
+  logger.info("COMPLETE_USERS", "👨‍💼 Création des administrateurs...");
+  await createAdministrators(
+    prisma,
+    logger,
+    result,
+    QUOTAS.admins,
+    defaultPassword,
+    dataGenerator,
+  );
 
   // 2. Créer les clients
-  logger.info('COMPLETE_USERS', '👥 Création des clients...');
-  await createClients(prisma, logger, result, QUOTAS.clients, defaultPassword, dataGenerator);
+  logger.info("COMPLETE_USERS", "👥 Création des clients...");
+  await createClients(
+    prisma,
+    logger,
+    result,
+    QUOTAS.clients,
+    defaultPassword,
+    dataGenerator,
+  );
 
   // 3. Créer les livreurs
-  logger.info('COMPLETE_USERS', '🚚 Création des livreurs...');
-  await createDeliverers(prisma, logger, result, QUOTAS.deliverers, defaultPassword, dataGenerator);
+  logger.info("COMPLETE_USERS", "🚚 Création des livreurs...");
+  await createDeliverers(
+    prisma,
+    logger,
+    result,
+    QUOTAS.deliverers,
+    defaultPassword,
+    dataGenerator,
+  );
 
   // 4. Créer les commerçants
-  logger.info('COMPLETE_USERS', '🏪 Création des commerçants...');
-  await createMerchants(prisma, logger, result, QUOTAS.merchants, defaultPassword, dataGenerator);
+  logger.info("COMPLETE_USERS", "🏪 Création des commerçants...");
+  await createMerchants(
+    prisma,
+    logger,
+    result,
+    QUOTAS.merchants,
+    defaultPassword,
+    dataGenerator,
+  );
 
   // 5. Créer les prestataires
-  logger.info('COMPLETE_USERS', '🔧 Création des prestataires...');
-  await createProviders(prisma, logger, result, QUOTAS.providers, defaultPassword, dataGenerator);
+  logger.info("COMPLETE_USERS", "🔧 Création des prestataires...");
+  await createProviders(
+    prisma,
+    logger,
+    result,
+    QUOTAS.providers,
+    defaultPassword,
+    dataGenerator,
+  );
 
   // Validation finale
   const finalUsers = await prisma.user.findMany({
@@ -158,7 +193,7 @@ export async function seedCompleteUsers(
       acc[user.role] = (acc[user.role] || 0) + 1;
       return acc;
     },
-    {} as Record<UserRole, number>
+    {} as Record<UserRole, number>,
   );
 
   const usersByStatus = finalUsers.reduce(
@@ -166,11 +201,17 @@ export async function seedCompleteUsers(
       acc[user.status] = (acc[user.status] || 0) + 1;
       return acc;
     },
-    {} as Record<UserStatus, number>
+    {} as Record<UserStatus, number>,
   );
 
-  logger.info('COMPLETE_USERS', `📊 Utilisateurs par rôle: ${JSON.stringify(usersByRole)}`);
-  logger.info('COMPLETE_USERS', `📈 Utilisateurs par statut: ${JSON.stringify(usersByStatus)}`);
+  logger.info(
+    "COMPLETE_USERS",
+    `📊 Utilisateurs par rôle: ${JSON.stringify(usersByRole)}`,
+  );
+  logger.info(
+    "COMPLETE_USERS",
+    `📈 Utilisateurs par statut: ${JSON.stringify(usersByStatus)}`,
+  );
 
   // Validation des quotas
   const expectedTotal =
@@ -184,44 +225,47 @@ export async function seedCompleteUsers(
 
   if (finalUsers.length >= expectedTotal - result.errors) {
     logger.validation(
-      'COMPLETE_USERS',
-      'PASSED',
-      `${finalUsers.length} utilisateurs créés sur ${expectedTotal} attendus`
+      "COMPLETE_USERS",
+      "PASSED",
+      `${finalUsers.length} utilisateurs créés sur ${expectedTotal} attendus`,
     );
   } else {
     logger.validation(
-      'COMPLETE_USERS',
-      'FAILED',
-      `${finalUsers.length} créés, ${expectedTotal} attendus`
+      "COMPLETE_USERS",
+      "FAILED",
+      `${finalUsers.length} créés, ${expectedTotal} attendus`,
     );
   }
 
-  logger.endSeed('COMPLETE_USERS', result);
+  logger.endSeed("COMPLETE_USERS", result);
   return result;
 }
 
 /**
  * Nettoie les utilisateurs existants
  */
-async function cleanExistingUsers(prisma: PrismaClient, logger: SeedLogger): Promise<void> {
+async function cleanExistingUsers(
+  prisma: PrismaClient,
+  logger: SeedLogger,
+): Promise<void> {
   // Ordre de suppression pour respecter les contraintes FK
   const tablesToClean = [
-    'serviceRating',
-    'serviceBooking',
-    'providerAvailability',
-    'deliveryRating',
-    'deliveryApplication',
-    'delivery',
-    'announcement',
-    'client',
-    'deliverer',
-    'merchant',
-    'provider',
-    'admin',
-    'address',
-    'account',
-    'session',
-    'user',
+    "serviceRating",
+    "serviceBooking",
+    "providerAvailability",
+    "deliveryRating",
+    "deliveryApplication",
+    "delivery",
+    "announcement",
+    "client",
+    "deliverer",
+    "merchant",
+    "provider",
+    "admin",
+    "address",
+    "account",
+    "session",
+    "user",
   ];
 
   for (const table of tablesToClean) {
@@ -229,11 +273,14 @@ async function cleanExistingUsers(prisma: PrismaClient, logger: SeedLogger): Pro
       // @ts-ignore - Accès dynamique aux tables Prisma
       const deleted = await prisma[table].deleteMany({});
       if (deleted.count > 0) {
-        logger.database('NETTOYAGE', table, deleted.count);
+        logger.database("NETTOYAGE", table, deleted.count);
       }
     } catch (error: any) {
-      if (!error.message.includes('does not exist')) {
-        logger.warning('NETTOYAGE', `Erreur nettoyage ${table}: ${error.message}`);
+      if (!error.message.includes("does not exist")) {
+        logger.warning(
+          "NETTOYAGE",
+          `Erreur nettoyage ${table}: ${error.message}`,
+        );
       }
     }
   }
@@ -246,14 +293,22 @@ async function createAdministrators(
   prisma: PrismaClient,
   logger: SeedLogger,
   result: SeedResult,
-  quotas: UserQuotas['admins'],
+  quotas: UserQuotas["admins"],
   defaultPassword: string,
-  dataGenerator: TestDataGenerator
+  dataGenerator: TestDataGenerator,
 ): Promise<void> {
   const adminTypes = [
-    { type: 'SUPER_ADMIN', count: quotas.super, permissions: ['ALL'] },
-    { type: 'SUPPORT_ADMIN', count: quotas.support, permissions: ['USER_MANAGEMENT', 'SUPPORT'] },
-    { type: 'FINANCIAL_ADMIN', count: quotas.financial, permissions: ['FINANCIAL', 'REPORTS'] },
+    { type: "SUPER_ADMIN", count: quotas.super, permissions: ["ALL"] },
+    {
+      type: "SUPPORT_ADMIN",
+      count: quotas.support,
+      permissions: ["USER_MANAGEMENT", "SUPPORT"],
+    },
+    {
+      type: "FINANCIAL_ADMIN",
+      count: quotas.financial,
+      permissions: ["FINANCIAL", "REPORTS"],
+    },
   ];
 
   for (const adminType of adminTypes) {
@@ -277,11 +332,11 @@ async function createAdministrators(
               create: {
                 permissions: adminType.permissions,
                 department:
-                  adminType.type === 'FINANCIAL_ADMIN'
-                    ? 'Finance'
-                    : adminType.type === 'SUPPORT_ADMIN'
-                      ? 'Support'
-                      : 'Direction',
+                  adminType.type === "FINANCIAL_ADMIN"
+                    ? "Finance"
+                    : adminType.type === "SUPPORT_ADMIN"
+                      ? "Support"
+                      : "Direction",
               },
             },
           },
@@ -290,12 +345,15 @@ async function createAdministrators(
         result.created++;
 
         if (options.verbose) {
-          logger.success('COMPLETE_USERS', `✅ Admin créé: ${user.name} (${adminType.type})`);
+          logger.success(
+            "COMPLETE_USERS",
+            `✅ Admin créé: ${user.name} (${adminType.type})`,
+          );
         }
       } catch (error: any) {
         logger.error(
-          'COMPLETE_USERS',
-          `❌ Erreur création admin ${adminType.type}: ${error.message}`
+          "COMPLETE_USERS",
+          `❌ Erreur création admin ${adminType.type}: ${error.message}`,
         );
         result.errors++;
       }
@@ -310,9 +368,9 @@ async function createClients(
   prisma: PrismaClient,
   logger: SeedLogger,
   result: SeedResult,
-  quotas: UserQuotas['clients'],
+  quotas: UserQuotas["clients"],
   defaultPassword: string,
-  dataGenerator: TestDataGenerator
+  dataGenerator: TestDataGenerator,
 ): Promise<void> {
   for (let i = 0; i < quotas.total; i++) {
     try {
@@ -336,17 +394,22 @@ async function createClients(
           role: UserRole.CLIENT,
           status: status,
           phone: phone,
-          emailVerified: status === UserStatus.ACTIVE ? faker.date.past({ years: 1 }) : null,
+          emailVerified:
+            status === UserStatus.ACTIVE ? faker.date.past({ years: 1 }) : null,
           createdAt: faker.date.past({ years: 2 }),
           client: {
             create: {
               address: addressStr,
               phone: phone,
-              preferredLanguage: faker.helpers.arrayElement(['fr', 'en']),
+              preferredLanguage: faker.helpers.arrayElement(["fr", "en"]),
               preferences: {
                 notifications: faker.datatype.boolean(),
                 newsletter: faker.datatype.boolean(),
-                preferredContactMethod: faker.helpers.arrayElement(['email', 'phone', 'sms']),
+                preferredContactMethod: faker.helpers.arrayElement([
+                  "email",
+                  "phone",
+                  "sms",
+                ]),
               },
             },
           },
@@ -357,14 +420,17 @@ async function createClients(
 
       if (options.verbose && i % 20 === 0) {
         logger.progress(
-          'COMPLETE_USERS',
+          "COMPLETE_USERS",
           i + 1,
           quotas.total,
-          `Clients créés: ${i + 1}/${quotas.total}`
+          `Clients créés: ${i + 1}/${quotas.total}`,
         );
       }
     } catch (error: any) {
-      logger.error('COMPLETE_USERS', `❌ Erreur création client ${i + 1}: ${error.message}`);
+      logger.error(
+        "COMPLETE_USERS",
+        `❌ Erreur création client ${i + 1}: ${error.message}`,
+      );
       result.errors++;
     }
   }
@@ -377,12 +443,18 @@ async function createDeliverers(
   prisma: PrismaClient,
   logger: SeedLogger,
   result: SeedResult,
-  quotas: UserQuotas['deliverers'],
+  quotas: UserQuotas["deliverers"],
   defaultPassword: string,
-  dataGenerator: TestDataGenerator
+  dataGenerator: TestDataGenerator,
 ): Promise<void> {
-  const vehicleTypes = ['BICYCLE', 'SCOOTER', 'CAR', 'VAN'];
-  const zones = ['Paris Centre', 'Paris Est', 'Paris Ouest', 'Banlieue Nord', 'Banlieue Sud'];
+  const vehicleTypes = ["BICYCLE", "SCOOTER", "CAR", "VAN"];
+  const zones = [
+    "Paris Centre",
+    "Paris Est",
+    "Paris Ouest",
+    "Banlieue Nord",
+    "Banlieue Sud",
+  ];
 
   for (let i = 0; i < quotas.total; i++) {
     try {
@@ -402,7 +474,8 @@ async function createDeliverers(
           role: UserRole.DELIVERER,
           status: status,
           phone: generateFrenchPhone(),
-          emailVerified: status === UserStatus.ACTIVE ? faker.date.past({ years: 1 }) : null,
+          emailVerified:
+            status === UserStatus.ACTIVE ? faker.date.past({ years: 1 }) : null,
           createdAt: faker.date.past({ years: 2 }),
           deliverer: {
             create: {
@@ -410,18 +483,32 @@ async function createDeliverers(
               vehicleModel: faker.vehicle.model(),
               licensePlate: faker.vehicle.vrm(),
               deliveryZone: deliveryZone,
-              maxCapacity: faker.number.float({ min: 10, max: 100, fractionDigits: 1 }),
+              maxCapacity: faker.number.float({
+                min: 10,
+                max: 100,
+                fractionDigits: 1,
+              }),
               rating:
                 status === UserStatus.ACTIVE
-                  ? faker.number.float({ min: 3.5, max: 5.0, fractionDigits: 1 })
+                  ? faker.number.float({
+                      min: 3.5,
+                      max: 5.0,
+                      fractionDigits: 1,
+                    })
                   : null,
               totalDeliveries:
-                status === UserStatus.ACTIVE ? faker.number.int({ min: 0, max: 500 }) : 0,
-              isAvailable: status === UserStatus.ACTIVE && faker.datatype.boolean(0.7),
-              languages: ['fr'],
+                status === UserStatus.ACTIVE
+                  ? faker.number.int({ min: 0, max: 500 })
+                  : 0,
+              isAvailable:
+                status === UserStatus.ACTIVE && faker.datatype.boolean(0.7),
+              languages: ["fr"],
               emergencyContact: faker.person.fullName(),
               emergencyPhone: generateFrenchPhone(),
-              bankAccount: faker.finance.iban({ formatted: true, countryCode: 'FR' }),
+              bankAccount: faker.finance.iban({
+                formatted: true,
+                countryCode: "FR",
+              }),
               insuranceNumber: faker.string.alphanumeric(10).toUpperCase(),
             },
           },
@@ -430,7 +517,10 @@ async function createDeliverers(
 
       result.created++;
     } catch (error: any) {
-      logger.error('COMPLETE_USERS', `❌ Erreur création livreur ${i + 1}: ${error.message}`);
+      logger.error(
+        "COMPLETE_USERS",
+        `❌ Erreur création livreur ${i + 1}: ${error.message}`,
+      );
       result.errors++;
     }
   }
@@ -443,21 +533,21 @@ async function createMerchants(
   prisma: PrismaClient,
   logger: SeedLogger,
   result: SeedResult,
-  quotas: UserQuotas['merchants'],
+  quotas: UserQuotas["merchants"],
   defaultPassword: string,
-  dataGenerator: TestDataGenerator
+  dataGenerator: TestDataGenerator,
 ): Promise<void> {
   const businessTypes = [
-    'Alimentation',
-    'Électronique',
-    'Vêtements',
-    'Librairie',
-    'Pharmacie',
-    'Boulangerie',
-    'Fleuriste',
-    'Bijouterie',
-    'Sport',
-    'Maison et Jardin',
+    "Alimentation",
+    "Électronique",
+    "Vêtements",
+    "Librairie",
+    "Pharmacie",
+    "Boulangerie",
+    "Fleuriste",
+    "Bijouterie",
+    "Sport",
+    "Maison et Jardin",
   ];
 
   for (let i = 0; i < quotas.total; i++) {
@@ -478,7 +568,8 @@ async function createMerchants(
           role: UserRole.MERCHANT,
           status: status,
           phone: generateFrenchPhone(),
-          emailVerified: status === UserStatus.ACTIVE ? faker.date.past({ years: 1 }) : null,
+          emailVerified:
+            status === UserStatus.ACTIVE ? faker.date.past({ years: 1 }) : null,
           createdAt: faker.date.past({ years: 2 }),
           merchant: {
             create: {
@@ -489,24 +580,37 @@ async function createMerchants(
               description: `${businessType} de qualité avec service personnalisé`,
               website: faker.internet.url(),
               openingHours: JSON.stringify({
-                monday: '09:00-18:00',
-                tuesday: '09:00-18:00',
-                wednesday: '09:00-18:00',
-                thursday: '09:00-18:00',
-                friday: '09:00-18:00',
-                saturday: '09:00-17:00',
-                sunday: 'closed',
+                monday: "09:00-18:00",
+                tuesday: "09:00-18:00",
+                wednesday: "09:00-18:00",
+                thursday: "09:00-18:00",
+                friday: "09:00-18:00",
+                saturday: "09:00-17:00",
+                sunday: "closed",
               }),
               deliveryRadius: faker.number.int({ min: 5, max: 50 }),
-              minimumOrder: faker.number.float({ min: 10, max: 50, fractionDigits: 2 }),
+              minimumOrder: faker.number.float({
+                min: 10,
+                max: 50,
+                fractionDigits: 2,
+              }),
               rating:
                 status === UserStatus.ACTIVE
-                  ? faker.number.float({ min: 3.0, max: 5.0, fractionDigits: 1 })
+                  ? faker.number.float({
+                      min: 3.0,
+                      max: 5.0,
+                      fractionDigits: 1,
+                    })
                   : null,
               totalOrders:
-                status === UserStatus.ACTIVE ? faker.number.int({ min: 0, max: 1000 }) : 0,
+                status === UserStatus.ACTIVE
+                  ? faker.number.int({ min: 0, max: 1000 })
+                  : 0,
               isActive: status === UserStatus.ACTIVE,
-              bankAccount: faker.finance.iban({ formatted: true, countryCode: 'FR' }),
+              bankAccount: faker.finance.iban({
+                formatted: true,
+                countryCode: "FR",
+              }),
               vatNumber: `FR${faker.string.numeric(11)}`,
             },
           },
@@ -515,7 +619,10 @@ async function createMerchants(
 
       result.created++;
     } catch (error: any) {
-      logger.error('COMPLETE_USERS', `❌ Erreur création commerçant ${i + 1}: ${error.message}`);
+      logger.error(
+        "COMPLETE_USERS",
+        `❌ Erreur création commerçant ${i + 1}: ${error.message}`,
+      );
       result.errors++;
     }
   }
@@ -528,9 +635,9 @@ async function createProviders(
   prisma: PrismaClient,
   logger: SeedLogger,
   result: SeedResult,
-  quotas: UserQuotas['providers'],
+  quotas: UserQuotas["providers"],
   defaultPassword: string,
-  dataGenerator: TestDataGenerator
+  dataGenerator: TestDataGenerator,
 ): Promise<void> {
   for (let i = 0; i < quotas.total; i++) {
     try {
@@ -540,7 +647,10 @@ async function createProviders(
 
       // Sélectionner 1-3 spécialités
       const specialtyCount = faker.number.int({ min: 1, max: 3 });
-      const specialties = faker.helpers.arrayElements(quotas.specialties, specialtyCount);
+      const specialties = faker.helpers.arrayElements(
+        quotas.specialties,
+        specialtyCount,
+      );
 
       const user = await prisma.user.create({
         data: {
@@ -556,16 +666,29 @@ async function createProviders(
             create: {
               specialties: specialties,
               experience: faker.number.int({ min: 1, max: 20 }),
-              description: `Prestataire professionnel spécialisé en ${specialties.join(', ')}. Service de qualité et ponctualité garantie.`,
-              hourlyRate: faker.number.float({ min: 25, max: 80, fractionDigits: 2 }),
-              serviceArea: generateFrenchAddress().split(',')[0], // Utiliser juste la ville
-              languages: ['fr'],
-              rating: faker.number.float({ min: 3.5, max: 5.0, fractionDigits: 1 }),
+              description: `Prestataire professionnel spécialisé en ${specialties.join(", ")}. Service de qualité et ponctualité garantie.`,
+              hourlyRate: faker.number.float({
+                min: 25,
+                max: 80,
+                fractionDigits: 2,
+              }),
+              serviceArea: generateFrenchAddress().split(",")[0], // Utiliser juste la ville
+              languages: ["fr"],
+              rating: faker.number.float({
+                min: 3.5,
+                max: 5.0,
+                fractionDigits: 1,
+              }),
               totalJobs: faker.number.int({ min: 0, max: 200 }),
               isAvailable: faker.datatype.boolean(0.8),
-              certifications: specialties.map(specialty => `Certification ${specialty}`),
+              certifications: specialties.map(
+                (specialty) => `Certification ${specialty}`,
+              ),
               equipment: `Équipement professionnel pour ${specialties[0]}`,
-              bankAccount: faker.finance.iban({ formatted: true, countryCode: 'FR' }),
+              bankAccount: faker.finance.iban({
+                formatted: true,
+                countryCode: "FR",
+              }),
               insuranceNumber: faker.string.alphanumeric(10).toUpperCase(),
               emergencyContact: faker.person.fullName(),
               emergencyPhone: generateFrenchPhone(),
@@ -576,7 +699,10 @@ async function createProviders(
 
       result.created++;
     } catch (error: any) {
-      logger.error('COMPLETE_USERS', `❌ Erreur création prestataire ${i + 1}: ${error.message}`);
+      logger.error(
+        "COMPLETE_USERS",
+        `❌ Erreur création prestataire ${i + 1}: ${error.message}`,
+      );
       result.errors++;
     }
   }
@@ -586,7 +712,7 @@ async function createProviders(
  * Sélectionne un statut selon la distribution de probabilité
  */
 function getStatusByDistribution(
-  distribution: { status: UserStatus; percentage: number }[]
+  distribution: { status: UserStatus; percentage: number }[],
 ): UserStatus {
   const random = faker.number.int({ min: 1, max: 100 });
   let cumulative = 0;
@@ -606,9 +732,9 @@ function getStatusByDistribution(
  */
 export async function validateCompleteUsers(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des utilisateurs complets...');
+  logger.info("VALIDATION", "🔍 Validation des utilisateurs complets...");
 
   let isValid = true;
 
@@ -624,10 +750,10 @@ export async function validateCompleteUsers(
   });
 
   if (users.length === 0) {
-    logger.error('VALIDATION', '❌ Aucun utilisateur trouvé');
+    logger.error("VALIDATION", "❌ Aucun utilisateur trouvé");
     isValid = false;
   } else {
-    logger.success('VALIDATION', `✅ ${users.length} utilisateurs trouvés`);
+    logger.success("VALIDATION", `✅ ${users.length} utilisateurs trouvés`);
   }
 
   // Vérifier l'intégrité des données spécifiques par rôle
@@ -637,40 +763,49 @@ export async function validateCompleteUsers(
       acc[user.role].push(user);
       return acc;
     },
-    {} as Record<UserRole, any[]>
+    {} as Record<UserRole, any[]>,
   );
 
   // Validation des admins
   const admins = usersByRole[UserRole.ADMIN] || [];
-  const adminsWithProfile = admins.filter(admin => admin.admin);
+  const adminsWithProfile = admins.filter((admin) => admin.admin);
   if (admins.length === adminsWithProfile.length) {
-    logger.success('VALIDATION', `✅ Tous les admins ont un profil (${admins.length})`);
+    logger.success(
+      "VALIDATION",
+      `✅ Tous les admins ont un profil (${admins.length})`,
+    );
   } else {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${admins.length - adminsWithProfile.length} admins sans profil`
+      "VALIDATION",
+      `⚠️ ${admins.length - adminsWithProfile.length} admins sans profil`,
     );
   }
 
   // Validation des clients
   const clients = usersByRole[UserRole.CLIENT] || [];
-  const clientsWithProfile = clients.filter(client => client.client);
+  const clientsWithProfile = clients.filter((client) => client.client);
   if (clients.length === clientsWithProfile.length) {
-    logger.success('VALIDATION', `✅ Tous les clients ont un profil (${clients.length})`);
+    logger.success(
+      "VALIDATION",
+      `✅ Tous les clients ont un profil (${clients.length})`,
+    );
   } else {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${clients.length - clientsWithProfile.length} clients sans profil`
+      "VALIDATION",
+      `⚠️ ${clients.length - clientsWithProfile.length} clients sans profil`,
     );
   }
 
   // Validation des emails uniques
-  const emails = users.map(user => user.email);
+  const emails = users.map((user) => user.email);
   const uniqueEmails = new Set(emails);
   if (emails.length === uniqueEmails.size) {
-    logger.success('VALIDATION', '✅ Tous les emails sont uniques');
+    logger.success("VALIDATION", "✅ Tous les emails sont uniques");
   } else {
-    logger.warning('VALIDATION', `⚠️ ${emails.length - uniqueEmails.size} emails dupliqués`);
+    logger.warning(
+      "VALIDATION",
+      `⚠️ ${emails.length - uniqueEmails.size} emails dupliqués`,
+    );
     isValid = false;
   }
 
@@ -680,22 +815,28 @@ export async function validateCompleteUsers(
       acc[user.status] = (acc[user.status] || 0) + 1;
       return acc;
     },
-    {} as Record<UserStatus, number>
+    {} as Record<UserStatus, number>,
   );
 
-  logger.info('VALIDATION', `📊 Distribution des statuts: ${JSON.stringify(statusDistribution)}`);
+  logger.info(
+    "VALIDATION",
+    `📊 Distribution des statuts: ${JSON.stringify(statusDistribution)}`,
+  );
 
   // Vérifier les mots de passe hashés
   const usersWithPlainPassword = users.filter(
-    user => user.password.length < 50 // Les mots de passe hashés avec bcrypt font ~60 caractères
+    (user) => user.password.length < 50, // Les mots de passe hashés avec bcrypt font ~60 caractères
   );
 
   if (usersWithPlainPassword.length === 0) {
-    logger.success('VALIDATION', '✅ Tous les mots de passe sont hashés');
+    logger.success("VALIDATION", "✅ Tous les mots de passe sont hashés");
   } else {
-    logger.warning('VALIDATION', `⚠️ ${usersWithPlainPassword.length} mots de passe non hashés`);
+    logger.warning(
+      "VALIDATION",
+      `⚠️ ${usersWithPlainPassword.length} mots de passe non hashés`,
+    );
   }
 
-  logger.success('VALIDATION', '✅ Validation des utilisateurs terminée');
+  logger.success("VALIDATION", "✅ Validation des utilisateurs terminée");
   return isValid;
 }

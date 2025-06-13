@@ -10,16 +10,16 @@ export interface TutorialOverlay {
   closable: boolean;
 }
 
-export type OverlayPosition = 
-  | 'top'
-  | 'bottom'
-  | 'left'
-  | 'right'
-  | 'center'
-  | 'top-left'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-right';
+export type OverlayPosition =
+  | "top"
+  | "bottom"
+  | "left"
+  | "right"
+  | "center"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
 
 export interface OverlayStyle {
   backgroundColor?: string;

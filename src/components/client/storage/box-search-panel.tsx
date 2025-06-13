@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { BoxSearchForm } from '@/components/client/storage/box-search';
-import { BoxSearchInput } from '@/schemas/storage/storage.schema';
-import { useBoxSearch } from '@/hooks/common/use-storage';
-import { BoxDetailCard } from '@/components/client/storage/box-detail-card';
-import { BoxReservationForm } from '@/components/client/storage/box-reservation-form';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTranslations } from 'next-intl';
-import { BoxWithWarehouse } from '@/types/warehouses/storage-box';
-import { ArrowLeft, Search, AlertTriangle } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { BoxSearchForm } from "@/components/client/storage/box-search";
+import { BoxSearchInput } from "@/schemas/storage/storage.schema";
+import { useBoxSearch } from "@/hooks/common/use-storage";
+import { BoxDetailCard } from "@/components/client/storage/box-detail-card";
+import { BoxReservationForm } from "@/components/client/storage/box-reservation-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
+import { BoxWithWarehouse } from "@/types/warehouses/storage-box";
+import { ArrowLeft, Search, AlertTriangle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 export function BoxSearchPanel() {
-  const t = useTranslations('storage');
+  const t = useTranslations("storage");
   const [searchParams, setSearchParams] = useState<BoxSearchInput | null>(null);
   const [selectedBox, setSelectedBox] = useState<BoxWithWarehouse | null>(null);
   const { boxes, isLoading } = useBoxSearch();
@@ -46,7 +46,7 @@ export function BoxSearchPanel() {
             onClick={handleBackToResults}
           >
             <ArrowLeft className="h-4 w-4" />
-            {t('search.backToResults')}
+            {t("search.backToResults")}
           </Button>
           <BoxReservationForm
             box={selectedBox}
@@ -72,8 +72,10 @@ export function BoxSearchPanel() {
         return (
           <Alert variant="destructive" className="mt-4">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>{t('search.noResults')}</AlertTitle>
-            <AlertDescription>{t('search.tryDifferentCriteria')}</AlertDescription>
+            <AlertTitle>{t("search.noResults")}</AlertTitle>
+            <AlertDescription>
+              {t("search.tryDifferentCriteria")}
+            </AlertDescription>
           </Alert>
         );
       }
@@ -82,7 +84,7 @@ export function BoxSearchPanel() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">
-              {t('search.resultsTitle', { count: boxes?.length || 0 })}
+              {t("search.resultsTitle", { count: boxes?.length || 0 })}
             </h3>
             <Button
               variant="outline"
@@ -91,7 +93,7 @@ export function BoxSearchPanel() {
               onClick={() => setSearchParams(null)}
             >
               <Search className="h-4 w-4" />
-              {t('search.newSearch')}
+              {t("search.newSearch")}
             </Button>
           </div>
 
@@ -117,7 +119,7 @@ export function BoxSearchPanel() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t('search.title')}</CardTitle>
+          <CardTitle>{t("search.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <BoxSearchForm onSearch={handleSearch} />

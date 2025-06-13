@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { UserRole } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { UserRole } from "@prisma/client";
 
 /**
  * Router pour la g�n�ration de rapports administratifs
@@ -11,13 +11,13 @@ import { UserRole } from '@prisma/client';
 // Sch�mas de validation
 const reportFiltersSchema = z.object({
   type: z.enum([
-    'FINANCIAL',
-    'OPERATIONAL',
-    'USER_ACTIVITY',
-    'DELIVERY_PERFORMANCE',
-    'PLATFORM_HEALTH',
+    "FINANCIAL",
+    "OPERATIONAL",
+    "USER_ACTIVITY",
+    "DELIVERY_PERFORMANCE",
+    "PLATFORM_HEALTH",
   ]),
-  period: z.enum(['DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR']).default('MONTH'),
+  period: z.enum(["DAY", "WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
 
@@ -27,12 +27,12 @@ const reportFiltersSchema = z.object({
   serviceCategory: z.string().optional(),
 
   // Groupement et granularit�
-  groupBy: z.enum(['day', 'week', 'month', 'quarter']).default('day'),
+  groupBy: z.enum(["day", "week", "month", "quarter"]).default("day"),
   includeComparison: z.boolean().default(false),
   includeProjections: z.boolean().default(false),
 
   // Format d'export
-  format: z.enum(['JSON', 'CSV', 'EXCEL', 'PDF']).default('JSON'),
+  format: z.enum(["JSON", "CSV", "EXCEL", "PDF"]).default("JSON"),
 });
 
 const customReportSchema = z.object({
@@ -45,17 +45,17 @@ const customReportSchema = z.object({
   filters: z.record(z.any()),
 
   // Param�tres de g�n�ration
-  schedule: z.enum(['MANUAL', 'DAILY', 'WEEKLY', 'MONTHLY']).default('MANUAL'),
+  schedule: z.enum(["MANUAL", "DAILY", "WEEKLY", "MONTHLY"]).default("MANUAL"),
   recipients: z.array(z.string().email()).optional(),
 
   // Visualisation
-  chartTypes: z.array(z.enum(['LINE', 'BAR', 'PIE', 'TABLE'])),
+  chartTypes: z.array(z.enum(["LINE", "BAR", "PIE", "TABLE"])),
   includeRawData: z.boolean().default(false),
 });
 
 const reportExportSchema = z.object({
   reportId: z.string().cuid(),
-  format: z.enum(['CSV', 'EXCEL', 'PDF']),
+  format: z.enum(["CSV", "EXCEL", "PDF"]),
   includeCharts: z.boolean().default(true),
   includeRawData: z.boolean().default(false),
   compression: z.boolean().default(false),
@@ -68,26 +68,27 @@ export const adminReportsRouter = router({
   generateFinancialReport: protectedProcedure
     .input(
       reportFiltersSchema.extend({
-        type: z.literal('FINANCIAL'),
-      })
+        type: z.literal("FINANCIAL"),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'ADMIN') {
+      if (user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les administrateurs peuvent g�n�rer des rapports',
+          code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent g�n�rer des rapports",
         });
       }
 
       try {
-        const { startDate, endDate, previousStartDate, previousEndDate } = calculateReportPeriod(
-          input.period,
-          input.startDate,
-          input.endDate,
-          input.includeComparison
-        );
+        const { startDate, endDate, previousStartDate, previousEndDate } =
+          calculateReportPeriod(
+            input.period,
+            input.startDate,
+            input.endDate,
+            input.includeComparison,
+          );
 
         // M�triques financi�res principales
         const [
@@ -103,7 +104,7 @@ export const adminReportsRouter = router({
           // Revenus totaux
           ctx.db.payment.aggregate({
             where: {
-              status: 'COMPLETED',
+              status: "COMPLETED",
               createdAt: { gte: startDate, lte: endDate },
             },
             _sum: { amount: true },
@@ -122,7 +123,7 @@ export const adminReportsRouter = router({
           // Retraits effectu�s
           ctx.db.withdrawal.aggregate({
             where: {
-              status: 'COMPLETED',
+              status: "COMPLETED",
               processedAt: { gte: startDate, lte: endDate },
             },
             _sum: { amount: true },
@@ -132,7 +133,7 @@ export const adminReportsRouter = router({
           // Abonnements actifs
           ctx.db.subscription.count({
             where: {
-              status: 'ACTIVE',
+              status: "ACTIVE",
               startDate: { lte: endDate },
               OR: [{ endDate: null }, { endDate: { gte: startDate } }],
             },
@@ -156,7 +157,7 @@ export const adminReportsRouter = router({
           // Valeur moyenne des commandes
           ctx.db.order.aggregate({
             where: {
-              status: { in: ['COMPLETED', 'DELIVERED'] },
+              status: { in: ["COMPLETED", "DELIVERED"] },
               createdAt: { gte: startDate, lte: endDate },
             },
             _avg: { totalAmount: true },
@@ -166,9 +167,9 @@ export const adminReportsRouter = router({
 
           // R�partition par m�thode de paiement
           ctx.db.payment.groupBy({
-            by: ['method'],
+            by: ["method"],
             where: {
-              status: 'COMPLETED',
+              status: "COMPLETED",
               createdAt: { gte: startDate, lte: endDate },
             },
             _sum: { amount: true },
@@ -178,7 +179,7 @@ export const adminReportsRouter = router({
           // Remboursements
           ctx.db.refund.aggregate({
             where: {
-              status: 'COMPLETED',
+              status: "COMPLETED",
               processedAt: { gte: startDate, lte: endDate },
             },
             _sum: { amount: true },
@@ -191,7 +192,7 @@ export const adminReportsRouter = router({
         if (input.includeComparison && previousStartDate && previousEndDate) {
           const previousRevenue = await ctx.db.payment.aggregate({
             where: {
-              status: 'COMPLETED',
+              status: "COMPLETED",
               createdAt: { gte: previousStartDate, lte: previousEndDate },
             },
             _sum: { amount: true },
@@ -200,15 +201,18 @@ export const adminReportsRouter = router({
           comparison = {
             revenueGrowth: calculateGrowthRate(
               revenue._sum.amount || 0,
-              previousRevenue._sum.amount || 0
+              previousRevenue._sum.amount || 0,
             ),
           };
         }
 
         // M�triques cl�s
-        const netRevenue = (revenue._sum.amount || 0) - (refunds._sum.amount || 0);
+        const netRevenue =
+          (revenue._sum.amount || 0) - (refunds._sum.amount || 0);
         const conversionRate =
-          revenue._count > 0 ? (revenue._count / transactionVolume.length) * 100 : 0;
+          revenue._count > 0
+            ? (revenue._count / transactionVolume.length) * 100
+            : 0;
 
         return {
           success: true,
@@ -226,15 +230,19 @@ export const adminReportsRouter = router({
               activeSubscriptions,
               transactionCount: revenue._count,
               averageOrderValue: averageOrderValue._avg.totalAmount || 0,
-              refundRate: revenue._count > 0 ? (refunds._count / revenue._count) * 100 : 0,
+              refundRate:
+                revenue._count > 0
+                  ? (refunds._count / revenue._count) * 100
+                  : 0,
             },
             breakdown: {
-              byPaymentMethod: paymentMethods.map(method => ({
+              byPaymentMethod: paymentMethods.map((method) => ({
                 method: method.method,
                 amount: method._sum.amount || 0,
                 count: method._count,
                 percentage: revenue._sum.amount
-                  ? ((method._sum.amount || 0) / (revenue._sum.amount || 1)) * 100
+                  ? ((method._sum.amount || 0) / (revenue._sum.amount || 1)) *
+                    100
                   : 0,
               })),
               timeline: transactionVolume,
@@ -251,8 +259,8 @@ export const adminReportsRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la g�n�ration du rapport financier',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la g�n�ration du rapport financier",
         });
       }
     }),
@@ -263,16 +271,16 @@ export const adminReportsRouter = router({
   generateDeliveryPerformanceReport: protectedProcedure
     .input(
       reportFiltersSchema.extend({
-        type: z.literal('DELIVERY_PERFORMANCE'),
-      })
+        type: z.literal("DELIVERY_PERFORMANCE"),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'ADMIN') {
+      if (user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les administrateurs peuvent g�n�rer des rapports',
+          code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent g�n�rer des rapports",
         });
       }
 
@@ -280,57 +288,62 @@ export const adminReportsRouter = router({
         const { startDate, endDate } = calculateReportPeriod(
           input.period,
           input.startDate,
-          input.endDate
+          input.endDate,
         );
 
-        const [deliveryStats, delivererPerformance, geographicData, timeMetrics, issueStats] =
-          await Promise.all([
-            // Statistiques g�n�rales des livraisons
-            ctx.db.delivery.aggregate({
-              where: {
-                createdAt: { gte: startDate, lte: endDate },
-                ...(input.city && {
-                  pickupAddress: { contains: input.city, mode: 'insensitive' },
-                }),
-              },
-              _count: {
-                id: true,
-                completedAt: true,
-              },
-              _avg: {
-                distance: true,
-                actualDeliveryTime: true,
-              },
-            }),
+        const [
+          deliveryStats,
+          delivererPerformance,
+          geographicData,
+          timeMetrics,
+          issueStats,
+        ] = await Promise.all([
+          // Statistiques g�n�rales des livraisons
+          ctx.db.delivery.aggregate({
+            where: {
+              createdAt: { gte: startDate, lte: endDate },
+              ...(input.city && {
+                pickupAddress: { contains: input.city, mode: "insensitive" },
+              }),
+            },
+            _count: {
+              id: true,
+              completedAt: true,
+            },
+            _avg: {
+              distance: true,
+              actualDeliveryTime: true,
+            },
+          }),
 
-            // Performance par livreur
-            ctx.db.delivery.groupBy({
-              by: ['delivererId'],
-              where: {
-                createdAt: { gte: startDate, lte: endDate },
-                status: 'DELIVERED',
-              },
-              _count: true,
-              _avg: {
-                actualDeliveryTime: true,
-                customerRating: true,
-              },
-              orderBy: { _count: { id: 'desc' } },
-              take: 20,
-            }),
+          // Performance par livreur
+          ctx.db.delivery.groupBy({
+            by: ["delivererId"],
+            where: {
+              createdAt: { gte: startDate, lte: endDate },
+              status: "DELIVERED",
+            },
+            _count: true,
+            _avg: {
+              actualDeliveryTime: true,
+              customerRating: true,
+            },
+            orderBy: { _count: { id: "desc" } },
+            take: 20,
+          }),
 
-            // Donn�es g�ographiques
-            ctx.db.delivery.groupBy({
-              by: ['pickupCity', 'deliveryCity'],
-              where: {
-                createdAt: { gte: startDate, lte: endDate },
-              },
-              _count: true,
-              _avg: { distance: true },
-            }),
+          // Donn�es g�ographiques
+          ctx.db.delivery.groupBy({
+            by: ["pickupCity", "deliveryCity"],
+            where: {
+              createdAt: { gte: startDate, lte: endDate },
+            },
+            _count: true,
+            _avg: { distance: true },
+          }),
 
-            // M�triques temporelles
-            ctx.db.$queryRaw`
+          // M�triques temporelles
+          ctx.db.$queryRaw`
             SELECT 
               DATE_TRUNC(${input.groupBy}, created_at) as period,
               COUNT(*)::int as total_deliveries,
@@ -345,19 +358,19 @@ export const adminReportsRouter = router({
             ORDER BY period ASC
           `,
 
-            // Statistiques des probl�mes
-            ctx.db.deliveryIssue.groupBy({
-              by: ['issueType'],
-              where: {
-                createdAt: { gte: startDate, lte: endDate },
-              },
-              _count: true,
-            }),
-          ]);
+          // Statistiques des probl�mes
+          ctx.db.deliveryIssue.groupBy({
+            by: ["issueType"],
+            where: {
+              createdAt: { gte: startDate, lte: endDate },
+            },
+            _count: true,
+          }),
+        ]);
 
         // Enrichir les donn�es des livreurs
         const enrichedDelivererData = await Promise.all(
-          delivererPerformance.map(async perf => {
+          delivererPerformance.map(async (perf) => {
             const deliverer = await ctx.db.deliverer.findUnique({
               where: { id: perf.delivererId },
               include: {
@@ -373,7 +386,7 @@ export const adminReportsRouter = router({
               efficiency: calculateDelivererEfficiency(perf),
               rank: 0, // Sera calcul� apr�s tri
             };
-          })
+          }),
         );
 
         // Calculer les rangs
@@ -397,27 +410,35 @@ export const adminReportsRouter = router({
               completionRate,
               averageDistance: deliveryStats._avg.distance || 0,
               averageDeliveryTime: deliveryStats._avg.actualDeliveryTime || 0,
-              totalIssues: issueStats.reduce((sum, issue) => sum + issue._count, 0),
+              totalIssues: issueStats.reduce(
+                (sum, issue) => sum + issue._count,
+                0,
+              ),
             },
             performance: {
               topDeliverers: enrichedDelivererData.slice(0, 10),
-              geographicBreakdown: geographicData.map(geo => ({
+              geographicBreakdown: geographicData.map((geo) => ({
                 route: `${geo.pickupCity} � ${geo.deliveryCity}`,
                 count: geo._count,
                 avgDistance: geo._avg.distance,
               })),
               timeline: timeMetrics,
-              issueBreakdown: issueStats.map(issue => ({
+              issueBreakdown: issueStats.map((issue) => ({
                 type: issue.issueType,
                 count: issue._count,
                 percentage:
-                  deliveryStats._count.id > 0 ? (issue._count / deliveryStats._count.id) * 100 : 0,
+                  deliveryStats._count.id > 0
+                    ? (issue._count / deliveryStats._count.id) * 100
+                    : 0,
               })),
             },
             insights: generateDeliveryInsights({
               completionRate,
               avgDeliveryTime: deliveryStats._avg.actualDeliveryTime || 0,
-              issueCount: issueStats.reduce((sum, issue) => sum + issue._count, 0),
+              issueCount: issueStats.reduce(
+                (sum, issue) => sum + issue._count,
+                0,
+              ),
               totalDeliveries: deliveryStats._count.id,
             }),
           },
@@ -425,8 +446,8 @@ export const adminReportsRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la g�n�ration du rapport de livraisons',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la g�n�ration du rapport de livraisons",
         });
       }
     }),
@@ -437,16 +458,16 @@ export const adminReportsRouter = router({
   generateUserActivityReport: protectedProcedure
     .input(
       reportFiltersSchema.extend({
-        type: z.literal('USER_ACTIVITY'),
-      })
+        type: z.literal("USER_ACTIVITY"),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'ADMIN') {
+      if (user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les administrateurs peuvent g�n�rer des rapports',
+          code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent g�n�rer des rapports",
         });
       }
 
@@ -454,7 +475,7 @@ export const adminReportsRouter = router({
         const { startDate, endDate } = calculateReportPeriod(
           input.period,
           input.startDate,
-          input.endDate
+          input.endDate,
         );
 
         const [
@@ -485,7 +506,7 @@ export const adminReportsRouter = router({
 
           // R�partition par r�le
           ctx.db.user.groupBy({
-            by: ['role'],
+            by: ["role"],
             where: {
               createdAt: { gte: startDate, lte: endDate },
             },
@@ -494,7 +515,7 @@ export const adminReportsRouter = router({
 
           // Statistiques de v�rification
           ctx.db.verification.groupBy({
-            by: ['status'],
+            by: ["status"],
             where: {
               createdAt: { gte: startDate, lte: endDate },
             },
@@ -567,16 +588,24 @@ export const adminReportsRouter = router({
               newRegistrations: userRegistrations,
               activeUsers,
               totalUsers: await ctx.db.user.count(),
-              verifiedUsers: await ctx.db.user.count({ where: { isVerified: true } }),
-              activationRate: userRegistrations > 0 ? (activeUsers / userRegistrations) * 100 : 0,
+              verifiedUsers: await ctx.db.user.count({
+                where: { isVerified: true },
+              }),
+              activationRate:
+                userRegistrations > 0
+                  ? (activeUsers / userRegistrations) * 100
+                  : 0,
             },
             breakdown: {
-              byRole: usersByRole.map(role => ({
+              byRole: usersByRole.map((role) => ({
                 role: role.role,
                 count: role._count,
-                percentage: userRegistrations > 0 ? (role._count / userRegistrations) * 100 : 0,
+                percentage:
+                  userRegistrations > 0
+                    ? (role._count / userRegistrations) * 100
+                    : 0,
               })),
-              byVerificationStatus: verificationStats.map(status => ({
+              byVerificationStatus: verificationStats.map((status) => ({
                 status: status.status,
                 count: status._count,
               })),
@@ -592,15 +621,20 @@ export const adminReportsRouter = router({
             insights: generateUserActivityInsights({
               registrations: userRegistrations,
               activeUsers,
-              activationRate: userRegistrations > 0 ? (activeUsers / userRegistrations) * 100 : 0,
-              verificationPending: verificationStats.find(s => s.status === 'PENDING')?._count || 0,
+              activationRate:
+                userRegistrations > 0
+                  ? (activeUsers / userRegistrations) * 100
+                  : 0,
+              verificationPending:
+                verificationStats.find((s) => s.status === "PENDING")?._count ||
+                0,
             }),
           },
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la g�n�ration du rapport d'activit�",
         });
       }
@@ -612,16 +646,16 @@ export const adminReportsRouter = router({
   generatePlatformHealthReport: protectedProcedure
     .input(
       reportFiltersSchema.extend({
-        type: z.literal('PLATFORM_HEALTH'),
-      })
+        type: z.literal("PLATFORM_HEALTH"),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'ADMIN') {
+      if (user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les administrateurs peuvent g�n�rer des rapports',
+          code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent g�n�rer des rapports",
         });
       }
 
@@ -629,7 +663,7 @@ export const adminReportsRouter = router({
         const { startDate, endDate } = calculateReportPeriod(
           input.period,
           input.startDate,
-          input.endDate
+          input.endDate,
         );
 
         const [
@@ -643,7 +677,7 @@ export const adminReportsRouter = router({
           ctx.db.errorLog.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              level: { in: ['ERROR', 'CRITICAL'] },
+              level: { in: ["ERROR", "CRITICAL"] },
             },
           }),
 
@@ -685,14 +719,14 @@ export const adminReportsRouter = router({
             // Tentatives de connexion �chou�es
             ctx.db.securityLog.count({
               where: {
-                eventType: 'FAILED_LOGIN',
+                eventType: "FAILED_LOGIN",
                 createdAt: { gte: startDate, lte: endDate },
               },
             }),
             // Comptes suspendus
             ctx.db.user.count({
               where: {
-                status: 'SUSPENDED',
+                status: "SUSPENDED",
                 updatedAt: { gte: startDate, lte: endDate },
               },
             }),
@@ -741,12 +775,12 @@ export const adminReportsRouter = router({
             overview: {
               status:
                 healthScore >= 90
-                  ? 'EXCELLENT'
+                  ? "EXCELLENT"
                   : healthScore >= 75
-                    ? 'GOOD'
+                    ? "GOOD"
                     : healthScore >= 60
-                      ? 'WARNING'
-                      : 'CRITICAL',
+                      ? "WARNING"
+                      : "CRITICAL",
               uptime: 99.9, // TODO: Calculer le vrai uptime
               totalErrors: systemErrors,
               avgResponseTime: performanceMetrics[0]?.avg_processing_time || 0,
@@ -758,7 +792,8 @@ export const adminReportsRouter = router({
                     performanceMetrics[0].total_operations) *
                   100
                 : 100,
-              averageProcessingTime: performanceMetrics[0]?.avg_processing_time || 0,
+              averageProcessingTime:
+                performanceMetrics[0]?.avg_processing_time || 0,
               totalOperations: performanceMetrics[0]?.total_operations || 0,
             },
             quality: {
@@ -768,21 +803,30 @@ export const adminReportsRouter = router({
               supportTicketsTotal: supportData._count.id || 0,
               resolutionRate:
                 supportData._count.id > 0
-                  ? (supportData._count.resolvedAt / supportData._count.id) * 100
+                  ? (supportData._count.resolvedAt / supportData._count.id) *
+                    100
                   : 0,
             },
             security: {
               failedLoginAttempts: failedLogins,
               suspendedAccounts,
               securityIncidents: failedLogins + suspendedAccounts,
-              threatLevel: calculateThreatLevel(failedLogins, suspendedAccounts),
+              threatLevel: calculateThreatLevel(
+                failedLogins,
+                suspendedAccounts,
+              ),
             },
             capacity: {
               storageUsed: storageData._sum.fileSize || 0,
-              peakLoad: Math.max(...loadPeaks.map((p: any) => p.requests_per_hour), 0),
+              peakLoad: Math.max(
+                ...loadPeaks.map((p: any) => p.requests_per_hour),
+                0,
+              ),
               averageLoad:
-                loadPeaks.reduce((sum: number, p: any) => sum + p.requests_per_hour, 0) /
-                (loadPeaks.length || 1),
+                loadPeaks.reduce(
+                  (sum: number, p: any) => sum + p.requests_per_hour,
+                  0,
+                ) / (loadPeaks.length || 1),
             },
             recommendations: generateHealthRecommendations({
               healthScore,
@@ -795,8 +839,8 @@ export const adminReportsRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la g�n�ration du rapport de sant�',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la g�n�ration du rapport de sant�",
         });
       }
     }),
@@ -809,10 +853,11 @@ export const adminReportsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'ADMIN') {
+      if (user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les administrateurs peuvent cr�er des rapports personnalis�s',
+          code: "FORBIDDEN",
+          message:
+            "Seuls les administrateurs peuvent cr�er des rapports personnalis�s",
         });
       }
 
@@ -821,19 +866,19 @@ export const adminReportsRouter = router({
           data: {
             ...input,
             createdById: user.id,
-            status: 'ACTIVE',
+            status: "ACTIVE",
           },
         });
 
         return {
           success: true,
           data: report,
-          message: 'Rapport personnalis� cr�� avec succ�s',
+          message: "Rapport personnalis� cr�� avec succ�s",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la cr�ation du rapport',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la cr�ation du rapport",
         });
       }
     }),
@@ -841,47 +886,49 @@ export const adminReportsRouter = router({
   /**
    * Exporter un rapport
    */
-  exportReport: protectedProcedure.input(reportExportSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  exportReport: protectedProcedure
+    .input(reportExportSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'ADMIN') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les administrateurs peuvent exporter des rapports',
-      });
-    }
+      if (user.role !== "ADMIN") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent exporter des rapports",
+        });
+      }
 
-    try {
-      // TODO: Impl�menter la logique d'export selon le format
-      const exportUrl = await generateReportExport(input);
+      try {
+        // TODO: Impl�menter la logique d'export selon le format
+        const exportUrl = await generateReportExport(input);
 
-      // Cr�er un log d'export
-      await ctx.db.reportExport.create({
-        data: {
-          reportId: input.reportId,
-          format: input.format,
-          exportedById: user.id,
-          fileUrl: exportUrl,
-          status: 'COMPLETED',
-        },
-      });
+        // Cr�er un log d'export
+        await ctx.db.reportExport.create({
+          data: {
+            reportId: input.reportId,
+            format: input.format,
+            exportedById: user.id,
+            fileUrl: exportUrl,
+            status: "COMPLETED",
+          },
+        });
 
-      return {
-        success: true,
-        data: {
-          downloadUrl: exportUrl,
-          format: input.format,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
-        },
-        message: 'Export g�n�r� avec succ�s',
-      };
-    } catch (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: "Erreur lors de l'export du rapport",
-      });
-    }
-  }),
+        return {
+          success: true,
+          data: {
+            downloadUrl: exportUrl,
+            format: input.format,
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
+          },
+          message: "Export g�n�r� avec succ�s",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'export du rapport",
+        });
+      }
+    }),
 });
 
 // Helper functions
@@ -889,11 +936,13 @@ function calculateReportPeriod(
   period: string,
   startDate?: Date,
   endDate?: Date,
-  includeComparison = false
+  includeComparison = false,
 ) {
   if (startDate && endDate) {
     const periodLength = endDate.getTime() - startDate.getTime();
-    const previousEndDate = includeComparison ? new Date(startDate.getTime() - 1) : undefined;
+    const previousEndDate = includeComparison
+      ? new Date(startDate.getTime() - 1)
+      : undefined;
     const previousStartDate = includeComparison
       ? new Date(previousEndDate!.getTime() - periodLength)
       : undefined;
@@ -906,23 +955,35 @@ function calculateReportPeriod(
   let previousStartDate: Date | undefined, previousEndDate: Date | undefined;
 
   switch (period) {
-    case 'DAY':
-      calculatedStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      calculatedEndDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    case "DAY":
+      calculatedStartDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      );
+      calculatedEndDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+      );
       if (includeComparison) {
         previousEndDate = new Date(calculatedStartDate);
-        previousStartDate = new Date(calculatedStartDate.getTime() - 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(
+          calculatedStartDate.getTime() - 24 * 60 * 60 * 1000,
+        );
       }
       break;
-    case 'WEEK':
+    case "WEEK":
       calculatedStartDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       calculatedEndDate = now;
       if (includeComparison) {
         previousEndDate = new Date(calculatedStartDate);
-        previousStartDate = new Date(calculatedStartDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(
+          calculatedStartDate.getTime() - 7 * 24 * 60 * 60 * 1000,
+        );
       }
       break;
-    case 'MONTH':
+    case "MONTH":
       calculatedStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
       calculatedEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       if (includeComparison) {
@@ -930,7 +991,7 @@ function calculateReportPeriod(
         previousStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       }
       break;
-    case 'QUARTER':
+    case "QUARTER":
       const quarter = Math.floor(now.getMonth() / 3);
       calculatedStartDate = new Date(now.getFullYear(), quarter * 3, 1);
       calculatedEndDate = new Date(now.getFullYear(), quarter * 3 + 3, 0);
@@ -995,25 +1056,28 @@ function calculatePlatformHealthScore(metrics: {
   return Math.max(score, 0);
 }
 
-function calculateThreatLevel(failedLogins: number, suspendedAccounts: number): string {
+function calculateThreatLevel(
+  failedLogins: number,
+  suspendedAccounts: number,
+): string {
   const total = failedLogins + suspendedAccounts;
-  if (total > 100) return 'HIGH';
-  if (total > 50) return 'MEDIUM';
-  if (total > 10) return 'LOW';
-  return 'MINIMAL';
+  if (total > 100) return "HIGH";
+  if (total > 50) return "MEDIUM";
+  if (total > 10) return "LOW";
+  return "MINIMAL";
 }
 
 function generateFinancialInsights(data: any): string[] {
   const insights: string[] = [];
 
   if (data.growth > 20) {
-    insights.push('Croissance financi�re excellente (+20%)');
+    insights.push("Croissance financi�re excellente (+20%)");
   } else if (data.growth < -10) {
     insights.push("Baisse significative du chiffre d'affaires (-10%)");
   }
 
   if (data.averageOrder > 50) {
-    insights.push('Panier moyen �lev�, optimiser la conversion');
+    insights.push("Panier moyen �lev�, optimiser la conversion");
   }
 
   return insights;
@@ -1041,7 +1105,7 @@ function generateUserActivityInsights(data: any): string[] {
   }
 
   if (data.verificationPending > 50) {
-    insights.push('Backlog de v�rifications important, acc�l�rer le processus');
+    insights.push("Backlog de v�rifications important, acc�l�rer le processus");
   }
 
   return insights;
@@ -1051,7 +1115,7 @@ function generateHealthRecommendations(data: any): string[] {
   const recommendations: string[] = [];
 
   if (data.healthScore < 80) {
-    recommendations.push('Am�liorer la surveillance syst�me');
+    recommendations.push("Am�liorer la surveillance syst�me");
   }
 
   if (data.errorCount > 100) {
@@ -1068,16 +1132,16 @@ function generateHealthRecommendations(data: any): string[] {
 async function generateReportExport(input: any): Promise<string> {
   try {
     // Générer un nom de fichier unique
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const fileName = `report-${input.reportId}-${timestamp}.${input.format.toLowerCase()}`;
 
     // En fonction du format, générer le fichier approprié
     switch (input.format) {
-      case 'CSV':
+      case "CSV":
         return await generateCSVExport(input, fileName);
-      case 'EXCEL':
+      case "EXCEL":
         return await generateExcelExport(input, fileName);
-      case 'PDF':
+      case "PDF":
         return await generatePDFExport(input, fileName);
       default:
         throw new Error(`Format d'export non supporté: ${input.format}`);
@@ -1088,23 +1152,32 @@ async function generateReportExport(input: any): Promise<string> {
   }
 }
 
-async function generateCSVExport(input: any, fileName: string): Promise<string> {
+async function generateCSVExport(
+  input: any,
+  fileName: string,
+): Promise<string> {
   // TODO: Implémenter l'export CSV avec une vraie librairie comme 'csv-writer'
   // Pour l'instant, retourner une URL temporaire
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   return `${baseUrl}/api/exports/csv/${fileName}`;
 }
 
-async function generateExcelExport(input: any, fileName: string): Promise<string> {
+async function generateExcelExport(
+  input: any,
+  fileName: string,
+): Promise<string> {
   // TODO: Implémenter l'export Excel avec une vraie librairie comme 'exceljs'
   // Pour l'instant, retourner une URL temporaire
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   return `${baseUrl}/api/exports/excel/${fileName}`;
 }
 
-async function generatePDFExport(input: any, fileName: string): Promise<string> {
+async function generatePDFExport(
+  input: any,
+  fileName: string,
+): Promise<string> {
   // TODO: Implémenter l'export PDF avec une vraie librairie comme 'puppeteer' ou 'jspdf'
   // Pour l'instant, retourner une URL temporaire
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   return `${baseUrl}/api/exports/pdf/${fileName}`;
 }

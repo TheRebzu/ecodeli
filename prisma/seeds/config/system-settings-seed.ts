@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions } from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+import { PrismaClient } from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import { SeedResult, SeedOptions } from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Interface pour les paramètres système
@@ -13,7 +13,7 @@ interface SystemSetting {
   description: string;
   isPublic: boolean;
   isEditable: boolean;
-  dataType: 'string' | 'number' | 'boolean' | 'json';
+  dataType: "string" | "number" | "boolean" | "json";
 }
 
 /**
@@ -23,12 +23,12 @@ interface SystemSetting {
 export async function seedSystemSettings(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('SYSTEM_SETTINGS');
+  logger.startSeed("SYSTEM_SETTINGS");
 
   const result: SeedResult = {
-    entity: 'system_settings',
+    entity: "system_settings",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -38,315 +38,315 @@ export async function seedSystemSettings(
   // SystemSetting dans le schéma Prisma actuel. Nous créerons des logs
   // simulés pour démontrer la fonctionnalité.
 
-  logger.info('SYSTEM_SETTINGS', '⚙️ Initialisation des paramètres système...');
+  logger.info("SYSTEM_SETTINGS", "⚙️ Initialisation des paramètres système...");
 
   // Configuration des paramètres système
   const SYSTEM_SETTINGS: SystemSetting[] = [
     // === PARAMÈTRES GÉNÉRAUX ===
     {
-      key: 'app.name',
-      value: 'EcoDeli',
-      category: 'general',
+      key: "app.name",
+      value: "EcoDeli",
+      category: "general",
       description: "Nom de l'application",
       isPublic: true,
       isEditable: false,
-      dataType: 'string',
+      dataType: "string",
     },
     {
-      key: 'app.version',
-      value: '1.0.0',
-      category: 'general',
+      key: "app.version",
+      value: "1.0.0",
+      category: "general",
       description: "Version de l'application",
       isPublic: true,
       isEditable: false,
-      dataType: 'string',
+      dataType: "string",
     },
     {
-      key: 'app.maintenance_mode',
+      key: "app.maintenance_mode",
       value: false,
-      category: 'general',
-      description: 'Mode maintenance activé',
+      category: "general",
+      description: "Mode maintenance activé",
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean',
+      dataType: "boolean",
     },
     {
-      key: 'app.default_language',
-      value: 'fr',
-      category: 'general',
+      key: "app.default_language",
+      value: "fr",
+      category: "general",
       description: "Langue par défaut de l'application",
       isPublic: true,
       isEditable: true,
-      dataType: 'string',
+      dataType: "string",
     },
     {
-      key: 'app.supported_languages',
-      value: ['fr', 'en'],
-      category: 'general',
-      description: 'Langues supportées',
+      key: "app.supported_languages",
+      value: ["fr", "en"],
+      category: "general",
+      description: "Langues supportées",
       isPublic: true,
       isEditable: true,
-      dataType: 'json',
+      dataType: "json",
     },
 
     // === LIMITES ET QUOTAS ===
     {
-      key: 'limits.max_file_size_mb',
+      key: "limits.max_file_size_mb",
       value: 10,
-      category: 'limits',
-      description: 'Taille maximale des fichiers uploadés (Mo)',
+      category: "limits",
+      description: "Taille maximale des fichiers uploadés (Mo)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'limits.max_deliveries_per_user_day',
+      key: "limits.max_deliveries_per_user_day",
       value: 20,
-      category: 'limits',
-      description: 'Nombre maximum de livraisons par utilisateur par jour',
+      category: "limits",
+      description: "Nombre maximum de livraisons par utilisateur par jour",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'limits.max_storage_boxes_per_client',
+      key: "limits.max_storage_boxes_per_client",
       value: 5,
-      category: 'limits',
-      description: 'Nombre maximum de boxes par client',
+      category: "limits",
+      description: "Nombre maximum de boxes par client",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'limits.session_timeout_minutes',
+      key: "limits.session_timeout_minutes",
       value: 120,
-      category: 'limits',
-      description: 'Durée de session utilisateur (minutes)',
+      category: "limits",
+      description: "Durée de session utilisateur (minutes)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'limits.password_min_length',
+      key: "limits.password_min_length",
       value: 8,
-      category: 'limits',
-      description: 'Longueur minimale du mot de passe',
+      category: "limits",
+      description: "Longueur minimale du mot de passe",
       isPublic: true,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
 
     // === RÈGLES MÉTIER ===
     {
-      key: 'business.commission_rate_percent',
+      key: "business.commission_rate_percent",
       value: 15,
-      category: 'business',
-      description: 'Taux de commission plateforme (%)',
+      category: "business",
+      description: "Taux de commission plateforme (%)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'business.delivery_timeout_hours',
+      key: "business.delivery_timeout_hours",
       value: 24,
-      category: 'business',
-      description: 'Délai maximum pour accepter une livraison (heures)',
+      category: "business",
+      description: "Délai maximum pour accepter une livraison (heures)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'business.verification_expiry_days',
+      key: "business.verification_expiry_days",
       value: 30,
-      category: 'business',
+      category: "business",
       description: "Délai d'expiration des vérifications (jours)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'business.refund_window_days',
+      key: "business.refund_window_days",
       value: 7,
-      category: 'business',
-      description: 'Délai pour demander un remboursement (jours)',
+      category: "business",
+      description: "Délai pour demander un remboursement (jours)",
       isPublic: true,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'business.rating_required',
+      key: "business.rating_required",
       value: true,
-      category: 'business',
-      description: 'Évaluation obligatoire après service',
+      category: "business",
+      description: "Évaluation obligatoire après service",
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean',
+      dataType: "boolean",
     },
 
     // === INTÉGRATIONS API ===
     {
-      key: 'integrations.stripe.webhook_secret',
-      value: 'whsec_test_xxxxxxxxxxxxxxxxxxxxx',
-      category: 'integrations',
-      description: 'Secret webhook Stripe',
+      key: "integrations.stripe.webhook_secret",
+      value: "whsec_test_xxxxxxxxxxxxxxxxxxxxx",
+      category: "integrations",
+      description: "Secret webhook Stripe",
       isPublic: false,
       isEditable: true,
-      dataType: 'string',
+      dataType: "string",
     },
     {
-      key: 'integrations.onesignal.app_id',
-      value: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-      category: 'integrations',
-      description: 'ID application OneSignal',
+      key: "integrations.onesignal.app_id",
+      value: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      category: "integrations",
+      description: "ID application OneSignal",
       isPublic: false,
       isEditable: true,
-      dataType: 'string',
+      dataType: "string",
     },
     {
-      key: 'integrations.maps.api_key',
-      value: 'AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-      category: 'integrations',
-      description: 'Clé API Google Maps',
+      key: "integrations.maps.api_key",
+      value: "AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      category: "integrations",
+      description: "Clé API Google Maps",
       isPublic: false,
       isEditable: true,
-      dataType: 'string',
+      dataType: "string",
     },
     {
-      key: 'integrations.sms.provider',
-      value: 'twilio',
-      category: 'integrations',
-      description: 'Fournisseur SMS',
+      key: "integrations.sms.provider",
+      value: "twilio",
+      category: "integrations",
+      description: "Fournisseur SMS",
       isPublic: false,
       isEditable: true,
-      dataType: 'string',
+      dataType: "string",
     },
     {
-      key: 'integrations.email.smtp_host',
-      value: 'smtp.resend.com',
-      category: 'integrations',
-      description: 'Serveur SMTP pour les emails',
+      key: "integrations.email.smtp_host",
+      value: "smtp.resend.com",
+      category: "integrations",
+      description: "Serveur SMTP pour les emails",
       isPublic: false,
       isEditable: true,
-      dataType: 'string',
+      dataType: "string",
     },
 
     // === MAINTENANCE ET MONITORING ===
     {
-      key: 'maintenance.backup_frequency_hours',
+      key: "maintenance.backup_frequency_hours",
       value: 6,
-      category: 'maintenance',
-      description: 'Fréquence des sauvegardes automatiques (heures)',
+      category: "maintenance",
+      description: "Fréquence des sauvegardes automatiques (heures)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'maintenance.log_retention_days',
+      key: "maintenance.log_retention_days",
       value: 90,
-      category: 'maintenance',
-      description: 'Durée de conservation des logs (jours)',
+      category: "maintenance",
+      description: "Durée de conservation des logs (jours)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'maintenance.monitoring_enabled',
+      key: "maintenance.monitoring_enabled",
       value: true,
-      category: 'maintenance',
-      description: 'Monitoring des performances activé',
+      category: "maintenance",
+      description: "Monitoring des performances activé",
       isPublic: false,
       isEditable: true,
-      dataType: 'boolean',
+      dataType: "boolean",
     },
     {
-      key: 'maintenance.health_check_interval_minutes',
+      key: "maintenance.health_check_interval_minutes",
       value: 5,
-      category: 'maintenance',
-      description: 'Intervalle des contrôles de santé (minutes)',
+      category: "maintenance",
+      description: "Intervalle des contrôles de santé (minutes)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
 
     // === SÉCURITÉ ===
     {
-      key: 'security.rate_limit_requests_per_minute',
+      key: "security.rate_limit_requests_per_minute",
       value: 100,
-      category: 'security',
-      description: 'Limite de requêtes par minute par IP',
+      category: "security",
+      description: "Limite de requêtes par minute par IP",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'security.failed_login_attempts_max',
+      key: "security.failed_login_attempts_max",
       value: 5,
-      category: 'security',
-      description: 'Nombre maximum de tentatives de connexion échouées',
+      category: "security",
+      description: "Nombre maximum de tentatives de connexion échouées",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'security.account_lockout_duration_minutes',
+      key: "security.account_lockout_duration_minutes",
       value: 30,
-      category: 'security',
-      description: 'Durée de verrouillage de compte (minutes)',
+      category: "security",
+      description: "Durée de verrouillage de compte (minutes)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
     {
-      key: 'security.two_factor_auth_required',
+      key: "security.two_factor_auth_required",
       value: false,
-      category: 'security',
-      description: 'Authentification à deux facteurs obligatoire',
+      category: "security",
+      description: "Authentification à deux facteurs obligatoire",
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean',
+      dataType: "boolean",
     },
 
     // === NOTIFICATIONS ===
     {
-      key: 'notifications.email_enabled',
+      key: "notifications.email_enabled",
       value: true,
-      category: 'notifications',
-      description: 'Notifications par email activées',
+      category: "notifications",
+      description: "Notifications par email activées",
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean',
+      dataType: "boolean",
     },
     {
-      key: 'notifications.sms_enabled',
+      key: "notifications.sms_enabled",
       value: true,
-      category: 'notifications',
-      description: 'Notifications par SMS activées',
+      category: "notifications",
+      description: "Notifications par SMS activées",
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean',
+      dataType: "boolean",
     },
     {
-      key: 'notifications.push_enabled',
+      key: "notifications.push_enabled",
       value: true,
-      category: 'notifications',
-      description: 'Notifications push activées',
+      category: "notifications",
+      description: "Notifications push activées",
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean',
+      dataType: "boolean",
     },
     {
-      key: 'notifications.batch_size',
+      key: "notifications.batch_size",
       value: 100,
-      category: 'notifications',
+      category: "notifications",
       description: "Taille des lots d'envoi de notifications",
       isPublic: false,
       isEditable: true,
-      dataType: 'number',
+      dataType: "number",
     },
   ];
 
   // Simuler la création des paramètres système
-  logger.info('SYSTEM_SETTINGS', '📝 Configuration des paramètres...');
+  logger.info("SYSTEM_SETTINGS", "📝 Configuration des paramètres...");
 
   let configuredSettings = 0;
   const settingsByCategory: Record<string, number> = {};
@@ -354,28 +354,36 @@ export async function seedSystemSettings(
   for (const setting of SYSTEM_SETTINGS) {
     try {
       // Simuler l'enregistrement du paramètre
-      logger.database('SYSTEM_SETTING', setting.key, 1);
+      logger.database("SYSTEM_SETTING", setting.key, 1);
 
       configuredSettings++;
       result.created++;
 
       // Compter par catégorie
-      settingsByCategory[setting.category] = (settingsByCategory[setting.category] || 0) + 1;
+      settingsByCategory[setting.category] =
+        (settingsByCategory[setting.category] || 0) + 1;
 
       if (options.verbose) {
         logger.success(
-          'SYSTEM_SETTINGS',
-          `✅ ${setting.key} = ${typeof setting.value === 'object' ? JSON.stringify(setting.value) : setting.value} (${setting.category})`
+          "SYSTEM_SETTINGS",
+          `✅ ${setting.key} = ${typeof setting.value === "object" ? JSON.stringify(setting.value) : setting.value} (${setting.category})`,
         );
       }
     } catch (error: any) {
-      logger.error('SYSTEM_SETTINGS', `❌ Erreur paramètre ${setting.key}: ${error.message}`);
+      logger.error(
+        "SYSTEM_SETTINGS",
+        `❌ Erreur paramètre ${setting.key}: ${error.message}`,
+      );
       result.errors++;
     }
   }
 
   // Créer un rapport de configuration détaillé
-  await generateConfigurationReport(logger, SYSTEM_SETTINGS, settingsByCategory);
+  await generateConfigurationReport(
+    logger,
+    SYSTEM_SETTINGS,
+    settingsByCategory,
+  );
 
   // Validation des paramètres critiques
   await validateCriticalSettings(logger, SYSTEM_SETTINGS);
@@ -384,33 +392,39 @@ export async function seedSystemSettings(
   await simulateConnectivityTests(logger);
 
   // Statistiques finales
-  logger.info('SYSTEM_SETTINGS', `⚙️ Catégories: ${JSON.stringify(settingsByCategory)}`);
-  logger.info('SYSTEM_SETTINGS', `🔢 Total: ${configuredSettings} paramètres configurés`);
+  logger.info(
+    "SYSTEM_SETTINGS",
+    `⚙️ Catégories: ${JSON.stringify(settingsByCategory)}`,
+  );
+  logger.info(
+    "SYSTEM_SETTINGS",
+    `🔢 Total: ${configuredSettings} paramètres configurés`,
+  );
 
-  const publicSettings = SYSTEM_SETTINGS.filter(s => s.isPublic).length;
-  const editableSettings = SYSTEM_SETTINGS.filter(s => s.isEditable).length;
+  const publicSettings = SYSTEM_SETTINGS.filter((s) => s.isPublic).length;
+  const editableSettings = SYSTEM_SETTINGS.filter((s) => s.isEditable).length;
 
   logger.info(
-    'SYSTEM_SETTINGS',
-    `🌐 Publics: ${publicSettings}, ✏️ Modifiables: ${editableSettings}`
+    "SYSTEM_SETTINGS",
+    `🌐 Publics: ${publicSettings}, ✏️ Modifiables: ${editableSettings}`,
   );
 
   // Validation
   if (configuredSettings >= SYSTEM_SETTINGS.length - result.errors) {
     logger.validation(
-      'SYSTEM_SETTINGS',
-      'PASSED',
-      `${configuredSettings} paramètres configurés avec succès`
+      "SYSTEM_SETTINGS",
+      "PASSED",
+      `${configuredSettings} paramètres configurés avec succès`,
     );
   } else {
     logger.validation(
-      'SYSTEM_SETTINGS',
-      'FAILED',
-      `Attendu: ${SYSTEM_SETTINGS.length}, Configuré: ${configuredSettings}`
+      "SYSTEM_SETTINGS",
+      "FAILED",
+      `Attendu: ${SYSTEM_SETTINGS.length}, Configuré: ${configuredSettings}`,
     );
   }
 
-  logger.endSeed('SYSTEM_SETTINGS', result);
+  logger.endSeed("SYSTEM_SETTINGS", result);
   return result;
 }
 
@@ -420,38 +434,47 @@ export async function seedSystemSettings(
 async function generateConfigurationReport(
   logger: SeedLogger,
   settings: SystemSetting[],
-  categoriesCount: Record<string, number>
+  categoriesCount: Record<string, number>,
 ): Promise<void> {
-  logger.info('CONFIG_REPORT', '📊 Génération du rapport de configuration...');
+  logger.info("CONFIG_REPORT", "📊 Génération du rapport de configuration...");
 
   // Analyse par catégorie
   const categories = Object.keys(categoriesCount).sort();
 
   for (const category of categories) {
-    const categorySettings = settings.filter(s => s.category === category);
-    const publicCount = categorySettings.filter(s => s.isPublic).length;
-    const editableCount = categorySettings.filter(s => s.isEditable).length;
+    const categorySettings = settings.filter((s) => s.category === category);
+    const publicCount = categorySettings.filter((s) => s.isPublic).length;
+    const editableCount = categorySettings.filter((s) => s.isEditable).length;
 
     logger.info(
-      'CONFIG_REPORT',
-      `📁 ${category.toUpperCase()}: ${categoriesCount[category]} paramètres (${publicCount} publics, ${editableCount} modifiables)`
+      "CONFIG_REPORT",
+      `📁 ${category.toUpperCase()}: ${categoriesCount[category]} paramètres (${publicCount} publics, ${editableCount} modifiables)`,
     );
   }
 
   // Analyse des types de données
-  const typeDistribution = settings.reduce((acc: Record<string, number>, setting) => {
-    acc[setting.dataType] = (acc[setting.dataType] || 0) + 1;
-    return acc;
-  }, {});
+  const typeDistribution = settings.reduce(
+    (acc: Record<string, number>, setting) => {
+      acc[setting.dataType] = (acc[setting.dataType] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
-  logger.info('CONFIG_REPORT', `📈 Types: ${JSON.stringify(typeDistribution)}`);
+  logger.info("CONFIG_REPORT", `📈 Types: ${JSON.stringify(typeDistribution)}`);
 
   // Paramètres critiques
   const criticalSettings = settings.filter(
-    s => s.key.includes('secret') || s.key.includes('api_key') || s.category === 'security'
+    (s) =>
+      s.key.includes("secret") ||
+      s.key.includes("api_key") ||
+      s.category === "security",
   );
 
-  logger.info('CONFIG_REPORT', `🔒 Paramètres critiques: ${criticalSettings.length}`);
+  logger.info(
+    "CONFIG_REPORT",
+    `🔒 Paramètres critiques: ${criticalSettings.length}`,
+  );
 }
 
 /**
@@ -459,43 +482,65 @@ async function generateConfigurationReport(
  */
 async function validateCriticalSettings(
   logger: SeedLogger,
-  settings: SystemSetting[]
+  settings: SystemSetting[],
 ): Promise<void> {
-  logger.info('VALIDATION', '🔍 Validation des paramètres critiques...');
+  logger.info("VALIDATION", "🔍 Validation des paramètres critiques...");
 
   // Vérifier que les paramètres obligatoires sont présents
   const requiredKeys = [
-    'app.name',
-    'app.version',
-    'business.commission_rate_percent',
-    'limits.max_file_size_mb',
-    'security.rate_limit_requests_per_minute',
+    "app.name",
+    "app.version",
+    "business.commission_rate_percent",
+    "limits.max_file_size_mb",
+    "security.rate_limit_requests_per_minute",
   ];
 
-  const missingRequired = requiredKeys.filter(key => !settings.find(s => s.key === key));
+  const missingRequired = requiredKeys.filter(
+    (key) => !settings.find((s) => s.key === key),
+  );
 
   if (missingRequired.length === 0) {
-    logger.success('VALIDATION', '✅ Tous les paramètres obligatoires sont présents');
+    logger.success(
+      "VALIDATION",
+      "✅ Tous les paramètres obligatoires sont présents",
+    );
   } else {
-    logger.error('VALIDATION', `❌ Paramètres manquants: ${missingRequired.join(', ')}`);
+    logger.error(
+      "VALIDATION",
+      `❌ Paramètres manquants: ${missingRequired.join(", ")}`,
+    );
   }
 
   // Vérifier la cohérence des valeurs
-  const commissionRate = settings.find(s => s.key === 'business.commission_rate_percent')
-    ?.value as number;
+  const commissionRate = settings.find(
+    (s) => s.key === "business.commission_rate_percent",
+  )?.value as number;
   if (commissionRate && (commissionRate < 0 || commissionRate > 30)) {
-    logger.warning('VALIDATION', `⚠️ Taux de commission suspect: ${commissionRate}%`);
+    logger.warning(
+      "VALIDATION",
+      `⚠️ Taux de commission suspect: ${commissionRate}%`,
+    );
   } else {
-    logger.success('VALIDATION', `✅ Taux de commission cohérent: ${commissionRate}%`);
+    logger.success(
+      "VALIDATION",
+      `✅ Taux de commission cohérent: ${commissionRate}%`,
+    );
   }
 
   // Vérifier les limites de sécurité
-  const maxAttempts = settings.find(s => s.key === 'security.failed_login_attempts_max')
-    ?.value as number;
+  const maxAttempts = settings.find(
+    (s) => s.key === "security.failed_login_attempts_max",
+  )?.value as number;
   if (maxAttempts && maxAttempts > 10) {
-    logger.warning('VALIDATION', `⚠️ Limite de tentatives élevée: ${maxAttempts}`);
+    logger.warning(
+      "VALIDATION",
+      `⚠️ Limite de tentatives élevée: ${maxAttempts}`,
+    );
   } else {
-    logger.success('VALIDATION', `✅ Limite de tentatives sécurisée: ${maxAttempts}`);
+    logger.success(
+      "VALIDATION",
+      `✅ Limite de tentatives sécurisée: ${maxAttempts}`,
+    );
   }
 }
 
@@ -503,25 +548,31 @@ async function validateCriticalSettings(
  * Simule les tests de connectivité des intégrations
  */
 async function simulateConnectivityTests(logger: SeedLogger): Promise<void> {
-  logger.info('CONNECTIVITY', '🔌 Tests de connectivité des intégrations...');
+  logger.info("CONNECTIVITY", "🔌 Tests de connectivité des intégrations...");
 
   const integrations = [
-    { name: 'Stripe', status: 'CONNECTED', latency: '45ms' },
-    { name: 'OneSignal', status: 'CONNECTED', latency: '32ms' },
-    { name: 'Google Maps', status: 'CONNECTED', latency: '28ms' },
-    { name: 'SMTP Server', status: 'CONNECTED', latency: '156ms' },
-    { name: 'SMS Provider', status: 'CONNECTED', latency: '78ms' },
+    { name: "Stripe", status: "CONNECTED", latency: "45ms" },
+    { name: "OneSignal", status: "CONNECTED", latency: "32ms" },
+    { name: "Google Maps", status: "CONNECTED", latency: "28ms" },
+    { name: "SMTP Server", status: "CONNECTED", latency: "156ms" },
+    { name: "SMS Provider", status: "CONNECTED", latency: "78ms" },
   ];
 
   for (const integration of integrations) {
     // Simuler une latence aléatoire
     const actualLatency = faker.number.int({ min: 20, max: 200 });
-    const status = actualLatency > 150 ? 'SLOW' : 'CONNECTED';
+    const status = actualLatency > 150 ? "SLOW" : "CONNECTED";
 
-    if (status === 'CONNECTED') {
-      logger.success('CONNECTIVITY', `✅ ${integration.name}: ${status} (${actualLatency}ms)`);
+    if (status === "CONNECTED") {
+      logger.success(
+        "CONNECTIVITY",
+        `✅ ${integration.name}: ${status} (${actualLatency}ms)`,
+      );
     } else {
-      logger.warning('CONNECTIVITY', `⚠️ ${integration.name}: ${status} (${actualLatency}ms)`);
+      logger.warning(
+        "CONNECTIVITY",
+        `⚠️ ${integration.name}: ${status} (${actualLatency}ms)`,
+      );
     }
   }
 }
@@ -531,17 +582,17 @@ async function simulateConnectivityTests(logger: SeedLogger): Promise<void> {
  */
 export async function validateSystemSettings(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation de la configuration système...');
+  logger.info("VALIDATION", "🔍 Validation de la configuration système...");
 
   // Cette validation est simulée car il n'y a pas de modèle SystemSetting
   // Dans un vrai scénario, on vérifierait la base de données
 
-  logger.success('VALIDATION', '✅ Configuration système validée (simulation)');
+  logger.success("VALIDATION", "✅ Configuration système validée (simulation)");
   logger.info(
-    'VALIDATION',
-    "📝 Note: Les paramètres système sont simulés car aucun modèle correspondant n'existe dans le schéma Prisma"
+    "VALIDATION",
+    "📝 Note: Les paramètres système sont simulés car aucun modèle correspondant n'existe dans le schéma Prisma",
   );
 
   return true;

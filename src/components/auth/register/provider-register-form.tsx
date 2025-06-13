@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslations } from 'next-intl';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import {
   providerRegisterSchema,
   ProviderRegisterSchemaType,
-} from '@/schemas/provider/provider-register.schema';
-import { UserRole } from '@/schemas/auth/register.schema';
-import { Button } from '@/components/ui/button';
+} from "@/schemas/provider/provider-register.schema";
+import { UserRole } from "@/schemas/auth/register.schema";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -16,38 +16,38 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useRouter } from 'next/navigation';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/select";
+import { useRouter } from "next/navigation";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ProviderRegisterForm() {
   const router = useRouter();
-  const t = useTranslations('auth.register');
+  const t = useTranslations("auth.register");
   const { toast } = useToast();
 
   const registerMutation = api.auth.register.useMutation({
     onSuccess: () => {
       toast({
-        title: t('success.title'),
-        description: t('success.provider'),
+        title: t("success.title"),
+        description: t("success.provider"),
       });
-      router.push('/login?registered=true&role=provider');
+      router.push("/login?registered=true&role=provider");
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: t('error.title'),
-        description: error.message || t('error.description'),
-        variant: 'destructive',
+        title: t("error.title"),
+        description: error.message || t("error.description"),
+        variant: "destructive",
       });
     },
   });
@@ -55,21 +55,21 @@ export default function ProviderRegisterForm() {
   const form = useForm<ProviderRegisterSchemaType>({
     resolver: zodResolver(providerRegisterSchema),
     defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      name: '',
-      phoneNumber: '',
-      companyName: '',
-      address: '',
-      city: '',
-      postalCode: '',
-      serviceType: '',
+      email: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+      phoneNumber: "",
+      companyName: "",
+      address: "",
+      city: "",
+      postalCode: "",
+      serviceType: "",
       services: [],
-      description: '',
-      experienceYears: '',
-      certifications: '',
-      availability: '',
+      description: "",
+      experienceYears: "",
+      certifications: "",
+      availability: "",
       role: UserRole.PROVIDER,
     },
   });
@@ -80,7 +80,7 @@ export default function ProviderRegisterForm() {
         email: data.email,
         password: data.password,
         name: data.name,
-        role: 'PROVIDER',
+        role: "PROVIDER",
         phone: data.phoneNumber,
         companyName: data.companyName,
         address: data.address,
@@ -94,16 +94,16 @@ export default function ProviderRegisterForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">{t('sections.personalInfo')}</h3>
+          <h3 className="text-lg font-medium">{t("sections.personalInfo")}</h3>
 
           <FormField
             control={form.control as any}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.name')}</FormLabel>
+                <FormLabel>{t("fields.name")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.name')} {...field} />
+                  <Input placeholder={t("placeholders.name")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -115,9 +115,13 @@ export default function ProviderRegisterForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.email')}</FormLabel>
+                <FormLabel>{t("fields.email")}</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder={t('placeholders.email')} {...field} />
+                  <Input
+                    type="email"
+                    placeholder={t("placeholders.email")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -129,9 +133,13 @@ export default function ProviderRegisterForm() {
             name="phoneNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.phone')}</FormLabel>
+                <FormLabel>{t("fields.phone")}</FormLabel>
                 <FormControl>
-                  <Input type="tel" placeholder={t('placeholders.phone')} {...field} />
+                  <Input
+                    type="tel"
+                    placeholder={t("placeholders.phone")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -144,9 +152,13 @@ export default function ProviderRegisterForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('fields.password')}</FormLabel>
+                  <FormLabel>{t("fields.password")}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder={t('placeholders.password')} {...field} />
+                    <Input
+                      type="password"
+                      placeholder={t("placeholders.password")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -158,11 +170,11 @@ export default function ProviderRegisterForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('fields.confirmPassword')}</FormLabel>
+                  <FormLabel>{t("fields.confirmPassword")}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder={t('placeholders.confirmPassword')}
+                      placeholder={t("placeholders.confirmPassword")}
                       {...field}
                     />
                   </FormControl>
@@ -174,16 +186,21 @@ export default function ProviderRegisterForm() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">{t('sections.professionalInfo')}</h3>
+          <h3 className="text-lg font-medium">
+            {t("sections.professionalInfo")}
+          </h3>
 
           <FormField
             control={form.control as any}
             name="companyName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.companyName')}</FormLabel>
+                <FormLabel>{t("fields.companyName")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.companyName')} {...field} />
+                  <Input
+                    placeholder={t("placeholders.companyName")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -195,9 +212,9 @@ export default function ProviderRegisterForm() {
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.address')}</FormLabel>
+                <FormLabel>{t("fields.address")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.address')} {...field} />
+                  <Input placeholder={t("placeholders.address")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -209,9 +226,9 @@ export default function ProviderRegisterForm() {
             name="city"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.city')}</FormLabel>
+                <FormLabel>{t("fields.city")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.city')} {...field} />
+                  <Input placeholder={t("placeholders.city")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -223,9 +240,12 @@ export default function ProviderRegisterForm() {
             name="postalCode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.postalCode')}</FormLabel>
+                <FormLabel>{t("fields.postalCode")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.postalCode')} {...field} />
+                  <Input
+                    placeholder={t("placeholders.postalCode")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -237,15 +257,20 @@ export default function ProviderRegisterForm() {
             name="serviceType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.serviceType')}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormLabel>{t("fields.serviceType")}</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('placeholders.serviceType')} />
+                      <SelectValue
+                        placeholder={t("placeholders.serviceType")}
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {Object.values(ServiceType).map(type => (
+                    {Object.values(ServiceType).map((type) => (
                       <SelectItem key={type} value={type}>
                         {t(`serviceTypes.${type.toLowerCase()}`)}
                       </SelectItem>
@@ -262,11 +287,11 @@ export default function ProviderRegisterForm() {
             name="services"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.services')}</FormLabel>
+                <FormLabel>{t("fields.services")}</FormLabel>
                 <FormControl>
                   <MultiSelect
                     options={serviceOptions}
-                    placeholder={t('placeholders.services')}
+                    placeholder={t("placeholders.services")}
                     selected={field.value}
                     onChange={field.onChange}
                   />
@@ -281,10 +306,10 @@ export default function ProviderRegisterForm() {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.description')}</FormLabel>
+                <FormLabel>{t("fields.description")}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder={t('placeholders.description')}
+                    placeholder={t("placeholders.description")}
                     className="min-h-[100px]"
                     {...field}
                   />
@@ -299,9 +324,12 @@ export default function ProviderRegisterForm() {
             name="experienceYears"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.experienceYears')}</FormLabel>
+                <FormLabel>{t("fields.experienceYears")}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.experienceYears')} {...field} />
+                  <Input
+                    placeholder={t("placeholders.experienceYears")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -313,9 +341,12 @@ export default function ProviderRegisterForm() {
             name="certifications"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.certifications')}</FormLabel>
+                <FormLabel>{t("fields.certifications")}</FormLabel>
                 <FormControl>
-                  <Textarea placeholder={t('placeholders.certifications')} {...field} />
+                  <Textarea
+                    placeholder={t("placeholders.certifications")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -327,9 +358,12 @@ export default function ProviderRegisterForm() {
             name="availability"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.availability')}</FormLabel>
+                <FormLabel>{t("fields.availability")}</FormLabel>
                 <FormControl>
-                  <Textarea placeholder={t('placeholders.availability')} {...field} />
+                  <Textarea
+                    placeholder={t("placeholders.availability")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -338,9 +372,17 @@ export default function ProviderRegisterForm() {
         </div>
 
         <div className="pt-4">
-          <p className="text-sm text-muted-foreground mb-4">{t('verificationNotice')}</p>
-          <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-            {registerMutation.isPending ? t('submitting') : t('registerAsProvider')}
+          <p className="text-sm text-muted-foreground mb-4">
+            {t("verificationNotice")}
+          </p>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={registerMutation.isPending}
+          >
+            {registerMutation.isPending
+              ? t("submitting")
+              : t("registerAsProvider")}
           </Button>
         </div>
       </form>

@@ -4,11 +4,11 @@
  */
 
 // Exports des fichiers locaux
-export { default as AnnouncementDashboard } from './announcement-dashboard';
-export * from './announcement-dashboard';
-export { default as AnnouncementFilters } from './announcement-filters';
-export * from './announcement-filters';
-export { default as AnnouncementStats } from './announcement-stats';
-export * from './announcement-stats';
-export { default as AnnouncementTable } from './announcement-table';
-export * from './announcement-table';
+export { default as AnnouncementDashboard } from "./announcement-dashboard";
+export * from "./announcement-dashboard";
+export { default as AnnouncementFilters } from "./announcement-filters";
+export * from "./announcement-filters";
+export { default as AnnouncementStats } from "./announcement-stats";
+export * from "./announcement-stats";
+export { default as AnnouncementTable } from "./announcement-table";
+export * from "./announcement-table";

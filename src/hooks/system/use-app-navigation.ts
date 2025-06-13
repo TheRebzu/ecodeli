@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams } from "next/navigation";
 
 /**
  * Hook personnalisé pour la navigation qui gère correctement les routes avec des groupes parenthésés.
@@ -9,7 +9,7 @@ import { useRouter, useParams } from 'next/navigation';
 export function useAppNavigation() {
   const router = useRouter();
   const params = useParams();
-  const currentLocale = (params.locale as string) || 'fr';
+  const currentLocale = (params.locale as string) || "fr";
 
   /**
    * Navigue vers une route en préservant la locale actuelle
@@ -18,7 +18,7 @@ export function useAppNavigation() {
    */
   const navigateTo = (path: string, locale?: string) => {
     const targetLocale = locale || currentLocale;
-    const formattedPath = path.startsWith('/') ? path : `/${path}`;
+    const formattedPath = path.startsWith("/") ? path : `/${path}`;
     router.push(`/${targetLocale}${formattedPath}`);
   };
 
@@ -29,7 +29,7 @@ export function useAppNavigation() {
    */
   const redirectTo = (path: string, locale?: string) => {
     const targetLocale = locale || currentLocale;
-    const formattedPath = path.startsWith('/') ? path : `/${path}`;
+    const formattedPath = path.startsWith("/") ? path : `/${path}`;
     window.location.href = `/${targetLocale}${formattedPath}`;
   };
 
@@ -41,7 +41,7 @@ export function useAppNavigation() {
    */
   const getLocalizedUrl = (path: string, locale?: string) => {
     const targetLocale = locale || currentLocale;
-    const formattedPath = path.startsWith('/') ? path : `/${path}`;
+    const formattedPath = path.startsWith("/") ? path : `/${path}`;
     return `/${targetLocale}${formattedPath}`;
   };
 

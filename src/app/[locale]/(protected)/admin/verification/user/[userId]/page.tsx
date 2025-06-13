@@ -1,6 +1,6 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import UserDocumentsList from '@/components/admin/verification/user-documents-list';
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import UserDocumentsList from "@/components/admin/verification/user-documents-list";
 
 export async function generateMetadata({
   params,
@@ -8,11 +8,11 @@ export async function generateMetadata({
   params: Promise<{ userId: string }>;
 }): Promise<Metadata> {
   const { userId } = await params;
-  const t = await getTranslations('admin.verification');
+  const t = await getTranslations("admin.verification");
 
   return {
-    title: `${t('userVerification.title')} | Admin`,
-    description: t('userVerification.description'),
+    title: `${t("userVerification.title")} | Admin`,
+    description: t("userVerification.description"),
   };
 }
 

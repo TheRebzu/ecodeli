@@ -4,12 +4,12 @@
 
 // Types d'événements de suivi
 export enum DeliveryTrackingEventType {
-  LOCATION_UPDATE = 'LOCATION_UPDATE',
-  STATUS_UPDATE = 'STATUS_UPDATE',
-  ETA_UPDATE = 'ETA_UPDATE',
-  CHECKPOINT_REACHED = 'CHECKPOINT_REACHED',
-  ISSUE_REPORTED = 'ISSUE_REPORTED',
-  ISSUE_RESOLVED = 'ISSUE_RESOLVED',
+  LOCATION_UPDATE = "LOCATION_UPDATE",
+  STATUS_UPDATE = "STATUS_UPDATE",
+  ETA_UPDATE = "ETA_UPDATE",
+  CHECKPOINT_REACHED = "CHECKPOINT_REACHED",
+  ISSUE_REPORTED = "ISSUE_REPORTED",
+  ISSUE_RESOLVED = "ISSUE_RESOLVED",
 }
 
 // Interface pour les mises à jour
@@ -26,7 +26,10 @@ export interface DeliveryTrackingUpdate {
  */
 export const emitDeliveryUpdate = (deliveryId: string, update: any) => {
   // Journalisation pour le développement (simulée)
-  console.log(`[WebSocket] Émission de mise à jour pour la livraison ${deliveryId}:`, update);
+  console.log(
+    `[WebSocket] Émission de mise à jour pour la livraison ${deliveryId}:`,
+    update,
+  );
 
   // En production, cela ressemblerait à quelque chose comme:
   // io.to(`delivery:${deliveryId}`).emit('delivery:update', {
@@ -44,17 +47,21 @@ export const emitDeliveryUpdate = (deliveryId: string, update: any) => {
  */
 export const subscribeToDeliveryUpdates = (
   deliveryId: string,
-  callback: (update: DeliveryTrackingUpdate) => void
+  callback: (update: DeliveryTrackingUpdate) => void,
 ) => {
   // En production, cela ressemblerait à:
   // socket.join(`delivery:${deliveryId}`);
   // socket.on('delivery:update', callback);
 
-  console.log(`[WebSocket] Abonnement aux mises à jour pour la livraison ${deliveryId}`);
+  console.log(
+    `[WebSocket] Abonnement aux mises à jour pour la livraison ${deliveryId}`,
+  );
 
   return () => {
     // Fonction de nettoyage pour se désabonner
-    console.log(`[WebSocket] Désabonnement des mises à jour pour la livraison ${deliveryId}`);
+    console.log(
+      `[WebSocket] Désabonnement des mises à jour pour la livraison ${deliveryId}`,
+    );
     // socket.leave(`delivery:${deliveryId}`);
     // socket.off('delivery:update', callback);
   };
@@ -72,13 +79,13 @@ export const emitLocationUpdate = (
     heading?: number;
     speed?: number;
     timestamp?: Date;
-  }
+  },
 ) => {
   return emitDeliveryUpdate(deliveryId, {
     type: DeliveryTrackingEventType.LOCATION_UPDATE,
     timestamp: data.timestamp || new Date(),
     location: {
-      type: 'Point',
+      type: "Point",
       coordinates: [data.longitude, data.latitude],
     },
     accuracy: data.accuracy,
@@ -97,7 +104,7 @@ export const emitStatusUpdate = (
     previousStatus?: string;
     notes?: string;
     timestamp?: Date;
-  }
+  },
 ) => {
   return emitDeliveryUpdate(deliveryId, {
     type: DeliveryTrackingEventType.STATUS_UPDATE,
@@ -118,7 +125,7 @@ export const emitETAUpdate = (
     distanceRemaining?: number;
     delay?: number;
     timestamp?: Date;
-  }
+  },
 ) => {
   return emitDeliveryUpdate(deliveryId, {
     type: DeliveryTrackingEventType.ETA_UPDATE,

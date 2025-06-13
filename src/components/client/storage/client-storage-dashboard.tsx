@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { BoxRecommendations } from '@/components/client/storage/box-recommendations';
-import { ClientStorageStats } from '@/components/client/storage/client-storage-stats';
-import { WarehouseMap } from '@/components/client/storage/warehouse-map';
-import { BoxSearchForm } from '@/components/client/storage/box-search';
-import { BoxReservationForm } from '@/components/client/storage/box-reservation-form';
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { BoxRecommendations } from "@/components/client/storage/box-recommendations";
+import { ClientStorageStats } from "@/components/client/storage/client-storage-stats";
+import { WarehouseMap } from "@/components/client/storage/warehouse-map";
+import { BoxSearchForm } from "@/components/client/storage/box-search";
+import { BoxReservationForm } from "@/components/client/storage/box-reservation-form";
 import {
   Search,
   MapPin,
@@ -19,18 +25,26 @@ import {
   Calendar,
   Settings,
   Star,
-} from 'lucide-react';
-import { api } from '@/trpc/react';
+} from "lucide-react";
+import { api } from "@/trpc/react";
 
-type DashboardView = 'overview' | 'search' | 'recommendations' | 'map' | 'stats' | 'reservations';
+type DashboardView =
+  | "overview"
+  | "search"
+  | "recommendations"
+  | "map"
+  | "stats"
+  | "reservations";
 
 export function ClientStorageDashboard() {
-  const [activeView, setActiveView] = useState<DashboardView>('overview');
+  const [activeView, setActiveView] = useState<DashboardView>("overview");
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>();
   const [searchFilters, setSearchFilters] = useState<any>({});
 
   // Récupération des données
-  const { data: warehouses } = api.warehouse.getWarehouses.useQuery({ includeBoxes: false });
+  const { data: warehouses } = api.warehouse.getWarehouses.useQuery({
+    includeBoxes: false,
+  });
   const { data: myReservations } = api.storage.getMyBoxReservations.useQuery();
   const { data: myStats } = api.storage.getMyStorageStats.useQuery();
 
@@ -39,7 +53,7 @@ export function ClientStorageDashboard() {
       <Button
         variant="outline"
         className="h-20 flex-col gap-2"
-        onClick={() => setActiveView('search')}
+        onClick={() => setActiveView("search")}
       >
         <Search className="h-5 w-5" />
         <span className="text-sm">Rechercher une box</span>
@@ -48,7 +62,7 @@ export function ClientStorageDashboard() {
       <Button
         variant="outline"
         className="h-20 flex-col gap-2"
-        onClick={() => setActiveView('recommendations')}
+        onClick={() => setActiveView("recommendations")}
       >
         <Sparkles className="h-5 w-5" />
         <span className="text-sm">Recommandations</span>
@@ -57,7 +71,7 @@ export function ClientStorageDashboard() {
       <Button
         variant="outline"
         className="h-20 flex-col gap-2"
-        onClick={() => setActiveView('map')}
+        onClick={() => setActiveView("map")}
       >
         <MapPin className="h-5 w-5" />
         <span className="text-sm">Carte des entrepôts</span>
@@ -66,7 +80,7 @@ export function ClientStorageDashboard() {
       <Button
         variant="outline"
         className="h-20 flex-col gap-2"
-        onClick={() => setActiveView('stats')}
+        onClick={() => setActiveView("stats")}
       >
         <BarChart3 className="h-5 w-5" />
         <span className="text-sm">Mes statistiques</span>
@@ -96,8 +110,12 @@ export function ClientStorageDashboard() {
           <Card>
             <CardContent className="pt-4">
               <div className="text-center">
-                <div className="text-2xl font-bold">{myStats.totalReservations}</div>
-                <div className="text-sm text-muted-foreground">Réservations totales</div>
+                <div className="text-2xl font-bold">
+                  {myStats.totalReservations}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Réservations totales
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -105,7 +123,9 @@ export function ClientStorageDashboard() {
           <Card>
             <CardContent className="pt-4">
               <div className="text-center">
-                <div className="text-2xl font-bold">{myStats.activeReservations}</div>
+                <div className="text-2xl font-bold">
+                  {myStats.activeReservations}
+                </div>
                 <div className="text-sm text-muted-foreground">En cours</div>
               </div>
             </CardContent>
@@ -114,8 +134,12 @@ export function ClientStorageDashboard() {
           <Card>
             <CardContent className="pt-4">
               <div className="text-center">
-                <div className="text-2xl font-bold">{myStats.totalDaysUsed}</div>
-                <div className="text-sm text-muted-foreground">Jours utilisés</div>
+                <div className="text-2xl font-bold">
+                  {myStats.totalDaysUsed}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Jours utilisés
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -123,7 +147,9 @@ export function ClientStorageDashboard() {
           <Card>
             <CardContent className="pt-4">
               <div className="text-center">
-                <div className="text-2xl font-bold">{myStats.totalSpent.toFixed(0)}€</div>
+                <div className="text-2xl font-bold">
+                  {myStats.totalSpent.toFixed(0)}€
+                </div>
                 <div className="text-sm text-muted-foreground">Dépensés</div>
               </div>
             </CardContent>
@@ -143,9 +169,11 @@ export function ClientStorageDashboard() {
           <CardContent>
             <div className="space-y-3">
               {myReservations
-                .filter(r => ['PENDING', 'ACTIVE', 'EXTENDED'].includes(r.status))
+                .filter((r) =>
+                  ["PENDING", "ACTIVE", "EXTENDED"].includes(r.status),
+                )
                 .slice(0, 3)
-                .map(reservation => (
+                .map((reservation) => (
                   <div
                     key={reservation.id}
                     className="flex items-center justify-between p-3 border rounded-lg"
@@ -157,7 +185,13 @@ export function ClientStorageDashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge variant={reservation.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                      <Badge
+                        variant={
+                          reservation.status === "ACTIVE"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
                         {reservation.status}
                       </Badge>
                     </div>
@@ -175,10 +209,10 @@ export function ClientStorageDashboard() {
 
   const renderContent = () => {
     switch (activeView) {
-      case 'overview':
+      case "overview":
         return renderOverview();
 
-      case 'search':
+      case "search":
         return (
           <div className="space-y-6">
             <Card>
@@ -187,7 +221,9 @@ export function ClientStorageDashboard() {
                   <Search className="h-5 w-5" />
                   Recherche de box
                 </CardTitle>
-                <CardDescription>Trouvez la box parfaite selon vos critères</CardDescription>
+                <CardDescription>
+                  Trouvez la box parfaite selon vos critères
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <BoxSearchForm onSearch={setSearchFilters} />
@@ -196,7 +232,7 @@ export function ClientStorageDashboard() {
           </div>
         );
 
-      case 'recommendations':
+      case "recommendations":
         return (
           <div className="space-y-6">
             <Card>
@@ -214,7 +250,7 @@ export function ClientStorageDashboard() {
           </div>
         );
 
-      case 'map':
+      case "map":
         return (
           <div className="space-y-6">
             <Card>
@@ -223,7 +259,9 @@ export function ClientStorageDashboard() {
                   <MapPin className="h-5 w-5" />
                   Carte des entrepôts
                 </CardTitle>
-                <CardDescription>Explorez les entrepôts près de chez vous</CardDescription>
+                <CardDescription>
+                  Explorez les entrepôts près de chez vous
+                </CardDescription>
               </CardHeader>
             </Card>
             <WarehouseMap
@@ -235,7 +273,7 @@ export function ClientStorageDashboard() {
           </div>
         );
 
-      case 'stats':
+      case "stats":
         return (
           <div className="space-y-6">
             <Card>
@@ -244,14 +282,16 @@ export function ClientStorageDashboard() {
                   <BarChart3 className="h-5 w-5" />
                   Mes statistiques
                 </CardTitle>
-                <CardDescription>Votre activité et impact environnemental</CardDescription>
+                <CardDescription>
+                  Votre activité et impact environnemental
+                </CardDescription>
               </CardHeader>
             </Card>
             <ClientStorageStats />
           </div>
         );
 
-      case 'reservations':
+      case "reservations":
         return (
           <div className="space-y-6">
             <Card>
@@ -260,29 +300,36 @@ export function ClientStorageDashboard() {
                   <Package className="h-5 w-5" />
                   Mes réservations
                 </CardTitle>
-                <CardDescription>Historique et gestion de vos réservations</CardDescription>
+                <CardDescription>
+                  Historique et gestion de vos réservations
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {myReservations && myReservations.length > 0 ? (
                   <div className="space-y-4">
-                    {myReservations.map(reservation => (
-                      <div key={reservation.id} className="p-4 border rounded-lg space-y-3">
+                    {myReservations.map((reservation) => (
+                      <div
+                        key={reservation.id}
+                        className="p-4 border rounded-lg space-y-3"
+                      >
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium">{reservation.box?.name}</h4>
+                            <h4 className="font-medium">
+                              {reservation.box?.name}
+                            </h4>
                             <p className="text-sm text-muted-foreground">
                               {reservation.box?.warehouse?.name}
                             </p>
                           </div>
                           <Badge
                             variant={
-                              reservation.status === 'ACTIVE'
-                                ? 'default'
-                                : reservation.status === 'COMPLETED'
-                                  ? 'secondary'
-                                  : reservation.status === 'CANCELLED'
-                                    ? 'destructive'
-                                    : 'outline'
+                              reservation.status === "ACTIVE"
+                                ? "default"
+                                : reservation.status === "COMPLETED"
+                                  ? "secondary"
+                                  : reservation.status === "CANCELLED"
+                                    ? "destructive"
+                                    : "outline"
                             }
                           >
                             {reservation.status}
@@ -291,14 +338,20 @@ export function ClientStorageDashboard() {
 
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <span className="text-muted-foreground">Début:</span>
+                            <span className="text-muted-foreground">
+                              Début:
+                            </span>
                             <br />
-                            {new Date(reservation.startDate).toLocaleDateString('fr-FR')}
+                            {new Date(reservation.startDate).toLocaleDateString(
+                              "fr-FR",
+                            )}
                           </div>
                           <div>
                             <span className="text-muted-foreground">Fin:</span>
                             <br />
-                            {new Date(reservation.endDate).toLocaleDateString('fr-FR')}
+                            {new Date(reservation.endDate).toLocaleDateString(
+                              "fr-FR",
+                            )}
                           </div>
                         </div>
 
@@ -307,7 +360,7 @@ export function ClientStorageDashboard() {
                             Total: {reservation.totalPrice}€
                           </span>
 
-                          {reservation.status === 'ACTIVE' && (
+                          {reservation.status === "ACTIVE" && (
                             <Button size="sm" variant="outline">
                               Gérer
                             </Button>
@@ -334,7 +387,10 @@ export function ClientStorageDashboard() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Navigation tabs */}
-      <Tabs value={activeView} onValueChange={value => setActiveView(value as DashboardView)}>
+      <Tabs
+        value={activeView}
+        onValueChange={(value) => setActiveView(value as DashboardView)}
+      >
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
@@ -344,7 +400,10 @@ export function ClientStorageDashboard() {
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Recherche</span>
           </TabsTrigger>
-          <TabsTrigger value="recommendations" className="flex items-center gap-2">
+          <TabsTrigger
+            value="recommendations"
+            className="flex items-center gap-2"
+          >
             <Sparkles className="h-4 w-4" />
             <span className="hidden sm:inline">Suggestions</span>
           </TabsTrigger>

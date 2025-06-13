@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import { ModeToggle } from '@/components/ui/mode-toggle';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import Link from "next/link";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { ModeToggle } from "@/components/ui/mode-toggle";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
 
 interface AuthNavbarProps {
   locale: string;
@@ -19,7 +19,7 @@ interface AuthNavbarProps {
 
 export function AuthNavbar({
   locale,
-  title = 'EcoDeli',
+  title = "EcoDeli",
   showBackButton = true,
   backUrl = `/${locale}/home`,
   backText = "Retour à l'accueil",

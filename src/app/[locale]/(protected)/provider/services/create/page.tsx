@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   ArrowLeft,
   Save,
@@ -23,10 +23,10 @@ import {
   Settings,
   Zap,
   AlertCircle,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
 import {
   Card,
@@ -34,23 +34,23 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -59,49 +59,53 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 
 // Schéma de validation
 const serviceFormSchema = z.object({
   title: z
     .string()
-    .min(5, 'Le titre doit contenir au moins 5 caractères')
-    .max(100, 'Le titre ne peut pas dépasser 100 caractères'),
+    .min(5, "Le titre doit contenir au moins 5 caractères")
+    .max(100, "Le titre ne peut pas dépasser 100 caractères"),
   description: z
     .string()
-    .min(20, 'La description doit contenir au moins 20 caractères')
-    .max(1000, 'La description ne peut pas dépasser 1000 caractères'),
-  category: z.string().min(1, 'Veuillez sélectionner une catégorie'),
+    .min(20, "La description doit contenir au moins 20 caractères")
+    .max(1000, "La description ne peut pas dépasser 1000 caractères"),
+  category: z.string().min(1, "Veuillez sélectionner une catégorie"),
   subcategory: z.string().optional(),
-  type: z.enum(['FIXED_PRICE', 'HOURLY_RATE', 'PACKAGE']),
+  type: z.enum(["FIXED_PRICE", "HOURLY_RATE", "PACKAGE"]),
   pricing: z.object({
-    basePrice: z.coerce.number().min(5, 'Le prix minimum est de 5€'),
+    basePrice: z.coerce.number().min(5, "Le prix minimum est de 5€"),
     hourlyRate: z.coerce.number().optional(),
     packagePrice: z.coerce.number().optional(),
-    currency: z.string().default('EUR'),
+    currency: z.string().default("EUR"),
   }),
   duration: z.object({
-    estimatedMinutes: z.coerce.number().min(15, 'Durée minimum de 15 minutes'),
+    estimatedMinutes: z.coerce.number().min(15, "Durée minimum de 15 minutes"),
     maxMinutes: z.coerce.number().optional(),
     flexible: z.boolean().default(false),
   }),
   location: z.object({
-    type: z.enum(['AT_HOME', 'AT_PROVIDER', 'REMOTE', 'FLEXIBLE']),
+    type: z.enum(["AT_HOME", "AT_PROVIDER", "REMOTE", "FLEXIBLE"]),
     serviceRadius: z.coerce.number().optional(),
     address: z.string().optional(),
   }),
   availability: z.object({
-    daysOfWeek: z.array(z.number()).min(1, 'Sélectionnez au moins un jour'),
-    timeSlots: z.array(z.object({
-      startTime: z.string(),
-      endTime: z.string(),
-    })).min(1, 'Ajoutez au moins un créneau horaire'),
-    advanceNotice: z.coerce.number().min(1, 'Préavis minimum de 1 heure'),
+    daysOfWeek: z.array(z.number()).min(1, "Sélectionnez au moins un jour"),
+    timeSlots: z
+      .array(
+        z.object({
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+      )
+      .min(1, "Ajoutez au moins un créneau horaire"),
+    advanceNotice: z.coerce.number().min(1, "Préavis minimum de 1 heure"),
   }),
   requirements: z.object({
     skills: z.array(z.string()),
     equipment: z.array(z.string()),
-    experience: z.enum(['BEGINNER', 'INTERMEDIATE', 'EXPERT']),
+    experience: z.enum(["BEGINNER", "INTERMEDIATE", "EXPERT"]),
     certifications: z.array(z.string()),
   }),
   options: z.object({
@@ -112,12 +116,12 @@ const serviceFormSchema = z.object({
     hasInsurance: z.boolean().default(false),
   }),
   media: z.object({
-    photos: z.array(z.string()).max(10, 'Maximum 10 photos'),
-    videos: z.array(z.string()).max(3, 'Maximum 3 vidéos'),
+    photos: z.array(z.string()).max(10, "Maximum 10 photos"),
+    videos: z.array(z.string()).max(3, "Maximum 3 vidéos"),
   }),
   terms: z.object({
-    cancellationPolicy: z.string().min(10, 'Politique d\'annulation requise'),
-    refundPolicy: z.string().min(10, 'Politique de remboursement requise'),
+    cancellationPolicy: z.string().min(10, "Politique d'annulation requise"),
+    refundPolicy: z.string().min(10, "Politique de remboursement requise"),
     additionalTerms: z.string().optional(),
   }),
 });
@@ -126,47 +130,75 @@ type ServiceFormValues = z.infer<typeof serviceFormSchema>;
 
 // Catégories de services
 const SERVICE_CATEGORIES = [
-  { value: 'HOME_MAINTENANCE', label: 'Entretien de la maison', icon: <Home className="h-4 w-4" /> },
-  { value: 'REPAIR', label: 'Réparations', icon: <Settings className="h-4 w-4" /> },
-  { value: 'CLEANING', label: 'Nettoyage', icon: <Zap className="h-4 w-4" /> },
-  { value: 'GARDENING', label: 'Jardinage', icon: <Package className="h-4 w-4" /> },
-  { value: 'PERSONAL_CARE', label: 'Soins personnels', icon: <Star className="h-4 w-4" /> },
-  { value: 'TUTORING', label: 'Cours particuliers', icon: <Star className="h-4 w-4" /> },
-  { value: 'PET_CARE', label: 'Garde d\'animaux', icon: <Star className="h-4 w-4" /> },
-  { value: 'EVENTS', label: 'Événements', icon: <Calendar className="h-4 w-4" /> },
+  {
+    value: "HOME_MAINTENANCE",
+    label: "Entretien de la maison",
+    icon: <Home className="h-4 w-4" />,
+  },
+  {
+    value: "REPAIR",
+    label: "Réparations",
+    icon: <Settings className="h-4 w-4" />,
+  },
+  { value: "CLEANING", label: "Nettoyage", icon: <Zap className="h-4 w-4" /> },
+  {
+    value: "GARDENING",
+    label: "Jardinage",
+    icon: <Package className="h-4 w-4" />,
+  },
+  {
+    value: "PERSONAL_CARE",
+    label: "Soins personnels",
+    icon: <Star className="h-4 w-4" />,
+  },
+  {
+    value: "TUTORING",
+    label: "Cours particuliers",
+    icon: <Star className="h-4 w-4" />,
+  },
+  {
+    value: "PET_CARE",
+    label: "Garde d'animaux",
+    icon: <Star className="h-4 w-4" />,
+  },
+  {
+    value: "EVENTS",
+    label: "Événements",
+    icon: <Calendar className="h-4 w-4" />,
+  },
 ];
 
 // Jours de la semaine
 const DAYS_OF_WEEK = [
-  { value: 1, label: 'Lundi' },
-  { value: 2, label: 'Mardi' },
-  { value: 3, label: 'Mercredi' },
-  { value: 4, label: 'Jeudi' },
-  { value: 5, label: 'Vendredi' },
-  { value: 6, label: 'Samedi' },
-  { value: 0, label: 'Dimanche' },
+  { value: 1, label: "Lundi" },
+  { value: 2, label: "Mardi" },
+  { value: 3, label: "Mercredi" },
+  { value: 4, label: "Jeudi" },
+  { value: 5, label: "Vendredi" },
+  { value: 6, label: "Samedi" },
+  { value: 0, label: "Dimanche" },
 ];
 
 export default function CreateServicePage() {
-  const t = useTranslations('services');
+  const t = useTranslations("services");
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState('basic');
+  const [activeTab, setActiveTab] = useState("basic");
 
   // Mutation pour créer le service
   const createServiceMutation = api.provider.services.create.useMutation({
     onSuccess: (data) => {
       toast({
-        title: 'Service créé avec succès',
-        description: 'Votre service a été ajouté à votre catalogue',
+        title: "Service créé avec succès",
+        description: "Votre service a été ajouté à votre catalogue",
       });
       router.push(`/provider/services/${data.id}`);
     },
     onError: (error) => {
       toast({
-        variant: 'destructive',
-        title: 'Erreur lors de la création',
+        variant: "destructive",
+        title: "Erreur lors de la création",
         description: error.message,
       });
       setIsSubmitting(false);
@@ -177,30 +209,30 @@ export default function CreateServicePage() {
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
     defaultValues: {
-      title: '',
-      description: '',
-      category: '',
-      type: 'FIXED_PRICE',
+      title: "",
+      description: "",
+      category: "",
+      type: "FIXED_PRICE",
       pricing: {
         basePrice: 0,
-        currency: 'EUR',
+        currency: "EUR",
       },
       duration: {
         estimatedMinutes: 60,
         flexible: false,
       },
       location: {
-        type: 'AT_HOME',
+        type: "AT_HOME",
       },
       availability: {
         daysOfWeek: [],
-        timeSlots: [{ startTime: '09:00', endTime: '17:00' }],
+        timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
         advanceNotice: 24,
       },
       requirements: {
         skills: [],
         equipment: [],
-        experience: 'INTERMEDIATE',
+        experience: "INTERMEDIATE",
         certifications: [],
       },
       options: {
@@ -215,15 +247,15 @@ export default function CreateServicePage() {
         videos: [],
       },
       terms: {
-        cancellationPolicy: '',
-        refundPolicy: '',
+        cancellationPolicy: "",
+        refundPolicy: "",
       },
     },
   });
 
   // Surveiller le type de service pour ajuster les champs
-  const serviceType = form.watch('type');
-  const locationType = form.watch('location.type');
+  const serviceType = form.watch("type");
+  const locationType = form.watch("location.type");
 
   // Gérer la soumission du formulaire
   const onSubmit = async (data: ServiceFormValues) => {
@@ -237,20 +269,20 @@ export default function CreateServicePage() {
 
   // Ajouter un créneau horaire
   const addTimeSlot = () => {
-    const currentSlots = form.getValues('availability.timeSlots');
-    form.setValue('availability.timeSlots', [
+    const currentSlots = form.getValues("availability.timeSlots");
+    form.setValue("availability.timeSlots", [
       ...currentSlots,
-      { startTime: '09:00', endTime: '17:00' },
+      { startTime: "09:00", endTime: "17:00" },
     ]);
   };
 
   // Supprimer un créneau horaire
   const removeTimeSlot = (index: number) => {
-    const currentSlots = form.getValues('availability.timeSlots');
+    const currentSlots = form.getValues("availability.timeSlots");
     if (currentSlots.length > 1) {
       form.setValue(
-        'availability.timeSlots',
-        currentSlots.filter((_, i) => i !== index)
+        "availability.timeSlots",
+        currentSlots.filter((_, i) => i !== index),
       );
     }
   };
@@ -269,30 +301,47 @@ export default function CreateServicePage() {
             Créer un nouveau service
           </h1>
           <p className="text-muted-foreground">
-            Ajoutez un service à votre catalogue pour commencer à recevoir des demandes
+            Ajoutez un service à votre catalogue pour commencer à recevoir des
+            demandes
           </p>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-6"
+          >
             <Card>
               <CardHeader className="pb-0">
                 <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="basic" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="basic"
+                    className="flex items-center gap-2"
+                  >
                     <Package className="h-4 w-4" />
                     Informations
                   </TabsTrigger>
-                  <TabsTrigger value="pricing" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="pricing"
+                    className="flex items-center gap-2"
+                  >
                     <CreditCard className="h-4 w-4" />
                     Tarification
                   </TabsTrigger>
-                  <TabsTrigger value="availability" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="availability"
+                    className="flex items-center gap-2"
+                  >
                     <Calendar className="h-4 w-4" />
                     Disponibilité
                   </TabsTrigger>
-                  <TabsTrigger value="details" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="details"
+                    className="flex items-center gap-2"
+                  >
                     <Settings className="h-4 w-4" />
                     Détails
                   </TabsTrigger>
@@ -337,7 +386,8 @@ export default function CreateServicePage() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Expliquez ce que vous proposez, votre expérience, etc.
+                            Expliquez ce que vous proposez, votre expérience,
+                            etc.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -352,13 +402,19 @@ export default function CreateServicePage() {
                           <FormItem>
                             <FormLabel>Catégorie</FormLabel>
                             <FormControl>
-                              <Select value={field.value} onValueChange={field.onChange}>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Sélectionnez une catégorie" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {SERVICE_CATEGORIES.map((category) => (
-                                    <SelectItem key={category.value} value={category.value}>
+                                    <SelectItem
+                                      key={category.value}
+                                      value={category.value}
+                                    >
                                       <div className="flex items-center gap-2">
                                         {category.icon}
                                         {category.label}
@@ -380,13 +436,20 @@ export default function CreateServicePage() {
                           <FormItem>
                             <FormLabel>Niveau d'expérience</FormLabel>
                             <FormControl>
-                              <Select value={field.value} onValueChange={field.onChange}>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              >
                                 <SelectTrigger>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="BEGINNER">Débutant</SelectItem>
-                                  <SelectItem value="INTERMEDIATE">Intermédiaire</SelectItem>
+                                  <SelectItem value="BEGINNER">
+                                    Débutant
+                                  </SelectItem>
+                                  <SelectItem value="INTERMEDIATE">
+                                    Intermédiaire
+                                  </SelectItem>
                                   <SelectItem value="EXPERT">Expert</SelectItem>
                                 </SelectContent>
                               </Select>
@@ -423,7 +486,9 @@ export default function CreateServicePage() {
                                   <RadioGroupItem value="AT_HOME" />
                                 </FormControl>
                                 <div>
-                                  <FormLabel className="font-medium">À domicile</FormLabel>
+                                  <FormLabel className="font-medium">
+                                    À domicile
+                                  </FormLabel>
                                   <p className="text-sm text-muted-foreground">
                                     Je me déplace chez le client
                                   </p>
@@ -434,7 +499,9 @@ export default function CreateServicePage() {
                                   <RadioGroupItem value="AT_PROVIDER" />
                                 </FormControl>
                                 <div>
-                                  <FormLabel className="font-medium">Chez moi</FormLabel>
+                                  <FormLabel className="font-medium">
+                                    Chez moi
+                                  </FormLabel>
                                   <p className="text-sm text-muted-foreground">
                                     Le client vient chez moi
                                   </p>
@@ -445,7 +512,9 @@ export default function CreateServicePage() {
                                   <RadioGroupItem value="REMOTE" />
                                 </FormControl>
                                 <div>
-                                  <FormLabel className="font-medium">À distance</FormLabel>
+                                  <FormLabel className="font-medium">
+                                    À distance
+                                  </FormLabel>
                                   <p className="text-sm text-muted-foreground">
                                     Service en ligne ou par téléphone
                                   </p>
@@ -456,7 +525,9 @@ export default function CreateServicePage() {
                                   <RadioGroupItem value="FLEXIBLE" />
                                 </FormControl>
                                 <div>
-                                  <FormLabel className="font-medium">Flexible</FormLabel>
+                                  <FormLabel className="font-medium">
+                                    Flexible
+                                  </FormLabel>
                                   <p className="text-sm text-muted-foreground">
                                     Selon les besoins du client
                                   </p>
@@ -469,7 +540,8 @@ export default function CreateServicePage() {
                       )}
                     />
 
-                    {(locationType === 'AT_HOME' || locationType === 'FLEXIBLE') && (
+                    {(locationType === "AT_HOME" ||
+                      locationType === "FLEXIBLE") && (
                       <FormField
                         control={form.control}
                         name="location.serviceRadius"
@@ -481,7 +553,9 @@ export default function CreateServicePage() {
                                 type="number"
                                 placeholder="20"
                                 {...field}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
                               />
                             </FormControl>
                             <FormDescription>
@@ -520,7 +594,9 @@ export default function CreateServicePage() {
                                   <RadioGroupItem value="FIXED_PRICE" />
                                 </FormControl>
                                 <div>
-                                  <FormLabel className="font-medium">Prix fixe</FormLabel>
+                                  <FormLabel className="font-medium">
+                                    Prix fixe
+                                  </FormLabel>
                                   <p className="text-sm text-muted-foreground">
                                     Tarif unique pour le service complet
                                   </p>
@@ -531,7 +607,9 @@ export default function CreateServicePage() {
                                   <RadioGroupItem value="HOURLY_RATE" />
                                 </FormControl>
                                 <div>
-                                  <FormLabel className="font-medium">Tarif horaire</FormLabel>
+                                  <FormLabel className="font-medium">
+                                    Tarif horaire
+                                  </FormLabel>
                                   <p className="text-sm text-muted-foreground">
                                     Facturé à l'heure d'intervention
                                   </p>
@@ -542,9 +620,12 @@ export default function CreateServicePage() {
                                   <RadioGroupItem value="PACKAGE" />
                                 </FormControl>
                                 <div>
-                                  <FormLabel className="font-medium">Forfait</FormLabel>
+                                  <FormLabel className="font-medium">
+                                    Forfait
+                                  </FormLabel>
                                   <p className="text-sm text-muted-foreground">
-                                    Prix forfaitaire incluant plusieurs prestations
+                                    Prix forfaitaire incluant plusieurs
+                                    prestations
                                   </p>
                                 </div>
                               </FormItem>
@@ -562,7 +643,9 @@ export default function CreateServicePage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              {serviceType === 'HOURLY_RATE' ? 'Tarif horaire (€)' : 'Prix de base (€)'}
+                              {serviceType === "HOURLY_RATE"
+                                ? "Tarif horaire (€)"
+                                : "Prix de base (€)"}
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -570,7 +653,9 @@ export default function CreateServicePage() {
                                 step="0.01"
                                 placeholder="25.00"
                                 {...field}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -589,7 +674,9 @@ export default function CreateServicePage() {
                                 type="number"
                                 placeholder="60"
                                 {...field}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
                               />
                             </FormControl>
                             <FormDescription>
@@ -650,7 +737,9 @@ export default function CreateServicePage() {
                                     onCheckedChange={(checked) => {
                                       const updatedDays = checked
                                         ? [...(field.value || []), day.value]
-                                        : (field.value || []).filter((d) => d !== day.value);
+                                        : (field.value || []).filter(
+                                            (d) => d !== day.value,
+                                          );
                                       field.onChange(updatedDays);
                                     }}
                                   />
@@ -680,35 +769,46 @@ export default function CreateServicePage() {
                         </Button>
                       </div>
 
-                      {form.watch('availability.timeSlots').map((slot, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <Controller
-                            control={form.control}
-                            name={`availability.timeSlots.${index}.startTime`}
-                            render={({ field }) => (
-                              <Input type="time" {...field} className="w-32" />
+                      {form
+                        .watch("availability.timeSlots")
+                        .map((slot, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Controller
+                              control={form.control}
+                              name={`availability.timeSlots.${index}.startTime`}
+                              render={({ field }) => (
+                                <Input
+                                  type="time"
+                                  {...field}
+                                  className="w-32"
+                                />
+                              )}
+                            />
+                            <span>à</span>
+                            <Controller
+                              control={form.control}
+                              name={`availability.timeSlots.${index}.endTime`}
+                              render={({ field }) => (
+                                <Input
+                                  type="time"
+                                  {...field}
+                                  className="w-32"
+                                />
+                              )}
+                            />
+                            {form.watch("availability.timeSlots").length >
+                              1 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeTimeSlot(index)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             )}
-                          />
-                          <span>à</span>
-                          <Controller
-                            control={form.control}
-                            name={`availability.timeSlots.${index}.endTime`}
-                            render={({ field }) => (
-                              <Input type="time" {...field} className="w-32" />
-                            )}
-                          />
-                          {form.watch('availability.timeSlots').length > 1 && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeTimeSlot(index)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        ))}
                     </div>
 
                     <FormField
@@ -722,11 +822,14 @@ export default function CreateServicePage() {
                               type="number"
                               placeholder="24"
                               {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
                             />
                           </FormControl>
                           <FormDescription>
-                            Temps minimum avant la prestation pour accepter une réservation
+                            Temps minimum avant la prestation pour accepter une
+                            réservation
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -739,7 +842,7 @@ export default function CreateServicePage() {
                   {/* Options du service */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Options du service</h3>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -830,7 +933,9 @@ export default function CreateServicePage() {
                   {/* Conditions générales */}
                   <Separator />
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Conditions de service</h3>
+                    <h3 className="text-lg font-medium">
+                      Conditions de service
+                    </h3>
 
                     <FormField
                       control={form.control}
@@ -845,7 +950,8 @@ export default function CreateServicePage() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Conditions d'annulation et de modification des réservations
+                            Conditions d'annulation et de modification des
+                            réservations
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -887,12 +993,17 @@ export default function CreateServicePage() {
                 </Button>
 
                 <div className="flex gap-2">
-                  {activeTab !== 'details' && (
+                  {activeTab !== "details" && (
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => {
-                        const tabs = ['basic', 'pricing', 'availability', 'details'];
+                        const tabs = [
+                          "basic",
+                          "pricing",
+                          "availability",
+                          "details",
+                        ];
                         const currentIndex = tabs.indexOf(activeTab);
                         if (currentIndex < tabs.length - 1) {
                           setActiveTab(tabs[currentIndex + 1]);
@@ -928,8 +1039,9 @@ export default function CreateServicePage() {
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Conseil</AlertTitle>
         <AlertDescription>
-          Plus votre service est détaillé, plus vous avez de chances d'attirer des clients.
-          N'hésitez pas à mentionner votre expérience et vos qualifications.
+          Plus votre service est détaillé, plus vous avez de chances d'attirer
+          des clients. N'hésitez pas à mentionner votre expérience et vos
+          qualifications.
         </AlertDescription>
       </Alert>
     </div>

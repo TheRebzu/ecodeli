@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Router pour les services cloud et infrastructure
@@ -18,7 +18,7 @@ const fileUploadSchema = z.object({
 });
 
 const backupRequestSchema = z.object({
-  entityType: z.enum(['DATABASE', 'FILES', 'LOGS', 'FULL']),
+  entityType: z.enum(["DATABASE", "FILES", "LOGS", "FULL"]),
   description: z.string().max(500).optional(),
   includeUserData: z.boolean().default(true),
   compression: z.boolean().default(true),
@@ -29,7 +29,7 @@ const monitoringAlertSchema = z.object({
   service: z.string().min(1),
   metric: z.string().min(1),
   threshold: z.number(),
-  condition: z.enum(['ABOVE', 'BELOW', 'EQUALS']),
+  condition: z.enum(["ABOVE", "BELOW", "EQUALS"]),
   recipients: z.array(z.string().email()),
   isActive: z.boolean().default(true),
 });
@@ -41,10 +41,10 @@ export const cloudServicesRouter = router({
   getServiceHealth: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'ADMIN') {
+    if (user.role !== "ADMIN") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les administrateurs peuvent voir la santé des services',
+        code: "FORBIDDEN",
+        message: "Seuls les administrateurs peuvent voir la santé des services",
       });
     }
 
@@ -58,11 +58,11 @@ export const cloudServicesRouter = router({
         checkNotificationServiceHealth(),
       ]);
 
-      const overallHealth = services.every(s => s.status === 'HEALTHY')
-        ? 'HEALTHY'
-        : services.some(s => s.status === 'CRITICAL')
-          ? 'CRITICAL'
-          : 'DEGRADED';
+      const overallHealth = services.every((s) => s.status === "HEALTHY")
+        ? "HEALTHY"
+        : services.some((s) => s.status === "CRITICAL")
+          ? "CRITICAL"
+          : "DEGRADED";
 
       return {
         success: true,
@@ -76,8 +76,8 @@ export const cloudServicesRouter = router({
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la vérification de la santé des services',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la vérification de la santé des services",
       });
     }
   }),
@@ -85,58 +85,67 @@ export const cloudServicesRouter = router({
   /**
    * Gérer les uploads de fichiers vers le stockage cloud
    */
-  uploadFile: protectedProcedure.input(fileUploadSchema).mutation(async ({ ctx, input }) => {
-    try {
-      const { user } = ctx.session;
+  uploadFile: protectedProcedure
+    .input(fileUploadSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { user } = ctx.session;
 
-      // Vérifier les limites de stockage
-      const userStorageUsed = await calculateUserStorage(ctx.db, user.id);
-      const storageLimit = getStorageLimitForRole(user.role);
+        // Vérifier les limites de stockage
+        const userStorageUsed = await calculateUserStorage(ctx.db, user.id);
+        const storageLimit = getStorageLimitForRole(user.role);
 
-      if (userStorageUsed + input.fileSize > storageLimit) {
+        if (userStorageUsed + input.fileSize > storageLimit) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Limite de stockage dépassée",
+          });
+        }
+
+        // Générer un chemin de fichier sécurisé
+        const filePath = generateSecureFilePath(
+          input.fileName,
+          input.folder,
+          user.id,
+        );
+
+        // Créer l'enregistrement en base
+        const document = await ctx.db.document.create({
+          data: {
+            fileName: input.fileName,
+            fileType: input.fileType,
+            fileSize: input.fileSize,
+            filePath,
+            isPublic: input.isPublic,
+            metadata: input.metadata || {},
+            uploaderId: user.id,
+            status: "UPLOADING",
+          },
+        });
+
+        // Générer une URL de upload sécurisée (présignée)
+        const uploadUrl = await generatePresignedUploadUrl(
+          filePath,
+          input.fileType,
+        );
+
+        return {
+          success: true,
+          data: {
+            documentId: document.id,
+            uploadUrl,
+            filePath,
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+          },
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Limite de stockage dépassée',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'upload du fichier",
         });
       }
-
-      // Générer un chemin de fichier sécurisé
-      const filePath = generateSecureFilePath(input.fileName, input.folder, user.id);
-
-      // Créer l'enregistrement en base
-      const document = await ctx.db.document.create({
-        data: {
-          fileName: input.fileName,
-          fileType: input.fileType,
-          fileSize: input.fileSize,
-          filePath,
-          isPublic: input.isPublic,
-          metadata: input.metadata || {},
-          uploaderId: user.id,
-          status: 'UPLOADING',
-        },
-      });
-
-      // Générer une URL de upload sécurisée (présignée)
-      const uploadUrl = await generatePresignedUploadUrl(filePath, input.fileType);
-
-      return {
-        success: true,
-        data: {
-          documentId: document.id,
-          uploadUrl,
-          filePath,
-          expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
-        },
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: "Erreur lors de l'upload du fichier",
-      });
-    }
-  }),
+    }),
 
   /**
    * Confirmer la finalisation d'un upload
@@ -146,7 +155,7 @@ export const cloudServicesRouter = router({
       z.object({
         documentId: z.string().cuid(),
         checksum: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -156,16 +165,16 @@ export const cloudServicesRouter = router({
 
         if (!document) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Document non trouvé',
+            code: "NOT_FOUND",
+            message: "Document non trouvé",
           });
         }
 
         // Vérifier que l'utilisateur est le propriétaire
         if (document.uploaderId !== ctx.session.user.id) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Accès non autorisé',
+            code: "FORBIDDEN",
+            message: "Accès non autorisé",
           });
         }
 
@@ -173,14 +182,17 @@ export const cloudServicesRouter = router({
         const updatedDocument = await ctx.db.document.update({
           where: { id: input.documentId },
           data: {
-            status: 'COMPLETED',
+            status: "COMPLETED",
             uploadedAt: new Date(),
             checksum: input.checksum,
           },
         });
 
         // Générer l'URL d'accès
-        const accessUrl = await generateFileAccessUrl(document.filePath, document.isPublic);
+        const accessUrl = await generateFileAccessUrl(
+          document.filePath,
+          document.isPublic,
+        );
 
         return {
           success: true,
@@ -192,7 +204,7 @@ export const cloudServicesRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la confirmation d'upload",
         });
       }
@@ -201,46 +213,48 @@ export const cloudServicesRouter = router({
   /**
    * Créer une sauvegarde du système
    */
-  createBackup: protectedProcedure.input(backupRequestSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  createBackup: protectedProcedure
+    .input(backupRequestSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'ADMIN') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les administrateurs peuvent créer des sauvegardes',
-      });
-    }
+      if (user.role !== "ADMIN") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent créer des sauvegardes",
+        });
+      }
 
-    try {
-      // Créer l'enregistrement de backup
-      const backup = await ctx.db.systemBackup.create({
-        data: {
-          entityType: input.entityType,
-          description: input.description,
-          includeUserData: input.includeUserData,
-          compression: input.compression,
-          encryption: input.encryption,
-          initiatedById: user.id,
-          status: 'PENDING',
-          estimatedSize: await estimateBackupSize(ctx.db, input),
-        },
-      });
+      try {
+        // Créer l'enregistrement de backup
+        const backup = await ctx.db.systemBackup.create({
+          data: {
+            entityType: input.entityType,
+            description: input.description,
+            includeUserData: input.includeUserData,
+            compression: input.compression,
+            encryption: input.encryption,
+            initiatedById: user.id,
+            status: "PENDING",
+            estimatedSize: await estimateBackupSize(ctx.db, input),
+          },
+        });
 
-      // Lancer le processus de backup en arrière-plan
-      await triggerBackupProcess(backup.id, input);
+        // Lancer le processus de backup en arrière-plan
+        await triggerBackupProcess(backup.id, input);
 
-      return {
-        success: true,
-        data: backup,
-        message: 'Sauvegarde initiée avec succès',
-      };
-    } catch (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la création de la sauvegarde',
-      });
-    }
-  }),
+        return {
+          success: true,
+          data: backup,
+          message: "Sauvegarde initiée avec succès",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de la sauvegarde",
+        });
+      }
+    }),
 
   /**
    * Lister les sauvegardes disponibles
@@ -250,16 +264,16 @@ export const cloudServicesRouter = router({
       z.object({
         limit: z.number().default(20),
         offset: z.number().default(0),
-        entityType: z.enum(['DATABASE', 'FILES', 'LOGS', 'FULL']).optional(),
-      })
+        entityType: z.enum(["DATABASE", "FILES", "LOGS", "FULL"]).optional(),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'ADMIN') {
+      if (user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -274,7 +288,7 @@ export const cloudServicesRouter = router({
                 select: { name: true, email: true },
               },
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             skip: input.offset,
             take: input.limit,
           }),
@@ -299,8 +313,8 @@ export const cloudServicesRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des sauvegardes',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des sauvegardes",
         });
       }
     }),
@@ -313,10 +327,10 @@ export const cloudServicesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'ADMIN') {
+      if (user.role !== "ADMIN") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les administrateurs peuvent configurer les alertes',
+          code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent configurer les alertes",
         });
       }
 
@@ -331,11 +345,11 @@ export const cloudServicesRouter = router({
         return {
           success: true,
           data: alert,
-          message: 'Alerte créée avec succès',
+          message: "Alerte créée avec succès",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la création de l'alerte",
         });
       }
@@ -348,7 +362,7 @@ export const cloudServicesRouter = router({
     const { user } = ctx.session;
 
     try {
-      if (user.role === 'ADMIN') {
+      if (user.role === "ADMIN") {
         // Métriques globales pour les admins
         const [totalStorage, userStorage, fileTypes] = await Promise.all([
           ctx.db.document.aggregate({
@@ -356,14 +370,14 @@ export const cloudServicesRouter = router({
             _count: true,
           }),
           ctx.db.document.groupBy({
-            by: ['uploaderId'],
+            by: ["uploaderId"],
             _sum: { fileSize: true },
             _count: true,
-            orderBy: { _sum: { fileSize: 'desc' } },
+            orderBy: { _sum: { fileSize: "desc" } },
             take: 10,
           }),
           ctx.db.document.groupBy({
-            by: ['fileType'],
+            by: ["fileType"],
             _sum: { fileSize: true },
             _count: true,
           }),
@@ -379,7 +393,9 @@ export const cloudServicesRouter = router({
             topUsers: userStorage,
             byFileType: fileTypes,
             storageLimit: getGlobalStorageLimit(),
-            usagePercentage: ((totalStorage._sum.fileSize || 0) / getGlobalStorageLimit()) * 100,
+            usagePercentage:
+              ((totalStorage._sum.fileSize || 0) / getGlobalStorageLimit()) *
+              100,
           },
         };
       } else {
@@ -398,14 +414,15 @@ export const cloudServicesRouter = router({
             used: userFiles._sum.fileSize || 0,
             count: userFiles._count,
             limit: storageLimit,
-            usagePercentage: ((userFiles._sum.fileSize || 0) / storageLimit) * 100,
+            usagePercentage:
+              ((userFiles._sum.fileSize || 0) / storageLimit) * 100,
           },
         };
       }
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des métriques de stockage',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des métriques de stockage",
       });
     }
   }),
@@ -420,16 +437,16 @@ async function checkDatabaseHealth(db: any) {
     const responseTime = Date.now() - startTime;
 
     return {
-      name: 'Database',
-      status: responseTime < 1000 ? 'HEALTHY' : 'DEGRADED',
+      name: "Database",
+      status: responseTime < 1000 ? "HEALTHY" : "DEGRADED",
       responseTime,
       lastCheck: new Date(),
     };
   } catch (error) {
     return {
-      name: 'Database',
-      status: 'CRITICAL',
-      error: 'Connection failed',
+      name: "Database",
+      status: "CRITICAL",
+      error: "Connection failed",
       lastCheck: new Date(),
     };
   }
@@ -438,8 +455,8 @@ async function checkDatabaseHealth(db: any) {
 async function checkFileStorageHealth() {
   // TODO: Implémenter la vérification du stockage cloud (S3, GCS, etc.)
   return {
-    name: 'File Storage',
-    status: 'HEALTHY',
+    name: "File Storage",
+    status: "HEALTHY",
     responseTime: 150,
     lastCheck: new Date(),
   };
@@ -448,8 +465,8 @@ async function checkFileStorageHealth() {
 async function checkEmailServiceHealth() {
   // TODO: Implémenter la vérification du service email
   return {
-    name: 'Email Service',
-    status: 'HEALTHY',
+    name: "Email Service",
+    status: "HEALTHY",
     responseTime: 200,
     lastCheck: new Date(),
   };
@@ -458,8 +475,8 @@ async function checkEmailServiceHealth() {
 async function checkPaymentServiceHealth() {
   // TODO: Implémenter la vérification de Stripe
   return {
-    name: 'Payment Service',
-    status: 'HEALTHY',
+    name: "Payment Service",
+    status: "HEALTHY",
     responseTime: 300,
     lastCheck: new Date(),
   };
@@ -468,8 +485,8 @@ async function checkPaymentServiceHealth() {
 async function checkNotificationServiceHealth() {
   // TODO: Implémenter la vérification de OneSignal
   return {
-    name: 'Notification Service',
-    status: 'HEALTHY',
+    name: "Notification Service",
+    status: "HEALTHY",
     responseTime: 180,
     lastCheck: new Date(),
   };
@@ -508,35 +525,45 @@ function getGlobalStorageLimit(): number {
   return 100 * 1024 * 1024 * 1024; // 100 GB
 }
 
-function generateSecureFilePath(fileName: string, folder: string = '', userId: string): string {
+function generateSecureFilePath(
+  fileName: string,
+  folder: string = "",
+  userId: string,
+): string {
   const timestamp = Date.now();
-  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
-  const folderPath = folder ? `${folder}/` : '';
+  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
+  const folderPath = folder ? `${folder}/` : "";
   return `uploads/${folderPath}${userId}/${timestamp}_${sanitizedFileName}`;
 }
 
-async function generatePresignedUploadUrl(filePath: string, fileType: string): Promise<string> {
+async function generatePresignedUploadUrl(
+  filePath: string,
+  fileType: string,
+): Promise<string> {
   // TODO: Implémenter la génération d'URL présignée pour S3/GCS
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   return `${baseUrl}/api/upload/presigned?path=${encodeURIComponent(filePath)}&type=${encodeURIComponent(fileType)}`;
 }
 
-async function generateFileAccessUrl(filePath: string, isPublic: boolean): Promise<string> {
+async function generateFileAccessUrl(
+  filePath: string,
+  isPublic: boolean,
+): Promise<string> {
   // TODO: Implémenter la génération d'URL d'accès aux fichiers
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  return `${baseUrl}/api/files/${encodeURIComponent(filePath)}${isPublic ? '?public=true' : ''}`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return `${baseUrl}/api/files/${encodeURIComponent(filePath)}${isPublic ? "?public=true" : ""}`;
 }
 
 async function estimateBackupSize(db: any, config: any): Promise<number> {
   // TODO: Calculer la taille estimée de la sauvegarde
   let estimatedSize = 0;
 
-  if (config.entityType === 'DATABASE' || config.entityType === 'FULL') {
+  if (config.entityType === "DATABASE" || config.entityType === "FULL") {
     // Estimer la taille de la DB
     estimatedSize += 50 * 1024 * 1024; // 50 MB base
   }
 
-  if (config.entityType === 'FILES' || config.entityType === 'FULL') {
+  if (config.entityType === "FILES" || config.entityType === "FULL") {
     const filesSize = await db.document.aggregate({
       _sum: { fileSize: true },
     });
@@ -546,7 +573,10 @@ async function estimateBackupSize(db: any, config: any): Promise<number> {
   return estimatedSize;
 }
 
-async function triggerBackupProcess(backupId: string, config: any): Promise<void> {
+async function triggerBackupProcess(
+  backupId: string,
+  config: any,
+): Promise<void> {
   // TODO: Implémenter le processus de backup réel
   console.log(`Backup process initiated for backup ID: ${backupId}`);
 

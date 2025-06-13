@@ -1,7 +1,17 @@
-import { PrismaClient, UserRole, DocumentType, VerificationStatus } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+import {
+  PrismaClient,
+  UserRole,
+  DocumentType,
+  VerificationStatus,
+} from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import {
+  SeedResult,
+  SeedOptions,
+  getRandomElement,
+  getRandomDate,
+} from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Interface pour définir un document de commerçant
@@ -24,12 +34,12 @@ interface MerchantDocumentData {
 export async function seedMerchantDocuments(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('MERCHANT_DOCUMENTS');
+  logger.startSeed("MERCHANT_DOCUMENTS");
 
   const result: SeedResult = {
-    entity: 'merchant_documents',
+    entity: "merchant_documents",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -43,8 +53,8 @@ export async function seedMerchantDocuments(
 
   if (merchants.length === 0) {
     logger.warning(
-      'MERCHANT_DOCUMENTS',
-      "Aucun commerçant trouvé - exécuter d'abord les seeds utilisateurs"
+      "MERCHANT_DOCUMENTS",
+      "Aucun commerçant trouvé - exécuter d'abord les seeds utilisateurs",
     );
     return result;
   }
@@ -56,8 +66,8 @@ export async function seedMerchantDocuments(
 
   if (existingDocuments > 0 && !options.force) {
     logger.warning(
-      'MERCHANT_DOCUMENTS',
-      `${existingDocuments} documents commerçants déjà présents - utiliser force:true pour recréer`
+      "MERCHANT_DOCUMENTS",
+      `${existingDocuments} documents commerçants déjà présents - utiliser force:true pour recréer`,
     );
     result.skipped = existingDocuments;
     return result;
@@ -68,7 +78,7 @@ export async function seedMerchantDocuments(
     await prisma.document.deleteMany({
       where: { userRole: UserRole.MERCHANT },
     });
-    logger.database('NETTOYAGE', 'merchant documents', 0);
+    logger.database("NETTOYAGE", "merchant documents", 0);
   }
 
   // Types de documents requis pour commerçants
@@ -87,21 +97,21 @@ export async function seedMerchantDocuments(
   for (const merchant of merchants) {
     try {
       logger.progress(
-        'MERCHANT_DOCUMENTS',
+        "MERCHANT_DOCUMENTS",
         totalDocuments + 1,
         merchants.length * requiredDocuments.length,
-        `Traitement documents: ${merchant.name}`
+        `Traitement documents: ${merchant.name}`,
       );
 
       const isVerified = merchant.merchant?.isVerified || false;
-      const isActive = merchant.status === 'ACTIVE';
+      const isActive = merchant.status === "ACTIVE";
 
       // Déterminer combien de documents créer selon le statut
       const documentsToCreate = isVerified
         ? requiredDocuments
         : faker.helpers.arrayElements(
             requiredDocuments,
-            faker.number.int({ min: 4, max: requiredDocuments.length })
+            faker.number.int({ min: 4, max: requiredDocuments.length }),
           );
 
       for (const docType of documentsToCreate) {
@@ -109,8 +119,8 @@ export async function seedMerchantDocuments(
           // Vérifier que docType est défini
           if (!docType) {
             logger.warning(
-              'MERCHANT_DOCUMENTS',
-              `Type de document undefined pour ${merchant.name}`
+              "MERCHANT_DOCUMENTS",
+              `Type de document undefined pour ${merchant.name}`,
             );
             continue;
           }
@@ -154,7 +164,9 @@ export async function seedMerchantDocuments(
 
           // Motif de rejet si applicable
           const rejectionReason =
-            status === VerificationStatus.REJECTED ? getMerchantRejectionReason(docType) : null;
+            status === VerificationStatus.REJECTED
+              ? getMerchantRejectionReason(docType)
+              : null;
 
           // Créer le document
           await prisma.document.create({
@@ -179,16 +191,16 @@ export async function seedMerchantDocuments(
           result.created++;
         } catch (error: any) {
           logger.error(
-            'MERCHANT_DOCUMENTS',
-            `❌ Erreur création document ${docType} pour ${merchant.name}: ${error.message}`
+            "MERCHANT_DOCUMENTS",
+            `❌ Erreur création document ${docType} pour ${merchant.name}: ${error.message}`,
           );
           result.errors++;
         }
       }
     } catch (error: any) {
       logger.error(
-        'MERCHANT_DOCUMENTS',
-        `❌ Erreur traitement commerçant ${merchant.name}: ${error.message}`
+        "MERCHANT_DOCUMENTS",
+        `❌ Erreur traitement commerçant ${merchant.name}: ${error.message}`,
       );
       result.errors++;
     }
@@ -201,15 +213,15 @@ export async function seedMerchantDocuments(
 
   if (finalDocuments.length >= totalDocuments - result.errors) {
     logger.validation(
-      'MERCHANT_DOCUMENTS',
-      'PASSED',
-      `${finalDocuments.length} documents commerçants créés avec succès`
+      "MERCHANT_DOCUMENTS",
+      "PASSED",
+      `${finalDocuments.length} documents commerçants créés avec succès`,
     );
   } else {
     logger.validation(
-      'MERCHANT_DOCUMENTS',
-      'FAILED',
-      `Attendu: ${totalDocuments}, Créé: ${finalDocuments.length}`
+      "MERCHANT_DOCUMENTS",
+      "FAILED",
+      `Attendu: ${totalDocuments}, Créé: ${finalDocuments.length}`,
     );
   }
 
@@ -219,7 +231,10 @@ export async function seedMerchantDocuments(
     return acc;
   }, {});
 
-  logger.info('MERCHANT_DOCUMENTS', `📋 Documents par type: ${JSON.stringify(byType)}`);
+  logger.info(
+    "MERCHANT_DOCUMENTS",
+    `📋 Documents par type: ${JSON.stringify(byType)}`,
+  );
 
   // Statistiques par statut
   const byStatus = finalDocuments.reduce((acc: Record<string, number>, doc) => {
@@ -227,19 +242,24 @@ export async function seedMerchantDocuments(
     return acc;
   }, {});
 
-  logger.info('MERCHANT_DOCUMENTS', `📊 Documents par statut: ${JSON.stringify(byStatus)}`);
+  logger.info(
+    "MERCHANT_DOCUMENTS",
+    `📊 Documents par statut: ${JSON.stringify(byStatus)}`,
+  );
 
   // Taux de vérification
   const approvedDocs = finalDocuments.filter(
-    d => d.verificationStatus === VerificationStatus.APPROVED
+    (d) => d.verificationStatus === VerificationStatus.APPROVED,
   );
-  const verificationRate = Math.round((approvedDocs.length / finalDocuments.length) * 100);
+  const verificationRate = Math.round(
+    (approvedDocs.length / finalDocuments.length) * 100,
+  );
   logger.info(
-    'MERCHANT_DOCUMENTS',
-    `✅ Taux de vérification: ${verificationRate}% (${approvedDocs.length}/${finalDocuments.length})`
+    "MERCHANT_DOCUMENTS",
+    `✅ Taux de vérification: ${verificationRate}% (${approvedDocs.length}/${finalDocuments.length})`,
   );
 
-  logger.endSeed('MERCHANT_DOCUMENTS', result);
+  logger.endSeed("MERCHANT_DOCUMENTS", result);
   return result;
 }
 
@@ -261,56 +281,60 @@ function generateMerchantDocumentMetadata(docType: DocumentType): {
   switch (docType) {
     case DocumentType.ID_CARD:
       filename = `carte_identite_dirigeant_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 200000, max: 800000 });
-      expiryDate = faker.date.future({ years: faker.number.int({ min: 2, max: 10 }) });
+      expiryDate = faker.date.future({
+        years: faker.number.int({ min: 2, max: 10 }),
+      });
       break;
 
     case DocumentType.BUSINESS_REGISTRATION:
       filename = `kbis_entreprise_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 400000, max: 1000000 });
       expiryDate = faker.date.future({ years: 1 }); // Kbis valide 1 an
       break;
 
     case DocumentType.BUSINESS_LICENSE:
       filename = `licence_commerciale_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 300000, max: 800000 });
-      expiryDate = faker.date.future({ years: faker.number.int({ min: 2, max: 5 }) });
+      expiryDate = faker.date.future({
+        years: faker.number.int({ min: 2, max: 5 }),
+      });
       break;
 
     case DocumentType.VAT_REGISTRATION:
       filename = `numero_tva_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 150000, max: 400000 });
       // Numéro TVA permanent, pas d'expiration
       break;
 
     case DocumentType.INSURANCE_CERTIFICATE:
       filename = `assurance_commerciale_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 400000, max: 900000 });
       expiryDate = faker.date.future({ years: 1 }); // Assurance annuelle
       break;
 
     case DocumentType.TAX_CERTIFICATE:
       filename = `certificat_fiscal_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 200000, max: 600000 });
       expiryDate = faker.date.future({ years: 1 }); // Valide 1 an
       break;
 
     case DocumentType.OTHER: // RIB professionnel
       filename = `rib_professionnel_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 100000, max: 300000 });
       // RIB permanent, pas d'expiration
       break;
 
     default:
       filename = `document_commercial_${faker.string.alphanumeric(8)}.pdf`;
-      mimeType = 'application/pdf';
+      mimeType = "application/pdf";
       fileSize = faker.number.int({ min: 100000, max: 1000000 });
   }
 
@@ -324,18 +348,21 @@ function generateMerchantDocumentMetadata(docType: DocumentType): {
  */
 function generateMerchantDocumentNotes(docType: DocumentType): string {
   const notesMap: { [key: string]: string } = {
-    [DocumentType.ID_CARD]: "Carte d'identité du représentant légal de l'entreprise",
+    [DocumentType.ID_CARD]:
+      "Carte d'identité du représentant légal de l'entreprise",
     [DocumentType.BUSINESS_REGISTRATION]:
       "Extrait Kbis de moins de 3 mois attestant l'existence légale",
-    [DocumentType.BUSINESS_LICENSE]: "Licence commerciale spécifique au secteur d'activité",
-    [DocumentType.VAT_REGISTRATION]: 'Numéro de TVA intracommunautaire valide',
+    [DocumentType.BUSINESS_LICENSE]:
+      "Licence commerciale spécifique au secteur d'activité",
+    [DocumentType.VAT_REGISTRATION]: "Numéro de TVA intracommunautaire valide",
     [DocumentType.INSURANCE_CERTIFICATE]:
-      'Assurance responsabilité civile professionnelle commerciale',
-    [DocumentType.TAX_CERTIFICATE]: 'Certificat fiscal attestant de la régularité des déclarations',
-    [DocumentType.OTHER]: 'RIB professionnel pour les virements commerciaux',
+      "Assurance responsabilité civile professionnelle commerciale",
+    [DocumentType.TAX_CERTIFICATE]:
+      "Certificat fiscal attestant de la régularité des déclarations",
+    [DocumentType.OTHER]: "RIB professionnel pour les virements commerciaux",
   };
 
-  return notesMap[docType] || 'Document commercial requis pour vérification';
+  return notesMap[docType] || "Document commercial requis pour vérification";
 }
 
 /**
@@ -344,50 +371,50 @@ function generateMerchantDocumentNotes(docType: DocumentType): string {
 function getMerchantRejectionReason(docType: DocumentType): string {
   const reasonsMap: { [key: string]: string[] } = {
     [DocumentType.ID_CARD]: [
-      'Document expiré',
-      'Photo illisible',
-      'Document partiellement masqué',
+      "Document expiré",
+      "Photo illisible",
+      "Document partiellement masqué",
       "Qualité d'image insuffisante",
     ],
     [DocumentType.BUSINESS_REGISTRATION]: [
-      'Kbis expiré (> 3 mois)',
-      'Activité déclarée non conforme au commerce proposé',
+      "Kbis expiré (> 3 mois)",
+      "Activité déclarée non conforme au commerce proposé",
       "Entreprise radiée ou en cessation d'activité",
-      'Document illisible ou incomplet',
+      "Document illisible ou incomplet",
     ],
     [DocumentType.BUSINESS_LICENSE]: [
-      'Licence expirée ou suspendue',
-      'Activité non couverte par la licence',
+      "Licence expirée ou suspendue",
+      "Activité non couverte par la licence",
       "Conditions d'exploitation non respectées",
       "Document non signé par l'autorité compétente",
     ],
     [DocumentType.VAT_REGISTRATION]: [
-      'Numéro TVA inexistant ou invalide',
-      'TVA suspendue pour défaut de déclaration',
-      'Activité non conforme au numéro TVA',
-      'Document non officiel',
+      "Numéro TVA inexistant ou invalide",
+      "TVA suspendue pour défaut de déclaration",
+      "Activité non conforme au numéro TVA",
+      "Document non officiel",
     ],
     [DocumentType.INSURANCE_CERTIFICATE]: [
-      'Assurance expirée',
+      "Assurance expirée",
       "Couverture insuffisante pour l'activité commerciale",
-      'Activité non couverte par la police',
-      'Montant de garantie inadéquat',
+      "Activité non couverte par la police",
+      "Montant de garantie inadéquat",
     ],
     [DocumentType.TAX_CERTIFICATE]: [
-      'Certificat expiré',
-      'Retard de déclarations fiscales',
-      'Dettes fiscales en cours',
-      'Document non officiel ou falsifié',
+      "Certificat expiré",
+      "Retard de déclarations fiscales",
+      "Dettes fiscales en cours",
+      "Document non officiel ou falsifié",
     ],
     [DocumentType.OTHER]: [
-      'RIB non professionnel (compte personnel)',
-      'Compte bancaire fermé ou suspendu',
+      "RIB non professionnel (compte personnel)",
+      "Compte bancaire fermé ou suspendu",
       "Nom du compte différent de l'entreprise",
-      'Banque non autorisée pour commerce',
+      "Banque non autorisée pour commerce",
     ],
   };
 
-  const typeReasons = reasonsMap[docType] || ['Document non conforme'];
+  const typeReasons = reasonsMap[docType] || ["Document non conforme"];
   return getRandomElement(typeReasons);
 }
 
@@ -396,9 +423,9 @@ function getMerchantRejectionReason(docType: DocumentType): string {
  */
 export async function validateMerchantDocuments(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des documents commerçants...');
+  logger.info("VALIDATION", "🔍 Validation des documents commerçants...");
 
   let isValid = true;
 
@@ -413,12 +440,12 @@ export async function validateMerchantDocuments(
   });
 
   if (merchantDocuments.length === 0) {
-    logger.error('VALIDATION', '❌ Aucun document commerçant trouvé');
+    logger.error("VALIDATION", "❌ Aucun document commerçant trouvé");
     isValid = false;
   } else {
     logger.success(
-      'VALIDATION',
-      `✅ ${merchantDocuments.length} documents commerçants trouvés pour ${merchantsCount} commerçants`
+      "VALIDATION",
+      `✅ ${merchantDocuments.length} documents commerçants trouvés pour ${merchantsCount} commerçants`,
     );
   }
 
@@ -432,21 +459,24 @@ export async function validateMerchantDocuments(
   });
 
   const verifiedWithoutKbis = verifiedMerchants.filter(
-    merchant =>
+    (merchant) =>
       !merchant.documents.some(
-        doc =>
+        (doc) =>
           doc.type === DocumentType.BUSINESS_REGISTRATION &&
-          doc.verificationStatus === VerificationStatus.APPROVED
-      )
+          doc.verificationStatus === VerificationStatus.APPROVED,
+      ),
   );
 
   if (verifiedWithoutKbis.length > 0) {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${verifiedWithoutKbis.length} commerçants vérifiés sans Kbis approuvé`
+      "VALIDATION",
+      `⚠️ ${verifiedWithoutKbis.length} commerçants vérifiés sans Kbis approuvé`,
     );
   }
 
-  logger.success('VALIDATION', '✅ Validation des documents commerçants terminée');
+  logger.success(
+    "VALIDATION",
+    "✅ Validation des documents commerçants terminée",
+  );
   return isValid;
 }

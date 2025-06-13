@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -9,18 +9,26 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
-import { UserRole, DocumentType, VerificationStatus } from '@prisma/client';
-import { Check, X, FileText, User, Calendar, Clock, AlertTriangle } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { api } from '@/trpc/react';
-import { useTranslations } from 'next-intl';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { UserRole, DocumentType, VerificationStatus } from "@prisma/client";
+import {
+  Check,
+  X,
+  FileText,
+  User,
+  Calendar,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { api } from "@/trpc/react";
+import { useTranslations } from "next-intl";
 
 // Types pour les documents à vérifier
 interface Document {
@@ -41,15 +49,19 @@ interface Document {
 }
 
 // Import de la fonction partagée pour afficher le nom du type de document
-import { getDocumentTypeName } from '@/utils/document-utils';
+import { getDocumentTypeName } from "@/utils/document-utils";
 
 export function DocumentVerification() {
-  const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.DELIVERER);
+  const [selectedRole, setSelectedRole] = useState<UserRole>(
+    UserRole.DELIVERER,
+  );
   const [rejectNotes, setRejectNotes] = useState<Record<string, string>>({});
-  const [expandedDocumentId, setExpandedDocumentId] = useState<string | null>(null);
+  const [expandedDocumentId, setExpandedDocumentId] = useState<string | null>(
+    null,
+  );
   const router = useRouter();
   const { toast } = useToast();
-  const t = useTranslations('Admin.Verification');
+  const t = useTranslations("Admin.Verification");
 
   // Récupérer les documents en attente pour un rôle spécifique
   const {
@@ -58,23 +70,23 @@ export function DocumentVerification() {
     refetch,
   } = api.document.getPendingDocuments.useQuery(
     { userRole: selectedRole },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false },
   );
 
   // Mutation pour approuver ou rejeter un document
   const verifyDocument = api.auth.verifyDocument.useMutation({
     onSuccess: () => {
       toast({
-        title: t('documents.success.title'),
-        description: t('documents.success.description'),
+        title: t("documents.success.title"),
+        description: t("documents.success.description"),
       });
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: t('documents.error.title'),
+        title: t("documents.error.title"),
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -83,7 +95,7 @@ export function DocumentVerification() {
   const handleApprove = async (documentId: string) => {
     await verifyDocument.mutateAsync({
       documentId,
-      status: 'APPROVED',
+      status: "APPROVED",
     });
   };
 
@@ -91,12 +103,12 @@ export function DocumentVerification() {
   const handleReject = async (documentId: string) => {
     await verifyDocument.mutateAsync({
       documentId,
-      status: 'REJECTED',
-      notes: rejectNotes[documentId] || t('documents.defaultRejectionReason'),
+      status: "REJECTED",
+      notes: rejectNotes[documentId] || t("documents.defaultRejectionReason"),
     });
 
     // Effacer les notes après soumission
-    setRejectNotes(prev => {
+    setRejectNotes((prev) => {
       const updated = { ...prev };
       delete updated[documentId];
       return updated;
@@ -105,12 +117,14 @@ export function DocumentVerification() {
 
   // Basculer l'affichage détaillé d'un document
   const toggleDocumentDetails = (documentId: string) => {
-    setExpandedDocumentId(expandedDocumentId === documentId ? null : documentId);
+    setExpandedDocumentId(
+      expandedDocumentId === documentId ? null : documentId,
+    );
   };
 
   // Mettre à jour les notes de rejet
   const updateRejectNotes = (documentId: string, notes: string) => {
-    setRejectNotes(prev => ({
+    setRejectNotes((prev) => ({
       ...prev,
       [documentId]: notes,
     }));
@@ -122,18 +136,24 @@ export function DocumentVerification() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>{t('documents.title')}</CardTitle>
-        <CardDescription>{t('documents.description')}</CardDescription>
+        <CardTitle>{t("documents.title")}</CardTitle>
+        <CardDescription>{t("documents.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs
           defaultValue={UserRole.DELIVERER}
-          onValueChange={value => setSelectedRole(value as UserRole)}
+          onValueChange={(value) => setSelectedRole(value as UserRole)}
         >
           <TabsList className="mb-6">
-            <TabsTrigger value={UserRole.DELIVERER}>{t('roles.deliverer')}</TabsTrigger>
-            <TabsTrigger value={UserRole.MERCHANT}>{t('roles.merchant')}</TabsTrigger>
-            <TabsTrigger value={UserRole.PROVIDER}>{t('roles.provider')}</TabsTrigger>
+            <TabsTrigger value={UserRole.DELIVERER}>
+              {t("roles.deliverer")}
+            </TabsTrigger>
+            <TabsTrigger value={UserRole.MERCHANT}>
+              {t("roles.merchant")}
+            </TabsTrigger>
+            <TabsTrigger value={UserRole.PROVIDER}>
+              {t("roles.provider")}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value={UserRole.DELIVERER} className="space-y-4">
@@ -150,8 +170,8 @@ export function DocumentVerification() {
         </Tabs>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="ghost" onClick={() => router.push('/admin')}>
-          {t('actions.backToDashboard')}
+        <Button variant="ghost" onClick={() => router.push("/admin")}>
+          {t("actions.backToDashboard")}
         </Button>
       </CardFooter>
     </Card>
@@ -159,12 +179,14 @@ export function DocumentVerification() {
 
   // Fonction pour render la liste des documents par rôle
   function renderDocumentsList(role: UserRole) {
-    const roleDocuments = pendingDocuments.filter(doc => doc.userRole === role);
+    const roleDocuments = pendingDocuments.filter(
+      (doc) => doc.userRole === role,
+    );
 
     if (isLoading) {
       return (
         <div className="flex justify-center py-6">
-          <p>{t('loading')}</p>
+          <p>{t("loading")}</p>
         </div>
       );
     }
@@ -173,18 +195,22 @@ export function DocumentVerification() {
       return (
         <div className="text-center py-8 bg-muted/20 rounded-lg">
           <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-          <h3 className="text-lg font-medium">{t('documents.noDocuments.title')}</h3>
-          <p className="text-muted-foreground">{t('documents.noDocuments.description')}</p>
+          <h3 className="text-lg font-medium">
+            {t("documents.noDocuments.title")}
+          </h3>
+          <p className="text-muted-foreground">
+            {t("documents.noDocuments.description")}
+          </p>
         </div>
       );
     }
 
-    return roleDocuments.map(document => (
+    return roleDocuments.map((document) => (
       <Card key={document.id} className="border border-muted">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
             <div>
-              {' '}
+              {" "}
               <CardTitle className="text-base font-medium">
                 {getDocumentTypeName(document.type)}
               </CardTitle>
@@ -208,8 +234,8 @@ export function DocumentVerification() {
             <div className="flex items-center text-sm">
               <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
               <span>
-                {t('documents.uploadedAt')}:{' '}
-                {format(new Date(document.uploadedAt), 'PPP', { locale: fr })}
+                {t("documents.uploadedAt")}:{" "}
+                {format(new Date(document.uploadedAt), "PPP", { locale: fr })}
               </span>
             </div>
 
@@ -217,8 +243,8 @@ export function DocumentVerification() {
               <div className="flex items-center text-sm">
                 <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                 <span>
-                  {t('documents.expiresAt')}:{' '}
-                  {format(new Date(document.expiryDate), 'PPP', { locale: fr })}
+                  {t("documents.expiresAt")}:{" "}
+                  {format(new Date(document.expiryDate), "PPP", { locale: fr })}
                 </span>
               </div>
             )}
@@ -227,7 +253,7 @@ export function DocumentVerification() {
           {/* Afficher le document si sélectionné */}
           {expandedDocumentId === document.id && (
             <div className="mt-4 border rounded-md p-2">
-              {document.fileUrl.toLowerCase().endsWith('.pdf') ? (
+              {document.fileUrl.toLowerCase().endsWith(".pdf") ? (
                 <div className="bg-muted/20 p-4 text-center rounded">
                   <FileText className="h-10 w-10 mx-auto mb-2" />
                   <a
@@ -236,7 +262,7 @@ export function DocumentVerification() {
                     rel="noopener noreferrer"
                     className="text-primary underline"
                   >
-                    {t('documents.viewPdf')}
+                    {t("documents.viewPdf")}
                   </a>
                 </div>
               ) : (
@@ -250,14 +276,16 @@ export function DocumentVerification() {
               {/* Champ pour les notes en cas de rejet */}
               <div className="mt-4">
                 <Textarea
-                  placeholder={t('documents.rejectionNotesPlaceholder')}
+                  placeholder={t("documents.rejectionNotesPlaceholder")}
                   className="resize-none"
-                  value={rejectNotes[document.id] || ''}
-                  onChange={e => updateRejectNotes(document.id, e.target.value)}
+                  value={rejectNotes[document.id] || ""}
+                  onChange={(e) =>
+                    updateRejectNotes(document.id, e.target.value)
+                  }
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   <AlertTriangle className="h-3 w-3 inline mr-1" />
-                  {t('documents.rejectionWarning')}
+                  {t("documents.rejectionWarning")}
                 </p>
               </div>
             </div>
@@ -265,10 +293,14 @@ export function DocumentVerification() {
         </CardContent>
 
         <CardFooter className="flex justify-between">
-          <Button variant="outline" size="sm" onClick={() => toggleDocumentDetails(document.id)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toggleDocumentDetails(document.id)}
+          >
             {expandedDocumentId === document.id
-              ? t('documents.actions.hideDocument')
-              : t('documents.actions.viewDocument')}
+              ? t("documents.actions.hideDocument")
+              : t("documents.actions.viewDocument")}
           </Button>
 
           <div className="flex space-x-2">
@@ -279,7 +311,7 @@ export function DocumentVerification() {
               disabled={verifyDocument.isLoading}
             >
               <X className="h-4 w-4 mr-1" />
-              {t('documents.actions.reject')}
+              {t("documents.actions.reject")}
             </Button>
             <Button
               variant="success"
@@ -288,7 +320,7 @@ export function DocumentVerification() {
               disabled={verifyDocument.isLoading}
             >
               <Check className="h-4 w-4 mr-1" />
-              {t('documents.actions.approve')}
+              {t("documents.actions.approve")}
             </Button>
           </div>
         </CardFooter>

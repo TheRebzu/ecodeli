@@ -1,7 +1,7 @@
-import { router, adminProcedure } from '@/server/api/trpc';
-import { dashboardService } from '@/server/services/admin/dashboard.service';
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
+import { router, adminProcedure } from "@/server/api/trpc";
+import { dashboardService } from "@/server/services/admin/dashboard.service";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
 export const adminDashboardRouter = router({
   /**
@@ -12,7 +12,7 @@ export const adminDashboardRouter = router({
       z.object({
         startDate: z.coerce.date(),
         endDate: z.coerce.date(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       try {
@@ -30,7 +30,7 @@ export const adminDashboardRouter = router({
           },
         };
       } catch (error) {
-        console.error('Erreur dans getOverviewStats:', error);
+        console.error("Erreur dans getOverviewStats:", error);
         throw error;
       }
     }),
@@ -38,14 +38,16 @@ export const adminDashboardRouter = router({
   /**
    * Récupère toutes les données du tableau de bord
    */
-  getDashboardData: adminProcedure.input(z.object({}).optional()).query(async () => {
-    try {
-      return await dashboardService.getDashboardData();
-    } catch (error) {
-      console.error('Erreur dans le router getDashboardData:', error);
-      throw error;
-    }
-  }),
+  getDashboardData: adminProcedure
+    .input(z.object({}).optional())
+    .query(async () => {
+      try {
+        return await dashboardService.getDashboardData();
+      } catch (error) {
+        console.error("Erreur dans le router getDashboardData:", error);
+        throw error;
+      }
+    }),
 
   /**
    * Récupère les statistiques utilisateurs uniquement
@@ -114,18 +116,18 @@ export const adminDashboardRouter = router({
       z.object({
         startDate: z.date(),
         endDate: z.date(),
-        granularity: z.enum(['day', 'week', 'month', 'quarter', 'year']),
+        granularity: z.enum(["day", "week", "month", "quarter", "year"]),
         comparison: z.boolean().optional(),
         categoryFilter: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
         // Vérifier que les dates sont valides
         if (input.endDate < input.startDate) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'La date de fin doit être postérieure à la date de début',
+            code: "BAD_REQUEST",
+            message: "La date de fin doit être postérieure à la date de début",
           });
         }
 
@@ -137,7 +139,7 @@ export const adminDashboardRouter = router({
           categoryFilter: input.categoryFilter,
         });
       } catch (error) {
-        console.error('Erreur dans le rapport de ventes:', error);
+        console.error("Erreur dans le rapport de ventes:", error);
         throw error;
       }
     }),
@@ -150,18 +152,18 @@ export const adminDashboardRouter = router({
       z.object({
         startDate: z.date(),
         endDate: z.date(),
-        granularity: z.enum(['day', 'week', 'month', 'quarter', 'year']),
+        granularity: z.enum(["day", "week", "month", "quarter", "year"]),
         comparison: z.boolean().optional(),
         userRoleFilter: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
         // Vérifier que les dates sont valides
         if (input.endDate < input.startDate) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'La date de fin doit être postérieure à la date de début',
+            code: "BAD_REQUEST",
+            message: "La date de fin doit être postérieure à la date de début",
           });
         }
 
@@ -186,19 +188,19 @@ export const adminDashboardRouter = router({
       z.object({
         startDate: z.date(),
         endDate: z.date(),
-        granularity: z.enum(['day', 'week', 'month', 'quarter', 'year']),
+        granularity: z.enum(["day", "week", "month", "quarter", "year"]),
         comparison: z.boolean().optional(),
         zoneFilter: z.string().optional(),
         delivererFilter: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
         // Vérifier que les dates sont valides
         if (input.endDate < input.startDate) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'La date de fin doit être postérieure à la date de début',
+            code: "BAD_REQUEST",
+            message: "La date de fin doit être postérieure à la date de début",
           });
         }
 
@@ -211,7 +213,10 @@ export const adminDashboardRouter = router({
           delivererFilter: input.delivererFilter,
         });
       } catch (error) {
-        console.error('Erreur dans le rapport de performance de livraison:', error);
+        console.error(
+          "Erreur dans le rapport de performance de livraison:",
+          error,
+        );
         throw error;
       }
     }),

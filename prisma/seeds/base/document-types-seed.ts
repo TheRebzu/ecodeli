@@ -1,7 +1,7 @@
-import { PrismaClient, UserRole } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions } from '../utils/seed-helpers';
-import { defaultSeedConfig } from '../seed.config';
+import { PrismaClient, UserRole } from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
+import { SeedResult, SeedOptions } from "../utils/seed-helpers";
+import { defaultSeedConfig } from "../seed.config";
 
 /**
  * Seed des types de documents requis pour les vérifications par rôle
@@ -9,12 +9,12 @@ import { defaultSeedConfig } from '../seed.config';
 export async function seedDocumentTypes(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('DOCUMENT_TYPES');
+  logger.startSeed("DOCUMENT_TYPES");
 
   const result: SeedResult = {
-    entity: 'document_types',
+    entity: "document_types",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -27,56 +27,56 @@ export async function seedDocumentTypes(
     // Documents LIVREUR
     {
       role: UserRole.DELIVERER,
-      type: 'DRIVING_LICENSE',
-      name: 'Permis de conduire',
-      description: 'Permis de conduire en cours de validité',
+      type: "DRIVING_LICENSE",
+      name: "Permis de conduire",
+      description: "Permis de conduire en cours de validité",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024, // 5MB
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: 365 * 15, // 15 ans
       order: 1,
     },
     {
       role: UserRole.DELIVERER,
-      type: 'INSURANCE_CERTIFICATE',
+      type: "INSURANCE_CERTIFICATE",
       name: "Attestation d'assurance véhicule",
       description: "Attestation d'assurance du véhicule de livraison",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: 365, // 1 an
       order: 2,
     },
     {
       role: UserRole.DELIVERER,
-      type: 'VEHICLE_REGISTRATION',
-      name: 'Carte grise du véhicule',
+      type: "VEHICLE_REGISTRATION",
+      name: "Carte grise du véhicule",
       description: "Certificat d'immatriculation du véhicule",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: null, // Pas d'expiration
       order: 3,
     },
     {
       role: UserRole.DELIVERER,
-      type: 'IDENTITY_CARD',
+      type: "IDENTITY_CARD",
       name: "Pièce d'identité",
       description: "Carte d'identité ou passeport",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: 365 * 10, // 10 ans
       order: 4,
     },
     {
       role: UserRole.DELIVERER,
-      type: 'BANK_RIB',
-      name: 'RIB bancaire',
+      type: "BANK_RIB",
+      name: "RIB bancaire",
       description: "Relevé d'identité bancaire pour les paiements",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: null,
       order: 5,
     },
@@ -84,56 +84,57 @@ export async function seedDocumentTypes(
     // Documents COMMERÇANT
     {
       role: UserRole.MERCHANT,
-      type: 'KBIS',
-      name: 'Extrait Kbis',
-      description: 'Extrait Kbis de moins de 3 mois',
+      type: "KBIS",
+      name: "Extrait Kbis",
+      description: "Extrait Kbis de moins de 3 mois",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF'],
+      allowedFormats: ["PDF"],
       validityPeriod: 90, // 3 mois
       order: 1,
     },
     {
       role: UserRole.MERCHANT,
-      type: 'IDENTITY_CARD',
+      type: "IDENTITY_CARD",
       name: "Pièce d'identité dirigeant",
       description: "Pièce d'identité du dirigeant de l'entreprise",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: 365 * 10,
       order: 2,
     },
     {
       role: UserRole.MERCHANT,
-      type: 'BANK_RIB',
+      type: "BANK_RIB",
       name: "RIB de l'entreprise",
       description: "Relevé d'identité bancaire professionnel",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: null,
       order: 3,
     },
     {
       role: UserRole.MERCHANT,
-      type: 'TAX_CERTIFICATE',
-      name: 'Attestation fiscale',
-      description: 'Attestation de régularité fiscale',
+      type: "TAX_CERTIFICATE",
+      name: "Attestation fiscale",
+      description: "Attestation de régularité fiscale",
       isRequired: false,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF'],
+      allowedFormats: ["PDF"],
       validityPeriod: 365,
       order: 4,
     },
     {
       role: UserRole.MERCHANT,
-      type: 'INSURANCE_CERTIFICATE',
-      name: 'Assurance responsabilité civile',
-      description: "Attestation d'assurance responsabilité civile professionnelle",
+      type: "INSURANCE_CERTIFICATE",
+      name: "Assurance responsabilité civile",
+      description:
+        "Attestation d'assurance responsabilité civile professionnelle",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: 365,
       order: 5,
     },
@@ -141,56 +142,56 @@ export async function seedDocumentTypes(
     // Documents PRESTATAIRE
     {
       role: UserRole.PROVIDER,
-      type: 'IDENTITY_CARD',
+      type: "IDENTITY_CARD",
       name: "Pièce d'identité",
       description: "Carte d'identité ou passeport",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: 365 * 10,
       order: 1,
     },
     {
       role: UserRole.PROVIDER,
-      type: 'PROFESSIONAL_DIPLOMA',
-      name: 'Diplôme professionnel',
-      description: 'Diplôme ou certification professionnelle',
+      type: "PROFESSIONAL_DIPLOMA",
+      name: "Diplôme professionnel",
+      description: "Diplôme ou certification professionnelle",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: null,
       order: 2,
     },
     {
       role: UserRole.PROVIDER,
-      type: 'INSURANCE_CERTIFICATE',
-      name: 'Assurance responsabilité civile',
+      type: "INSURANCE_CERTIFICATE",
+      name: "Assurance responsabilité civile",
       description: "Attestation d'assurance RC professionnelle",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: 365,
       order: 3,
     },
     {
       role: UserRole.PROVIDER,
-      type: 'BANK_RIB',
-      name: 'RIB bancaire',
+      type: "BANK_RIB",
+      name: "RIB bancaire",
       description: "Relevé d'identité bancaire",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF', 'JPG', 'PNG'],
+      allowedFormats: ["PDF", "JPG", "PNG"],
       validityPeriod: null,
       order: 4,
     },
     {
       role: UserRole.PROVIDER,
-      type: 'CRIMINAL_RECORD',
-      name: 'Extrait de casier judiciaire',
-      description: 'Bulletin n°3 du casier judiciaire',
+      type: "CRIMINAL_RECORD",
+      name: "Extrait de casier judiciaire",
+      description: "Bulletin n°3 du casier judiciaire",
       isRequired: true,
       maxFileSize: 5 * 1024 * 1024,
-      allowedFormats: ['PDF'],
+      allowedFormats: ["PDF"],
       validityPeriod: 90, // 3 mois
       order: 5,
     },
@@ -209,8 +210,8 @@ export async function seedDocumentTypes(
 
       if (existing && !options.force) {
         logger.warning(
-          'DOCUMENT_TYPES',
-          `Type ${docTypeData.type} pour ${docTypeData.role} déjà existant`
+          "DOCUMENT_TYPES",
+          `Type ${docTypeData.type} pour ${docTypeData.role} déjà existant`,
         );
         result.skipped++;
         continue;
@@ -241,14 +242,14 @@ export async function seedDocumentTypes(
       });
 
       logger.success(
-        'DOCUMENT_TYPES',
-        `✅ Type créé: ${docTypeData.type} pour ${docTypeData.role}`
+        "DOCUMENT_TYPES",
+        `✅ Type créé: ${docTypeData.type} pour ${docTypeData.role}`,
       );
       result.created++;
     } catch (error: any) {
       logger.error(
-        'DOCUMENT_TYPES',
-        `❌ Erreur création type ${docTypeData.type}: ${error.message}`
+        "DOCUMENT_TYPES",
+        `❌ Erreur création type ${docTypeData.type}: ${error.message}`,
       );
       result.errors++;
     }
@@ -257,16 +258,20 @@ export async function seedDocumentTypes(
   // Validation des types créés
   const finalTypes = await prisma.documentType.findMany();
   if (finalTypes.length >= documentTypesByRole.length) {
-    logger.validation('DOCUMENT_TYPES', 'PASSED', `${finalTypes.length} types de documents créés`);
+    logger.validation(
+      "DOCUMENT_TYPES",
+      "PASSED",
+      `${finalTypes.length} types de documents créés`,
+    );
   } else {
     logger.validation(
-      'DOCUMENT_TYPES',
-      'FAILED',
-      `Attendu: ${documentTypesByRole.length}, Créé: ${finalTypes.length}`
+      "DOCUMENT_TYPES",
+      "FAILED",
+      `Attendu: ${documentTypesByRole.length}, Créé: ${finalTypes.length}`,
     );
   }
 
-  logger.endSeed('DOCUMENT_TYPES', result);
+  logger.endSeed("DOCUMENT_TYPES", result);
   return result;
 }
 
@@ -275,9 +280,9 @@ export async function seedDocumentTypes(
  */
 export async function validateDocumentTypes(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des types de documents...');
+  logger.info("VALIDATION", "🔍 Validation des types de documents...");
 
   const config = defaultSeedConfig;
   let isValid = true;
@@ -293,14 +298,14 @@ export async function validateDocumentTypes(
 
     if (existingTypes.length < requiredDocs.length) {
       logger.error(
-        'VALIDATION',
-        `❌ Documents manquants pour ${role}: ${existingTypes.length}/${requiredDocs.length}`
+        "VALIDATION",
+        `❌ Documents manquants pour ${role}: ${existingTypes.length}/${requiredDocs.length}`,
       );
       isValid = false;
     } else {
       logger.success(
-        'VALIDATION',
-        `✅ Documents ${role}: ${existingTypes.length} types configurés`
+        "VALIDATION",
+        `✅ Documents ${role}: ${existingTypes.length} types configurés`,
       );
     }
   }

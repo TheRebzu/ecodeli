@@ -1,16 +1,18 @@
-import { z } from 'zod';
-import { UserRole } from '@prisma/client';
+import { z } from "zod";
+import { UserRole } from "@prisma/client";
 
 // Schéma pour les filtres du dashboard
 export const dashboardFiltersSchema = z.object({
-  timeRange: z.enum(['today', 'week', 'month', 'year']).default('week'),
+  timeRange: z.enum(["today", "week", "month", "year"]).default("week"),
   userRole: z.nativeEnum(UserRole).optional(),
-  view: z.enum(['overview', 'users', 'finances', 'operations']).default('overview'),
+  view: z
+    .enum(["overview", "users", "finances", "operations"])
+    .default("overview"),
 });
 
 // Schéma pour les requêtes de graphiques d'activité
 export const activityChartRequestSchema = z.object({
-  timeRange: z.enum(['week', 'month', 'year']).default('month'),
+  timeRange: z.enum(["week", "month", "year"]).default("month"),
 });
 
 // Schéma pour les requêtes de statistiques utilisateurs
@@ -29,7 +31,7 @@ export const documentStatsRequestSchema = z.object({
 
 // Schéma pour les requêtes de statistiques transactions
 export const transactionStatsRequestSchema = z.object({
-  timeRange: z.enum(['today', 'week', 'month', 'year']).default('week'),
+  timeRange: z.enum(["today", "week", "month", "year"]).default("week"),
 });
 
 // Schéma pour les requêtes de statistiques entrepôts
@@ -39,7 +41,7 @@ export const warehouseStatsRequestSchema = z.object({
 
 // Schéma pour les requêtes de statistiques livraisons
 export const deliveryStatsRequestSchema = z.object({
-  timeRange: z.enum(['today', 'week', 'month', 'year']).default('week'),
+  timeRange: z.enum(["today", "week", "month", "year"]).default("week"),
 });
 
 // Schéma pour les requêtes d'activités récentes
@@ -48,11 +50,11 @@ export const recentActivitiesRequestSchema = z.object({
   types: z
     .array(
       z.enum([
-        'user_registration',
-        'document_submission',
-        'delivery_completed',
-        'transaction_completed',
-      ])
+        "user_registration",
+        "document_submission",
+        "delivery_completed",
+        "transaction_completed",
+      ]),
     )
     .optional(),
 });
@@ -71,15 +73,15 @@ export const dashboardDataRequestSchema = z.object({
   sections: z
     .array(
       z.enum([
-        'userStats',
-        'documentStats',
-        'transactionStats',
-        'warehouseStats',
-        'deliveryStats',
-        'recentActivities',
-        'activityChartData',
-        'actionItems',
-      ])
+        "userStats",
+        "documentStats",
+        "transactionStats",
+        "warehouseStats",
+        "deliveryStats",
+        "recentActivities",
+        "activityChartData",
+        "actionItems",
+      ]),
     )
     .optional(),
 });

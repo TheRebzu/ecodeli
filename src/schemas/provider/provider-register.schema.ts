@@ -1,14 +1,18 @@
-import { z } from 'zod';
-import { UserRole, registerBaseFields, addressFields } from '@/schemas/auth/register.schema';
+import { z } from "zod";
+import {
+  UserRole,
+  registerBaseFields,
+  addressFields,
+} from "@/schemas/auth/register.schema";
 
 // Types de services proposés par les prestataires
 export enum ServiceType {
-  MAINTENANCE = 'MAINTENANCE',
-  CLEANING = 'CLEANING',
-  REPAIR = 'REPAIR',
-  INSTALLATION = 'INSTALLATION',
-  CONSULTING = 'CONSULTING',
-  OTHER = 'OTHER',
+  MAINTENANCE = "MAINTENANCE",
+  CLEANING = "CLEANING",
+  REPAIR = "REPAIR",
+  INSTALLATION = "INSTALLATION",
+  CONSULTING = "CONSULTING",
+  OTHER = "OTHER",
 }
 
 /**
@@ -22,13 +26,13 @@ export const providerRegisterSchema = z
     // Informations professionnelles
     companyName: z.string().optional(),
     address: z.string().min(5, "L'adresse est requise"),
-    phone: z.string().min(5, 'Le numéro de téléphone est requis'),
+    phone: z.string().min(5, "Le numéro de téléphone est requis"),
 
     // Services proposés
-    services: z.array(z.string()).min(1, 'Sélectionnez au moins un service'),
+    services: z.array(z.string()).min(1, "Sélectionnez au moins un service"),
     serviceType: z
       .nativeEnum(ServiceType, {
-        invalid_type_error: 'Type de service invalide',
+        invalid_type_error: "Type de service invalide",
       })
       .optional(),
     description: z.string().optional(),
@@ -37,14 +41,17 @@ export const providerRegisterSchema = z
     availability: z.string().optional(),
 
     // Champs optionnels
-    websiteUrl: z.string().url({ message: 'URL de site web invalide' }).optional(),
+    websiteUrl: z
+      .string()
+      .url({ message: "URL de site web invalide" })
+      .optional(),
 
     // Le rôle est forcément PROVIDER pour ce schéma
     role: z.literal(UserRole.PROVIDER),
   })
-  .refine(data => data.password === data.confirmPassword, {
-    message: 'Les mots de passe ne correspondent pas',
-    path: ['confirmPassword'],
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
   });
 
 export type ProviderRegisterSchemaType = z.infer<typeof providerRegisterSchema>;

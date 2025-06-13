@@ -4,4 +4,4 @@
  */
 
 // Exports des fichiers locaux
-export * from './client';
+export * from "./client";

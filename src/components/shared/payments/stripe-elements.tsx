@@ -205,34 +205,7 @@ function CheckoutForm({
         </Button>
       </div>
 
-      {/* Options de démonstration */}
-      {isDemoMode && paymentStatus === 'idle' && (
-        <div className="mt-4 border-t pt-4">
-          <p className="text-xs text-muted-foreground mb-2">{t('demoOptions')}</p>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleDemoSuccess}
-              className="text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-            >
-              <Check className="mr-1 h-3 w-3" />
-              {t('simulateSuccess')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleDemoFailure}
-              className="text-xs bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-            >
-              <AlertCircle className="mr-1 h-3 w-3" />
-              {t('simulateFailure')}
-            </Button>
-          </div>
-        </div>
-      )}
+
     </form>
   );
 }
@@ -246,7 +219,7 @@ interface StripeElementsProps {
   metadata?: Record<string, any>;
 }
 
-const StripeElementsComponent: React.FC<StripeElementsProps> = ({
+rconst StripeElementsComponent: React.FC<StripeElementsProps> = ({
   amount,
   currency = 'EUR',
   onSuccess,
@@ -357,29 +330,6 @@ export function StripePaymentMethodSelector({
 
   // Mise à jour des données lorsque la requête est terminée
   useEffect(() => {
-    // En mode démo, créer des méthodes de paiement factices
-    if (isInDemoMode) {
-      setIsLoading(false);
-
-      const demoMethods: PaymentMethod[] = [
-        {
-          id: 'pm_demo_visa',
-          card: { brand: 'visa', last4: '4242', exp_month: 12, exp_year: 2030 },
-        },
-        {
-          id: 'pm_demo_mastercard',
-          card: { brand: 'mastercard', last4: '5555', exp_month: 10, exp_year: 2028 },
-        },
-        {
-          id: 'pm_demo_amex',
-          card: { brand: 'amex', last4: '0005', exp_month: 8, exp_year: 2026 },
-        },
-      ];
-
-      setPaymentMethods(demoMethods);
-      return;
-    }
-
     if (!paymentMethodsQuery.isLoading) {
       setIsLoading(false);
       if (paymentMethodsQuery.data?.success && paymentMethodsQuery.data.paymentMethods) {
@@ -387,7 +337,7 @@ export function StripePaymentMethodSelector({
         setPaymentMethods(paymentMethodsQuery.data.paymentMethods as unknown as PaymentMethod[]);
       }
     }
-  }, [paymentMethodsQuery.isLoading, paymentMethodsQuery.data, isInDemoMode]);
+  }, [paymentMethodsQuery.isLoading, paymentMethodsQuery.data]);
 
   if (isLoading) {
     return (
@@ -397,7 +347,7 @@ export function StripePaymentMethodSelector({
     );
   }
 
-  if (paymentMethodsQuery.isError && !isInDemoMode) {
+  if (paymentMethodsQuery.isError) {
     return (
       <Alert className="border-red-200 bg-red-50 text-red-800">
         <AlertCircle className="h-4 w-4" />

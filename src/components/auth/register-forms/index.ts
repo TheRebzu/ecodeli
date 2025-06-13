@@ -4,5 +4,5 @@
  */
 
 // Exports des fichiers locaux
-export { default as PasswordReset } from './password-reset';
-export * from './password-reset';
+export { default as PasswordReset } from "./password-reset";
+export * from "./password-reset";

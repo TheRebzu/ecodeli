@@ -1,5 +1,5 @@
-import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
-import { SeedLogger } from '../utils/seed-logger';
+import { PrismaClient, UserRole, UserStatus } from "@prisma/client";
+import { SeedLogger } from "../utils/seed-logger";
 import {
   SeedResult,
   SeedOptions,
@@ -10,8 +10,8 @@ import {
   getRandomElement,
   getRandomDate,
   generateRealisticStatus,
-} from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+} from "../utils/seed-helpers";
+import { faker } from "@faker-js/faker";
 
 /**
  * Interface pour définir un livreur
@@ -37,12 +37,12 @@ interface DelivererData {
 export async function seedDelivererUsers(
   prisma: PrismaClient,
   logger: SeedLogger,
-  options: SeedOptions = {}
+  options: SeedOptions = {},
 ): Promise<SeedResult> {
-  logger.startSeed('DELIVERER_USERS');
+  logger.startSeed("DELIVERER_USERS");
 
   const result: SeedResult = {
-    entity: 'deliverer_users',
+    entity: "deliverer_users",
     created: 0,
     skipped: 0,
     errors: 0,
@@ -55,8 +55,8 @@ export async function seedDelivererUsers(
 
   if (existingDeliverers.length > 0 && !options.force) {
     logger.warning(
-      'DELIVERER_USERS',
-      `${existingDeliverers.length} livreurs déjà présents - utiliser force:true pour recréer`
+      "DELIVERER_USERS",
+      `${existingDeliverers.length} livreurs déjà présents - utiliser force:true pour recréer`,
     );
     result.skipped = existingDeliverers.length;
     return result;
@@ -64,50 +64,83 @@ export async function seedDelivererUsers(
 
   // Note: Le nettoyage est géré au niveau de l'orchestrateur pour éviter les conflits de contraintes FK
   if (options.force && existingDeliverers.length > 0) {
-    logger.info('DELIVERER_USERS', '♻️ Mode force activé - Les données existantes seront écrasées');
+    logger.info(
+      "DELIVERER_USERS",
+      "♻️ Mode force activé - Les données existantes seront écrasées",
+    );
   }
 
   // Zones de livraison disponibles en Île-de-France
   const serviceZones = [
-    'Paris 1er',
-    'Paris 2ème',
-    'Paris 3ème',
-    'Paris 4ème',
-    'Paris 5ème',
-    'Paris 6ème',
-    'Paris 7ème',
-    'Paris 8ème',
-    'Paris 9ème',
-    'Paris 10ème',
-    'Paris 11ème',
-    'Paris 12ème',
-    'Paris 13ème',
-    'Paris 14ème',
-    'Paris 15ème',
-    'Paris 16ème',
-    'Paris 17ème',
-    'Paris 18ème',
-    'Paris 19ème',
-    'Paris 20ème',
-    'Boulogne-Billancourt',
-    'Levallois-Perret',
-    'Issy-les-Moulineaux',
-    'Neuilly-sur-Seine',
-    'Vincennes',
-    'Saint-Denis',
-    'Montreuil',
-    'Créteil',
+    "Paris 1er",
+    "Paris 2ème",
+    "Paris 3ème",
+    "Paris 4ème",
+    "Paris 5ème",
+    "Paris 6ème",
+    "Paris 7ème",
+    "Paris 8ème",
+    "Paris 9ème",
+    "Paris 10ème",
+    "Paris 11ème",
+    "Paris 12ème",
+    "Paris 13ème",
+    "Paris 14ème",
+    "Paris 15ème",
+    "Paris 16ème",
+    "Paris 17ème",
+    "Paris 18ème",
+    "Paris 19ème",
+    "Paris 20ème",
+    "Boulogne-Billancourt",
+    "Levallois-Perret",
+    "Issy-les-Moulineaux",
+    "Neuilly-sur-Seine",
+    "Vincennes",
+    "Saint-Denis",
+    "Montreuil",
+    "Créteil",
   ];
 
   // Types de véhicules disponibles
   const vehicleTypes = [
-    { type: 'bike', name: 'Vélo', capacity: 15, maxWeight: 20, speed: 15 },
-    { type: 'e-bike', name: 'Vélo électrique', capacity: 20, maxWeight: 25, speed: 25 },
-    { type: 'scooter', name: 'Scooter', capacity: 30, maxWeight: 40, speed: 45 },
-    { type: 'e-scooter', name: 'Scooter électrique', capacity: 30, maxWeight: 40, speed: 45 },
-    { type: 'motorcycle', name: 'Moto', capacity: 40, maxWeight: 60, speed: 80 },
-    { type: 'car', name: 'Voiture', capacity: 80, maxWeight: 200, speed: 50 },
-    { type: 'van', name: 'Utilitaire', capacity: 150, maxWeight: 500, speed: 50 },
+    { type: "bike", name: "Vélo", capacity: 15, maxWeight: 20, speed: 15 },
+    {
+      type: "e-bike",
+      name: "Vélo électrique",
+      capacity: 20,
+      maxWeight: 25,
+      speed: 25,
+    },
+    {
+      type: "scooter",
+      name: "Scooter",
+      capacity: 30,
+      maxWeight: 40,
+      speed: 45,
+    },
+    {
+      type: "e-scooter",
+      name: "Scooter électrique",
+      capacity: 30,
+      maxWeight: 40,
+      speed: 45,
+    },
+    {
+      type: "motorcycle",
+      name: "Moto",
+      capacity: 40,
+      maxWeight: 60,
+      speed: 80,
+    },
+    { type: "car", name: "Voiture", capacity: 80, maxWeight: 200, speed: 50 },
+    {
+      type: "van",
+      name: "Utilitaire",
+      capacity: 150,
+      maxWeight: 500,
+      speed: 50,
+    },
   ];
 
   // Générer 35 livreurs avec des profils variés
@@ -115,32 +148,32 @@ export async function seedDelivererUsers(
 
   // IMPORTANT: Livreuse principale pour les tests - marie.laurent@orange.fr
   const marieVehicle = {
-    type: 'car',
-    name: 'Peugeot 208',
+    type: "car",
+    name: "Peugeot 208",
     capacity: 80,
     maxWeight: 200,
     speed: 50,
   };
 
   delivererUsers.push({
-    name: 'Marie Laurent',
-    email: 'marie.laurent@orange.fr',
-    password: 'DelivererPass2024!',
+    name: "Marie Laurent",
+    email: "marie.laurent@orange.fr",
+    password: "DelivererPass2024!",
     phoneNumber: generateFrenchPhone(),
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
+    image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150",
     status: UserStatus.ACTIVE,
     address: {
-      street: '95 rue de Marseille',
-      city: 'Paris',
-      zipCode: '75019',
-      country: 'France',
+      street: "95 rue de Marseille",
+      city: "Paris",
+      zipCode: "75019",
+      country: "France",
       latitude: 48.8845,
       longitude: 2.3712,
     },
     vehicle: {
       type: marieVehicle.type,
       name: marieVehicle.name,
-      licensePlate: 'AB-123-CD',
+      licensePlate: "AB-123-CD",
       capacity: marieVehicle.capacity,
       maxWeight: marieVehicle.maxWeight,
       averageSpeed: marieVehicle.speed,
@@ -148,19 +181,33 @@ export async function seedDelivererUsers(
       registrationDate: getRandomDate(365, 1095), // Entre 1 et 3 ans
       insuranceExpiry: faker.date.future({ years: 1 }),
     },
-    serviceZones: ['Paris', 'Marseille', 'Lyon', 'Paris 19ème', 'Paris 20ème', 'Paris 18ème'],
+    serviceZones: [
+      "Paris",
+      "Marseille",
+      "Lyon",
+      "Paris 19ème",
+      "Paris 20ème",
+      "Paris 18ème",
+    ],
     availability: {
       isActive: true,
-      workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
-      workingHours: { start: '08:00', end: '20:00' },
+      workingDays: [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+      ],
+      workingHours: { start: "08:00", end: "20:00" },
       maxOrdersPerDay: 20,
-      preferredOrderTypes: ['all'],
+      preferredOrderTypes: ["all"],
     },
     verification: {
       isVerified: true,
       verificationDate: getRandomDate(180, 365),
-      documentsStatus: 'APPROVED',
-      backgroundCheckStatus: 'PASSED',
+      documentsStatus: "APPROVED",
+      backgroundCheckStatus: "PASSED",
       drivingLicenseVerified: true,
       identityVerified: true,
       addressVerified: true,
@@ -189,14 +236,14 @@ export async function seedDelivererUsers(
     delivererUsers.push({
       name: `${firstName} ${lastName}`,
       email: generateFrenchEmail(firstName, lastName),
-      password: 'DelivererPass2024!',
+      password: "DelivererPass2024!",
       phoneNumber: generateFrenchPhone(),
       image: getRandomElement([
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
-        'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=150',
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150",
+        "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=150",
         undefined,
         undefined, // 30% sans photo
       ]),
@@ -209,7 +256,7 @@ export async function seedDelivererUsers(
         capacity: vehicle.capacity,
         maxWeight: vehicle.maxWeight,
         averageSpeed: vehicle.speed,
-        isElectric: vehicle.type.includes('e-'),
+        isElectric: vehicle.type.includes("e-"),
         registrationDate: getRandomDate(90, 1095), // Entre 3 mois et 3 ans
         insuranceExpiry: faker.date.future({ years: 1 }),
       },
@@ -220,33 +267,46 @@ export async function seedDelivererUsers(
       availability: {
         isActive: true,
         workingDays: isFullTime
-          ? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+          ? ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
           : faker.helpers.arrayElements(
-              ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-              { min: 2, max: 4 }
+              [
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday",
+                "sunday",
+              ],
+              { min: 2, max: 4 },
             ),
         workingHours: isFullTime
-          ? { start: '08:00', end: '20:00' }
+          ? { start: "08:00", end: "20:00" }
           : {
-              start: getRandomElement(['09:00', '10:00', '14:00', '18:00']),
-              end: getRandomElement(['17:00', '18:00', '22:00', '23:00']),
+              start: getRandomElement(["09:00", "10:00", "14:00", "18:00"]),
+              end: getRandomElement(["17:00", "18:00", "22:00", "23:00"]),
             },
         maxOrdersPerDay: isFullTime
           ? faker.number.int({ min: 15, max: 25 })
           : faker.number.int({ min: 5, max: 12 }),
         preferredOrderTypes: getRandomElement([
-          ['food', 'groceries'],
-          ['packages', 'documents'],
-          ['pharmacy', 'urgent'],
-          ['all'],
+          ["food", "groceries"],
+          ["packages", "documents"],
+          ["pharmacy", "urgent"],
+          ["all"],
         ]),
       },
       verification: {
         isVerified: true,
         verificationDate: getRandomDate(30, 180),
-        documentsStatus: 'APPROVED',
-        backgroundCheckStatus: 'PASSED',
-        drivingLicenseVerified: ['scooter', 'motorcycle', 'car', 'van'].includes(vehicle.type),
+        documentsStatus: "APPROVED",
+        backgroundCheckStatus: "PASSED",
+        drivingLicenseVerified: [
+          "scooter",
+          "motorcycle",
+          "car",
+          "van",
+        ].includes(vehicle.type),
         identityVerified: true,
         addressVerified: true,
       },
@@ -277,11 +337,11 @@ export async function seedDelivererUsers(
     delivererUsers.push({
       name: `${firstName} ${lastName}`,
       email: generateFrenchEmail(firstName, lastName),
-      password: 'DelivererPass2024!',
+      password: "DelivererPass2024!",
       phoneNumber: generateFrenchPhone(),
       image: getRandomElement([
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
         undefined,
         undefined,
         undefined, // 60% sans photo pour les nouveaux
@@ -295,26 +355,33 @@ export async function seedDelivererUsers(
         capacity: vehicle.capacity,
         maxWeight: vehicle.maxWeight,
         averageSpeed: vehicle.speed,
-        isElectric: vehicle.type.includes('e-'),
+        isElectric: vehicle.type.includes("e-"),
         registrationDate: getRandomDate(1, 30), // Récemment enregistré
         insuranceExpiry: faker.date.future({ years: 1 }),
       },
-      serviceZones: faker.helpers.arrayElements(serviceZones, { min: 1, max: 3 }),
+      serviceZones: faker.helpers.arrayElements(serviceZones, {
+        min: 1,
+        max: 3,
+      }),
       availability: {
         isActive: false,
         workingDays: faker.helpers.arrayElements(
-          ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
-          { min: 2, max: 5 }
+          ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+          { min: 2, max: 5 },
         ),
-        workingHours: { start: '09:00', end: '18:00' },
+        workingHours: { start: "09:00", end: "18:00" },
         maxOrdersPerDay: faker.number.int({ min: 5, max: 15 }),
-        preferredOrderTypes: ['all'],
+        preferredOrderTypes: ["all"],
       },
       verification: {
         isVerified: false,
         verificationDate: null,
-        documentsStatus: getRandomElement(['PENDING', 'UNDER_REVIEW', 'MISSING_DOCS']),
-        backgroundCheckStatus: 'PENDING',
+        documentsStatus: getRandomElement([
+          "PENDING",
+          "UNDER_REVIEW",
+          "MISSING_DOCS",
+        ]),
+        backgroundCheckStatus: "PENDING",
         drivingLicenseVerified: false,
         identityVerified: Math.random() > 0.3, // 70% ont fourni leur identité
         addressVerified: Math.random() > 0.5, // 50% ont vérifié leur adresse
@@ -339,17 +406,17 @@ export async function seedDelivererUsers(
     const address = generateFrenchAddress();
     const vehicle = getRandomElement(vehicleTypes);
     const suspensionReason = getRandomElement([
-      'Documents falsifiés',
-      'Comportement inapproprié',
-      'Trop de plaintes clients',
-      'Violation des conditions de service',
+      "Documents falsifiés",
+      "Comportement inapproprié",
+      "Trop de plaintes clients",
+      "Violation des conditions de service",
       "Échec de la vérification d'antécédents",
     ]);
 
     delivererUsers.push({
       name: `${firstName} ${lastName}`,
       email: generateFrenchEmail(firstName, lastName),
-      password: 'DelivererPass2024!',
+      password: "DelivererPass2024!",
       phoneNumber: generateFrenchPhone(),
       image: undefined,
       status: UserStatus.SUSPENDED,
@@ -361,7 +428,7 @@ export async function seedDelivererUsers(
         capacity: vehicle.capacity,
         maxWeight: vehicle.maxWeight,
         averageSpeed: vehicle.speed,
-        isElectric: vehicle.type.includes('e-'),
+        isElectric: vehicle.type.includes("e-"),
         registrationDate: getRandomDate(30, 180),
         insuranceExpiry: faker.date.future({ years: 1 }),
       },
@@ -369,15 +436,15 @@ export async function seedDelivererUsers(
       availability: {
         isActive: false,
         workingDays: [],
-        workingHours: { start: '00:00', end: '00:00' },
+        workingHours: { start: "00:00", end: "00:00" },
         maxOrdersPerDay: 0,
         preferredOrderTypes: [],
       },
       verification: {
         isVerified: false,
         verificationDate: getRandomDate(15, 60),
-        documentsStatus: 'REJECTED',
-        backgroundCheckStatus: getRandomElement(['FAILED', 'REJECTED']),
+        documentsStatus: "REJECTED",
+        backgroundCheckStatus: getRandomElement(["FAILED", "REJECTED"]),
         drivingLicenseVerified: false,
         identityVerified: false,
         addressVerified: false,
@@ -404,10 +471,10 @@ export async function seedDelivererUsers(
     for (const delivererData of batch) {
       try {
         logger.progress(
-          'DELIVERER_USERS',
+          "DELIVERER_USERS",
           i + 1,
           delivererUsers.length,
-          `Création: ${delivererData.name}`
+          `Création: ${delivererData.name}`,
         );
 
         // Créer l'utilisateur avec le rôle livreur
@@ -422,7 +489,7 @@ export async function seedDelivererUsers(
             image: delivererData.image,
             emailVerified: new Date(), // Tous les livreurs ont un email vérifié
             isActive: true, // Tous les livreurs sont actifs
-            locale: 'fr-FR',
+            locale: "fr-FR",
             createdAt: getRandomDate(30, 365), // Créé entre 1 mois et 1 an
             updatedAt: new Date(),
             // Créer le profil livreur associé
@@ -441,7 +508,10 @@ export async function seedDelivererUsers(
                 serviceZones: delivererData.serviceZones,
                 availableHours: delivererData.availability,
                 availableDays: delivererData.availability.workingDays,
-                bio: delivererData.status === UserStatus.ACTIVE ? faker.lorem.sentence() : null,
+                bio:
+                  delivererData.status === UserStatus.ACTIVE
+                    ? faker.lorem.sentence()
+                    : null,
                 yearsOfExperience:
                   delivererData.performance.totalDeliveries > 100
                     ? faker.number.int({ min: 1, max: 5 })
@@ -449,8 +519,8 @@ export async function seedDelivererUsers(
                 preferredVehicle: delivererData.vehicle.type,
                 bankInfo: delivererData.verification.isVerified
                   ? {
-                      iban: 'FR14 2004 1010 0505 0001 3M02 606',
-                      bic: 'PSSTFRPPXXX',
+                      iban: "FR14 2004 1010 0505 0001 3M02 606",
+                      bic: "PSSTFRPPXXX",
                       accountHolder: delivererData.name,
                     }
                   : undefined,
@@ -473,14 +543,14 @@ export async function seedDelivererUsers(
         });
 
         logger.success(
-          'DELIVERER_USERS',
-          `✅ Livreur créé: ${user.name} (${delivererData.status})`
+          "DELIVERER_USERS",
+          `✅ Livreur créé: ${user.name} (${delivererData.status})`,
         );
         result.created++;
       } catch (error: any) {
         logger.error(
-          'DELIVERER_USERS',
-          `❌ Erreur création livreur ${delivererData.name}: ${error.message}`
+          "DELIVERER_USERS",
+          `❌ Erreur création livreur ${delivererData.name}: ${error.message}`,
         );
         result.errors++;
       }
@@ -489,9 +559,9 @@ export async function seedDelivererUsers(
     // Progression par batch
     if (i + batchSize < delivererUsers.length) {
       logger.progress(
-        'DELIVERER_USERS',
+        "DELIVERER_USERS",
         Math.min(i + batchSize, delivererUsers.length),
-        delivererUsers.length
+        delivererUsers.length,
       );
     }
   }
@@ -504,15 +574,15 @@ export async function seedDelivererUsers(
 
   if (finalDeliverers.length >= delivererUsers.length - result.errors) {
     logger.validation(
-      'DELIVERER_USERS',
-      'PASSED',
-      `${finalDeliverers.length} livreurs créés avec succès`
+      "DELIVERER_USERS",
+      "PASSED",
+      `${finalDeliverers.length} livreurs créés avec succès`,
     );
   } else {
     logger.validation(
-      'DELIVERER_USERS',
-      'FAILED',
-      `Attendu: ${delivererUsers.length}, Créé: ${finalDeliverers.length}`
+      "DELIVERER_USERS",
+      "FAILED",
+      `Attendu: ${delivererUsers.length}, Créé: ${finalDeliverers.length}`,
     );
   }
 
@@ -522,31 +592,39 @@ export async function seedDelivererUsers(
       acc[deliverer.status] = (acc[deliverer.status] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
 
-  logger.info('DELIVERER_USERS', `📊 Répartition par statut: ${JSON.stringify(byStatus)}`);
+  logger.info(
+    "DELIVERER_USERS",
+    `📊 Répartition par statut: ${JSON.stringify(byStatus)}`,
+  );
 
   // Statistiques par véhicule
   const byVehicle = finalDeliverers.reduce(
     (acc, deliverer) => {
-      const vehicleType = deliverer.deliverer?.vehicleType || 'Non défini';
+      const vehicleType = deliverer.deliverer?.vehicleType || "Non défini";
       acc[vehicleType] = (acc[vehicleType] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
 
-  logger.info('DELIVERER_USERS', `🚲 Répartition par véhicule: ${JSON.stringify(byVehicle)}`);
+  logger.info(
+    "DELIVERER_USERS",
+    `🚲 Répartition par véhicule: ${JSON.stringify(byVehicle)}`,
+  );
 
   // Statistiques de vérification
-  const verifiedDeliverers = finalDeliverers.filter(deliverer => deliverer.deliverer?.isVerified);
+  const verifiedDeliverers = finalDeliverers.filter(
+    (deliverer) => deliverer.deliverer?.isVerified,
+  );
   logger.info(
-    'DELIVERER_USERS',
-    `✅ Livreurs vérifiés: ${verifiedDeliverers.length} (${Math.round((verifiedDeliverers.length / finalDeliverers.length) * 100)}%)`
+    "DELIVERER_USERS",
+    `✅ Livreurs vérifiés: ${verifiedDeliverers.length} (${Math.round((verifiedDeliverers.length / finalDeliverers.length) * 100)}%)`,
   );
 
-  logger.endSeed('DELIVERER_USERS', result);
+  logger.endSeed("DELIVERER_USERS", result);
   return result;
 }
 
@@ -554,14 +632,14 @@ export async function seedDelivererUsers(
  * Génère une plaque d'immatriculation selon le type de véhicule
  */
 function generateLicensePlate(vehicleType: string): string {
-  if (['bike', 'e-bike'].includes(vehicleType)) {
+  if (["bike", "e-bike"].includes(vehicleType)) {
     return `VEL${faker.string.numeric(4)}`; // Vélos avec numéro d'identification
   }
 
   // Format français pour véhicules motorisés
-  const letters1 = faker.string.alpha({ length: 2, casing: 'upper' });
+  const letters1 = faker.string.alpha({ length: 2, casing: "upper" });
   const numbers = faker.string.numeric(3);
-  const letters2 = faker.string.alpha({ length: 2, casing: 'upper' });
+  const letters2 = faker.string.alpha({ length: 2, casing: "upper" });
 
   return `${letters1}-${numbers}-${letters2}`;
 }
@@ -571,9 +649,9 @@ function generateLicensePlate(vehicleType: string): string {
  */
 export async function validateDelivererUsers(
   prisma: PrismaClient,
-  logger: SeedLogger
+  logger: SeedLogger,
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des livreurs...');
+  logger.info("VALIDATION", "🔍 Validation des livreurs...");
 
   const deliverers = await prisma.user.findMany({
     where: { role: UserRole.DELIVERER },
@@ -583,46 +661,59 @@ export async function validateDelivererUsers(
   let isValid = true;
 
   // Vérifier que tous les livreurs ont un profil associé
-  const deliverersWithoutProfile = deliverers.filter(deliverer => !deliverer.deliverer);
+  const deliverersWithoutProfile = deliverers.filter(
+    (deliverer) => !deliverer.deliverer,
+  );
   if (deliverersWithoutProfile.length > 0) {
-    logger.error('VALIDATION', `❌ ${deliverersWithoutProfile.length} livreurs sans profil`);
+    logger.error(
+      "VALIDATION",
+      `❌ ${deliverersWithoutProfile.length} livreurs sans profil`,
+    );
     isValid = false;
   } else {
-    logger.success('VALIDATION', '✅ Tous les livreurs ont un profil associé');
+    logger.success("VALIDATION", "✅ Tous les livreurs ont un profil associé");
   }
 
   // Vérifier la cohérence statut/vérification
   const activeButNotVerified = deliverers.filter(
-    deliverer => deliverer.status === UserStatus.ACTIVE && !deliverer.deliverer?.isVerified
+    (deliverer) =>
+      deliverer.status === UserStatus.ACTIVE &&
+      !deliverer.deliverer?.isVerified,
   );
 
   if (activeButNotVerified.length > 0) {
     logger.error(
-      'VALIDATION',
-      `❌ ${activeButNotVerified.length} livreurs actifs mais non vérifiés`
+      "VALIDATION",
+      `❌ ${activeButNotVerified.length} livreurs actifs mais non vérifiés`,
     );
     isValid = false;
   } else {
-    logger.success('VALIDATION', '✅ Cohérence statut/vérification respectée');
+    logger.success("VALIDATION", "✅ Cohérence statut/vérification respectée");
   }
 
   // Vérifier les véhicules
   const deliverersWithoutVehicle = deliverers.filter(
-    deliverer => !deliverer.deliverer?.vehicleType || !deliverer.deliverer?.licensePlate
+    (deliverer) =>
+      !deliverer.deliverer?.vehicleType || !deliverer.deliverer?.licensePlate,
   );
 
   if (deliverersWithoutVehicle.length > 0) {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${deliverersWithoutVehicle.length} livreurs sans véhicule complet`
+      "VALIDATION",
+      `⚠️ ${deliverersWithoutVehicle.length} livreurs sans véhicule complet`,
     );
   } else {
-    logger.success('VALIDATION', '✅ Tous les livreurs ont un véhicule associé');
+    logger.success(
+      "VALIDATION",
+      "✅ Tous les livreurs ont un véhicule associé",
+    );
   }
 
   // Vérifier les zones de service pour les livreurs actifs
-  const activeDeliverers = deliverers.filter(d => d.status === UserStatus.ACTIVE);
-  const activeWithoutZones = activeDeliverers.filter(deliverer => {
+  const activeDeliverers = deliverers.filter(
+    (d) => d.status === UserStatus.ACTIVE,
+  );
+  const activeWithoutZones = activeDeliverers.filter((deliverer) => {
     try {
       const zones = deliverer.deliverer?.serviceZones as string[];
       return !zones || zones.length === 0;
@@ -633,11 +724,14 @@ export async function validateDelivererUsers(
 
   if (activeWithoutZones.length > 0) {
     logger.warning(
-      'VALIDATION',
-      `⚠️ ${activeWithoutZones.length} livreurs actifs sans zones de service`
+      "VALIDATION",
+      `⚠️ ${activeWithoutZones.length} livreurs actifs sans zones de service`,
     );
   } else {
-    logger.success('VALIDATION', '✅ Tous les livreurs actifs ont des zones de service');
+    logger.success(
+      "VALIDATION",
+      "✅ Tous les livreurs actifs ont des zones de service",
+    );
   }
 
   return isValid;

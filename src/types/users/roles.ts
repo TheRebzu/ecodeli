@@ -1,13 +1,18 @@
 // Types pour les rôles utilisateur
-export type UserRole = 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER' | 'ADMIN';
+export type UserRole =
+  | "CLIENT"
+  | "DELIVERER"
+  | "MERCHANT"
+  | "PROVIDER"
+  | "ADMIN";
 
-export type UserStatus = 
-  | 'ACTIVE'
-  | 'INACTIVE'
-  | 'SUSPENDED'
-  | 'BANNED'
-  | 'PENDING_VERIFICATION'
-  | 'VERIFICATION_REJECTED';
+export type UserStatus =
+  | "ACTIVE"
+  | "INACTIVE"
+  | "SUSPENDED"
+  | "BANNED"
+  | "PENDING_VERIFICATION"
+  | "VERIFICATION_REJECTED";
 
 export interface RolePermissions {
   role: UserRole;
@@ -22,7 +27,7 @@ export interface Permission {
 }
 
 export interface Restriction {
-  type: 'TIME' | 'LOCATION' | 'AMOUNT' | 'FREQUENCY';
+  type: "TIME" | "LOCATION" | "AMOUNT" | "FREQUENCY";
   rule: string;
   value: any;
 }

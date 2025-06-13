@@ -1,6 +1,6 @@
-import { TRPCError } from '@trpc/server';
-import { z } from 'zod';
-import { db } from '@/server/db';
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { db } from "@/server/db";
 import {
   deliveryStatusEnumSchema,
   updateLocationSchema,
@@ -8,10 +8,10 @@ import {
   createCheckpointSchema,
   updateETASchema,
   deliveryCoordinatesUpdateSchema,
-} from '@/schemas/delivery/delivery-tracking.schema';
-import { DeliveryStatus, UserRole } from '@prisma/client';
-import { Prisma } from '@prisma/client';
-import type { Coordinates, GeoPoint } from '@/socket/delivery-tracking';
+} from "@/schemas/delivery/delivery-tracking.schema";
+import { DeliveryStatus, UserRole } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import type { Coordinates, GeoPoint } from "@/socket/delivery-tracking";
 import {
   DeliveryConfirmationData,
   DeliveryIssueData,
@@ -20,7 +20,7 @@ import {
   DeliveryStatusHistoryData,
   DeliveryCheckpointData,
   TrackingQueryFilters,
-} from '@/components/deliverer/deliveries/delivery-tracking';
+} from "@/components/deliverer/deliveries/delivery-tracking";
 
 // Fonctions utilitaires pour les calculs géographiques
 const calculateDistance = (start: Coordinates, end: Coordinates): number => {
@@ -56,7 +56,7 @@ const geoPointToCoordinates = (geoPoint: GeoPoint): Coordinates => {
 
 const coordinatesToGeoPoint = (coordinates: Coordinates): GeoPoint => {
   return {
-    type: 'Point',
+    type: "Point",
     coordinates: [coordinates.longitude, coordinates.latitude],
   };
 };
@@ -64,7 +64,7 @@ const coordinatesToGeoPoint = (coordinates: Coordinates): GeoPoint => {
 const isPointInRadius = (
   center: Coordinates,
   point: Coordinates,
-  radiusInMeters: number
+  radiusInMeters: number,
 ): boolean => {
   const distance = calculateDistance(center, point);
   return distance <= radiusInMeters;
@@ -73,7 +73,10 @@ const isPointInRadius = (
 // Fonction pour simuler l'émission de mises à jour WebSocket
 const emitDeliveryUpdate = (deliveryId: string, update: any) => {
   // Dans un environnement de production, ceci serait implémenté avec Socket.IO, WS, ou Pusher
-  console.log(`[WebSocket] Émission de mise à jour pour la livraison ${deliveryId}:`, update);
+  console.log(
+    `[WebSocket] Émission de mise à jour pour la livraison ${deliveryId}:`,
+    update,
+  );
   return true;
 };
 
@@ -94,7 +97,9 @@ const sendNotification = async ({
   data?: Record<string, any>;
 }) => {
   // Dans un environnement de production, ceci serait implémenté avec un service de notification
-  console.log(`[Notification] Envoi à l'utilisateur ${userId}: ${title} - ${message}`);
+  console.log(
+    `[Notification] Envoi à l'utilisateur ${userId}: ${title} - ${message}`,
+  );
   return true;
 };
 
@@ -142,15 +147,15 @@ export const deliveryTrackingService = {
 
     if (!delivery) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à mettre à jour cette livraison",
       });
     }
 
     if (!delivery.trackingEnabled) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Le suivi est désactivé pour cette livraison',
+        code: "BAD_REQUEST",
+        message: "Le suivi est désactivé pour cette livraison",
       });
     }
 
@@ -198,11 +203,15 @@ export const deliveryTrackingService = {
     });
 
     // Vérifier si nous devons mettre à jour le statut (ex: arrivée à proximité)
-    await this.checkAndUpdateStatusBasedOnLocation(userId, deliveryId, location);
+    await this.checkAndUpdateStatusBasedOnLocation(
+      userId,
+      deliveryId,
+      location,
+    );
 
     // Émettre une mise à jour en temps réel
     this.notifyDeliveryUpdate(deliveryId, {
-      type: 'LOCATION_UPDATE',
+      type: "LOCATION_UPDATE",
       location,
       accuracy,
       heading,
@@ -219,7 +228,7 @@ export const deliveryTrackingService = {
   async checkAndUpdateStatusBasedOnLocation(
     userId: string,
     deliveryId: string,
-    location: GeoPoint
+    location: GeoPoint,
   ) {
     const delivery = await db.delivery.findUnique({
       where: { id: deliveryId },
@@ -228,18 +237,23 @@ export const deliveryTrackingService = {
     if (!delivery) return null;
 
     // Si le livreur est à moins de 300m de la destination et statut IN_TRANSIT
-    if (delivery.currentStatus === 'IN_TRANSIT') {
+    if (delivery.currentStatus === "IN_TRANSIT") {
       // Convertir l'adresse de livraison en coordonnées (simulation)
       // Dans un cas réel, utiliser un service de géocodage
       const destinationCoords: Coordinates = {
-        latitude: delivery.deliveryAddress ? parseFloat(delivery.deliveryAddress.split(',')[0]) : 0,
+        latitude: delivery.deliveryAddress
+          ? parseFloat(delivery.deliveryAddress.split(",")[0])
+          : 0,
         longitude: delivery.deliveryAddress
-          ? parseFloat(delivery.deliveryAddress.split(',')[1])
+          ? parseFloat(delivery.deliveryAddress.split(",")[1])
           : 0,
       };
 
       // Si on ne peut pas extraire les coordonnées, on ne fait rien
-      if (destinationCoords.latitude === 0 && destinationCoords.longitude === 0) {
+      if (
+        destinationCoords.latitude === 0 &&
+        destinationCoords.longitude === 0
+      ) {
         return null;
       }
 
@@ -250,22 +264,27 @@ export const deliveryTrackingService = {
         return this.updateDeliveryStatus({
           userId,
           deliveryId,
-          status: 'NEARBY' as DeliveryStatus,
+          status: "NEARBY" as DeliveryStatus,
           location,
-          notes: 'À proximité de la destination',
+          notes: "À proximité de la destination",
         });
       }
     }
     // Si le livreur est à moins de 50m de la destination et statut NEARBY
-    else if (delivery.currentStatus === 'NEARBY') {
+    else if (delivery.currentStatus === "NEARBY") {
       const destinationCoords: Coordinates = {
-        latitude: delivery.deliveryAddress ? parseFloat(delivery.deliveryAddress.split(',')[0]) : 0,
+        latitude: delivery.deliveryAddress
+          ? parseFloat(delivery.deliveryAddress.split(",")[0])
+          : 0,
         longitude: delivery.deliveryAddress
-          ? parseFloat(delivery.deliveryAddress.split(',')[1])
+          ? parseFloat(delivery.deliveryAddress.split(",")[1])
           : 0,
       };
 
-      if (destinationCoords.latitude === 0 && destinationCoords.longitude === 0) {
+      if (
+        destinationCoords.latitude === 0 &&
+        destinationCoords.longitude === 0
+      ) {
         return null;
       }
 
@@ -276,9 +295,9 @@ export const deliveryTrackingService = {
         return this.updateDeliveryStatus({
           userId,
           deliveryId,
-          status: 'ARRIVED' as DeliveryStatus,
+          status: "ARRIVED" as DeliveryStatus,
           location,
-          notes: 'Arrivé à la destination',
+          notes: "Arrivé à la destination",
         });
       }
     }
@@ -328,8 +347,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Livraison non trouvée',
+          code: "NOT_FOUND",
+          message: "Livraison non trouvée",
         });
       }
 
@@ -345,8 +364,9 @@ export const deliveryTrackingService = {
 
       if (!isDeliverer && !isAdmin && !isClient) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'êtes pas autorisé à mettre à jour le statut de cette livraison",
+          code: "FORBIDDEN",
+          message:
+            "Vous n'êtes pas autorisé à mettre à jour le statut de cette livraison",
         });
       }
 
@@ -358,7 +378,7 @@ export const deliveryTrackingService = {
 
       if (!this.isValidStatusTransition(currentStatus, status)) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
+          code: "BAD_REQUEST",
           message: `Transition de statut invalide: ${currentStatus} -> ${status}`,
         });
       }
@@ -371,7 +391,7 @@ export const deliveryTrackingService = {
           data: {
             currentStatus: status,
             // Si le statut est ARRIVED, mettre à jour l'heure d'arrivée
-            ...(status === 'ARRIVED' ? { actualArrival: new Date() } : {}),
+            ...(status === "ARRIVED" ? { actualArrival: new Date() } : {}),
           },
         }),
 
@@ -392,19 +412,19 @@ export const deliveryTrackingService = {
       ]);
 
       // Si le statut a changé pour DELIVERED, ajouter un checkpoint
-      if (status === 'DELIVERED' && location) {
+      if (status === "DELIVERED" && location) {
         await this.createDeliveryCheckpoint({
           deliveryId,
           userId,
-          type: 'DELIVERY',
+          type: "DELIVERY",
           location,
           address: delivery.deliveryAddress,
-          notes: notes || 'Livraison effectuée',
+          notes: notes || "Livraison effectuée",
         });
       }
 
       // Mise à jour du temps d'arrivée estimé si nécessaire
-      if (status === 'IN_TRANSIT' || status === 'NEARBY') {
+      if (status === "IN_TRANSIT" || status === "NEARBY") {
         await this.recalculateETA(deliveryId);
       }
 
@@ -425,7 +445,7 @@ export const deliveryTrackingService = {
 
       // Émettre une mise à jour en temps réel
       this.notifyDeliveryUpdate(deliveryId, {
-        type: 'STATUS_UPDATE',
+        type: "STATUS_UPDATE",
         status,
         previousStatus,
         location,
@@ -440,8 +460,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour du statut',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du statut",
         cause: error,
       });
     }
@@ -450,21 +470,24 @@ export const deliveryTrackingService = {
   /**
    * Vérifie si une transition de statut est valide
    */
-  isValidStatusTransition(currentStatus: DeliveryStatus, newStatus: DeliveryStatus): boolean {
+  isValidStatusTransition(
+    currentStatus: DeliveryStatus,
+    newStatus: DeliveryStatus,
+  ): boolean {
     // Définition des transitions valides
     const allowedTransitions: Record<DeliveryStatus, DeliveryStatus[]> = {
-      CREATED: ['ASSIGNED', 'CANCELLED'],
-      ASSIGNED: ['PENDING_PICKUP', 'CANCELLED'],
-      PENDING_PICKUP: ['PICKED_UP', 'CANCELLED'],
-      PICKED_UP: ['IN_TRANSIT', 'CANCELLED'],
-      IN_TRANSIT: ['NEARBY', 'CANCELLED'],
-      NEARBY: ['ARRIVED', 'IN_TRANSIT', 'CANCELLED'],
-      ARRIVED: ['ATTEMPT_DELIVERY', 'CANCELLED'],
-      ATTEMPT_DELIVERY: ['DELIVERED', 'NOT_DELIVERED', 'CANCELLED'],
+      CREATED: ["ASSIGNED", "CANCELLED"],
+      ASSIGNED: ["PENDING_PICKUP", "CANCELLED"],
+      PENDING_PICKUP: ["PICKED_UP", "CANCELLED"],
+      PICKED_UP: ["IN_TRANSIT", "CANCELLED"],
+      IN_TRANSIT: ["NEARBY", "CANCELLED"],
+      NEARBY: ["ARRIVED", "IN_TRANSIT", "CANCELLED"],
+      ARRIVED: ["ATTEMPT_DELIVERY", "CANCELLED"],
+      ATTEMPT_DELIVERY: ["DELIVERED", "NOT_DELIVERED", "CANCELLED"],
       DELIVERED: [],
-      NOT_DELIVERED: ['RESCHEDULED', 'RETURNED', 'CANCELLED'],
-      RESCHEDULED: ['PENDING_PICKUP', 'CANCELLED'],
-      RETURNED: ['CANCELLED'],
+      NOT_DELIVERED: ["RESCHEDULED", "RETURNED", "CANCELLED"],
+      RESCHEDULED: ["PENDING_PICKUP", "CANCELLED"],
+      RETURNED: ["CANCELLED"],
       CANCELLED: [],
     } as Record<DeliveryStatus, DeliveryStatus[]>;
 
@@ -500,8 +523,8 @@ export const deliveryTrackingService = {
 
     if (!delivery) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Livraison non trouvée',
+        code: "NOT_FOUND",
+        message: "Livraison non trouvée",
       });
     }
 
@@ -510,12 +533,13 @@ export const deliveryTrackingService = {
       include: { admin: true },
     });
 
-    const isInvolved = userId === delivery.clientId || userId === delivery.delivererId;
+    const isInvolved =
+      userId === delivery.clientId || userId === delivery.delivererId;
     const isAdmin = user?.admin !== null;
 
     if (!isInvolved && !isAdmin) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à consulter cet historique",
       });
     }
@@ -533,9 +557,11 @@ export const deliveryTrackingService = {
         ? db.deliveryTrackingPosition.findMany({
             where: {
               deliveryId,
-              ...(Object.keys(dateFilter).length > 0 ? { timestamp: dateFilter } : {}),
+              ...(Object.keys(dateFilter).length > 0
+                ? { timestamp: dateFilter }
+                : {}),
             },
-            orderBy: { timestamp: 'asc' },
+            orderBy: { timestamp: "asc" },
             take: limit,
           })
         : Promise.resolve([]),
@@ -545,9 +571,11 @@ export const deliveryTrackingService = {
         ? db.deliveryStatusHistory.findMany({
             where: {
               deliveryId,
-              ...(Object.keys(dateFilter).length > 0 ? { timestamp: dateFilter } : {}),
+              ...(Object.keys(dateFilter).length > 0
+                ? { timestamp: dateFilter }
+                : {}),
             },
-            orderBy: { timestamp: 'asc' },
+            orderBy: { timestamp: "asc" },
             include: {
               updatedBy: {
                 select: {
@@ -565,9 +593,11 @@ export const deliveryTrackingService = {
         ? db.deliveryCheckpoint.findMany({
             where: {
               deliveryId,
-              ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}),
+              ...(Object.keys(dateFilter).length > 0
+                ? { createdAt: dateFilter }
+                : {}),
             },
-            orderBy: { createdAt: 'asc' },
+            orderBy: { createdAt: "asc" },
             include: {
               completedByUser: {
                 select: {
@@ -615,7 +645,7 @@ export const deliveryTrackingService = {
           gte: new Date(Date.now() - 30 * 60 * 1000), // Dernières 30 minutes
         },
       },
-      orderBy: { timestamp: 'asc' },
+      orderBy: { timestamp: "asc" },
     });
 
     // Calculer la vitesse moyenne si assez de points
@@ -623,30 +653,39 @@ export const deliveryTrackingService = {
 
     if (recentPositions.length >= 2) {
       const speeds = recentPositions
-        .filter((pos: any) => pos.speed !== null && pos.speed !== undefined && pos.speed > 0)
+        .filter(
+          (pos: any) =>
+            pos.speed !== null && pos.speed !== undefined && pos.speed > 0,
+        )
         .map((pos: any) => pos.speed as number);
 
       if (speeds.length > 0) {
         averageSpeed =
-          speeds.reduce((sum: number, speed: number) => sum + speed, 0) / speeds.length;
+          speeds.reduce((sum: number, speed: number) => sum + speed, 0) /
+          speeds.length;
       }
     }
 
     // Extraire la destination des coordonnées (simulation)
     const destinationCoords: Coordinates = {
-      latitude: delivery.deliveryAddress ? parseFloat(delivery.deliveryAddress.split(',')[0]) : 0,
-      longitude: delivery.deliveryAddress ? parseFloat(delivery.deliveryAddress.split(',')[1]) : 0,
+      latitude: delivery.deliveryAddress
+        ? parseFloat(delivery.deliveryAddress.split(",")[0])
+        : 0,
+      longitude: delivery.deliveryAddress
+        ? parseFloat(delivery.deliveryAddress.split(",")[1])
+        : 0,
     };
 
     // Si on ne peut pas extraire, utiliser l'estimation par défaut
     if (destinationCoords.latitude === 0 && destinationCoords.longitude === 0) {
       // Utiliser la date de livraison prévue comme fallback
-      const estimatedTime = delivery.deliveryDate || new Date(Date.now() + 30 * 60 * 1000);
+      const estimatedTime =
+        delivery.deliveryDate || new Date(Date.now() + 30 * 60 * 1000);
 
       return this.updateETA({
         deliveryId,
         estimatedTime,
-        calculationType: 'HISTORICAL',
+        calculationType: "HISTORICAL",
         confidence: 0.5,
       });
     }
@@ -657,13 +696,16 @@ export const deliveryTrackingService = {
       longitude: delivery.currentLng,
     };
 
-    const distanceInMeters = calculateDistance(currentCoords, destinationCoords);
+    const distanceInMeters = calculateDistance(
+      currentCoords,
+      destinationCoords,
+    );
     const etaMinutes = calculateETA(distanceInMeters, averageSpeed);
 
     // Déterminer la condition de trafic
-    let trafficCondition = 'MODERATE';
-    if (averageSpeed > 40) trafficCondition = 'LIGHT';
-    if (averageSpeed < 20) trafficCondition = 'HEAVY';
+    let trafficCondition = "MODERATE";
+    if (averageSpeed > 40) trafficCondition = "LIGHT";
+    if (averageSpeed < 20) trafficCondition = "HEAVY";
 
     // Calculer l'heure d'arrivée estimée
     const now = new Date();
@@ -677,7 +719,7 @@ export const deliveryTrackingService = {
       distanceRemaining: distanceInMeters / 1000, // Convertir en km
       trafficCondition: trafficCondition,
       confidence: 0.8,
-      calculationType: 'REAL_TIME',
+      calculationType: "REAL_TIME",
     });
   },
 
@@ -691,7 +733,7 @@ export const deliveryTrackingService = {
     distanceRemaining,
     trafficCondition,
     confidence,
-    calculationType = 'REAL_TIME',
+    calculationType = "REAL_TIME",
     metadata,
   }: {
     deliveryId: string;
@@ -722,8 +764,8 @@ export const deliveryTrackingService = {
 
     if (!delivery) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Livraison non trouvée',
+        code: "NOT_FOUND",
+        message: "Livraison non trouvée",
       });
     }
 
@@ -763,11 +805,13 @@ export const deliveryTrackingService = {
 
     // Notifier de la mise à jour de l'ETA
     this.notifyDeliveryUpdate(deliveryId, {
-      type: 'ETA_UPDATE',
+      type: "ETA_UPDATE",
       estimatedTime,
       distanceRemaining,
       delay: previousEstimate
-        ? Math.round((estimatedTime.getTime() - previousEstimate.getTime()) / 60000) // en minutes
+        ? Math.round(
+            (estimatedTime.getTime() - previousEstimate.getTime()) / 60000,
+          ) // en minutes
         : undefined,
     });
 
@@ -830,8 +874,8 @@ export const deliveryTrackingService = {
 
     if (!delivery) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Livraison non trouvée',
+        code: "NOT_FOUND",
+        message: "Livraison non trouvée",
       });
     }
 
@@ -847,8 +891,9 @@ export const deliveryTrackingService = {
 
     if (!isDeliverer && !isClient && !isAdmin) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: "Vous n'êtes pas autorisé à créer un point de passage pour cette livraison",
+        code: "FORBIDDEN",
+        message:
+          "Vous n'êtes pas autorisé à créer un point de passage pour cette livraison",
       });
     }
 
@@ -872,19 +917,19 @@ export const deliveryTrackingService = {
     });
 
     // Si c'est un point de passage de livraison, mettre à jour le statut si nécessaire
-    if (type === 'DELIVERY' && delivery.currentStatus !== 'DELIVERED') {
+    if (type === "DELIVERY" && delivery.currentStatus !== "DELIVERED") {
       await this.updateDeliveryStatus({
         userId,
         deliveryId,
-        status: 'DELIVERED' as DeliveryStatus,
+        status: "DELIVERED" as DeliveryStatus,
         location,
-        notes: notes || 'Livraison confirmée',
+        notes: notes || "Livraison confirmée",
       });
     }
 
     // Notifier du nouveau point de passage
     this.notifyDeliveryUpdate(deliveryId, {
-      type: 'CHECKPOINT_REACHED',
+      type: "CHECKPOINT_REACHED",
       checkpointId: checkpoint.id,
       checkpointType: type,
       timestamp: new Date(),
@@ -912,7 +957,7 @@ export const deliveryTrackingService = {
       // Sinon, filtrer par livreur ou client
       ...(isAdmin
         ? {}
-        : role === 'DELIVERER'
+        : role === "DELIVERER"
           ? { delivererId: userId }
           : { delivery: { clientId: userId } }),
     };
@@ -990,7 +1035,7 @@ export const deliveryTrackingService = {
       speed?: number;
       altitude?: number;
     },
-    userId: string
+    userId: string,
   ) {
     try {
       // Vérifier que le suivi de livraison existe
@@ -1000,8 +1045,8 @@ export const deliveryTrackingService = {
 
       if (!tracking) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Suivi de livraison introuvable',
+          code: "NOT_FOUND",
+          message: "Suivi de livraison introuvable",
         });
       }
 
@@ -1013,7 +1058,7 @@ export const deliveryTrackingService = {
 
         if (!user || user.role !== UserRole.ADMIN) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
+            code: "FORBIDDEN",
             message: "Vous n'êtes pas autorisé à mettre à jour cette position",
           });
         }
@@ -1024,7 +1069,7 @@ export const deliveryTrackingService = {
         data: {
           deliveryId: data.deliveryId,
           location: {
-            type: 'Point',
+            type: "Point",
             coordinates: [data.longitude, data.latitude],
           },
           accuracy: data.accuracy,
@@ -1057,8 +1102,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour des coordonnées',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour des coordonnées",
         cause: error,
       });
     }
@@ -1076,7 +1121,11 @@ export const deliveryTrackingService = {
   /**
    * Notifie le client d'un changement de statut
    */
-  async notifyClient(deliveryId: string, status: DeliveryStatus, notes?: string) {
+  async notifyClient(
+    deliveryId: string,
+    status: DeliveryStatus,
+    notes?: string,
+  ) {
     const delivery = await db.delivery.findUnique({
       where: { id: deliveryId },
       include: {
@@ -1098,41 +1147,42 @@ export const deliveryTrackingService = {
     if (!delivery || !delivery.client) return false;
 
     // Préparer le titre et message en fonction du statut
-    let title = 'Mise à jour de votre livraison';
-    let message = notes || 'Votre livraison a été mise à jour';
+    let title = "Mise à jour de votre livraison";
+    let message = notes || "Votre livraison a été mise à jour";
 
     switch (status) {
-      case 'ASSIGNED':
-        title = 'Livreur assigné';
-        message = 'Un livreur a été assigné à votre commande';
+      case "ASSIGNED":
+        title = "Livreur assigné";
+        message = "Un livreur a été assigné à votre commande";
         break;
-      case 'PICKED_UP':
-        title = 'Colis récupéré';
-        message = 'Votre colis a été récupéré et est en préparation pour livraison';
+      case "PICKED_UP":
+        title = "Colis récupéré";
+        message =
+          "Votre colis a été récupéré et est en préparation pour livraison";
         break;
-      case 'IN_TRANSIT':
-        title = 'Livraison en cours';
-        message = 'Votre colis est en route vers votre adresse';
+      case "IN_TRANSIT":
+        title = "Livraison en cours";
+        message = "Votre colis est en route vers votre adresse";
         break;
-      case 'NEARBY':
-        title = 'Livreur à proximité';
-        message = 'Votre livreur est à proximité de votre adresse';
+      case "NEARBY":
+        title = "Livreur à proximité";
+        message = "Votre livreur est à proximité de votre adresse";
         break;
-      case 'ARRIVED':
-        title = 'Livreur arrivé';
+      case "ARRIVED":
+        title = "Livreur arrivé";
         message = "Votre livreur est arrivé à l'adresse de livraison";
         break;
-      case 'DELIVERED':
-        title = 'Livraison effectuée';
-        message = 'Votre colis a été livré avec succès';
+      case "DELIVERED":
+        title = "Livraison effectuée";
+        message = "Votre colis a été livré avec succès";
         break;
-      case 'NOT_DELIVERED':
-        title = 'Livraison impossible';
+      case "NOT_DELIVERED":
+        title = "Livraison impossible";
         message = notes || "La livraison n'a pas pu être effectuée";
         break;
-      case 'CANCELLED':
-        title = 'Livraison annulée';
-        message = notes || 'La livraison a été annulée';
+      case "CANCELLED":
+        title = "Livraison annulée";
+        message = notes || "La livraison a été annulée";
         break;
     }
 
@@ -1141,7 +1191,7 @@ export const deliveryTrackingService = {
       userId: delivery.client.user.id,
       title,
       message,
-      type: 'DELIVERY_UPDATE',
+      type: "DELIVERY_UPDATE",
       link: `/client/deliveries/${deliveryId}`,
       data: {
         deliveryId,
@@ -1159,7 +1209,7 @@ export const deliveryTrackingService = {
       delivererId: string;
       isActive?: boolean;
     },
-    userId: string
+    userId: string,
   ) {
     try {
       // Vérifier que la livraison existe
@@ -1169,8 +1219,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Livraison introuvable',
+          code: "NOT_FOUND",
+          message: "Livraison introuvable",
         });
       }
 
@@ -1179,9 +1229,12 @@ export const deliveryTrackingService = {
         where: { id: userId },
       });
 
-      if (!user || (user.role !== UserRole.ADMIN && user.role !== UserRole.DELIVERER)) {
+      if (
+        !user ||
+        (user.role !== UserRole.ADMIN && user.role !== UserRole.DELIVERER)
+      ) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à suivre cette livraison",
         });
       }
@@ -1215,8 +1268,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la création du suivi de livraison',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la création du suivi de livraison",
         cause: error,
       });
     }
@@ -1234,8 +1287,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Livraison introuvable',
+          code: "NOT_FOUND",
+          message: "Livraison introuvable",
         });
       }
 
@@ -1246,8 +1299,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Utilisateur non authentifié',
+          code: "UNAUTHORIZED",
+          message: "Utilisateur non authentifié",
         });
       }
 
@@ -1257,7 +1310,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à confirmer cette livraison",
         });
       }
@@ -1277,8 +1330,8 @@ export const deliveryTrackingService = {
 
         if (!validCode) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Code de confirmation invalide ou expiré',
+            code: "BAD_REQUEST",
+            message: "Code de confirmation invalide ou expiré",
           });
         }
 
@@ -1324,8 +1377,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la confirmation de livraison',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la confirmation de livraison",
         cause: error,
       });
     }
@@ -1340,7 +1393,7 @@ export const deliveryTrackingService = {
       rating: number;
       comment?: string;
     },
-    userId: string
+    userId: string,
   ) {
     const delivery = await db.delivery.findUnique({
       where: { id: data.deliveryId },
@@ -1348,15 +1401,15 @@ export const deliveryTrackingService = {
 
     if (!delivery) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Livraison non trouvée',
+        code: "NOT_FOUND",
+        message: "Livraison non trouvée",
       });
     }
 
     // Vérifier que l'utilisateur est le client de cette livraison
     if (delivery.clientId !== userId) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à évaluer cette livraison",
       });
     }
@@ -1364,8 +1417,8 @@ export const deliveryTrackingService = {
     // Vérifier que la livraison est terminée
     if (delivery.currentStatus !== DeliveryStatus.COMPLETED) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Seules les livraisons terminées peuvent être évaluées',
+        code: "BAD_REQUEST",
+        message: "Seules les livraisons terminées peuvent être évaluées",
       });
     }
 
@@ -1446,7 +1499,7 @@ export const deliveryTrackingService = {
           package: true,
           statusHistory: {
             orderBy: {
-              timestamp: 'desc',
+              timestamp: "desc",
             },
             take: 5,
           },
@@ -1455,8 +1508,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Livraison introuvable',
+          code: "NOT_FOUND",
+          message: "Livraison introuvable",
         });
       }
 
@@ -1467,8 +1520,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Utilisateur non authentifié',
+          code: "UNAUTHORIZED",
+          message: "Utilisateur non authentifié",
         });
       }
 
@@ -1478,7 +1531,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à consulter cette livraison",
         });
       }
@@ -1486,13 +1539,13 @@ export const deliveryTrackingService = {
       // Récupérer la dernière position
       const lastPosition = await db.deliveryPosition.findFirst({
         where: { deliveryId },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
 
       // Récupérer l'ETA
       const eta = await db.deliveryETA.findFirst({
         where: { deliveryId },
-        orderBy: { calculatedAt: 'desc' },
+        orderBy: { calculatedAt: "desc" },
       });
 
       // Récupérer les problèmes actifs
@@ -1500,10 +1553,10 @@ export const deliveryTrackingService = {
         where: {
           deliveryId,
           status: {
-            in: ['OPEN', 'IN_PROGRESS'],
+            in: ["OPEN", "IN_PROGRESS"],
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
 
       // Préparer les informations simplifiées du livreur
@@ -1526,8 +1579,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des détails de livraison',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des détails de livraison",
         cause: error,
       });
     }
@@ -1545,8 +1598,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Livraison introuvable',
+          code: "NOT_FOUND",
+          message: "Livraison introuvable",
         });
       }
 
@@ -1560,7 +1613,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à consulter cette livraison",
         });
       }
@@ -1568,7 +1621,7 @@ export const deliveryTrackingService = {
       // Récupérer les positions
       const positions = await db.deliveryPosition.findMany({
         where: { deliveryId },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: "asc" },
       });
 
       return {
@@ -1579,8 +1632,9 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: "Erreur lors de la récupération de l'historique des coordonnées",
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          "Erreur lors de la récupération de l'historique des coordonnées",
         cause: error,
       });
     }
@@ -1597,7 +1651,7 @@ export const deliveryTrackingService = {
     let minLng = Infinity;
     let maxLng = -Infinity;
 
-    positions.forEach(pos => {
+    positions.forEach((pos) => {
       const lng = pos.location.coordinates[0];
       const lat = pos.location.coordinates[1];
 
@@ -1626,7 +1680,7 @@ export const deliveryTrackingService = {
       speed?: number;
       altitude?: number;
     },
-    userId: string
+    userId: string,
   ) {
     return this.updateDeliveryCoordinates(data, userId);
   },
@@ -1643,8 +1697,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Utilisateur non trouvé',
+          code: "UNAUTHORIZED",
+          message: "Utilisateur non trouvé",
         });
       }
 
@@ -1694,11 +1748,13 @@ export const deliveryTrackingService = {
       }
 
       // Recherche textuelle si présente
-      if (filters.search && filters.search.trim() !== '') {
+      if (filters.search && filters.search.trim() !== "") {
         where.OR = [
-          { id: { contains: filters.search, mode: 'insensitive' } },
-          { pickupAddress: { contains: filters.search, mode: 'insensitive' } },
-          { deliveryAddress: { contains: filters.search, mode: 'insensitive' } },
+          { id: { contains: filters.search, mode: "insensitive" } },
+          { pickupAddress: { contains: filters.search, mode: "insensitive" } },
+          {
+            deliveryAddress: { contains: filters.search, mode: "insensitive" },
+          },
         ];
       }
 
@@ -1711,7 +1767,7 @@ export const deliveryTrackingService = {
         orderBy[filters.sortBy] = filters.sortOrder;
       } else {
         // Tri par défaut
-        orderBy.createdAt = 'desc';
+        orderBy.createdAt = "desc";
       }
 
       // Exécuter la requête principale avec pagination
@@ -1731,7 +1787,9 @@ export const deliveryTrackingService = {
             ? {
                 select: {
                   id: true,
-                  user: { select: { name: true, image: true, phoneNumber: true } },
+                  user: {
+                    select: { name: true, image: true, phoneNumber: true },
+                  },
                   isActive: true,
                   currentLocation: true,
                 },
@@ -1761,8 +1819,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des livraisons',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des livraisons",
         cause: error,
       });
     }
@@ -1780,8 +1838,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Utilisateur non trouvé',
+          code: "UNAUTHORIZED",
+          message: "Utilisateur non trouvé",
         });
       }
 
@@ -1812,7 +1870,7 @@ export const deliveryTrackingService = {
       // Récupérer les livraisons actives
       const deliveries = await db.delivery.findMany({
         where,
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { updatedAt: "desc" },
         include: {
           client: {
             select: {
@@ -1834,8 +1892,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des livraisons actives',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des livraisons actives",
         cause: error,
       });
     }
@@ -1852,8 +1910,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Livraison introuvable',
+          code: "NOT_FOUND",
+          message: "Livraison introuvable",
         });
       }
 
@@ -1865,14 +1923,17 @@ export const deliveryTrackingService = {
 
         if (!user || user.role !== UserRole.ADMIN) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: "Vous n'êtes pas autorisé à générer un code de confirmation",
+            code: "FORBIDDEN",
+            message:
+              "Vous n'êtes pas autorisé à générer un code de confirmation",
           });
         }
       }
 
       // Générer un code de confirmation aléatoire à 6 chiffres
-      const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const confirmationCode = Math.floor(
+        100000 + Math.random() * 900000,
+      ).toString();
 
       // Mettre à jour la livraison avec le nouveau code
       const updatedDelivery = await db.delivery.update({
@@ -1887,14 +1948,20 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la génération du code de confirmation',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la génération du code de confirmation",
         cause: error,
       });
     }
   },
 
-  async getActiveDeliveryLocation({ userId, deliveryId }: { userId: string; deliveryId: string }) {
+  async getActiveDeliveryLocation({
+    userId,
+    deliveryId,
+  }: {
+    userId: string;
+    deliveryId: string;
+  }) {
     try {
       // Vérifier que la livraison existe
       const delivery = await db.delivery.findUnique({
@@ -1903,8 +1970,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Livraison introuvable',
+          code: "NOT_FOUND",
+          message: "Livraison introuvable",
         });
       }
 
@@ -1915,8 +1982,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Utilisateur non authentifié',
+          code: "UNAUTHORIZED",
+          message: "Utilisateur non authentifié",
         });
       }
 
@@ -1926,7 +1993,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à consulter cette position",
         });
       }
@@ -1934,7 +2001,7 @@ export const deliveryTrackingService = {
       // Récupérer la dernière position
       const lastPosition = await db.deliveryTrackingPosition.findFirst({
         where: { deliveryId },
-        orderBy: { timestamp: 'desc' },
+        orderBy: { timestamp: "desc" },
       });
 
       if (!lastPosition) {
@@ -1952,14 +2019,20 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération de la position',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération de la position",
         cause: error,
       });
     }
   },
 
-  async getDeliveryStatusHistory({ userId, deliveryId }: { userId: string; deliveryId: string }) {
+  async getDeliveryStatusHistory({
+    userId,
+    deliveryId,
+  }: {
+    userId: string;
+    deliveryId: string;
+  }) {
     try {
       // Vérifier que la livraison existe
       const delivery = await db.delivery.findUnique({
@@ -1968,8 +2041,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Livraison introuvable',
+          code: "NOT_FOUND",
+          message: "Livraison introuvable",
         });
       }
 
@@ -1980,8 +2053,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Utilisateur non authentifié',
+          code: "UNAUTHORIZED",
+          message: "Utilisateur non authentifié",
         });
       }
 
@@ -1991,7 +2064,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à consulter cet historique",
         });
       }
@@ -2007,7 +2080,7 @@ export const deliveryTrackingService = {
             },
           },
         },
-        orderBy: { timestamp: 'desc' },
+        orderBy: { timestamp: "desc" },
       });
 
       return {
@@ -2017,7 +2090,7 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération de l'historique des statuts",
         cause: error,
       });

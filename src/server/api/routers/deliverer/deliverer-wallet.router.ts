@@ -1,7 +1,11 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { TransactionType, TransactionStatus, WithdrawalStatus } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import {
+  TransactionType,
+  TransactionStatus,
+  WithdrawalStatus,
+} from "@prisma/client";
 
 /**
  * Router pour le portefeuille EcoDeli des livreurs selon le cahier des charges
@@ -17,7 +21,7 @@ const withdrawalRequestSchema = z.object({
     accountHolderName: z.string().min(2).max(100),
   }),
   reason: z.string().max(200).optional(),
-  urgency: z.enum(['NORMAL', 'URGENT']).default('NORMAL'),
+  urgency: z.enum(["NORMAL", "URGENT"]).default("NORMAL"),
 });
 
 const transactionFiltersSchema = z.object({
@@ -38,10 +42,10 @@ export const delivererWalletRouter = router({
   getWalletInfo: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'DELIVERER') {
+    if (user.role !== "DELIVERER") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les livreurs peuvent accéder à leur portefeuille',
+        code: "FORBIDDEN",
+        message: "Seuls les livreurs peuvent accéder à leur portefeuille",
       });
     }
 
@@ -56,7 +60,7 @@ export const delivererWalletRouter = router({
           data: {
             userId: user.id,
             balance: 0,
-            currency: 'EUR',
+            currency: "EUR",
           },
         });
       }
@@ -69,8 +73,8 @@ export const delivererWalletRouter = router({
       const monthlyStats = await ctx.db.transaction.aggregate({
         where: {
           walletId: wallet.id,
-          type: { in: ['EARNING', 'DELIVERY_PAYOUT'] },
-          status: 'COMPLETED',
+          type: { in: ["EARNING", "DELIVERY_PAYOUT"] },
+          status: "COMPLETED",
           createdAt: { gte: currentMonth },
         },
         _sum: { amount: true },
@@ -81,8 +85,8 @@ export const delivererWalletRouter = router({
       const pendingEarnings = await ctx.db.transaction.aggregate({
         where: {
           walletId: wallet.id,
-          type: { in: ['EARNING', 'DELIVERY_PAYOUT'] },
-          status: 'PENDING',
+          type: { in: ["EARNING", "DELIVERY_PAYOUT"] },
+          status: "PENDING",
         },
         _sum: { amount: true },
       });
@@ -90,7 +94,7 @@ export const delivererWalletRouter = router({
       // Derniers virements
       const recentWithdrawals = await ctx.db.withdrawal.findMany({
         where: { walletId: wallet.id },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 5,
         select: {
           id: true,
@@ -106,8 +110,8 @@ export const delivererWalletRouter = router({
       const monthlyCommissions = await ctx.db.transaction.aggregate({
         where: {
           walletId: wallet.id,
-          type: 'PLATFORM_FEE',
-          status: 'COMPLETED',
+          type: "PLATFORM_FEE",
+          status: "COMPLETED",
           createdAt: { gte: currentMonth },
         },
         _sum: { amount: true },
@@ -123,7 +127,9 @@ export const delivererWalletRouter = router({
           monthlyStats: {
             earnings: monthlyStats._sum.amount?.toNumber() || 0,
             deliveries: monthlyStats._count || 0,
-            commissions: Math.abs(monthlyCommissions._sum.amount?.toNumber() || 0),
+            commissions: Math.abs(
+              monthlyCommissions._sum.amount?.toNumber() || 0,
+            ),
           },
           pendingEarnings: pendingEarnings._sum.amount?.toNumber() || 0,
           recentWithdrawals,
@@ -133,8 +139,8 @@ export const delivererWalletRouter = router({
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération du portefeuille',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération du portefeuille",
       });
     }
   }),
@@ -147,10 +153,10 @@ export const delivererWalletRouter = router({
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent voir leur historique',
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent voir leur historique",
         });
       }
 
@@ -163,7 +169,12 @@ export const delivererWalletRouter = router({
           return {
             success: true,
             data: [],
-            pagination: { total: 0, offset: 0, limit: input.limit, hasMore: false },
+            pagination: {
+              total: 0,
+              offset: 0,
+              limit: input.limit,
+              hasMore: false,
+            },
           };
         }
 
@@ -196,7 +207,7 @@ export const delivererWalletRouter = router({
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           skip: input.offset,
           take: input.limit,
         });
@@ -204,12 +215,14 @@ export const delivererWalletRouter = router({
         const totalCount = await ctx.db.transaction.count({ where });
 
         // Formater les transactions pour l'affichage
-        const formattedTransactions = transactions.map(t => ({
+        const formattedTransactions = transactions.map((t) => ({
           ...t,
           amount: t.amount.toNumber(),
           description: getTransactionDescription(t),
           displayColor: getTransactionColor(t.type),
-          isCredit: ['EARNING', 'DELIVERY_PAYOUT', 'BONUS', 'REFUND'].includes(t.type),
+          isCredit: ["EARNING", "DELIVERY_PAYOUT", "BONUS", "REFUND"].includes(
+            t.type,
+          ),
         }));
 
         return {
@@ -224,7 +237,7 @@ export const delivererWalletRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération de l'historique",
         });
       }
@@ -238,10 +251,10 @@ export const delivererWalletRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent demander un virement',
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent demander un virement",
         });
       }
 
@@ -252,16 +265,16 @@ export const delivererWalletRouter = router({
 
         if (!wallet) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Portefeuille non trouvé',
+            code: "NOT_FOUND",
+            message: "Portefeuille non trouvé",
           });
         }
 
         // Vérifier le solde disponible
         if (wallet.balance.toNumber() < input.amount) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Solde insuffisant',
+            code: "BAD_REQUEST",
+            message: "Solde insuffisant",
           });
         }
 
@@ -273,20 +286,20 @@ export const delivererWalletRouter = router({
           where: {
             walletId: wallet.id,
             createdAt: { gte: today },
-            status: { not: 'CANCELLED' },
+            status: { not: "CANCELLED" },
           },
         });
 
         if (todayWithdrawals >= 1) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Maximum 1 virement par jour autorisé',
+            code: "BAD_REQUEST",
+            message: "Maximum 1 virement par jour autorisé",
           });
         }
 
         // Calculer les frais de virement
         let withdrawalFee = 0;
-        if (input.urgency === 'URGENT') {
+        if (input.urgency === "URGENT") {
           withdrawalFee = Math.min(input.amount * 0.02, 5); // 2% max 5€
         } else {
           withdrawalFee = input.amount > 100 ? 0 : 1; // Gratuit au-dessus de 100€
@@ -301,11 +314,11 @@ export const delivererWalletRouter = router({
             amount: input.amount,
             fee: withdrawalFee,
             netAmount,
-            currency: 'EUR',
+            currency: "EUR",
             bankAccount: input.bankAccount,
             reason: input.reason,
             urgency: input.urgency,
-            status: 'PENDING',
+            status: "PENDING",
           },
         });
 
@@ -322,22 +335,22 @@ export const delivererWalletRouter = router({
         await ctx.db.transaction.create({
           data: {
             walletId: wallet.id,
-            type: 'WITHDRAWAL',
+            type: "WITHDRAWAL",
             amount: -input.amount,
-            description: `Virement ${input.urgency === 'URGENT' ? 'express' : 'standard'}`,
-            status: 'PENDING',
+            description: `Virement ${input.urgency === "URGENT" ? "express" : "standard"}`,
+            status: "PENDING",
             relatedWithdrawalId: withdrawal.id,
           },
         });
 
         // Notification admin pour virement urgent
-        if (input.urgency === 'URGENT') {
+        if (input.urgency === "URGENT") {
           await ctx.db.notification.create({
             data: {
               userId: user.id, // Admin sera notifié via système
-              title: 'Virement urgent demandé',
+              title: "Virement urgent demandé",
               content: `${user.name} demande un virement urgent de ${input.amount}€`,
-              type: 'URGENT_WITHDRAWAL',
+              type: "URGENT_WITHDRAWAL",
             },
           });
         }
@@ -350,17 +363,17 @@ export const delivererWalletRouter = router({
             fee: withdrawal.fee.toNumber(),
             netAmount: withdrawal.netAmount.toNumber(),
           },
-          message: `Demande de virement ${input.urgency === 'URGENT' ? 'express' : 'standard'} créée. ${
-            input.urgency === 'URGENT'
-              ? 'Traitement sous 24h.'
-              : 'Traitement sous 3-5 jours ouvrés.'
+          message: `Demande de virement ${input.urgency === "URGENT" ? "express" : "standard"} créée. ${
+            input.urgency === "URGENT"
+              ? "Traitement sous 24h."
+              : "Traitement sous 3-5 jours ouvrés."
           }`,
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la demande de virement',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la demande de virement",
         });
       }
     }),
@@ -373,10 +386,10 @@ export const delivererWalletRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent annuler leurs virements',
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent annuler leurs virements",
         });
       }
 
@@ -387,8 +400,8 @@ export const delivererWalletRouter = router({
 
         if (!wallet) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Portefeuille non trouvé',
+            code: "NOT_FOUND",
+            message: "Portefeuille non trouvé",
           });
         }
 
@@ -396,14 +409,14 @@ export const delivererWalletRouter = router({
           where: {
             id: input.withdrawalId,
             walletId: wallet.id,
-            status: 'PENDING',
+            status: "PENDING",
           },
         });
 
         if (!withdrawal) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Virement non trouvé ou déjà traité',
+            code: "NOT_FOUND",
+            message: "Virement non trouvé ou déjà traité",
           });
         }
 
@@ -411,7 +424,7 @@ export const delivererWalletRouter = router({
         await ctx.db.withdrawal.update({
           where: { id: input.withdrawalId },
           data: {
-            status: 'CANCELLED',
+            status: "CANCELLED",
             cancelledAt: new Date(),
           },
         });
@@ -428,17 +441,17 @@ export const delivererWalletRouter = router({
         // Annuler la transaction associée
         await ctx.db.transaction.updateMany({
           where: { relatedWithdrawalId: input.withdrawalId },
-          data: { status: 'CANCELLED' },
+          data: { status: "CANCELLED" },
         });
 
         return {
           success: true,
-          message: 'Virement annulé avec succès',
+          message: "Virement annulé avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'annulation",
         });
       }
@@ -453,15 +466,16 @@ export const delivererWalletRouter = router({
         status: z.array(z.nativeEnum(WithdrawalStatus)).optional(),
         limit: z.number().min(1).max(50).default(20),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent voir leur historique de virements',
+          code: "FORBIDDEN",
+          message:
+            "Seuls les livreurs peuvent voir leur historique de virements",
         });
       }
 
@@ -474,7 +488,12 @@ export const delivererWalletRouter = router({
           return {
             success: true,
             data: [],
-            pagination: { total: 0, offset: 0, limit: input.limit, hasMore: false },
+            pagination: {
+              total: 0,
+              offset: 0,
+              limit: input.limit,
+              hasMore: false,
+            },
           };
         }
 
@@ -485,14 +504,14 @@ export const delivererWalletRouter = router({
 
         const withdrawals = await ctx.db.withdrawal.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           skip: input.offset,
           take: input.limit,
         });
 
         const totalCount = await ctx.db.withdrawal.count({ where });
 
-        const formattedWithdrawals = withdrawals.map(w => ({
+        const formattedWithdrawals = withdrawals.map((w) => ({
           ...w,
           amount: w.amount.toNumber(),
           fee: w.fee.toNumber(),
@@ -513,8 +532,8 @@ export const delivererWalletRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des virements',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des virements",
         });
       }
     }),
@@ -525,18 +544,18 @@ export const delivererWalletRouter = router({
   getEarningsStats: protectedProcedure
     .input(
       z.object({
-        period: z.enum(['week', 'month', 'quarter', 'year']).default('month'),
+        period: z.enum(["week", "month", "quarter", "year"]).default("month"),
         year: z.number().min(2020).max(new Date().getFullYear()).optional(),
         month: z.number().min(1).max(12).optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'DELIVERER') {
+      if (user.role !== "DELIVERER") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les livreurs peuvent voir leurs statistiques',
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent voir leurs statistiques",
         });
       }
 
@@ -567,8 +586,8 @@ export const delivererWalletRouter = router({
         const currentEarnings = await ctx.db.transaction.aggregate({
           where: {
             walletId: wallet.id,
-            type: { in: ['EARNING', 'DELIVERY_PAYOUT'] },
-            status: 'COMPLETED',
+            type: { in: ["EARNING", "DELIVERY_PAYOUT"] },
+            status: "COMPLETED",
             createdAt: { gte: startDate, lte: endDate },
           },
           _sum: { amount: true },
@@ -579,8 +598,8 @@ export const delivererWalletRouter = router({
         const currentCommissions = await ctx.db.transaction.aggregate({
           where: {
             walletId: wallet.id,
-            type: 'PLATFORM_FEE',
-            status: 'COMPLETED',
+            type: "PLATFORM_FEE",
+            status: "COMPLETED",
             createdAt: { gte: startDate, lte: endDate },
           },
           _sum: { amount: true },
@@ -590,22 +609,31 @@ export const delivererWalletRouter = router({
         const previousEarnings = await ctx.db.transaction.aggregate({
           where: {
             walletId: wallet.id,
-            type: { in: ['EARNING', 'DELIVERY_PAYOUT'] },
-            status: 'COMPLETED',
+            type: { in: ["EARNING", "DELIVERY_PAYOUT"] },
+            status: "COMPLETED",
             createdAt: { gte: previousStartDate, lte: previousEndDate },
           },
           _sum: { amount: true },
         });
 
         // Données pour le graphique (par jour/semaine/mois selon la période)
-        const chartData = await getEarningsChartData(wallet.id, startDate, endDate, input.period);
+        const chartData = await getEarningsChartData(
+          wallet.id,
+          startDate,
+          endDate,
+          input.period,
+        );
 
         const totalEarnings = currentEarnings._sum.amount?.toNumber() || 0;
-        const totalCommissions = Math.abs(currentCommissions._sum.amount?.toNumber() || 0);
+        const totalCommissions = Math.abs(
+          currentCommissions._sum.amount?.toNumber() || 0,
+        );
         const deliveryCount = currentEarnings._count || 0;
         const previousTotal = previousEarnings._sum.amount?.toNumber() || 0;
         const change =
-          previousTotal > 0 ? ((totalEarnings - previousTotal) / previousTotal) * 100 : 0;
+          previousTotal > 0
+            ? ((totalEarnings - previousTotal) / previousTotal) * 100
+            : 0;
 
         return {
           success: true,
@@ -613,7 +641,8 @@ export const delivererWalletRouter = router({
             totalEarnings,
             totalCommissions,
             deliveryCount,
-            averagePerDelivery: deliveryCount > 0 ? totalEarnings / deliveryCount : 0,
+            averagePerDelivery:
+              deliveryCount > 0 ? totalEarnings / deliveryCount : 0,
             chartData,
             comparison: {
               previous: previousTotal,
@@ -623,8 +652,8 @@ export const delivererWalletRouter = router({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des statistiques',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques",
         });
       }
     }),
@@ -641,63 +670,65 @@ function getNextPayoutDate(): Date {
 
 function getTransactionDescription(transaction: any): string {
   switch (transaction.type) {
-    case 'EARNING':
-    case 'DELIVERY_PAYOUT':
-      return transaction.relatedDelivery?.announcement?.title || 'Gain de livraison';
-    case 'PLATFORM_FEE':
-      return 'Commission EcoDeli';
-    case 'WITHDRAWAL':
-      return 'Virement bancaire';
-    case 'BONUS':
-      return 'Bonus performance';
-    case 'REFUND':
-      return 'Remboursement';
+    case "EARNING":
+    case "DELIVERY_PAYOUT":
+      return (
+        transaction.relatedDelivery?.announcement?.title || "Gain de livraison"
+      );
+    case "PLATFORM_FEE":
+      return "Commission EcoDeli";
+    case "WITHDRAWAL":
+      return "Virement bancaire";
+    case "BONUS":
+      return "Bonus performance";
+    case "REFUND":
+      return "Remboursement";
     default:
-      return transaction.description || 'Transaction';
+      return transaction.description || "Transaction";
   }
 }
 
 function getTransactionColor(type: TransactionType): string {
   switch (type) {
-    case 'EARNING':
-    case 'DELIVERY_PAYOUT':
-    case 'BONUS':
-    case 'REFUND':
-      return 'green';
-    case 'PLATFORM_FEE':
-    case 'WITHDRAWAL':
-      return 'red';
+    case "EARNING":
+    case "DELIVERY_PAYOUT":
+    case "BONUS":
+    case "REFUND":
+      return "green";
+    case "PLATFORM_FEE":
+    case "WITHDRAWAL":
+      return "red";
     default:
-      return 'gray';
+      return "gray";
   }
 }
 
 function getWithdrawalStatusLabel(status: WithdrawalStatus): string {
   switch (status) {
-    case 'PENDING':
-      return 'En attente';
-    case 'PROCESSING':
-      return 'En cours';
-    case 'COMPLETED':
-      return 'Terminé';
-    case 'FAILED':
-      return 'Échec';
-    case 'CANCELLED':
-      return 'Annulé';
-    case 'REJECTED':
-      return 'Rejeté';
+    case "PENDING":
+      return "En attente";
+    case "PROCESSING":
+      return "En cours";
+    case "COMPLETED":
+      return "Terminé";
+    case "FAILED":
+      return "Échec";
+    case "CANCELLED":
+      return "Annulé";
+    case "REJECTED":
+      return "Rejeté";
     default:
       return status;
   }
 }
 
 function getEstimatedArrival(withdrawal: any): Date | null {
-  if (withdrawal.status !== 'PENDING' && withdrawal.status !== 'PROCESSING') {
+  if (withdrawal.status !== "PENDING" && withdrawal.status !== "PROCESSING") {
     return null;
   }
 
   const created = new Date(withdrawal.createdAt);
-  const daysToAdd = withdrawal.urgency === 'URGENT' ? 1 : 5;
+  const daysToAdd = withdrawal.urgency === "URGENT" ? 1 : 5;
   created.setDate(created.getDate() + daysToAdd);
   return created;
 }
@@ -710,12 +741,12 @@ function calculatePeriodDates(input: any) {
   let previousEndDate = new Date();
 
   switch (input.period) {
-    case 'week':
+    case "week":
       startDate.setDate(now.getDate() - 7);
       previousStartDate.setDate(now.getDate() - 14);
       previousEndDate.setDate(now.getDate() - 7);
       break;
-    case 'month':
+    case "month":
       if (input.year && input.month) {
         startDate = new Date(input.year, input.month - 1, 1);
         endDate = new Date(input.year, input.month, 0);
@@ -729,14 +760,14 @@ function calculatePeriodDates(input: any) {
         previousEndDate = new Date(startDate.getTime() - 1);
       }
       break;
-    case 'quarter':
+    case "quarter":
       const quarter = Math.floor(now.getMonth() / 3);
       startDate = new Date(now.getFullYear(), quarter * 3, 1);
       endDate = new Date(now.getFullYear(), (quarter + 1) * 3, 0);
       previousStartDate = new Date(now.getFullYear(), (quarter - 1) * 3, 1);
       previousEndDate = new Date(now.getFullYear(), quarter * 3, 0);
       break;
-    case 'year':
+    case "year":
       startDate = new Date(input.year || now.getFullYear(), 0, 1);
       endDate = new Date((input.year || now.getFullYear()) + 1, 0, 0);
       previousStartDate = new Date((input.year || now.getFullYear()) - 1, 0, 1);
@@ -751,7 +782,7 @@ async function getEarningsChartData(
   walletId: string,
   startDate: Date,
   endDate: Date,
-  period: string
+  period: string,
 ) {
   // Cette fonction générerait des données pour le graphique
   // selon la période (par jour, semaine, mois)

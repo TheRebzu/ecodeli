@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { api } from "@/trpc/react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   ArrowLeft,
   Check,
@@ -16,8 +16,8 @@ import {
   Shield,
   Download,
   ExternalLink,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -25,11 +25,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -38,23 +38,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface VerificationDetailProps {
   verificationId: string;
 }
 
-export function VerificationDetail({ verificationId }: VerificationDetailProps) {
-  const t = useTranslations('admin.verification');
+export function VerificationDetail({
+  verificationId,
+}: VerificationDetailProps) {
+  const t = useTranslations("admin.verification");
   const router = useRouter();
   const { toast } = useToast();
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [approvalNotes, setApprovalNotes] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [approvalNotes, setApprovalNotes] = useState("");
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
 
@@ -69,18 +71,18 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
   const approveVerification = api.admin.approveVerification.useMutation({
     onSuccess: () => {
       toast({
-        title: t('detail.approval.success.title'),
-        description: t('detail.approval.success.description'),
-        variant: 'default',
+        title: t("detail.approval.success.title"),
+        description: t("detail.approval.success.description"),
+        variant: "default",
       });
       setIsApproveDialogOpen(false);
       router.refresh();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: t('detail.approval.error.title'),
+        title: t("detail.approval.error.title"),
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -88,18 +90,18 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
   const rejectVerification = api.admin.rejectVerification.useMutation({
     onSuccess: () => {
       toast({
-        title: t('detail.rejection.success.title'),
-        description: t('detail.rejection.success.description'),
-        variant: 'default',
+        title: t("detail.rejection.success.title"),
+        description: t("detail.rejection.success.description"),
+        variant: "default",
       });
       setIsRejectDialogOpen(false);
       router.refresh();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: t('detail.rejection.error.title'),
+        title: t("detail.rejection.error.title"),
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -114,9 +116,9 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
   const handleReject = () => {
     if (!rejectionReason.trim()) {
       toast({
-        title: t('detail.rejection.validation.title'),
-        description: t('detail.rejection.validation.description'),
-        variant: 'destructive',
+        title: t("detail.rejection.validation.title"),
+        description: t("detail.rejection.validation.description"),
+        variant: "destructive",
       });
       return;
     }
@@ -143,16 +145,18 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
             <Button variant="ghost" size="icon" onClick={goBack}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <CardTitle>{t('detail.error.title')}</CardTitle>
+            <CardTitle>{t("detail.error.title")}</CardTitle>
           </div>
-          <CardDescription>{t('detail.error.description')}</CardDescription>
+          <CardDescription>{t("detail.error.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center p-8">
             <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-center">{error?.message || t('detail.error.notFound')}</p>
+            <p className="text-center">
+              {error?.message || t("detail.error.notFound")}
+            </p>
             <Button className="mt-4" onClick={goBack}>
-              {t('detail.actions.back')}
+              {t("detail.actions.back")}
             </Button>
           </div>
         </CardContent>
@@ -160,7 +164,7 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
     );
   }
 
-  const isPending = verification.status === 'PENDING';
+  const isPending = verification.status === "PENDING";
   const documentUrl = verification.document.url;
   const documentType = verification.document.type;
   const isImage = /(jpg|jpeg|png|gif|webp)$/i.test(documentType);
@@ -172,7 +176,7 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
         <Button variant="ghost" size="icon" onClick={goBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold">{t('detail.title')}</h1>
+        <h1 className="text-2xl font-bold">{t("detail.title")}</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -180,9 +184,10 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
           {/* Document Preview */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('detail.document.title')}</CardTitle>
+              <CardTitle>{t("detail.document.title")}</CardTitle>
               <CardDescription>
-                {t(`documentTypes.${verification.document.type}`)} - {verification.document.name}
+                {t(`documentTypes.${verification.document.type}`)} -{" "}
+                {verification.document.name}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -205,14 +210,20 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
                 ) : (
                   <div className="flex flex-col items-center justify-center text-center">
                     <FileText className="h-16 w-16 text-muted-foreground mb-2" />
-                    <h3 className="text-lg font-medium mb-1">{verification.document.name}</h3>
+                    <h3 className="text-lg font-medium mb-1">
+                      {verification.document.name}
+                    </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      {t('detail.document.preview.unsupported')}
+                      {t("detail.document.preview.unsupported")}
                     </p>
                     <Button asChild>
-                      <a href={documentUrl} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <ExternalLink className="mr-2 h-4 w-4" />
-                        {t('detail.document.preview.open')}
+                        {t("detail.document.preview.open")}
                       </a>
                     </Button>
                   </div>
@@ -221,14 +232,18 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
             </CardContent>
             <CardFooter className="flex justify-between border-t bg-muted/20 px-6 py-3">
               <div className="text-sm text-muted-foreground">
-                {t('detail.document.uploadedAt', {
-                  date: format(new Date(verification.document.uploadedAt), 'PPP', { locale: fr }),
+                {t("detail.document.uploadedAt", {
+                  date: format(
+                    new Date(verification.document.uploadedAt),
+                    "PPP",
+                    { locale: fr },
+                  ),
                 })}
               </div>
               <Button size="sm" variant="outline" asChild>
                 <a href={documentUrl} download>
                   <Download className="mr-2 h-4 w-4" />
-                  {t('detail.document.download')}
+                  {t("detail.document.download")}
                 </a>
               </Button>
             </CardFooter>
@@ -237,8 +252,10 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
           {/* Document History */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('detail.history.title')}</CardTitle>
-              <CardDescription>{t('detail.history.description')}</CardDescription>
+              <CardTitle>{t("detail.history.title")}</CardTitle>
+              <CardDescription>
+                {t("detail.history.description")}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -249,11 +266,19 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium">{t('detail.history.submitted.title')}</h4>
+                    <h4 className="text-sm font-medium">
+                      {t("detail.history.submitted.title")}
+                    </h4>
                     <p className="text-sm text-muted-foreground">
-                      {t('detail.history.submitted.description', {
-                        date: format(new Date(verification.requestedAt), 'PPP p', { locale: fr }),
-                        user: verification.submitter.name || verification.submitter.email,
+                      {t("detail.history.submitted.description", {
+                        date: format(
+                          new Date(verification.requestedAt),
+                          "PPP p",
+                          { locale: fr },
+                        ),
+                        user:
+                          verification.submitter.name ||
+                          verification.submitter.email,
                       })}
                     </p>
                   </div>
@@ -261,15 +286,17 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
 
                 <Separator className="my-4" />
 
-                {verification.status !== 'PENDING' && (
+                {verification.status !== "PENDING" && (
                   <div className="flex items-start">
                     <div className="mr-4 mt-1">
                       <div
                         className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                          verification.status === 'APPROVED' ? 'bg-green-100' : 'bg-red-100'
+                          verification.status === "APPROVED"
+                            ? "bg-green-100"
+                            : "bg-red-100"
                         }`}
                       >
-                        {verification.status === 'APPROVED' ? (
+                        {verification.status === "APPROVED" ? (
                           <Check className="h-4 w-4 text-green-600" />
                         ) : (
                           <X className="h-4 w-4 text-red-600" />
@@ -278,19 +305,29 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
                     </div>
                     <div>
                       <h4 className="text-sm font-medium">
-                        {t(`detail.history.${verification.status.toLowerCase()}.title`)}
+                        {t(
+                          `detail.history.${verification.status.toLowerCase()}.title`,
+                        )}
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        {t(`detail.history.${verification.status.toLowerCase()}.description`, {
-                          date: format(new Date(verification.verifiedAt || new Date()), 'PPP p', {
-                            locale: fr,
-                          }),
-                          user: verification.verifier?.name || 'Administrator',
-                        })}
+                        {t(
+                          `detail.history.${verification.status.toLowerCase()}.description`,
+                          {
+                            date: format(
+                              new Date(verification.verifiedAt || new Date()),
+                              "PPP p",
+                              {
+                                locale: fr,
+                              },
+                            ),
+                            user:
+                              verification.verifier?.name || "Administrator",
+                          },
+                        )}
                       </p>
                       {(verification.notes || verification.rejectionReason) && (
                         <div className="mt-2 rounded bg-muted p-3 text-sm">
-                          {verification.status === 'APPROVED'
+                          {verification.status === "APPROVED"
                             ? verification.notes
                             : verification.rejectionReason}
                         </div>
@@ -307,8 +344,8 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
           {/* User Information */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('detail.user.title')}</CardTitle>
-              <CardDescription>{t('detail.user.description')}</CardDescription>
+              <CardTitle>{t("detail.user.title")}</CardTitle>
+              <CardDescription>{t("detail.user.description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-4">
@@ -317,7 +354,9 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
                 </div>
                 <div>
                   <h3 className="font-medium">{verification.submitter.name}</h3>
-                  <p className="text-sm text-muted-foreground">{verification.submitter.email}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {verification.submitter.email}
+                  </p>
                 </div>
               </div>
 
@@ -325,23 +364,33 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
 
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">{t('detail.user.role')}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("detail.user.role")}
+                  </span>
                   <Badge>
-                    {t(`roles.${verification.submitter.role?.toLowerCase() || 'user'}`)}
+                    {t(
+                      `roles.${verification.submitter.role?.toLowerCase() || "user"}`,
+                    )}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">
-                    {t('detail.user.accountCreated')}
+                    {t("detail.user.accountCreated")}
                   </span>
                   <span className="text-sm">
-                    {format(new Date(verification.submitter.createdAt), 'PPP', { locale: fr })}
+                    {format(new Date(verification.submitter.createdAt), "PPP", {
+                      locale: fr,
+                    })}
                   </span>
                 </div>
                 {verification.submitter.phoneNumber && (
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">{t('detail.user.phone')}</span>
-                    <span className="text-sm">{verification.submitter.phoneNumber}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {t("detail.user.phone")}
+                    </span>
+                    <span className="text-sm">
+                      {verification.submitter.phoneNumber}
+                    </span>
                   </div>
                 )}
               </div>
@@ -351,8 +400,10 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
           {/* Document Information */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('detail.documentInfo.title')}</CardTitle>
-              <CardDescription>{t('detail.documentInfo.description')}</CardDescription>
+              <CardTitle>{t("detail.documentInfo.title")}</CardTitle>
+              <CardDescription>
+                {t("detail.documentInfo.description")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-4">
@@ -372,13 +423,15 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">
-                    {t('detail.documentInfo.type')}
+                    {t("detail.documentInfo.type")}
                   </span>
-                  <span className="text-sm">{verification.document.mimeType}</span>
+                  <span className="text-sm">
+                    {verification.document.mimeType}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">
-                    {t('detail.documentInfo.size')}
+                    {t("detail.documentInfo.size")}
                   </span>
                   <span className="text-sm">
                     {(verification.document.size / 1024 / 1024).toFixed(2)} MB
@@ -386,28 +439,36 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">
-                    {t('detail.documentInfo.uploadedAt')}
+                    {t("detail.documentInfo.uploadedAt")}
                   </span>
                   <span className="text-sm">
-                    {format(new Date(verification.document.uploadedAt), 'PPP', { locale: fr })}
+                    {format(new Date(verification.document.uploadedAt), "PPP", {
+                      locale: fr,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">
-                    {t('detail.documentInfo.status')}
+                    {t("detail.documentInfo.status")}
                   </span>
                   <Badge
                     variant={
-                      verification.status === 'APPROVED'
-                        ? 'success'
-                        : verification.status === 'REJECTED'
-                          ? 'destructive'
-                          : 'outline'
+                      verification.status === "APPROVED"
+                        ? "success"
+                        : verification.status === "REJECTED"
+                          ? "destructive"
+                          : "outline"
                     }
                   >
-                    {verification.status === 'APPROVED' && <Check className="mr-1 h-3 w-3" />}
-                    {verification.status === 'REJECTED' && <X className="mr-1 h-3 w-3" />}
-                    {verification.status === 'PENDING' && <Clock className="mr-1 h-3 w-3" />}
+                    {verification.status === "APPROVED" && (
+                      <Check className="mr-1 h-3 w-3" />
+                    )}
+                    {verification.status === "REJECTED" && (
+                      <X className="mr-1 h-3 w-3" />
+                    )}
+                    {verification.status === "PENDING" && (
+                      <Clock className="mr-1 h-3 w-3" />
+                    )}
                     {t(`status.${verification.status}`)}
                   </Badge>
                 </div>
@@ -419,8 +480,10 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
           {isPending && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('detail.actions.title')}</CardTitle>
-                <CardDescription>{t('detail.actions.description')}</CardDescription>
+                <CardTitle>{t("detail.actions.title")}</CardTitle>
+                <CardDescription>
+                  {t("detail.actions.description")}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Button
@@ -430,7 +493,7 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
                   disabled={approveVerification.isLoading}
                 >
                   <Check className="mr-2 h-4 w-4" />
-                  {t('detail.actions.approve')}
+                  {t("detail.actions.approve")}
                 </Button>
                 <Button
                   className="w-full"
@@ -439,7 +502,7 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
                   disabled={rejectVerification.isLoading}
                 >
                   <X className="mr-2 h-4 w-4" />
-                  {t('detail.actions.reject')}
+                  {t("detail.actions.reject")}
                 </Button>
               </CardContent>
             </Card>
@@ -451,20 +514,24 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
       <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('detail.approval.dialog.title')}</DialogTitle>
-            <DialogDescription>{t('detail.approval.dialog.description')}</DialogDescription>
+            <DialogTitle>{t("detail.approval.dialog.title")}</DialogTitle>
+            <DialogDescription>
+              {t("detail.approval.dialog.description")}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="notes">{t('detail.approval.dialog.notes.label')}</Label>
+              <Label htmlFor="notes">
+                {t("detail.approval.dialog.notes.label")}
+              </Label>
               <Textarea
                 id="notes"
-                placeholder={t('detail.approval.dialog.notes.placeholder')}
+                placeholder={t("detail.approval.dialog.notes.placeholder")}
                 value={approvalNotes}
-                onChange={e => setApprovalNotes(e.target.value)}
+                onChange={(e) => setApprovalNotes(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                {t('detail.approval.dialog.notes.help')}
+                {t("detail.approval.dialog.notes.help")}
               </p>
             </div>
           </div>
@@ -474,18 +541,21 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
               onClick={() => setIsApproveDialogOpen(false)}
               disabled={approveVerification.isLoading}
             >
-              {t('detail.approval.dialog.actions.cancel')}
+              {t("detail.approval.dialog.actions.cancel")}
             </Button>
-            <Button onClick={handleApprove} disabled={approveVerification.isLoading}>
+            <Button
+              onClick={handleApprove}
+              disabled={approveVerification.isLoading}
+            >
               {approveVerification.isLoading ? (
                 <span className="flex items-center">
                   <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
-                  {t('detail.approval.dialog.actions.loading')}
+                  {t("detail.approval.dialog.actions.loading")}
                 </span>
               ) : (
                 <span className="flex items-center">
                   <Check className="mr-2 h-4 w-4" />
-                  {t('detail.approval.dialog.actions.confirm')}
+                  {t("detail.approval.dialog.actions.confirm")}
                 </span>
               )}
             </Button>
@@ -497,23 +567,25 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('detail.rejection.dialog.title')}</DialogTitle>
-            <DialogDescription>{t('detail.rejection.dialog.description')}</DialogDescription>
+            <DialogTitle>{t("detail.rejection.dialog.title")}</DialogTitle>
+            <DialogDescription>
+              {t("detail.rejection.dialog.description")}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="reason" className="required">
-                {t('detail.rejection.dialog.reason.label')}
+                {t("detail.rejection.dialog.reason.label")}
               </Label>
               <Textarea
                 id="reason"
-                placeholder={t('detail.rejection.dialog.reason.placeholder')}
+                placeholder={t("detail.rejection.dialog.reason.placeholder")}
                 value={rejectionReason}
-                onChange={e => setRejectionReason(e.target.value)}
+                onChange={(e) => setRejectionReason(e.target.value)}
                 required
               />
               <p className="text-xs text-muted-foreground">
-                {t('detail.rejection.dialog.reason.help')}
+                {t("detail.rejection.dialog.reason.help")}
               </p>
             </div>
           </div>
@@ -523,7 +595,7 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
               onClick={() => setIsRejectDialogOpen(false)}
               disabled={rejectVerification.isLoading}
             >
-              {t('detail.rejection.dialog.actions.cancel')}
+              {t("detail.rejection.dialog.actions.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -533,12 +605,12 @@ export function VerificationDetail({ verificationId }: VerificationDetailProps) 
               {rejectVerification.isLoading ? (
                 <span className="flex items-center">
                   <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
-                  {t('detail.rejection.dialog.actions.loading')}
+                  {t("detail.rejection.dialog.actions.loading")}
                 </span>
               ) : (
                 <span className="flex items-center">
                   <X className="mr-2 h-4 w-4" />
-                  {t('detail.rejection.dialog.actions.confirm')}
+                  {t("detail.rejection.dialog.actions.confirm")}
                 </span>
               )}
             </Button>

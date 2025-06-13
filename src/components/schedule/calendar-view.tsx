@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from "react";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface CalendarEvent {
   id: string;
@@ -33,7 +33,12 @@ export function CalendarView({
         <CardTitle>Calendrier</CardTitle>
       </CardHeader>
       <CardContent>
-        <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md border" />
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          className="rounded-md border"
+        />
       </CardContent>
     </Card>
   );

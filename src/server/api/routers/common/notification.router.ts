@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { NotificationService } from '@/server/services/common/notification.service';
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { NotificationService } from "@/server/services/common/notification.service";
 
 // Créer une instance du service de notification
 const notificationService = new NotificationService();
@@ -14,20 +14,23 @@ export const notificationRouter = router({
         page: z.number().optional().default(1),
         limit: z.number().optional().default(10),
         types: z.array(z.string()).optional(), // Ajout du filtrage par types
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
-        const result = await notificationService.getUserNotifications(ctx.session.user.id, {
-          limit: input.limit,
-          // Autres paramètres comme nécessaire
-        });
+        const result = await notificationService.getUserNotifications(
+          ctx.session.user.id,
+          {
+            limit: input.limit,
+            // Autres paramètres comme nécessaire
+          },
+        );
         return result;
       } catch (error) {
-        console.error('Error fetching notifications:', error);
+        console.error("Error fetching notifications:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch notifications',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch notifications",
         });
       }
     }),
@@ -39,19 +42,22 @@ export const notificationRouter = router({
         .object({
           types: z.array(z.string()).optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       try {
-        const result = await notificationService.getUserNotifications(ctx.session.user.id, {
-          includeRead: false,
-        });
+        const result = await notificationService.getUserNotifications(
+          ctx.session.user.id,
+          {
+            includeRead: false,
+          },
+        );
         return result.notifications;
       } catch (error) {
-        console.error('Error fetching unread notifications:', error);
+        console.error("Error fetching unread notifications:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch unread notifications',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch unread notifications",
         });
       }
     }),
@@ -62,20 +68,20 @@ export const notificationRouter = router({
       return await ctx.db.notification.findMany({
         where: {
           userId: ctx.session.user.id,
-          priority: 'HIGH',
+          priority: "HIGH",
           read: false,
           createdAt: {
             gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Dernières 24h
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 5,
       });
     } catch (error) {
-      console.error('Error fetching urgent notifications:', error);
+      console.error("Error fetching urgent notifications:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch urgent notifications',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch urgent notifications",
       });
     }
   }),
@@ -87,19 +93,22 @@ export const notificationRouter = router({
         .object({
           types: z.array(z.string()).optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       try {
-        const result = await notificationService.getUserNotifications(ctx.session.user.id, {
-          includeRead: false,
-        });
+        const result = await notificationService.getUserNotifications(
+          ctx.session.user.id,
+          {
+            includeRead: false,
+          },
+        );
         return result.total;
       } catch (error) {
-        console.error('Error fetching unread count:', error);
+        console.error("Error fetching unread count:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch unread count',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch unread count",
         });
       }
     }),
@@ -111,10 +120,10 @@ export const notificationRouter = router({
       try {
         return await notificationService.markAsRead(input.id);
       } catch (error) {
-        console.error('Error marking notification as read:', error);
+        console.error("Error marking notification as read:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to mark notification as read',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to mark notification as read",
         });
       }
     }),
@@ -126,16 +135,16 @@ export const notificationRouter = router({
         .object({
           types: z.array(z.string()).optional(),
         })
-        .optional()
+        .optional(),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         return await notificationService.markAllAsRead(ctx.session.user.id);
       } catch (error) {
-        console.error('Error marking all notifications as read:', error);
+        console.error("Error marking all notifications as read:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to mark all notifications as read',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to mark all notifications as read",
         });
       }
     }),
@@ -153,8 +162,8 @@ export const notificationRouter = router({
 
         if (!notification || notification.userId !== ctx.session.user.id) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You do not have permission to delete this notification',
+            code: "FORBIDDEN",
+            message: "You do not have permission to delete this notification",
           });
         }
 
@@ -162,10 +171,10 @@ export const notificationRouter = router({
           where: { id: input.id },
         });
       } catch (error) {
-        console.error('Error deleting notification:', error);
+        console.error("Error deleting notification:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete notification',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete notification",
         });
       }
     }),
@@ -177,7 +186,7 @@ export const notificationRouter = router({
         .object({
           types: z.array(z.string()).optional(),
         })
-        .optional()
+        .optional(),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -185,17 +194,19 @@ export const notificationRouter = router({
         // nous utiliserons une alternative
         const where = {
           userId: ctx.session.user.id,
-          ...(input?.types && input.types.length > 0 ? { type: { in: input.types } } : {}),
+          ...(input?.types && input.types.length > 0
+            ? { type: { in: input.types } }
+            : {}),
         };
 
         return await ctx.db.notification.deleteMany({
           where,
         });
       } catch (error) {
-        console.error('Error deleting all notifications:', error);
+        console.error("Error deleting all notifications:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete all notifications',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete all notifications",
         });
       }
     }),

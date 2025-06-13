@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Form,
   FormControl,
@@ -15,28 +15,36 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Loader2 } from 'lucide-react';
-import { api } from '@/trpc/react';
-import { useTranslations } from 'next-intl';
+} from "@/components/ui/form";
+import { Loader2 } from "lucide-react";
+import { api } from "@/trpc/react";
+import { useTranslations } from "next-intl";
 
 // Schéma de validation pour le formulaire de réinitialisation de mot de passe
 const resetPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(8, { message: 'Le mot de passe doit contenir au moins 8 caractères' })
-      .regex(/[A-Z]/, { message: 'Le mot de passe doit contenir au moins une majuscule' })
-      .regex(/[a-z]/, { message: 'Le mot de passe doit contenir au moins une minuscule' })
-      .regex(/[0-9]/, { message: 'Le mot de passe doit contenir au moins un chiffre' })
+      .min(8, {
+        message: "Le mot de passe doit contenir au moins 8 caractères",
+      })
+      .regex(/[A-Z]/, {
+        message: "Le mot de passe doit contenir au moins une majuscule",
+      })
+      .regex(/[a-z]/, {
+        message: "Le mot de passe doit contenir au moins une minuscule",
+      })
+      .regex(/[0-9]/, {
+        message: "Le mot de passe doit contenir au moins un chiffre",
+      })
       .regex(/[^A-Za-z0-9]/, {
-        message: 'Le mot de passe doit contenir au moins un caractère spécial',
+        message: "Le mot de passe doit contenir au moins un caractère spécial",
       }),
     confirmPassword: z.string(),
   })
-  .refine(data => data.password === data.confirmPassword, {
-    message: 'Les mots de passe ne correspondent pas',
-    path: ['confirmPassword'],
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
   });
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
@@ -45,16 +53,16 @@ export function PasswordResetForm() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
-  const t = useTranslations('Auth.ResetPassword');
+  const token = searchParams.get("token");
+  const t = useTranslations("Auth.ResetPassword");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Configuration du formulaire avec React Hook Form
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      password: '',
-      confirmPassword: '',
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -62,18 +70,18 @@ export function PasswordResetForm() {
   const resetPassword = api.auth.resetPassword.useMutation({
     onSuccess: () => {
       toast({
-        title: t('success.title'),
-        description: t('success.description'),
-        variant: 'success',
+        title: t("success.title"),
+        description: t("success.description"),
+        variant: "success",
       });
       // Rediriger vers la page de connexion après réinitialisation réussie
-      router.push('/login');
+      router.push("/login");
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: t('error.title'),
-        description: error.message || t('error.description'),
-        variant: 'destructive',
+        title: t("error.title"),
+        description: error.message || t("error.description"),
+        variant: "destructive",
       });
       setIsSubmitting(false);
     },
@@ -83,9 +91,9 @@ export function PasswordResetForm() {
   const onSubmit = (data: ResetPasswordFormValues) => {
     if (!token) {
       toast({
-        title: t('error.title'),
-        description: t('error.invalidToken'),
-        variant: 'destructive',
+        title: t("error.title"),
+        description: t("error.invalidToken"),
+        variant: "destructive",
       });
       return;
     }
@@ -100,8 +108,8 @@ export function PasswordResetForm() {
   return (
     <div className="mx-auto w-full max-w-md space-y-6 rounded-lg border p-6 shadow-sm">
       <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('description')}</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       <Form {...form}>
@@ -111,11 +119,11 @@ export function PasswordResetForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('password.label')}</FormLabel>
+                <FormLabel>{t("password.label")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder={t('password.placeholder')}
+                    placeholder={t("password.placeholder")}
                     autoComplete="new-password"
                     {...field}
                   />
@@ -130,11 +138,11 @@ export function PasswordResetForm() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('confirmPassword.label')}</FormLabel>
+                <FormLabel>{t("confirmPassword.label")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder={t('confirmPassword.placeholder')}
+                    placeholder={t("confirmPassword.placeholder")}
                     autoComplete="new-password"
                     {...field}
                   />
@@ -148,10 +156,10 @@ export function PasswordResetForm() {
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('submitting')}
+                {t("submitting")}
               </>
             ) : (
-              t('resetPassword')
+              t("resetPassword")
             )}
           </Button>
         </form>

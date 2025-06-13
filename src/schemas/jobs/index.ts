@@ -4,6 +4,6 @@
  */
 
 // Exports des fichiers locaux
-export * from './job-execution.schema';
-export * from './job-history.schema';
-export * from './scheduled-task.schema';
+export * from "./job-execution.schema";
+export * from "./job-history.schema";
+export * from "./scheduled-task.schema";

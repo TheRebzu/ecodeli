@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 // scripts/scripts/fix-all-missing-exports.ts
 
-import chalk from 'chalk';
-import fs from 'fs/promises';
-import path from 'path';
+import chalk from "chalk";
+import fs from "fs/promises";
+import path from "path";
 
 interface MissingExportFix {
   file: string;
@@ -15,15 +15,17 @@ class BatchExportFixer {
   private projectRoot: string = process.cwd();
 
   constructor() {
-    console.log(chalk.bold.cyan('🔧 EcoDeli - Correcteur batch d\'exports manquants\n'));
+    console.log(
+      chalk.bold.cyan("🔧 EcoDeli - Correcteur batch d'exports manquants\n"),
+    );
   }
 
   async run(): Promise<void> {
     const fixes: MissingExportFix[] = [
       // Types d'utilisateur
       {
-        file: 'src/types/users/verification.ts',
-        exports: ['CodeVerification'],
+        file: "src/types/users/verification.ts",
+        exports: ["CodeVerification"],
         template: `// Types pour la vérification utilisateur
 export interface CodeVerification {
   id: string;
@@ -43,11 +45,11 @@ export interface VerificationResult {
   attemptsRemaining?: number;
 }
 
-export default CodeVerification;`
+export default CodeVerification;`,
       },
       {
-        file: 'src/types/users/preferences.ts',
-        exports: ['ProfilePreferences'],
+        file: "src/types/users/preferences.ts",
+        exports: ["ProfilePreferences"],
         template: `// Types pour les préférences utilisateur
 export interface ProfilePreferences {
   userId: string;
@@ -60,13 +62,13 @@ export interface ProfilePreferences {
   updatedAt: Date;
 }
 
-export { ProfilePreferences as default };`
+export { ProfilePreferences as default };`,
       },
-      
+
       // Hooks manquants
       {
-        file: 'src/hooks/delivery/use-delivery-status.ts',
-        exports: ['useDeliveryDetails'],
+        file: "src/hooks/delivery/use-delivery-status.ts",
+        exports: ["useDeliveryDetails"],
         template: `import { api } from '@/hooks/system/use-trpc';
 
 export function useDeliveryDetails(deliveryId: string) {
@@ -79,11 +81,11 @@ export function useDeliveryDetails(deliveryId: string) {
   };
 }
 
-// ... existing code ...`
+// ... existing code ...`,
       },
       {
-        file: 'src/hooks/features/use-delivery-tracking.ts',
-        exports: ['useDeliveryRating'],
+        file: "src/hooks/features/use-delivery-tracking.ts",
+        exports: ["useDeliveryRating"],
         template: `import { api } from '@/hooks/system/use-trpc';
 
 export function useDeliveryRating(deliveryId: string) {
@@ -100,11 +102,11 @@ export function useDeliveryRating(deliveryId: string) {
   };
 }
 
-// ... existing code ...`
+// ... existing code ...`,
       },
       {
-        file: 'src/hooks/delivery/use-live-tracking.ts',
-        exports: ['useLiveTrackingDetails'],
+        file: "src/hooks/delivery/use-live-tracking.ts",
+        exports: ["useLiveTrackingDetails"],
         template: `import { api } from '@/hooks/system/use-trpc';
 
 export function useLiveTrackingDetails(deliveryId: string) {
@@ -120,11 +122,11 @@ export function useLiveTrackingDetails(deliveryId: string) {
   };
 }
 
-// ... existing code ...`
+// ... existing code ...`,
       },
       {
-        file: 'src/hooks/common/use-storage.ts',
-        exports: ['useLocalStorage'],
+        file: "src/hooks/common/use-storage.ts",
+        exports: ["useLocalStorage"],
         template: `import { useState, useEffect } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
@@ -155,13 +157,13 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   return [storedValue, setValue] as const;
 }
 
-// ... existing code ...`
+// ... existing code ...`,
       },
-      
+
       // Composants manquants
       {
-        file: 'src/components/shared/deliveries/delivery-status-badge.tsx',
-        exports: ['DeliveryStatusBadge'],
+        file: "src/components/shared/deliveries/delivery-status-badge.tsx",
+        exports: ["DeliveryStatusBadge"],
         template: `import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/common';
 
@@ -186,11 +188,11 @@ export function DeliveryStatusBadge({ status, className }: DeliveryStatusBadgePr
       {status}
     </Badge>
   );
-}`
+}`,
       },
       {
-        file: 'src/components/deliverer/deliveries/delivery-notes.tsx',
-        exports: ['DeliveryNotes'],
+        file: "src/components/deliverer/deliveries/delivery-notes.tsx",
+        exports: ["DeliveryNotes"],
         template: `import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -220,11 +222,11 @@ export function DeliveryNotes({ deliveryId, notes, onNotesChange, readOnly = fal
   );
 }
 
-// ... existing code ...`
+// ... existing code ...`,
       },
       {
-        file: 'src/components/shared/deliveries/delivery-code-validator.tsx',
-        exports: ['DeliveryCodeValidator'],
+        file: "src/components/shared/deliveries/delivery-code-validator.tsx",
+        exports: ["DeliveryCodeValidator"],
         template: `import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -268,11 +270,17 @@ export function DeliveryCodeValidator({ onValidate, isValidating = false }: Deli
   );
 }
 
-// ... existing code ...`
+// ... existing code ...`,
       },
       {
-        file: 'src/components/ui/form.tsx',
-        exports: ['ClientProfileForm', 'DelivererProfileForm', 'MerchantProfileForm', 'MerchantVerificationForm', 'ProviderVerificationForm'],
+        file: "src/components/ui/form.tsx",
+        exports: [
+          "ClientProfileForm",
+          "DelivererProfileForm",
+          "MerchantProfileForm",
+          "MerchantVerificationForm",
+          "ProviderVerificationForm",
+        ],
         template: `import { Form } from '@/components/ui/form';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -342,32 +350,34 @@ export function ProviderVerificationForm({ children, ...props }: any) {
   );
 }
 
-// ... existing code ...`
-      }
+// ... existing code ...`,
+      },
     ];
 
-    console.log(chalk.blue('🔧 Application des corrections batch...'));
+    console.log(chalk.blue("🔧 Application des corrections batch..."));
 
     let fixedCount = 0;
     for (const fix of fixes) {
       try {
         const filePath = path.join(this.projectRoot, fix.file);
-        
+
         // Créer le répertoire si nécessaire
         await fs.mkdir(path.dirname(filePath), { recursive: true });
-        
+
         // Vérifier si le fichier existe
-        let content = '';
+        let content = "";
         try {
-          content = await fs.readFile(filePath, 'utf-8');
+          content = await fs.readFile(filePath, "utf-8");
         } catch {
           // Le fichier n'existe pas, on va le créer
         }
 
         // Si le fichier est vide ou n'existe pas, utiliser le template
         if (!content.trim()) {
-          await fs.writeFile(filePath, fix.template, 'utf-8');
-          console.log(chalk.green(`✅ ${fix.file} créé avec ${fix.exports.join(', ')}`));
+          await fs.writeFile(filePath, fix.template, "utf-8");
+          console.log(
+            chalk.green(`✅ ${fix.file} créé avec ${fix.exports.join(", ")}`),
+          );
           fixedCount++;
         } else {
           // Ajouter les exports manquants au fichier existant
@@ -380,10 +390,14 @@ export function ProviderVerificationForm({ children, ...props }: any) {
               break;
             }
           }
-          
+
           if (hasChanges) {
-            await fs.writeFile(filePath, content, 'utf-8');
-            console.log(chalk.green(`✅ ${fix.file} mis à jour avec ${fix.exports.join(', ')}`));
+            await fs.writeFile(filePath, content, "utf-8");
+            console.log(
+              chalk.green(
+                `✅ ${fix.file} mis à jour avec ${fix.exports.join(", ")}`,
+              ),
+            );
             fixedCount++;
           }
         }
@@ -393,12 +407,12 @@ export function ProviderVerificationForm({ children, ...props }: any) {
     }
 
     console.log(chalk.green(`\n✅ ${fixedCount} fichiers corrigés/créés`));
-    console.log(chalk.blue('\n💡 Prochaines étapes:'));
-    console.log('  1. Exécutez pnpm typecheck pour vérifier les corrections');
-    console.log('  2. Exécutez pnpm build pour tester le build complet');
+    console.log(chalk.blue("\n💡 Prochaines étapes:"));
+    console.log("  1. Exécutez pnpm typecheck pour vérifier les corrections");
+    console.log("  2. Exécutez pnpm build pour tester le build complet");
   }
 }
 
 // Exécution du script
 const fixer = new BatchExportFixer();
-fixer.run().catch(console.error); 
+fixer.run().catch(console.error);

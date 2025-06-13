@@ -2,7 +2,7 @@
  * Common types for document-related components
  */
 
-import { DocumentType, VerificationStatus } from '@prisma/client';
+import { DocumentType, VerificationStatus } from "@prisma/client";
 
 export interface BaseDocument {
   id: string;
@@ -47,7 +47,7 @@ export interface DocumentListProps extends DocumentActionProps {
 
 export interface DocumentStatusBadgeProps {
   status: VerificationStatus | string | undefined;
-  variant?: 'default' | 'compact';
+  variant?: "default" | "compact";
 }
 
 export interface DocumentTypeIconProps {

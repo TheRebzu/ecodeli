@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { PersonalServiceType, ServiceBookingStatus } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { PersonalServiceType, ServiceBookingStatus } from "@prisma/client";
 
 /**
  * Router pour les services personnels clients selon le cahier des charges
@@ -93,10 +93,10 @@ export const clientPersonalServicesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent demander des services',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent demander des services",
         });
       }
 
@@ -108,8 +108,8 @@ export const clientPersonalServicesRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -117,14 +117,14 @@ export const clientPersonalServicesRouter = router({
         const activeRequests = await ctx.db.personalServiceRequest.count({
           where: {
             clientId: client.id,
-            status: { in: ['PENDING', 'MATCHED', 'CONFIRMED'] },
+            status: { in: ["PENDING", "MATCHED", "CONFIRMED"] },
           },
         });
 
         if (activeRequests >= 5) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Limite de 5 demandes actives atteinte',
+            code: "BAD_REQUEST",
+            message: "Limite de 5 demandes actives atteinte",
           });
         }
 
@@ -152,7 +152,7 @@ export const clientPersonalServicesRouter = router({
             specialInstructions: input.specialInstructions,
             contactPhone: input.contactPhone,
 
-            status: 'PENDING',
+            status: "PENDING",
           },
         });
 
@@ -165,13 +165,13 @@ export const clientPersonalServicesRouter = router({
             ...serviceRequest,
             suggestedPrice: serviceRequest.suggestedPrice.toNumber(),
           },
-          message: 'Demande de service créée avec succès',
+          message: "Demande de service créée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la création de la demande',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de la demande",
         });
       }
     }),
@@ -184,10 +184,10 @@ export const clientPersonalServicesRouter = router({
     .query(async ({ ctx, input = {} }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent consulter leurs demandes',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent consulter leurs demandes",
         });
       }
 
@@ -198,8 +198,8 @@ export const clientPersonalServicesRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -237,7 +237,7 @@ export const clientPersonalServicesRouter = router({
                   },
                 },
               },
-              orderBy: { suggestedPrice: 'asc' },
+              orderBy: { suggestedPrice: "asc" },
             },
             activeBooking: {
               include: {
@@ -252,7 +252,7 @@ export const clientPersonalServicesRouter = router({
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           skip: input.offset,
           take: input.limit,
         });
@@ -260,13 +260,13 @@ export const clientPersonalServicesRouter = router({
         const totalCount = await ctx.db.personalServiceRequest.count({ where });
 
         // Formatter les données
-        const formattedRequests = serviceRequests.map(request => ({
+        const formattedRequests = serviceRequests.map((request) => ({
           ...request,
           suggestedPrice: request.suggestedPrice.toNumber(),
           proposalCount: request.proposals.length,
           lowestProposal: request.proposals[0]?.suggestedPrice?.toNumber(),
-          canEdit: ['PENDING'].includes(request.status),
-          canCancel: ['PENDING', 'MATCHED'].includes(request.status),
+          canEdit: ["PENDING"].includes(request.status),
+          canCancel: ["PENDING", "MATCHED"].includes(request.status),
           serviceTypeLabel: getServiceTypeLabel(request.serviceType),
         }));
 
@@ -283,8 +283,8 @@ export const clientPersonalServicesRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des demandes',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des demandes",
         });
       }
     }),
@@ -297,10 +297,10 @@ export const clientPersonalServicesRouter = router({
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -311,8 +311,8 @@ export const clientPersonalServicesRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -346,7 +346,7 @@ export const clientPersonalServicesRouter = router({
                   },
                 },
               },
-              orderBy: { suggestedPrice: 'asc' },
+              orderBy: { suggestedPrice: "asc" },
             },
             activeBooking: {
               include: {
@@ -359,7 +359,7 @@ export const clientPersonalServicesRouter = router({
                   },
                 },
                 statusUpdates: {
-                  orderBy: { createdAt: 'desc' },
+                  orderBy: { createdAt: "desc" },
                   take: 10,
                 },
               },
@@ -379,8 +379,8 @@ export const clientPersonalServicesRouter = router({
 
         if (!serviceRequest) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Demande de service non trouvée',
+            code: "NOT_FOUND",
+            message: "Demande de service non trouvée",
           });
         }
 
@@ -389,8 +389,8 @@ export const clientPersonalServicesRouter = router({
           data: {
             ...serviceRequest,
             suggestedPrice: serviceRequest.suggestedPrice.toNumber(),
-            canEdit: ['PENDING'].includes(serviceRequest.status),
-            canCancel: ['PENDING', 'MATCHED'].includes(serviceRequest.status),
+            canEdit: ["PENDING"].includes(serviceRequest.status),
+            canCancel: ["PENDING", "MATCHED"].includes(serviceRequest.status),
             hasActiveBooking: !!serviceRequest.activeBooking,
             serviceTypeLabel: getServiceTypeLabel(serviceRequest.serviceType),
           },
@@ -398,8 +398,8 @@ export const clientPersonalServicesRouter = router({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération de la demande',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération de la demande",
         });
       }
     }),
@@ -412,10 +412,10 @@ export const clientPersonalServicesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent modifier leurs demandes',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent modifier leurs demandes",
         });
       }
 
@@ -426,8 +426,8 @@ export const clientPersonalServicesRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -440,16 +440,16 @@ export const clientPersonalServicesRouter = router({
 
         if (!serviceRequest) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Demande non trouvée',
+            code: "NOT_FOUND",
+            message: "Demande non trouvée",
           });
         }
 
         // Vérifier si la demande peut être modifiée
-        if (!['PENDING'].includes(serviceRequest.status)) {
+        if (!["PENDING"].includes(serviceRequest.status)) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette demande ne peut plus être modifiée',
+            code: "BAD_REQUEST",
+            message: "Cette demande ne peut plus être modifiée",
           });
         }
 
@@ -471,13 +471,13 @@ export const clientPersonalServicesRouter = router({
             ...updatedRequest,
             suggestedPrice: updatedRequest.suggestedPrice.toNumber(),
           },
-          message: 'Demande mise à jour avec succès',
+          message: "Demande mise à jour avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la mise à jour',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour",
         });
       }
     }),
@@ -490,15 +490,15 @@ export const clientPersonalServicesRouter = router({
       z.object({
         proposalId: z.string().cuid(),
         notes: z.string().max(500).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent accepter des propositions',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent accepter des propositions",
         });
       }
 
@@ -509,8 +509,8 @@ export const clientPersonalServicesRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -531,34 +531,34 @@ export const clientPersonalServicesRouter = router({
 
         if (!proposal) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Proposition non trouvée',
+            code: "NOT_FOUND",
+            message: "Proposition non trouvée",
           });
         }
 
         // Vérifier que la demande appartient au client
         if (proposal.serviceRequest.clientId !== client.id) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Cette proposition ne vous appartient pas',
+            code: "FORBIDDEN",
+            message: "Cette proposition ne vous appartient pas",
           });
         }
 
         // Vérifier que la proposition peut être acceptée
-        if (proposal.status !== 'PENDING') {
+        if (proposal.status !== "PENDING") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: "Cette proposition n'est plus disponible",
           });
         }
 
         // Transaction pour accepter la proposition
-        const result = await ctx.db.$transaction(async tx => {
+        const result = await ctx.db.$transaction(async (tx) => {
           // Accepter la proposition
           const acceptedProposal = await tx.personalServiceProposal.update({
             where: { id: input.proposalId },
             data: {
-              status: 'ACCEPTED',
+              status: "ACCEPTED",
               acceptedAt: new Date(),
               clientNotes: input.notes,
             },
@@ -569,10 +569,10 @@ export const clientPersonalServicesRouter = router({
             where: {
               serviceRequestId: proposal.serviceRequest.id,
               id: { not: input.proposalId },
-              status: 'PENDING',
+              status: "PENDING",
             },
             data: {
-              status: 'REJECTED',
+              status: "REJECTED",
               rejectedAt: new Date(),
             },
           });
@@ -583,7 +583,7 @@ export const clientPersonalServicesRouter = router({
               serviceRequestId: proposal.serviceRequest.id,
               clientId: client.id,
               providerId: proposal.providerId,
-              status: 'CONFIRMED',
+              status: "CONFIRMED",
               confirmedAt: new Date(),
               scheduledAt: proposal.serviceRequest.requestedDate,
               agreedPrice: proposal.suggestedPrice,
@@ -595,7 +595,7 @@ export const clientPersonalServicesRouter = router({
           await tx.personalServiceRequest.update({
             where: { id: proposal.serviceRequest.id },
             data: {
-              status: 'MATCHED',
+              status: "MATCHED",
               matchedAt: new Date(),
             },
           });
@@ -609,12 +609,12 @@ export const clientPersonalServicesRouter = router({
         return {
           success: true,
           data: result,
-          message: 'Proposition acceptée avec succès',
+          message: "Proposition acceptée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'acceptation de la proposition",
         });
       }
@@ -628,15 +628,15 @@ export const clientPersonalServicesRouter = router({
       z.object({
         id: z.string().cuid(),
         reason: z.string().min(10).max(500),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'CLIENT') {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent annuler leurs demandes',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent annuler leurs demandes",
         });
       }
 
@@ -647,8 +647,8 @@ export const clientPersonalServicesRouter = router({
 
         if (!client) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil client non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
           });
         }
 
@@ -664,26 +664,28 @@ export const clientPersonalServicesRouter = router({
 
         if (!serviceRequest) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Demande non trouvée',
+            code: "NOT_FOUND",
+            message: "Demande non trouvée",
           });
         }
 
         // Vérifier si la demande peut être annulée
-        if (!['PENDING', 'MATCHED'].includes(serviceRequest.status)) {
+        if (!["PENDING", "MATCHED"].includes(serviceRequest.status)) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette demande ne peut pas être annulée',
+            code: "BAD_REQUEST",
+            message: "Cette demande ne peut pas être annulée",
           });
         }
 
         // Vérifier s'il y a un service en cours
         if (
           serviceRequest.activeBooking &&
-          ['IN_PROGRESS', 'CONFIRMED'].includes(serviceRequest.activeBooking.status)
+          ["IN_PROGRESS", "CONFIRMED"].includes(
+            serviceRequest.activeBooking.status,
+          )
         ) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: "Impossible d'annuler: un service est en cours",
           });
         }
@@ -692,7 +694,7 @@ export const clientPersonalServicesRouter = router({
         const cancelledRequest = await ctx.db.personalServiceRequest.update({
           where: { id: input.id },
           data: {
-            status: 'CANCELLED',
+            status: "CANCELLED",
             cancelledAt: new Date(),
             cancellationReason: input.reason,
           },
@@ -702,22 +704,22 @@ export const clientPersonalServicesRouter = router({
         await ctx.db.personalServiceProposal.updateMany({
           where: {
             serviceRequestId: input.id,
-            status: 'PENDING',
+            status: "PENDING",
           },
           data: {
-            status: 'REJECTED',
+            status: "REJECTED",
           },
         });
 
         return {
           success: true,
           data: cancelledRequest,
-          message: 'Demande annulée avec succès',
+          message: "Demande annulée avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'annulation",
         });
       }
@@ -726,116 +728,121 @@ export const clientPersonalServicesRouter = router({
   /**
    * Noter et évaluer un service terminé
    */
-  rateService: protectedProcedure.input(rateServiceSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  rateService: protectedProcedure
+    .input(rateServiceSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'CLIENT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les clients peuvent noter les services',
-      });
-    }
-
-    try {
-      const client = await ctx.db.client.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!client) {
+      if (user.role !== "CLIENT") {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil client non trouvé',
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent noter les services",
         });
       }
 
-      // Récupérer la réservation
-      const booking = await ctx.db.personalServiceBooking.findFirst({
-        where: {
-          id: input.bookingId,
-          clientId: client.id,
-          status: 'COMPLETED',
-        },
-        include: {
-          serviceRequest: true,
-          provider: true,
-        },
-      });
+      try {
+        const client = await ctx.db.client.findUnique({
+          where: { userId: user.id },
+        });
 
-      if (!booking) {
+        if (!client) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil client non trouvé",
+          });
+        }
+
+        // Récupérer la réservation
+        const booking = await ctx.db.personalServiceBooking.findFirst({
+          where: {
+            id: input.bookingId,
+            clientId: client.id,
+            status: "COMPLETED",
+          },
+          include: {
+            serviceRequest: true,
+            provider: true,
+          },
+        });
+
+        if (!booking) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Réservation non trouvée ou non terminée",
+          });
+        }
+
+        // Vérifier si déjà noté
+        const existingReview = await ctx.db.personalServiceReview.findFirst({
+          where: {
+            bookingId: input.bookingId,
+            clientId: client.id,
+          },
+        });
+
+        if (existingReview) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Ce service a déjà été noté",
+          });
+        }
+
+        // Créer la notation
+        const review = await ctx.db.personalServiceReview.create({
+          data: {
+            bookingId: input.bookingId,
+            serviceRequestId: booking.serviceRequest.id,
+            clientId: client.id,
+            providerId: booking.providerId,
+            rating: input.rating,
+            comment: input.comment,
+            wouldRecommend: input.wouldRecommend,
+            serviceQuality: input.serviceQuality,
+            punctuality: input.punctuality,
+            communication: input.communication,
+          },
+        });
+
+        // Mettre à jour les statistiques du prestataire
+        const allReviews = await ctx.db.personalServiceReview.findMany({
+          where: { providerId: booking.providerId },
+        });
+
+        const avgRating =
+          allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+        const recommendationRate =
+          (allReviews.filter((r) => r.wouldRecommend).length /
+            allReviews.length) *
+          100;
+
+        await ctx.db.providerStats.upsert({
+          where: { providerId: booking.providerId },
+          update: {
+            averageRating: avgRating,
+            totalServices: { increment: 1 },
+            recommendationRate,
+          },
+          create: {
+            providerId: booking.providerId,
+            averageRating: avgRating,
+            totalServices: 1,
+            recommendationRate,
+          },
+        });
+
+        return {
+          success: true,
+          data: review,
+          message: "Évaluation enregistrée avec succès",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Réservation non trouvée ou non terminée',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'enregistrement de l'évaluation",
         });
       }
-
-      // Vérifier si déjà noté
-      const existingReview = await ctx.db.personalServiceReview.findFirst({
-        where: {
-          bookingId: input.bookingId,
-          clientId: client.id,
-        },
-      });
-
-      if (existingReview) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Ce service a déjà été noté',
-        });
-      }
-
-      // Créer la notation
-      const review = await ctx.db.personalServiceReview.create({
-        data: {
-          bookingId: input.bookingId,
-          serviceRequestId: booking.serviceRequest.id,
-          clientId: client.id,
-          providerId: booking.providerId,
-          rating: input.rating,
-          comment: input.comment,
-          wouldRecommend: input.wouldRecommend,
-          serviceQuality: input.serviceQuality,
-          punctuality: input.punctuality,
-          communication: input.communication,
-        },
-      });
-
-      // Mettre à jour les statistiques du prestataire
-      const allReviews = await ctx.db.personalServiceReview.findMany({
-        where: { providerId: booking.providerId },
-      });
-
-      const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
-      const recommendationRate =
-        (allReviews.filter(r => r.wouldRecommend).length / allReviews.length) * 100;
-
-      await ctx.db.providerStats.upsert({
-        where: { providerId: booking.providerId },
-        update: {
-          averageRating: avgRating,
-          totalServices: { increment: 1 },
-          recommendationRate,
-        },
-        create: {
-          providerId: booking.providerId,
-          averageRating: avgRating,
-          totalServices: 1,
-          recommendationRate,
-        },
-      });
-
-      return {
-        success: true,
-        data: review,
-        message: 'Évaluation enregistrée avec succès',
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: "Erreur lors de l'enregistrement de l'évaluation",
-      });
-    }
-  }),
+    }),
 
   /**
    * Obtenir les types de services disponibles
@@ -843,36 +850,36 @@ export const clientPersonalServicesRouter = router({
   getAvailableServiceTypes: protectedProcedure.query(async ({ ctx }) => {
     const serviceTypes = [
       {
-        type: 'PERSON_TRANSPORT',
-        name: 'Transport de personnes',
-        description: 'Accompagnement et transport de personnes',
+        type: "PERSON_TRANSPORT",
+        name: "Transport de personnes",
+        description: "Accompagnement et transport de personnes",
         estimatedPrice: { min: 15, max: 50 },
         averageDuration: 60,
       },
       {
-        type: 'SHOPPING_SERVICE',
-        name: 'Service de courses',
-        description: 'Courses et achats pour vous',
+        type: "SHOPPING_SERVICE",
+        name: "Service de courses",
+        description: "Courses et achats pour vous",
         estimatedPrice: { min: 20, max: 80 },
         averageDuration: 90,
       },
       {
-        type: 'PET_SITTING',
+        type: "PET_SITTING",
         name: "Garde d'animaux",
         description: "Garde et promenade d'animaux",
         estimatedPrice: { min: 25, max: 60 },
         averageDuration: 120,
       },
       {
-        type: 'HOME_SERVICE',
-        name: 'Services à domicile',
-        description: 'Petits services et réparations',
+        type: "HOME_SERVICE",
+        name: "Services à domicile",
+        description: "Petits services et réparations",
         estimatedPrice: { min: 30, max: 100 },
         averageDuration: 120,
       },
       {
-        type: 'INTERNATIONAL_PURCHASE',
-        name: 'Achats internationaux',
+        type: "INTERNATIONAL_PURCHASE",
+        name: "Achats internationaux",
         description: "Achats depuis l'étranger",
         estimatedPrice: { min: 50, max: 200 },
         averageDuration: 1440, // 24h
@@ -889,11 +896,11 @@ export const clientPersonalServicesRouter = router({
 // Helper functions
 function getServiceTypeLabel(serviceType: PersonalServiceType): string {
   const labels = {
-    PERSON_TRANSPORT: 'Transport de personnes',
-    SHOPPING_SERVICE: 'Service de courses',
+    PERSON_TRANSPORT: "Transport de personnes",
+    SHOPPING_SERVICE: "Service de courses",
     PET_SITTING: "Garde d'animaux",
-    HOME_SERVICE: 'Services à domicile',
-    INTERNATIONAL_PURCHASE: 'Achats internationaux',
+    HOME_SERVICE: "Services à domicile",
+    INTERNATIONAL_PURCHASE: "Achats internationaux",
   };
 
   return labels[serviceType] || serviceType;

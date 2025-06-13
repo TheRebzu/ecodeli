@@ -1,30 +1,48 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { api } from '@/trpc/react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { DownloadIcon, RefreshCw, FileText, BarChart3, TrendingUp, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { SalesReport } from '@/components/admin/reports/sales-report';
-import { UserActivityReport } from '@/components/admin/reports/user-activity-report';
-import { DeliveryPerformanceReport } from '@/components/admin/reports/delivery-performance-report';
-import { ReportFilters } from '@/components/admin/reports/report-filters';
-import { toast } from 'sonner';
-import { AreaChart, BarChart, LineChart, PieChart } from '@/components/ui/charts';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { api } from "@/trpc/react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DownloadIcon,
+  RefreshCw,
+  FileText,
+  BarChart3,
+  TrendingUp,
+  Calendar,
+} from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { SalesReport } from "@/components/admin/reports/sales-report";
+import { UserActivityReport } from "@/components/admin/reports/user-activity-report";
+import { DeliveryPerformanceReport } from "@/components/admin/reports/delivery-performance-report";
+import { ReportFilters } from "@/components/admin/reports/report-filters";
+import { toast } from "sonner";
+import {
+  AreaChart,
+  BarChart,
+  LineChart,
+  PieChart,
+} from "@/components/ui/charts";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { formatCurrency, generateChartColors } from '@/utils/document-utils';
+} from "@/components/ui/select";
+import { formatCurrency, generateChartColors } from "@/utils/document-utils";
 import {
   Table,
   TableBody,
@@ -32,13 +50,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Info, MapPin } from 'lucide-react';
+} from "@/components/ui/table";
+import { Info, MapPin } from "lucide-react";
 import {
   DeliveryPerformanceReport as DeliveryPerformanceReportType,
   SalesReport as SalesReportType,
   UserActivityReport as UserActivityReportType,
-} from '@/types/administration/reports';
+} from "@/types/administration/reports";
 
 interface ReportDashboardProps {
   salesReport: SalesReportType;
@@ -56,23 +74,23 @@ export function ReportDashboard({
   userActivity,
   dateRange,
 }: ReportDashboardProps) {
-  const t = useTranslations('admin.reports');
+  const t = useTranslations("admin.reports");
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('sales');
-  const [granularity, setGranularity] = useState('day');
+  const [activeTab, setActiveTab] = useState("sales");
+  const [granularity, setGranularity] = useState("day");
   const [filters, setFilters] = useState({
-    startDate: format(new Date(new Date().setDate(1)), 'yyyy-MM-dd'),
-    endDate: format(new Date(), 'yyyy-MM-dd'),
+    startDate: format(new Date(new Date().setDate(1)), "yyyy-MM-dd"),
+    endDate: format(new Date(), "yyyy-MM-dd"),
     comparison: false,
-    categoryFilter: '',
-    userRoleFilter: '',
+    categoryFilter: "",
+    userRoleFilter: "",
   });
 
   // Méthode pour formater les dates pour affichage
   const formatDateRange = () => {
     const startDate = new Date(filters.startDate);
     const endDate = new Date(filters.endDate);
-    return `${format(startDate, 'dd MMM yyyy', { locale: fr })} - ${format(endDate, 'dd MMM yyyy', { locale: fr })}`;
+    return `${format(startDate, "dd MMM yyyy", { locale: fr })} - ${format(endDate, "dd MMM yyyy", { locale: fr })}`;
   };
 
   // Requête pour les données de ventes
@@ -85,8 +103,8 @@ export function ReportDashboard({
       categoryFilter: filters.categoryFilter || undefined,
     },
     {
-      enabled: activeTab === 'sales',
-    }
+      enabled: activeTab === "sales",
+    },
   );
 
   // Requête pour les données d'activité utilisateur
@@ -99,33 +117,34 @@ export function ReportDashboard({
       userRoleFilter: filters.userRoleFilter || undefined,
     },
     {
-      enabled: activeTab === 'user-activity',
-    }
+      enabled: activeTab === "user-activity",
+    },
   );
 
   // Requête pour les données de performance de livraison
-  const deliveryPerformanceQuery = api.adminDashboard.getDeliveryPerformanceReport.useQuery(
-    {
-      startDate: new Date(filters.startDate),
-      endDate: new Date(filters.endDate),
-      granularity: filters.granularity as any,
-      comparison: filters.comparison,
-    },
-    {
-      enabled: activeTab === 'delivery-performance',
-    }
-  );
+  const deliveryPerformanceQuery =
+    api.adminDashboard.getDeliveryPerformanceReport.useQuery(
+      {
+        startDate: new Date(filters.startDate),
+        endDate: new Date(filters.endDate),
+        granularity: filters.granularity as any,
+        comparison: filters.comparison,
+      },
+      {
+        enabled: activeTab === "delivery-performance",
+      },
+    );
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   const handleRefresh = () => {
-    if (activeTab === 'sales') {
+    if (activeTab === "sales") {
       salesQuery.refetch();
-    } else if (activeTab === 'user-activity') {
+    } else if (activeTab === "user-activity") {
       userActivityQuery.refetch();
-    } else if (activeTab === 'delivery-performance') {
+    } else if (activeTab === "delivery-performance") {
       deliveryPerformanceQuery.refetch();
     }
   };
@@ -133,7 +152,9 @@ export function ReportDashboard({
   // Fonction générale d'export
   const handleExport = () => {
     // Proposer les deux options d'export
-    const exportFormat = confirm('Choisissez le format d\'export:\nOK pour PDF, Annuler pour CSV');
+    const exportFormat = confirm(
+      "Choisissez le format d'export:\nOK pour PDF, Annuler pour CSV",
+    );
     if (exportFormat) {
       handleExportPdf();
     } else {
@@ -148,25 +169,25 @@ export function ReportDashboard({
       let reportType;
 
       switch (activeTab) {
-        case 'sales':
+        case "sales":
           data = salesQuery.data;
-          reportType = 'sales';
+          reportType = "sales";
           break;
-        case 'user-activity':
+        case "user-activity":
           data = userActivityQuery.data;
-          reportType = 'user-activity';
+          reportType = "user-activity";
           break;
-        case 'delivery-performance':
+        case "delivery-performance":
           data = deliveryPerformanceQuery.data;
-          reportType = 'delivery';
+          reportType = "delivery";
           break;
         default:
-          throw new Error('Type de rapport non supporté');
+          throw new Error("Type de rapport non supporté");
       }
 
-      const response = await fetch('/api/admin/reports/export-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/reports/export-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reportType,
           data,
@@ -177,19 +198,19 @@ export function ReportDashboard({
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `${reportType}-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+        a.download = `${reportType}-report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast.success('Rapport PDF généré avec succès');
+        toast.success("Rapport PDF généré avec succès");
       } else {
-        throw new Error('Erreur lors de la génération du PDF');
+        throw new Error("Erreur lors de la génération du PDF");
       }
     } catch (error) {
-      console.error('Export PDF error:', error);
+      console.error("Export PDF error:", error);
       toast.error("Erreur lors de l'export PDF");
     }
   };
@@ -201,25 +222,25 @@ export function ReportDashboard({
       let reportType;
 
       switch (activeTab) {
-        case 'sales':
+        case "sales":
           data = salesQuery.data;
-          reportType = 'sales';
+          reportType = "sales";
           break;
-        case 'user-activity':
+        case "user-activity":
           data = userActivityQuery.data;
-          reportType = 'user-activity';
+          reportType = "user-activity";
           break;
-        case 'delivery-performance':
+        case "delivery-performance":
           data = deliveryPerformanceQuery.data;
-          reportType = 'delivery';
+          reportType = "delivery";
           break;
         default:
-          throw new Error('Type de rapport non supporté');
+          throw new Error("Type de rapport non supporté");
       }
 
-      const response = await fetch('/api/admin/reports/export-csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/reports/export-csv", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reportType,
           data,
@@ -230,52 +251,52 @@ export function ReportDashboard({
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `${reportType}-report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+        a.download = `${reportType}-report-${format(new Date(), "yyyy-MM-dd")}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast.success('Rapport CSV généré avec succès');
+        toast.success("Rapport CSV généré avec succès");
       } else {
-        throw new Error('Erreur lors de la génération du CSV');
+        throw new Error("Erreur lors de la génération du CSV");
       }
     } catch (error) {
-      console.error('Export CSV error:', error);
+      console.error("Export CSV error:", error);
       toast.error("Erreur lors de l'export CSV");
     }
   };
 
   // Préparer les données pour le graphique de ventes
   const salesChartData =
-    salesReport?.timeSeriesData?.map(item => ({
+    salesReport?.timeSeriesData?.map((item) => ({
       name: item.period,
       value: item.value,
     })) || [];
 
   const prevSalesChartData =
-    salesReport?.comparisonTimeSeriesData?.map(item => ({
+    salesReport?.comparisonTimeSeriesData?.map((item) => ({
       name: item.period,
       value: item.value,
     })) || [];
 
   // Préparer les données pour le graphique de performance de livraison
   const deliveryRateData =
-    deliveryPerformance?.onTimeDeliveryRate?.map(item => ({
+    deliveryPerformance?.onTimeDeliveryRate?.map((item) => ({
       name: item.period,
       rate: item.rate,
     })) || [];
 
   // Préparer les données pour le graphique d'activité utilisateur
   const userSignupsData =
-    userActivity?.signupsTimeSeriesData?.map(item => ({
+    userActivity?.signupsTimeSeriesData?.map((item) => ({
       name: item.period,
       value: item.value,
     })) || [];
 
   const userLoginsData =
-    userActivity?.loginsTimeSeriesData?.map(item => ({
+    userActivity?.loginsTimeSeriesData?.map((item) => ({
       name: item.period,
       value: item.value,
     })) || [];
@@ -306,11 +327,11 @@ export function ReportDashboard({
         <div className="flex gap-2">
           <Button onClick={handleRefresh} variant="outline" size="sm">
             <RefreshCw className="mr-2 h-4 w-4" />
-            {t('refresh')}
+            {t("refresh")}
           </Button>
           <Button onClick={handleExport} variant="outline" size="sm">
             <DownloadIcon className="mr-2 h-4 w-4" />
-            {t('export')}
+            {t("export")}
           </Button>
         </div>
       </div>
@@ -318,22 +339,29 @@ export function ReportDashboard({
       {/* Filtres de rapport */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle>{t('filters.title')}</CardTitle>
-          <CardDescription>{t('filters.description')}</CardDescription>
+          <CardTitle>{t("filters.title")}</CardTitle>
+          <CardDescription>{t("filters.description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <ReportFilters filters={filters} onFilterChange={handleFilterChange} />
+          <ReportFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+          />
         </CardContent>
       </Card>
 
       {/* Onglets de rapports */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('reportsTitle')}</CardTitle>
-          <CardDescription>{t('reportsDescription')}</CardDescription>
+          <CardTitle>{t("reportsTitle")}</CardTitle>
+          <CardDescription>{t("reportsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <Tabs
+            defaultValue={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-4"
+          >
             <div className="flex justify-between items-center">
               <TabsList>
                 <TabsTrigger value="sales">Ventes</TabsTrigger>
@@ -359,25 +387,30 @@ export function ReportDashboard({
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Chiffre d'affaires</CardTitle>
-                    <CardDescription>Période actuelle vs précédente</CardDescription>
+                    <CardTitle className="text-sm font-medium">
+                      Chiffre d'affaires
+                    </CardTitle>
+                    <CardDescription>
+                      Période actuelle vs précédente
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
                       {formatCurrency(salesReport.summary.totalSales)}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {salesReport.summary.percentChange > 0 ? '+' : ''}
-                      {salesReport.summary.percentChange.toFixed(1)}% vs période précédente
+                      {salesReport.summary.percentChange > 0 ? "+" : ""}
+                      {salesReport.summary.percentChange.toFixed(1)}% vs période
+                      précédente
                     </p>
                     <div className="h-[200px] mt-4">
                       <LineChart
                         data={salesChartData}
                         comparisonData={prevSalesChartData}
-                        categories={['value']}
+                        categories={["value"]}
                         index="name"
-                        colors={['#22c55e', '#94a3b8']}
-                        valueFormatter={value => formatCurrency(value)}
+                        colors={["#22c55e", "#94a3b8"]}
+                        valueFormatter={(value) => formatCurrency(value)}
                         showLegend={true}
                         showGridLines={false}
                         showYAxis={true}
@@ -390,7 +423,9 @@ export function ReportDashboard({
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Répartition des ventes</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Répartition des ventes
+                    </CardTitle>
                     <CardDescription>Par catégorie de service</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -399,7 +434,7 @@ export function ReportDashboard({
                         data={pieChartData}
                         category="value"
                         index="name"
-                        valueFormatter={value => formatCurrency(value)}
+                        valueFormatter={(value) => formatCurrency(value)}
                         colors={categoryColors}
                       />
                     </div>
@@ -414,9 +449,13 @@ export function ReportDashboard({
                               className="w-3 h-3 rounded-full mr-2"
                               style={{ backgroundColor: categoryColors[index] }}
                             ></div>
-                            <span className="truncate max-w-[150px]">{category.name}</span>
+                            <span className="truncate max-w-[150px]">
+                              {category.name}
+                            </span>
                           </div>
-                          <span className="font-medium">{formatCurrency(category.value)}</span>
+                          <span className="font-medium">
+                            {formatCurrency(category.value)}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -425,31 +464,41 @@ export function ReportDashboard({
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Indicateurs clés</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Indicateurs clés
+                    </CardTitle>
                     <CardDescription>Résumé des performances</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Nombre de factures</p>
+                          <p className="text-sm text-muted-foreground">
+                            Nombre de factures
+                          </p>
                           <p className="text-xl font-bold">
                             {salesReport.summary.numberOfInvoices}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-muted-foreground">Valeur moyenne</p>
+                          <p className="text-sm text-muted-foreground">
+                            Valeur moyenne
+                          </p>
                           <p className="text-xl font-bold">
-                            {formatCurrency(salesReport.summary.averageOrderValue)}
+                            {formatCurrency(
+                              salesReport.summary.averageOrderValue,
+                            )}
                           </p>
                         </div>
                       </div>
 
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">Croissance des ventes</p>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Croissance des ventes
+                        </p>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                           <div
-                            className={`h-full ${salesReport.summary.percentChange > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                            className={`h-full ${salesReport.summary.percentChange > 0 ? "bg-green-500" : "bg-red-500"}`}
                             style={{
                               width: `${Math.min(100, Math.abs(salesReport.summary.percentChange))}%`,
                             }}
@@ -463,7 +512,9 @@ export function ReportDashboard({
                       </div>
 
                       <div className="pt-2 border-t">
-                        <p className="text-sm text-muted-foreground mb-2">Tendance mensuelle</p>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Tendance mensuelle
+                        </p>
                         <div className="flex justify-between items-end h-16">
                           {salesChartData.slice(-6).map((item, i) => (
                             <div key={i} className="flex flex-col items-center">
@@ -471,10 +522,12 @@ export function ReportDashboard({
                                 className="w-6 bg-primary rounded-sm"
                                 style={{
                                   height: `${(item.value / salesReport.summary.totalSales) * 100}%`,
-                                  minHeight: '4px',
+                                  minHeight: "4px",
                                 }}
                               ></div>
-                              <span className="text-xs mt-1">{item.name.slice(-2)}</span>
+                              <span className="text-xs mt-1">
+                                {item.name.slice(-2)}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -489,25 +542,34 @@ export function ReportDashboard({
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Taux de livraison à temps</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Taux de livraison à temps
+                    </CardTitle>
                     <CardDescription>Évolution sur la période</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {Math.round(deliveryPerformance.performanceSummary.onTimePercentage)}%
+                      {Math.round(
+                        deliveryPerformance.performanceSummary.onTimePercentage,
+                      )}
+                      %
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {deliveryPerformance.performanceSummary.percentChange > 0 ? '+' : ''}
-                      {deliveryPerformance.performanceSummary.percentChange.toFixed(1)}% vs période
-                      précédente
+                      {deliveryPerformance.performanceSummary.percentChange > 0
+                        ? "+"
+                        : ""}
+                      {deliveryPerformance.performanceSummary.percentChange.toFixed(
+                        1,
+                      )}
+                      % vs période précédente
                     </p>
                     <div className="h-[200px] mt-4">
                       <AreaChart
                         data={deliveryRateData}
-                        categories={['rate']}
+                        categories={["rate"]}
                         index="name"
-                        colors={['#3b82f6']}
-                        valueFormatter={value => `${Math.round(value)}%`}
+                        colors={["#3b82f6"]}
+                        valueFormatter={(value) => `${Math.round(value)}%`}
                         showLegend={false}
                         showGridLines={false}
                         startEndOnly={true}
@@ -518,17 +580,19 @@ export function ReportDashboard({
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Temps moyen par zone</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Temps moyen par zone
+                    </CardTitle>
                     <CardDescription>En minutes</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[200px]">
                       <BarChart
                         data={timesByZone}
-                        categories={['averageTime']}
+                        categories={["averageTime"]}
                         index="zone"
-                        colors={timesByZone.map(zone => zone.color)}
-                        valueFormatter={value => `${Math.round(value)} min`}
+                        colors={timesByZone.map((zone) => zone.color)}
+                        valueFormatter={(value) => `${Math.round(value)} min`}
                         layout="vertical"
                         showLegend={false}
                       />
@@ -539,11 +603,13 @@ export function ReportDashboard({
                           <TableRow>
                             <TableHead className="w-[100px]">Zone</TableHead>
                             <TableHead>Temps moyen</TableHead>
-                            <TableHead className="text-right">Performance</TableHead>
+                            <TableHead className="text-right">
+                              Performance
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {timesByZone.slice(0, 4).map(zone => (
+                          {timesByZone.slice(0, 4).map((zone) => (
                             <TableRow key={zone.zone}>
                               <TableCell className="font-medium">
                                 <div className="flex items-center gap-2">
@@ -551,16 +617,24 @@ export function ReportDashboard({
                                   {zone.zone}
                                 </div>
                               </TableCell>
-                              <TableCell>{Math.round(zone.averageTime)} min</TableCell>
+                              <TableCell>
+                                {Math.round(zone.averageTime)} min
+                              </TableCell>
                               <TableCell className="text-right">
-                                <Badge variant={zone.averageTime < 45 ? 'success' : 'destructive'}>
+                                <Badge
+                                  variant={
+                                    zone.averageTime < 45
+                                      ? "success"
+                                      : "destructive"
+                                  }
+                                >
                                   {zone.averageTime < 30
-                                    ? 'Excellent'
+                                    ? "Excellent"
                                     : zone.averageTime < 45
-                                      ? 'Bon'
+                                      ? "Bon"
                                       : zone.averageTime < 60
-                                        ? 'Moyen'
-                                        : 'Lent'}
+                                        ? "Moyen"
+                                        : "Lent"}
                                 </Badge>
                               </TableCell>
                             </TableRow>
@@ -573,7 +647,9 @@ export function ReportDashboard({
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Problèmes principaux</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Problèmes principaux
+                    </CardTitle>
                     <CardDescription>Types d'incidents</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -583,14 +659,16 @@ export function ReportDashboard({
                           data={deliveryPerformance.deliveryIssues}
                           category="percentage"
                           index="issueType"
-                          valueFormatter={value => `${Math.round(value)}%`}
-                          colors={deliveryPerformance.deliveryIssues.map(issue => issue.color)}
+                          valueFormatter={(value) => `${Math.round(value)}%`}
+                          colors={deliveryPerformance.deliveryIssues.map(
+                            (issue) => issue.color,
+                          )}
                         />
                       )}
                     </div>
                     <div className="mt-4">
                       {deliveryPerformance.deliveryIssues &&
-                        deliveryPerformance.deliveryIssues.map(issue => (
+                        deliveryPerformance.deliveryIssues.map((issue) => (
                           <div
                             key={issue.issueType}
                             className="flex justify-between items-center text-sm mb-2"
@@ -606,7 +684,9 @@ export function ReportDashboard({
                               <span className="text-xs text-muted-foreground">
                                 {issue.count} cas
                               </span>
-                              <Badge variant="outline">{Math.round(issue.percentage)}%</Badge>
+                              <Badge variant="outline">
+                                {Math.round(issue.percentage)}%
+                              </Badge>
                             </div>
                           </div>
                         ))}
@@ -617,13 +697,17 @@ export function ReportDashboard({
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Livraisons par statut</CardTitle>
-                  <CardDescription>Répartition des livraisons sur la période</CardDescription>
+                  <CardTitle className="text-sm font-medium">
+                    Livraisons par statut
+                  </CardTitle>
+                  <CardDescription>
+                    Répartition des livraisons sur la période
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {deliveryPerformance.deliveriesByStatus &&
-                      deliveryPerformance.deliveriesByStatus.map(status => (
+                      deliveryPerformance.deliveriesByStatus.map((status) => (
                         <Card key={status.status} className="bg-muted/40">
                           <CardContent className="p-4">
                             <div
@@ -631,14 +715,17 @@ export function ReportDashboard({
                               style={{ backgroundColor: status.color }}
                             ></div>
                             <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium">{status.status}</span>
+                              <span className="text-sm font-medium">
+                                {status.status}
+                              </span>
                               <Badge variant="outline">{status.count}</Badge>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
                               {Math.round(
                                 (status.count /
-                                  deliveryPerformance.performanceSummary.totalDeliveries) *
-                                  100
+                                  deliveryPerformance.performanceSummary
+                                    .totalDeliveries) *
+                                  100,
                               )}
                               % du total
                             </p>
@@ -654,26 +741,33 @@ export function ReportDashboard({
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Nouvelles inscriptions</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Nouvelles inscriptions
+                    </CardTitle>
                     <CardDescription>Évolution sur la période</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{userActivity.summary.totalSignups}</div>
+                    <div className="text-2xl font-bold">
+                      {userActivity.summary.totalSignups}
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      {userActivity.summary.signupsPercentChange > 0 ? '+' : ''}
-                      {userActivity.summary.signupsPercentChange.toFixed(1)}% vs période précédente
+                      {userActivity.summary.signupsPercentChange > 0 ? "+" : ""}
+                      {userActivity.summary.signupsPercentChange.toFixed(1)}% vs
+                      période précédente
                     </p>
                     <div className="h-[200px] mt-4">
                       <LineChart
                         data={userSignupsData}
-                        comparisonData={userActivity.comparisonSignupsData?.map(item => ({
-                          name: item.period,
-                          value: item.value,
-                        }))}
-                        categories={['value']}
+                        comparisonData={userActivity.comparisonSignupsData?.map(
+                          (item) => ({
+                            name: item.period,
+                            value: item.value,
+                          }),
+                        )}
+                        categories={["value"]}
                         index="name"
-                        colors={['#8b5cf6', '#94a3b8']}
-                        valueFormatter={value => `${value}`}
+                        colors={["#8b5cf6", "#94a3b8"]}
+                        valueFormatter={(value) => `${value}`}
                         showLegend={true}
                         showGridLines={false}
                         showYAxis={true}
@@ -686,21 +780,26 @@ export function ReportDashboard({
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Connexions utilisateurs</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Connexions utilisateurs
+                    </CardTitle>
                     <CardDescription>Activité quotidienne</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{userActivity.summary.totalLogins}</div>
+                    <div className="text-2xl font-bold">
+                      {userActivity.summary.totalLogins}
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      {userActivity.summary.uniqueLogins} utilisateurs uniques actifs
+                      {userActivity.summary.uniqueLogins} utilisateurs uniques
+                      actifs
                     </p>
                     <div className="h-[200px] mt-4">
                       <AreaChart
                         data={userLoginsData}
-                        categories={['value']}
+                        categories={["value"]}
                         index="name"
-                        colors={['#ec4899']}
-                        valueFormatter={value => `${value}`}
+                        colors={["#ec4899"]}
+                        valueFormatter={(value) => `${value}`}
                         showLegend={false}
                         showGridLines={false}
                         startEndOnly={true}
@@ -712,8 +811,12 @@ export function ReportDashboard({
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Répartition par rôle</CardTitle>
-                  <CardDescription>Utilisateurs inscrits sur la période</CardDescription>
+                  <CardTitle className="text-sm font-medium">
+                    Répartition par rôle
+                  </CardTitle>
+                  <CardDescription>
+                    Utilisateurs inscrits sur la période
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-5">
@@ -734,8 +837,11 @@ export function ReportDashboard({
                             />
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {Math.round((role.count / userActivity.summary.totalSignups) * 100)}% du
-                            total
+                            {Math.round(
+                              (role.count / userActivity.summary.totalSignups) *
+                                100,
+                            )}
+                            % du total
                           </p>
                         </CardContent>
                       </Card>

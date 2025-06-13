@@ -10,7 +10,7 @@ export interface TransportService {
   availableServices: TransportServiceType[];
 }
 
-export type VehicleType = 'CAR' | 'VAN' | 'TRUCK' | 'MOTORCYCLE' | 'BICYCLE';
+export type VehicleType = "CAR" | "VAN" | "TRUCK" | "MOTORCYCLE" | "BICYCLE";
 
 export interface VehicleCapacity {
   passengers: number;
@@ -28,12 +28,12 @@ export interface TransportRoute {
   price: number;
 }
 
-export type TransportServiceType = 
-  | 'POINT_TO_POINT'
-  | 'DELIVERY'
-  | 'MOVING'
-  | 'AIRPORT_TRANSFER'
-  | 'CITY_TOUR';
+export type TransportServiceType =
+  | "POINT_TO_POINT"
+  | "DELIVERY"
+  | "MOVING"
+  | "AIRPORT_TRANSFER"
+  | "CITY_TOUR";
 
 export interface Location {
   address: string;
@@ -41,5 +41,5 @@ export interface Location {
     lat: number;
     lng: number;
   };
-  type: 'RESIDENTIAL' | 'COMMERCIAL' | 'TRANSPORT_HUB' | 'OTHER';
+  type: "RESIDENTIAL" | "COMMERCIAL" | "TRANSPORT_HUB" | "OTHER";
 }

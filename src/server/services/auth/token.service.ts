@@ -1,7 +1,7 @@
-import { db } from '@/server/db';
-import { randomBytes, createHash } from 'crypto';
-import { TRPCError } from '@trpc/server';
-import { PrismaClient } from '@prisma/client';
+import { db } from "@/server/db";
+import { randomBytes, createHash } from "crypto";
+import { TRPCError } from "@trpc/server";
+import { PrismaClient } from "@prisma/client";
 
 /**
  * Service pour la gestion des tokens (vérification email, réinitialisation mot de passe)
@@ -63,14 +63,17 @@ export class TokenService {
   async verifyToken(token: string): Promise<string> {
     const hashedToken = this.hashToken(token);
 
-    console.log('DEBUG: Token à vérifier (clair):', token);
-    console.log('DEBUG: Token haché pour recherche:', hashedToken);
+    console.log("DEBUG: Token à vérifier (clair):", token);
+    console.log("DEBUG: Token haché pour recherche:", hashedToken);
 
     const verificationToken = await this.db.verificationToken.findFirst({
       where: { token: hashedToken },
     });
 
-    console.log('DEBUG: Token trouvé dans la BD:', verificationToken ? 'OUI' : 'NON');
+    console.log(
+      "DEBUG: Token trouvé dans la BD:",
+      verificationToken ? "OUI" : "NON",
+    );
 
     if (!verificationToken) {
       // En cas d'échec, essayer de trouver tous les tokens disponibles pour débogage
@@ -80,25 +83,28 @@ export class TokenService {
       });
 
       console.log(
-        'DEBUG: Tokens disponibles dans la BD:',
-        allTokens.map(t => ({
-          token: t.token.substring(0, 10) + '...',
+        "DEBUG: Tokens disponibles dans la BD:",
+        allTokens.map((t) => ({
+          token: t.token.substring(0, 10) + "...",
           expires: t.expires,
           type: t.type,
-        }))
+        })),
       );
 
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Token invalide',
+        code: "BAD_REQUEST",
+        message: "Token invalide",
       });
     }
 
     if (verificationToken.expires < new Date()) {
-      console.log('DEBUG: Token expiré, expirait le:', verificationToken.expires);
+      console.log(
+        "DEBUG: Token expiré, expirait le:",
+        verificationToken.expires,
+      );
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Token expiré',
+        code: "BAD_REQUEST",
+        message: "Token expiré",
       });
     }
 
@@ -120,13 +126,13 @@ export class TokenService {
    * Génère un token aléatoire
    */
   private generateToken(): string {
-    return randomBytes(32).toString('hex');
+    return randomBytes(32).toString("hex");
   }
 
   /**
    * Transforme un token en sa version hashée pour le stockage
    */
   private hashToken(token: string): string {
-    return createHash('sha256').update(token).digest('hex');
+    return createHash("sha256").update(token).digest("hex");
   }
 }

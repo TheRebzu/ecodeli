@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export * from './announcement';
-export * from './client-announcement';
-export * from './deliverer-response';
-export * from './matching';
-export * from './merchant-announcement';
-export * from './status';
+export * from "./announcement";
+export * from "./client-announcement";
+export * from "./deliverer-response";
+export * from "./matching";
+export * from "./merchant-announcement";
+export * from "./status";

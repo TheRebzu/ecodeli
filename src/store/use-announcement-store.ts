@@ -1,15 +1,19 @@
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-import { api } from '@/trpc/react';
-import type { Announcement, AnnouncementStatus, DelivererApplication } from '@prisma/client';
-import { toast } from 'sonner';
+import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
+import { api } from "@/trpc/react";
+import type {
+  Announcement,
+  AnnouncementStatus,
+  DelivererApplication,
+} from "@prisma/client";
+import { toast } from "sonner";
 import {
   CreateAnnouncementInput,
   UpdateAnnouncementInput,
   AnnouncementFilterInput,
   CreateAnnouncementApplicationInput,
-} from '@/schemas/delivery/announcement.schema';
+} from "@/schemas/delivery/announcement.schema";
 
 // Types pour le store
 export type AnnouncementWithDetails = Announcement & {
@@ -43,8 +47,8 @@ type AnnouncementFilters = {
     longitude: number;
     radius: number;
   };
-  sortBy?: 'date' | 'price' | 'distance' | 'rating';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "date" | "price" | "distance" | "rating";
+  sortOrder?: "asc" | "desc";
 };
 
 type AnnouncementState = {
@@ -78,33 +82,49 @@ type AnnouncementState = {
 
 type AnnouncementActions = {
   // Actions de chargement de données
-  fetchAnnouncements: (filters?: AnnouncementFilterInput, reset?: boolean) => Promise<void>;
+  fetchAnnouncements: (
+    filters?: AnnouncementFilterInput,
+    reset?: boolean,
+  ) => Promise<void>;
   fetchMoreAnnouncements: () => Promise<void>;
   fetchAnnouncementById: (id: string) => Promise<void>;
   refreshCurrentAnnouncement: () => Promise<void>;
 
   // Actions de gestion des annonces
   createAnnouncement: (data: CreateAnnouncementInput) => Promise<string | null>;
-  updateAnnouncement: (id: string, data: UpdateAnnouncementInput) => Promise<boolean>;
+  updateAnnouncement: (
+    id: string,
+    data: UpdateAnnouncementInput,
+  ) => Promise<boolean>;
   deleteAnnouncement: (id: string) => Promise<boolean>;
 
   // Actions de statut
   cancelAnnouncement: (id: string, reason: string) => Promise<boolean>;
   publishAnnouncement: (id: string) => Promise<boolean>;
-  assignDeliverer: (announcementId: string, applicationId: string) => Promise<boolean>;
-  confirmDelivery: (announcementId: string, rating?: number, feedback?: string) => Promise<boolean>;
+  assignDeliverer: (
+    announcementId: string,
+    applicationId: string,
+  ) => Promise<boolean>;
+  confirmDelivery: (
+    announcementId: string,
+    rating?: number,
+    feedback?: string,
+  ) => Promise<boolean>;
   reportProblem: (
     announcementId: string,
     problemType: string,
-    description: string
+    description: string,
   ) => Promise<boolean>;
 
   // Actions pour les livreurs
   applyForAnnouncement: (
     announcementId: string,
-    data: CreateAnnouncementApplicationInput
+    data: CreateAnnouncementApplicationInput,
   ) => Promise<boolean>;
-  withdrawApplication: (announcementId: string, applicationId: string) => Promise<boolean>;
+  withdrawApplication: (
+    announcementId: string,
+    applicationId: string,
+  ) => Promise<boolean>;
 
   // Gestion des favoris
   toggleFavorite: (announcementId: string) => void;
@@ -160,7 +180,8 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               !reset &&
               currentState.lastFetched &&
               now - currentState.lastFetched < CACHE_DURATION &&
-              JSON.stringify(currentState.filters) === JSON.stringify(filters) &&
+              JSON.stringify(currentState.filters) ===
+                JSON.stringify(filters) &&
               currentState.announcements.length > 0
             ) {
               return;
@@ -169,7 +190,9 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
             set({ isLoading: true, error: null });
 
             const newPage = reset ? 1 : currentState.page;
-            const mergedFilters = reset ? { ...filters } : { ...currentState.filters, ...filters };
+            const mergedFilters = reset
+              ? { ...filters }
+              : { ...currentState.filters, ...filters };
 
             const result = await api.announcement.getAnnouncements.query({
               ...mergedFilters,
@@ -177,7 +200,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               limit: currentState.limit,
             });
 
-            set(state => {
+            set((state) => {
               state.isLoading = false;
               state.announcements = reset
                 ? result.items
@@ -189,7 +212,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               state.lastFetched = now;
 
               // Marquer les favoris
-              state.announcements = state.announcements.map(ann => ({
+              state.announcements = state.announcements.map((ann) => ({
                 ...ann,
                 isFavorite: state.favorites.includes(ann.id),
               }));
@@ -198,9 +221,11 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
             set({
               isLoading: false,
               error:
-                error instanceof Error ? error.message : 'Erreur lors du chargement des annonces',
+                error instanceof Error
+                  ? error.message
+                  : "Erreur lors du chargement des annonces",
             });
-            toast.error('Impossible de charger les annonces');
+            toast.error("Impossible de charger les annonces");
           }
         },
 
@@ -208,14 +233,14 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
           const { isLoading, hasMore, page } = get();
           if (isLoading || !hasMore) return;
 
-          set(state => {
+          set((state) => {
             state.page = page + 1;
           });
 
           await get().fetchAnnouncements();
         },
 
-        fetchAnnouncementById: async id => {
+        fetchAnnouncementById: async (id) => {
           try {
             const currentState = get();
             // Vérifier si nous avons des données récentes pour cette annonce
@@ -223,15 +248,20 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
             const lastUpdated = currentState.lastDetailsUpdated[id] || 0;
 
             // Si l'annonce est déjà chargée et les données sont récentes, utiliser le cache
-            if (currentState.currentAnnouncement?.id === id && now - lastUpdated < CACHE_DURATION) {
+            if (
+              currentState.currentAnnouncement?.id === id &&
+              now - lastUpdated < CACHE_DURATION
+            ) {
               return;
             }
 
             set({ isLoadingDetails: true, error: null });
 
-            const result = await api.announcement.getAnnouncementById.query({ id });
+            const result = await api.announcement.getAnnouncementById.query({
+              id,
+            });
 
-            set(state => {
+            set((state) => {
               state.isLoadingDetails = false;
               state.currentAnnouncement = {
                 ...result,
@@ -243,7 +273,9 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
             set({
               isLoadingDetails: false,
               error:
-                error instanceof Error ? error.message : "Erreur lors du chargement de l'annonce",
+                error instanceof Error
+                  ? error.message
+                  : "Erreur lors du chargement de l'annonce",
             });
             toast.error("Impossible de charger les détails de l'annonce");
           }
@@ -257,13 +289,14 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
         },
 
         // Actions de gestion des annonces
-        createAnnouncement: async data => {
+        createAnnouncement: async (data) => {
           try {
             set({ isCreating: true, error: null });
 
-            const result = await api.announcement.createAnnouncement.mutate(data);
+            const result =
+              await api.announcement.createAnnouncement.mutate(data);
 
-            set(state => {
+            set((state) => {
               state.isCreating = false;
               // Ajouter l'annonce créée à la liste si elle existe déjà
               if (state.announcements.length > 0) {
@@ -271,13 +304,15 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               }
             });
 
-            toast.success('Annonce créée avec succès');
+            toast.success("Annonce créée avec succès");
             return result.id;
           } catch (error) {
             set({
               isCreating: false,
               error:
-                error instanceof Error ? error.message : "Erreur lors de la création de l'annonce",
+                error instanceof Error
+                  ? error.message
+                  : "Erreur lors de la création de l'annonce",
             });
             toast.error("Impossible de créer l'annonce");
             return null;
@@ -293,22 +328,25 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               ...data,
             });
 
-            set(state => {
+            set((state) => {
               state.isUpdating = false;
 
               // Mettre à jour l'annonce dans la liste
-              state.announcements = state.announcements.map(ann =>
-                ann.id === id ? { ...ann, ...result } : ann
+              state.announcements = state.announcements.map((ann) =>
+                ann.id === id ? { ...ann, ...result } : ann,
               );
 
               // Mettre à jour l'annonce courante si c'est celle-ci
               if (state.currentAnnouncement?.id === id) {
-                state.currentAnnouncement = { ...state.currentAnnouncement, ...result };
+                state.currentAnnouncement = {
+                  ...state.currentAnnouncement,
+                  ...result,
+                };
                 state.lastDetailsUpdated[id] = Date.now();
               }
             });
 
-            toast.success('Annonce mise à jour avec succès');
+            toast.success("Annonce mise à jour avec succès");
             return true;
           } catch (error) {
             set({
@@ -323,17 +361,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
           }
         },
 
-        deleteAnnouncement: async id => {
+        deleteAnnouncement: async (id) => {
           try {
             set({ isDeleting: true, error: null });
 
             await api.announcement.deleteAnnouncement.mutate({ id });
 
-            set(state => {
+            set((state) => {
               state.isDeleting = false;
 
               // Supprimer l'annonce de la liste
-              state.announcements = state.announcements.filter(ann => ann.id !== id);
+              state.announcements = state.announcements.filter(
+                (ann) => ann.id !== id,
+              );
 
               // Réinitialiser l'annonce courante si c'est celle-ci
               if (state.currentAnnouncement?.id === id) {
@@ -341,10 +381,10 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               }
 
               // Supprimer des favoris si présente
-              state.favorites = state.favorites.filter(favId => favId !== id);
+              state.favorites = state.favorites.filter((favId) => favId !== id);
             });
 
-            toast.success('Annonce supprimée avec succès');
+            toast.success("Annonce supprimée avec succès");
             return true;
           } catch (error) {
             set({
@@ -369,63 +409,69 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               reason,
             });
 
-            set(state => {
+            set((state) => {
               state.isUpdating = false;
 
               // Mettre à jour le statut dans la liste
-              state.announcements = state.announcements.map(ann =>
-                ann.id === id ? { ...ann, status: 'CANCELLED', cancelReason: reason } : ann
+              state.announcements = state.announcements.map((ann) =>
+                ann.id === id
+                  ? { ...ann, status: "CANCELLED", cancelReason: reason }
+                  : ann,
               );
 
               // Mettre à jour l'annonce courante si c'est celle-ci
               if (state.currentAnnouncement?.id === id) {
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
-                  status: 'CANCELLED',
+                  status: "CANCELLED",
                   cancelReason: reason,
                 };
                 state.lastDetailsUpdated[id] = Date.now();
               }
             });
 
-            toast.success('Annonce annulée avec succès');
+            toast.success("Annonce annulée avec succès");
             return true;
           } catch (error) {
             set({
               isUpdating: false,
               error:
-                error instanceof Error ? error.message : "Erreur lors de l'annulation de l'annonce",
+                error instanceof Error
+                  ? error.message
+                  : "Erreur lors de l'annulation de l'annonce",
             });
             toast.error("Impossible d'annuler l'annonce");
             return false;
           }
         },
 
-        publishAnnouncement: async id => {
+        publishAnnouncement: async (id) => {
           try {
             set({ isUpdating: true, error: null });
 
-            const result = await api.announcement.publishAnnouncement.mutate({ id });
+            const result = await api.announcement.publishAnnouncement.mutate({
+              id,
+            });
 
-            set(state => {
+            set((state) => {
               state.isUpdating = false;
 
               // Mettre à jour le statut dans la liste
-              state.announcements = state.announcements.map(ann =>
-                ann.id === id ? { ...ann, status: 'PUBLISHED' } : ann
+              state.announcements = state.announcements.map((ann) =>
+                ann.id === id ? { ...ann, status: "PUBLISHED" } : ann,
               );
 
               // Mettre à jour l'annonce courante si c'est celle-ci
               if (state.currentAnnouncement?.id === id) {
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
-                  status: 'PUBLISHED',
+                  status: "PUBLISHED",
                 };
                 state.lastDetailsUpdated[id] = Date.now();
               }
             });
 
-            toast.success('Annonce publiée avec succès');
+            toast.success("Annonce publiée avec succès");
             return true;
           } catch (error) {
             set({
@@ -449,48 +495,54 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               applicationId,
             });
 
-            set(state => {
+            set((state) => {
               state.isUpdating = false;
 
               // Trouver les détails de l'application sélectionnée
-              const selectedApplication = state.currentAnnouncement?.applications?.find(
-                app => app.id === applicationId
-              );
+              const selectedApplication =
+                state.currentAnnouncement?.applications?.find(
+                  (app) => app.id === applicationId,
+                );
 
               // Mettre à jour le statut et le livreur dans la liste
-              state.announcements = state.announcements.map(ann =>
+              state.announcements = state.announcements.map((ann) =>
                 ann.id === announcementId
                   ? {
                       ...ann,
-                      status: 'ASSIGNED',
+                      status: "ASSIGNED",
                       delivererId: selectedApplication?.delivererId,
                     }
-                  : ann
+                  : ann,
               );
 
               // Mettre à jour l'annonce courante si c'est celle-ci
               if (state.currentAnnouncement?.id === announcementId) {
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
-                  status: 'ASSIGNED',
+                  status: "ASSIGNED",
                   delivererId: selectedApplication?.delivererId,
                   // Mettre à jour les applications pour montrer celle qui a été acceptée
-                  applications: state.currentAnnouncement.applications?.map(app => ({
-                    ...app,
-                    status: app.id === applicationId ? 'ACCEPTED' : 'REJECTED',
-                  })),
+                  applications: state.currentAnnouncement.applications?.map(
+                    (app) => ({
+                      ...app,
+                      status:
+                        app.id === applicationId ? "ACCEPTED" : "REJECTED",
+                    }),
+                  ),
                 };
                 state.lastDetailsUpdated[announcementId] = Date.now();
               }
             });
 
-            toast.success('Livreur assigné avec succès');
+            toast.success("Livreur assigné avec succès");
             return true;
           } catch (error) {
             set({
               isUpdating: false,
               error:
-                error instanceof Error ? error.message : "Erreur lors de l'assignation du livreur",
+                error instanceof Error
+                  ? error.message
+                  : "Erreur lors de l'assignation du livreur",
             });
             toast.error("Impossible d'assigner le livreur");
             return false;
@@ -507,26 +559,28 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               feedback,
             });
 
-            set(state => {
+            set((state) => {
               state.isUpdating = false;
 
               // Mettre à jour le statut dans la liste
-              state.announcements = state.announcements.map(ann =>
-                ann.id === announcementId ? { ...ann, status: 'COMPLETED' } : ann
+              state.announcements = state.announcements.map((ann) =>
+                ann.id === announcementId
+                  ? { ...ann, status: "COMPLETED" }
+                  : ann,
               );
 
               // Mettre à jour l'annonce courante si c'est celle-ci
               if (state.currentAnnouncement?.id === announcementId) {
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
-                  status: 'COMPLETED',
+                  status: "COMPLETED",
                   completedAt: new Date(),
                 };
                 state.lastDetailsUpdated[announcementId] = Date.now();
               }
             });
 
-            toast.success('Livraison confirmée avec succès');
+            toast.success("Livraison confirmée avec succès");
             return true;
           } catch (error) {
             set({
@@ -534,9 +588,9 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               error:
                 error instanceof Error
                   ? error.message
-                  : 'Erreur lors de la confirmation de livraison',
+                  : "Erreur lors de la confirmation de livraison",
             });
-            toast.error('Impossible de confirmer la livraison');
+            toast.error("Impossible de confirmer la livraison");
             return false;
           }
         },
@@ -551,33 +605,35 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               description,
             });
 
-            set(state => {
+            set((state) => {
               state.isUpdating = false;
 
               // Mettre à jour le statut dans la liste
-              state.announcements = state.announcements.map(ann =>
-                ann.id === announcementId ? { ...ann, status: 'PROBLEM' } : ann
+              state.announcements = state.announcements.map((ann) =>
+                ann.id === announcementId ? { ...ann, status: "PROBLEM" } : ann,
               );
 
               // Mettre à jour l'annonce courante si c'est celle-ci
               if (state.currentAnnouncement?.id === announcementId) {
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
-                  status: 'PROBLEM',
+                  status: "PROBLEM",
                 };
                 state.lastDetailsUpdated[announcementId] = Date.now();
               }
             });
 
-            toast.success('Problème signalé avec succès');
+            toast.success("Problème signalé avec succès");
             return true;
           } catch (error) {
             set({
               isUpdating: false,
               error:
-                error instanceof Error ? error.message : 'Erreur lors du signalement de problème',
+                error instanceof Error
+                  ? error.message
+                  : "Erreur lors du signalement de problème",
             });
-            toast.error('Impossible de signaler le problème');
+            toast.error("Impossible de signaler le problème");
             return false;
           }
         },
@@ -587,17 +643,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
           try {
             set({ isApplying: true, error: null });
 
-            const application = await api.announcement.applyForAnnouncement.mutate({
-              announcementId,
-              ...data,
-            });
+            const application =
+              await api.announcement.applyForAnnouncement.mutate({
+                announcementId,
+                ...data,
+              });
 
-            set(state => {
+            set((state) => {
               state.isApplying = false;
 
               // Mettre à jour l'annonce courante si c'est celle-ci
               if (state.currentAnnouncement?.id === announcementId) {
-                const applications = state.currentAnnouncement.applications || [];
+                const applications =
+                  state.currentAnnouncement.applications || [];
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
                   applications: [...applications, application],
@@ -606,12 +664,15 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               }
             });
 
-            toast.success('Candidature envoyée avec succès');
+            toast.success("Candidature envoyée avec succès");
             return true;
           } catch (error) {
             set({
               isApplying: false,
-              error: error instanceof Error ? error.message : 'Erreur lors de la candidature',
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Erreur lors de la candidature",
             });
             toast.error("Impossible d'envoyer la candidature");
             return false;
@@ -627,7 +688,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               applicationId,
             });
 
-            set(state => {
+            set((state) => {
               state.isUpdating = false;
 
               // Mettre à jour l'annonce courante si c'est celle-ci
@@ -635,42 +696,48 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
                   applications: state.currentAnnouncement.applications?.filter(
-                    app => app.id !== applicationId
+                    (app) => app.id !== applicationId,
                   ),
                 };
                 state.lastDetailsUpdated[announcementId] = Date.now();
               }
             });
 
-            toast.success('Candidature retirée avec succès');
+            toast.success("Candidature retirée avec succès");
             return true;
           } catch (error) {
             set({
               isUpdating: false,
               error:
-                error instanceof Error ? error.message : 'Erreur lors du retrait de candidature',
+                error instanceof Error
+                  ? error.message
+                  : "Erreur lors du retrait de candidature",
             });
-            toast.error('Impossible de retirer la candidature');
+            toast.error("Impossible de retirer la candidature");
             return false;
           }
         },
 
         // Gestion des favoris
-        toggleFavorite: announcementId => {
-          set(state => {
+        toggleFavorite: (announcementId) => {
+          set((state) => {
             const isFavorite = state.favorites.includes(announcementId);
 
             if (isFavorite) {
               // Retirer des favoris
-              state.favorites = state.favorites.filter(id => id !== announcementId);
+              state.favorites = state.favorites.filter(
+                (id) => id !== announcementId,
+              );
             } else {
               // Ajouter aux favoris
               state.favorites.push(announcementId);
             }
 
             // Mettre à jour l'indicateur dans la liste
-            state.announcements = state.announcements.map(ann =>
-              ann.id === announcementId ? { ...ann, isFavorite: !isFavorite } : ann
+            state.announcements = state.announcements.map((ann) =>
+              ann.id === announcementId
+                ? { ...ann, isFavorite: !isFavorite }
+                : ann,
             );
 
             // Mettre à jour l'annonce courante si c'est celle-ci
@@ -686,20 +753,20 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
           try {
             api.user.toggleFavoriteAnnouncement.mutate({ announcementId });
           } catch (error) {
-            console.error('Erreur lors de la sauvegarde des favoris:', error);
+            console.error("Erreur lors de la sauvegarde des favoris:", error);
             // Ne pas afficher d'erreur à l'utilisateur pour ne pas perturber l'expérience
           }
         },
 
         // Gestion des filtres
-        setFilters: filters => {
-          set(state => {
+        setFilters: (filters) => {
+          set((state) => {
             state.filters = { ...state.filters, ...filters };
           });
         },
 
         resetFilters: () => {
-          set(state => {
+          set((state) => {
             state.filters = {};
           });
         },
@@ -714,19 +781,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
         },
       })),
       {
-        name: 'announcement-store',
+        name: "announcement-store",
         // Ne persister que les favoris pour éviter les problèmes de données stales
-        partialize: state => ({ favorites: state.favorites }),
-      }
-    )
-  )
+        partialize: (state) => ({ favorites: state.favorites }),
+      },
+    ),
+  ),
 );
 
 export default useAnnouncementStore;
 
 // Sélecteurs optimisés pour éviter les re-rendus inutiles
 export const useAnnouncementList = () =>
-  useAnnouncementStore(state => ({
+  useAnnouncementStore((state) => ({
     announcements: state.announcements,
     isLoading: state.isLoading,
     error: state.error,
@@ -740,7 +807,7 @@ export const useAnnouncementList = () =>
   }));
 
 export const useAnnouncementDetails = (id?: string) =>
-  useAnnouncementStore(state => ({
+  useAnnouncementStore((state) => ({
     announcement: state.currentAnnouncement,
     isLoading: state.isLoadingDetails,
     isUpdating: state.isUpdating,
@@ -751,7 +818,7 @@ export const useAnnouncementDetails = (id?: string) =>
   }));
 
 export const useAnnouncementActions = () =>
-  useAnnouncementStore(state => ({
+  useAnnouncementStore((state) => ({
     create: state.createAnnouncement,
     update: state.updateAnnouncement,
     delete: state.deleteAnnouncement,
@@ -768,7 +835,7 @@ export const useAnnouncementActions = () =>
   }));
 
 export const useDelivererActions = () =>
-  useAnnouncementStore(state => ({
+  useAnnouncementStore((state) => ({
     apply: state.applyForAnnouncement,
     withdraw: state.withdrawApplication,
     isApplying: state.isApplying,

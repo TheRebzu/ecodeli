@@ -3,27 +3,28 @@
  * Centralise la gestion des logs de l'application
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 /**
  * Configuration du logger
  */
 const config = {
   // Niveau de log minimum à afficher
-  minLevel: (process.env.LOG_LEVEL || 'info') as LogLevel,
+  minLevel: (process.env.LOG_LEVEL || "info") as LogLevel,
 
   // Activation/désactivation des logs selon l'environnement
-  enabled: process.env.NODE_ENV !== 'test' || process.env.ENABLE_TEST_LOGS === 'true',
+  enabled:
+    process.env.NODE_ENV !== "test" || process.env.ENABLE_TEST_LOGS === "true",
 
   // Format de date pour les logs
-  dateFormat: 'HH:mm:ss',
+  dateFormat: "HH:mm:ss",
 
   // Couleurs pour les différents niveaux (compatible avec la console du navigateur)
   colors: {
-    debug: '#9BA0AA',
-    info: '#1A7CD3',
-    warn: '#F9B938',
-    error: '#D33E3E',
+    debug: "#9BA0AA",
+    info: "#1A7CD3",
+    warn: "#F9B938",
+    error: "#D33E3E",
   },
 };
 
@@ -58,41 +59,41 @@ function shouldLog(level: LogLevel): boolean {
  */
 export const logger = {
   debug(message: string, data?: any) {
-    if (shouldLog('debug')) {
+    if (shouldLog("debug")) {
       console.debug(
-        '%c' + formatMessage('debug', message, data),
+        "%c" + formatMessage("debug", message, data),
         `color: ${config.colors.debug}`,
-        data !== undefined ? data : ''
+        data !== undefined ? data : "",
       );
     }
   },
 
   info(message: string, data?: any) {
-    if (shouldLog('info')) {
+    if (shouldLog("info")) {
       console.info(
-        '%c' + formatMessage('info', message, data),
+        "%c" + formatMessage("info", message, data),
         `color: ${config.colors.info}`,
-        data !== undefined ? data : ''
+        data !== undefined ? data : "",
       );
     }
   },
 
   warn(message: string, data?: any) {
-    if (shouldLog('warn')) {
+    if (shouldLog("warn")) {
       console.warn(
-        '%c' + formatMessage('warn', message, data),
+        "%c" + formatMessage("warn", message, data),
         `color: ${config.colors.warn}`,
-        data !== undefined ? data : ''
+        data !== undefined ? data : "",
       );
     }
   },
 
   error(message: string, error?: any) {
-    if (shouldLog('error')) {
+    if (shouldLog("error")) {
       console.error(
-        '%c' + formatMessage('error', message, error),
+        "%c" + formatMessage("error", message, error),
         `color: ${config.colors.error}`,
-        error !== undefined ? error : ''
+        error !== undefined ? error : "",
       );
     }
   },
@@ -102,10 +103,14 @@ export const logger = {
    */
   createLogger(context: string) {
     return {
-      debug: (message: string, data?: any) => logger.debug(`[${context}] ${message}`, data),
-      info: (message: string, data?: any) => logger.info(`[${context}] ${message}`, data),
-      warn: (message: string, data?: any) => logger.warn(`[${context}] ${message}`, data),
-      error: (message: string, error?: any) => logger.error(`[${context}] ${message}`, error),
+      debug: (message: string, data?: any) =>
+        logger.debug(`[${context}] ${message}`, data),
+      info: (message: string, data?: any) =>
+        logger.info(`[${context}] ${message}`, data),
+      warn: (message: string, data?: any) =>
+        logger.warn(`[${context}] ${message}`, data),
+      error: (message: string, error?: any) =>
+        logger.error(`[${context}] ${message}`, error),
     };
   },
 };

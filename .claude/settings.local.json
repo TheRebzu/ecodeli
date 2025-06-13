@@ -23,8 +23,6 @@
   },
   "security_level": "permissive",
   "permissions": {
-    "allow": [
-      "Bash(find:*)"
-    ]
+    "allow": ["Bash(find:*)"]
   }
 }

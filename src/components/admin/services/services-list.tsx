@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,11 +8,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +20,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import {
   MoreHorizontal,
   Edit,
@@ -41,9 +41,9 @@ import {
   Package,
   ChevronLeft,
   ChevronRight,
-} from 'lucide-react';
+} from "lucide-react";
 
-type ServiceStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'SUSPENDED';
+type ServiceStatus = "ACTIVE" | "INACTIVE" | "DRAFT" | "SUSPENDED";
 
 interface Service {
   id: string;
@@ -72,17 +72,25 @@ interface ServicesListProps {
 }
 
 const statusConfig = {
-  ACTIVE: { label: 'Actif', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
-  INACTIVE: { label: 'Inactif', variant: 'secondary' as const, color: 'bg-gray-100 text-gray-800' },
+  ACTIVE: {
+    label: "Actif",
+    variant: "default" as const,
+    color: "bg-green-100 text-green-800",
+  },
+  INACTIVE: {
+    label: "Inactif",
+    variant: "secondary" as const,
+    color: "bg-gray-100 text-gray-800",
+  },
   DRAFT: {
-    label: 'Brouillon',
-    variant: 'outline' as const,
-    color: 'bg-yellow-100 text-yellow-800',
+    label: "Brouillon",
+    variant: "outline" as const,
+    color: "bg-yellow-100 text-yellow-800",
   },
   SUSPENDED: {
-    label: 'Suspendu',
-    variant: 'destructive' as const,
-    color: 'bg-red-100 text-red-800',
+    label: "Suspendu",
+    variant: "destructive" as const,
+    color: "bg-red-100 text-red-800",
   },
 };
 
@@ -109,17 +117,17 @@ export function ServicesList({
   const endItem = Math.min(currentPage * pageSize, total);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+    return new Intl.DateTimeFormat("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     }).format(date);
   };
 
@@ -135,7 +143,7 @@ export function ServicesList({
   };
 
   const handleStatusToggle = (service: Service) => {
-    const newStatus = service.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    const newStatus = service.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     onUpdateStatus(service.id, newStatus);
   };
 
@@ -188,7 +196,7 @@ export function ServicesList({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">
-              Services ({total} résultat{total > 1 ? 's' : ''})
+              Services ({total} résultat{total > 1 ? "s" : ""})
             </CardTitle>
             <div className="text-sm text-muted-foreground">
               {startItem}-{endItem} sur {total}
@@ -209,7 +217,7 @@ export function ServicesList({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {services.map(service => (
+              {services.map((service) => (
                 <TableRow key={service.id}>
                   <TableCell>
                     <div className="space-y-1">
@@ -254,7 +262,9 @@ export function ServicesList({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => onEditService(service)}>
+                        <DropdownMenuItem
+                          onClick={() => onEditService(service)}
+                        >
                           <Edit className="mr-2 h-4 w-4" />
                           Modifier
                         </DropdownMenuItem>
@@ -263,7 +273,9 @@ export function ServicesList({
                           disabled={isUpdatingStatus}
                         >
                           <Eye className="mr-2 h-4 w-4" />
-                          {service.status === 'ACTIVE' ? 'Désactiver' : 'Activer'}
+                          {service.status === "ACTIVE"
+                            ? "Désactiver"
+                            : "Activer"}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -316,14 +328,16 @@ export function ServicesList({
       {/* Dialog de confirmation de suppression */}
       <AlertDialog
         open={deleteDialog.isOpen}
-        onOpenChange={open => setDeleteDialog({ isOpen: open, service: null })}
+        onOpenChange={(open) =>
+          setDeleteDialog({ isOpen: open, service: null })
+        }
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer le service "{deleteDialog.service?.name}" ? Cette
-              action est irréversible.
+              Êtes-vous sûr de vouloir supprimer le service "
+              {deleteDialog.service?.name}" ? Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

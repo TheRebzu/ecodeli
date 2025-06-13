@@ -11,10 +11,15 @@ const CACHE_MAX_SIZE = 1000;
  * Calcule la distance entre deux points géographiques en utilisant la formule de Haversine
  * Optimisé avec cache et vérifications rapides
  */
-export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+export function calculateDistance(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
   // Validation des entrées
   if (!isValidCoordinate(lat1, lng1) || !isValidCoordinate(lat2, lng2)) {
-    throw new Error('Coordonnées géographiques invalides');
+    throw new Error("Coordonnées géographiques invalides");
   }
 
   // Optimisation: vérification rapide si les coordonnées sont identiques
@@ -49,7 +54,7 @@ function calculateHaversineDistance(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number
+  lng2: number,
 ): number {
   const R = 6371; // Rayon de la Terre en km
   const dLat = toRadians(lat2 - lat1);
@@ -57,7 +62,10 @@ function calculateHaversineDistance(
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    Math.cos(toRadians(lat1)) *
+      Math.cos(toRadians(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
@@ -67,7 +75,10 @@ function calculateHaversineDistance(
  * Calcule le score de distance pour le matching (0-1)
  * Plus la distance est courte, plus le score est élevé
  */
-export function calculateDistanceScore(distance: number, maxDistance: number = 50): number {
+export function calculateDistanceScore(
+  distance: number,
+  maxDistance: number = 50,
+): number {
   if (distance <= 0) return 1;
   if (distance >= maxDistance) return 0;
 
@@ -79,7 +90,7 @@ export function calculateDistanceScore(distance: number, maxDistance: number = 5
  * Calcule la distance d'un trajet multi-points
  */
 export function calculateRouteDistance(
-  points: Array<{ latitude: number; longitude: number }>
+  points: Array<{ latitude: number; longitude: number }>,
 ): number {
   if (points.length < 2) return 0;
 
@@ -89,7 +100,7 @@ export function calculateRouteDistance(
       points[i].latitude,
       points[i].longitude,
       points[i + 1].latitude,
-      points[i + 1].longitude
+      points[i + 1].longitude,
     );
   }
 
@@ -102,7 +113,7 @@ export function calculateRouteDistance(
 export function findNearestPoint(
   targetLat: number,
   targetLng: number,
-  points: Array<{ latitude: number; longitude: number; id?: string }>
+  points: Array<{ latitude: number; longitude: number; id?: string }>,
 ): { point: any; distance: number } | null {
   if (points.length === 0) return null;
 
@@ -111,7 +122,7 @@ export function findNearestPoint(
     targetLat,
     targetLng,
     nearestPoint.latitude,
-    nearestPoint.longitude
+    nearestPoint.longitude,
   );
 
   for (let i = 1; i < points.length; i++) {
@@ -119,7 +130,7 @@ export function findNearestPoint(
       targetLat,
       targetLng,
       points[i].latitude,
-      points[i].longitude
+      points[i].longitude,
     );
     if (distance < minDistance) {
       minDistance = distance;
@@ -138,7 +149,7 @@ export function isWithinRadius(
   centerLng: number,
   pointLat: number,
   pointLng: number,
-  radiusKm: number
+  radiusKm: number,
 ): boolean {
   const distance = calculateDistance(centerLat, centerLng, pointLat, pointLng);
   return distance <= radiusKm;
@@ -156,8 +167,8 @@ function toRadians(degrees: number): number {
  */
 function isValidCoordinate(lat: number, lng: number): boolean {
   return (
-    typeof lat === 'number' &&
-    typeof lng === 'number' &&
+    typeof lat === "number" &&
+    typeof lng === "number" &&
     !isNaN(lat) &&
     !isNaN(lng) &&
     lat >= -90 &&
@@ -170,9 +181,14 @@ function isValidCoordinate(lat: number, lng: number): boolean {
 /**
  * Crée une clé de cache pour les distances
  */
-function createCacheKey(lat1: number, lng1: number, lat2: number, lng2: number): string {
+function createCacheKey(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): string {
   // Arrondir à 6 décimales pour optimiser le cache (précision ~11cm)
-  return [lat1, lng1, lat2, lng2].map(coord => coord.toFixed(6)).join(',');
+  return [lat1, lng1, lat2, lng2].map((coord) => coord.toFixed(6)).join(",");
 }
 
 /**
@@ -201,7 +217,11 @@ export function clearDistanceCache(): void {
 /**
  * Statistiques du cache (pour monitoring)
  */
-export function getCacheStats(): { size: number; maxSize: number; hitRate: number } {
+export function getCacheStats(): {
+  size: number;
+  maxSize: number;
+  hitRate: number;
+} {
   // Note: pour un vrai monitoring, il faudrait tracker les hits/misses
   return {
     size: distanceCache.size,

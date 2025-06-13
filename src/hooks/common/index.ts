@@ -4,10 +4,10 @@
  */
 
 // Exports des fichiers locaux
-export * from './use-file-upload';
-export * from './use-inter-warehouse-transfer';
-export * from './use-media-query';
-export * from './use-storage';
-export * from './use-user-preferences';
-export * from './use-warehouse-locations';
-export * from './use-warehouse';
+export * from "./use-file-upload";
+export * from "./use-inter-warehouse-transfer";
+export * from "./use-media-query";
+export * from "./use-storage";
+export * from "./use-user-preferences";
+export * from "./use-warehouse-locations";
+export * from "./use-warehouse";

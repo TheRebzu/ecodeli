@@ -1,26 +1,28 @@
-import { z } from 'zod';
-import { router, publicProcedure } from '@/server/api/trpc';
+import { z } from "zod";
+import { router, publicProcedure } from "@/server/api/trpc";
 
 export const geocodingRouter = router({
   // Recherche d'adresse (géocodage)
   searchAddress: publicProcedure
     .input(
       z.object({
-        query: z.string().min(3, 'La requête doit contenir au moins 3 caractères'),
+        query: z
+          .string()
+          .min(3, "La requête doit contenir au moins 3 caractères"),
         limit: z.number().min(1).max(10).default(5),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { query, limit } = input;
 
       try {
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          query
+          query,
         )}&limit=${limit}&countrycodes=fr&addressdetails=1`;
 
         const response = await fetch(url, {
           headers: {
-            'User-Agent': 'EcoDeli/1.0 (contact@ecodeli.fr)',
+            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.fr)",
           },
         });
 
@@ -40,7 +42,7 @@ export const geocodingRouter = router({
           importance: item.importance,
         }));
       } catch (error) {
-        console.error('Geocoding error:', error);
+        console.error("Geocoding error:", error);
         throw new Error("Erreur lors de la recherche d'adresse");
       }
     }),
@@ -52,7 +54,7 @@ export const geocodingRouter = router({
         lat: z.number().min(-90).max(90),
         lon: z.number().min(-180).max(180),
         zoom: z.number().min(1).max(18).default(18),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { lat, lon, zoom } = input;
@@ -62,7 +64,7 @@ export const geocodingRouter = router({
 
         const response = await fetch(url, {
           headers: {
-            'User-Agent': 'EcoDeli/1.0 (contact@ecodeli.fr)',
+            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.fr)",
           },
         });
 
@@ -85,8 +87,8 @@ export const geocodingRouter = router({
           type: data.type,
         };
       } catch (error) {
-        console.error('Reverse geocoding error:', error);
-        throw new Error('Erreur lors du géocodage inverse');
+        console.error("Reverse geocoding error:", error);
+        throw new Error("Erreur lors du géocodage inverse");
       }
     }),
 });

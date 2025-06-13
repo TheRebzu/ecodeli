@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
-import { ProductStatus, ProductCategory } from '@prisma/client';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { ProductStatus, ProductCategory } from "@prisma/client";
 
 /**
  * Router pour la gestion du catalogue commerçant selon le cahier des charges
@@ -45,7 +45,9 @@ const createProductSchema = z.object({
 
   // Livraison
   requiresSpecialHandling: z.boolean().default(false),
-  shippingClass: z.enum(['STANDARD', 'FRAGILE', 'FROZEN', 'OVERSIZED']).default('STANDARD'),
+  shippingClass: z
+    .enum(["STANDARD", "FRAGILE", "FROZEN", "OVERSIZED"])
+    .default("STANDARD"),
   maxDeliveryDistance: z.number().min(1).max(100).optional(), // km
 
   // SEO et métadonnées
@@ -68,8 +70,10 @@ const productFiltersSchema = z.object({
   priceMin: z.number().optional(),
   priceMax: z.number().optional(),
   tags: z.array(z.string()).optional(),
-  sortBy: z.enum(['name', 'price', 'stock', 'createdAt', 'sales']).default('name'),
-  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  sortBy: z
+    .enum(["name", "price", "stock", "createdAt", "sales"])
+    .default("name"),
+  sortOrder: z.enum(["asc", "desc"]).default("asc"),
   limit: z.number().min(1).max(100).default(20),
   offset: z.number().min(0).default(0),
 });
@@ -81,14 +85,23 @@ const bulkUpdateSchema = z.object({
     status: z.nativeEnum(ProductStatus).optional(),
     isVisible: z.boolean().optional(),
     taxRate: z.number().min(0).max(100).optional(),
-    shippingClass: z.enum(['STANDARD', 'FRAGILE', 'FROZEN', 'OVERSIZED']).optional(),
+    shippingClass: z
+      .enum(["STANDARD", "FRAGILE", "FROZEN", "OVERSIZED"])
+      .optional(),
   }),
 });
 
 const adjustInventorySchema = z.object({
   productId: z.string().cuid(),
   adjustment: z.number().int(), // Peut être négatif
-  reason: z.enum(['PURCHASE', 'SALE', 'DAMAGE', 'THEFT', 'CORRECTION', 'RETURN']),
+  reason: z.enum([
+    "PURCHASE",
+    "SALE",
+    "DAMAGE",
+    "THEFT",
+    "CORRECTION",
+    "RETURN",
+  ]),
   notes: z.string().max(500).optional(),
   cost: z.number().min(0).optional(), // Coût de l'ajustement
 });
@@ -97,297 +110,133 @@ export const merchantCatalogRouter = router({
   /**
    * Obtenir tous les produits du commerçant
    */
-  getProducts: protectedProcedure.input(productFiltersSchema).query(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  getProducts: protectedProcedure
+    .input(productFiltersSchema)
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'MERCHANT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les commerçants peuvent consulter leur catalogue',
-      });
-    }
-
-    try {
-      // Récupérer le profil commerçant
-      const merchant = await ctx.db.merchant.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!merchant) {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil commerçant non trouvé',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent consulter leur catalogue",
         });
       }
 
-      // Construire les filtres
-      const where: any = {
-        merchantId: merchant.id,
-        ...(input.category && { category: input.category }),
-        ...(input.status && { status: input.status }),
-        ...(input.isVisible !== undefined && { isVisible: input.isVisible }),
-        ...(input.isFeatured !== undefined && { isFeatured: input.isFeatured }),
-        ...(input.lowStock && {
-          trackInventory: true,
-          stockQuantity: { lte: ctx.db.product.fields.lowStockAlert },
-        }),
-        ...(input.search && {
-          OR: [
-            { name: { contains: input.search, mode: 'insensitive' } },
-            { description: { contains: input.search, mode: 'insensitive' } },
-            { sku: { contains: input.search, mode: 'insensitive' } },
-          ],
-        }),
-        ...(input.priceMin && { price: { gte: input.priceMin } }),
-        ...(input.priceMax && { price: { lte: input.priceMax } }),
-        ...(input.tags && { tags: { hasSome: input.tags } }),
-      };
+      try {
+        // Récupérer le profil commerçant
+        const merchant = await ctx.db.merchant.findUnique({
+          where: { userId: user.id },
+        });
 
-      // Définir l'ordre de tri
-      const orderBy: any = {};
-      orderBy[input.sortBy] = input.sortOrder;
+        if (!merchant) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
+          });
+        }
 
-      const [products, totalCount] = await Promise.all([
-        ctx.db.product.findMany({
-          where,
-          include: {
-            inventoryMovements: {
-              orderBy: { createdAt: 'desc' },
-              take: 5,
-            },
-            _count: {
-              select: {
-                orderItems: {
-                  where: {
-                    order: { status: { in: ['COMPLETED', 'DELIVERED'] } },
+        // Construire les filtres
+        const where: any = {
+          merchantId: merchant.id,
+          ...(input.category && { category: input.category }),
+          ...(input.status && { status: input.status }),
+          ...(input.isVisible !== undefined && { isVisible: input.isVisible }),
+          ...(input.isFeatured !== undefined && {
+            isFeatured: input.isFeatured,
+          }),
+          ...(input.lowStock && {
+            trackInventory: true,
+            stockQuantity: { lte: ctx.db.product.fields.lowStockAlert },
+          }),
+          ...(input.search && {
+            OR: [
+              { name: { contains: input.search, mode: "insensitive" } },
+              { description: { contains: input.search, mode: "insensitive" } },
+              { sku: { contains: input.search, mode: "insensitive" } },
+            ],
+          }),
+          ...(input.priceMin && { price: { gte: input.priceMin } }),
+          ...(input.priceMax && { price: { lte: input.priceMax } }),
+          ...(input.tags && { tags: { hasSome: input.tags } }),
+        };
+
+        // Définir l'ordre de tri
+        const orderBy: any = {};
+        orderBy[input.sortBy] = input.sortOrder;
+
+        const [products, totalCount] = await Promise.all([
+          ctx.db.product.findMany({
+            where,
+            include: {
+              inventoryMovements: {
+                orderBy: { createdAt: "desc" },
+                take: 5,
+              },
+              _count: {
+                select: {
+                  orderItems: {
+                    where: {
+                      order: { status: { in: ["COMPLETED", "DELIVERED"] } },
+                    },
                   },
                 },
               },
             },
-          },
-          orderBy,
-          skip: input.offset,
-          take: input.limit,
-        }),
-        ctx.db.product.count({ where }),
-      ]);
+            orderBy,
+            skip: input.offset,
+            take: input.limit,
+          }),
+          ctx.db.product.count({ where }),
+        ]);
 
-      // Formatter les données
-      const formattedProducts = products.map(product => ({
-        ...product,
-        price: product.price.toNumber(),
-        comparePrice: product.comparePrice?.toNumber(),
-        costPrice: product.costPrice?.toNumber(),
-        totalSales: product._count.orderItems,
-        isLowStock: product.trackInventory && product.stockQuantity <= product.lowStockAlert,
-        profitMargin: product.costPrice
-          ? ((product.price.toNumber() - product.costPrice.toNumber()) / product.price.toNumber()) *
-            100
-          : null,
-      }));
-
-      return {
-        success: true,
-        data: formattedProducts,
-        pagination: {
-          total: totalCount,
-          offset: input.offset,
-          limit: input.limit,
-          hasMore: input.offset + input.limit < totalCount,
-        },
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des produits',
-      });
-    }
-  }),
-
-  /**
-   * Créer un nouveau produit
-   */
-  createProduct: protectedProcedure.input(createProductSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
-
-    if (user.role !== 'MERCHANT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les commerçants peuvent créer des produits',
-      });
-    }
-
-    try {
-      const merchant = await ctx.db.merchant.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!merchant) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil commerçant non trouvé',
-        });
-      }
-
-      // Vérifier l'unicité du SKU
-      const existingSku = await ctx.db.product.findFirst({
-        where: {
-          merchantId: merchant.id,
-          sku: input.sku,
-        },
-      });
-
-      if (existingSku) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Ce SKU existe déjà dans votre catalogue',
-        });
-      }
-
-      // Générer le slug s'il n'est pas fourni
-      const slug = input.slug || generateSlug(input.name);
-
-      const product = await ctx.db.product.create({
-        data: {
-          ...input,
-          slug,
-          merchantId: merchant.id,
-          status: 'ACTIVE',
-        },
-      });
-
-      // Créer le mouvement d'inventaire initial si nécessaire
-      if (input.trackInventory && input.stockQuantity > 0) {
-        await ctx.db.inventoryMovement.create({
-          data: {
-            productId: product.id,
-            type: 'IN',
-            quantity: input.stockQuantity,
-            reason: 'INITIAL_STOCK',
-            notes: 'Stock initial du produit',
-            cost: input.costPrice ? input.costPrice * input.stockQuantity : undefined,
-          },
-        });
-      }
-
-      return {
-        success: true,
-        data: {
+        // Formatter les données
+        const formattedProducts = products.map((product) => ({
           ...product,
           price: product.price.toNumber(),
           comparePrice: product.comparePrice?.toNumber(),
           costPrice: product.costPrice?.toNumber(),
-        },
-        message: 'Produit créé avec succès',
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la création du produit',
-      });
-    }
-  }),
+          totalSales: product._count.orderItems,
+          isLowStock:
+            product.trackInventory &&
+            product.stockQuantity <= product.lowStockAlert,
+          profitMargin: product.costPrice
+            ? ((product.price.toNumber() - product.costPrice.toNumber()) /
+                product.price.toNumber()) *
+              100
+            : null,
+        }));
 
-  /**
-   * Mettre à jour un produit
-   */
-  updateProduct: protectedProcedure.input(updateProductSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
-
-    if (user.role !== 'MERCHANT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les commerçants peuvent modifier leurs produits',
-      });
-    }
-
-    try {
-      const merchant = await ctx.db.merchant.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!merchant) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil commerçant non trouvé',
-        });
-      }
-
-      const product = await ctx.db.product.findFirst({
-        where: {
-          id: input.id,
-          merchantId: merchant.id,
-        },
-      });
-
-      if (!product) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Produit non trouvé',
-        });
-      }
-
-      // Vérifier l'unicité du SKU si modifié
-      if (input.sku && input.sku !== product.sku) {
-        const existingSku = await ctx.db.product.findFirst({
-          where: {
-            merchantId: merchant.id,
-            sku: input.sku,
-            id: { not: input.id },
+        return {
+          success: true,
+          data: formattedProducts,
+          pagination: {
+            total: totalCount,
+            offset: input.offset,
+            limit: input.limit,
+            hasMore: input.offset + input.limit < totalCount,
           },
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des produits",
         });
-
-        if (existingSku) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Ce SKU existe déjà dans votre catalogue',
-          });
-        }
       }
-
-      const { id, ...updateData } = input;
-
-      const updatedProduct = await ctx.db.product.update({
-        where: { id: input.id },
-        data: {
-          ...updateData,
-          updatedAt: new Date(),
-        },
-      });
-
-      return {
-        success: true,
-        data: {
-          ...updatedProduct,
-          price: updatedProduct.price.toNumber(),
-          comparePrice: updatedProduct.comparePrice?.toNumber(),
-          costPrice: updatedProduct.costPrice?.toNumber(),
-        },
-        message: 'Produit mis à jour avec succès',
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour',
-      });
-    }
-  }),
+    }),
 
   /**
-   * Supprimer un produit
+   * Créer un nouveau produit
    */
-  deleteProduct: protectedProcedure
-    .input(z.object({ id: z.string().cuid() }))
+  createProduct: protectedProcedure
+    .input(createProductSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les commerçants peuvent supprimer leurs produits',
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent créer des produits",
         });
       }
 
@@ -398,8 +247,185 @@ export const merchantCatalogRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
+          });
+        }
+
+        // Vérifier l'unicité du SKU
+        const existingSku = await ctx.db.product.findFirst({
+          where: {
+            merchantId: merchant.id,
+            sku: input.sku,
+          },
+        });
+
+        if (existingSku) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Ce SKU existe déjà dans votre catalogue",
+          });
+        }
+
+        // Générer le slug s'il n'est pas fourni
+        const slug = input.slug || generateSlug(input.name);
+
+        const product = await ctx.db.product.create({
+          data: {
+            ...input,
+            slug,
+            merchantId: merchant.id,
+            status: "ACTIVE",
+          },
+        });
+
+        // Créer le mouvement d'inventaire initial si nécessaire
+        if (input.trackInventory && input.stockQuantity > 0) {
+          await ctx.db.inventoryMovement.create({
+            data: {
+              productId: product.id,
+              type: "IN",
+              quantity: input.stockQuantity,
+              reason: "INITIAL_STOCK",
+              notes: "Stock initial du produit",
+              cost: input.costPrice
+                ? input.costPrice * input.stockQuantity
+                : undefined,
+            },
+          });
+        }
+
+        return {
+          success: true,
+          data: {
+            ...product,
+            price: product.price.toNumber(),
+            comparePrice: product.comparePrice?.toNumber(),
+            costPrice: product.costPrice?.toNumber(),
+          },
+          message: "Produit créé avec succès",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création du produit",
+        });
+      }
+    }),
+
+  /**
+   * Mettre à jour un produit
+   */
+  updateProduct: protectedProcedure
+    .input(updateProductSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
+
+      if (user.role !== "MERCHANT") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent modifier leurs produits",
+        });
+      }
+
+      try {
+        const merchant = await ctx.db.merchant.findUnique({
+          where: { userId: user.id },
+        });
+
+        if (!merchant) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
+          });
+        }
+
+        const product = await ctx.db.product.findFirst({
+          where: {
+            id: input.id,
+            merchantId: merchant.id,
+          },
+        });
+
+        if (!product) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Produit non trouvé",
+          });
+        }
+
+        // Vérifier l'unicité du SKU si modifié
+        if (input.sku && input.sku !== product.sku) {
+          const existingSku = await ctx.db.product.findFirst({
+            where: {
+              merchantId: merchant.id,
+              sku: input.sku,
+              id: { not: input.id },
+            },
+          });
+
+          if (existingSku) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Ce SKU existe déjà dans votre catalogue",
+            });
+          }
+        }
+
+        const { id, ...updateData } = input;
+
+        const updatedProduct = await ctx.db.product.update({
+          where: { id: input.id },
+          data: {
+            ...updateData,
+            updatedAt: new Date(),
+          },
+        });
+
+        return {
+          success: true,
+          data: {
+            ...updatedProduct,
+            price: updatedProduct.price.toNumber(),
+            comparePrice: updatedProduct.comparePrice?.toNumber(),
+            costPrice: updatedProduct.costPrice?.toNumber(),
+          },
+          message: "Produit mis à jour avec succès",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour",
+        });
+      }
+    }),
+
+  /**
+   * Supprimer un produit
+   */
+  deleteProduct: protectedProcedure
+    .input(z.object({ id: z.string().cuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
+
+      if (user.role !== "MERCHANT") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent supprimer leurs produits",
+        });
+      }
+
+      try {
+        const merchant = await ctx.db.merchant.findUnique({
+          where: { userId: user.id },
+        });
+
+        if (!merchant) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -415,8 +441,8 @@ export const merchantCatalogRouter = router({
 
         if (!product) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Produit non trouvé',
+            code: "NOT_FOUND",
+            message: "Produit non trouvé",
           });
         }
 
@@ -426,14 +452,15 @@ export const merchantCatalogRouter = router({
           await ctx.db.product.update({
             where: { id: input.id },
             data: {
-              status: 'DISCONTINUED',
+              status: "DISCONTINUED",
               isVisible: false,
             },
           });
 
           return {
             success: true,
-            message: 'Produit désactivé (des commandes sont liées à ce produit)',
+            message:
+              "Produit désactivé (des commandes sont liées à ce produit)",
           };
         }
 
@@ -444,13 +471,13 @@ export const merchantCatalogRouter = router({
 
         return {
           success: true,
-          message: 'Produit supprimé avec succès',
+          message: "Produit supprimé avec succès",
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la suppression',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la suppression",
         });
       }
     }),
@@ -463,9 +490,9 @@ export const merchantCatalogRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      if (user.role !== 'MERCHANT') {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Seuls les commerçants peuvent ajuster l'inventaire",
         });
       }
@@ -477,8 +504,8 @@ export const merchantCatalogRouter = router({
 
         if (!merchant) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Profil commerçant non trouvé',
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
           });
         }
 
@@ -492,21 +519,21 @@ export const merchantCatalogRouter = router({
 
         if (!product) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Produit non trouvé ou inventaire non suivi',
+            code: "NOT_FOUND",
+            message: "Produit non trouvé ou inventaire non suivi",
           });
         }
 
         const newStock = product.stockQuantity + input.adjustment;
         if (newStock < 0) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: "L'ajustement rendrait le stock négatif",
           });
         }
 
         // Transaction pour mettre à jour le stock et créer le mouvement
-        const result = await ctx.db.$transaction(async tx => {
+        const result = await ctx.db.$transaction(async (tx) => {
           // Mettre à jour le stock
           const updatedProduct = await tx.product.update({
             where: { id: input.productId },
@@ -520,7 +547,7 @@ export const merchantCatalogRouter = router({
           const movement = await tx.inventoryMovement.create({
             data: {
               productId: input.productId,
-              type: input.adjustment > 0 ? 'IN' : 'OUT',
+              type: input.adjustment > 0 ? "IN" : "OUT",
               quantity: Math.abs(input.adjustment),
               reason: input.reason,
               notes: input.notes,
@@ -535,12 +562,12 @@ export const merchantCatalogRouter = router({
         return {
           success: true,
           data: result,
-          message: `Stock ajusté: ${input.adjustment > 0 ? '+' : ''}${input.adjustment} unités`,
+          message: `Stock ajusté: ${input.adjustment > 0 ? "+" : ""}${input.adjustment} unités`,
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'ajustement de l'inventaire",
         });
       }
@@ -549,68 +576,71 @@ export const merchantCatalogRouter = router({
   /**
    * Mise à jour en lot de produits
    */
-  bulkUpdate: protectedProcedure.input(bulkUpdateSchema).mutation(async ({ ctx, input }) => {
-    const { user } = ctx.session;
+  bulkUpdate: protectedProcedure
+    .input(bulkUpdateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx.session;
 
-    if (user.role !== 'MERCHANT') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les commerçants peuvent faire des mises à jour en lot',
-      });
-    }
-
-    try {
-      const merchant = await ctx.db.merchant.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!merchant) {
+      if (user.role !== "MERCHANT") {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil commerçant non trouvé',
+          code: "FORBIDDEN",
+          message:
+            "Seuls les commerçants peuvent faire des mises à jour en lot",
         });
       }
 
-      // Vérifier que tous les produits appartiennent au commerçant
-      const productCount = await ctx.db.product.count({
-        where: {
-          id: { in: input.productIds },
-          merchantId: merchant.id,
-        },
-      });
+      try {
+        const merchant = await ctx.db.merchant.findUnique({
+          where: { userId: user.id },
+        });
 
-      if (productCount !== input.productIds.length) {
+        if (!merchant) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé",
+          });
+        }
+
+        // Vérifier que tous les produits appartiennent au commerçant
+        const productCount = await ctx.db.product.count({
+          where: {
+            id: { in: input.productIds },
+            merchantId: merchant.id,
+          },
+        });
+
+        if (productCount !== input.productIds.length) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Certains produits ne vous appartiennent pas",
+          });
+        }
+
+        // Effectuer la mise à jour en lot
+        const result = await ctx.db.product.updateMany({
+          where: {
+            id: { in: input.productIds },
+            merchantId: merchant.id,
+          },
+          data: {
+            ...input.updates,
+            updatedAt: new Date(),
+          },
+        });
+
+        return {
+          success: true,
+          updatedCount: result.count,
+          message: `${result.count} produits mis à jour avec succès`,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Certains produits ne vous appartiennent pas',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour en lot",
         });
       }
-
-      // Effectuer la mise à jour en lot
-      const result = await ctx.db.product.updateMany({
-        where: {
-          id: { in: input.productIds },
-          merchantId: merchant.id,
-        },
-        data: {
-          ...input.updates,
-          updatedAt: new Date(),
-        },
-      });
-
-      return {
-        success: true,
-        updatedCount: result.count,
-        message: `${result.count} produits mis à jour avec succès`,
-      };
-    } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la mise à jour en lot',
-      });
-    }
-  }),
+    }),
 
   /**
    * Obtenir les statistiques du catalogue
@@ -618,10 +648,10 @@ export const merchantCatalogRouter = router({
   getCatalogStats: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
 
-    if (user.role !== 'MERCHANT') {
+    if (user.role !== "MERCHANT") {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Seuls les commerçants peuvent consulter les statistiques',
+        code: "FORBIDDEN",
+        message: "Seuls les commerçants peuvent consulter les statistiques",
       });
     }
 
@@ -632,42 +662,47 @@ export const merchantCatalogRouter = router({
 
       if (!merchant) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil commerçant non trouvé',
+          code: "NOT_FOUND",
+          message: "Profil commerçant non trouvé",
         });
       }
 
-      const [totalProducts, activeProducts, lowStockProducts, totalValue, byCategory] =
-        await Promise.all([
-          ctx.db.product.count({
-            where: { merchantId: merchant.id },
-          }),
-          ctx.db.product.count({
-            where: {
-              merchantId: merchant.id,
-              status: 'ACTIVE',
-              isVisible: true,
-            },
-          }),
-          ctx.db.product.count({
-            where: {
-              merchantId: merchant.id,
-              trackInventory: true,
-              stockQuantity: { lte: ctx.db.product.fields.lowStockAlert },
-            },
-          }),
-          ctx.db.product.aggregate({
-            where: { merchantId: merchant.id },
-            _sum: {
-              stockQuantity: true,
-            },
-          }),
-          ctx.db.product.groupBy({
-            by: ['category'],
-            where: { merchantId: merchant.id },
-            _count: true,
-          }),
-        ]);
+      const [
+        totalProducts,
+        activeProducts,
+        lowStockProducts,
+        totalValue,
+        byCategory,
+      ] = await Promise.all([
+        ctx.db.product.count({
+          where: { merchantId: merchant.id },
+        }),
+        ctx.db.product.count({
+          where: {
+            merchantId: merchant.id,
+            status: "ACTIVE",
+            isVisible: true,
+          },
+        }),
+        ctx.db.product.count({
+          where: {
+            merchantId: merchant.id,
+            trackInventory: true,
+            stockQuantity: { lte: ctx.db.product.fields.lowStockAlert },
+          },
+        }),
+        ctx.db.product.aggregate({
+          where: { merchantId: merchant.id },
+          _sum: {
+            stockQuantity: true,
+          },
+        }),
+        ctx.db.product.groupBy({
+          by: ["category"],
+          where: { merchantId: merchant.id },
+          _count: true,
+        }),
+      ]);
 
       return {
         success: true,
@@ -676,7 +711,7 @@ export const merchantCatalogRouter = router({
           activeProducts,
           lowStockProducts,
           totalStockUnits: totalValue._sum.stockQuantity || 0,
-          categoryBreakdown: byCategory.map(cat => ({
+          categoryBreakdown: byCategory.map((cat) => ({
             category: cat.category,
             count: cat._count,
           })),
@@ -684,8 +719,8 @@ export const merchantCatalogRouter = router({
       };
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des statistiques',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des statistiques",
       });
     }
   }),
@@ -695,9 +730,9 @@ export const merchantCatalogRouter = router({
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Supprimer les accents
-    .replace(/[^a-z0-9]/g, '-') // Remplacer les caractères spéciaux par -
-    .replace(/-+/g, '-') // Réduire les tirets multiples
-    .replace(/^-|-$/g, ''); // Supprimer les tirets en début/fin
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Supprimer les accents
+    .replace(/[^a-z0-9]/g, "-") // Remplacer les caractères spéciaux par -
+    .replace(/-+/g, "-") // Réduire les tirets multiples
+    .replace(/^-|-$/g, ""); // Supprimer les tirets en début/fin
 }

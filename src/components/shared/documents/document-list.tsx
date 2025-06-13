@@ -1,13 +1,22 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { RefreshCwIcon } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { DocumentCard } from '@/components/shared/documents/document-card';
-import { DocumentListProps, BaseDocument } from '@/components/shared/documents/document-types';
-import { DocumentPreview } from '@/components/shared/documents/document-preview';
+import { useState } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { RefreshCwIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DocumentCard } from "@/components/shared/documents/document-card";
+import {
+  DocumentListProps,
+  BaseDocument,
+} from "@/components/shared/documents/document-types";
+import { DocumentPreview } from "@/components/shared/documents/document-preview";
 
 /**
  * A reusable component for displaying a list of documents
@@ -15,17 +24,19 @@ import { DocumentPreview } from '@/components/shared/documents/document-preview'
 export function DocumentList({
   documents,
   isLoading = false,
-  title = 'Documents',
-  description = 'Liste des documents',
+  title = "Documents",
+  description = "Liste des documents",
   showStatus = true,
   onView,
   onDelete,
   onDownload,
   onApprove,
   onReject,
-  emptyMessage = 'Aucun document disponible.',
+  emptyMessage = "Aucun document disponible.",
 }: DocumentListProps) {
-  const [selectedDocument, setSelectedDocument] = useState<BaseDocument | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<BaseDocument | null>(
+    null,
+  );
 
   if (isLoading) {
     return (
@@ -57,12 +68,15 @@ export function DocumentList({
     return (
       <div className="flex gap-2">
         {onDownload && (
-          <Button variant="outline" onClick={() => onDownload(selectedDocument)}>
+          <Button
+            variant="outline"
+            onClick={() => onDownload(selectedDocument)}
+          >
             Télécharger
           </Button>
         )}
 
-        {onApprove && selectedDocument.status === 'PENDING' && (
+        {onApprove && selectedDocument.status === "PENDING" && (
           <Button
             variant="default"
             className="bg-green-600 hover:bg-green-700"
@@ -75,11 +89,11 @@ export function DocumentList({
           </Button>
         )}
 
-        {onReject && selectedDocument.status === 'PENDING' && (
+        {onReject && selectedDocument.status === "PENDING" && (
           <Button
             variant="destructive"
             onClick={() => {
-              onReject(selectedDocument.id, '');
+              onReject(selectedDocument.id, "");
               setSelectedDocument(null);
             }}
           >
@@ -102,7 +116,7 @@ export function DocumentList({
       <CardContent>
         {documents.length > 0 ? (
           <div className="space-y-2">
-            {documents.map(document => (
+            {documents.map((document) => (
               <DocumentCard
                 key={document.id}
                 document={document}
@@ -114,7 +128,9 @@ export function DocumentList({
             ))}
           </div>
         ) : (
-          <div className="text-center py-10 text-muted-foreground">{emptyMessage}</div>
+          <div className="text-center py-10 text-muted-foreground">
+            {emptyMessage}
+          </div>
         )}
 
         {/* Document Preview Dialog */}
@@ -141,7 +157,10 @@ interface ProfileDocumentsListProps {
   onUpload?: () => void;
 }
 
-export function ProfileDocumentsList({ documents, onUpload }: ProfileDocumentsListProps) {
+export function ProfileDocumentsList({
+  documents,
+  onUpload,
+}: ProfileDocumentsListProps) {
   return (
     <Card>
       <CardHeader>
@@ -153,9 +172,14 @@ export function ProfileDocumentsList({ documents, onUpload }: ProfileDocumentsLi
         ) : (
           <div className="space-y-2">
             {documents.map((doc) => (
-              <div key={doc.id} className="flex justify-between items-center p-2 border rounded">
+              <div
+                key={doc.id}
+                className="flex justify-between items-center p-2 border rounded"
+              >
                 <span>{doc.name}</span>
-                <span className="text-sm text-muted-foreground">{doc.status}</span>
+                <span className="text-sm text-muted-foreground">
+                  {doc.status}
+                </span>
               </div>
             ))}
           </div>

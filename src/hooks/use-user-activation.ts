@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
-import type { ToggleUserActivationInput } from '@/schemas/user/user-activation.schema';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
+import type { ToggleUserActivationInput } from "@/schemas/user/user-activation.schema";
 
 /**
  * Hook pour gérer l'activation/désactivation des utilisateurs
@@ -12,29 +12,30 @@ export function useUserActivation() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Mutation pour activer/désactiver un utilisateur
-  const toggleUserActivationMutation = api.adminUser.toggleUserActivation.useMutation({
-    onMutate: () => {
-      setIsLoading(true);
-    },
-    onSuccess: (data, variables) => {
-      const action = variables.isActive ? 'activé' : 'désactivé';
-      toast({
-        title: 'Succès',
-        description: `Utilisateur ${action} avec succès`,
-        variant: 'default',
-      });
-    },
-    onError: error => {
-      toast({
-        title: 'Erreur',
-        description: `Erreur lors de la modification de l'activation : ${error.message}`,
-        variant: 'destructive',
-      });
-    },
-    onSettled: () => {
-      setIsLoading(false);
-    },
-  });
+  const toggleUserActivationMutation =
+    api.adminUser.toggleUserActivation.useMutation({
+      onMutate: () => {
+        setIsLoading(true);
+      },
+      onSuccess: (data, variables) => {
+        const action = variables.isActive ? "activé" : "désactivé";
+        toast({
+          title: "Succès",
+          description: `Utilisateur ${action} avec succès`,
+          variant: "default",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description: `Erreur lors de la modification de l'activation : ${error.message}`,
+          variant: "destructive",
+        });
+      },
+      onSettled: () => {
+        setIsLoading(false);
+      },
+    });
 
   /**
    * Active ou désactive un utilisateur

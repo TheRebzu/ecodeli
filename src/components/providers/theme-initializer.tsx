@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import { useEffect } from "react";
+import { useTheme } from "next-themes";
 
 export function ThemeInitializer() {
   const { theme } = useTheme();
@@ -9,7 +9,7 @@ export function ThemeInitializer() {
   useEffect(() => {
     // Initialiser le thème côté client
     if (theme) {
-      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute("data-theme", theme);
     }
   }, [theme]);
 

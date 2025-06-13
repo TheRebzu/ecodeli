@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { Shield } from 'lucide-react';
-import { MainHeader } from '@/components/layout/protected/header';
-import { AdminSidebar } from '@/components/layout/sidebars/admin-sidebar';
-import { ClientSidebar } from '@/components/layout/sidebars/client-sidebar';
-import { DelivererSidebar } from '@/components/layout/sidebars/deliverer-sidebar';
-import { MerchantSidebar } from '@/components/layout/sidebars/merchant-sidebar';
-import { ProviderSidebar } from '@/components/layout/sidebars/provider-sidebar';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/auth/use-auth';
+import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { Shield } from "lucide-react";
+import { MainHeader } from "@/components/layout/protected/header";
+import { AdminSidebar } from "@/components/layout/sidebars/admin-sidebar";
+import { ClientSidebar } from "@/components/layout/sidebars/client-sidebar";
+import { DelivererSidebar } from "@/components/layout/sidebars/deliverer-sidebar";
+import { MerchantSidebar } from "@/components/layout/sidebars/merchant-sidebar";
+import { ProviderSidebar } from "@/components/layout/sidebars/provider-sidebar";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/auth/use-auth";
 
 interface ProtectedHeaderProps {
   locale?: string;
@@ -20,23 +20,23 @@ interface ProtectedHeaderProps {
 }
 
 export function ProtectedHeader({
-  locale = 'fr',
+  locale = "fr",
   showSearch = true,
   notificationCount = 3,
   messageCount = 2,
 }: ProtectedHeaderProps) {
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
   // Détermine le rôle actuel à partir du pathname
   const getRoleFromPath = () => {
-    if (pathname.includes('/admin')) return 'admin';
-    if (pathname.includes('/client')) return 'client';
-    if (pathname.includes('/deliverer')) return 'deliverer';
-    if (pathname.includes('/merchant')) return 'merchant';
-    if (pathname.includes('/provider')) return 'provider';
-    return 'client';
+    if (pathname.includes("/admin")) return "admin";
+    if (pathname.includes("/client")) return "client";
+    if (pathname.includes("/deliverer")) return "deliverer";
+    if (pathname.includes("/merchant")) return "merchant";
+    if (pathname.includes("/provider")) return "provider";
+    return "client";
   };
 
   const role = getRoleFromPath();
@@ -44,15 +44,15 @@ export function ProtectedHeader({
   // Obtient le composant de sidebar approprié en fonction du rôle
   const getSidebarComponent = () => {
     switch (role) {
-      case 'admin':
+      case "admin":
         return <AdminSidebar locale={locale} />;
-      case 'client':
+      case "client":
         return <ClientSidebar locale={locale} />;
-      case 'deliverer':
+      case "deliverer":
         return <DelivererSidebar locale={locale} />;
-      case 'merchant':
+      case "merchant":
         return <MerchantSidebar locale={locale} />;
-      case 'provider':
+      case "provider":
         return <ProviderSidebar locale={locale} />;
       default:
         return <ClientSidebar locale={locale} />;
@@ -62,24 +62,24 @@ export function ProtectedHeader({
   // Traduit le nom du rôle
   const getRoleLabel = () => {
     switch (role) {
-      case 'admin':
-        return 'Administration';
-      case 'client':
-        return 'Espace Client';
-      case 'deliverer':
-        return 'Espace Livreur';
-      case 'merchant':
-        return 'Espace Commerçant';
-      case 'provider':
-        return 'Espace Prestataire';
+      case "admin":
+        return "Administration";
+      case "client":
+        return "Espace Client";
+      case "deliverer":
+        return "Espace Livreur";
+      case "merchant":
+        return "Espace Commerçant";
+      case "provider":
+        return "Espace Prestataire";
       default:
-        return 'Espace Personnel';
+        return "Espace Personnel";
     }
   };
 
   // Pour la recherche
   const handleSearch = (searchTerm: string) => {
-    console.log('Recherche:', searchTerm);
+    console.log("Recherche:", searchTerm);
     // Implémenter la logique de recherche
   };
 
@@ -95,7 +95,7 @@ export function ProtectedHeader({
       logoHref={`/${locale}/${role}`}
       onSearch={handleSearch}
       userMenuItems={
-        role === 'admin' && (
+        role === "admin" && (
           <Badge
             variant="outline"
             className="flex items-center gap-1 ml-2 py-1 border-orange-400/30 text-orange-500 bg-orange-50 dark:bg-orange-900/20"

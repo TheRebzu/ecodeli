@@ -4,11 +4,11 @@
  */
 
 // Exports des fichiers locaux
-export { default as WarehouseDetail } from './warehouse-detail';
-export * from './warehouse-detail';
-export { default as WarehouseForm } from './warehouse-form';
-export * from './warehouse-form';
-export { default as WarehouseList } from './warehouse-list';
-export * from './warehouse-list';
-export { default as WarehouseManagement } from './warehouse-management';
-export * from './warehouse-management';
+export { default as WarehouseDetail } from "./warehouse-detail";
+export * from "./warehouse-detail";
+export { default as WarehouseForm } from "./warehouse-form";
+export * from "./warehouse-form";
+export { default as WarehouseList } from "./warehouse-list";
+export * from "./warehouse-list";
+export { default as WarehouseManagement } from "./warehouse-management";
+export * from "./warehouse-management";

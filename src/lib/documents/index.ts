@@ -4,5 +4,5 @@
  */
 
 // Exports des fichiers locaux
-export * from './document-manager';
-export * from './file-utils';
+export * from "./document-manager";
+export * from "./file-utils";

@@ -1,18 +1,18 @@
-import { httpBatchLink } from '@trpc/client';
-import { createTRPCProxyClient } from '@trpc/client';
-import { createTRPCReact } from '@trpc/react-query';
-import type { AppRouter } from '@/server/api/root';
-import superjson from 'superjson';
+import { httpBatchLink } from "@trpc/client";
+import { createTRPCProxyClient } from "@trpc/client";
+import { createTRPCReact } from "@trpc/react-query";
+import type { AppRouter } from "@/server/api/root";
+import superjson from "superjson";
 
 // Fonction pour obtenir l'URL de base de l'API
 export function getBaseUrl() {
-  if (typeof window !== 'undefined') {
-    return '';
+  if (typeof window !== "undefined") {
+    return "";
   }
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  return 'http://localhost:3000';
+  return "http://localhost:3000";
 }
 
 // Configuration des liens pour les requêtes avec transformer
@@ -21,7 +21,7 @@ const links = [
     url: `${getBaseUrl()}/api/trpc`,
     headers: () => {
       return {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       };
     },
     transformer: superjson,

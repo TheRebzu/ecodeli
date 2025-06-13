@@ -1,8 +1,8 @@
-﻿'use client';
+﻿"use client";
 
-import { useTranslations } from 'next-intl';
-import { PageHeader } from '@/components/ui/page-header';
-import { Card } from '@/components/ui/card';
+import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card } from "@/components/ui/card";
 
 export default function RescheduleAppointmentPage() {
   const t = useTranslations();
@@ -11,11 +11,13 @@ export default function RescheduleAppointmentPage() {
     <div className="container mx-auto py-6 space-y-6">
       <PageHeader
         title="Reprogrammer"
-        description={t('client.RescheduleAppointment.description')}
+        description={t("client.RescheduleAppointment.description")}
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">Reprogrammer - En cours de développement</p>
+        <p className="text-muted-foreground">
+          Reprogrammer - En cours de développement
+        </p>
       </Card>
     </div>
   );

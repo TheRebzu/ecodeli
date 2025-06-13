@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export * from './inventory';
-export * from './location';
-export * from './reservation';
-export * from './storage-box';
-export * from './transfer';
-export * from './warehouse';
+export * from "./inventory";
+export * from "./location";
+export * from "./reservation";
+export * from "./storage-box";
+export * from "./transfer";
+export * from "./warehouse";

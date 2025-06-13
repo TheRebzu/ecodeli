@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export * from './analytics';
-export * from './audit';
-export * from './dashboard';
-export * from './reports';
-export * from './settings';
-export * from './user-management';
+export * from "./analytics";
+export * from "./audit";
+export * from "./dashboard";
+export * from "./reports";
+export * from "./settings";
+export * from "./user-management";

@@ -2,7 +2,7 @@
 export interface UserPreferences {
   userId: string;
   language: string;
-  theme: 'LIGHT' | 'DARK' | 'AUTO';
+  theme: "LIGHT" | "DARK" | "AUTO";
   timezone: string;
   notifications: NotificationPreferences;
   privacy: PrivacyPreferences;
@@ -31,11 +31,11 @@ export interface NotificationPreferences {
 }
 
 export interface PrivacyPreferences {
-  profileVisibility: 'PUBLIC' | 'PRIVATE' | 'CONTACTS_ONLY';
+  profileVisibility: "PUBLIC" | "PRIVATE" | "CONTACTS_ONLY";
   locationSharing: boolean;
   analyticsOptOut: boolean;
   marketingOptOut: boolean;
-  dataRetention: 'MINIMAL' | 'STANDARD' | 'EXTENDED';
+  dataRetention: "MINIMAL" | "STANDARD" | "EXTENDED";
 }
 
 export interface AccessibilityPreferences {

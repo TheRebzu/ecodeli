@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { router as router, protectedProcedure } from '@/server/api/trpc';
-import { prisma } from '@/server/db';
+import { z } from "zod";
+import { router as router, protectedProcedure } from "@/server/api/trpc";
+import { prisma } from "@/server/db";
 
 // Gestion des 6 entrepôts EcoDeli
 export const warehouseLocationsRouter = router({
@@ -31,13 +31,13 @@ export const warehouseLocationsRouter = router({
           securityLevel: true,
           averageOccupancy: true,
         },
-        orderBy: [{ isMainHub: 'desc' }, { city: 'asc' }],
+        orderBy: [{ isMainHub: "desc" }, { city: "asc" }],
       });
 
       return warehouses;
     } catch (error) {
-      console.error('Error fetching warehouse locations:', error);
-      throw new Error('Failed to fetch warehouse locations');
+      console.error("Error fetching warehouse locations:", error);
+      throw new Error("Failed to fetch warehouse locations");
     }
   }),
 
@@ -47,7 +47,7 @@ export const warehouseLocationsRouter = router({
         latitude: z.number(),
         longitude: z.number(),
         radius: z.number().default(50), // km
-      })
+      }),
     )
     .query(async ({ input }) => {
       try {
@@ -66,8 +66,8 @@ export const warehouseLocationsRouter = router({
 
         return warehouses;
       } catch (error) {
-        console.error('Error fetching nearby warehouses:', error);
-        throw new Error('Failed to fetch nearby warehouses');
+        console.error("Error fetching nearby warehouses:", error);
+        throw new Error("Failed to fetch nearby warehouses");
       }
     }),
 
@@ -75,7 +75,7 @@ export const warehouseLocationsRouter = router({
     .input(
       z.object({
         id: z.string(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       try {
@@ -94,7 +94,7 @@ export const warehouseLocationsRouter = router({
             },
             activities: {
               orderBy: {
-                timestamp: 'desc',
+                timestamp: "desc",
               },
               take: 10,
             },
@@ -102,13 +102,13 @@ export const warehouseLocationsRouter = router({
         });
 
         if (!warehouse) {
-          throw new Error('Warehouse not found');
+          throw new Error("Warehouse not found");
         }
 
         return warehouse;
       } catch (error) {
-        console.error('Error fetching warehouse details:', error);
-        throw new Error('Failed to fetch warehouse details');
+        console.error("Error fetching warehouse details:", error);
+        throw new Error("Failed to fetch warehouse details");
       }
     }),
 });

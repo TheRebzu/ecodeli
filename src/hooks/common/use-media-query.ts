@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 /**
  * Hook personnalisé pour gérer les media queries de manière réactive
@@ -12,7 +12,7 @@ export function useMediaQuery(query: string): boolean {
 
   useEffect(() => {
     // Vérifier si window est disponible (côté client)
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -27,11 +27,11 @@ export function useMediaQuery(query: string): boolean {
     };
 
     // Ajouter l'écouteur d'événements
-    mediaQuery.addEventListener('change', handleChange);
+    mediaQuery.addEventListener("change", handleChange);
 
     // Fonction de nettoyage
     return () => {
-      mediaQuery.removeEventListener('change', handleChange);
+      mediaQuery.removeEventListener("change", handleChange);
     };
   }, [query]);
 

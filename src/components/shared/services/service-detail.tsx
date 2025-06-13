@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,12 +9,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Calendar } from '@/components/ui/calendar';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
 import {
   StarIcon,
   MapPinIcon,
@@ -25,17 +25,21 @@ import {
   UserIcon,
   CalendarIcon,
   MessageSquareIcon,
-} from 'lucide-react';
-import { formatPrice, formatDuration, formatDateLocalized } from '@/lib/i18n/formatters';
-import { BookingForm } from '@/components/client/services/service-booking-form';
-import { useServiceBooking } from '@/hooks/features/use-service-booking';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+} from "lucide-react";
+import {
+  formatPrice,
+  formatDuration,
+  formatDateLocalized,
+} from "@/lib/i18n/formatters";
+import { BookingForm } from "@/components/client/services/service-booking-form";
+import { useServiceBooking } from "@/hooks/features/use-service-booking";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
+} from "@/components/ui/accordion";
 
 interface ServiceDetailProps {
   service: {
@@ -78,15 +82,19 @@ interface ServiceDetailProps {
  * Composant d'affichage détaillé d'un service
  */
 export function ServiceDetail({ service }: ServiceDetailProps) {
-  const t = useTranslations('services.detail');
+  const t = useTranslations("services.detail");
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('details');
+  const [selectedTab, setSelectedTab] = useState("details");
 
-  const { selectedDate, handleDateChange, isLoadingTimeSlots, availableTimeSlots } =
-    useServiceBooking({
-      serviceId: service.id,
-      providerId: service.provider.id,
-    });
+  const {
+    selectedDate,
+    handleDateChange,
+    isLoadingTimeSlots,
+    availableTimeSlots,
+  } = useServiceBooking({
+    serviceId: service.id,
+    providerId: service.provider.id,
+  });
 
   // Génération des étoiles pour la notation
   const renderRating = (rating: number) => {
@@ -97,8 +105,8 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
       stars.push(
         <StarIcon
           key={i}
-          className={`h-4 w-4 ${i <= ratingValue ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-        />
+          className={`h-4 w-4 ${i <= ratingValue ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+        />,
       );
     }
 
@@ -113,7 +121,8 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
   // Calcul de la note moyenne
   const averageRating =
     service.reviews && service.reviews.length > 0
-      ? service.reviews.reduce((acc, review) => acc + review.rating, 0) / service.reviews.length
+      ? service.reviews.reduce((acc, review) => acc + review.rating, 0) /
+        service.reviews.length
       : 0;
 
   return (
@@ -153,38 +162,48 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
               )}
 
               {service.provider.providerVerified && (
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  {t('verifiedProvider')}
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800"
+                >
+                  {t("verifiedProvider")}
                 </Badge>
               )}
             </div>
 
-            <Tabs defaultValue="details" value={selectedTab} onValueChange={setSelectedTab}>
+            <Tabs
+              defaultValue="details"
+              value={selectedTab}
+              onValueChange={setSelectedTab}
+            >
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="details">{t('tabs.details')}</TabsTrigger>
-                <TabsTrigger value="provider">{t('tabs.provider')}</TabsTrigger>
+                <TabsTrigger value="details">{t("tabs.details")}</TabsTrigger>
+                <TabsTrigger value="provider">{t("tabs.provider")}</TabsTrigger>
                 <TabsTrigger value="reviews">
-                  {t('tabs.reviews')} {service.reviews && `(${service.reviews.length})`}
+                  {t("tabs.reviews")}{" "}
+                  {service.reviews && `(${service.reviews.length})`}
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="details" className="pt-4">
                 <div className="prose max-w-none">
-                  <h3 className="text-lg font-medium mb-2">{t('descriptionTitle')}</h3>
+                  <h3 className="text-lg font-medium mb-2">
+                    {t("descriptionTitle")}
+                  </h3>
                   <p className="text-gray-700">{service.description}</p>
 
                   <Accordion type="single" collapsible className="mt-6">
                     <AccordionItem value="faq-1">
-                      <AccordionTrigger>{t('faq.title1')}</AccordionTrigger>
-                      <AccordionContent>{t('faq.content1')}</AccordionContent>
+                      <AccordionTrigger>{t("faq.title1")}</AccordionTrigger>
+                      <AccordionContent>{t("faq.content1")}</AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="faq-2">
-                      <AccordionTrigger>{t('faq.title2')}</AccordionTrigger>
-                      <AccordionContent>{t('faq.content2')}</AccordionContent>
+                      <AccordionTrigger>{t("faq.title2")}</AccordionTrigger>
+                      <AccordionContent>{t("faq.content2")}</AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="faq-3">
-                      <AccordionTrigger>{t('faq.title3')}</AccordionTrigger>
-                      <AccordionContent>{t('faq.content3')}</AccordionContent>
+                      <AccordionTrigger>{t("faq.title3")}</AccordionTrigger>
+                      <AccordionContent>{t("faq.content3")}</AccordionContent>
                     </AccordionItem>
                   </Accordion>
                 </div>
@@ -200,12 +219,17 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
                   </Avatar>
 
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium">{service.provider.name}</h3>
-                    {service.provider.rating && renderRating(service.provider.rating)}
+                    <h3 className="text-lg font-medium">
+                      {service.provider.name}
+                    </h3>
+                    {service.provider.rating &&
+                      renderRating(service.provider.rating)}
 
                     <div className="mt-4 space-y-2">
                       {service.provider.providerBio && (
-                        <p className="text-gray-700">{service.provider.providerBio}</p>
+                        <p className="text-gray-700">
+                          {service.provider.providerBio}
+                        </p>
                       )}
 
                       <div className="flex flex-col gap-1 mt-4">
@@ -230,13 +254,18 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
                 {!service.reviews || service.reviews.length === 0 ? (
                   <div className="text-center py-8">
                     <MessageSquareIcon className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-lg font-medium">{t('noReviews')}</h3>
-                    <p className="text-gray-500">{t('beFirstReviewer')}</p>
+                    <h3 className="mt-2 text-lg font-medium">
+                      {t("noReviews")}
+                    </h3>
+                    <p className="text-gray-500">{t("beFirstReviewer")}</p>
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {service.reviews.map(review => (
-                      <div key={review.id} className="flex gap-4 pb-4 border-b last:border-0">
+                    {service.reviews.map((review) => (
+                      <div
+                        key={review.id}
+                        className="flex gap-4 pb-4 border-b last:border-0"
+                      >
                         <Avatar>
                           <AvatarImage src={review.client.image} />
                           <AvatarFallback>
@@ -247,7 +276,9 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
                         <div className="flex-1">
                           <div className="flex justify-between items-start">
                             <div>
-                              <h4 className="font-medium">{review.client.name}</h4>
+                              <h4 className="font-medium">
+                                {review.client.name}
+                              </h4>
                               <div className="flex items-center gap-2">
                                 {renderRating(review.rating)}
                                 <span className="text-xs text-gray-500">
@@ -257,7 +288,11 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
                             </div>
                           </div>
 
-                          {review.comment && <p className="mt-2 text-gray-700">{review.comment}</p>}
+                          {review.comment && (
+                            <p className="mt-2 text-gray-700">
+                              {review.comment}
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -273,8 +308,8 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>{t('bookingTitle')}</CardTitle>
-            <CardDescription>{t('bookingSubtitle')}</CardDescription>
+            <CardTitle>{t("bookingTitle")}</CardTitle>
+            <CardDescription>{t("bookingSubtitle")}</CardDescription>
           </CardHeader>
 
           <CardContent>
@@ -283,13 +318,13 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
                 <div>
                   <h4 className="font-medium mb-2 flex items-center gap-2">
                     <CalendarIcon className="h-4 w-4" />
-                    {t('selectDate')}
+                    {t("selectDate")}
                   </h4>
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={handleDateChange}
-                    disabled={date => date < new Date()}
+                    disabled={(date) => date < new Date()}
                     className="border rounded-md p-2"
                   />
                 </div>
@@ -298,20 +333,25 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
                   <div>
                     <h4 className="font-medium mb-2 flex items-center gap-2">
                       <ClockIcon className="h-4 w-4" />
-                      {t('selectTime')}
+                      {t("selectTime")}
                     </h4>
 
                     {isLoadingTimeSlots ? (
                       <div className="grid grid-cols-3 gap-2">
-                        {[1, 2, 3, 4, 5, 6].map(i => (
-                          <div key={i} className="h-10 bg-gray-100 animate-pulse rounded" />
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                          <div
+                            key={i}
+                            className="h-10 bg-gray-100 animate-pulse rounded"
+                          />
                         ))}
                       </div>
                     ) : availableTimeSlots.length === 0 ? (
-                      <p className="text-center py-4 text-gray-500">{t('noTimeSlotsAvailable')}</p>
+                      <p className="text-center py-4 text-gray-500">
+                        {t("noTimeSlotsAvailable")}
+                      </p>
                     ) : (
                       <div className="grid grid-cols-3 gap-2">
-                        {availableTimeSlots.map(slot => (
+                        {availableTimeSlots.map((slot) => (
                           <Button
                             key={slot}
                             variant="outline"
@@ -339,7 +379,7 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
             <div className="w-full">
               <Separator className="my-4" />
               <div className="flex justify-between font-medium">
-                <span>{t('totalPrice')}</span>
+                <span>{t("totalPrice")}</span>
                 <span>{formatPrice(service.price)}</span>
               </div>
             </div>
@@ -351,7 +391,7 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
                 disabled={!selectedDate || availableTimeSlots.length === 0}
                 onClick={() => setShowBookingForm(true)}
               >
-                {t('bookNow')}
+                {t("bookNow")}
               </Button>
             )}
           </CardFooter>
@@ -359,7 +399,7 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t('needHelp')}</CardTitle>
+            <CardTitle className="text-base">{t("needHelp")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
@@ -371,7 +411,7 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
                 <MailIcon className="h-4 w-4 text-gray-500" />
                 <span>support@ecodeli.fr</span>
               </div>
-              <p className="mt-2 text-gray-600">{t('supportHours')}</p>
+              <p className="mt-2 text-gray-600">{t("supportHours")}</p>
             </div>
           </CardContent>
         </Card>

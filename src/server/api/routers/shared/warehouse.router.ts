@@ -1,6 +1,6 @@
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { warehouseService } from '@/server/services/shared/warehouse.service';
-import { z } from 'zod';
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { warehouseService } from "@/server/services/shared/warehouse.service";
+import { z } from "zod";
 
 export const warehouseRouter = router({
   // Récupération des entrepôts actifs avec leurs informations complètes
@@ -14,7 +14,7 @@ export const warehouseRouter = router({
           lng: z.number().optional(),
           radius: z.number().optional(), // En kilomètres
         })
-        .optional()
+        .optional(),
     )
     .query(async ({ input = {} }) => {
       return warehouseService.getActiveWarehouses(input);
@@ -35,7 +35,7 @@ export const warehouseRouter = router({
         startDate: z.coerce.date().optional(),
         endDate: z.coerce.date().optional(),
         availableOnly: z.boolean().optional().default(true),
-      })
+      }),
     )
     .query(async ({ input }) => {
       return warehouseService.getWarehouseBoxes(input);
@@ -49,7 +49,7 @@ export const warehouseRouter = router({
         lng: z.number(),
         radius: z.number().default(25), // Rayon en kilomètres
         maxResults: z.number().optional().default(10),
-      })
+      }),
     )
     .query(async ({ input }) => {
       return warehouseService.searchNearbyWarehouses(input);
@@ -60,7 +60,7 @@ export const warehouseRouter = router({
     .input(z.object({ warehouseId: z.string() }))
     .query(async ({ input, ctx }) => {
       // Vérification des droits admin pour certaines stats
-      const isAdmin = ctx.session.user.role === 'ADMIN';
+      const isAdmin = ctx.session.user.role === "ADMIN";
       return warehouseService.getWarehouseStats(input.warehouseId, isAdmin);
     }),
 
@@ -73,16 +73,16 @@ export const warehouseRouter = router({
         endDate: z.coerce.date(),
         boxType: z
           .enum([
-            'STANDARD',
-            'CLIMATE_CONTROLLED',
-            'SECURE',
-            'EXTRA_LARGE',
-            'REFRIGERATED',
-            'FRAGILE',
+            "STANDARD",
+            "CLIMATE_CONTROLLED",
+            "SECURE",
+            "EXTRA_LARGE",
+            "REFRIGERATED",
+            "FRAGILE",
           ])
           .optional(),
         minSize: z.number().optional(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       return warehouseService.getAvailabilitySlots(input);
@@ -96,11 +96,13 @@ export const warehouseRouter = router({
         startDate: z.coerce.date(),
         endDate: z.coerce.date(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       // Redirection vers le service de stockage pour la réservation
-      const { storageService } = await import('@/server/services/storage.service');
+      const { storageService } = await import(
+        "@/server/services/storage.service"
+      );
       return storageService.createBoxReservation(input, ctx.session.user.id);
     }),
 
@@ -109,10 +111,14 @@ export const warehouseRouter = router({
     .input(z.object({ boxId: z.string(), reason: z.string().optional() }))
     .mutation(async ({ input, ctx }) => {
       // Vérification des droits admin
-      if (ctx.session.user.role !== 'ADMIN') {
-        throw new Error('Accès non autorisé');
+      if (ctx.session.user.role !== "ADMIN") {
+        throw new Error("Accès non autorisé");
       }
-      return warehouseService.releaseBox(input.boxId, input.reason, ctx.session.user.id);
+      return warehouseService.releaseBox(
+        input.boxId,
+        input.reason,
+        ctx.session.user.id,
+      );
     }),
 
   // Signalement d'un problème sur un entrepôt ou une box
@@ -121,10 +127,16 @@ export const warehouseRouter = router({
       z.object({
         warehouseId: z.string(),
         boxId: z.string().optional(),
-        issueType: z.enum(['MAINTENANCE', 'SECURITY', 'ACCESS', 'CLEANLINESS', 'OTHER']),
-        description: z.string().min(10, 'Description trop courte'),
-        priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
-      })
+        issueType: z.enum([
+          "MAINTENANCE",
+          "SECURITY",
+          "ACCESS",
+          "CLEANLINESS",
+          "OTHER",
+        ]),
+        description: z.string().min(10, "Description trop courte"),
+        priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       return warehouseService.reportIssue(input, ctx.session.user.id);
@@ -144,7 +156,7 @@ export const warehouseRouter = router({
         warehouseId: z.string(),
         startDate: z.coerce.date(),
         endDate: z.coerce.date(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       return warehouseService.checkCapacity(input);

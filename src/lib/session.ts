@@ -1,6 +1,6 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
-import { UserRole } from '@prisma/client';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/auth/next-auth";
+import { UserRole } from "@prisma/client";
 
 /**
  * Récupère la session de l'utilisateur actuel côté serveur

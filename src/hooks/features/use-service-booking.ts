@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { api } from '@/trpc/react';
-import { useTranslations } from 'next-intl';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { api } from "@/trpc/react";
+import { useTranslations } from "next-intl";
 // Removed useLocalizedFormat import as it doesn't exist
 
 interface UseServiceBookingProps {
@@ -15,87 +15,99 @@ interface UseServiceBookingProps {
 /**
  * Hook pour gérer les réservations de services
  */
-export function useServiceBooking({ serviceId, providerId }: UseServiceBookingProps = {}) {
+export function useServiceBooking({
+  serviceId,
+  providerId,
+}: UseServiceBookingProps = {}) {
   const router = useRouter();
   const utils = api.useUtils();
-  const t = useTranslations('service.booking');
-  const tStatus = useTranslations('service.booking.status');
+  const t = useTranslations("service.booking");
+  const tStatus = useTranslations("service.booking.status");
   // Removed formatLocalizedDate as useLocalizedFormat doesn't exist
 
   // État local pour la réservation
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
-  const [notes, setNotes] = useState<string>('');
+  const [notes, setNotes] = useState<string>("");
 
   // Formatage de la date pour l'API
   const formatDateForApi = (date: Date): string => {
-    return date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+    return date.toISOString().split("T")[0]; // Format YYYY-MM-DD
   };
 
   // Rechercher les créneaux disponibles
   const availableTimeSlotsQuery = api.service.getAvailableTimeSlots.useQuery(
     {
-      serviceId: serviceId || '',
-      providerId: providerId || '',
-      date: selectedDate ? formatDateForApi(selectedDate) : '',
+      serviceId: serviceId || "",
+      providerId: providerId || "",
+      date: selectedDate ? formatDateForApi(selectedDate) : "",
     },
     {
       enabled: Boolean(serviceId && providerId && selectedDate),
-    }
+    },
   );
 
   // Détails du service
   const serviceQuery = api.service.getServiceById.useQuery(
-    { id: serviceId || '' },
-    { enabled: Boolean(serviceId) }
+    { id: serviceId || "" },
+    { enabled: Boolean(serviceId) },
   );
 
   // Mutations
   const createBookingMutation = api.service.createBooking.useMutation({
-    onSuccess: data => {
-      toast.success(t('form.bookingSuccess'));
+    onSuccess: (data) => {
+      toast.success(t("form.bookingSuccess"));
       utils.clientData.getMyClientBookings.invalidate();
       router.push(`/[locale]/(protected)/client/services/${data.id}`);
     },
-    onError: error => {
-      toast.error(error.message || 'Erreur lors de la création de la réservation');
+    onError: (error) => {
+      toast.error(
+        error.message || "Erreur lors de la création de la réservation",
+      );
     },
   });
 
-  const updateBookingStatusMutation = api.service.updateBookingStatus.useMutation({
-    onSuccess: () => {
-      toast.success(t('manage.cancelled'));
-      utils.clientData.getMyClientBookings.invalidate();
-      utils.clientData.getBookingById.invalidate();
-      router.refresh();
-    },
-    onError: error => {
-      toast.error(error.message || 'Erreur lors de la mise à jour de la réservation');
-    },
-  });
+  const updateBookingStatusMutation =
+    api.service.updateBookingStatus.useMutation({
+      onSuccess: () => {
+        toast.success(t("manage.cancelled"));
+        utils.clientData.getMyClientBookings.invalidate();
+        utils.clientData.getBookingById.invalidate();
+        router.refresh();
+      },
+      onError: (error) => {
+        toast.error(
+          error.message || "Erreur lors de la mise à jour de la réservation",
+        );
+      },
+    });
 
   const rescheduleBookingMutation = api.service.rescheduleBooking.useMutation({
     onSuccess: () => {
-      toast.success('Réservation reprogrammée avec succès');
+      toast.success("Réservation reprogrammée avec succès");
       utils.clientData.getMyClientBookings.invalidate();
       utils.clientData.getBookingById.invalidate();
       router.refresh();
     },
-    onError: error => {
-      toast.error(error.message || 'Erreur lors de la reprogrammation de la réservation');
+    onError: (error) => {
+      toast.error(
+        error.message || "Erreur lors de la reprogrammation de la réservation",
+      );
     },
   });
 
   const createReviewMutation = api.service.createReview.useMutation({
     onSuccess: () => {
-      toast.success(t('review.reviewSuccess'));
+      toast.success(t("review.reviewSuccess"));
       utils.service.getServiceReviews.invalidate();
       utils.service.getProviderReviews.invalidate();
       utils.clientData.getBookingById.invalidate();
       router.refresh();
     },
-    onError: error => {
-      toast.error(error.message || "Erreur lors de la création de l'évaluation");
+    onError: (error) => {
+      toast.error(
+        error.message || "Erreur lors de la création de l'évaluation",
+      );
     },
   });
 
@@ -115,7 +127,7 @@ export function useServiceBooking({ serviceId, providerId }: UseServiceBookingPr
 
   const createBooking = () => {
     if (!serviceId || !providerId || !selectedDate || !selectedTimeSlot) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
+      toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
@@ -129,15 +141,19 @@ export function useServiceBooking({ serviceId, providerId }: UseServiceBookingPr
   };
 
   const cancelBooking = (bookingId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')) {
+    if (confirm("Êtes-vous sûr de vouloir annuler cette réservation ?")) {
       updateBookingStatusMutation.mutate({
         id: bookingId,
-        status: 'CANCELLED',
+        status: "CANCELLED",
       });
     }
   };
 
-  const rescheduleBooking = (bookingId: string, date: Date, timeSlot: string) => {
+  const rescheduleBooking = (
+    bookingId: string,
+    date: Date,
+    timeSlot: string,
+  ) => {
     rescheduleBookingMutation.mutate({
       id: bookingId,
       date: formatDateForApi(date),
@@ -145,7 +161,11 @@ export function useServiceBooking({ serviceId, providerId }: UseServiceBookingPr
     });
   };
 
-  const createReview = (bookingId: string, rating: number, comment?: string) => {
+  const createReview = (
+    bookingId: string,
+    rating: number,
+    comment?: string,
+  ) => {
     createReviewMutation.mutate({
       bookingId,
       rating,
@@ -160,18 +180,18 @@ export function useServiceBooking({ serviceId, providerId }: UseServiceBookingPr
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800';
-      case 'COMPLETED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      case 'RESCHEDULED':
-        return 'bg-purple-100 text-purple-800';
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "CONFIRMED":
+        return "bg-blue-100 text-blue-800";
+      case "COMPLETED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+      case "RESCHEDULED":
+        return "bg-purple-100 text-purple-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 

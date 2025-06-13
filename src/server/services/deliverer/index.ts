@@ -4,9 +4,9 @@
  */
 
 // Exports des fichiers locaux
-export * from './deliverer-announcement.service';
-export * from './deliverer-planning.service';
-export * from './deliverer-route.service';
-export * from './deliverer-wallet.service';
-export * from './delivery-tracking.service';
-export * from './delivery.service';
+export * from "./deliverer-announcement.service";
+export * from "./deliverer-planning.service";
+export * from "./deliverer-route.service";
+export * from "./deliverer-wallet.service";
+export * from "./delivery-tracking.service";
+export * from "./delivery.service";

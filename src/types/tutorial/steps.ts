@@ -13,24 +13,24 @@ export interface TutorialStep {
   duration?: number; // durée estimée en secondes
 }
 
-export type StepType = 
-  | 'INTRODUCTION'
-  | 'HIGHLIGHT'
-  | 'CLICK'
-  | 'INPUT'
-  | 'WAIT'
-  | 'CONFIRMATION'
-  | 'INFORMATION';
+export type StepType =
+  | "INTRODUCTION"
+  | "HIGHLIGHT"
+  | "CLICK"
+  | "INPUT"
+  | "WAIT"
+  | "CONFIRMATION"
+  | "INFORMATION";
 
 export interface StepAction {
-  type: 'CLICK' | 'INPUT' | 'HOVER' | 'SCROLL' | 'WAIT';
+  type: "CLICK" | "INPUT" | "HOVER" | "SCROLL" | "WAIT";
   target: string;
   value?: string;
   timeout?: number;
 }
 
 export interface StepValidation {
-  type: 'ELEMENT_EXISTS' | 'VALUE_CHANGED' | 'PAGE_CHANGED' | 'API_CALL';
+  type: "ELEMENT_EXISTS" | "VALUE_CHANGED" | "PAGE_CHANGED" | "API_CALL";
   condition: string;
   timeout?: number;
 }

@@ -1,26 +1,30 @@
-import { useState } from 'react';
-import { UserRole, UserStatus } from '@prisma/client';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { CalendarIcon, Search, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { z } from 'zod';
+import { useState } from "react";
+import { UserRole, UserStatus } from "@prisma/client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { CalendarIcon, Search, X } from "lucide-react";
+import { format } from "date-fns";
+import { z } from "zod";
 
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils/common';
-import { UserFilters } from '@/types/actors/admin';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils/common";
+import { UserFilters } from "@/types/actors/admin";
 
 const filterSchema = z.object({
   search: z.string().optional(),
@@ -47,7 +51,7 @@ export function UserFiltersForm({
   const form = useForm<z.infer<typeof filterSchema>>({
     resolver: zodResolver(filterSchema),
     defaultValues: {
-      search: currentFilters.search || '',
+      search: currentFilters.search || "",
       role: currentFilters.role,
       status: currentFilters.status,
       isVerified: currentFilters.isVerified,
@@ -67,11 +71,11 @@ export function UserFiltersForm({
   const onSubmit = (values: z.infer<typeof filterSchema>) => {
     const newActiveFilters: string[] = [];
 
-    if (values.search) newActiveFilters.push('search');
-    if (values.role) newActiveFilters.push('role');
-    if (values.status) newActiveFilters.push('status');
-    if (values.isVerified !== undefined) newActiveFilters.push('verification');
-    if (values.dateFrom || values.dateTo) newActiveFilters.push('date');
+    if (values.search) newActiveFilters.push("search");
+    if (values.role) newActiveFilters.push("role");
+    if (values.status) newActiveFilters.push("status");
+    if (values.isVerified !== undefined) newActiveFilters.push("verification");
+    if (values.dateFrom || values.dateTo) newActiveFilters.push("date");
 
     setActiveFilters(newActiveFilters);
     onFilterChange(values);
@@ -79,7 +83,7 @@ export function UserFiltersForm({
 
   const handleClearFilter = (filter: keyof UserFilters) => {
     form.setValue(filter, undefined);
-    setActiveFilters(activeFilters.filter(f => f !== filter));
+    setActiveFilters(activeFilters.filter((f) => f !== filter));
 
     const newFilters = { ...currentFilters };
     delete newFilters[filter];
@@ -90,7 +94,10 @@ export function UserFiltersForm({
   return (
     <div className="space-y-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-wrap gap-3">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-wrap gap-3"
+        >
           {/* Search Field */}
           <FormField
             control={form.control}
@@ -118,21 +125,21 @@ export function UserFiltersForm({
             render={({ field }) => (
               <FormItem className="w-[180px]">
                 <Select
-                  onValueChange={value => {
-                    if (value === 'all') {
+                  onValueChange={(value) => {
+                    if (value === "all") {
                       field.onChange(undefined);
                     } else {
                       field.onChange(value as UserRole);
                     }
                   }}
-                  value={field.value || 'all'}
+                  value={field.value || "all"}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Roles</SelectItem>
-                    {Object.values(UserRole).map(role => (
+                    {Object.values(UserRole).map((role) => (
                       <SelectItem key={role} value={role}>
                         {role}
                       </SelectItem>
@@ -150,23 +157,23 @@ export function UserFiltersForm({
             render={({ field }) => (
               <FormItem className="w-[180px]">
                 <Select
-                  onValueChange={value => {
-                    if (value === 'all') {
+                  onValueChange={(value) => {
+                    if (value === "all") {
                       field.onChange(undefined);
                     } else {
                       field.onChange(value as UserStatus);
                     }
                   }}
-                  value={field.value || 'all'}
+                  value={field.value || "all"}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    {Object.values(UserStatus).map(status => (
+                    {Object.values(UserStatus).map((status) => (
                       <SelectItem key={status} value={status}>
-                        {status.replace('_', ' ')}
+                        {status.replace("_", " ")}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -182,14 +189,16 @@ export function UserFiltersForm({
             render={({ field }) => (
               <FormItem className="w-[180px]">
                 <Select
-                  onValueChange={value => {
-                    if (value === 'all') {
+                  onValueChange={(value) => {
+                    if (value === "all") {
                       field.onChange(undefined);
                     } else {
-                      field.onChange(value === 'true');
+                      field.onChange(value === "true");
                     }
                   }}
-                  value={field.value === undefined ? 'all' : field.value.toString()}
+                  value={
+                    field.value === undefined ? "all" : field.value.toString()
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Verification" />
@@ -215,13 +224,15 @@ export function UserFiltersForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          variant={'outline'}
+                          variant={"outline"}
                           className={cn(
-                            'w-[130px] pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
+                            "w-[130px] pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground",
                           )}
                         >
-                          {field.value ? format(field.value, 'PPP') : 'From date'}
+                          {field.value
+                            ? format(field.value, "PPP")
+                            : "From date"}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -231,9 +242,11 @@ export function UserFiltersForm({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={date =>
+                        disabled={(date) =>
                           date > new Date() ||
-                          (form.getValues().dateTo ? date > form.getValues().dateTo : false)
+                          (form.getValues().dateTo
+                            ? date > form.getValues().dateTo
+                            : false)
                         }
                         initialFocus
                       />
@@ -252,13 +265,13 @@ export function UserFiltersForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          variant={'outline'}
+                          variant={"outline"}
                           className={cn(
-                            'w-[130px] pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
+                            "w-[130px] pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground",
                           )}
                         >
-                          {field.value ? format(field.value, 'PPP') : 'To date'}
+                          {field.value ? format(field.value, "PPP") : "To date"}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -268,9 +281,11 @@ export function UserFiltersForm({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={date =>
+                        disabled={(date) =>
                           date > new Date() ||
-                          (form.getValues().dateFrom ? date < form.getValues().dateFrom : false)
+                          (form.getValues().dateFrom
+                            ? date < form.getValues().dateFrom
+                            : false)
                         }
                         initialFocus
                       />
@@ -295,54 +310,65 @@ export function UserFiltersForm({
       {/* Active Filters */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 mt-4">
-          <div className="text-sm text-muted-foreground py-1">Active filters:</div>
+          <div className="text-sm text-muted-foreground py-1">
+            Active filters:
+          </div>
 
           {currentFilters.search && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Search: {currentFilters.search}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => handleClearFilter('search')} />
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleClearFilter("search")}
+              />
             </Badge>
           )}
 
           {currentFilters.role && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Role: {currentFilters.role}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => handleClearFilter('role')} />
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleClearFilter("role")}
+              />
             </Badge>
           )}
 
           {currentFilters.status && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Status: {currentFilters.status.replace('_', ' ')}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => handleClearFilter('status')} />
+              Status: {currentFilters.status.replace("_", " ")}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleClearFilter("status")}
+              />
             </Badge>
           )}
 
           {currentFilters.isVerified !== undefined && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              {currentFilters.isVerified ? 'Verified' : 'Unverified'}
+              {currentFilters.isVerified ? "Verified" : "Unverified"}
               <X
                 className="h-3 w-3 cursor-pointer"
-                onClick={() => handleClearFilter('isVerified')}
+                onClick={() => handleClearFilter("isVerified")}
               />
             </Badge>
           )}
 
           {(currentFilters.dateFrom || currentFilters.dateTo) && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Date:{' '}
+              Date:{" "}
               {currentFilters.dateFrom
-                ? format(new Date(currentFilters.dateFrom), 'MMM d, yyyy')
-                : 'Any'}
-              {' to '}
+                ? format(new Date(currentFilters.dateFrom), "MMM d, yyyy")
+                : "Any"}
+              {" to "}
               {currentFilters.dateTo
-                ? format(new Date(currentFilters.dateTo), 'MMM d, yyyy')
-                : 'Any'}
+                ? format(new Date(currentFilters.dateTo), "MMM d, yyyy")
+                : "Any"}
               <X
                 className="h-3 w-3 cursor-pointer"
                 onClick={() => {
-                  handleClearFilter('dateFrom');
-                  handleClearFilter('dateTo');
+                  handleClearFilter("dateFrom");
+                  handleClearFilter("dateTo");
                 }}
               />
             </Badge>

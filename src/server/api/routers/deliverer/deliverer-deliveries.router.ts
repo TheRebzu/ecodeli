@@ -1,7 +1,7 @@
-import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
-import { DeliveryService } from '@/server/services/deliverer/delivery.service';
+import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { DeliveryService } from "@/server/services/deliverer/delivery.service";
 import {
   deliveryFilterSchema,
   deliveryStatusUpdateSchema,
@@ -12,7 +12,7 @@ import {
   delivererAvailabilitySchema,
   routeOptimizationSchema,
   deliveryProofSchema,
-} from '@/schemas/delivery/delivery.schema';
+} from "@/schemas/delivery/delivery.schema";
 
 export const delivererDeliveriesRouter = router({
   // Livraisons planifiées pour le dashboard
@@ -21,21 +21,21 @@ export const delivererDeliveriesRouter = router({
       z.object({
         date: z.date().optional(),
         limit: z.number().min(1).max(20).default(5),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier que l'utilisateur est un livreur
       const deliverer = await ctx.db.user.findUnique({
-        where: { id: userId, role: 'DELIVERER' },
+        where: { id: userId, role: "DELIVERER" },
         include: { deliverer: true },
       });
 
       if (!deliverer?.deliverer) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -48,7 +48,7 @@ export const delivererDeliveriesRouter = router({
       return await ctx.db.delivery.findMany({
         where: {
           delivererId: deliverer.deliverer.id,
-          status: { in: ['ACCEPTED', 'SCHEDULED'] },
+          status: { in: ["ACCEPTED", "SCHEDULED"] },
           plannedDate: {
             gte: startOfDay,
             lte: endOfDay,
@@ -64,7 +64,7 @@ export const delivererDeliveriesRouter = router({
             },
           },
         },
-        orderBy: { plannedDate: 'asc' },
+        orderBy: { plannedDate: "asc" },
         take: input.limit,
       });
     }),
@@ -78,28 +78,41 @@ export const deliveryRouter = router({
       z.object({
         startDate: z.coerce.date().optional(),
         endDate: z.coerce.date().optional(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       try {
         // Utiliser des valeurs par défaut si non fournies
-        const startDate = input.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 jours par défaut
+        const startDate =
+          input.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 jours par défaut
         const endDate = input.endDate || new Date();
 
         return await DeliveryService.getStats(startDate, endDate);
       } catch (error) {
-        console.error('Erreur dans delivery.getStats:', error);
+        console.error("Erreur dans delivery.getStats:", error);
         throw error;
       }
     }),
 
-  getAll: protectedProcedure.input(deliveryFilterSchema).query(async ({ ctx, input }) => {
-    return await DeliveryService.getAll(input, ctx.session.user.id, ctx.session.user.role);
-  }),
+  getAll: protectedProcedure
+    .input(deliveryFilterSchema)
+    .query(async ({ ctx, input }) => {
+      return await DeliveryService.getAll(
+        input,
+        ctx.session.user.id,
+        ctx.session.user.role,
+      );
+    }),
 
-  getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
-    return await DeliveryService.getById(input.id, ctx.session.user.id, ctx.session.user.role);
-  }),
+  getById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return await DeliveryService.getById(
+        input.id,
+        ctx.session.user.id,
+        ctx.session.user.role,
+      );
+    }),
 
   updateStatus: protectedProcedure
     .input(deliveryStatusUpdateSchema)
@@ -110,7 +123,10 @@ export const deliveryRouter = router({
   confirmCode: protectedProcedure
     .input(deliveryConfirmationSchema)
     .mutation(async ({ ctx, input }) => {
-      return await DeliveryService.validateDeliveryCode(input, ctx.session.user.id);
+      return await DeliveryService.validateDeliveryCode(
+        input,
+        ctx.session.user.id,
+      );
     }),
 
   // ===== NOUVEAUX ENDPOINTS LIVREURS =====
@@ -122,7 +138,10 @@ export const deliveryRouter = router({
       .input(z.object({ delivererId: z.string().optional() }))
       .query(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
-        return await DeliveryService.getDelivererProfile(delivererId, ctx.session.user.id);
+        return await DeliveryService.getDelivererProfile(
+          delivererId,
+          ctx.session.user.id,
+        );
       }),
 
     // Mise à jour du profil
@@ -154,14 +173,14 @@ export const deliveryRouter = router({
               notifyBySms: z.boolean().optional(),
             })
             .optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
         return await DeliveryService.updateDelivererProfile(
           delivererId,
           input,
-          ctx.session.user.id
+          ctx.session.user.id,
         );
       }),
 
@@ -176,14 +195,14 @@ export const deliveryRouter = router({
           fileSize: z.number().optional(),
           mimeType: z.string().optional(),
           checksum: z.string().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
         return await DeliveryService.uploadDelivererDocument(
           delivererId,
           input,
-          ctx.session.user.id
+          ctx.session.user.id,
         );
       }),
 
@@ -192,7 +211,10 @@ export const deliveryRouter = router({
       .input(z.object({ delivererId: z.string().optional() }))
       .query(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
-        return await DeliveryService.getDelivererDocuments(delivererId, ctx.session.user.id);
+        return await DeliveryService.getDelivererDocuments(
+          delivererId,
+          ctx.session.user.id,
+        );
       }),
 
     // Validation automatique d'un document
@@ -204,10 +226,15 @@ export const deliveryRouter = router({
 
     // Dashboard mobile
     getMobileDashboard: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.session.user.role !== 'DELIVERER') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès réservé aux livreurs' });
+      if (ctx.session.user.role !== "DELIVERER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès réservé aux livreurs",
+        });
       }
-      return await DeliveryService.getMobileDelivererDashboard(ctx.session.user.id);
+      return await DeliveryService.getMobileDelivererDashboard(
+        ctx.session.user.id,
+      );
     }),
 
     // Répondre à une proposition
@@ -215,17 +242,20 @@ export const deliveryRouter = router({
       .input(
         z.object({
           matchingId: z.string(),
-          response: z.enum(['ACCEPTED', 'DECLINED']),
-        })
+          response: z.enum(["ACCEPTED", "DECLINED"]),
+        }),
       )
       .mutation(async ({ ctx, input }) => {
-        if (ctx.session.user.role !== 'DELIVERER') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès réservé aux livreurs' });
+        if (ctx.session.user.role !== "DELIVERER") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Accès réservé aux livreurs",
+          });
         }
         return await DeliveryService.respondToDeliveryProposal(
           input.matchingId,
           input.response,
-          ctx.session.user.id
+          ctx.session.user.id,
         );
       }),
 
@@ -235,13 +265,19 @@ export const deliveryRouter = router({
         z.object({
           latitude: z.number().min(-90).max(90),
           longitude: z.number().min(-180).max(180),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
-        if (ctx.session.user.role !== 'DELIVERER') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès réservé aux livreurs' });
+        if (ctx.session.user.role !== "DELIVERER") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Accès réservé aux livreurs",
+          });
         }
-        return await DeliveryService.updateLiveLocation(ctx.session.user.id, input);
+        return await DeliveryService.updateLiveLocation(
+          ctx.session.user.id,
+          input,
+        );
       }),
   }),
 
@@ -271,19 +307,23 @@ export const deliveryRouter = router({
               cityName: z.string().optional(),
               postalCodes: z.array(z.string()).optional(),
               isPreferred: z.boolean().optional(),
-              trafficLevel: z.enum(['LOW', 'NORMAL', 'HIGH']).optional(),
-              parkingDifficulty: z.enum(['EASY', 'MEDIUM', 'HARD']).optional(),
+              trafficLevel: z.enum(["LOW", "NORMAL", "HIGH"]).optional(),
+              parkingDifficulty: z.enum(["EASY", "MEDIUM", "HARD"]).optional(),
               accessNotes: z.string().optional(),
               timeRestrictions: z.array(z.string()).optional(),
               vehicleRestrictions: z.array(z.string()).optional(),
               weatherSensitive: z.boolean().optional(),
-            })
+            }),
           ),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
-        return await DeliveryService.createDelivererRoute(delivererId, input, ctx.session.user.id);
+        return await DeliveryService.createDelivererRoute(
+          delivererId,
+          input,
+          ctx.session.user.id,
+        );
       }),
 
     // Lister les routes d'un livreur
@@ -291,7 +331,10 @@ export const deliveryRouter = router({
       .input(z.object({ delivererId: z.string().optional() }))
       .query(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
-        const profile = await DeliveryService.getDelivererProfile(delivererId, ctx.session.user.id);
+        const profile = await DeliveryService.getDelivererProfile(
+          delivererId,
+          ctx.session.user.id,
+        );
         return profile.routes;
       }),
 
@@ -327,11 +370,17 @@ export const deliveryRouter = router({
         });
 
         if (!route) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Route introuvable' });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Route introuvable",
+          });
         }
 
-        if (route.delivererId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+        if (
+          route.delivererId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
+        ) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
         }
 
         return await ctx.db.delivererRoute.delete({
@@ -345,7 +394,7 @@ export const deliveryRouter = router({
         z.object({
           routeId: z.string(),
           isActive: z.boolean(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const route = await ctx.db.delivererRoute.findUnique({
@@ -353,11 +402,17 @@ export const deliveryRouter = router({
         });
 
         if (!route) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Route introuvable' });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Route introuvable",
+          });
         }
 
-        if (route.delivererId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+        if (
+          route.delivererId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
+        ) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
         }
 
         return await ctx.db.delivererRoute.update({
@@ -393,16 +448,16 @@ export const deliveryRouter = router({
                 .optional(),
               timeSlots: z.number().min(1).max(10).optional(),
               preferredZones: z.array(z.string()).optional(),
-            })
+            }),
           ),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
         return await DeliveryService.updateDelivererSchedule(
           delivererId,
           input.schedules,
-          ctx.session.user.id
+          ctx.session.user.id,
         );
       }),
 
@@ -422,11 +477,15 @@ export const deliveryRouter = router({
             .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
             .optional(),
           reason: z.string().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
-        return await DeliveryService.addScheduleException(delivererId, input, ctx.session.user.id);
+        return await DeliveryService.addScheduleException(
+          delivererId,
+          input,
+          ctx.session.user.id,
+        );
       }),
 
     // Récupérer le planning optimisé
@@ -436,14 +495,19 @@ export const deliveryRouter = router({
           delivererId: z.string().optional(),
           startDate: z.date().optional(),
           endDate: z.date().optional(),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
         const startDate = input.startDate || new Date();
-        const endDate = input.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours par défaut
+        const endDate =
+          input.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours par défaut
 
-        return await DeliveryService.getOptimizedSchedule(delivererId, startDate, endDate);
+        return await DeliveryService.getOptimizedSchedule(
+          delivererId,
+          startDate,
+          endDate,
+        );
       }),
 
     // Mettre à jour la disponibilité
@@ -453,7 +517,7 @@ export const deliveryRouter = router({
         return await DeliveryService.updateDelivererAvailability(
           ctx.session.user.id,
           input,
-          ctx.session.user.id
+          ctx.session.user.id,
         );
       }),
 
@@ -464,13 +528,13 @@ export const deliveryRouter = router({
           latitude: z.number().min(-90).max(90),
           longitude: z.number().min(-180).max(180),
           radiusKm: z.number().min(1).max(50).default(10),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         return await DeliveryService.getAvailableDeliverersInArea(
           input.latitude,
           input.longitude,
-          input.radiusKm
+          input.radiusKm,
         );
       }),
 
@@ -483,7 +547,7 @@ export const deliveryRouter = router({
         return await ctx.db.delivererSchedule.findMany({
           where: { delivererId },
           include: { exceptions: true },
-          orderBy: { dayOfWeek: 'asc' },
+          orderBy: { dayOfWeek: "asc" },
         });
       }),
 
@@ -497,14 +561,17 @@ export const deliveryRouter = router({
         });
 
         if (!exception) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Exception introuvable' });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Exception introuvable",
+          });
         }
 
         if (
           exception.schedule.delivererId !== ctx.session.user.id &&
-          ctx.session.user.role !== 'ADMIN'
+          ctx.session.user.role !== "ADMIN"
         ) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
         }
 
         return await ctx.db.scheduleException.delete({
@@ -522,12 +589,12 @@ export const deliveryRouter = router({
         z.object({
           announcementId: z.string(),
           delivererId: z.string(),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         return await DeliveryService.calculateMatchingScore(
           input.announcementId,
-          input.delivererId
+          input.delivererId,
         );
       }),
 
@@ -537,10 +604,13 @@ export const deliveryRouter = router({
         z.object({
           announcementId: z.string(),
           limit: z.number().min(1).max(20).default(5),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
-        return await DeliveryService.findBestMatches(input.announcementId, input.limit);
+        return await DeliveryService.findBestMatches(
+          input.announcementId,
+          input.limit,
+        );
       }),
 
     // Assignment automatique
@@ -555,9 +625,11 @@ export const deliveryRouter = router({
       .input(
         z.object({
           delivererId: z.string().optional(),
-          status: z.enum(['SUGGESTED', 'NOTIFIED', 'ACCEPTED', 'DECLINED']).optional(),
+          status: z
+            .enum(["SUGGESTED", "NOTIFIED", "ACCEPTED", "DECLINED"])
+            .optional(),
           limit: z.number().min(1).max(50).default(10),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
@@ -583,7 +655,7 @@ export const deliveryRouter = router({
               },
             },
           },
-          orderBy: { matchingScore: 'desc' },
+          orderBy: { matchingScore: "desc" },
           take: input.limit,
         });
       }),
@@ -593,9 +665,9 @@ export const deliveryRouter = router({
       .input(
         z.object({
           matchingId: z.string(),
-          status: z.enum(['ACCEPTED', 'DECLINED']),
+          status: z.enum(["ACCEPTED", "DECLINED"]),
           rejectionReason: z.string().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         const matching = await ctx.db.announcementMatching.findUnique({
@@ -603,11 +675,14 @@ export const deliveryRouter = router({
         });
 
         if (!matching) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Correspondance introuvable' });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Correspondance introuvable",
+          });
         }
 
         if (matching.delivererId !== ctx.session.user.id) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
         }
 
         return await ctx.db.announcementMatching.update({
@@ -615,8 +690,8 @@ export const deliveryRouter = router({
           data: {
             status: input.status,
             respondedAt: new Date(),
-            ...(input.status === 'ACCEPTED' && { acceptedAt: new Date() }),
-            ...(input.status === 'DECLINED' && {
+            ...(input.status === "ACCEPTED" && { acceptedAt: new Date() }),
+            ...(input.status === "DECLINED" && {
               rejectedAt: new Date(),
               rejectionReason: input.rejectionReason,
             }),
@@ -630,22 +705,30 @@ export const deliveryRouter = router({
   mobile: router({
     // Dashboard complet mobile
     getDashboard: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.session.user.role !== 'DELIVERER') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès réservé aux livreurs' });
+      if (ctx.session.user.role !== "DELIVERER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès réservé aux livreurs",
+        });
       }
-      return await DeliveryService.getMobileDelivererDashboard(ctx.session.user.id);
+      return await DeliveryService.getMobileDelivererDashboard(
+        ctx.session.user.id,
+      );
     }),
 
     // Livraisons actives pour mobile
     getActiveDeliveries: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.session.user.role !== 'DELIVERER') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès réservé aux livreurs' });
+      if (ctx.session.user.role !== "DELIVERER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès réservé aux livreurs",
+        });
       }
 
       return await ctx.db.delivery.findMany({
         where: {
           delivererId: ctx.session.user.id,
-          status: { in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
+          status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
         },
         include: {
           announcement: {
@@ -662,15 +745,17 @@ export const deliveryRouter = router({
           client: {
             select: {
               id: true,
-              profile: { select: { firstName: true, lastName: true, phone: true } },
+              profile: {
+                select: { firstName: true, lastName: true, phone: true },
+              },
             },
           },
           coordinates: {
-            orderBy: { timestamp: 'desc' },
+            orderBy: { timestamp: "desc" },
             take: 1,
           },
         },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: "asc" },
       });
     }),
 
@@ -678,14 +763,17 @@ export const deliveryRouter = router({
     getPendingMatches: protectedProcedure
       .input(z.object({ limit: z.number().min(1).max(20).default(10) }))
       .query(async ({ ctx, input }) => {
-        if (ctx.session.user.role !== 'DELIVERER') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès réservé aux livreurs' });
+        if (ctx.session.user.role !== "DELIVERER") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Accès réservé aux livreurs",
+          });
         }
 
         return await ctx.db.announcementMatching.findMany({
           where: {
             delivererId: ctx.session.user.id,
-            status: { in: ['SUGGESTED', 'NOTIFIED'] },
+            status: { in: ["SUGGESTED", "NOTIFIED"] },
           },
           include: {
             announcement: {
@@ -698,7 +786,7 @@ export const deliveryRouter = router({
               },
             },
           },
-          orderBy: { matchingScore: 'desc' },
+          orderBy: { matchingScore: "desc" },
           take: input.limit,
         });
       }),
@@ -711,11 +799,14 @@ export const deliveryRouter = router({
           longitude: z.number().min(-180).max(180),
           accuracy: z.number().optional(),
           speed: z.number().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
-        if (ctx.session.user.role !== 'DELIVERER') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès réservé aux livreurs' });
+        if (ctx.session.user.role !== "DELIVERER") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Accès réservé aux livreurs",
+          });
         }
 
         return await DeliveryService.updateLiveLocation(ctx.session.user.id, {
@@ -726,43 +817,51 @@ export const deliveryRouter = router({
 
     // Statistiques rapides mobile
     getQuickStats: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.session.user.role !== 'DELIVERER') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès réservé aux livreurs' });
+      if (ctx.session.user.role !== "DELIVERER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès réservé aux livreurs",
+        });
       }
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const [todayDeliveries, weekDeliveries, totalEarnings, activeCount] = await Promise.all([
-        ctx.db.delivery.count({
-          where: {
-            delivererId: ctx.session.user.id,
-            status: 'DELIVERED',
-            completionTime: { gte: today },
-          },
-        }),
-        ctx.db.delivery.count({
-          where: {
-            delivererId: ctx.session.user.id,
-            status: 'DELIVERED',
-            completionTime: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-          },
-        }),
-        ctx.db.delivery.aggregate({
-          where: {
-            delivererId: ctx.session.user.id,
-            status: 'DELIVERED',
-            completionTime: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-          },
-          _sum: { price: true },
-        }),
-        ctx.db.delivery.count({
-          where: {
-            delivererId: ctx.session.user.id,
-            status: { in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
-          },
-        }),
-      ]);
+      const [todayDeliveries, weekDeliveries, totalEarnings, activeCount] =
+        await Promise.all([
+          ctx.db.delivery.count({
+            where: {
+              delivererId: ctx.session.user.id,
+              status: "DELIVERED",
+              completionTime: { gte: today },
+            },
+          }),
+          ctx.db.delivery.count({
+            where: {
+              delivererId: ctx.session.user.id,
+              status: "DELIVERED",
+              completionTime: {
+                gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+              },
+            },
+          }),
+          ctx.db.delivery.aggregate({
+            where: {
+              delivererId: ctx.session.user.id,
+              status: "DELIVERED",
+              completionTime: {
+                gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+              },
+            },
+            _sum: { price: true },
+          }),
+          ctx.db.delivery.count({
+            where: {
+              delivererId: ctx.session.user.id,
+              status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
+            },
+          }),
+        ]);
 
       return {
         todayDeliveries,
@@ -783,15 +882,18 @@ export const deliveryRouter = router({
           },
           data: {
             readAt: new Date(),
-            status: 'READ',
+            status: "READ",
           },
         });
       }),
 
     // Récupérer les notifications non lues
     getUnreadNotifications: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.session.user.role !== 'DELIVERER') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès réservé aux livreurs' });
+      if (ctx.session.user.role !== "DELIVERER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès réservé aux livreurs",
+        });
       }
 
       return await ctx.db.delivererNotification.findMany({
@@ -799,7 +901,7 @@ export const deliveryRouter = router({
           delivererId: ctx.session.user.id,
           readAt: null,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 20,
       });
     }),
@@ -812,7 +914,10 @@ export const deliveryRouter = router({
     updateCoordinates: protectedProcedure
       .input(deliveryCoordinatesUpdateSchema)
       .mutation(async ({ ctx, input }) => {
-        return await DeliveryService.updateCoordinates(input, ctx.session.user.id);
+        return await DeliveryService.updateCoordinates(
+          input,
+          ctx.session.user.id,
+        );
       }),
 
     // Coordonnées récentes des livraisons
@@ -820,7 +925,7 @@ export const deliveryRouter = router({
       .input(
         z.object({
           deliveryIds: z.array(z.string()),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         try {
@@ -828,8 +933,8 @@ export const deliveryRouter = router({
             where: {
               deliveryId: { in: input.deliveryIds },
             },
-            orderBy: { timestamp: 'desc' },
-            distinct: ['deliveryId'],
+            orderBy: { timestamp: "desc" },
+            distinct: ["deliveryId"],
             select: {
               deliveryId: true,
               latitude: true,
@@ -839,10 +944,13 @@ export const deliveryRouter = router({
           });
           return coordinates;
         } catch (error) {
-          console.error('Erreur lors de la récupération des coordonnées:', error);
+          console.error(
+            "Erreur lors de la récupération des coordonnées:",
+            error,
+          );
           throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Impossible de récupérer les coordonnées des livraisons',
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Impossible de récupérer les coordonnées des livraisons",
           });
         }
       }),
@@ -853,15 +961,16 @@ export const deliveryRouter = router({
         z.object({
           startDate: z.date().optional(),
           endDate: z.date().optional(),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
         try {
-          const startDate = input.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          const startDate =
+            input.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
           const endDate = input.endDate || new Date();
 
           const heatmapData = await ctx.db.deliveryCoordinates.groupBy({
-            by: ['latitude', 'longitude'],
+            by: ["latitude", "longitude"],
             where: {
               timestamp: {
                 gte: startDate,
@@ -880,16 +989,20 @@ export const deliveryRouter = router({
             },
           });
 
-          return heatmapData.map(item => ({
+          return heatmapData.map((item) => ({
             latitude: Number(item.latitude.toFixed(3)),
             longitude: Number(item.longitude.toFixed(3)),
             count: item._count.id,
           }));
         } catch (error) {
-          console.error('Erreur lors de la récupération des données de la carte thermique:', error);
+          console.error(
+            "Erreur lors de la récupération des données de la carte thermique:",
+            error,
+          );
           throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Impossible de récupérer les données de la carte thermique',
+            code: "INTERNAL_SERVER_ERROR",
+            message:
+              "Impossible de récupérer les données de la carte thermique",
           });
         }
       }),
@@ -899,9 +1012,11 @@ export const deliveryRouter = router({
 
   rating: router({
     // Évaluer une livraison
-    create: protectedProcedure.input(deliveryRatingSchema).mutation(async ({ ctx, input }) => {
-      return await DeliveryService.rateDelivery(input, ctx.session.user.id);
-    }),
+    create: protectedProcedure
+      .input(deliveryRatingSchema)
+      .mutation(async ({ ctx, input }) => {
+        return await DeliveryService.rateDelivery(input, ctx.session.user.id);
+      }),
 
     // Statistiques d'évaluation d'un livreur
     getDelivererStats: protectedProcedure
@@ -917,24 +1032,26 @@ export const deliveryRouter = router({
 
   proof: router({
     // Ajouter une preuve
-    upload: protectedProcedure.input(deliveryProofSchema).mutation(async ({ ctx, input }) => {
-      const delivery = await ctx.db.delivery.findUnique({
-        where: { id: input.deliveryId },
-      });
+    upload: protectedProcedure
+      .input(deliveryProofSchema)
+      .mutation(async ({ ctx, input }) => {
+        const delivery = await ctx.db.delivery.findUnique({
+          where: { id: input.deliveryId },
+        });
 
-      if (!delivery || delivery.delivererId !== ctx.session.user.id) {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
-      }
+        if (!delivery || delivery.delivererId !== ctx.session.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+        }
 
-      return await ctx.db.deliveryProof.create({
-        data: {
-          deliveryId: input.deliveryId,
-          type: input.type,
-          fileUrl: input.fileUrl,
-          notes: input.notes,
-        },
-      });
-    }),
+        return await ctx.db.deliveryProof.create({
+          data: {
+            deliveryId: input.deliveryId,
+            type: input.type,
+            fileUrl: input.fileUrl,
+            notes: input.notes,
+          },
+        });
+      }),
 
     // Lister les preuves d'une livraison
     getByDelivery: protectedProcedure
@@ -945,21 +1062,24 @@ export const deliveryRouter = router({
         });
 
         if (!delivery) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Livraison introuvable' });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Livraison introuvable",
+          });
         }
 
         // Vérifier les permissions
         if (
           delivery.clientId !== ctx.session.user.id &&
           delivery.delivererId !== ctx.session.user.id &&
-          ctx.session.user.role !== 'ADMIN'
+          ctx.session.user.role !== "ADMIN"
         ) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
         }
 
         return await ctx.db.deliveryProof.findMany({
           where: { deliveryId: input.deliveryId },
-          orderBy: { uploadedAt: 'desc' },
+          orderBy: { uploadedAt: "desc" },
         });
       }),
   }),
@@ -972,15 +1092,15 @@ export const deliveryRouter = router({
       .input(
         z.object({
           documentId: z.string(),
-          status: z.enum(['APPROVED', 'REJECTED']),
+          status: z.enum(["APPROVED", "REJECTED"]),
           rejectionReason: z.string().optional(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         return await DeliveryService.validateDelivererDocument(
           input.documentId,
           input,
-          ctx.session.user.id
+          ctx.session.user.id,
         );
       }),
 
@@ -998,29 +1118,37 @@ export const deliveryRouter = router({
               include: {
                 auditLogs: {
                   include: {
-                    actor: { select: { profile: { select: { firstName: true, lastName: true } } } },
+                    actor: {
+                      select: {
+                        profile: {
+                          select: { firstName: true, lastName: true },
+                        },
+                      },
+                    },
                   },
-                  orderBy: { createdAt: 'desc' },
+                  orderBy: { createdAt: "desc" },
                   take: 5,
                 },
                 verifier: {
-                  select: { profile: { select: { firstName: true, lastName: true } } },
+                  select: {
+                    profile: { select: { firstName: true, lastName: true } },
+                  },
                 },
               },
-              orderBy: { uploadedAt: 'desc' },
+              orderBy: { uploadedAt: "desc" },
             },
           },
         });
 
         // Calculer le statut global
-        let overallStatus = 'PENDING';
+        let overallStatus = "PENDING";
         let verifiedCount = 0;
         let totalCount = 0;
 
-        applications.forEach(app => {
-          app.requiredDocuments.forEach(doc => {
+        applications.forEach((app) => {
+          app.requiredDocuments.forEach((doc) => {
             totalCount++;
-            if (doc.status === 'APPROVED') {
+            if (doc.status === "APPROVED") {
               verifiedCount++;
             }
           });
@@ -1028,9 +1156,9 @@ export const deliveryRouter = router({
 
         if (totalCount > 0) {
           if (verifiedCount === totalCount) {
-            overallStatus = 'VERIFIED';
+            overallStatus = "VERIFIED";
           } else if (verifiedCount > 0) {
-            overallStatus = 'PARTIAL';
+            overallStatus = "PARTIAL";
           }
         }
 
@@ -1053,7 +1181,7 @@ export const deliveryRouter = router({
         const documents = await ctx.db.applicationDocument.findMany({
           where: {
             application: { delivererId },
-            status: 'PENDING',
+            status: "PENDING",
             autoValidated: false,
           },
         });
@@ -1071,7 +1199,8 @@ export const deliveryRouter = router({
 
         return {
           processedCount: results.length,
-          autoApprovedCount: results.filter(r => r.status === 'APPROVED').length,
+          autoApprovedCount: results.filter((r) => r.status === "APPROVED")
+            .length,
           results,
         };
       }),
@@ -1086,9 +1215,13 @@ export const deliveryRouter = router({
             application: true,
             auditLogs: {
               include: {
-                actor: { select: { profile: { select: { firstName: true, lastName: true } } } },
+                actor: {
+                  select: {
+                    profile: { select: { firstName: true, lastName: true } },
+                  },
+                },
               },
-              orderBy: { createdAt: 'desc' },
+              orderBy: { createdAt: "desc" },
             },
             previousVersion: true,
             nextVersions: true,
@@ -1096,15 +1229,18 @@ export const deliveryRouter = router({
         });
 
         if (!document) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Document introuvable' });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Document introuvable",
+          });
         }
 
         // Vérifier les permissions
         if (
           document.application.delivererId !== ctx.session.user.id &&
-          ctx.session.user.role !== 'ADMIN'
+          ctx.session.user.role !== "ADMIN"
         ) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
         }
 
         return document;
@@ -1116,10 +1252,11 @@ export const deliveryRouter = router({
         z.object({
           startDate: z.date().optional(),
           endDate: z.date().optional(),
-        })
+        }),
       )
       .query(async ({ ctx, input }) => {
-        const startDate = input.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const startDate =
+          input.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         const endDate = input.endDate || new Date();
 
         const [
@@ -1134,19 +1271,19 @@ export const deliveryRouter = router({
           }),
           ctx.db.applicationDocument.count({
             where: {
-              status: 'PENDING',
+              status: "PENDING",
               uploadedAt: { gte: startDate, lte: endDate },
             },
           }),
           ctx.db.applicationDocument.count({
             where: {
-              status: 'APPROVED',
+              status: "APPROVED",
               verifiedAt: { gte: startDate, lte: endDate },
             },
           }),
           ctx.db.applicationDocument.count({
             where: {
-              status: 'REJECTED',
+              status: "REJECTED",
               verifiedAt: { gte: startDate, lte: endDate },
             },
           }),
@@ -1165,8 +1302,10 @@ export const deliveryRouter = router({
           rejectedDocuments,
           autoApproved,
           manualApproved: approvedDocuments - autoApproved,
-          approvalRate: totalDocuments > 0 ? (approvedDocuments / totalDocuments) * 100 : 0,
-          autoApprovalRate: totalDocuments > 0 ? (autoApproved / totalDocuments) * 100 : 0,
+          approvalRate:
+            totalDocuments > 0 ? (approvedDocuments / totalDocuments) * 100 : 0,
+          autoApprovalRate:
+            totalDocuments > 0 ? (autoApproved / totalDocuments) * 100 : 0,
         };
       }),
   }),
@@ -1180,7 +1319,7 @@ export const deliveryRouter = router({
         z.object({
           announcementId: z.string(),
           delivererId: z.string(),
-        })
+        }),
       )
       .mutation(async ({ ctx, input }) => {
         // Créer directement la livraison
@@ -1189,7 +1328,10 @@ export const deliveryRouter = router({
         });
 
         if (!announcement) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Annonce introuvable' });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Annonce introuvable",
+          });
         }
 
         return await ctx.db.delivery.create({
@@ -1197,7 +1339,7 @@ export const deliveryRouter = router({
             announcementId: input.announcementId,
             delivererId: input.delivererId,
             clientId: announcement.clientId,
-            status: 'PENDING',
+            status: "PENDING",
             trackingCode: DeliveryService.generateTrackingCode(),
             price: announcement.suggestedPrice || 0,
           },
@@ -1206,22 +1348,25 @@ export const deliveryRouter = router({
 
     // Statistiques globales des livraisons
     getGlobalStats: adminProcedure.query(async ({ ctx }) => {
-      const [totalDeliveries, activeDeliveries, completedToday] = await Promise.all([
-        ctx.db.delivery.count(),
-        ctx.db.delivery.count({
-          where: {
-            status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
-          },
-        }),
-        ctx.db.delivery.count({
-          where: {
-            status: 'DELIVERED',
-            completionTime: {
-              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+      const [totalDeliveries, activeDeliveries, completedToday] =
+        await Promise.all([
+          ctx.db.delivery.count(),
+          ctx.db.delivery.count({
+            where: {
+              status: {
+                in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"],
+              },
             },
-          },
-        }),
-      ]);
+          }),
+          ctx.db.delivery.count({
+            where: {
+              status: "DELIVERED",
+              completionTime: {
+                gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              },
+            },
+          }),
+        ]);
 
       return {
         totalDeliveries,

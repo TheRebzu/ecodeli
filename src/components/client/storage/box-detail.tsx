@@ -1,5 +1,5 @@
 // box-detail
-import React from 'react';
+import React from "react";
 
 export default function boxdetail() {
   return (

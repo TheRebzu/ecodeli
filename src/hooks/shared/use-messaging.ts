@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { api } from '@/hooks/system/use-trpc';
-import { useMessagingStore } from '@/store/use-verification-store';
-import { useSocket } from '@/hooks/system/use-socket';
+import { useEffect } from "react";
+import { api } from "@/hooks/system/use-trpc";
+import { useMessagingStore } from "@/store/use-verification-store";
+import { useSocket } from "@/hooks/system/use-socket";
 
 export function useMessaging(conversationId?: string) {
   const socket = useSocket();
@@ -31,12 +31,12 @@ export function useMessaging(conversationId?: string) {
   // Écouter les nouveaux messages via socket
   useEffect(() => {
     if (socket && conversationId) {
-      socket.on('message', message => {
+      socket.on("message", (message) => {
         addMessage(conversationId, message);
       });
 
       return () => {
-        socket.off('message');
+        socket.off("message");
       };
     }
   }, [socket, conversationId, addMessage]);

@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import { SeedLogger } from './seed-logger';
+import { PrismaClient } from "@prisma/client";
+import { SeedLogger } from "./seed-logger";
 
 /**
  * Interface pour les résultats de validation
@@ -8,7 +8,7 @@ export interface ValidationResult {
   category: string;
   table: string;
   rule: string;
-  status: 'PASS' | 'FAIL' | 'WARNING';
+  status: "PASS" | "FAIL" | "WARNING";
   message: string;
   expected?: number | string;
   actual?: number | string;
@@ -63,7 +63,7 @@ export class SeedValidator {
     };
 
     try {
-      this.logger.info('VALIDATOR', '🔍 Démarrage de la validation post-seed');
+      this.logger.info("VALIDATOR", "🔍 Démarrage de la validation post-seed");
 
       // Définir les validations à exécuter
       const validations = this.getValidationsToRun(options);
@@ -75,19 +75,28 @@ export class SeedValidator {
           stats.totalRules++;
 
           switch (result.status) {
-            case 'PASS':
+            case "PASS":
               stats.passedRules++;
               if (options.verbose) {
-                this.logger.success('VALIDATOR', `✅ ${result.rule}: ${result.message}`);
+                this.logger.success(
+                  "VALIDATOR",
+                  `✅ ${result.rule}: ${result.message}`,
+                );
               }
               break;
-            case 'FAIL':
+            case "FAIL":
               stats.failedRules++;
-              this.logger.error('VALIDATOR', `❌ ${result.rule}: ${result.message}`);
+              this.logger.error(
+                "VALIDATOR",
+                `❌ ${result.rule}: ${result.message}`,
+              );
               break;
-            case 'WARNING':
+            case "WARNING":
               stats.warnings++;
-              this.logger.warning('VALIDATOR', `⚠️  ${result.rule}: ${result.message}`);
+              this.logger.warning(
+                "VALIDATOR",
+                `⚠️  ${result.rule}: ${result.message}`,
+              );
               break;
           }
         } catch (error: any) {
@@ -95,14 +104,17 @@ export class SeedValidator {
             category: validation.category,
             table: validation.table,
             rule: validation.rule,
-            status: 'FAIL',
+            status: "FAIL",
             message: `Erreur lors de la validation: ${error.message}`,
           };
 
           stats.results.push(errorResult);
           stats.totalRules++;
           stats.failedRules++;
-          this.logger.error('VALIDATOR', `❌ ${validation.rule}: ${errorResult.message}`);
+          this.logger.error(
+            "VALIDATOR",
+            `❌ ${validation.rule}: ${errorResult.message}`,
+          );
         }
       }
 
@@ -114,7 +126,10 @@ export class SeedValidator {
       return stats;
     } catch (error: any) {
       stats.timeElapsed = Date.now() - startTime;
-      this.logger.error('VALIDATOR', `❌ Échec de la validation: ${error.message}`);
+      this.logger.error(
+        "VALIDATOR",
+        `❌ Échec de la validation: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -122,11 +137,15 @@ export class SeedValidator {
   /**
    * Détermine quelles validations exécuter selon les options
    */
-  private getValidationsToRun(options: ValidationOptions): ValidationDefinition[] {
+  private getValidationsToRun(
+    options: ValidationOptions,
+  ): ValidationDefinition[] {
     const allValidations = this.getAllValidations();
 
     if (options.categories?.length) {
-      return allValidations.filter(v => options.categories!.includes(v.category));
+      return allValidations.filter((v) =>
+        options.categories!.includes(v.category),
+      );
     }
 
     return allValidations;
@@ -139,28 +158,36 @@ export class SeedValidator {
     return [
       // === VALIDATIONS BASE ===
       {
-        category: 'base',
-        table: 'User',
-        rule: 'roles_required_exist',
+        category: "base",
+        table: "User",
+        rule: "roles_required_exist",
         validate: async (): Promise<ValidationResult> => {
-          const requiredRoles = ['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER', 'ADMIN'];
+          const requiredRoles = [
+            "CLIENT",
+            "DELIVERER",
+            "MERCHANT",
+            "PROVIDER",
+            "ADMIN",
+          ];
           const usersByRole = await this.prisma.user.groupBy({
-            by: ['role'],
+            by: ["role"],
             _count: true,
           });
 
           const existingRoles = usersByRole.map((group: any) => group.role);
-          const missingRoles = requiredRoles.filter(role => !existingRoles.includes(role));
+          const missingRoles = requiredRoles.filter(
+            (role) => !existingRoles.includes(role),
+          );
 
           return {
-            category: 'base',
-            table: 'User',
-            rule: 'roles_required_exist',
-            status: missingRoles.length === 0 ? 'PASS' : 'WARNING',
+            category: "base",
+            table: "User",
+            rule: "roles_required_exist",
+            status: missingRoles.length === 0 ? "PASS" : "WARNING",
             message:
               missingRoles.length === 0
-                ? 'Tous les rôles requis ont des utilisateurs'
-                : `Rôles sans utilisateurs: ${missingRoles.join(', ')}`,
+                ? "Tous les rôles requis ont des utilisateurs"
+                : `Rôles sans utilisateurs: ${missingRoles.join(", ")}`,
             expected: requiredRoles.length,
             actual: existingRoles.length,
           };
@@ -168,41 +195,41 @@ export class SeedValidator {
       },
 
       {
-        category: 'base',
-        table: 'User',
-        rule: 'basic_data_integrity',
+        category: "base",
+        table: "User",
+        rule: "basic_data_integrity",
         validate: async (): Promise<ValidationResult> => {
           const userCount = await this.prisma.user.count();
 
           return {
-            category: 'base',
-            table: 'User',
-            rule: 'basic_data_integrity',
-            status: userCount >= 0 ? 'PASS' : 'FAIL',
+            category: "base",
+            table: "User",
+            rule: "basic_data_integrity",
+            status: userCount >= 0 ? "PASS" : "FAIL",
             message: `${userCount} utilisateurs dans la base`,
-            expected: '>= 0',
+            expected: ">= 0",
             actual: userCount,
           };
         },
       },
 
       {
-        category: 'base',
-        table: 'Service',
-        rule: 'service_categories_exist',
+        category: "base",
+        table: "Service",
+        rule: "service_categories_exist",
         validate: async (): Promise<ValidationResult> => {
           const categoryCount = await this.prisma.serviceCategory.count();
 
           return {
-            category: 'base',
-            table: 'ServiceCategory',
-            rule: 'service_categories_exist',
-            status: categoryCount > 0 ? 'PASS' : 'FAIL',
+            category: "base",
+            table: "ServiceCategory",
+            rule: "service_categories_exist",
+            status: categoryCount > 0 ? "PASS" : "FAIL",
             message:
               categoryCount > 0
                 ? `${categoryCount} catégories de services configurées`
-                : 'Aucune catégorie de service configurée',
-            expected: '> 0',
+                : "Aucune catégorie de service configurée",
+            expected: "> 0",
             actual: categoryCount,
           };
         },
@@ -210,36 +237,38 @@ export class SeedValidator {
 
       // === VALIDATIONS UTILISATEURS ===
       {
-        category: 'users',
-        table: 'User',
-        rule: 'users_have_valid_status',
+        category: "users",
+        table: "User",
+        rule: "users_have_valid_status",
         validate: async (): Promise<ValidationResult> => {
           const totalUsers = await this.prisma.user.count();
           const activeUsers = await this.prisma.user.count({
-            where: { status: 'ACTIVE' },
+            where: { status: "ACTIVE" },
           });
 
           return {
-            category: 'users',
-            table: 'User',
-            rule: 'users_have_valid_status',
-            status: totalUsers > 0 ? 'PASS' : 'WARNING',
+            category: "users",
+            table: "User",
+            rule: "users_have_valid_status",
+            status: totalUsers > 0 ? "PASS" : "WARNING",
             message:
               totalUsers > 0
                 ? `${activeUsers}/${totalUsers} utilisateurs actifs`
-                : 'Aucun utilisateur dans la base',
-            expected: '> 0',
+                : "Aucun utilisateur dans la base",
+            expected: "> 0",
             actual: totalUsers,
           };
         },
       },
 
       {
-        category: 'users',
-        table: 'User',
-        rule: 'email_uniqueness',
+        category: "users",
+        table: "User",
+        rule: "email_uniqueness",
         validate: async (): Promise<ValidationResult> => {
-          const duplicateEmails = await this.prisma.$queryRaw<{ email: string; count: number }[]>`
+          const duplicateEmails = await this.prisma.$queryRaw<
+            { email: string; count: number }[]
+          >`
              SELECT email, COUNT(*) as count 
              FROM "users" 
              WHERE email IS NOT NULL 
@@ -248,13 +277,13 @@ export class SeedValidator {
            `;
 
           return {
-            category: 'users',
-            table: 'User',
-            rule: 'email_uniqueness',
-            status: duplicateEmails.length === 0 ? 'PASS' : 'FAIL',
+            category: "users",
+            table: "User",
+            rule: "email_uniqueness",
+            status: duplicateEmails.length === 0 ? "PASS" : "FAIL",
             message:
               duplicateEmails.length === 0
-                ? 'Tous les emails sont uniques'
+                ? "Tous les emails sont uniques"
                 : `${duplicateEmails.length} emails dupliqués`,
             expected: 0,
             actual: duplicateEmails.length,
@@ -264,19 +293,19 @@ export class SeedValidator {
 
       // === VALIDATIONS VERIFICATIONS ===
       {
-        category: 'verifications',
-        table: 'Document',
-        rule: 'documents_integrity',
+        category: "verifications",
+        table: "Document",
+        rule: "documents_integrity",
         validate: async (): Promise<ValidationResult> => {
           const documentCount = await this.prisma.document.count();
 
           return {
-            category: 'verifications',
-            table: 'Document',
-            rule: 'documents_integrity',
-            status: documentCount >= 0 ? 'PASS' : 'FAIL',
+            category: "verifications",
+            table: "Document",
+            rule: "documents_integrity",
+            status: documentCount >= 0 ? "PASS" : "FAIL",
             message: `${documentCount} documents dans le système`,
-            expected: '>= 0',
+            expected: ">= 0",
             actual: documentCount,
           };
         },
@@ -284,31 +313,33 @@ export class SeedValidator {
 
       // === VALIDATIONS STORAGE ===
       {
-        category: 'storage',
-        table: 'Warehouse',
-        rule: 'warehouses_have_valid_coordinates',
+        category: "storage",
+        table: "Warehouse",
+        rule: "warehouses_have_valid_coordinates",
         validate: async (): Promise<ValidationResult> => {
-          const warehousesWithInvalidCoords = await this.prisma.warehouse.count({
-            where: {
-              OR: [
-                { latitude: null },
-                { longitude: null },
-                { latitude: { lt: -90 } },
-                { latitude: { gt: 90 } },
-                { longitude: { lt: -180 } },
-                { longitude: { gt: 180 } },
-              ],
+          const warehousesWithInvalidCoords = await this.prisma.warehouse.count(
+            {
+              where: {
+                OR: [
+                  { latitude: null },
+                  { longitude: null },
+                  { latitude: { lt: -90 } },
+                  { latitude: { gt: 90 } },
+                  { longitude: { lt: -180 } },
+                  { longitude: { gt: 180 } },
+                ],
+              },
             },
-          });
+          );
 
           return {
-            category: 'storage',
-            table: 'Warehouse',
-            rule: 'warehouses_have_valid_coordinates',
-            status: warehousesWithInvalidCoords === 0 ? 'PASS' : 'WARNING',
+            category: "storage",
+            table: "Warehouse",
+            rule: "warehouses_have_valid_coordinates",
+            status: warehousesWithInvalidCoords === 0 ? "PASS" : "WARNING",
             message:
               warehousesWithInvalidCoords === 0
-                ? 'Tous les entrepôts ont des coordonnées valides'
+                ? "Tous les entrepôts ont des coordonnées valides"
                 : `${warehousesWithInvalidCoords} entrepôts avec coordonnées invalides`,
             expected: 0,
             actual: warehousesWithInvalidCoords,
@@ -318,19 +349,19 @@ export class SeedValidator {
 
       // === VALIDATIONS RELATIONNELLES ===
       {
-        category: 'storage',
-        table: 'Warehouse',
-        rule: 'warehouses_basic_check',
+        category: "storage",
+        table: "Warehouse",
+        rule: "warehouses_basic_check",
         validate: async (): Promise<ValidationResult> => {
           const warehouseCount = await this.prisma.warehouse.count();
 
           return {
-            category: 'storage',
-            table: 'Warehouse',
-            rule: 'warehouses_basic_check',
-            status: warehouseCount >= 0 ? 'PASS' : 'FAIL',
+            category: "storage",
+            table: "Warehouse",
+            rule: "warehouses_basic_check",
+            status: warehouseCount >= 0 ? "PASS" : "FAIL",
             message: `${warehouseCount} entrepôts configurés`,
-            expected: '>= 0',
+            expected: ">= 0",
             actual: warehouseCount,
           };
         },
@@ -338,24 +369,24 @@ export class SeedValidator {
 
       // === VALIDATIONS MÉTIER ===
       {
-        category: 'business',
-        table: 'User',
-        rule: 'admin_user_exists',
+        category: "business",
+        table: "User",
+        rule: "admin_user_exists",
         validate: async (): Promise<ValidationResult> => {
           const adminCount = await this.prisma.user.count({
-            where: { role: 'ADMIN' },
+            where: { role: "ADMIN" },
           });
 
           return {
-            category: 'business',
-            table: 'User',
-            rule: 'admin_user_exists',
-            status: adminCount > 0 ? 'PASS' : 'WARNING',
+            category: "business",
+            table: "User",
+            rule: "admin_user_exists",
+            status: adminCount > 0 ? "PASS" : "WARNING",
             message:
               adminCount > 0
                 ? `${adminCount} administrateur(s) configuré(s)`
-                : 'Aucun administrateur configuré',
-            expected: '> 0',
+                : "Aucun administrateur configuré",
+            expected: "> 0",
             actual: adminCount,
           };
         },
@@ -367,27 +398,39 @@ export class SeedValidator {
    * Affiche le résumé de la validation
    */
   private logValidationSummary(stats: ValidationStats): void {
-    this.logger.info('VALIDATOR', '📊 === RÉSUMÉ DE LA VALIDATION ===');
-    this.logger.info('VALIDATOR', `📝 Total des règles vérifiées: ${stats.totalRules}`);
-    this.logger.success('VALIDATOR', `✅ Règles passées: ${stats.passedRules}`);
+    this.logger.info("VALIDATOR", "📊 === RÉSUMÉ DE LA VALIDATION ===");
+    this.logger.info(
+      "VALIDATOR",
+      `📝 Total des règles vérifiées: ${stats.totalRules}`,
+    );
+    this.logger.success("VALIDATOR", `✅ Règles passées: ${stats.passedRules}`);
 
     if (stats.failedRules > 0) {
-      this.logger.error('VALIDATOR', `❌ Règles échouées: ${stats.failedRules}`);
+      this.logger.error(
+        "VALIDATOR",
+        `❌ Règles échouées: ${stats.failedRules}`,
+      );
     }
 
     if (stats.warnings > 0) {
-      this.logger.warning('VALIDATOR', `⚠️  Avertissements: ${stats.warnings}`);
+      this.logger.warning("VALIDATOR", `⚠️  Avertissements: ${stats.warnings}`);
     }
 
-    this.logger.info('VALIDATOR', `⏱️  Temps d'exécution: ${stats.timeElapsed}ms`);
+    this.logger.info(
+      "VALIDATOR",
+      `⏱️  Temps d'exécution: ${stats.timeElapsed}ms`,
+    );
 
     // Statut global
     if (stats.failedRules === 0) {
-      this.logger.success('VALIDATOR', '🎉 VALIDATION RÉUSSIE - Toutes les règles sont respectées');
+      this.logger.success(
+        "VALIDATOR",
+        "🎉 VALIDATION RÉUSSIE - Toutes les règles sont respectées",
+      );
     } else {
       this.logger.error(
-        'VALIDATOR',
-        '💥 VALIDATION ÉCHOUÉE - Certaines règles ne sont pas respectées'
+        "VALIDATOR",
+        "💥 VALIDATION ÉCHOUÉE - Certaines règles ne sont pas respectées",
       );
     }
   }
@@ -406,16 +449,16 @@ export class SeedValidator {
 
       if (isValid) {
         this.logger.success(
-          'VALIDATOR',
-          `⚡ Validation rapide: OK (${userCount} utilisateurs, ${warehouseCount} entrepôts)`
+          "VALIDATOR",
+          `⚡ Validation rapide: OK (${userCount} utilisateurs, ${warehouseCount} entrepôts)`,
         );
       } else {
-        this.logger.error('VALIDATOR', '⚡ Validation rapide: ÉCHEC');
+        this.logger.error("VALIDATOR", "⚡ Validation rapide: ÉCHEC");
       }
 
       return isValid;
     } catch (error) {
-      this.logger.error('VALIDATOR', `⚡ Validation rapide: ERREUR - ${error}`);
+      this.logger.error("VALIDATOR", `⚡ Validation rapide: ERREUR - ${error}`);
       return false;
     }
   }
@@ -434,6 +477,9 @@ interface ValidationDefinition {
 /**
  * Factory function pour créer un SeedValidator
  */
-export function createSeedValidator(prisma: PrismaClient, logger: SeedLogger): SeedValidator {
+export function createSeedValidator(
+  prisma: PrismaClient,
+  logger: SeedLogger,
+): SeedValidator {
   return new SeedValidator(prisma, logger);
 }

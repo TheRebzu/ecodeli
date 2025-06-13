@@ -1,4 +1,4 @@
-import { db } from '@/server/db';
+import { db } from "@/server/db";
 import {
   BoxSearchInput,
   BoxReservationCreateInput,
@@ -8,49 +8,49 @@ import {
   ExtendReservationInput,
   BoxAccessInput,
   BoxDetailsInput,
-} from '@/schemas/storage/storage.schema';
-import { TRPCError } from '@trpc/server';
-import { Prisma, PaymentStatus } from '@prisma/client';
-import { generateRandomCode } from '@/lib/utils/common';
-import { NotificationService } from '@/lib/services/notification.service';
+} from "@/schemas/storage/storage.schema";
+import { TRPCError } from "@trpc/server";
+import { Prisma, PaymentStatus } from "@prisma/client";
+import { generateRandomCode } from "@/lib/utils/common";
+import { NotificationService } from "@/lib/services/notification.service";
 
 // Types personnalisés pour les enums manquants
 export enum BoxType {
-  STANDARD = 'STANDARD',
-  CLIMATE_CONTROLLED = 'CLIMATE_CONTROLLED',
-  SECURE = 'SECURE',
-  EXTRA_LARGE = 'EXTRA_LARGE',
-  REFRIGERATED = 'REFRIGERATED',
-  FRAGILE = 'FRAGILE',
+  STANDARD = "STANDARD",
+  CLIMATE_CONTROLLED = "CLIMATE_CONTROLLED",
+  SECURE = "SECURE",
+  EXTRA_LARGE = "EXTRA_LARGE",
+  REFRIGERATED = "REFRIGERATED",
+  FRAGILE = "FRAGILE",
 }
 
 export enum BoxStatus {
-  AVAILABLE = 'AVAILABLE',
-  RESERVED = 'RESERVED',
-  OCCUPIED = 'OCCUPIED',
-  MAINTENANCE = 'MAINTENANCE',
-  DAMAGED = 'DAMAGED',
-  INACTIVE = 'INACTIVE',
+  AVAILABLE = "AVAILABLE",
+  RESERVED = "RESERVED",
+  OCCUPIED = "OCCUPIED",
+  MAINTENANCE = "MAINTENANCE",
+  DAMAGED = "DAMAGED",
+  INACTIVE = "INACTIVE",
 }
 
 export enum ReservationStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-  EXTENDED = 'EXTENDED',
-  EXPIRED = 'EXPIRED',
+  PENDING = "PENDING",
+  ACTIVE = "ACTIVE",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+  EXTENDED = "EXTENDED",
+  EXPIRED = "EXPIRED",
 }
 
 export enum BoxActionType {
-  RESERVATION_CREATED = 'RESERVATION_CREATED',
-  RESERVATION_UPDATED = 'RESERVATION_UPDATED',
-  RESERVATION_CANCELLED = 'RESERVATION_CANCELLED',
-  BOX_ACCESSED = 'BOX_ACCESSED',
-  BOX_CLOSED = 'BOX_CLOSED',
-  PAYMENT_PROCESSED = 'PAYMENT_PROCESSED',
-  EXTENDED_RENTAL = 'EXTENDED_RENTAL',
-  INSPECTION_COMPLETED = 'INSPECTION_COMPLETED',
+  RESERVATION_CREATED = "RESERVATION_CREATED",
+  RESERVATION_UPDATED = "RESERVATION_UPDATED",
+  RESERVATION_CANCELLED = "RESERVATION_CANCELLED",
+  BOX_ACCESSED = "BOX_ACCESSED",
+  BOX_CLOSED = "BOX_CLOSED",
+  PAYMENT_PROCESSED = "PAYMENT_PROCESSED",
+  EXTENDED_RENTAL = "EXTENDED_RENTAL",
+  INSPECTION_COMPLETED = "INSPECTION_COMPLETED",
 }
 
 // Interface pour les champs additionnels du schema Prisma
@@ -105,8 +105,16 @@ interface NotificationData {
 class StorageService {
   // Recherche de box disponibles selon les critères
   async findAvailableBoxes(input: BoxSearchInput) {
-    const { warehouseId, startDate, endDate, minSize, maxSize, maxPrice, boxType, features } =
-      input;
+    const {
+      warehouseId,
+      startDate,
+      endDate,
+      minSize,
+      maxSize,
+      maxPrice,
+      boxType,
+      features,
+    } = input;
 
     // Construction des critères de recherche
     const whereClause: Prisma.BoxWhereInput & PrismaBoxExtension = {
@@ -138,7 +146,7 @@ class StorageService {
               },
               {
                 status: {
-                  in: ['PENDING', 'ACTIVE', 'EXTENDED'],
+                  in: ["PENDING", "ACTIVE", "EXTENDED"],
                 },
               },
             ],
@@ -151,7 +159,7 @@ class StorageService {
 
     // Ajout des critères de fonctionnalités si spécifiés
     if (features && features.length > 0) {
-      whereClause.AND = features.map(feature => ({
+      whereClause.AND = features.map((feature) => ({
         features: { has: feature },
       })) as unknown as Prisma.BoxWhereInput[];
     }
@@ -172,14 +180,17 @@ class StorageService {
           },
         },
       },
-      orderBy: [{ pricePerDay: 'asc' }, { size: 'asc' }],
+      orderBy: [{ pricePerDay: "asc" }, { size: "asc" }],
     });
 
     return availableBoxes;
   }
 
   // Création d'une réservation de box
-  async createBoxReservation(input: BoxReservationCreateInput, clientId: string) {
+  async createBoxReservation(
+    input: BoxReservationCreateInput,
+    clientId: string,
+  ) {
     const { boxId, startDate, endDate, notes } = input;
 
     // Récupération des informations de la box
@@ -189,23 +200,29 @@ class StorageService {
 
     if (!box) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Box introuvable',
+        code: "NOT_FOUND",
+        message: "Box introuvable",
       });
     }
 
     // Vérification que la box est disponible
-    const isBoxAvailable = await this.checkBoxAvailability(boxId, startDate, endDate);
+    const isBoxAvailable = await this.checkBoxAvailability(
+      boxId,
+      startDate,
+      endDate,
+    );
 
     if (!isBoxAvailable) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
+        code: "BAD_REQUEST",
         message: "Cette box n'est pas disponible pour les dates sélectionnées",
       });
     }
 
     // Calcul du nombre de jours
-    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
+    const days = Math.ceil(
+      (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24),
+    );
 
     // Calcul du prix total
     const totalPrice = box.pricePerDay * days;
@@ -246,19 +263,23 @@ class StorageService {
         actionType: BoxActionType.RESERVATION_CREATED,
         details: `Réservation créée du ${startDate.toLocaleDateString()} au ${endDate.toLocaleDateString()}`,
       },
-      clientId
+      clientId,
     );
 
     return reservation;
   }
 
   // Vérification de la disponibilité d'une box pour une période donnée
-  private async checkBoxAvailability(boxId: string, startDate: Date, endDate: Date) {
+  private async checkBoxAvailability(
+    boxId: string,
+    startDate: Date,
+    endDate: Date,
+  ) {
     const existingReservations = await db.reservation.findMany({
       where: {
         boxId,
         status: {
-          in: ['PENDING', 'ACTIVE', 'EXTENDED'],
+          in: ["PENDING", "ACTIVE", "EXTENDED"],
         },
         OR: [
           {
@@ -273,7 +294,10 @@ class StorageService {
   }
 
   // Mise à jour d'une réservation
-  async updateBoxReservation(input: BoxReservationUpdateInput, clientId: string) {
+  async updateBoxReservation(
+    input: BoxReservationUpdateInput,
+    clientId: string,
+  ) {
     const { id, endDate, notes, status } = input;
 
     // Récupération de la réservation
@@ -284,15 +308,15 @@ class StorageService {
 
     if (!reservation) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Réservation introuvable',
+        code: "NOT_FOUND",
+        message: "Réservation introuvable",
       });
     }
 
     // Vérification des droits d'accès
     if (reservation.clientId !== clientId) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à modifier cette réservation",
       });
     }
@@ -306,25 +330,27 @@ class StorageService {
         const isAvailable = await this.checkBoxAvailability(
           reservation.boxId,
           reservation.endDate,
-          endDate
+          endDate,
         );
 
         if (!isAvailable) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: "La box n'est pas disponible pour la nouvelle période",
           });
         }
       }
 
       const days = Math.ceil(
-        (endDate.getTime() - reservation.startDate.getTime()) / (1000 * 3600 * 24)
+        (endDate.getTime() - reservation.startDate.getTime()) /
+          (1000 * 3600 * 24),
       );
       totalPrice = reservation.box.pricePerDay * days;
     }
 
     // Extension du type Reservation pour les propriétés additionnelles
-    const reservationWithExtension = reservation as typeof reservation & PrismaReservationExtension;
+    const reservationWithExtension = reservation as typeof reservation &
+      PrismaReservationExtension;
 
     // Préparation des données de mise à jour
     const updateData = {
@@ -333,10 +359,13 @@ class StorageService {
       notes: notes,
       totalPrice: endDate ? totalPrice : undefined,
       originalEndDate:
-        !reservationWithExtension.originalEndDate && endDate && endDate > reservation.endDate
+        !reservationWithExtension.originalEndDate &&
+        endDate &&
+        endDate > reservation.endDate
           ? reservation.endDate
           : undefined,
-      extendedCount: endDate && endDate > reservation.endDate ? { increment: 1 } : undefined,
+      extendedCount:
+        endDate && endDate > reservation.endDate ? { increment: 1 } : undefined,
     };
 
     // Mise à jour de la réservation
@@ -351,9 +380,9 @@ class StorageService {
         boxId: reservation.boxId,
         reservationId: reservation.id,
         actionType: BoxActionType.RESERVATION_UPDATED,
-        details: `Réservation mise à jour${endDate ? ` avec nouvelle fin le ${endDate.toLocaleDateString()}` : ''}`,
+        details: `Réservation mise à jour${endDate ? ` avec nouvelle fin le ${endDate.toLocaleDateString()}` : ""}`,
       },
-      clientId
+      clientId,
     );
 
     return updatedReservation;
@@ -379,7 +408,7 @@ class StorageService {
           },
         },
       },
-      orderBy: { startDate: 'desc' },
+      orderBy: { startDate: "desc" },
     });
   }
 
@@ -395,8 +424,9 @@ class StorageService {
 
     if (!hasAccess) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: "Vous n'êtes pas autorisé à consulter l'historique de cette box",
+        code: "FORBIDDEN",
+        message:
+          "Vous n'êtes pas autorisé à consulter l'historique de cette box",
       });
     }
 
@@ -414,7 +444,10 @@ class StorageService {
   }
 
   // Création d'un abonnement aux notifications de disponibilité
-  async createAvailabilitySubscription(input: BoxAvailabilitySubscriptionInput, clientId: string) {
+  async createAvailabilitySubscription(
+    input: BoxAvailabilitySubscriptionInput,
+    clientId: string,
+  ) {
     const {
       boxId,
       warehouseId,
@@ -429,16 +462,16 @@ class StorageService {
     // Vérification qu'au moins un critère est spécifié
     if (!boxId && !warehouseId && !boxType && !minSize) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Au moins un critère de recherche doit être spécifié',
+        code: "BAD_REQUEST",
+        message: "Au moins un critère de recherche doit être spécifié",
       });
     }
 
     // Vérification que les dates sont cohérentes
     if (startDate && endDate && startDate >= endDate) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'La date de fin doit être postérieure à la date de début',
+        code: "BAD_REQUEST",
+        message: "La date de fin doit être postérieure à la date de début",
       });
     }
 
@@ -461,9 +494,9 @@ class StorageService {
 
     // Conversion du résultat en objet avec id
     const subscriptionId =
-      typeof result === 'number'
+      typeof result === "number"
         ? `${result}` // Cas où un nombre de lignes est retourné
-        : 'success'; // Fallback par défaut
+        : "success"; // Fallback par défaut
 
     return { success: true, subscriptionId };
   }
@@ -497,14 +530,14 @@ class StorageService {
 
     if (subscriptions.length === 0) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Abonnement introuvable',
+        code: "NOT_FOUND",
+        message: "Abonnement introuvable",
       });
     }
 
     if (subscriptions[0].clientId !== clientId) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à désactiver cet abonnement",
       });
     }
@@ -566,7 +599,7 @@ class StorageService {
                 },
                 {
                   status: {
-                    in: ['PENDING', 'ACTIVE', 'EXTENDED'],
+                    in: ["PENDING", "ACTIVE", "EXTENDED"],
                   },
                 },
               ],
@@ -585,13 +618,18 @@ class StorageService {
       // Si des box sont disponibles, envoyer une notification
       if (availableBoxes.length > 0) {
         // Vérifier si on a déjà notifié récemment
-        const lastNotified = subscription.lastNotified ? new Date(subscription.lastNotified) : null;
+        const lastNotified = subscription.lastNotified
+          ? new Date(subscription.lastNotified)
+          : null;
 
         // Ne pas notifier plus d'une fois par jour
-        if (!lastNotified || now.getTime() - lastNotified.getTime() > 24 * 60 * 60 * 1000) {
+        if (
+          !lastNotified ||
+          now.getTime() - lastNotified.getTime() > 24 * 60 * 60 * 1000
+        ) {
           // Création d'une notification avec données structurées
           const notificationData: NotificationData = {
-            boxIds: availableBoxes.map(box => box.id),
+            boxIds: availableBoxes.map((box) => box.id),
             subscriptionId: subscription.id,
           };
 
@@ -600,9 +638,9 @@ class StorageService {
 
           await NotificationService.sendNotification({
             userId: subscription.clientId,
-            title: 'Box disponibles',
-            message: `${availableBoxes.length} box ${availableBoxes.length > 1 ? 'sont' : 'est'} maintenant disponible${availableBoxes.length > 1 ? 's' : ''} selon vos critères`,
-            type: 'SYSTEM',
+            title: "Box disponibles",
+            message: `${availableBoxes.length} box ${availableBoxes.length > 1 ? "sont" : "est"} maintenant disponible${availableBoxes.length > 1 ? "s" : ""} selon vos critères`,
+            type: "SYSTEM",
             data: serializedData,
           });
 
@@ -631,15 +669,15 @@ class StorageService {
 
     if (!reservation) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Réservation introuvable',
+        code: "NOT_FOUND",
+        message: "Réservation introuvable",
       });
     }
 
     // Vérification des droits d'accès
     if (reservation.clientId !== clientId) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à modifier cette réservation",
       });
     }
@@ -647,8 +685,9 @@ class StorageService {
     // Vérification que la nouvelle date est postérieure à l'ancienne
     if (newEndDate <= reservation.endDate) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'La nouvelle date de fin doit être postérieure à la date actuelle',
+        code: "BAD_REQUEST",
+        message:
+          "La nouvelle date de fin doit être postérieure à la date actuelle",
       });
     }
 
@@ -656,23 +695,25 @@ class StorageService {
     const isAvailable = await this.checkBoxAvailability(
       reservation.boxId,
       reservation.endDate,
-      newEndDate
+      newEndDate,
     );
 
     if (!isAvailable) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
+        code: "BAD_REQUEST",
         message: "La box n'est pas disponible pour la période d'extension",
       });
     }
 
     // Calcul du prix supplémentaire
     const originalDays = Math.ceil(
-      (reservation.endDate.getTime() - reservation.startDate.getTime()) / (1000 * 3600 * 24)
+      (reservation.endDate.getTime() - reservation.startDate.getTime()) /
+        (1000 * 3600 * 24),
     );
 
     const newTotalDays = Math.ceil(
-      (newEndDate.getTime() - reservation.startDate.getTime()) / (1000 * 3600 * 24)
+      (newEndDate.getTime() - reservation.startDate.getTime()) /
+        (1000 * 3600 * 24),
     );
 
     const additionalDays = newTotalDays - originalDays;
@@ -680,14 +721,17 @@ class StorageService {
     const newTotalPrice = reservation.totalPrice + additionalPrice;
 
     // Extension du type Reservation pour les propriétés additionnelles
-    const reservationWithExtension = reservation as typeof reservation & PrismaReservationExtension;
+    const reservationWithExtension = reservation as typeof reservation &
+      PrismaReservationExtension;
 
     // Préparation des données de mise à jour
     const updateData = {
       endDate: newEndDate,
       status: ReservationStatus.EXTENDED as unknown as string,
       totalPrice: newTotalPrice,
-      originalEndDate: !reservationWithExtension.originalEndDate ? reservation.endDate : undefined,
+      originalEndDate: !reservationWithExtension.originalEndDate
+        ? reservation.endDate
+        : undefined,
       extendedCount: { increment: 1 },
     };
 
@@ -705,7 +749,7 @@ class StorageService {
         actionType: BoxActionType.EXTENDED_RENTAL,
         details: `Réservation prolongée jusqu'au ${newEndDate.toLocaleDateString()}`,
       },
-      clientId
+      clientId,
     );
 
     return {
@@ -729,15 +773,15 @@ class StorageService {
 
     if (!reservation) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Réservation introuvable',
+        code: "NOT_FOUND",
+        message: "Réservation introuvable",
       });
     }
 
     // Vérification des droits d'accès
     if (reservation.clientId !== clientId) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à accéder à cette box",
       });
     }
@@ -757,7 +801,7 @@ class StorageService {
     // Vérification du code d'accès
     if (accessCodes.length === 0 || accessCodes[0].accessCode !== accessCode) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
+        code: "BAD_REQUEST",
         message: "Code d'accès incorrect",
       });
     }
@@ -777,7 +821,7 @@ class StorageService {
         actionType: BoxActionType.BOX_ACCESSED,
         details: `Accès à la box le ${new Date().toLocaleString()}`,
       },
-      clientId
+      clientId,
     );
 
     return { success: true };
@@ -806,14 +850,14 @@ class StorageService {
     const isAdmin = await db.user.findFirst({
       where: {
         id: adminId,
-        role: 'ADMIN',
+        role: "ADMIN",
       },
     });
 
     if (!isAdmin) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Action réservée aux administrateurs',
+        code: "FORBIDDEN",
+        message: "Action réservée aux administrateurs",
       });
     }
 
@@ -824,8 +868,8 @@ class StorageService {
 
     if (!warehouse) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Entrepôt introuvable',
+        code: "NOT_FOUND",
+        message: "Entrepôt introuvable",
       });
     }
 
@@ -867,7 +911,7 @@ class StorageService {
   async getWarehouseBoxes(warehouseId: string) {
     return db.box.findMany({
       where: { warehouseId },
-      orderBy: [{ name: 'asc' }],
+      orderBy: [{ name: "asc" }],
     });
   }
 
@@ -875,7 +919,7 @@ class StorageService {
   async getActiveWarehouses() {
     return db.warehouse.findMany({
       where: { isActive: true },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
     });
   }
 
@@ -887,14 +931,14 @@ class StorageService {
       maxPrice?: number;
       startDate?: Date;
       endDate?: Date;
-    }
+    },
   ) {
     try {
       // Récupérer l'historique du client pour comprendre ses préférences
       const clientHistory = await db.reservation.findMany({
         where: {
           clientId,
-          status: { in: ['COMPLETED', 'ACTIVE'] },
+          status: { in: ["COMPLETED", "ACTIVE"] },
         },
         include: {
           box: {
@@ -903,7 +947,7 @@ class StorageService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 10,
       });
 
@@ -918,7 +962,9 @@ class StorageService {
 
         // Recommandations basées sur l'historique
         ...(preferences.preferredBoxTypes.length > 0 && {
-          boxType: { in: preferences.preferredBoxTypes as unknown as BoxType[] },
+          boxType: {
+            in: preferences.preferredBoxTypes as unknown as BoxType[],
+          },
         }),
         ...(preferences.preferredSizeRange && {
           size: {
@@ -943,7 +989,7 @@ class StorageService {
                   ],
                 },
                 {
-                  status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+                  status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
                 },
               ],
             },
@@ -965,7 +1011,7 @@ class StorageService {
             },
           },
         },
-        orderBy: [{ pricePerDay: 'asc' }, { size: 'asc' }],
+        orderBy: [{ pricePerDay: "asc" }, { size: "asc" }],
         take: 20,
       });
 
@@ -975,10 +1021,13 @@ class StorageService {
         total: recommendedBoxes.length,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des recommandations:', error);
+      console.error(
+        "Erreur lors de la récupération des recommandations:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des recommandations',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des recommandations",
       });
     }
   }
@@ -1002,7 +1051,7 @@ class StorageService {
     const warehouseCounts: Record<string, number> = {};
     const durations: number[] = [];
 
-    reservationHistory.forEach(reservation => {
+    reservationHistory.forEach((reservation) => {
       // Types de box
       const boxType = reservation.box.boxType;
       boxTypeCounts[boxType] = (boxTypeCounts[boxType] || 0) + 1;
@@ -1023,8 +1072,9 @@ class StorageService {
 
       // Durées
       const duration = Math.ceil(
-        (new Date(reservation.endDate).getTime() - new Date(reservation.startDate).getTime()) /
-          (1000 * 60 * 60 * 24)
+        (new Date(reservation.endDate).getTime() -
+          new Date(reservation.startDate).getTime()) /
+          (1000 * 60 * 60 * 24),
       );
       durations.push(duration);
     });
@@ -1058,7 +1108,9 @@ class StorageService {
 
     const averageReservationDuration =
       durations.length > 0
-        ? Math.round(durations.reduce((sum, d) => sum + d, 0) / durations.length)
+        ? Math.round(
+            durations.reduce((sum, d) => sum + d, 0) / durations.length,
+          )
         : 7;
 
     return {
@@ -1074,21 +1126,22 @@ class StorageService {
   async getClientStorageStats(clientId: string) {
     try {
       // Statistiques de base
-      const [totalReservations, activeReservations, completedReservations] = await Promise.all([
-        db.reservation.count({ where: { clientId } }),
-        db.reservation.count({
-          where: {
-            clientId,
-            status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
-          },
-        }),
-        db.reservation.count({
-          where: {
-            clientId,
-            status: 'COMPLETED',
-          },
-        }),
-      ]);
+      const [totalReservations, activeReservations, completedReservations] =
+        await Promise.all([
+          db.reservation.count({ where: { clientId } }),
+          db.reservation.count({
+            where: {
+              clientId,
+              status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
+            },
+          }),
+          db.reservation.count({
+            where: {
+              clientId,
+              status: "COMPLETED",
+            },
+          }),
+        ]);
 
       // Calcul des dépenses totales
       const reservations = await db.reservation.findMany({
@@ -1099,22 +1152,23 @@ class StorageService {
       const totalSpent = reservations.reduce((sum, r) => sum + r.totalPrice, 0);
       const totalDaysUsed = reservations.reduce((sum, r) => {
         const days = Math.ceil(
-          (new Date(r.endDate).getTime() - new Date(r.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          (new Date(r.endDate).getTime() - new Date(r.startDate).getTime()) /
+            (1000 * 60 * 60 * 24),
         );
         return sum + days;
       }, 0);
 
       // Récupérer les box favorites (les plus utilisées)
       const boxUsage = await db.reservation.groupBy({
-        by: ['boxId'],
+        by: ["boxId"],
         where: { clientId },
         _count: { boxId: true },
-        orderBy: { _count: { boxId: 'desc' } },
+        orderBy: { _count: { boxId: "desc" } },
         take: 5,
       });
 
       const favoriteBoxes = await Promise.all(
-        boxUsage.map(async usage => {
+        boxUsage.map(async (usage) => {
           const box = await db.box.findUnique({
             where: { id: usage.boxId },
             include: { warehouse: true },
@@ -1123,7 +1177,7 @@ class StorageService {
             box,
             usageCount: usage._count.boxId,
           };
-        })
+        }),
       );
 
       // Calculer l'empreinte écologique (estimation)
@@ -1136,19 +1190,26 @@ class StorageService {
         completedReservations,
         totalSpent,
         totalDaysUsed,
-        averageReservationValue: totalReservations > 0 ? totalSpent / totalReservations : 0,
-        favoriteBoxes: favoriteBoxes.filter(fb => fb.box),
+        averageReservationValue:
+          totalReservations > 0 ? totalSpent / totalReservations : 0,
+        favoriteBoxes: favoriteBoxes.filter((fb) => fb.box),
         sustainability: {
           co2Saved: estimatedCO2Saved,
           wasteReduced: estimatedWastReduced,
-          sustainabilityScore: Math.min(100, Math.round((totalDaysUsed / 365) * 100)),
+          sustainabilityScore: Math.min(
+            100,
+            Math.round((totalDaysUsed / 365) * 100),
+          ),
         },
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques client:', error);
+      console.error(
+        "Erreur lors de la récupération des statistiques client:",
+        error,
+      );
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des statistiques',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des statistiques",
       });
     }
   }
@@ -1164,8 +1225,8 @@ class StorageService {
 
       if (!originalBox) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Box non trouvée',
+          code: "NOT_FOUND",
+          message: "Box non trouvée",
         });
       }
 
@@ -1195,7 +1256,7 @@ class StorageService {
                     ],
                   },
                   {
-                    status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+                    status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
                   },
                 ],
               },
@@ -1205,7 +1266,7 @@ class StorageService {
         include: {
           warehouse: true,
         },
-        orderBy: [{ pricePerDay: 'asc' }, { size: 'asc' }],
+        orderBy: [{ pricePerDay: "asc" }, { size: "asc" }],
         take: 10,
       });
 
@@ -1238,7 +1299,7 @@ class StorageService {
                       ],
                     },
                     {
-                      status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+                      status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
                     },
                   ],
                 },
@@ -1248,7 +1309,7 @@ class StorageService {
           include: {
             warehouse: true,
           },
-          orderBy: [{ pricePerDay: 'asc' }],
+          orderBy: [{ pricePerDay: "asc" }],
           take: 5,
         });
       }
@@ -1256,16 +1317,18 @@ class StorageService {
       const allAlternatives = [...alternatives, ...alternativesOtherWarehouses];
 
       // Calculer les scores de compatibilité
-      const scoredAlternatives = allAlternatives.map(box => {
+      const scoredAlternatives = allAlternatives.map((box) => {
         let compatibilityScore = 100;
 
         // Pénalité pour différence de taille
-        const sizeDiff = Math.abs(box.size - originalBox.size) / originalBox.size;
+        const sizeDiff =
+          Math.abs(box.size - originalBox.size) / originalBox.size;
         compatibilityScore -= sizeDiff * 30;
 
         // Pénalité pour différence de prix
         const priceDiff =
-          Math.abs(box.pricePerDay - originalBox.pricePerDay) / originalBox.pricePerDay;
+          Math.abs(box.pricePerDay - originalBox.pricePerDay) /
+          originalBox.pricePerDay;
         compatibilityScore -= priceDiff * 20;
 
         // Pénalité si différent entrepôt
@@ -1293,7 +1356,7 @@ class StorageService {
     } catch (error) {
       console.error("Erreur lors de la recherche d'alternatives:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la recherche d'alternatives",
       });
     }
@@ -1313,31 +1376,37 @@ class StorageService {
       const [box, clientHistory] = await Promise.all([
         db.box.findUnique({ where: { id: boxId } }),
         db.reservation.findMany({
-          where: { clientId, status: 'COMPLETED' },
-          orderBy: { createdAt: 'desc' },
+          where: { clientId, status: "COMPLETED" },
+          orderBy: { createdAt: "desc" },
           take: 10,
         }),
       ]);
 
       if (!box) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Box non trouvée',
+          code: "NOT_FOUND",
+          message: "Box non trouvée",
         });
       }
 
       // Calcul de base
-      const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const days = Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
       const basePrice = box.pricePerDay * days;
       let finalPrice = basePrice;
-      const discounts: Array<{ type: string; amount: number; description: string }> = [];
+      const discounts: Array<{
+        type: string;
+        amount: number;
+        description: string;
+      }> = [];
 
       // Remise fidélité
       if (clientHistory.length >= 5) {
         const loyaltyDiscount = Math.min(0.15, clientHistory.length * 0.02); // Max 15%
         const discountAmount = basePrice * loyaltyDiscount;
         discounts.push({
-          type: 'LOYALTY',
+          type: "LOYALTY",
           amount: discountAmount,
           description: `Remise fidélité ${Math.round(loyaltyDiscount * 100)}% (${clientHistory.length} réservations)`,
         });
@@ -1349,7 +1418,7 @@ class StorageService {
         const longTermDiscount = 0.1; // 10% pour 30 jours ou plus
         const discountAmount = basePrice * longTermDiscount;
         discounts.push({
-          type: 'LONG_TERM',
+          type: "LONG_TERM",
           amount: discountAmount,
           description: `Remise longue durée 10% (${days} jours)`,
         });
@@ -1358,7 +1427,7 @@ class StorageService {
         const mediumTermDiscount = 0.05; // 5% pour 14 jours ou plus
         const discountAmount = basePrice * mediumTermDiscount;
         discounts.push({
-          type: 'MEDIUM_TERM',
+          type: "MEDIUM_TERM",
           amount: discountAmount,
           description: `Remise moyenne durée 5% (${days} jours)`,
         });
@@ -1367,13 +1436,13 @@ class StorageService {
 
       // Remise early bird (réservation à l'avance)
       const daysInAdvance = Math.ceil(
-        (startDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+        (startDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
       );
       if (daysInAdvance >= 14) {
         const earlyBirdDiscount = 0.05; // 5% pour réservation 14 jours à l'avance
         const discountAmount = basePrice * earlyBirdDiscount;
         discounts.push({
-          type: 'EARLY_BIRD',
+          type: "EARLY_BIRD",
           amount: discountAmount,
           description: `Remise réservation anticipée 5% (${daysInAdvance} jours à l'avance)`,
         });
@@ -1402,10 +1471,10 @@ class StorageService {
         },
       };
     } catch (error) {
-      console.error('Erreur lors du calcul du prix optimal:', error);
+      console.error("Erreur lors du calcul du prix optimal:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors du calcul du prix',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du calcul du prix",
       });
     }
   }

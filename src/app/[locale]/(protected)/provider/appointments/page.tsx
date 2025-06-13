@@ -1,10 +1,16 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Suspense } from 'react';
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Suspense } from "react";
 import {
   Loader2,
   Calendar,
@@ -13,24 +19,24 @@ import {
   XCircle,
   CalendarDays,
   CircleDashed,
-} from 'lucide-react';
-import Link from 'next/link';
-import { formatDate, formatTime } from '@/lib/i18n/formatters';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
-import { api } from '@/trpc/server';
+} from "lucide-react";
+import Link from "next/link";
+import { formatDate, formatTime } from "@/lib/i18n/formatters";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/auth/next-auth";
+import { api } from "@/trpc/server";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('services.provider');
+  const t = await getTranslations("services.provider");
 
   return {
-    title: t('appointments.title'),
-    description: t('appointments.description'),
+    title: t("appointments.title"),
+    description: t("appointments.description"),
   };
 }
 
 export default async function ProviderAppointmentsPage() {
-  const t = await getTranslations('services.provider');
+  const t = await getTranslations("services.provider");
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
@@ -44,15 +50,21 @@ export default async function ProviderAppointmentsPage() {
   const todayDate = new Date();
   todayDate.setHours(0, 0, 0, 0);
 
-  const upcomingAppointments = appointments.filter(appointment => {
+  const upcomingAppointments = appointments.filter((appointment) => {
     const appointmentDate = new Date(appointment.startTime);
-    return appointmentDate >= todayDate && ['PENDING', 'CONFIRMED'].includes(appointment.status);
+    return (
+      appointmentDate >= todayDate &&
+      ["PENDING", "CONFIRMED"].includes(appointment.status)
+    );
   });
 
-  const pendingAppointments = appointments.filter(appointment => appointment.status === 'PENDING');
+  const pendingAppointments = appointments.filter(
+    (appointment) => appointment.status === "PENDING",
+  );
 
   const pastAppointments = appointments.filter(
-    appointment => appointment.status === 'COMPLETED' || appointment.status === 'CANCELLED'
+    (appointment) =>
+      appointment.status === "COMPLETED" || appointment.status === "CANCELLED",
   );
 
   // Trier les rendez-vous par date
@@ -68,16 +80,37 @@ export default async function ProviderAppointmentsPage() {
   const getStatusBadge = (status: string) => {
     const statusMap: Record<
       string,
-      { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+      {
+        label: string;
+        variant: "default" | "secondary" | "destructive" | "outline";
+      }
     > = {
-      PENDING: { label: t('appointments.status.pending'), variant: 'secondary' },
-      CONFIRMED: { label: t('appointments.status.confirmed'), variant: 'default' },
-      COMPLETED: { label: t('appointments.status.completed'), variant: 'outline' },
-      CANCELLED: { label: t('appointments.status.cancelled'), variant: 'destructive' },
-      RESCHEDULED: { label: t('appointments.status.rescheduled'), variant: 'secondary' },
+      PENDING: {
+        label: t("appointments.status.pending"),
+        variant: "secondary",
+      },
+      CONFIRMED: {
+        label: t("appointments.status.confirmed"),
+        variant: "default",
+      },
+      COMPLETED: {
+        label: t("appointments.status.completed"),
+        variant: "outline",
+      },
+      CANCELLED: {
+        label: t("appointments.status.cancelled"),
+        variant: "destructive",
+      },
+      RESCHEDULED: {
+        label: t("appointments.status.rescheduled"),
+        variant: "secondary",
+      },
     };
 
-    const statusInfo = statusMap[status] || { label: status, variant: 'outline' };
+    const statusInfo = statusMap[status] || {
+      label: status,
+      variant: "outline",
+    };
 
     return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
@@ -111,7 +144,9 @@ export default async function ProviderAppointmentsPage() {
             </div>
             {appointment.notes && (
               <div className="mt-2 text-gray-600 bg-gray-50 p-2 rounded">
-                <p className="text-xs font-medium mb-1">{t('appointments.notes')}</p>
+                <p className="text-xs font-medium mb-1">
+                  {t("appointments.notes")}
+                </p>
                 <p className="text-sm">{appointment.notes}</p>
               </div>
             )}
@@ -120,33 +155,54 @@ export default async function ProviderAppointmentsPage() {
         <div className="px-6 pb-4 flex gap-2">
           <Button variant="outline" size="sm" className="flex-1" asChild>
             <Link href={`/[locale]/(protected)/provider/appointments/${id}`}>
-              {t('appointments.viewDetails')}
+              {t("appointments.viewDetails")}
             </Link>
           </Button>
 
-          {status === 'PENDING' && (
+          {status === "PENDING" && (
             <>
-              <Button variant="default" size="sm" className="flex items-center gap-1" asChild>
-                <Link href={`/[locale]/(protected)/provider/appointments/${id}/confirm`}>
+              <Button
+                variant="default"
+                size="sm"
+                className="flex items-center gap-1"
+                asChild
+              >
+                <Link
+                  href={`/[locale]/(protected)/provider/appointments/${id}/confirm`}
+                >
                   <CheckCircle className="h-4 w-4" />
-                  {t('appointments.confirm')}
+                  {t("appointments.confirm")}
                 </Link>
               </Button>
 
-              <Button variant="destructive" size="sm" className="flex items-center gap-1" asChild>
-                <Link href={`/[locale]/(protected)/provider/appointments/${id}/reject`}>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex items-center gap-1"
+                asChild
+              >
+                <Link
+                  href={`/[locale]/(protected)/provider/appointments/${id}/reject`}
+                >
                   <XCircle className="h-4 w-4" />
-                  {t('appointments.reject')}
+                  {t("appointments.reject")}
                 </Link>
               </Button>
             </>
           )}
 
-          {status === 'CONFIRMED' && (
-            <Button variant="default" size="sm" className="flex items-center gap-1" asChild>
-              <Link href={`/[locale]/(protected)/provider/appointments/${id}/complete`}>
+          {status === "CONFIRMED" && (
+            <Button
+              variant="default"
+              size="sm"
+              className="flex items-center gap-1"
+              asChild
+            >
+              <Link
+                href={`/[locale]/(protected)/provider/appointments/${id}/complete`}
+              >
                 <CheckCircle className="h-4 w-4" />
-                {t('appointments.markComplete')}
+                {t("appointments.markComplete")}
               </Link>
             </Button>
           )}
@@ -159,15 +215,17 @@ export default async function ProviderAppointmentsPage() {
     <div className="container py-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('appointments.title')}</h1>
-          <p className="text-muted-foreground">{t('appointments.subtitle')}</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("appointments.title")}
+          </h1>
+          <p className="text-muted-foreground">{t("appointments.subtitle")}</p>
         </div>
 
         <div className="flex gap-3">
           <Button asChild>
             <Link href="/[locale]/(protected)/provider/schedule">
               <CalendarDays className="h-4 w-4 mr-2" />
-              {t('appointments.viewSchedule')}
+              {t("appointments.viewSchedule")}
             </Link>
           </Button>
         </div>
@@ -183,18 +241,18 @@ export default async function ProviderAppointmentsPage() {
         <Tabs defaultValue="upcoming" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="upcoming">
-              {t('appointments.upcoming')} ({upcomingAppointments.length})
+              {t("appointments.upcoming")} ({upcomingAppointments.length})
             </TabsTrigger>
             <TabsTrigger value="pending">
               <div className="flex items-center">
-                {t('appointments.pending')} ({pendingAppointments.length})
+                {t("appointments.pending")} ({pendingAppointments.length})
                 {pendingAppointments.length > 0 && (
                   <CircleDashed className="h-3 w-3 ml-1 animate-spin" />
                 )}
               </div>
             </TabsTrigger>
             <TabsTrigger value="past">
-              {t('appointments.past')} ({pastAppointments.length})
+              {t("appointments.past")} ({pastAppointments.length})
             </TabsTrigger>
           </TabsList>
 
@@ -202,8 +260,12 @@ export default async function ProviderAppointmentsPage() {
             {upcomingAppointments.length === 0 ? (
               <div className="text-center py-10">
                 <Calendar className="mx-auto h-12 w-12 text-gray-300" />
-                <h3 className="mt-2 text-lg font-medium">{t('appointments.noUpcoming')}</h3>
-                <p className="mt-1 text-muted-foreground">{t('appointments.noUpcomingDesc')}</p>
+                <h3 className="mt-2 text-lg font-medium">
+                  {t("appointments.noUpcoming")}
+                </h3>
+                <p className="mt-1 text-muted-foreground">
+                  {t("appointments.noUpcomingDesc")}
+                </p>
               </div>
             ) : (
               <div>{upcomingAppointments.map(renderAppointmentCard)}</div>
@@ -214,8 +276,12 @@ export default async function ProviderAppointmentsPage() {
             {pendingAppointments.length === 0 ? (
               <div className="text-center py-10">
                 <Calendar className="mx-auto h-12 w-12 text-gray-300" />
-                <h3 className="mt-2 text-lg font-medium">{t('appointments.noPending')}</h3>
-                <p className="mt-1 text-muted-foreground">{t('appointments.noPendingDesc')}</p>
+                <h3 className="mt-2 text-lg font-medium">
+                  {t("appointments.noPending")}
+                </h3>
+                <p className="mt-1 text-muted-foreground">
+                  {t("appointments.noPendingDesc")}
+                </p>
               </div>
             ) : (
               <div>{pendingAppointments.map(renderAppointmentCard)}</div>
@@ -226,8 +292,12 @@ export default async function ProviderAppointmentsPage() {
             {pastAppointments.length === 0 ? (
               <div className="text-center py-10">
                 <Calendar className="mx-auto h-12 w-12 text-gray-300" />
-                <h3 className="mt-2 text-lg font-medium">{t('appointments.noPast')}</h3>
-                <p className="mt-1 text-muted-foreground">{t('appointments.noPastDesc')}</p>
+                <h3 className="mt-2 text-lg font-medium">
+                  {t("appointments.noPast")}
+                </h3>
+                <p className="mt-1 text-muted-foreground">
+                  {t("appointments.noPastDesc")}
+                </p>
               </div>
             ) : (
               <div>{pastAppointments.map(renderAppointmentCard)}</div>

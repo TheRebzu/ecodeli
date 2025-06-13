@@ -1,17 +1,31 @@
 export type ContractStatus =
-  | 'DRAFT'
-  | 'PENDING_SIGNATURE'
-  | 'ACTIVE'
-  | 'SUSPENDED'
-  | 'TERMINATED'
-  | 'EXPIRED'
-  | 'CANCELLED';
+  | "DRAFT"
+  | "PENDING_SIGNATURE"
+  | "ACTIVE"
+  | "SUSPENDED"
+  | "TERMINATED"
+  | "EXPIRED"
+  | "CANCELLED";
 
-export type ContractType = 'STANDARD' | 'PREMIUM' | 'PARTNER' | 'TRIAL' | 'CUSTOM';
+export type ContractType =
+  | "STANDARD"
+  | "PREMIUM"
+  | "PARTNER"
+  | "TRIAL"
+  | "CUSTOM";
 
-export type NegotiationStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type NegotiationStatus =
+  | "PENDING"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELLED";
 
-export type AmendmentStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE';
+export type AmendmentStatus =
+  | "DRAFT"
+  | "PENDING_APPROVAL"
+  | "APPROVED"
+  | "REJECTED"
+  | "ACTIVE";
 
 export interface Contract {
   id: string;
@@ -161,12 +175,12 @@ export interface NegotiationHistory {
   negotiation?: ContractNegotiation;
 
   action:
-    | 'CREATED'
-    | 'PROPOSAL_SUBMITTED'
-    | 'COUNTER_PROPOSAL'
-    | 'ACCEPTED'
-    | 'REJECTED'
-    | 'MODIFIED';
+    | "CREATED"
+    | "PROPOSAL_SUBMITTED"
+    | "COUNTER_PROPOSAL"
+    | "ACCEPTED"
+    | "REJECTED"
+    | "MODIFIED";
 
   performedBy: {
     id: string;
@@ -186,7 +200,7 @@ export interface ContractPerformance {
   contract?: Contract;
 
   // Période
-  period: 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
+  period: "MONTHLY" | "QUARTERLY" | "YEARLY";
   year: number;
   month?: number;
   quarter?: number;
@@ -226,7 +240,7 @@ export interface ContractFilters {
   autoRenewal?: boolean;
   insuranceRequired?: boolean;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
 }
@@ -290,7 +304,7 @@ export interface ContractTemplateFormData {
 // Types pour les actions bulk
 export interface BulkContractAction {
   contractIds: string[];
-  action: 'ACTIVATE' | 'SUSPEND' | 'TERMINATE' | 'RENEW' | 'UPDATE_STATUS';
+  action: "ACTIVATE" | "SUSPEND" | "TERMINATE" | "RENEW" | "UPDATE_STATUS";
   parameters?: Record<string, any>;
   reason?: string;
 }
@@ -312,11 +326,11 @@ export interface ContractStatsResponse {
 // Types pour les événements en temps réel
 export interface ContractEvent {
   type:
-    | 'CONTRACT_CREATED'
-    | 'CONTRACT_UPDATED'
-    | 'CONTRACT_SIGNED'
-    | 'CONTRACT_EXPIRED'
-    | 'NEGOTIATION_STARTED';
+    | "CONTRACT_CREATED"
+    | "CONTRACT_UPDATED"
+    | "CONTRACT_SIGNED"
+    | "CONTRACT_EXPIRED"
+    | "NEGOTIATION_STARTED";
   contractId: string;
   data: Record<string, any>;
   timestamp: Date;

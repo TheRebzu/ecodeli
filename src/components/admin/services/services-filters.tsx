@@ -1,22 +1,27 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { X, Search, Filter, RotateCcw } from 'lucide-react';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { X, Search, Filter, RotateCcw } from "lucide-react";
 
-type ServiceStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'SUSPENDED';
-type ServiceCategory = 'DELIVERY' | 'CLEANING' | 'MAINTENANCE' | 'REPAIR' | 'OTHER';
+type ServiceStatus = "ACTIVE" | "INACTIVE" | "DRAFT" | "SUSPENDED";
+type ServiceCategory =
+  | "DELIVERY"
+  | "CLEANING"
+  | "MAINTENANCE"
+  | "REPAIR"
+  | "OTHER";
 
 interface ServiceFilters {
   search?: string;
@@ -39,18 +44,22 @@ interface ServicesFiltersProps {
 }
 
 const statusOptions = [
-  { value: 'ACTIVE', label: 'Actif', color: 'bg-green-100 text-green-800' },
-  { value: 'INACTIVE', label: 'Inactif', color: 'bg-gray-100 text-gray-800' },
-  { value: 'DRAFT', label: 'Brouillon', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'SUSPENDED', label: 'Suspendu', color: 'bg-red-100 text-red-800' },
+  { value: "ACTIVE", label: "Actif", color: "bg-green-100 text-green-800" },
+  { value: "INACTIVE", label: "Inactif", color: "bg-gray-100 text-gray-800" },
+  {
+    value: "DRAFT",
+    label: "Brouillon",
+    color: "bg-yellow-100 text-yellow-800",
+  },
+  { value: "SUSPENDED", label: "Suspendu", color: "bg-red-100 text-red-800" },
 ] as const;
 
 const categoryOptions = [
-  { value: 'DELIVERY', label: 'Livraison' },
-  { value: 'CLEANING', label: 'Nettoyage' },
-  { value: 'MAINTENANCE', label: 'Maintenance' },
-  { value: 'REPAIR', label: 'Réparation' },
-  { value: 'OTHER', label: 'Autre' },
+  { value: "DELIVERY", label: "Livraison" },
+  { value: "CLEANING", label: "Nettoyage" },
+  { value: "MAINTENANCE", label: "Maintenance" },
+  { value: "REPAIR", label: "Réparation" },
+  { value: "OTHER", label: "Autre" },
 ] as const;
 
 export function ServicesFilters({
@@ -60,7 +69,7 @@ export function ServicesFilters({
   categories,
   isLoading,
 }: ServicesFiltersProps) {
-  const [localSearch, setLocalSearch] = useState(filters.search || '');
+  const [localSearch, setLocalSearch] = useState(filters.search || "");
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +77,7 @@ export function ServicesFilters({
   };
 
   const handleStatusChange = (status: string) => {
-    if (status === 'all') {
+    if (status === "all") {
       onFiltersChange({ status: undefined, page: 1 });
     } else {
       onFiltersChange({ status: status as ServiceStatus, page: 1 });
@@ -76,7 +85,7 @@ export function ServicesFilters({
   };
 
   const handleCategoryChange = (category: string) => {
-    if (category === 'all') {
+    if (category === "all") {
       onFiltersChange({ category: undefined, page: 1 });
     } else {
       onFiltersChange({ category: category as ServiceCategory, page: 1 });
@@ -92,7 +101,7 @@ export function ServicesFilters({
   };
 
   const getStatusBadge = (status: ServiceStatus) => {
-    const option = statusOptions.find(opt => opt.value === status);
+    const option = statusOptions.find((opt) => opt.value === status);
     return option ? (
       <Badge variant="outline" className={option.color}>
         {option.label}
@@ -101,7 +110,7 @@ export function ServicesFilters({
   };
 
   const getCategoryLabel = (category: ServiceCategory) => {
-    const option = categoryOptions.find(opt => opt.value === category);
+    const option = categoryOptions.find((opt) => opt.value === category);
     return option?.label || category;
   };
 
@@ -119,7 +128,12 @@ export function ServicesFilters({
             )}
           </CardTitle>
           {getActiveFiltersCount() > 0 && (
-            <Button variant="outline" size="sm" onClick={onReset} disabled={isLoading}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onReset}
+              disabled={isLoading}
+            >
               <RotateCcw className="h-3 w-3 mr-1" />
               Reset
             </Button>
@@ -137,7 +151,7 @@ export function ServicesFilters({
                 id="search"
                 placeholder="Nom du service, description..."
                 value={localSearch}
-                onChange={e => setLocalSearch(e.target.value)}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 className="pl-9"
                 disabled={isLoading}
               />
@@ -153,7 +167,7 @@ export function ServicesFilters({
           <div className="space-y-2">
             <Label>Statut</Label>
             <Select
-              value={filters.status || 'all'}
+              value={filters.status || "all"}
               onValueChange={handleStatusChange}
               disabled={isLoading}
             >
@@ -162,7 +176,7 @@ export function ServicesFilters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                {statusOptions.map(option => (
+                {statusOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${option.color}`} />
@@ -177,7 +191,7 @@ export function ServicesFilters({
           <div className="space-y-2">
             <Label>Catégorie</Label>
             <Select
-              value={filters.category || 'all'}
+              value={filters.category || "all"}
               onValueChange={handleCategoryChange}
               disabled={isLoading}
             >
@@ -186,7 +200,7 @@ export function ServicesFilters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes les catégories</SelectItem>
-                {categoryOptions.map(option => (
+                {categoryOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -209,7 +223,7 @@ export function ServicesFilters({
                     size="sm"
                     className="h-4 w-4 p-0 hover:bg-transparent"
                     onClick={() => {
-                      setLocalSearch('');
+                      setLocalSearch("");
                       onFiltersChange({ search: undefined, page: 1 });
                     }}
                   >
@@ -225,7 +239,9 @@ export function ServicesFilters({
                     variant="ghost"
                     size="sm"
                     className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => onFiltersChange({ status: undefined, page: 1 })}
+                    onClick={() =>
+                      onFiltersChange({ status: undefined, page: 1 })
+                    }
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -239,7 +255,9 @@ export function ServicesFilters({
                     variant="ghost"
                     size="sm"
                     className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => onFiltersChange({ category: undefined, page: 1 })}
+                    onClick={() =>
+                      onFiltersChange({ category: undefined, page: 1 })
+                    }
                   >
                     <X className="h-3 w-3" />
                   </Button>

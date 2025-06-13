@@ -1,14 +1,16 @@
-'use client';
+"use client";
 
-import { createTranslator } from 'next-intl';
-import { routing } from '@/i18n/routing';
+import { createTranslator } from "next-intl";
+import { routing } from "@/i18n/routing";
 
 /**
  * Asynchronously loads translations for the specified locale
  */
 export async function loadClientMessages(locale: string) {
   // Make sure the locale is a valid one
-  const resolvedLocale = routing.locales.includes(locale as (typeof routing.locales)[number])
+  const resolvedLocale = routing.locales.includes(
+    locale as (typeof routing.locales)[number],
+  )
     ? locale
     : routing.defaultLocale;
 
@@ -20,6 +22,9 @@ export async function loadClientMessages(locale: string) {
  * Creates a translation function for use in client components
  * when you need to use translations outside of React components
  */
-export function createClientTranslator(messages: Record<string, unknown>, locale: string) {
+export function createClientTranslator(
+  messages: Record<string, unknown>,
+  locale: string,
+) {
   return createTranslator({ locale, messages });
 }

@@ -1,7 +1,7 @@
-import { router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { serviceService } from '@/server/services/provider/provider-service.service';
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
+import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { serviceService } from "@/server/services/provider/provider-service.service";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
 // Définir les interfaces pour les données
 interface ServiceData {
@@ -46,8 +46,8 @@ export const providerRouter = router({
 
     if (!user || !user.provider) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Profil prestataire non trouvé',
+        code: "NOT_FOUND",
+        message: "Profil prestataire non trouvé",
       });
     }
 
@@ -72,7 +72,7 @@ export const providerRouter = router({
         description: z.string().optional(),
         serviceType: z.string().optional(),
         availability: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -85,7 +85,7 @@ export const providerRouter = router({
 
       if (!user || !user.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à mettre à jour ce profil",
         });
       }
@@ -140,7 +140,7 @@ export const providerRouter = router({
 
     if (!user || !user.provider) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à accéder à ces données",
       });
     }
@@ -151,7 +151,7 @@ export const providerRouter = router({
         providerId: user.provider.id,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -174,7 +174,7 @@ export const providerRouter = router({
         price: z.number().positive(),
         duration: z.number().int().positive(),
         category: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -187,7 +187,7 @@ export const providerRouter = router({
 
       if (!user || !user.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à créer un service",
         });
       }
@@ -228,7 +228,7 @@ export const providerRouter = router({
 
     if (!user || !user.provider) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à accéder à ces données",
       });
     }
@@ -250,7 +250,7 @@ export const providerRouter = router({
 
     if (!user || !user.provider) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à accéder à ces données",
       });
     }
@@ -264,7 +264,7 @@ export const providerRouter = router({
         dayOfWeek: z.number().min(0).max(6),
         startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
         endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -276,7 +276,7 @@ export const providerRouter = router({
 
       if (!user || !user.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à créer des disponibilités",
         });
       }
@@ -296,12 +296,15 @@ export const providerRouter = router({
 
       if (!user || !user.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à supprimer des disponibilités",
         });
       }
 
-      return serviceService.deleteAvailability(user.provider.id, input.availabilityId);
+      return serviceService.deleteAvailability(
+        user.provider.id,
+        input.availabilityId,
+      );
     }),
 
   // Gestion des créneaux horaires
@@ -310,7 +313,7 @@ export const providerRouter = router({
       z.object({
         serviceId: z.string(),
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -322,12 +325,16 @@ export const providerRouter = router({
 
       if (!user || !user.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à consulter ces créneaux",
         });
       }
 
-      return serviceService.getAvailableTimeSlots(user.provider.id, input.serviceId, input.date);
+      return serviceService.getAvailableTimeSlots(
+        user.provider.id,
+        input.serviceId,
+        input.date,
+      );
     }),
 
   // Gestion des réservations avancée
@@ -335,8 +342,14 @@ export const providerRouter = router({
     .input(
       z.object({
         bookingId: z.string(),
-        status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'RESCHEDULED']),
-      })
+        status: z.enum([
+          "PENDING",
+          "CONFIRMED",
+          "CANCELLED",
+          "COMPLETED",
+          "RESCHEDULED",
+        ]),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -348,7 +361,7 @@ export const providerRouter = router({
 
       if (!user || !user.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à modifier cette réservation",
         });
       }
@@ -371,7 +384,7 @@ export const providerRouter = router({
 
       if (!user || !user.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
+          code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à consulter cette réservation",
         });
       }
@@ -390,7 +403,7 @@ export const providerRouter = router({
 
     if (!user || !user.provider) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à consulter ces évaluations",
       });
     }
@@ -409,7 +422,7 @@ export const providerRouter = router({
 
     if (!user || !user.provider) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
         message: "Vous n'êtes pas autorisé à consulter ces statistiques",
       });
     }
@@ -438,7 +451,7 @@ export const providerRouter = router({
           .optional(),
         page: z.number().default(1),
         limit: z.number().default(10),
-      })
+      }),
     )
     .query(async ({ input }) => {
       return serviceService.searchProviders(input);
@@ -450,14 +463,14 @@ export const providerRouter = router({
 
     // Vérifier que l'utilisateur est un prestataire
     const provider = await ctx.db.user.findUnique({
-      where: { id: userId, role: 'PROVIDER' },
+      where: { id: userId, role: "PROVIDER" },
       include: { provider: true },
     });
 
     if (!provider?.provider) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Accès non autorisé',
+        code: "FORBIDDEN",
+        message: "Accès non autorisé",
       });
     }
 
@@ -482,7 +495,7 @@ export const providerRouter = router({
       ctx.db.serviceBooking.aggregate({
         where: {
           providerId: provider.provider.id,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           completedAt: { gte: startOfMonth },
         },
         _sum: { price: true },
@@ -491,7 +504,7 @@ export const providerRouter = router({
       ctx.db.serviceBooking.aggregate({
         where: {
           providerId: provider.provider.id,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           completedAt: { gte: startOfDay, lte: endOfDay },
         },
         _sum: { price: true },
@@ -501,7 +514,7 @@ export const providerRouter = router({
         where: {
           providerId: provider.provider.id,
           scheduledDate: { gte: startOfDay, lte: endOfDay },
-          status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+          status: { in: ["CONFIRMED", "IN_PROGRESS"] },
         },
       }),
       // RDV cette semaine
@@ -512,14 +525,14 @@ export const providerRouter = router({
             gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
             lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
           },
-          status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+          status: { in: ["CONFIRMED", "IN_PROGRESS"] },
         },
       }),
       // Interventions terminées ce mois
       ctx.db.serviceBooking.count({
         where: {
           providerId: provider.provider.id,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           completedAt: { gte: startOfMonth },
         },
       }),
@@ -533,10 +546,10 @@ export const providerRouter = router({
       }),
       // Clients uniques servis ce mois
       ctx.db.serviceBooking.groupBy({
-        by: ['clientId'],
+        by: ["clientId"],
         where: {
           providerId: provider.provider.id,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           completedAt: { gte: startOfMonth },
         },
       }),
@@ -544,7 +557,7 @@ export const providerRouter = router({
       ctx.db.providerContract.count({
         where: {
           providerId: provider.provider.id,
-          status: 'ACTIVE',
+          status: "ACTIVE",
         },
       }),
     ]);
@@ -570,14 +583,14 @@ export const providerRouter = router({
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
-        where: { id: userId, role: 'PROVIDER' },
+        where: { id: userId, role: "PROVIDER" },
         include: { provider: true },
       });
 
       if (!provider?.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -585,7 +598,7 @@ export const providerRouter = router({
         where: {
           providerId: provider.provider.id,
           scheduledDate: { gte: new Date() },
-          status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+          status: { in: ["CONFIRMED", "IN_PROGRESS"] },
         },
         include: {
           client: {
@@ -600,7 +613,7 @@ export const providerRouter = router({
             select: { name: true, description: true, category: true },
           },
         },
-        orderBy: { scheduledDate: 'asc' },
+        orderBy: { scheduledDate: "asc" },
         take: input.limit,
       });
     }),
@@ -612,21 +625,21 @@ export const providerRouter = router({
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
-        where: { id: userId, role: 'PROVIDER' },
+        where: { id: userId, role: "PROVIDER" },
         include: { provider: true },
       });
 
       if (!provider?.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
       return await ctx.db.serviceBooking.findMany({
         where: {
           providerId: provider.provider.id,
-          status: 'COMPLETED',
+          status: "COMPLETED",
         },
         include: {
           client: {
@@ -641,7 +654,7 @@ export const providerRouter = router({
             select: { name: true, category: true },
           },
         },
-        orderBy: { completedAt: 'desc' },
+        orderBy: { completedAt: "desc" },
         take: input.limit,
       });
     }),
@@ -650,21 +663,21 @@ export const providerRouter = router({
   getRevenueChart: protectedProcedure
     .input(
       z.object({
-        period: z.enum(['week', 'month', 'quarter']).default('month'),
-      })
+        period: z.enum(["week", "month", "quarter"]).default("month"),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
-        where: { id: userId, role: 'PROVIDER' },
+        where: { id: userId, role: "PROVIDER" },
         include: { provider: true },
       });
 
       if (!provider?.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -673,48 +686,49 @@ export const providerRouter = router({
       let groupBy: string;
 
       switch (input.period) {
-        case 'week':
+        case "week":
           startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          groupBy = 'day';
+          groupBy = "day";
           break;
-        case 'quarter':
+        case "quarter":
           startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-          groupBy = 'week';
+          groupBy = "week";
           break;
         default:
           startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-          groupBy = 'month';
+          groupBy = "month";
       }
 
       const bookings = await ctx.db.serviceBooking.findMany({
         where: {
           providerId: provider.provider.id,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           completedAt: { gte: startDate },
         },
         select: {
           price: true,
           completedAt: true,
         },
-        orderBy: { completedAt: 'asc' },
+        orderBy: { completedAt: "asc" },
       });
 
       // Grouper les données par période
-      const chartData: Array<{ date: string; revenue: number; count: number }> = [];
+      const chartData: Array<{ date: string; revenue: number; count: number }> =
+        [];
       const groupedData = new Map<string, { revenue: number; count: number }>();
 
-      bookings.forEach(booking => {
+      bookings.forEach((booking) => {
         if (!booking.completedAt) return;
 
         let key: string;
-        if (groupBy === 'day') {
-          key = booking.completedAt.toISOString().split('T')[0];
-        } else if (groupBy === 'week') {
+        if (groupBy === "day") {
+          key = booking.completedAt.toISOString().split("T")[0];
+        } else if (groupBy === "week") {
           const weekStart = new Date(booking.completedAt);
           weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-          key = weekStart.toISOString().split('T')[0];
+          key = weekStart.toISOString().split("T")[0];
         } else {
-          key = `${booking.completedAt.getFullYear()}-${String(booking.completedAt.getMonth() + 1).padStart(2, '0')}`;
+          key = `${booking.completedAt.getFullYear()}-${String(booking.completedAt.getMonth() + 1).padStart(2, "0")}`;
         }
 
         const existing = groupedData.get(key) || { revenue: 0, count: 0 };
@@ -742,14 +756,14 @@ export const providerRouter = router({
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
-        where: { id: userId, role: 'PROVIDER' },
+        where: { id: userId, role: "PROVIDER" },
         include: { provider: true },
       });
 
       if (!provider?.provider) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -772,7 +786,7 @@ export const providerRouter = router({
             select: { name: true },
           },
         },
-        orderBy: { completedAt: 'desc' },
+        orderBy: { completedAt: "desc" },
         take: input.limit,
       });
     }),
@@ -798,9 +812,13 @@ export const providerRouter = router({
         providerId: z.string(),
         serviceId: z.string(),
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      })
+      }),
     )
     .query(async ({ input }) => {
-      return serviceService.getAvailableTimeSlots(input.providerId, input.serviceId, input.date);
+      return serviceService.getAvailableTimeSlots(
+        input.providerId,
+        input.serviceId,
+        input.date,
+      );
     }),
 });

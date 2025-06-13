@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface SubscriptionState {
   currentPlan: any | null;
@@ -7,9 +7,9 @@ interface SubscriptionState {
   setAvailablePlans: (plans: any[]) => void;
 }
 
-export const useSubscriptionStore = create<SubscriptionState>(set => ({
+export const useSubscriptionStore = create<SubscriptionState>((set) => ({
   currentPlan: null,
   availablePlans: [],
-  setCurrentPlan: plan => set({ currentPlan: plan }),
-  setAvailablePlans: plans => set({ availablePlans: plans }),
+  setCurrentPlan: (plan) => set({ currentPlan: plan }),
+  setAvailablePlans: (plans) => set({ availablePlans: plans }),
 }));

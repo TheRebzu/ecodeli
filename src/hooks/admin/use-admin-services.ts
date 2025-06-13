@@ -1,11 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
 
-type ServiceStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'SUSPENDED';
-type ServiceCategory = 'DELIVERY' | 'CLEANING' | 'MAINTENANCE' | 'REPAIR' | 'OTHER';
+type ServiceStatus = "ACTIVE" | "INACTIVE" | "DRAFT" | "SUSPENDED";
+type ServiceCategory =
+  | "DELIVERY"
+  | "CLEANING"
+  | "MAINTENANCE"
+  | "REPAIR"
+  | "OTHER";
 
 interface ServiceFilters {
   search?: string;
@@ -53,16 +58,16 @@ export function useAdminServices() {
   const createServiceMutation = api.adminServices.create.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Service créé',
-        description: 'Le service a été créé avec succès.',
+        title: "Service créé",
+        description: "Le service a été créé avec succès.",
       });
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -70,16 +75,16 @@ export function useAdminServices() {
   const updateServiceMutation = api.adminServices.update.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Service mis à jour',
-        description: 'Le service a été mis à jour avec succès.',
+        title: "Service mis à jour",
+        description: "Le service a été mis à jour avec succès.",
       });
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -87,16 +92,16 @@ export function useAdminServices() {
   const updateStatusMutation = api.adminServices.updateStatus.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Statut mis à jour',
-        description: 'Le statut du service a été mis à jour.',
+        title: "Statut mis à jour",
+        description: "Le statut du service a été mis à jour.",
       });
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -104,23 +109,23 @@ export function useAdminServices() {
   const deleteServiceMutation = api.adminServices.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Service supprimé',
-        description: 'Le service a été supprimé avec succès.',
+        title: "Service supprimé",
+        description: "Le service a été supprimé avec succès.",
       });
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
 
   // Fonctions utilitaires
   const updateFilters = (newFilters: Partial<ServiceFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   const resetFilters = () => {

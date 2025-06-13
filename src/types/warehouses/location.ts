@@ -26,13 +26,13 @@ export interface Coordinates {
   altitude?: number;
 }
 
-export type WarehouseType = 
-  | 'URBAN'
-  | 'SUBURBAN'
-  | 'INDUSTRIAL'
-  | 'CLIMATE_CONTROLLED'
-  | 'SECURE_STORAGE'
-  | 'COLD_STORAGE';
+export type WarehouseType =
+  | "URBAN"
+  | "SUBURBAN"
+  | "INDUSTRIAL"
+  | "CLIMATE_CONTROLLED"
+  | "SECURE_STORAGE"
+  | "COLD_STORAGE";
 
 export interface StorageZone {
   id: string;
@@ -41,16 +41,16 @@ export interface StorageZone {
   capacity: number;
   occupancy: number;
   conditions: StorageCondition[];
-  accessLevel: 'PUBLIC' | 'RESTRICTED' | 'SECURE';
+  accessLevel: "PUBLIC" | "RESTRICTED" | "SECURE";
 }
 
-export type ZoneType = 
-  | 'STANDARD'
-  | 'CLIMATE_CONTROLLED'
-  | 'HIGH_SECURITY'
-  | 'OVERSIZE'
-  | 'HAZARDOUS'
-  | 'QUICK_ACCESS';
+export type ZoneType =
+  | "STANDARD"
+  | "CLIMATE_CONTROLLED"
+  | "HIGH_SECURITY"
+  | "OVERSIZE"
+  | "HAZARDOUS"
+  | "QUICK_ACCESS";
 
 export interface Facility {
   type: FacilityType;
@@ -58,14 +58,14 @@ export interface Facility {
   description?: string;
 }
 
-export type FacilityType = 
-  | 'LOADING_DOCK'
-  | 'PARKING'
-  | 'ELEVATOR'
-  | 'SECURITY_SYSTEM'
-  | 'FIRE_PROTECTION'
-  | 'CLIMATE_CONTROL'
-  | 'POWER_BACKUP';
+export type FacilityType =
+  | "LOADING_DOCK"
+  | "PARKING"
+  | "ELEVATOR"
+  | "SECURITY_SYSTEM"
+  | "FIRE_PROTECTION"
+  | "CLIMATE_CONTROL"
+  | "POWER_BACKUP";
 
 export interface OperatingHours {
   monday: DayHours;
@@ -92,4 +92,4 @@ export interface ContactInfo {
   emergencyContact: string;
 }
 
-export type LocationStatus = 'ACTIVE' | 'MAINTENANCE' | 'CLOSED' | 'FULL';
+export type LocationStatus = "ACTIVE" | "MAINTENANCE" | "CLOSED" | "FULL";

@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { useTranslations } from 'next-intl';
-import { AuditLogTable } from '@/components/admin/audit/audit-log-table';
-import { DashboardHeader } from '@/components/layout/protected/page-header';
-import { DashboardShell } from '@/components/layout/dashboard-shell';
-import { Skeleton } from '@/components/ui/skeleton';
-import { format } from 'date-fns';
+import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useTranslations } from "next-intl";
+import { AuditLogTable } from "@/components/admin/audit/audit-log-table";
+import { DashboardHeader } from "@/components/layout/protected/page-header";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 const PAGE_SIZE = 20;
 
 export default function AuditPage() {
-  const t = useTranslations('admin.audit');
+  const t = useTranslations("admin.audit");
   const [currentPage, setCurrentPage] = useState(1);
 
   // Requête pour récupérer les logs d'audit
@@ -23,7 +23,7 @@ export default function AuditPage() {
     },
     {
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   // Gérer le changement de page
@@ -33,14 +33,14 @@ export default function AuditPage() {
 
   return (
     <>
-      <DashboardHeader heading={t('title')} text={t('subtitle')} />
+      <DashboardHeader heading={t("title")} text={t("subtitle")} />
 
       <DashboardShell>
         {error ? (
           <div className="flex h-96 items-center justify-center">
             <div className="text-center">
-              <h3 className="text-lg font-semibold">{t('error.title')}</h3>
-              <p className="text-muted-foreground">{t('error.message')}</p>
+              <h3 className="text-lg font-semibold">{t("error.title")}</h3>
+              <p className="text-muted-foreground">{t("error.message")}</p>
             </div>
           </div>
         ) : isLoading ? (

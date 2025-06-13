@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export * from './email.service';
-export * from './map.service';
-export * from './notification.service';
-export * from './offline-sync.service';
+export * from "./email.service";
+export * from "./map.service";
+export * from "./notification.service";
+export * from "./offline-sync.service";

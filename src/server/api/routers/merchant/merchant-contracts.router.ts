@@ -1,8 +1,8 @@
-import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
-import { ContractStatus, ContractType } from '@prisma/client';
-import { contractService } from '@/server/services/shared/contract.service';
+import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { ContractStatus, ContractType } from "@prisma/client";
+import { contractService } from "@/server/services/shared/contract.service";
 
 // Schémas de validation
 const contractCreateSchema = z.object({
@@ -74,7 +74,7 @@ const negotiationCreateSchema = z.object({
 
 const negotiationResponseSchema = z.object({
   negotiationId: z.string(),
-  status: z.enum(['ACCEPTED', 'REJECTED', 'COUNTER_PROPOSED']),
+  status: z.enum(["ACCEPTED", "REJECTED", "COUNTER_PROPOSED"]),
   response: z.string().min(1),
   counterProposal: z.record(z.any()).optional(),
 });
@@ -97,7 +97,7 @@ export const contractRouter = router({
         status: z.nativeEnum(ContractStatus).optional(),
         page: z.number().int().positive().default(1),
         limit: z.number().int().positive().max(50).default(10),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -110,8 +110,9 @@ export const contractRouter = router({
 
       if (!merchant) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Vous devez être un commerçant pour accéder à cette ressource',
+          code: "FORBIDDEN",
+          message:
+            "Vous devez être un commerçant pour accéder à cette ressource",
         });
       }
 
@@ -135,8 +136,8 @@ export const contractRouter = router({
 
     if (!merchant) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Vous devez être un commerçant pour accéder à cette ressource',
+        code: "FORBIDDEN",
+        message: "Vous devez être un commerçant pour accéder à cette ressource",
       });
     }
 
@@ -159,15 +160,15 @@ export const contractRouter = router({
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
       if (contract.merchant.userId !== userId) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Vous ne pouvez pas signer ce contrat',
+          code: "FORBIDDEN",
+          message: "Vous ne pouvez pas signer ce contrat",
         });
       }
 
@@ -190,26 +191,26 @@ export const contractRouter = router({
           },
           template: true,
           amendments: {
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
           },
         },
       });
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
       // Vérifier les permissions
       const isOwner = contract.merchant.userId === userId;
-      const isAdmin = ctx.session.user.role === 'ADMIN';
+      const isAdmin = ctx.session.user.role === "ADMIN";
 
       if (!isOwner && !isAdmin) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé à ce contrat',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé à ce contrat",
         });
       }
 
@@ -232,18 +233,18 @@ export const contractRouter = router({
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
       const isOwner = contract.merchant.userId === userId;
-      const isAdmin = ctx.session.user.role === 'ADMIN';
+      const isAdmin = ctx.session.user.role === "ADMIN";
 
       if (!isOwner && !isAdmin) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -265,8 +266,8 @@ export const contractRouter = router({
 
     if (!merchant) {
       throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Accès refusé',
+        code: "FORBIDDEN",
+        message: "Accès refusé",
       });
     }
 
@@ -306,15 +307,18 @@ export const contractRouter = router({
     });
 
     const totalMonthlyFees = activeContracts.reduce(
-      (sum, c) => sum + (c.monthlyFee ? parseFloat(c.monthlyFee.toString()) : 0),
-      0
+      (sum, c) =>
+        sum + (c.monthlyFee ? parseFloat(c.monthlyFee.toString()) : 0),
+      0,
     );
 
     const averageCommissionRate =
       activeContracts.length > 0
         ? activeContracts.reduce(
-            (sum, c) => sum + (c.commissionRate ? parseFloat(c.commissionRate.toString()) : 0),
-            0
+            (sum, c) =>
+              sum +
+              (c.commissionRate ? parseFloat(c.commissionRate.toString()) : 0),
+            0,
           ) / activeContracts.length
         : 0;
 
@@ -344,15 +348,15 @@ export const contractRouter = router({
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
       if (contract.merchant.userId !== userId) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Vous ne pouvez pas négocier ce contrat',
+          code: "FORBIDDEN",
+          message: "Vous ne pouvez pas négocier ce contrat",
         });
       }
 
@@ -376,7 +380,7 @@ export const contractRouter = router({
 
       return {
         success: true,
-        message: 'Demande de négociation enregistrée',
+        message: "Demande de négociation enregistrée",
       };
     }),
 
@@ -395,18 +399,18 @@ export const contractRouter = router({
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
       const isOwner = contract.merchant.userId === userId;
-      const isAdmin = ctx.session.user.role === 'ADMIN';
+      const isAdmin = ctx.session.user.role === "ADMIN";
 
       if (!isOwner && !isAdmin) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -416,11 +420,12 @@ export const contractRouter = router({
 
       if (metadata?.negotiationRequested) {
         negotiations.push({
-          id: '1',
-          status: 'PENDING',
-          reason: metadata.negotiationData?.reason || '',
+          id: "1",
+          status: "PENDING",
+          reason: metadata.negotiationData?.reason || "",
           proposedChanges: metadata.negotiationData?.proposedChanges || {},
-          createdAt: metadata.negotiationData?.requestedAt || contract.createdAt,
+          createdAt:
+            metadata.negotiationData?.requestedAt || contract.createdAt,
         });
       }
 
@@ -442,15 +447,15 @@ export const contractRouter = router({
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
       if (contract.merchant.userId !== userId) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Accès non autorisé',
+          code: "FORBIDDEN",
+          message: "Accès non autorisé",
         });
       }
 
@@ -469,7 +474,7 @@ export const contractRouter = router({
       const payments = await ctx.db.payment.findMany({
         where: {
           userId: contract.merchant.userId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           createdAt: {
             gte: input.startDate,
             lte: input.endDate,
@@ -478,9 +483,13 @@ export const contractRouter = router({
         select: { amount: true },
       });
 
-      const totalRevenue = payments.reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+      const totalRevenue = payments.reduce(
+        (sum, p) => sum + parseFloat(p.amount.toString()),
+        0,
+      );
 
-      const avgOrderValue = deliveryCount > 0 ? totalRevenue / deliveryCount : 0;
+      const avgOrderValue =
+        deliveryCount > 0 ? totalRevenue / deliveryCount : 0;
 
       return {
         contractId: input.contractId,
@@ -519,7 +528,7 @@ export const contractRouter = router({
         contractId: z.string(),
         requestedDuration: z.number().int().positive(), // en mois
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -531,22 +540,22 @@ export const contractRouter = router({
 
       if (!contract) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Contrat non trouvé',
+          code: "NOT_FOUND",
+          message: "Contrat non trouvé",
         });
       }
 
       if (contract.merchant.userId !== userId) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Vous ne pouvez pas renouveler ce contrat',
+          code: "FORBIDDEN",
+          message: "Vous ne pouvez pas renouveler ce contrat",
         });
       }
 
       if (contract.status !== ContractStatus.ACTIVE) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Seuls les contrats actifs peuvent être renouvelés',
+          code: "BAD_REQUEST",
+          message: "Seuls les contrats actifs peuvent être renouvelés",
         });
       }
 
@@ -569,7 +578,7 @@ export const contractRouter = router({
 
       return {
         success: true,
-        message: 'Demande de renouvellement enregistrée',
+        message: "Demande de renouvellement enregistrée",
       };
     }),
 
@@ -578,69 +587,77 @@ export const contractRouter = router({
   /**
    * Crée un contrat (admin)
    */
-  createContract: adminProcedure.input(contractCreateSchema).mutation(async ({ ctx, input }) => {
-    return await contractService.createContract(input);
-  }),
+  createContract: adminProcedure
+    .input(contractCreateSchema)
+    .mutation(async ({ ctx, input }) => {
+      return await contractService.createContract(input);
+    }),
 
   /**
    * Met à jour un contrat (admin)
    */
-  updateContract: adminProcedure.input(contractUpdateSchema).mutation(async ({ ctx, input }) => {
-    const { contractId, ...updateData } = input;
-    return await contractService.updateContract(contractId, updateData);
-  }),
+  updateContract: adminProcedure
+    .input(contractUpdateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { contractId, ...updateData } = input;
+      return await contractService.updateContract(contractId, updateData);
+    }),
 
   /**
    * Signe un contrat côté admin
    */
-  adminSignContract: adminProcedure.input(contractSignSchema).mutation(async ({ ctx, input }) => {
-    return await contractService.signContract({
-      ...input,
-      signedById: ctx.session.user.id,
-    });
-  }),
+  adminSignContract: adminProcedure
+    .input(contractSignSchema)
+    .mutation(async ({ ctx, input }) => {
+      return await contractService.signContract({
+        ...input,
+        signedById: ctx.session.user.id,
+      });
+    }),
 
   /**
    * Liste tous les contrats (admin)
    */
-  listAllContracts: adminProcedure.input(listContractsSchema).query(async ({ ctx, input }) => {
-    // Utiliser directement Prisma pour plus de flexibilité côté admin
-    const where: any = {};
+  listAllContracts: adminProcedure
+    .input(listContractsSchema)
+    .query(async ({ ctx, input }) => {
+      // Utiliser directement Prisma pour plus de flexibilité côté admin
+      const where: any = {};
 
-    if (input.merchantId) {
-      where.merchantId = input.merchantId;
-    }
+      if (input.merchantId) {
+        where.merchantId = input.merchantId;
+      }
 
-    if (input.status) {
-      where.status = input.status;
-    }
+      if (input.status) {
+        where.status = input.status;
+      }
 
-    const [contracts, total] = await Promise.all([
-      ctx.db.contract.findMany({
-        where,
-        include: {
-          merchant: {
-            include: { user: true },
+      const [contracts, total] = await Promise.all([
+        ctx.db.contract.findMany({
+          where,
+          include: {
+            merchant: {
+              include: { user: true },
+            },
+            template: true,
           },
-          template: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (input.page - 1) * input.limit,
-        take: input.limit,
-      }),
-      ctx.db.contract.count({ where }),
-    ]);
+          orderBy: { createdAt: "desc" },
+          skip: (input.page - 1) * input.limit,
+          take: input.limit,
+        }),
+        ctx.db.contract.count({ where }),
+      ]);
 
-    return {
-      contracts,
-      pagination: {
-        page: input.page,
-        limit: input.limit,
-        total,
-        pages: Math.ceil(total / input.limit),
-      },
-    };
-  }),
+      return {
+        contracts,
+        pagination: {
+          page: input.page,
+          limit: input.limit,
+          total,
+          pages: Math.ceil(total / input.limit),
+        },
+      };
+    }),
 
   /**
    * Statistiques globales des contrats (admin)
@@ -652,24 +669,28 @@ export const contractRouter = router({
   /**
    * Crée un template de contrat (admin)
    */
-  createTemplate: adminProcedure.input(templateCreateSchema).mutation(async ({ ctx, input }) => {
-    return await contractService.createContractTemplate({
-      ...input,
-      createdById: ctx.session.user.id,
-    });
-  }),
+  createTemplate: adminProcedure
+    .input(templateCreateSchema)
+    .mutation(async ({ ctx, input }) => {
+      return await contractService.createContractTemplate({
+        ...input,
+        createdById: ctx.session.user.id,
+      });
+    }),
 
   /**
    * Crée un amendement (admin)
    */
-  createAmendment: adminProcedure.input(amendmentCreateSchema).mutation(async ({ ctx, input }) => {
-    return await contractService.createAmendment(
-      input.contractId,
-      input.title,
-      input.description,
-      input.content
-    );
-  }),
+  createAmendment: adminProcedure
+    .input(amendmentCreateSchema)
+    .mutation(async ({ ctx, input }) => {
+      return await contractService.createAmendment(
+        input.contractId,
+        input.title,
+        input.description,
+        input.content,
+      );
+    }),
 
   /**
    * Résilie un contrat (admin)
@@ -679,9 +700,12 @@ export const contractRouter = router({
       z.object({
         contractId: z.string(),
         reason: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-      return await contractService.terminateContract(input.contractId, input.reason);
+      return await contractService.terminateContract(
+        input.contractId,
+        input.reason,
+      );
     }),
 });

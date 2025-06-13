@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -9,17 +9,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ButtonWithLoading } from '@/app/[locale]/(public)/loading';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
   InputOTPSeparator,
-} from '@/components/ui/input-otp';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle2, AlertCircle, LockKeyhole } from 'lucide-react';
+} from "@/components/ui/input-otp";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CheckCircle2, AlertCircle, LockKeyhole } from "lucide-react";
 
 interface CodeVerificationProps {
   deliveryId: string;
@@ -38,10 +38,10 @@ export default function CodeVerification({
   onSuccess,
   onCancel,
   maxAttempts = 3,
-  className = '',
+  className = "",
 }: CodeVerificationProps) {
-  const t = useTranslations('deliveries.verification');
-  const [code, setCode] = useState('');
+  const t = useTranslations("deliveries.verification");
+  const [code, setCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attempts, setAttempts] = useState(0);
@@ -54,7 +54,7 @@ export default function CodeVerification({
     if (timeLeft <= 0 || !isLocked) return;
 
     const timer = setTimeout(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev <= 1) {
           setIsLocked(false);
           return 0;
@@ -88,21 +88,21 @@ export default function CodeVerification({
         if (newAttempts >= maxAttempts) {
           setIsLocked(true);
           setTimeLeft(60); // Bloquer pendant 60 secondes
-          setError(t('tooManyAttempts', { timeLeft: 60 }));
+          setError(t("tooManyAttempts", { timeLeft: 60 }));
         } else {
           setError(
-            t('invalidCode', {
+            t("invalidCode", {
               attemptsLeft: maxAttempts - newAttempts,
-            })
+            }),
           );
         }
 
         // Réinitialiser le code après une erreur
-        setCode('');
+        setCode("");
       }
     } catch (err) {
-      setError(t('verificationError'));
-      console.error('Erreur lors de la vérification du code:', err);
+      setError(t("verificationError"));
+      console.error("Erreur lors de la vérification du code:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -112,7 +112,7 @@ export default function CodeVerification({
   const formatTimeLeft = () => {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
-    return `${minutes > 0 ? `${minutes}m ` : ''}${seconds}s`;
+    return `${minutes > 0 ? `${minutes}m ` : ""}${seconds}s`;
   };
 
   if (isSuccess) {
@@ -121,14 +121,14 @@ export default function CodeVerification({
         <CardHeader>
           <CardTitle className="text-center text-green-600 flex items-center justify-center">
             <CheckCircle2 className="mr-2 h-6 w-6" />
-            {t('successTitle')}
+            {t("successTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-center mb-4">{t('successMessage')}</p>
+          <p className="text-center mb-4">{t("successMessage")}</p>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button onClick={onCancel}>{t('backToDetails')}</Button>
+          <Button onClick={onCancel}>{t("backToDetails")}</Button>
         </CardFooter>
       </Card>
     );
@@ -139,20 +139,22 @@ export default function CodeVerification({
       <CardHeader>
         <CardTitle className="flex items-center justify-center">
           <LockKeyhole className="mr-2 h-5 w-5" />
-          {t('title')}
+          {t("title")}
         </CardTitle>
-        <CardDescription className="text-center">{t('description')}</CardDescription>
+        <CardDescription className="text-center">
+          {t("description")}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('errorTitle')}</AlertTitle>
+            <AlertTitle>{t("errorTitle")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
 
             {isLocked && timeLeft > 0 && (
               <p className="mt-2 font-medium">
-                {t('timeLeft')}: {formatTimeLeft()}
+                {t("timeLeft")}: {formatTimeLeft()}
               </p>
             )}
           </Alert>
@@ -170,7 +172,9 @@ export default function CodeVerification({
               {Array.from({ length }).map((_, index) => (
                 <div key={index}>
                   <InputOTPSlot index={index} />
-                  {index !== length - 1 && index % 2 === 1 && <InputOTPSeparator />}
+                  {index !== length - 1 && index % 2 === 1 && (
+                    <InputOTPSeparator />
+                  )}
                 </div>
               ))}
             </InputOTPGroup>
@@ -178,19 +182,19 @@ export default function CodeVerification({
         </div>
 
         <div className="text-center mb-4">
-          <p className="text-sm text-muted-foreground">{t('codeHelp')}</p>
+          <p className="text-sm text-muted-foreground">{t("codeHelp")}</p>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
-          {t('cancelButton')}
+          {t("cancelButton")}
         </Button>
         <ButtonWithLoading
           onClick={handleVerify}
           disabled={isLocked || isSubmitting || code.length !== length}
           loading={isSubmitting}
         >
-          {t('verifyButton')}
+          {t("verifyButton")}
         </ButtonWithLoading>
       </CardFooter>
     </Card>

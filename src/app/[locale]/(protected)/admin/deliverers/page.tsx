@@ -1,18 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { DeliverersStats } from '@/components/admin/deliverers/deliverers-stats';
-import { DeliverersTable } from '@/components/admin/deliverers/deliverers-table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Download, FileBarChart, RefreshCw, MessageCircle, MapPin } from 'lucide-react';
-import { api } from '@/trpc/react';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { DeliverersStats } from "@/components/admin/deliverers/deliverers-stats";
+import { DeliverersTable } from "@/components/admin/deliverers/deliverers-table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Users,
+  Download,
+  FileBarChart,
+  RefreshCw,
+  MessageCircle,
+  MapPin,
+} from "lucide-react";
+import { api } from "@/trpc/react";
 
 export default function AdminDeliverersPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   // 🔧 FIX: Utiliser la même API que /admin/users qui fonctionne
   const {
@@ -26,12 +39,17 @@ export default function AdminDeliverersPage() {
   });
 
   // DEBUG: Afficher les données reçues
-  console.log('🔍 DEBUG DELIVERERS - usersData:', usersData);
-  console.log('🔍 DEBUG DELIVERERS - usersData?.json?.users:', usersData?.json?.users);
+  console.log("🔍 DEBUG DELIVERERS - usersData:", usersData);
+  console.log(
+    "🔍 DEBUG DELIVERERS - usersData?.json?.users:",
+    usersData?.json?.users,
+  );
 
   // Filtrer les livreurs depuis les données reçues
   const allUsers = usersData?.json?.users || [];
-  const delivererUsers = allUsers.filter((user: any) => user.role === 'DELIVERER');
+  const delivererUsers = allUsers.filter(
+    (user: any) => user.role === "DELIVERER",
+  );
 
   // Appliquer les filtres côté frontend
   let filteredDeliverers = delivererUsers;
@@ -41,21 +59,21 @@ export default function AdminDeliverersPage() {
     filteredDeliverers = filteredDeliverers.filter(
       (deliverer: any) =>
         deliverer.name?.toLowerCase().includes(searchLower) ||
-        deliverer.email?.toLowerCase().includes(searchLower)
+        deliverer.email?.toLowerCase().includes(searchLower),
     );
   }
 
   // Transformer les livreurs pour match le format attendu par DeliverersTable
   const deliverers = filteredDeliverers.map((deliverer: any) => ({
     id: deliverer.id, // ✅ Utiliser le vrai ID
-    firstName: deliverer.name?.split(' ')[0] || 'Prénom',
-    lastName: deliverer.name?.split(' ').slice(1).join(' ') || 'Nom',
+    firstName: deliverer.name?.split(" ")[0] || "Prénom",
+    lastName: deliverer.name?.split(" ").slice(1).join(" ") || "Nom",
     email: deliverer.email,
     phone: deliverer.phoneNumber,
     image: deliverer.image,
     status: deliverer.status,
     isVerified: deliverer.isVerified,
-    verificationStatus: deliverer.isVerified ? 'APPROVED' : 'PENDING',
+    verificationStatus: deliverer.isVerified ? "APPROVED" : "PENDING",
     createdAt: deliverer.createdAt,
     lastActiveAt: deliverer.lastLoginAt,
     totalDeliveries: 0, // Données simulées
@@ -63,8 +81,8 @@ export default function AdminDeliverersPage() {
     rating: 4.5,
     earnings: 0,
     hasVehicle: true,
-    vehicleType: 'Voiture',
-    preferredZones: ['Paris', 'Lyon'],
+    vehicleType: "Voiture",
+    preferredZones: ["Paris", "Lyon"],
   }));
 
   // Créer les données de pagination
@@ -78,10 +96,14 @@ export default function AdminDeliverersPage() {
   // Statistiques des livreurs
   const safeStatsData = {
     totalDeliverers: delivererUsers.length,
-    activeDeliverers: delivererUsers.filter((d: any) => d.status === 'ACTIVE').length,
-    pendingDeliverers: delivererUsers.filter((d: any) => d.status === 'PENDING_VERIFICATION')
+    activeDeliverers: delivererUsers.filter((d: any) => d.status === "ACTIVE")
       .length,
-    suspendedDeliverers: delivererUsers.filter((d: any) => d.status === 'SUSPENDED').length,
+    pendingDeliverers: delivererUsers.filter(
+      (d: any) => d.status === "PENDING_VERIFICATION",
+    ).length,
+    suspendedDeliverers: delivererUsers.filter(
+      (d: any) => d.status === "SUSPENDED",
+    ).length,
     totalDeliveries: 0,
     totalEarnings: 0,
     averageRating: 4.5,
@@ -101,14 +123,18 @@ export default function AdminDeliverersPage() {
     }
 
     switch (status) {
-      case 'active':
-        return safeDeliverersData.deliverers.filter((d: any) => d.status === 'ACTIVE');
-      case 'pending':
+      case "active":
         return safeDeliverersData.deliverers.filter(
-          (d: any) => d.status === 'PENDING_VERIFICATION'
+          (d: any) => d.status === "ACTIVE",
         );
-      case 'suspended':
-        return safeDeliverersData.deliverers.filter((d: any) => d.status === 'SUSPENDED');
+      case "pending":
+        return safeDeliverersData.deliverers.filter(
+          (d: any) => d.status === "PENDING_VERIFICATION",
+        );
+      case "suspended":
+        return safeDeliverersData.deliverers.filter(
+          (d: any) => d.status === "SUSPENDED",
+        );
       default:
         return safeDeliverersData.deliverers;
     }
@@ -119,7 +145,9 @@ export default function AdminDeliverersPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gestion des Livreurs</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Gestion des Livreurs
+          </h1>
           <p className="text-muted-foreground">
             Supervisez et gérez tous les livreurs de la plateforme EcoDeli
           </p>
@@ -204,7 +232,7 @@ export default function AdminDeliverersPage() {
             </CardHeader>
             <CardContent className="p-0">
               <DeliverersTable
-                deliverers={getFilteredDeliverers('active')}
+                deliverers={getFilteredDeliverers("active")}
                 isLoading={isLoadingDeliverers}
                 totalPages={1}
                 currentPage={1}
@@ -225,7 +253,7 @@ export default function AdminDeliverersPage() {
             </CardHeader>
             <CardContent className="p-0">
               <DeliverersTable
-                deliverers={getFilteredDeliverers('pending')}
+                deliverers={getFilteredDeliverers("pending")}
                 isLoading={isLoadingDeliverers}
                 totalPages={1}
                 currentPage={1}
@@ -246,7 +274,7 @@ export default function AdminDeliverersPage() {
             </CardHeader>
             <CardContent className="p-0">
               <DeliverersTable
-                deliverers={getFilteredDeliverers('suspended')}
+                deliverers={getFilteredDeliverers("suspended")}
                 isLoading={isLoadingDeliverers}
                 totalPages={1}
                 currentPage={1}
@@ -261,7 +289,9 @@ export default function AdminDeliverersPage() {
           <Card>
             <CardHeader>
               <CardTitle>Zones de Couverture</CardTitle>
-              <CardDescription>Visualisation des zones couvertes par les livreurs</CardDescription>
+              <CardDescription>
+                Visualisation des zones couvertes par les livreurs
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-center h-64 text-muted-foreground">

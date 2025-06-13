@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState, useRef, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   MapPin,
   Search,
@@ -16,9 +16,9 @@ import {
   Loader2,
   Map,
   AlertCircle,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils/common';
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils/common";
 
 interface AddressMapPickerProps {
   address: string;
@@ -36,7 +36,7 @@ interface AddressSuggestion {
   label: string;
   address: string;
   coordinates: { lat: number; lng: number };
-  type: 'address' | 'poi' | 'city';
+  type: "address" | "poi" | "city";
   distance?: number;
 }
 
@@ -47,59 +47,46 @@ export function AddressMapPicker({
   latitude,
   longitude,
   className,
-  placeholder = 'Entrez une adresse...',
+  placeholder = "Entrez une adresse...",
   disabled = false,
 }: AddressMapPickerProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
-  const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(
-    latitude && longitude ? { lat: latitude, lng: longitude } : null
-  );
+  const [selectedCoords, setSelectedCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(latitude && longitude ? { lat: latitude, lng: longitude } : null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+    null,
+  );
 
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Simuler des suggestions d'adresse
-  const mockSuggestions: AddressSuggestion[] = [
-    {
-      id: '1',
-      label: '123 Rue de Rivoli, Paris',
-      address: '123 Rue de Rivoli, 75001 Paris, France',
-      coordinates: { lat: 48.8606, lng: 2.3376 },
-      type: 'address',
-    },
-    {
-      id: '2',
-      label: 'Gare du Nord, Paris',
-      address: 'Gare du Nord, 18 Rue de Dunkerque, 75010 Paris, France',
-      coordinates: { lat: 48.8808, lng: 2.3551 },
-      type: 'poi',
-    },
-    {
-      id: '3',
-      label: 'Aéroport Charles de Gaulle',
-      address: 'Aéroport de Paris-Charles-de-Gaulle, 95700 Roissy-en-France, France',
-      coordinates: { lat: 49.0097, lng: 2.5479 },
-      type: 'poi',
-    },
-    {
-      id: '4',
-      label: '456 Avenue des Champs-Élysées, Paris',
-      address: '456 Avenue des Champs-Élysées, 75008 Paris, France',
-      coordinates: { lat: 48.8698, lng: 2.3076 },
-      type: 'address',
-    },
-    {
-      id: '5',
-      label: 'Place de la Bastille, Paris',
-      address: 'Place de la Bastille, 75011 Paris, France',
-      coordinates: { lat: 48.8532, lng: 2.3692 },
-      type: 'poi',
-    },
-  ];
+  // Utiliser une API réelle de géocodage
+  const searchAddressesWithAPI = async (query: string): Promise<AddressSuggestion[]> => {
+    try {
+      // TODO: Intégrer avec une API réelle de géocodage (Nominatim, Google Maps, etc.)
+      // Exemple avec Nominatim (OpenStreetMap)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=fr&limit=5`
+      );
+      const data = await response.json();
+      
+      return data.map((item: any, index: number) => ({
+        id: index.toString(),
+        label: item.display_name.split(',')[0],
+        address: item.display_name,
+        coordinates: { lat: parseFloat(item.lat), lng: parseFloat(item.lon) },
+        type: item.type === 'house' || item.type === 'residential' ? 'address' : 'poi',
+      }));
+    } catch (error) {
+      console.error('Erreur lors de la recherche d\'adresses:', error);
+      return [];
+    }
+  };
 
   // Rechercher des adresses
   const searchAddresses = async (query: string) => {
@@ -112,17 +99,9 @@ export function AddressMapPicker({
     setIsSearching(true);
 
     try {
-      // Simulation d'un délai d'API
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Filtrer les suggestions mock basées sur la requête
-      const filteredSuggestions = mockSuggestions.filter(
-        suggestion =>
-          suggestion.label.toLowerCase().includes(query.toLowerCase()) ||
-          suggestion.address.toLowerCase().includes(query.toLowerCase())
-      );
-
-      setSuggestions(filteredSuggestions);
+      // Utiliser l'API réelle de géocodage
+      const suggestions = await searchAddressesWithAPI(query);
+      setSuggestions(suggestions);
       setShowSuggestions(true);
     } catch (error) {
       toast.error("Erreur lors de la recherche d'adresses");
@@ -156,26 +135,28 @@ export function AddressMapPicker({
     setShowSuggestions(false);
     setSuggestions([]);
 
-    toast.success('Adresse sélectionnée');
+    toast.success("Adresse sélectionnée");
   };
 
   // Obtenir la position actuelle
   const getCurrentLocation = async () => {
     if (!navigator.geolocation) {
-      toast.error('Géolocalisation non supportée');
+      toast.error("Géolocalisation non supportée");
       return;
     }
 
     setIsGettingLocation(true);
 
     try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000,
-        });
-      });
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000,
+          });
+        },
+      );
 
       const { latitude, longitude } = position.coords;
 
@@ -186,7 +167,7 @@ export function AddressMapPicker({
       onCoordinatesChange(latitude, longitude);
       setSelectedCoords({ lat: latitude, lng: longitude });
 
-      toast.success('Position actuelle utilisée');
+      toast.success("Position actuelle utilisée");
     } catch (error) {
       toast.error("Impossible d'obtenir votre position");
     } finally {
@@ -207,9 +188,9 @@ export function AddressMapPicker({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -224,9 +205,9 @@ export function AddressMapPicker({
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'poi':
+      case "poi":
         return <MapPin className="h-3 w-3" />;
-      case 'address':
+      case "address":
         return <Navigation className="h-3 w-3" />;
       default:
         return <Search className="h-3 w-3" />;
@@ -235,19 +216,19 @@ export function AddressMapPicker({
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'poi':
+      case "poi":
         return "Point d'intérêt";
-      case 'address':
-        return 'Adresse';
-      case 'city':
-        return 'Ville';
+      case "address":
+        return "Adresse";
+      case "city":
+        return "Ville";
       default:
-        return '';
+        return "";
     }
   };
 
   return (
-    <div className={cn('relative space-y-4', className)}>
+    <div className={cn("relative space-y-4", className)}>
       {/* Champ de recherche */}
       <div className="relative">
         <div className="relative">
@@ -255,7 +236,7 @@ export function AddressMapPicker({
           <Input
             ref={inputRef}
             value={address}
-            onChange={e => handleInputChange(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             placeholder={placeholder}
             className="pl-10 pr-20"
             disabled={disabled}
@@ -291,7 +272,7 @@ export function AddressMapPicker({
             className="absolute top-full left-0 right-0 z-10 mt-1 max-h-60 overflow-auto shadow-lg"
           >
             <CardContent className="p-0">
-              {suggestions.map(suggestion => (
+              {suggestions.map((suggestion) => (
                 <button
                   key={suggestion.id}
                   type="button"
@@ -299,15 +280,21 @@ export function AddressMapPicker({
                   onClick={() => selectSuggestion(suggestion)}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="mt-1 text-muted-foreground">{getTypeIcon(suggestion.type)}</div>
+                    <div className="mt-1 text-muted-foreground">
+                      {getTypeIcon(suggestion.type)}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm truncate">{suggestion.label}</span>
+                        <span className="font-medium text-sm truncate">
+                          {suggestion.label}
+                        </span>
                         <Badge variant="outline" className="text-xs">
                           {getTypeLabel(suggestion.type)}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{suggestion.address}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {suggestion.address}
+                      </p>
                     </div>
                   </div>
                 </button>
@@ -317,17 +304,22 @@ export function AddressMapPicker({
         )}
 
         {/* Aucun résultat */}
-        {showSuggestions && suggestions.length === 0 && !isSearching && address.length >= 3 && (
-          <Card className="absolute top-full left-0 right-0 z-10 mt-1 shadow-lg">
-            <CardContent className="p-4 text-center">
-              <Search className="h-8 w-8 mx-auto text-muted-foreground opacity-25 mb-2" />
-              <p className="text-sm text-muted-foreground">Aucune adresse trouvée</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Essayez avec des termes différents
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {showSuggestions &&
+          suggestions.length === 0 &&
+          !isSearching &&
+          address.length >= 3 && (
+            <Card className="absolute top-full left-0 right-0 z-10 mt-1 shadow-lg">
+              <CardContent className="p-4 text-center">
+                <Search className="h-8 w-8 mx-auto text-muted-foreground opacity-25 mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  Aucune adresse trouvée
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Essayez avec des termes différents
+                </p>
+              </CardContent>
+            </Card>
+          )}
       </div>
 
       {/* Coordonnées sélectionnées */}
@@ -340,7 +332,8 @@ export function AddressMapPicker({
                 <span className="font-medium">Position confirmée</span>
                 <br />
                 <span className="text-xs">
-                  {selectedCoords.lat.toFixed(6)}, {selectedCoords.lng.toFixed(6)}
+                  {selectedCoords.lat.toFixed(6)},{" "}
+                  {selectedCoords.lng.toFixed(6)}
                 </span>
               </div>
               <Button
@@ -348,7 +341,7 @@ export function AddressMapPicker({
                 variant="ghost"
                 onClick={() => {
                   setSelectedCoords(null);
-                  onAddressChange('');
+                  onAddressChange("");
                 }}
                 className="h-6 w-6 p-0"
               >
@@ -371,15 +364,26 @@ export function AddressMapPicker({
                 </div>
                 <p className="text-sm font-medium">Position sélectionnée</p>
                 <p className="text-xs text-muted-foreground">
-                  {selectedCoords.lat.toFixed(4)}, {selectedCoords.lng.toFixed(4)}
+                  {selectedCoords.lat.toFixed(4)},{" "}
+                  {selectedCoords.lng.toFixed(4)}
                 </p>
               </div>
 
               {/* Grille de fond pour simulation de carte */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10">
                 <defs>
-                  <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="1" />
+                  <pattern
+                    id="grid"
+                    width="20"
+                    height="20"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 20 0 L 0 0 0 20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                    />
                   </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid)" />

@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export * from './merchant-announcement.schema';
-export * from './merchant-catalog.schema';
-export * from './merchant-contract.schema';
-export * from './merchant-register.schema';
+export * from "./merchant-announcement.schema";
+export * from "./merchant-catalog.schema";
+export * from "./merchant-contract.schema";
+export * from "./merchant-register.schema";

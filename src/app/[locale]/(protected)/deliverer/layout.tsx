@@ -1,7 +1,7 @@
-import { ProtectedHeader } from '@/components/layout/protected/header';
-import { ProtectedFooter } from '@/components/layout/protected/footer';
-import { DelivererSidebar } from '@/components/layout/sidebars/deliverer-sidebar';
-import VerificationStatusProvider from '@/types/actors/provider';
+import { ProtectedHeader } from "@/components/layout/protected/header";
+import { ProtectedFooter } from "@/components/layout/protected/footer";
+import { DelivererSidebar } from "@/components/layout/sidebars/deliverer-sidebar";
+import VerificationStatusProvider from "@/types/actors/provider";
 
 interface DelivererLayoutProps {
   children: React.ReactNode;
@@ -10,7 +10,10 @@ interface DelivererLayoutProps {
   }>;
 }
 
-export default async function DelivererLayout({ children, params }: DelivererLayoutProps) {
+export default async function DelivererLayout({
+  children,
+  params,
+}: DelivererLayoutProps) {
   // Résoudre params.locale en tant que Promise
   const resolvedParams = await params;
   const locale = resolvedParams.locale;
@@ -30,7 +33,9 @@ export default async function DelivererLayout({ children, params }: DelivererLay
         </div>
 
         <main className="flex-1 overflow-x-hidden bg-muted/10">
-          <div className="container max-w-7xl mx-auto p-4 md:p-8">{children}</div>
+          <div className="container max-w-7xl mx-auto p-4 md:p-8">
+            {children}
+          </div>
         </main>
       </div>
 

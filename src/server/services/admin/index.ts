@@ -4,8 +4,8 @@
  */
 
 // Exports des fichiers locaux
-export * from './admin.service';
-export * from './audit.service';
-export * from './commission.service';
-export * from './dashboard.service';
-export * from './financial-validation.service';
+export * from "./admin.service";
+export * from "./audit.service";
+export * from "./commission.service";
+export * from "./dashboard.service";
+export * from "./financial-validation.service";

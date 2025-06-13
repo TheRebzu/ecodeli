@@ -4,4 +4,4 @@
  */
 
 // Exports des sous-dossiers
-export * from './tutorials';
+export * from "./tutorials";

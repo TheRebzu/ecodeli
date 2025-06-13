@@ -4,7 +4,7 @@
  */
 
 // Exports des fichiers locaux
-export * from './overlay';
-export * from './progress';
-export * from './steps';
-export * from './tutorial';
+export * from "./overlay";
+export * from "./progress";
+export * from "./steps";
+export * from "./tutorial";

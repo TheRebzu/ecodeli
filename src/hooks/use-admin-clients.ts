@@ -1,21 +1,21 @@
-import { api } from '@/trpc/react';
-import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { api } from "@/trpc/react";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 export interface ClientFilters {
   search?: string;
-  status?: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED' | 'INACTIVE';
-  sortBy?: 'name' | 'email' | 'createdAt' | 'lastLoginAt';
-  sortDirection?: 'asc' | 'desc';
+  status?: "ACTIVE" | "PENDING_VERIFICATION" | "SUSPENDED" | "INACTIVE";
+  sortBy?: "name" | "email" | "createdAt" | "lastLoginAt";
+  sortDirection?: "asc" | "desc";
 }
 
 export function useAdminClients() {
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<ClientFilters>({
-    search: searchParams?.get('search') || '',
-    status: (searchParams?.get('status') as any) || undefined,
-    sortBy: (searchParams?.get('sortBy') as any) || 'createdAt',
-    sortDirection: (searchParams?.get('sortDirection') as any) || 'desc',
+    search: searchParams?.get("search") || "",
+    status: (searchParams?.get("status") as any) || undefined,
+    sortBy: (searchParams?.get("sortBy") as any) || "createdAt",
+    sortDirection: (searchParams?.get("sortDirection") as any) || "desc",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
@@ -32,12 +32,15 @@ export function useAdminClients() {
   });
 
   // DEBUG: Afficher les données reçues
-  console.log('🔍 DEBUG CLIENTS - usersData:', usersData);
-  console.log('🔍 DEBUG CLIENTS - usersData?.json?.users:', usersData?.json?.users);
+  console.log("🔍 DEBUG CLIENTS - usersData:", usersData);
+  console.log(
+    "🔍 DEBUG CLIENTS - usersData?.json?.users:",
+    usersData?.json?.users,
+  );
 
   // Filtrer les clients depuis les données reçues
   const allUsers = usersData?.json?.users || [];
-  const clientUsers = allUsers.filter((user: any) => user.role === 'CLIENT');
+  const clientUsers = allUsers.filter((user: any) => user.role === "CLIENT");
 
   // Appliquer les filtres côté frontend
   let filteredClients = clientUsers;
@@ -47,27 +50,32 @@ export function useAdminClients() {
     filteredClients = filteredClients.filter(
       (client: any) =>
         client.name?.toLowerCase().includes(searchLower) ||
-        client.email?.toLowerCase().includes(searchLower)
+        client.email?.toLowerCase().includes(searchLower),
     );
   }
 
   if (filters.status) {
-    filteredClients = filteredClients.filter((client: any) => client.status === filters.status);
+    filteredClients = filteredClients.filter(
+      (client: any) => client.status === filters.status,
+    );
   }
 
   // Trier les clients
   filteredClients.sort((a: any, b: any) => {
-    const field = filters.sortBy || 'createdAt';
-    const direction = filters.sortDirection === 'asc' ? 1 : -1;
+    const field = filters.sortBy || "createdAt";
+    const direction = filters.sortDirection === "asc" ? 1 : -1;
 
-    if (field === 'createdAt') {
-      return direction * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    if (field === "createdAt") {
+      return (
+        direction *
+        (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      );
     }
-    if (field === 'name') {
-      return direction * (a.name || '').localeCompare(b.name || '');
+    if (field === "name") {
+      return direction * (a.name || "").localeCompare(b.name || "");
     }
-    if (field === 'email') {
-      return direction * (a.email || '').localeCompare(b.email || '');
+    if (field === "email") {
+      return direction * (a.email || "").localeCompare(b.email || "");
     }
     return 0;
   });
@@ -92,9 +100,9 @@ export function useAdminClients() {
     client: {
       id: `client-${client.id}`, // ID du profil client simulé
       address: null,
-      city: 'Paris', // Données simulées
-      postalCode: '75000',
-      country: 'France',
+      city: "Paris", // Données simulées
+      postalCode: "75000",
+      country: "France",
     },
     stats: {
       totalOrders: 0,
@@ -107,26 +115,28 @@ export function useAdminClients() {
   // Récupérer les statistiques des clients (utiliser la même API)
   const clientStats = {
     totalClients: clientUsers.length,
-    activeClients: clientUsers.filter((c: any) => c.status === 'ACTIVE').length,
-    suspendedClients: clientUsers.filter((c: any) => c.status === 'SUSPENDED').length,
+    activeClients: clientUsers.filter((c: any) => c.status === "ACTIVE").length,
+    suspendedClients: clientUsers.filter((c: any) => c.status === "SUSPENDED")
+      .length,
     newClientsThisMonth: clientUsers.filter((c: any) => {
       const createdAt = new Date(c.createdAt);
       const now = new Date();
       return (
-        createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear()
+        createdAt.getMonth() === now.getMonth() &&
+        createdAt.getFullYear() === now.getFullYear()
       );
     }).length,
   };
 
   const updateFilters = (newFilters: Partial<ClientFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
     setCurrentPage(1); // Reset page when filters change
   };
 
   const clearFilters = () => {
     setFilters({
-      sortBy: 'createdAt',
-      sortDirection: 'desc',
+      sortBy: "createdAt",
+      sortDirection: "desc",
     });
     setCurrentPage(1);
   };
@@ -162,4 +172,6 @@ export function useAdminClients() {
   };
 }
 
-export type AdminClient = NonNullable<ReturnType<typeof useAdminClients>['clients'][0]>;
+export type AdminClient = NonNullable<
+  ReturnType<typeof useAdminClients>["clients"][0]
+>;

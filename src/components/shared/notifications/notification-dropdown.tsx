@@ -1,37 +1,47 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Bell, Check, ChevronRight, Clock, FileText, Trash } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { formatDistanceToNow } from 'date-fns';
-import { fr, enGB } from 'date-fns/locale';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useState } from "react";
+import {
+  Bell,
+  Check,
+  ChevronRight,
+  Clock,
+  FileText,
+  Trash,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { formatDistanceToNow } from "date-fns";
+import { fr, enGB } from "date-fns/locale";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Notification } from '@prisma/client';
-import { Badge } from '@/components/ui/badge';
-import { api } from '@/trpc/react';
-import { useToast } from '@/components/ui/use-toast';
-import { cn } from '@/lib/utils/common';
-import { DropdownMenuTriggerProps } from '@radix-ui/react-dropdown-menu';
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Notification } from "@prisma/client";
+import { Badge } from "@/components/ui/badge";
+import { api } from "@/trpc/react";
+import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils/common";
+import { DropdownMenuTriggerProps } from "@radix-ui/react-dropdown-menu";
 
 interface NotificationDropdownProps extends DropdownMenuTriggerProps {
   locale: string;
 }
 
-export function NotificationDropdown({ locale, ...props }: NotificationDropdownProps) {
+export function NotificationDropdown({
+  locale,
+  ...props
+}: NotificationDropdownProps) {
   const [open, setOpen] = useState(false);
-  const tNotif = useTranslations('notifications');
+  const tNotif = useTranslations("notifications");
   const router = useRouter();
   const { toast } = useToast();
   const { data: session } = useSession();
@@ -43,14 +53,15 @@ export function NotificationDropdown({ locale, ...props }: NotificationDropdownP
     refetch,
   } = api.notification.getNotifications.useQuery(
     { page: 1, limit: 10 },
-    { enabled: !!session?.user.id, refetchInterval: 60000 } // Refetch every minute
+    { enabled: !!session?.user.id, refetchInterval: 60000 }, // Refetch every minute
   );
 
   // Get unread count
-  const { data: unreadCount, refetch: refetchUnread } = api.notification.getUnreadCount.useQuery(
-    undefined,
-    { enabled: !!session?.user.id, refetchInterval: 30000 } // Refetch every 30 seconds
-  );
+  const { data: unreadCount, refetch: refetchUnread } =
+    api.notification.getUnreadCount.useQuery(
+      undefined,
+      { enabled: !!session?.user.id, refetchInterval: 30000 }, // Refetch every 30 seconds
+    );
 
   // Mutations
   const markAsReadMutation = api.notification.markAsRead.useMutation({
@@ -65,17 +76,18 @@ export function NotificationDropdown({ locale, ...props }: NotificationDropdownP
       refetch();
       refetchUnread();
       toast({
-        title: tNotif('allMarkedAsRead'),
+        title: tNotif("allMarkedAsRead"),
       });
     },
   });
 
-  const deleteNotificationMutation = api.notification.deleteNotification.useMutation({
-    onSuccess: () => {
-      refetch();
-      refetchUnread();
-    },
-  });
+  const deleteNotificationMutation =
+    api.notification.deleteNotification.useMutation({
+      onSuccess: () => {
+        refetch();
+        refetchUnread();
+      },
+    });
 
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read
@@ -100,12 +112,12 @@ export function NotificationDropdown({ locale, ...props }: NotificationDropdownP
   };
 
   const getNotificationIcon = (type: string) => {
-    if (type.includes('DOCUMENT')) {
+    if (type.includes("DOCUMENT")) {
       return <FileText className="h-4 w-4 text-primary" />;
-    } else if (type.includes('VERIFICATION')) {
-      if (type.includes('APPROVED')) {
+    } else if (type.includes("VERIFICATION")) {
+      if (type.includes("APPROVED")) {
         return <Check className="h-4 w-4 text-green-500" />;
-      } else if (type.includes('REJECTED')) {
+      } else if (type.includes("REJECTED")) {
         return <Trash className="h-4 w-4 text-red-500" />;
       } else {
         return <Clock className="h-4 w-4 text-amber-500" />;
@@ -116,8 +128,11 @@ export function NotificationDropdown({ locale, ...props }: NotificationDropdownP
   };
 
   const formatDate = (date: Date) => {
-    const localeObj = locale === 'fr' ? fr : enGB;
-    return formatDistanceToNow(new Date(date), { addSuffix: true, locale: localeObj });
+    const localeObj = locale === "fr" ? fr : enGB;
+    return formatDistanceToNow(new Date(date), {
+      addSuffix: true,
+      locale: localeObj,
+    });
   };
 
   return (
@@ -127,14 +142,14 @@ export function NotificationDropdown({ locale, ...props }: NotificationDropdownP
           <Bell className="h-5 w-5" />
           {unreadCount && unreadCount > 0 ? (
             <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-primary text-[10px] text-white font-bold flex items-center justify-center">
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {unreadCount > 99 ? "99+" : unreadCount}
             </Badge>
           ) : null}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[380px]">
         <div className="flex items-center justify-between px-4 py-3 border-b">
-          <h3 className="text-sm font-medium">{tNotif('title')}</h3>
+          <h3 className="text-sm font-medium">{tNotif("title")}</h3>
           {unreadCount && unreadCount > 0 ? (
             <Button
               variant="ghost"
@@ -142,7 +157,7 @@ export function NotificationDropdown({ locale, ...props }: NotificationDropdownP
               onClick={handleMarkAllAsRead}
               disabled={markAllAsReadMutation.isLoading}
             >
-              {tNotif('markAllAsRead')}
+              {tNotif("markAllAsRead")}
             </Button>
           ) : null}
         </div>
@@ -163,16 +178,16 @@ export function NotificationDropdown({ locale, ...props }: NotificationDropdownP
           ) : notificationsData?.notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
               <Bell className="h-10 w-10 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">{tNotif('empty')}</p>
+              <p className="text-sm text-muted-foreground">{tNotif("empty")}</p>
             </div>
           ) : (
             <div>
-              {notificationsData?.notifications.map(notification => (
+              {notificationsData?.notifications.map((notification) => (
                 <DropdownMenuItem
                   key={notification.id}
                   className={cn(
-                    'flex items-start gap-3 p-3 cursor-pointer',
-                    !notification.read && 'bg-muted/30'
+                    "flex items-start gap-3 p-3 cursor-pointer",
+                    !notification.read && "bg-muted/30",
                   )}
                   onClick={() => handleNotificationClick(notification)}
                 >
@@ -183,12 +198,17 @@ export function NotificationDropdown({ locale, ...props }: NotificationDropdownP
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-2">
                       <p
-                        className={cn('text-sm font-medium', !notification.read && 'font-semibold')}
+                        className={cn(
+                          "text-sm font-medium",
+                          !notification.read && "font-semibold",
+                        )}
                       >
                         {notification.title}
                       </p>
                       <button
-                        onClick={e => handleDeleteNotification(e, notification.id)}
+                        onClick={(e) =>
+                          handleDeleteNotification(e, notification.id)
+                        }
                         className="text-muted-foreground hover:text-destructive"
                       >
                         <Trash className="h-3.5 w-3.5" />
@@ -212,10 +232,12 @@ export function NotificationDropdown({ locale, ...props }: NotificationDropdownP
           className="flex items-center justify-center p-2 cursor-pointer"
           onClick={() => {
             setOpen(false);
-            router.push(`/${locale}/${session?.user.role.toLowerCase()}/notifications`);
+            router.push(
+              `/${locale}/${session?.user.role.toLowerCase()}/notifications`,
+            );
           }}
         >
-          <span className="text-sm text-primary">{tNotif('viewAll')}</span>
+          <span className="text-sm text-primary">{tNotif("viewAll")}</span>
           <ChevronRight className="h-4 w-4 text-primary ml-1" />
         </DropdownMenuItem>
       </DropdownMenuContent>

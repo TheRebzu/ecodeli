@@ -1,10 +1,24 @@
-import { useState } from 'react';
-import { format } from 'date-fns';
-import { FileText, Download, Eye, CheckCircle2, XCircle, AlertCircle, Clock } from 'lucide-react';
-import { DocumentType, DocumentStatus } from '@prisma/client';
+import { useState } from "react";
+import { format } from "date-fns";
+import {
+  FileText,
+  Download,
+  Eye,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
+import { DocumentType, DocumentStatus } from "@prisma/client";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,9 +26,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,18 +47,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
-import { api } from '@/trpc/react';
-import { DocumentList, DocumentPreview } from '@/types/documents/verification';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/trpc/react";
+import { DocumentList, DocumentPreview } from "@/types/documents/verification";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Fix toast notifications
-const showToast = (title: string, variant: 'default' | 'destructive' | 'success') => {
+const showToast = (
+  title: string,
+  variant: "default" | "destructive" | "success",
+) => {
   toast({
     title,
     variant,
@@ -76,9 +93,13 @@ export function UserDocuments({
   onApproveDocument,
   onRejectDocument,
 }: UserDocumentsProps) {
-  const [selectedDocument, setSelectedDocument] = useState<UserDocument | null>(null);
-  const [reviewStatus, setReviewStatus] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedDocument, setSelectedDocument] = useState<UserDocument | null>(
+    null,
+  );
+  const [reviewStatus, setReviewStatus] = useState<"APPROVED" | "REJECTED">(
+    "APPROVED",
+  );
+  const [rejectionReason, setRejectionReason] = useState("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
@@ -87,14 +108,14 @@ export function UserDocuments({
   const handleReviewDocument = () => {
     if (!selectedDocument) return;
 
-    if (reviewStatus === 'APPROVED') {
+    if (reviewStatus === "APPROVED") {
       onApproveDocument(selectedDocument.id);
-    } else if (reviewStatus === 'REJECTED') {
+    } else if (reviewStatus === "REJECTED") {
       onRejectDocument(selectedDocument.id, rejectionReason);
     }
 
     setIsReviewOpen(false);
-    setRejectionReason('');
+    setRejectionReason("");
   };
 
   const openDocumentPreview = (document: UserDocument) => {
@@ -104,17 +125,19 @@ export function UserDocuments({
 
   const openDocumentReview = (document: UserDocument) => {
     setSelectedDocument(document);
-    setReviewStatus('APPROVED');
-    setRejectionReason('');
+    setReviewStatus("APPROVED");
+    setRejectionReason("");
     setIsReviewOpen(true);
   };
 
   // Correct the downloadDocument logic to use tRPC's fetch method
   const downloadDocument = async (document: UserDocument) => {
     try {
-      toast({ title: 'Préparation du document', variant: 'default' });
+      toast({ title: "Préparation du document", variant: "default" });
 
-      const result = await api.document.downloadDocument.query({ filePath: document.fileUrl });
+      const result = await api.document.downloadDocument.query({
+        filePath: document.fileUrl,
+      });
 
       const binaryData = atob(result.fileData);
       const bytes = new Uint8Array(binaryData.length);
@@ -124,9 +147,9 @@ export function UserDocuments({
       const blob = new Blob([bytes], { type: result.contentType });
 
       const url = URL.createObjectURL(blob);
-      const link = window.document.createElement('a');
+      const link = window.document.createElement("a");
       link.href = url;
-      link.setAttribute('download', result.fileName);
+      link.setAttribute("download", result.fileName);
       window.document.body.appendChild(link);
       link.click();
 
@@ -135,26 +158,33 @@ export function UserDocuments({
         URL.revokeObjectURL(url);
       }, 100);
 
-      toast({ title: 'Téléchargement lancé', variant: 'success' });
+      toast({ title: "Téléchargement lancé", variant: "success" });
     } catch (error) {
-      console.error('Erreur lors du téléchargement:', error);
-      toast({ title: 'Impossible de télécharger le document.', variant: 'destructive' });
+      console.error("Erreur lors du téléchargement:", error);
+      toast({
+        title: "Impossible de télécharger le document.",
+        variant: "destructive",
+      });
     }
   };
 
   const toggleDocumentSelection = (documentId: string) => {
-    setSelectedDocuments(prev =>
-      prev.includes(documentId) ? prev.filter(id => id !== documentId) : [...prev, documentId]
+    setSelectedDocuments((prev) =>
+      prev.includes(documentId)
+        ? prev.filter((id) => id !== documentId)
+        : [...prev, documentId],
     );
   };
 
   const handleBulkApprove = () => {
-    selectedDocuments.forEach(documentId => onApproveDocument(documentId));
+    selectedDocuments.forEach((documentId) => onApproveDocument(documentId));
     setSelectedDocuments([]);
   };
 
   const handleBulkReject = (reason: string) => {
-    selectedDocuments.forEach(documentId => onRejectDocument(documentId, reason));
+    selectedDocuments.forEach((documentId) =>
+      onRejectDocument(documentId, reason),
+    );
     setSelectedDocuments([]);
   };
 
@@ -180,11 +210,15 @@ export function UserDocuments({
     <Card>
       <CardHeader>
         <CardTitle>User Documents</CardTitle>
-        <CardDescription>ID verification and supporting documents</CardDescription>
+        <CardDescription>
+          ID verification and supporting documents
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {documents.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground">No documents available.</div>
+          <div className="text-center py-6 text-muted-foreground">
+            No documents available.
+          </div>
         ) : (
           <div>
             <Table>
@@ -192,10 +226,10 @@ export function UserDocuments({
                 <TableRow>
                   <TableHead>
                     <Checkbox
-                      onChange={e => {
+                      onChange={(e) => {
                         const target = e.target as HTMLInputElement;
                         if (target.checked) {
-                          setSelectedDocuments(documents.map(doc => doc.id));
+                          setSelectedDocuments(documents.map((doc) => doc.id));
                         } else {
                           setSelectedDocuments([]);
                         }
@@ -209,7 +243,7 @@ export function UserDocuments({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {documents.map(doc => (
+                {documents.map((doc) => (
                   <TableRow key={doc.id}>
                     <TableCell>
                       <Checkbox
@@ -220,8 +254,12 @@ export function UserDocuments({
                     <TableCell>{doc.type.toString()}</TableCell>
                     <TableCell>{doc.status}</TableCell>
                     <TableCell>
-                      <button onClick={() => openDocumentPreview(doc)}>View</button>
-                      <button onClick={() => openDocumentReview(doc)}>Review</button>
+                      <button onClick={() => openDocumentPreview(doc)}>
+                        View
+                      </button>
+                      <button onClick={() => openDocumentReview(doc)}>
+                        Review
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -230,7 +268,7 @@ export function UserDocuments({
             <button onClick={handleBulkApprove}>Approve Selected</button>
             <button
               onClick={() => {
-                const reason = prompt('Enter rejection reason:');
+                const reason = prompt("Enter rejection reason:");
                 if (reason) handleBulkReject(reason);
               }}
             >
@@ -241,7 +279,10 @@ export function UserDocuments({
       </CardContent>
 
       {selectedDocument && (
-        <DocumentPreview document={selectedDocument} onClose={() => setIsPreviewOpen(false)} />
+        <DocumentPreview
+          document={selectedDocument}
+          onClose={() => setIsPreviewOpen(false)}
+        />
       )}
 
       {isReviewOpen && (
@@ -250,13 +291,14 @@ export function UserDocuments({
             <AlertDialogHeader>
               <AlertDialogTitle>Review Document</AlertDialogTitle>
               <AlertDialogDescription>
-                {selectedDocument && `Update the verification status for this document.`}
+                {selectedDocument &&
+                  `Update the verification status for this document.`}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <Tabs
               defaultValue="approve"
               value={reviewStatus}
-              onValueChange={v => setReviewStatus(v as any)}
+              onValueChange={(v) => setReviewStatus(v as any)}
             >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="APPROVED">Approve</TabsTrigger>
@@ -269,7 +311,7 @@ export function UserDocuments({
                 <Textarea
                   placeholder="Please provide a reason for rejection"
                   value={rejectionReason}
-                  onChange={e => setRejectionReason(e.target.value)}
+                  onChange={(e) => setRejectionReason(e.target.value)}
                 />
               </TabsContent>
             </Tabs>
@@ -277,9 +319,11 @@ export function UserDocuments({
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleReviewDocument}
-                disabled={reviewStatus === 'REJECTED' && !rejectionReason}
+                disabled={reviewStatus === "REJECTED" && !rejectionReason}
               >
-                {reviewStatus === 'APPROVED' ? 'Approve Document' : 'Reject Document'}
+                {reviewStatus === "APPROVED"
+                  ? "Approve Document"
+                  : "Reject Document"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

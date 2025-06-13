@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslations } from 'next-intl';
-import { z } from 'zod';
+import { useState } from "react";
+import { useForm, SubmitHandler, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
+import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -13,7 +13,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Card,
   CardContent,
@@ -21,20 +21,20 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   AlertCircle,
   Calendar,
@@ -45,31 +45,33 @@ import {
   Save,
   Loader2,
   CornerDownLeft,
-} from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils/common';
+} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils/common";
 
-import { AnnouncementPhotoUpload } from '@/components/shared/announcements/announcement-photo-upload';
-import { AddressMapPicker } from '@/components/shared/announcements/address-map-picker';
+import { AnnouncementPhotoUpload } from "@/components/shared/announcements/announcement-photo-upload";
+import { AddressMapPicker } from "@/components/shared/announcements/address-map-picker";
 
 import {
   AnnouncementTypeEnum,
   AnnouncementPriorityEnum,
   type AnnouncementType,
-} from '@/schemas/delivery/announcement.schema';
+} from "@/schemas/delivery/announcement.schema";
 
 // Schéma pour le formulaire (simplifié pour correspondre au schéma du backend)
 const formSchema = z.object({
   title: z
     .string()
-    .min(5, 'Le titre doit contenir au moins 5 caractères')
-    .max(100, 'Le titre ne peut pas dépasser 100 caractères'),
-  description: z.string().min(10, 'La description doit contenir au moins 10 caractères'),
+    .min(5, "Le titre doit contenir au moins 5 caractères")
+    .max(100, "Le titre ne peut pas dépasser 100 caractères"),
+  description: z
+    .string()
+    .min(10, "La description doit contenir au moins 10 caractères"),
   type: z.string(),
-  priority: z.string().default('MEDIUM'),
+  priority: z.string().default("MEDIUM"),
   pickupAddress: z.string().min(5, "L'adresse de collecte est requise"),
   pickupLongitude: z.number().optional(),
   pickupLatitude: z.number().optional(),
@@ -77,20 +79,20 @@ const formSchema = z.object({
   deliveryLongitude: z.number().optional(),
   deliveryLatitude: z.number().optional(),
   weight: z.preprocess(
-    val => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
-    z.number().positive().optional()
+    (val) => (val === "" ? undefined : Number(String(val).replace(",", "."))),
+    z.number().positive().optional(),
   ),
   width: z.preprocess(
-    val => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
-    z.number().positive().optional()
+    (val) => (val === "" ? undefined : Number(String(val).replace(",", "."))),
+    z.number().positive().optional(),
   ),
   height: z.preprocess(
-    val => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
-    z.number().positive().optional()
+    (val) => (val === "" ? undefined : Number(String(val).replace(",", "."))),
+    z.number().positive().optional(),
   ),
   length: z.preprocess(
-    val => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
-    z.number().positive().optional()
+    (val) => (val === "" ? undefined : Number(String(val).replace(",", "."))),
+    z.number().positive().optional(),
   ),
   isFragile: z.boolean().default(false),
   needsCooling: z.boolean().default(false),
@@ -100,8 +102,8 @@ const formSchema = z.object({
   deliveryTimeWindow: z.string().optional(),
   isFlexible: z.boolean().default(false),
   suggestedPrice: z.preprocess(
-    val => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
-    z.number().positive('Le prix proposé doit être supérieur à 0').optional()
+    (val) => (val === "" ? undefined : Number(String(val).replace(",", "."))),
+    z.number().positive("Le prix proposé doit être supérieur à 0").optional(),
   ),
   isNegotiable: z.boolean().default(true),
   requiresSignature: z.boolean().default(false),
@@ -131,7 +133,7 @@ interface AnnouncementFormProps {
   onCancel?: () => void;
   isSubmitting?: boolean;
   error?: string;
-  mode?: 'create' | 'edit';
+  mode?: "create" | "edit";
 }
 
 // Type pour les valeurs du formulaire
@@ -139,24 +141,32 @@ type FormValues = z.infer<typeof formSchema>;
 
 // Types d'annonce disponibles
 const ANNOUNCEMENT_TYPES = [
-  { value: 'PACKAGE_DELIVERY', label: 'Livraison de colis', icon: 'Package' },
-  { value: 'PARTIAL_DELIVERY', label: 'Livraison partielle', icon: 'GitBranch' },
-  { value: 'FINAL_DISTRIBUTION', label: 'Distribution finale', icon: 'Target' },
-  { value: 'CART_DROP', label: 'Lâcher de chariot', icon: 'ShoppingCart' },
-  { value: 'GROCERY_SHOPPING', label: 'Courses alimentaires', icon: 'ShoppingBag' },
-  { value: 'PERSON_TRANSPORT', label: 'Transport de personnes', icon: 'Users' },
-  { value: 'AIRPORT_TRANSFER', label: 'Transfert aéroport', icon: 'Plane' },
-  { value: 'FOREIGN_PURCHASE', label: "Achat à l'étranger", icon: 'Globe' },
-  { value: 'PET_CARE', label: "Transport d'animaux", icon: 'Heart' },
-  { value: 'HOME_SERVICES', label: 'Services à domicile', icon: 'Home' },
+  { value: "PACKAGE_DELIVERY", label: "Livraison de colis", icon: "Package" },
+  {
+    value: "PARTIAL_DELIVERY",
+    label: "Livraison partielle",
+    icon: "GitBranch",
+  },
+  { value: "FINAL_DISTRIBUTION", label: "Distribution finale", icon: "Target" },
+  { value: "CART_DROP", label: "Lâcher de chariot", icon: "ShoppingCart" },
+  {
+    value: "GROCERY_SHOPPING",
+    label: "Courses alimentaires",
+    icon: "ShoppingBag",
+  },
+  { value: "PERSON_TRANSPORT", label: "Transport de personnes", icon: "Users" },
+  { value: "AIRPORT_TRANSFER", label: "Transfert aéroport", icon: "Plane" },
+  { value: "FOREIGN_PURCHASE", label: "Achat à l'étranger", icon: "Globe" },
+  { value: "PET_CARE", label: "Transport d'animaux", icon: "Heart" },
+  { value: "HOME_SERVICES", label: "Services à domicile", icon: "Home" },
 ];
 
 // Niveaux de priorité
 const PRIORITY_LEVELS = [
-  { value: 'LOW', label: 'Faible' },
-  { value: 'MEDIUM', label: 'Moyenne' },
-  { value: 'HIGH', label: 'Élevée' },
-  { value: 'URGENT', label: 'Urgente' },
+  { value: "LOW", label: "Faible" },
+  { value: "MEDIUM", label: "Moyenne" },
+  { value: "HIGH", label: "Élevée" },
+  { value: "URGENT", label: "Urgente" },
 ];
 
 /**
@@ -168,23 +178,23 @@ export function AnnouncementForm({
   onCancel,
   isSubmitting = false,
   error,
-  mode = 'create',
+  mode = "create",
 }: AnnouncementFormProps) {
-  const t = useTranslations('announcements');
-  const [activeTab, setActiveTab] = useState('details');
+  const t = useTranslations("announcements");
+  const [activeTab, setActiveTab] = useState("details");
 
   // Initialisation du formulaire avec react-hook-form et zod
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as any,
     defaultValues: {
-      title: '',
-      description: '',
-      type: 'PACKAGE_DELIVERY',
-      priority: 'MEDIUM',
-      pickupAddress: '',
+      title: "",
+      description: "",
+      type: "PACKAGE_DELIVERY",
+      priority: "MEDIUM",
+      pickupAddress: "",
       pickupLatitude: undefined,
       pickupLongitude: undefined,
-      deliveryAddress: '',
+      deliveryAddress: "",
       deliveryLatitude: undefined,
       deliveryLongitude: undefined,
       weight: undefined,
@@ -193,55 +203,56 @@ export function AnnouncementForm({
       length: undefined,
       isFragile: false,
       needsCooling: false,
-      pickupDate: '',
-      pickupTimeWindow: '',
-      deliveryDate: '',
-      deliveryTimeWindow: '',
+      pickupDate: "",
+      pickupTimeWindow: "",
+      deliveryDate: "",
+      deliveryTimeWindow: "",
       isFlexible: false,
       suggestedPrice: undefined,
       isNegotiable: true,
       requiresSignature: false,
       requiresId: false,
-      specialInstructions: '',
+      specialInstructions: "",
       photos: [],
       ...defaultValues,
     },
   });
 
   // Surveiller certaines valeurs du formulaire pour la logique conditionnelle
-  const currentType = form.watch('type');
-  const isFlexible = form.watch('isFlexible');
+  const currentType = form.watch("type");
+  const isFlexible = form.watch("isFlexible");
 
   // Gérer l'envoi du formulaire
-  const handleSubmit: SubmitHandler<FormValues> = async values => {
+  const handleSubmit: SubmitHandler<FormValues> = async (values) => {
     // Les valeurs sont déjà correctement transformées grâce au prétraitement de Zod
     await onSubmit(values);
   };
 
   // Mettre à jour les coordonnées de l'adresse de collecte
   const handlePickupCoordinatesChange = (lat: number, lng: number) => {
-    form.setValue('pickupLatitude', lat);
-    form.setValue('pickupLongitude', lng);
+    form.setValue("pickupLatitude", lat);
+    form.setValue("pickupLongitude", lng);
   };
 
   // Mettre à jour les coordonnées de l'adresse de livraison
   const handleDeliveryCoordinatesChange = (lat: number, lng: number) => {
-    form.setValue('deliveryLatitude', lat);
-    form.setValue('deliveryLongitude', lng);
+    form.setValue("deliveryLatitude", lat);
+    form.setValue("deliveryLongitude", lng);
   };
 
   // Gérer les changements d'adresse de collecte
   const handlePickupAddressChange = (address: string) => {
-    form.setValue('pickupAddress', address);
+    form.setValue("pickupAddress", address);
   };
 
   // Gérer les changements d'adresse de livraison
   const handleDeliveryAddressChange = (address: string) => {
-    form.setValue('deliveryAddress', address);
+    form.setValue("deliveryAddress", address);
   };
 
   // Vérifier si certains champs sont requis en fonction du type d'annonce
-  const isPackageType = currentType === 'PACKAGE_DELIVERY' || currentType === 'GROCERY_SHOPPING';
+  const isPackageType =
+    currentType === "PACKAGE_DELIVERY" || currentType === "GROCERY_SHOPPING";
 
   return (
     <Form {...form}>
@@ -249,12 +260,14 @@ export function AnnouncementForm({
         <Card>
           <CardHeader>
             <CardTitle>
-              {mode === 'create' ? t('createAnnouncement') : t('editAnnouncement')}
+              {mode === "create"
+                ? t("createAnnouncement")
+                : t("editAnnouncement")}
             </CardTitle>
             <CardDescription>
-              {mode === 'create'
-                ? t('createAnnouncementDescription')
-                : t('editAnnouncementDescription')}
+              {mode === "create"
+                ? t("createAnnouncementDescription")
+                : t("editAnnouncementDescription")}
             </CardDescription>
           </CardHeader>
 
@@ -263,22 +276,22 @@ export function AnnouncementForm({
               <TabsList className="grid grid-cols-3 mb-6">
                 <TabsTrigger value="details">
                   <Package className="h-4 w-4 mr-2" />
-                  {t('details')}
+                  {t("details")}
                 </TabsTrigger>
                 <TabsTrigger value="addresses">
                   <MapPin className="h-4 w-4 mr-2" />
-                  {t('addresses')}
+                  {t("addresses")}
                 </TabsTrigger>
                 <TabsTrigger value="photos">
                   <Calendar className="h-4 w-4 mr-2" />
-                  {t('schedule')}
+                  {t("schedule")}
                 </TabsTrigger>
               </TabsList>
 
               {error && (
                 <Alert variant="destructive" className="mb-6">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>{t('error')}</AlertTitle>
+                  <AlertTitle>{t("error")}</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
@@ -291,11 +304,17 @@ export function AnnouncementForm({
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('title')}</FormLabel>
+                        <FormLabel>{t("title")}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder={t('titlePlaceholder')} maxLength={100} />
+                          <Input
+                            {...field}
+                            placeholder={t("titlePlaceholder")}
+                            maxLength={100}
+                          />
                         </FormControl>
-                        <FormDescription>{t('titleDescription')}</FormDescription>
+                        <FormDescription>
+                          {t("titleDescription")}
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -306,15 +325,17 @@ export function AnnouncementForm({
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('description')}</FormLabel>
+                        <FormLabel>{t("description")}</FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
-                            placeholder={t('descriptionPlaceholder')}
+                            placeholder={t("descriptionPlaceholder")}
                             className="min-h-[120px]"
                           />
                         </FormControl>
-                        <FormDescription>{t('descriptionDescription')}</FormDescription>
+                        <FormDescription>
+                          {t("descriptionDescription")}
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -326,7 +347,7 @@ export function AnnouncementForm({
                       name="type"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('type')}</FormLabel>
+                          <FormLabel>{t("type")}</FormLabel>
                           <FormControl>
                             <Select
                               value={field.value}
@@ -334,18 +355,23 @@ export function AnnouncementForm({
                               disabled={field.disabled}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder={t('selectType')} />
+                                <SelectValue placeholder={t("selectType")} />
                               </SelectTrigger>
                               <SelectContent>
-                                {ANNOUNCEMENT_TYPES.map(type => (
-                                  <SelectItem key={type.value} value={type.value}>
+                                {ANNOUNCEMENT_TYPES.map((type) => (
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
                                     {type.label}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                           </FormControl>
-                          <FormDescription>{t('typeDescription')}</FormDescription>
+                          <FormDescription>
+                            {t("typeDescription")}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -356,7 +382,7 @@ export function AnnouncementForm({
                       name="priority"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('priority')}</FormLabel>
+                          <FormLabel>{t("priority")}</FormLabel>
                           <FormControl>
                             <RadioGroup
                               value={field.value}
@@ -364,7 +390,7 @@ export function AnnouncementForm({
                               className="flex space-x-2"
                               disabled={field.disabled}
                             >
-                              {PRIORITY_LEVELS.map(priority => (
+                              {PRIORITY_LEVELS.map((priority) => (
                                 <FormItem
                                   key={priority.value}
                                   className="flex items-center space-x-1 space-y-0"
@@ -378,11 +404,15 @@ export function AnnouncementForm({
                                   <FormLabel
                                     htmlFor={`priority-${priority.value}`}
                                     className={cn(
-                                      'text-xs font-normal cursor-pointer',
-                                      priority.value === 'LOW' && 'text-blue-500',
-                                      priority.value === 'MEDIUM' && 'text-green-500',
-                                      priority.value === 'HIGH' && 'text-amber-500',
-                                      priority.value === 'URGENT' && 'text-red-500'
+                                      "text-xs font-normal cursor-pointer",
+                                      priority.value === "LOW" &&
+                                        "text-blue-500",
+                                      priority.value === "MEDIUM" &&
+                                        "text-green-500",
+                                      priority.value === "HIGH" &&
+                                        "text-amber-500",
+                                      priority.value === "URGENT" &&
+                                        "text-red-500",
                                     )}
                                   >
                                     {priority.label}
@@ -391,7 +421,9 @@ export function AnnouncementForm({
                               ))}
                             </RadioGroup>
                           </FormControl>
-                          <FormDescription>{t('priorityDescription')}</FormDescription>
+                          <FormDescription>
+                            {t("priorityDescription")}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -404,21 +436,25 @@ export function AnnouncementForm({
                   <>
                     <Separator />
                     <div className="space-y-4">
-                      <h3 className="text-base font-medium">{t('packageDetails')}</h3>
+                      <h3 className="text-base font-medium">
+                        {t("packageDetails")}
+                      </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <Controller
                           control={form.control}
                           name="weight"
-                          render={({ field: { onChange, value, ...field } }) => (
+                          render={({
+                            field: { onChange, value, ...field },
+                          }) => (
                             <FormItem>
-                              <FormLabel>{t('weight')} (kg)</FormLabel>
+                              <FormLabel>{t("weight")} (kg)</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
                                   type="text"
                                   inputMode="decimal"
-                                  value={value ?? ''}
-                                  onChange={e => onChange(e.target.value)}
+                                  value={value ?? ""}
+                                  onChange={(e) => onChange(e.target.value)}
                                   placeholder="0.5"
                                 />
                               </FormControl>
@@ -430,16 +466,18 @@ export function AnnouncementForm({
                         <Controller
                           control={form.control}
                           name="width"
-                          render={({ field: { onChange, value, ...field } }) => (
+                          render={({
+                            field: { onChange, value, ...field },
+                          }) => (
                             <FormItem>
-                              <FormLabel>{t('width')} (cm)</FormLabel>
+                              <FormLabel>{t("width")} (cm)</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
                                   type="text"
                                   inputMode="decimal"
-                                  value={value ?? ''}
-                                  onChange={e => onChange(e.target.value)}
+                                  value={value ?? ""}
+                                  onChange={(e) => onChange(e.target.value)}
                                   placeholder="20"
                                 />
                               </FormControl>
@@ -451,16 +489,18 @@ export function AnnouncementForm({
                         <Controller
                           control={form.control}
                           name="height"
-                          render={({ field: { onChange, value, ...field } }) => (
+                          render={({
+                            field: { onChange, value, ...field },
+                          }) => (
                             <FormItem>
-                              <FormLabel>{t('height')} (cm)</FormLabel>
+                              <FormLabel>{t("height")} (cm)</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
                                   type="text"
                                   inputMode="decimal"
-                                  value={value ?? ''}
-                                  onChange={e => onChange(e.target.value)}
+                                  value={value ?? ""}
+                                  onChange={(e) => onChange(e.target.value)}
                                   placeholder="15"
                                 />
                               </FormControl>
@@ -472,16 +512,18 @@ export function AnnouncementForm({
                         <Controller
                           control={form.control}
                           name="length"
-                          render={({ field: { onChange, value, ...field } }) => (
+                          render={({
+                            field: { onChange, value, ...field },
+                          }) => (
                             <FormItem>
-                              <FormLabel>{t('length')} (cm)</FormLabel>
+                              <FormLabel>{t("length")} (cm)</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
                                   type="text"
                                   inputMode="decimal"
-                                  value={value ?? ''}
-                                  onChange={e => onChange(e.target.value)}
+                                  value={value ?? ""}
+                                  onChange={(e) => onChange(e.target.value)}
                                   placeholder="30"
                                 />
                               </FormControl>
@@ -505,8 +547,10 @@ export function AnnouncementForm({
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel>{t('isFragile')}</FormLabel>
-                                <FormDescription>{t('isFragileDescription')}</FormDescription>
+                                <FormLabel>{t("isFragile")}</FormLabel>
+                                <FormDescription>
+                                  {t("isFragileDescription")}
+                                </FormDescription>
                               </div>
                             </FormItem>
                           )}
@@ -525,8 +569,10 @@ export function AnnouncementForm({
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel>{t('needsCooling')}</FormLabel>
-                                <FormDescription>{t('needsCoolingDescription')}</FormDescription>
+                                <FormLabel>{t("needsCooling")}</FormLabel>
+                                <FormDescription>
+                                  {t("needsCoolingDescription")}
+                                </FormDescription>
                               </div>
                             </FormItem>
                           )}
@@ -539,7 +585,9 @@ export function AnnouncementForm({
                 {/* Exigences spéciales */}
                 <Separator />
                 <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('specialRequirements')}</h3>
+                  <h3 className="text-base font-medium">
+                    {t("specialRequirements")}
+                  </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Controller
@@ -555,8 +603,10 @@ export function AnnouncementForm({
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel>{t('requiresSignature')}</FormLabel>
-                            <FormDescription>{t('requiresSignatureDescription')}</FormDescription>
+                            <FormLabel>{t("requiresSignature")}</FormLabel>
+                            <FormDescription>
+                              {t("requiresSignatureDescription")}
+                            </FormDescription>
                           </div>
                         </FormItem>
                       )}
@@ -575,8 +625,10 @@ export function AnnouncementForm({
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel>{t('requiresId')}</FormLabel>
-                            <FormDescription>{t('requiresIdDescription')}</FormDescription>
+                            <FormLabel>{t("requiresId")}</FormLabel>
+                            <FormDescription>
+                              {t("requiresIdDescription")}
+                            </FormDescription>
                           </div>
                         </FormItem>
                       )}
@@ -588,15 +640,17 @@ export function AnnouncementForm({
                     name="specialInstructions"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('specialInstructions')}</FormLabel>
+                        <FormLabel>{t("specialInstructions")}</FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
-                            placeholder={t('specialInstructionsPlaceholder')}
+                            placeholder={t("specialInstructionsPlaceholder")}
                             className="min-h-[80px]"
                           />
                         </FormControl>
-                        <FormDescription>{t('specialInstructionsDescription')}</FormDescription>
+                        <FormDescription>
+                          {t("specialInstructionsDescription")}
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -606,7 +660,7 @@ export function AnnouncementForm({
                 {/* Prix */}
                 <Separator />
                 <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('pricing')}</h3>
+                  <h3 className="text-base font-medium">{t("pricing")}</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Controller
@@ -614,19 +668,21 @@ export function AnnouncementForm({
                       name="suggestedPrice"
                       render={({ field: { onChange, value, ...field } }) => (
                         <FormItem>
-                          <FormLabel>{t('suggestedPrice')} (€)</FormLabel>
+                          <FormLabel>{t("suggestedPrice")} (€)</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
                               type="text"
                               inputMode="decimal"
-                              value={value ?? ''}
-                              onChange={e => onChange(e.target.value)}
+                              value={value ?? ""}
+                              onChange={(e) => onChange(e.target.value)}
                               placeholder="20.00"
                               className="w-full"
                             />
                           </FormControl>
-                          <FormDescription>{t('suggestedPriceDescription')}</FormDescription>
+                          <FormDescription>
+                            {t("suggestedPriceDescription")}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -645,8 +701,10 @@ export function AnnouncementForm({
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel>{t('isNegotiable')}</FormLabel>
-                            <FormDescription>{t('isNegotiableDescription')}</FormDescription>
+                            <FormLabel>{t("isNegotiable")}</FormLabel>
+                            <FormDescription>
+                              {t("isNegotiableDescription")}
+                            </FormDescription>
                           </div>
                         </FormItem>
                       )}
@@ -658,24 +716,28 @@ export function AnnouncementForm({
               <TabsContent value="addresses" className="mt-0 space-y-6">
                 {/* Adresse de collecte */}
                 <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('pickupAddress')}</h3>
+                  <h3 className="text-base font-medium">
+                    {t("pickupAddress")}
+                  </h3>
 
                   <Controller
                     control={form.control}
                     name="pickupAddress"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('pickupAddressLabel')}</FormLabel>
+                        <FormLabel>{t("pickupAddressLabel")}</FormLabel>
                         <FormControl>
                           <AddressMapPicker
                             address={field.value}
                             onAddressChange={handlePickupAddressChange}
                             onCoordinatesChange={handlePickupCoordinatesChange}
-                            latitude={form.getValues('pickupLatitude')}
-                            longitude={form.getValues('pickupLongitude')}
+                            latitude={form.getValues("pickupLatitude")}
+                            longitude={form.getValues("pickupLongitude")}
                           />
                         </FormControl>
-                        <FormDescription>{t('pickupAddressDescription')}</FormDescription>
+                        <FormDescription>
+                          {t("pickupAddressDescription")}
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -684,24 +746,30 @@ export function AnnouncementForm({
 
                 {/* Adresse de livraison */}
                 <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('deliveryAddress')}</h3>
+                  <h3 className="text-base font-medium">
+                    {t("deliveryAddress")}
+                  </h3>
 
                   <Controller
                     control={form.control}
                     name="deliveryAddress"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('deliveryAddressLabel')}</FormLabel>
+                        <FormLabel>{t("deliveryAddressLabel")}</FormLabel>
                         <FormControl>
                           <AddressMapPicker
                             address={field.value}
                             onAddressChange={handleDeliveryAddressChange}
-                            onCoordinatesChange={handleDeliveryCoordinatesChange}
-                            latitude={form.getValues('deliveryLatitude')}
-                            longitude={form.getValues('deliveryLongitude')}
+                            onCoordinatesChange={
+                              handleDeliveryCoordinatesChange
+                            }
+                            latitude={form.getValues("deliveryLatitude")}
+                            longitude={form.getValues("deliveryLongitude")}
                           />
                         </FormControl>
-                        <FormDescription>{t('deliveryAddressDescription')}</FormDescription>
+                        <FormDescription>
+                          {t("deliveryAddressDescription")}
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -712,7 +780,7 @@ export function AnnouncementForm({
               <TabsContent value="photos" className="mt-0 space-y-6">
                 {/* Horaires */}
                 <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('schedule')}</h3>
+                  <h3 className="text-base font-medium">{t("schedule")}</h3>
 
                   <Controller
                     control={form.control}
@@ -727,8 +795,10 @@ export function AnnouncementForm({
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel>{t('isFlexible')}</FormLabel>
-                          <FormDescription>{t('isFlexibleDescription')}</FormDescription>
+                          <FormLabel>{t("isFlexible")}</FormLabel>
+                          <FormDescription>
+                            {t("isFlexibleDescription")}
+                          </FormDescription>
                         </div>
                       </FormItem>
                     )}
@@ -741,7 +811,7 @@ export function AnnouncementForm({
                         name="pickupDate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('pickupDate')}</FormLabel>
+                            <FormLabel>{t("pickupDate")}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
@@ -761,15 +831,17 @@ export function AnnouncementForm({
                         name="pickupTimeWindow"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('pickupTimeWindow')}</FormLabel>
+                            <FormLabel>{t("pickupTimeWindow")}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
-                                placeholder={t('pickupTimeWindowPlaceholder')}
+                                placeholder={t("pickupTimeWindowPlaceholder")}
                                 disabled={isFlexible || field.disabled}
                               />
                             </FormControl>
-                            <FormDescription>{t('timeWindowDescription')}</FormDescription>
+                            <FormDescription>
+                              {t("timeWindowDescription")}
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -782,7 +854,7 @@ export function AnnouncementForm({
                         name="deliveryDate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('deliveryDate')}</FormLabel>
+                            <FormLabel>{t("deliveryDate")}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
@@ -802,15 +874,17 @@ export function AnnouncementForm({
                         name="deliveryTimeWindow"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('deliveryTimeWindow')}</FormLabel>
+                            <FormLabel>{t("deliveryTimeWindow")}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
-                                placeholder={t('deliveryTimeWindowPlaceholder')}
+                                placeholder={t("deliveryTimeWindowPlaceholder")}
                                 disabled={isFlexible || field.disabled}
                               />
                             </FormControl>
-                            <FormDescription>{t('timeWindowDescription')}</FormDescription>
+                            <FormDescription>
+                              {t("timeWindowDescription")}
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -822,14 +896,14 @@ export function AnnouncementForm({
                 {/* Photos */}
                 <Separator />
                 <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('photos')}</h3>
+                  <h3 className="text-base font-medium">{t("photos")}</h3>
 
                   <Controller
                     control={form.control}
                     name="photos"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('photosLabel')}</FormLabel>
+                        <FormLabel>{t("photosLabel")}</FormLabel>
                         <FormControl>
                           <AnnouncementPhotoUpload
                             photos={field.value}
@@ -838,7 +912,9 @@ export function AnnouncementForm({
                             disabled={isSubmitting || field.disabled}
                           />
                         </FormControl>
-                        <FormDescription>{t('photosDescription')}</FormDescription>
+                        <FormDescription>
+                          {t("photosDescription")}
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -850,9 +926,14 @@ export function AnnouncementForm({
 
           <CardFooter className="flex justify-between p-6">
             {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
                 <CornerDownLeft className="h-4 w-4 mr-2" />
-                {t('cancel')}
+                {t("cancel")}
               </Button>
             )}
 
@@ -865,19 +946,19 @@ export function AnnouncementForm({
                 }}
                 disabled={isSubmitting}
               >
-                {t('reset')}
+                {t("reset")}
               </Button>
 
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {t('submitting')}
+                    {t("submitting")}
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    {mode === 'create' ? t('create') : t('update')}
+                    {mode === "create" ? t("create") : t("update")}
                   </>
                 )}
               </Button>

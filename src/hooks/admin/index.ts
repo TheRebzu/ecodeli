@@ -4,10 +4,10 @@
  */
 
 // Exports des fichiers locaux
-export * from './use-admin-analytics';
-export * from './use-admin-contracts';
-export * from './use-admin-dashboard';
-export * from './use-admin-financial';
-export * from './use-admin-reports';
-export * from './use-admin-users';
-export * from './use-global-planning';
+export * from "./use-admin-analytics";
+export * from "./use-admin-contracts";
+export * from "./use-admin-dashboard";
+export * from "./use-admin-financial";
+export * from "./use-admin-reports";
+export * from "./use-admin-users";
+export * from "./use-global-planning";

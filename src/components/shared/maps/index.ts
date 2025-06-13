@@ -4,11 +4,11 @@
  */
 
 // Exports des fichiers locaux
-export { default as DeliveryTrackingMap } from './delivery-tracking-map';
-export * from './delivery-tracking-map';
-export { default as LeafletIconSetup } from './leaflet-icon-setup';
-export * from './leaflet-icon-setup';
-export { default as LeafletMap } from './leaflet-map';
-export * from './leaflet-map';
-export { default as MapComponent } from './map-component';
-export * from './map-component';
+export { default as DeliveryTrackingMap } from "./delivery-tracking-map";
+export * from "./delivery-tracking-map";
+export { default as LeafletIconSetup } from "./leaflet-icon-setup";
+export * from "./leaflet-icon-setup";
+export { default as LeafletMap } from "./leaflet-map";
+export * from "./leaflet-map";
+export { default as MapComponent } from "./map-component";
+export * from "./map-component";

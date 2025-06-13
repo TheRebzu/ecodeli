@@ -1,6 +1,6 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import UserDocumentsList from '@/components/admin/verification/user-documents-list';
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import UserDocumentsList from "@/components/admin/verification/user-documents-list";
 
 interface UserDocumentsPageProps {
   params: Promise<{
@@ -9,15 +9,20 @@ interface UserDocumentsPageProps {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('Admin.verification');
+  const t = await getTranslations("Admin.verification");
 
   return {
-    title: t('userDocuments.metadata.title', 'User Documents'),
-    description: t('userDocuments.metadata.description', 'View and manage user documents'),
+    title: t("userDocuments.metadata.title", "User Documents"),
+    description: t(
+      "userDocuments.metadata.description",
+      "View and manage user documents",
+    ),
   };
 }
 
-export default async function UserDocumentsPage({ params }: UserDocumentsPageProps) {
+export default async function UserDocumentsPage({
+  params,
+}: UserDocumentsPageProps) {
   const resolvedParams = await params;
   const { id } = resolvedParams;
 

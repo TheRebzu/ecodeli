@@ -1,10 +1,10 @@
 onlyBuiltDependencies:
-  - '@prisma/client'
-  - '@prisma/engines'
-  - '@scarf/scarf'
-  - '@sentry/cli'
-  - '@tailwindcss/oxide'
-  - '@tree-sitter-grammars/tree-sitter-yaml'
+  - "@prisma/client"
+  - "@prisma/engines"
+  - "@scarf/scarf"
+  - "@sentry/cli"
+  - "@tailwindcss/oxide"
+  - "@tree-sitter-grammars/tree-sitter-yaml"
   - bcrypt
   - canvas
   - core-js-pure

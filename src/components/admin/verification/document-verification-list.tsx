@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
-import { VerificationStatus, DocumentType } from '@prisma/client';
-import { format, formatDistanceToNow } from 'date-fns';
-import { fr, enUS } from 'date-fns/locale';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { api } from "@/trpc/react";
+import { VerificationStatus, DocumentType } from "@prisma/client";
+import { format, formatDistanceToNow } from "date-fns";
+import { fr, enUS } from "date-fns/locale";
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -21,9 +21,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -31,13 +31,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/components/ui/use-toast';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertCircle,
   CheckCircle,
@@ -48,21 +53,21 @@ import {
   ThumbsUp,
   RefreshCcw,
   X,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function DocumentVerificationList() {
-  const t = useTranslations('Admin.verification');
-  const tDocuments = useTranslations('documents');
+  const t = useTranslations("Admin.verification");
+  const tDocuments = useTranslations("documents");
   const { toast } = useToast();
   const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [verificationOpen, setVerificationOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [activeTab, setActiveTab] = useState<VerificationStatus>('PENDING');
-  const [activeRole, setActiveRole] = useState<'ALL' | 'DELIVERER' | 'PROVIDER' | 'MERCHANT'>(
-    'ALL'
-  );
-  const locale = 'fr'; // Set this based on your app's locale state
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [activeTab, setActiveTab] = useState<VerificationStatus>("PENDING");
+  const [activeRole, setActiveRole] = useState<
+    "ALL" | "DELIVERER" | "PROVIDER" | "MERCHANT"
+  >("ALL");
+  const locale = "fr"; // Set this based on your app's locale state
 
   // Query documents with filters for status and role
   const {
@@ -72,7 +77,7 @@ export default function DocumentVerificationList() {
     refetch,
   } = api.document.getPendingDocuments.useQuery({
     status: activeTab,
-    userRole: activeRole !== 'ALL' ? (activeRole as any) : undefined,
+    userRole: activeRole !== "ALL" ? (activeRole as any) : undefined,
   });
 
   const documents = documentsData?.documents || [];
@@ -81,18 +86,18 @@ export default function DocumentVerificationList() {
   const verifyDocument = api.auth.verifyDocument.useMutation({
     onSuccess: () => {
       toast({
-        title: t('documents.verifySuccess.title'),
-        description: t('documents.verifySuccess.description'),
-        variant: 'default',
+        title: t("documents.verifySuccess.title"),
+        description: t("documents.verifySuccess.description"),
+        variant: "default",
       });
       setVerificationOpen(false);
       refetch();
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: t('documents.verifyError.title'),
-        description: error.message || t('documents.verifyError.description'),
-        variant: 'destructive',
+        title: t("documents.verifyError.title"),
+        description: error.message || t("documents.verifyError.description"),
+        variant: "destructive",
       });
     },
   });
@@ -102,9 +107,12 @@ export default function DocumentVerificationList() {
     setPreviewOpen(true);
   };
 
-  const handleOpenVerification = (document: any, action: 'approve' | 'reject') => {
+  const handleOpenVerification = (
+    document: any,
+    action: "approve" | "reject",
+  ) => {
     setSelectedDocument(document);
-    setRejectionReason('');
+    setRejectionReason("");
     setVerificationOpen(true);
   };
 
@@ -114,34 +122,46 @@ export default function DocumentVerificationList() {
     try {
       await verifyDocument.mutate({
         documentId: selectedDocument.id,
-        status: approved ? 'APPROVED' : 'REJECTED',
+        status: approved ? "APPROVED" : "REJECTED",
         notes: approved ? undefined : rejectionReason,
       });
     } catch (error) {
-      console.error('Verification error:', error);
+      console.error("Verification error:", error);
     }
   };
 
   const formatDate = (date: Date | null | undefined) => {
-    if (!date) return '-';
+    if (!date) return "-";
     return formatDistanceToNow(new Date(date), {
       addSuffix: true,
-      locale: locale === 'fr' ? fr : enUS,
+      locale: locale === "fr" ? fr : enUS,
     });
   };
 
   const getStatusBadgeProps = (status: VerificationStatus) => {
     switch (status) {
-      case 'PENDING':
-        return { variant: 'outline' as const, icon: <Clock className="mr-1 h-3 w-3" /> };
-      case 'APPROVED':
-        return { variant: 'success' as const, icon: <CheckCircle className="mr-1 h-3 w-3" /> };
-      case 'REJECTED':
-        return { variant: 'destructive' as const, icon: <X className="mr-1 h-3 w-3" /> };
-      case 'EXPIRED':
-        return { variant: 'warning' as const, icon: <AlertCircle className="mr-1 h-3 w-3" /> };
+      case "PENDING":
+        return {
+          variant: "outline" as const,
+          icon: <Clock className="mr-1 h-3 w-3" />,
+        };
+      case "APPROVED":
+        return {
+          variant: "success" as const,
+          icon: <CheckCircle className="mr-1 h-3 w-3" />,
+        };
+      case "REJECTED":
+        return {
+          variant: "destructive" as const,
+          icon: <X className="mr-1 h-3 w-3" />,
+        };
+      case "EXPIRED":
+        return {
+          variant: "warning" as const,
+          icon: <AlertCircle className="mr-1 h-3 w-3" />,
+        };
       default:
-        return { variant: 'outline' as const, icon: null };
+        return { variant: "outline" as const, icon: null };
     }
   };
 
@@ -155,8 +175,8 @@ export default function DocumentVerificationList() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>{t('documents.title')}</CardTitle>
-              <CardDescription>{t('documents.description')}</CardDescription>
+              <CardTitle>{t("documents.title")}</CardTitle>
+              <CardDescription>{t("documents.description")}</CardDescription>
             </div>
             <Button
               variant="outline"
@@ -166,7 +186,7 @@ export default function DocumentVerificationList() {
               className="flex items-center gap-1"
             >
               <RefreshCcw className="h-4 w-4" />
-              {t('documents.refresh', { defaultValue: 'Rafraîchir' })}
+              {t("documents.refresh", { defaultValue: "Rafraîchir" })}
             </Button>
           </div>
         </CardHeader>
@@ -174,10 +194,14 @@ export default function DocumentVerificationList() {
           <div className="flex items-center justify-center p-6 text-center">
             <div>
               <AlertCircle className="mx-auto h-10 w-10 text-destructive" />
-              <h3 className="mt-2 text-lg font-semibold">{t('documents.errorTitle')}</h3>
-              <p className="text-sm text-muted-foreground">{t('documents.errorDescription')}</p>
+              <h3 className="mt-2 text-lg font-semibold">
+                {t("documents.errorTitle")}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t("documents.errorDescription")}
+              </p>
               <Button onClick={() => refetch()} className="mt-4">
-                {t('documents.retry')}
+                {t("documents.retry")}
               </Button>
             </div>
           </div>
@@ -192,8 +216,8 @@ export default function DocumentVerificationList() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>{t('documents.title')}</CardTitle>
-              <CardDescription>{t('documents.description')}</CardDescription>
+              <CardTitle>{t("documents.title")}</CardTitle>
+              <CardDescription>{t("documents.description")}</CardDescription>
             </div>
             <Button
               variant="outline"
@@ -203,44 +227,58 @@ export default function DocumentVerificationList() {
               className="flex items-center gap-1"
             >
               <RefreshCcw className="h-4 w-4" />
-              {t('documents.refresh', { defaultValue: 'Rafraîchir' })}
+              {t("documents.refresh", { defaultValue: "Rafraîchir" })}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {' '}
+          {" "}
           <div className="flex flex-col space-y-4">
             <Tabs
               defaultValue="PENDING"
               value={activeTab}
-              onValueChange={value => setActiveTab(value as VerificationStatus)}
+              onValueChange={(value) =>
+                setActiveTab(value as VerificationStatus)
+              }
               className="w-full"
             >
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="PENDING">
-                  {t('documents.status.pending')}{' '}
-                  {activeTab === 'PENDING' && documents?.length > 0 && (
+                  {t("documents.status.pending")}{" "}
+                  {activeTab === "PENDING" && documents?.length > 0 && (
                     <Badge className="ml-2">{documents?.length}</Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="APPROVED">{t('documents.status.approved')}</TabsTrigger>
-                <TabsTrigger value="REJECTED">{t('documents.status.rejected')}</TabsTrigger>
+                <TabsTrigger value="APPROVED">
+                  {t("documents.status.approved")}
+                </TabsTrigger>
+                <TabsTrigger value="REJECTED">
+                  {t("documents.status.rejected")}
+                </TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Tabs
               defaultValue="ALL"
               value={activeRole}
-              onValueChange={value =>
-                setActiveRole(value as 'ALL' | 'DELIVERER' | 'PROVIDER' | 'MERCHANT')
+              onValueChange={(value) =>
+                setActiveRole(
+                  value as "ALL" | "DELIVERER" | "PROVIDER" | "MERCHANT",
+                )
               }
               className="w-full"
             >
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="ALL">{t('documents.tabs.all')}</TabsTrigger>
-                <TabsTrigger value="DELIVERER">{t('documents.tabs.deliverers')}</TabsTrigger>
-                <TabsTrigger value="PROVIDER">{t('documents.tabs.providers')}</TabsTrigger>
-                <TabsTrigger value="MERCHANT">{t('documents.tabs.merchants')}</TabsTrigger>
+                <TabsTrigger value="ALL">{t("documents.tabs.all")}</TabsTrigger>
+                <TabsTrigger value="DELIVERER">
+                  {t("documents.tabs.deliverers")}
+                </TabsTrigger>
+                <TabsTrigger value="PROVIDER">
+                  {t("documents.tabs.providers")}
+                </TabsTrigger>
+                <TabsTrigger value="MERCHANT">
+                  {t("documents.tabs.merchants")}
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -253,7 +291,9 @@ export default function DocumentVerificationList() {
                     {t(`documents.empty.${activeTab.toLowerCase()}.title`)}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {t(`documents.empty.${activeTab.toLowerCase()}.description`)}
+                    {t(
+                      `documents.empty.${activeTab.toLowerCase()}.description`,
+                    )}
                   </p>
                 </div>
               </div>
@@ -261,31 +301,42 @@ export default function DocumentVerificationList() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('documents.columns.user')}</TableHead>
-                    <TableHead>{t('documents.columns.type')}</TableHead>
-                    <TableHead>{t('documents.columns.submitted')}</TableHead>
-                    <TableHead>{t('documents.columns.expires')}</TableHead>
-                    <TableHead className="text-right">{t('documents.columns.actions')}</TableHead>
+                    <TableHead>{t("documents.columns.user")}</TableHead>
+                    <TableHead>{t("documents.columns.type")}</TableHead>
+                    <TableHead>{t("documents.columns.submitted")}</TableHead>
+                    <TableHead>{t("documents.columns.expires")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("documents.columns.actions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {' '}
-                  {documents?.map(doc => {
+                  {" "}
+                  {documents?.map((doc) => {
                     const { variant, icon } = getStatusBadgeProps(
-                      doc.verificationStatus as VerificationStatus
+                      doc.verificationStatus as VerificationStatus,
                     );
                     return (
                       <TableRow key={doc.id}>
                         <TableCell className="font-medium">
-                          {doc.user?.name || '-'}
-                          <div className="text-xs text-muted-foreground">{doc.user?.email}</div>
+                          {doc.user?.name || "-"}
+                          <div className="text-xs text-muted-foreground">
+                            {doc.user?.email}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            <span>{tDocuments(`documentTypes.${doc.type}`)}</span>
-                            <Badge variant={variant} className="flex w-fit items-center">
+                            <span>
+                              {tDocuments(`documentTypes.${doc.type}`)}
+                            </span>
+                            <Badge
+                              variant={variant}
+                              className="flex w-fit items-center"
+                            >
                               {icon}
-                              {tDocuments(`status.${doc.verificationStatus?.toLowerCase()}`)}
+                              {tDocuments(
+                                `status.${doc.verificationStatus?.toLowerCase()}`,
+                              )}
                             </Badge>
                           </div>
                         </TableCell>
@@ -308,14 +359,18 @@ export default function DocumentVerificationList() {
                                     onClick={() => handleViewDocument(doc)}
                                   >
                                     <Eye className="h-4 w-4" />
-                                    <span className="sr-only">{t('documents.view')}</span>
+                                    <span className="sr-only">
+                                      {t("documents.view")}
+                                    </span>
                                   </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>{t('documents.view')}</TooltipContent>
+                                <TooltipContent>
+                                  {t("documents.view")}
+                                </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
 
-                            {doc.status === 'PENDING' && (
+                            {doc.status === "PENDING" && (
                               <>
                                 <TooltipProvider>
                                   <Tooltip>
@@ -324,13 +379,19 @@ export default function DocumentVerificationList() {
                                         variant="ghost"
                                         size="icon"
                                         className="text-green-600"
-                                        onClick={() => handleOpenVerification(doc, 'approve')}
+                                        onClick={() =>
+                                          handleOpenVerification(doc, "approve")
+                                        }
                                       >
                                         <ThumbsUp className="h-4 w-4" />
-                                        <span className="sr-only">{t('documents.approve')}</span>
+                                        <span className="sr-only">
+                                          {t("documents.approve")}
+                                        </span>
                                       </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>{t('documents.approve')}</TooltipContent>
+                                    <TooltipContent>
+                                      {t("documents.approve")}
+                                    </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
 
@@ -341,13 +402,19 @@ export default function DocumentVerificationList() {
                                         variant="ghost"
                                         size="icon"
                                         className="text-destructive"
-                                        onClick={() => handleOpenVerification(doc, 'reject')}
+                                        onClick={() =>
+                                          handleOpenVerification(doc, "reject")
+                                        }
                                       >
                                         <ThumbsDown className="h-4 w-4" />
-                                        <span className="sr-only">{t('documents.reject')}</span>
+                                        <span className="sr-only">
+                                          {t("documents.reject")}
+                                        </span>
                                       </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>{t('documents.reject')}</TooltipContent>
+                                    <TooltipContent>
+                                      {t("documents.reject")}
+                                    </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
                               </>
@@ -364,7 +431,9 @@ export default function DocumentVerificationList() {
         </CardContent>
         <CardFooter className="border-t bg-muted/50 px-6 py-3">
           <p className="text-xs text-muted-foreground">
-            {documents ? t('documents.totalDocuments', { count: documents.length }) : ''}
+            {documents
+              ? t("documents.totalDocuments", { count: documents.length })
+              : ""}
           </p>
         </CardFooter>
       </Card>
@@ -374,22 +443,25 @@ export default function DocumentVerificationList() {
         <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>{tDocuments(`documentTypes.${selectedDocument.type}`)}</DialogTitle>
+              <DialogTitle>
+                {tDocuments(`documentTypes.${selectedDocument.type}`)}
+              </DialogTitle>
               <DialogDescription>
-                {selectedDocument.status === 'REJECTED' && selectedDocument.rejectionReason && (
-                  <div className="mt-2 rounded-md bg-destructive/10 p-3 text-sm">
-                    <p className="font-semibold text-destructive">
-                      {t('documents.preview.rejectionReason')}:
-                    </p>
-                    <p>{selectedDocument.rejectionReason}</p>
-                  </div>
-                )}
+                {selectedDocument.status === "REJECTED" &&
+                  selectedDocument.rejectionReason && (
+                    <div className="mt-2 rounded-md bg-destructive/10 p-3 text-sm">
+                      <p className="font-semibold text-destructive">
+                        {t("documents.preview.rejectionReason")}:
+                      </p>
+                      <p>{selectedDocument.rejectionReason}</p>
+                    </div>
+                  )}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div className="rounded-md border">
-                {selectedDocument.mimeType?.startsWith('image/') ? (
+                {selectedDocument.mimeType?.startsWith("image/") ? (
                   <img
                     src={selectedDocument.fileUrl}
                     alt={tDocuments(`documentTypes.${selectedDocument.type}`)}
@@ -404,7 +476,7 @@ export default function DocumentVerificationList() {
                       className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground"
                     >
                       <FileText className="h-5 w-5" />
-                      {t('documents.preview.viewDocument')}
+                      {t("documents.preview.viewDocument")}
                     </a>
                   </div>
                 )}
@@ -413,29 +485,33 @@ export default function DocumentVerificationList() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="font-semibold text-muted-foreground">
-                    {t('documents.preview.user')}
+                    {t("documents.preview.user")}
                   </p>
-                  <p>{selectedDocument.user?.name || '-'}</p>
-                  <p className="text-xs text-muted-foreground">{selectedDocument.user?.email}</p>
+                  <p>{selectedDocument.user?.name || "-"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedDocument.user?.email}
+                  </p>
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">
-                    {t('documents.preview.status')}
+                    {t("documents.preview.status")}
                   </p>
                   <p>{tDocuments(`status.${selectedDocument.status}`)}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">
-                    {t('documents.preview.submitted')}
+                    {t("documents.preview.submitted")}
                   </p>
                   <p>{formatDate(selectedDocument.createdAt)}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">
-                    {t('documents.preview.expires')}
+                    {t("documents.preview.expires")}
                   </p>
                   <p>
-                    {selectedDocument.expiryDate ? formatDate(selectedDocument.expiryDate) : '-'}
+                    {selectedDocument.expiryDate
+                      ? formatDate(selectedDocument.expiryDate)
+                      : "-"}
                   </p>
                 </div>
               </div>
@@ -443,7 +519,7 @@ export default function DocumentVerificationList() {
               {selectedDocument.description && (
                 <div>
                   <p className="font-semibold text-muted-foreground">
-                    {t('documents.preview.description')}
+                    {t("documents.preview.description")}
                   </p>
                   <p className="mt-1 text-sm">{selectedDocument.description}</p>
                 </div>
@@ -451,17 +527,17 @@ export default function DocumentVerificationList() {
             </div>
 
             <DialogFooter className="sm:justify-end">
-              {selectedDocument.status === 'PENDING' && (
+              {selectedDocument.status === "PENDING" && (
                 <>
                   <Button
                     variant="destructive"
                     onClick={() => {
                       setPreviewOpen(false);
-                      handleOpenVerification(selectedDocument, 'reject');
+                      handleOpenVerification(selectedDocument, "reject");
                     }}
                     className="mr-2"
                   >
-                    {t('documents.reject')}
+                    {t("documents.reject")}
                   </Button>
                   <Button
                     variant="default"
@@ -470,13 +546,16 @@ export default function DocumentVerificationList() {
                       handleVerify(true);
                     }}
                   >
-                    {t('documents.approve')}
+                    {t("documents.approve")}
                   </Button>
                 </>
               )}
-              {selectedDocument.status !== 'PENDING' && (
-                <Button variant="secondary" onClick={() => setPreviewOpen(false)}>
-                  {t('documents.preview.close')}
+              {selectedDocument.status !== "PENDING" && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setPreviewOpen(false)}
+                >
+                  {t("documents.preview.close")}
                 </Button>
               )}
             </DialogFooter>
@@ -489,43 +568,56 @@ export default function DocumentVerificationList() {
         <Dialog open={verificationOpen} onOpenChange={setVerificationOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t('documents.verification.title')}</DialogTitle>
-              <DialogDescription>{t('documents.verification.description')}</DialogDescription>
+              <DialogTitle>{t("documents.verification.title")}</DialogTitle>
+              <DialogDescription>
+                {t("documents.verification.description")}
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div>
-                <p className="font-medium">{t('documents.verification.documentDetails')}:</p>
+                <p className="font-medium">
+                  {t("documents.verification.documentDetails")}:
+                </p>
                 <p className="text-sm">
-                  <span className="font-semibold">{t('documents.columns.type')}:</span>{' '}
+                  <span className="font-semibold">
+                    {t("documents.columns.type")}:
+                  </span>{" "}
                   {tDocuments(`documentTypes.${selectedDocument.type}`)}
                 </p>
                 <p className="text-sm">
-                  <span className="font-semibold">{t('documents.columns.user')}:</span>{' '}
+                  <span className="font-semibold">
+                    {t("documents.columns.user")}:
+                  </span>{" "}
                   {selectedDocument.user?.name} ({selectedDocument.user?.email})
                 </p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="rejection-reason">
-                  {t('documents.verification.rejectionReason')}
+                  {t("documents.verification.rejectionReason")}
                 </Label>
                 <Textarea
                   id="rejection-reason"
-                  placeholder={t('documents.verification.rejectionReasonPlaceholder')}
+                  placeholder={t(
+                    "documents.verification.rejectionReasonPlaceholder",
+                  )}
                   value={rejectionReason}
-                  onChange={e => setRejectionReason(e.target.value)}
+                  onChange={(e) => setRejectionReason(e.target.value)}
                   className="h-20"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {t('documents.verification.rejectionReasonHelp')}
+                  {t("documents.verification.rejectionReasonHelp")}
                 </p>
               </div>
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setVerificationOpen(false)}>
-                {t('documents.verification.cancel')}
+              <Button
+                variant="outline"
+                onClick={() => setVerificationOpen(false)}
+              >
+                {t("documents.verification.cancel")}
               </Button>
               <Button
                 variant="destructive"
@@ -533,8 +625,8 @@ export default function DocumentVerificationList() {
                 disabled={verifyDocument.isLoading}
               >
                 {verifyDocument.isLoading
-                  ? t('documents.verification.processing')
-                  : t('documents.verification.reject')}
+                  ? t("documents.verification.processing")
+                  : t("documents.verification.reject")}
               </Button>
               <Button
                 variant="default"
@@ -542,8 +634,8 @@ export default function DocumentVerificationList() {
                 disabled={verifyDocument.isLoading}
               >
                 {verifyDocument.isLoading
-                  ? t('documents.verification.processing')
-                  : t('documents.verification.approve')}
+                  ? t("documents.verification.processing")
+                  : t("documents.verification.approve")}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useCallback, useState } from 'react';
-import { X, AlertTriangle, Clock, Shield, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { cn } from '@/lib/utils/common';
+import React, { useEffect, useCallback, useState } from "react";
+import { X, AlertTriangle, Clock, Shield, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from "@/lib/utils/common";
 
 interface TutorialOverlayProps {
   children: React.ReactNode;
@@ -42,7 +42,7 @@ export function TutorialOverlay({
   useEffect(() => {
     if (isActive && isMission1 && showTimer) {
       const timer = setInterval(() => {
-        setTimeSpent(prev => prev + 1);
+        setTimeSpent((prev) => prev + 1);
       }, 1000);
 
       return () => clearInterval(timer);
@@ -52,29 +52,29 @@ export function TutorialOverlay({
   // Gestionnaire pour la touche Escape
   const handleEscKey = useCallback(
     (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isActive && allowEscape && onEscape) {
+      if (event.key === "Escape" && isActive && allowEscape && onEscape) {
         event.preventDefault();
         onEscape();
-      } else if (event.key === 'Escape' && isBlocking) {
+      } else if (event.key === "Escape" && isBlocking) {
         // Empêcher la fermeture si c'est un tutoriel bloquant
         event.preventDefault();
         // Optionnel : afficher un message d'avertissement
       }
     },
-    [isActive, allowEscape, isBlocking, onEscape]
+    [isActive, allowEscape, isBlocking, onEscape],
   );
 
   // Empêcher le défilement de la page en arrière-plan
   useEffect(() => {
     if (isActive) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
 
       // Ajouter l'écouteur pour la touche Escape
-      window.addEventListener('keydown', handleEscKey);
+      window.addEventListener("keydown", handleEscKey);
 
       return () => {
-        document.body.style.overflow = 'unset';
-        window.removeEventListener('keydown', handleEscKey);
+        document.body.style.overflow = "unset";
+        window.removeEventListener("keydown", handleEscKey);
       };
     }
   }, [isActive, handleEscKey]);
@@ -83,30 +83,36 @@ export function TutorialOverlay({
   if (!isActive) return null;
 
   // Calculer le pourcentage de progression
-  const progressPercentage = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
+  const progressPercentage =
+    totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
 
   // Formatage du temps
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   // Estimation du temps restant
   const estimatedTimeRemaining =
     totalSteps > 0
-      ? Math.max(0, Math.round((estimatedTime * 60 * (totalSteps - currentStep - 1)) / totalSteps))
+      ? Math.max(
+          0,
+          Math.round(
+            (estimatedTime * 60 * (totalSteps - currentStep - 1)) / totalSteps,
+          ),
+        )
       : 0;
 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 flex items-center justify-center',
+        "fixed inset-0 z-50 flex items-center justify-center",
         isBlocking
-          ? 'bg-black/90 backdrop-blur-md' // Plus sombre pour les tutoriels bloquants
-          : 'bg-background/80 backdrop-blur-sm'
+          ? "bg-black/90 backdrop-blur-md" // Plus sombre pour les tutoriels bloquants
+          : "bg-background/80 backdrop-blur-sm",
       )}
-      onClick={e => {
+      onClick={(e) => {
         // Empêcher la fermeture par clic sur l'arrière-plan si c'est bloquant
         if (isBlocking) {
           e.preventDefault();
@@ -115,18 +121,20 @@ export function TutorialOverlay({
     >
       <div
         className={cn(
-          'w-full max-w-5xl p-6 overflow-auto max-h-[95vh] relative rounded-lg shadow-xl',
-          'bg-white dark:bg-gray-900',
-          isBlocking && 'border-2 border-primary shadow-2xl',
-          isMission1 && 'border-2 border-red-500 shadow-red-200/50'
+          "w-full max-w-5xl p-6 overflow-auto max-h-[95vh] relative rounded-lg shadow-xl",
+          "bg-white dark:bg-gray-900",
+          isBlocking && "border-2 border-primary shadow-2xl",
+          isMission1 && "border-2 border-red-500 shadow-red-200/50",
         )}
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* En-tête avec titre et indicateurs */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             {title && (
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {title}
+              </h2>
             )}
 
             {isMission1 && (
@@ -184,8 +192,8 @@ export function TutorialOverlay({
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
                 className={cn(
-                  'h-2 rounded-full transition-all duration-500',
-                  isMission1 ? 'bg-red-500' : 'bg-primary'
+                  "h-2 rounded-full transition-all duration-500",
+                  isMission1 ? "bg-red-500" : "bg-primary",
                 )}
                 style={{ width: `${progressPercentage}%` }}
               />
@@ -205,11 +213,14 @@ export function TutorialOverlay({
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
             <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
               <AlertTriangle className="h-5 w-5" />
-              <span className="font-medium">Tutoriel obligatoire - Mission 1</span>
+              <span className="font-medium">
+                Tutoriel obligatoire - Mission 1
+              </span>
             </div>
             <p className="mt-2 text-sm text-red-700 dark:text-red-300">
-              Ce tutoriel doit être complété avant de pouvoir accéder à la plateforme. Il vous
-              permettra de comprendre les fonctionnalités essentielles d'EcoDeli.
+              Ce tutoriel doit être complété avant de pouvoir accéder à la
+              plateforme. Il vous permettra de comprendre les fonctionnalités
+              essentielles d'EcoDeli.
             </p>
 
             {/* Statistiques de progression */}
@@ -218,21 +229,27 @@ export function TutorialOverlay({
                 <div className="text-red-800 dark:text-red-200 font-semibold">
                   {currentStep + 1}/{totalSteps}
                 </div>
-                <div className="text-xs text-red-600 dark:text-red-400">Étapes</div>
+                <div className="text-xs text-red-600 dark:text-red-400">
+                  Étapes
+                </div>
               </div>
 
               <div className="bg-red-100 dark:bg-red-800/20 p-2 rounded">
                 <div className="text-red-800 dark:text-red-200 font-semibold">
-                  {showTimer ? formatTime(timeSpent) : '~5 min'}
+                  {showTimer ? formatTime(timeSpent) : "~5 min"}
                 </div>
-                <div className="text-xs text-red-600 dark:text-red-400">Durée</div>
+                <div className="text-xs text-red-600 dark:text-red-400">
+                  Durée
+                </div>
               </div>
 
               <div className="bg-red-100 dark:bg-red-800/20 p-2 rounded">
                 <div className="text-red-800 dark:text-red-200 font-semibold">
                   {progressPercentage.toFixed(0)}%
                 </div>
-                <div className="text-xs text-red-600 dark:text-red-400">Complété</div>
+                <div className="text-xs text-red-600 dark:text-red-400">
+                  Complété
+                </div>
               </div>
             </div>
           </div>
@@ -244,8 +261,8 @@ export function TutorialOverlay({
             <Shield className="h-4 w-4" />
             <AlertTitle>Tutoriel requis</AlertTitle>
             <AlertDescription>
-              Ce tutoriel est nécessaire pour accéder aux fonctionnalités complètes de la
-              plateforme.
+              Ce tutoriel est nécessaire pour accéder aux fonctionnalités
+              complètes de la plateforme.
             </AlertDescription>
           </Alert>
         )}
@@ -275,7 +292,8 @@ export function TutorialOverlay({
               <Alert className="border-purple-200 bg-purple-50">
                 <Star className="h-4 w-4 text-purple-600" />
                 <AlertDescription className="text-purple-800">
-                  Fantastique ! Plus que quelques étapes avant la fin de Mission 1.
+                  Fantastique ! Plus que quelques étapes avant la fin de Mission
+                  1.
                 </AlertDescription>
               </Alert>
             )}
