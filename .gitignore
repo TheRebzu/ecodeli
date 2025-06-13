@@ -210,8 +210,14 @@ prisma/temp-seeds/
 
 # Tests de cookies et sessions
 cookies.txt
+session-cookies.txt
+*session-cookies*
 test-session.*
 test-*.json
+
+# Scripts d'extraction sensibles
+scripts/auth/extract-*-session.*
+*extract*session*
 
 # Cache et fichiers temporaires
 .cache/
