@@ -148,7 +148,7 @@ export class DocumentService {
         mimeType: file.mimetype,
         fileSize: file.buffer.length,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la sauvegarde du fichier:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -240,7 +240,7 @@ export class DocumentService {
         console.log(
           `Notification envoyée avec succès aux administrateurs pour le document ${document.id}`,
         );
-      } catch (notifError) {
+      } catch (_notifError) {
         console.error(
           "Erreur lors de l'envoi de la notification aux administrateurs:",
           notifError,
@@ -249,7 +249,7 @@ export class DocumentService {
       }
 
       return document;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du téléchargement du document:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -393,7 +393,7 @@ export class DocumentService {
           "PENDING",
         createdAt: doc.uploadedAt,
       }));
-    } catch (error) {
+    } catch (_error) {
       console.error(`Erreur lors de la récupération des documents: ${error}`);
       throw error;
     }
@@ -450,7 +450,7 @@ export class DocumentService {
             ? doc.verifications[0]
             : null;
 
-        let effectiveStatus = doc.verificationStatus;
+        const effectiveStatus = doc.verificationStatus;
 
         // Si le document est expiré, remplacer le statut par EXPIRED
         if (isExpired && effectiveStatus === "APPROVED") {
@@ -469,7 +469,7 @@ export class DocumentService {
           canResubmit: ["REJECTED", "EXPIRED"].includes(effectiveStatus),
         };
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des documents:", error);
       throw error;
     }
@@ -557,7 +557,12 @@ export class DocumentService {
    * Met à jour une vérification
    */
   async updateVerification(data: UpdateVerificationParams) {
-    const { verificationId, verifierId, status, notes } = data;
+    const {
+      verificationId: _verificationId,
+      verifierId: _verifierId,
+      status: _status,
+      notes: _notes,
+    } = data;
 
     // Vérifier si la vérification existe
     const verification = await this.db.verification.findUnique({
@@ -630,7 +635,12 @@ export class DocumentService {
     adminId: string;
     rejectionReason?: string;
   }): Promise<Document> {
-    const { documentId, verificationStatus, adminId, rejectionReason } = data;
+    const {
+      documentId: _documentId,
+      verificationStatus: _verificationStatus,
+      adminId: _adminId,
+      rejectionReason: _rejectionReason,
+    } = data;
 
     const document = await this.db.document.update({
       where: { id: documentId },
@@ -698,7 +708,7 @@ export class DocumentService {
         document.fileUrl.replace("/uploads/", ""),
       );
       await fs.unlink(filePath);
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la suppression du fichier:", error);
       // On continue même si le fichier ne peut pas être supprimé
     }
@@ -756,7 +766,7 @@ export class DocumentService {
           "PENDING",
         createdAt: doc.uploadedAt,
       }));
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des documents:", error);
       throw new Error("Impossible de récupérer les documents");
     }
@@ -789,7 +799,7 @@ export class DocumentService {
       });
 
       return documents;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des documents en attente:",
         error,
@@ -868,7 +878,7 @@ export class DocumentService {
       }
 
       return updatedDocument;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) {
         throw error;
       }
@@ -901,7 +911,7 @@ export class DocumentService {
       });
 
       return document;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la création du document:", error);
       throw new Error("Impossible de créer le document");
     }
@@ -935,7 +945,7 @@ export class DocumentService {
       if (document.filePath) {
         try {
           await fs.unlink(document.filePath);
-        } catch (error) {
+        } catch (_error) {
           console.error("Erreur lors de la suppression du fichier:", error);
           // On continue même si la suppression du fichier échoue
         }
@@ -947,7 +957,7 @@ export class DocumentService {
       });
 
       return true;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) {
         throw error;
       }
@@ -1024,7 +1034,7 @@ export class DocumentService {
           });
         }
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la mise à jour du statut de vérification:",
         error,
@@ -1037,7 +1047,9 @@ export class DocumentService {
    */
   private static getDocumentTypeName(type: DocumentType): string {
     // Import dynamiquement depuis le module partagé pour éviter les dépendances circulaires
-    const { documentTypeNames } = require("@/utils/document-utils");
+    const {
+      _documentTypeNames: __documentTypeNames,
+    } = require("@/utils/document-utils");
 
     // Vérifier si le type existe dans le mapping
     if (documentTypeNames[type]) {
@@ -1069,7 +1081,7 @@ export class DocumentService {
           status: "PENDING",
         },
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Error creating document:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1125,7 +1137,7 @@ export class DocumentService {
       (data.verificationStatus === VerificationStatus.APPROVED ||
         data.verificationStatus === VerificationStatus.REJECTED);
 
-    let userWithDocument = null;
+    const userWithDocument = null;
     if (shouldNotify) {
       userWithDocument = await this.db.document.findUnique({
         where: { id },
@@ -1183,7 +1195,7 @@ export class DocumentService {
       }
 
       return updatedDocument;
-    } catch (error) {
+    } catch (_error) {
       console.error("Error updating document:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1207,7 +1219,7 @@ export class DocumentService {
       return await this.db.document.delete({
         where: { id },
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Error deleting document:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

@@ -2,15 +2,15 @@
 
 /**
  * Script de nettoyage automatique des références de démonstration
- * 
+ *
  * Ce script supprime toutes les références aux données de démonstration,
  * mock et hardcodées dans le projet EcoDeli pour utiliser uniquement
  * des vraies données provenant de l'API.
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
-import { join } from 'path';
-import chalk from 'chalk';
+import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
+import { join } from "path";
+import chalk from "chalk";
 
 interface CleanupRule {
   pattern: RegExp;
@@ -29,57 +29,57 @@ class DemoReferenceCleaner {
     // Commentaires de simulation
     {
       pattern: /\/\/.*[Ss]imulation.*/g,
-      replacement: '// TODO: Implémenter avec vraie API',
-      description: 'Remplacer commentaires de simulation'
+      replacement: "// TODO: Implémenter avec vraie API",
+      description: "Remplacer commentaires de simulation",
     },
     // Données mock hardcodées
     {
       pattern: /const\s+mock\w+\s*:\s*\w+\[\]\s*=\s*\[[\s\S]*?\];/g,
-      replacement: '// Données récupérées depuis l\'API réelle',
-      description: 'Supprimer données mock hardcodées'
+      replacement: "// Données récupérées depuis l'API réelle",
+      description: "Supprimer données mock hardcodées",
     },
     // Console.log de stub
     {
       pattern: /console\.log\(`\[.*Stub.*\].*`.*\);/g,
-      replacement: '',
-      description: 'Supprimer logs de stub'
+      replacement: "",
+      description: "Supprimer logs de stub",
     },
     // Références demo dans les métadonnées
     {
       pattern: /downgradedReasonInDemo/g,
-      replacement: 'downgradedReason',
-      description: 'Renommer champs demo en champs normaux'
+      replacement: "downgradedReason",
+      description: "Renommer champs demo en champs normaux",
     },
     // ID de démo
     {
       pattern: /`demo_\w+_/g,
-      replacement: '`',
-      description: 'Supprimer préfixes demo dans les ID'
+      replacement: "`",
+      description: "Supprimer préfixes demo dans les ID",
     },
     // Scénarios de succès demo
     {
       pattern: /demoSuccessScenario:\s*input\.demoSuccessScenario,?/g,
-      replacement: '',
-      description: 'Supprimer paramètres demoSuccessScenario'
+      replacement: "",
+      description: "Supprimer paramètres demoSuccessScenario",
     },
     // Validations de demo
     {
       pattern: /if\s*\(.*demoSuccessScenario.*\)\s*{[\s\S]*?}/g,
-      replacement: '// Validation réelle implémentée',
-      description: 'Remplacer validations demo'
+      replacement: "// Validation réelle implémentée",
+      description: "Remplacer validations demo",
     },
     // Commentaires temporaires d'API mock
     {
       pattern: /\/\/.*API mock temporaire.*/g,
-      replacement: '// API réelle intégrée',
-      description: 'Mettre à jour commentaires d\'API'
+      replacement: "// API réelle intégrée",
+      description: "Mettre à jour commentaires d'API",
     },
     // Commentaires de stub
     {
       pattern: /\/\/.*stub.*/gi,
-      replacement: '// Implémentation réelle',
-      description: 'Remplacer commentaires de stub'
-    }
+      replacement: "// Implémentation réelle",
+      description: "Remplacer commentaires de stub",
+    },
   ];
 
   private excludedPatterns = [
@@ -94,16 +94,19 @@ class DemoReferenceCleaner {
     /scripts\/seed/, // Garder les seeds avec faker.js
     /\.test\./,
     /\.spec\./,
-    /\.d\.ts$/
+    /\.d\.ts$/,
   ];
 
-  private includedExtensions = ['.ts', '.tsx', '.js', '.jsx'];
+  private includedExtensions = [".ts", ".tsx", ".js", ".jsx"];
 
-  public async cleanProject(projectRoot: string, dryRun: boolean = false): Promise<void> {
-    console.log(chalk.blue('🧹 Nettoyage des références de démonstration\n'));
-    
+  public async cleanProject(
+    projectRoot: string,
+    dryRun: boolean = false,
+  ): Promise<void> {
+    console.log(chalk.blue("🧹 Nettoyage des références de démonstration\n"));
+
     if (dryRun) {
-      console.log(chalk.yellow('🔍 Mode simulation activé (--dry-run)\n'));
+      console.log(chalk.yellow("🔍 Mode simulation activé (--dry-run)\n"));
     }
 
     const filesToClean = this.findFilesToClean(projectRoot);
@@ -120,31 +123,39 @@ class DemoReferenceCleaner {
           totalChanges += result.changesCount;
         }
       } catch (error) {
-        console.log(chalk.red(`❌ Erreur lors du nettoyage de ${filePath}: ${error}`));
+        console.log(
+          chalk.red(`❌ Erreur lors du nettoyage de ${filePath}: ${error}`),
+        );
       }
     }
 
     // Rapport final
-    console.log(chalk.blue('\n📊 Rapport de nettoyage:'));
+    console.log(chalk.blue("\n📊 Rapport de nettoyage:"));
     console.log(chalk.green(`✅ ${results.length} fichiers modifiés`));
     console.log(chalk.green(`✅ ${totalChanges} changements appliqués`));
 
     if (results.length > 0) {
-      console.log(chalk.blue('\n📝 Détails des modifications:'));
-      results.forEach(result => {
+      console.log(chalk.blue("\n📝 Détails des modifications:"));
+      results.forEach((result) => {
         console.log(chalk.cyan(`\n📄 ${result.filePath}:`));
-        result.changes.forEach(change => {
+        result.changes.forEach((change) => {
           console.log(chalk.gray(`  • ${change}`));
         });
       });
     }
 
     if (dryRun) {
-      console.log(chalk.yellow('\n🔍 Mode simulation - aucune modification appliquée'));
-      console.log(chalk.blue('Pour appliquer les changements, relancez sans --dry-run'));
+      console.log(
+        chalk.yellow("\n🔍 Mode simulation - aucune modification appliquée"),
+      );
+      console.log(
+        chalk.blue("Pour appliquer les changements, relancez sans --dry-run"),
+      );
     } else {
-      console.log(chalk.green('\n✅ Nettoyage terminé avec succès!'));
-      console.log(chalk.blue('Les références de démonstration ont été supprimées.'));
+      console.log(chalk.green("\n✅ Nettoyage terminé avec succès!"));
+      console.log(
+        chalk.blue("Les références de démonstration ont été supprimées."),
+      );
     }
   }
 
@@ -159,14 +170,14 @@ class DemoReferenceCleaner {
         const stat = statSync(itemPath);
 
         // Vérifier si le chemin doit être exclu
-        if (this.excludedPatterns.some(pattern => pattern.test(itemPath))) {
+        if (this.excludedPatterns.some((pattern) => pattern.test(itemPath))) {
           continue;
         }
 
         if (stat.isDirectory()) {
           traverse(itemPath);
         } else if (stat.isFile()) {
-          const ext = item.substring(item.lastIndexOf('.'));
+          const ext = item.substring(item.lastIndexOf("."));
           if (this.includedExtensions.includes(ext)) {
             files.push(itemPath);
           }
@@ -178,15 +189,21 @@ class DemoReferenceCleaner {
     return files;
   }
 
-  private async cleanFile(filePath: string, dryRun: boolean): Promise<FileCleanupResult> {
-    const content = readFileSync(filePath, 'utf8');
+  private async cleanFile(
+    filePath: string,
+    dryRun: boolean,
+  ): Promise<FileCleanupResult> {
+    const content = readFileSync(filePath, "utf8");
     let modifiedContent = content;
     const changes: string[] = [];
 
     for (const rule of this.rules) {
       const matches = content.match(rule.pattern);
       if (matches) {
-        modifiedContent = modifiedContent.replace(rule.pattern, rule.replacement);
+        modifiedContent = modifiedContent.replace(
+          rule.pattern,
+          rule.replacement,
+        );
         changes.push(`${rule.description}: ${matches.length} occurrence(s)`);
       }
     }
@@ -194,13 +211,13 @@ class DemoReferenceCleaner {
     const changesCount = changes.length;
 
     if (changesCount > 0 && !dryRun) {
-      writeFileSync(filePath, modifiedContent, 'utf8');
+      writeFileSync(filePath, modifiedContent, "utf8");
     }
 
     return {
-      filePath: filePath.replace(process.cwd(), '.'),
+      filePath: filePath.replace(process.cwd(), "."),
       changesCount,
-      changes
+      changes,
     };
   }
 }
@@ -208,7 +225,7 @@ class DemoReferenceCleaner {
 // Exécution du script
 async function main() {
   const args = process.argv.slice(2);
-  const dryRun = args.includes('--dry-run') || args.includes('-d');
+  const dryRun = args.includes("--dry-run") || args.includes("-d");
   const projectRoot = process.cwd();
 
   const cleaner = new DemoReferenceCleaner();
@@ -218,4 +235,4 @@ async function main() {
 // Exécution automatique si appelé directement
 main().catch(console.error);
 
-export { DemoReferenceCleaner }; 
+export { DemoReferenceCleaner };

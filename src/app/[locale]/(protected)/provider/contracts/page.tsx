@@ -1,24 +1,28 @@
-﻿"use client";
-
-import { useTranslations } from "next-intl";
+﻿import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { ProviderContracts } from "@/components/provider/contracts/provider-contracts";
 import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
 
-export default function ContractPage() {
-  const t = useTranslations();
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("provider.contracts");
+
+  return {
+    title: t("title") || "Mes Contrats | EcoDeli Prestataire",
+    description: t("description") || "Gérez vos contrats de prestation de services",
+  };
+}
+
+export default async function ProviderContractsPage() {
+  const t = await getTranslations("provider.contracts");
 
   return (
     <div className="container mx-auto py-6 space-y-6">
       <PageHeader
-        title="Mon contrat"
-        description={t("provider.Contract.description")}
+        title="Mes Contrats"
+        description="Gérez vos contrats de prestation de services EcoDeli"
       />
 
-      <Card className="p-6">
-        <p className="text-muted-foreground">
-          Mon contrat - En cours de développement
-        </p>
-      </Card>
+      <ProviderContracts />
     </div>
   );
 }

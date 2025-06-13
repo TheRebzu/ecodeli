@@ -5,7 +5,11 @@
 
 // Cache pour optimiser les calculs répétés
 const distanceCache = new Map<string, number>();
-const CACHE_MAX_SIZE = 1000;
+const CACHE_MAX_SIZE = 10000;
+
+// Statistiques de cache pour le calcul du hit rate
+let cacheHits = 0;
+let cacheMisses = 0;
 
 /**
  * Calcule la distance entre deux points géographiques en utilisant la formule de Haversine
@@ -27,9 +31,13 @@ export function calculateDistance(
 
   // Vérifier le cache d'abord
   const cacheKey = createCacheKey(lat1, lng1, lat2, lng2);
-  if (distanceCache.has(cacheKey)) {
-    return distanceCache.get(cacheKey)!;
+  const cached = distanceCache.get(cacheKey);
+  if (cached !== undefined) {
+    cacheHits++;
+    return cached;
   }
+
+  cacheMisses++;
 
   // Optimisation: vérification de proximité immédiate (< 100m)
   const latDiff = Math.abs(lat2 - lat1);
@@ -215,17 +223,36 @@ export function clearDistanceCache(): void {
 }
 
 /**
+ * Calcul du taux de réussite du cache
+ */
+function calculateHitRate(): number {
+  const totalAccess = cacheHits + cacheMisses;
+  return totalAccess > 0 ? (cacheHits / totalAccess) * 100 : 0;
+}
+
+/**
  * Statistiques du cache (pour monitoring)
  */
 export function getCacheStats(): {
   size: number;
   maxSize: number;
   hitRate: number;
+  totalHits: number;
+  totalMisses: number;
 } {
-  // Note: pour un vrai monitoring, il faudrait tracker les hits/misses
   return {
     size: distanceCache.size,
     maxSize: CACHE_MAX_SIZE,
-    hitRate: 0, // Placeholder - nécessiterait un compteur de hits/misses
+    hitRate: calculateHitRate(),
+    totalHits: cacheHits,
+    totalMisses: cacheMisses,
   };
+}
+
+/**
+ * Réinitialise les statistiques du cache
+ */
+export function resetCacheStats(): void {
+  cacheHits = 0;
+  cacheMisses = 0;
 }

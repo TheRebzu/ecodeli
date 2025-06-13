@@ -4,13 +4,15 @@ import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/server/auth/next-auth";
 import { getTranslations } from "next-intl/server";
-import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 
 // Utiliser le type correct pour les paramètres
 export async function generateMetadata({
   params,
   searchParams,
-}: MetadataProps): Promise<Metadata> {
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}): Promise<Metadata> {
   // Attendre la résolution des paramètres
   const resolvedParams = await params;
   const locale = resolvedParams.locale;
@@ -27,7 +29,13 @@ export async function generateMetadata({
   };
 }
 
-export default async function LoginPage({ params, searchParams }: PageProps) {
+export default async function LoginPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   // Attendre la résolution des paramètres
   const resolvedParams = await params;
   const locale = resolvedParams.locale;

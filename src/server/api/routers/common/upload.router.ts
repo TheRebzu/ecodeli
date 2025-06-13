@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import {
   UploadService,
   type UploadType,
@@ -35,8 +35,8 @@ export const uploadRouter = router({
    */
   uploadFile: protectedProcedure
     .input(uploadFileSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user?.id) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Authentification requise",
@@ -47,7 +47,7 @@ export const uploadRouter = router({
         const result = await UploadService.uploadFile({
           file: input.file,
           type: input.type,
-          userId: ctx.session.user.id,
+          userId: _ctx.session.user.id,
           description: input.description,
           metadata: input.metadata,
         });
@@ -76,8 +76,8 @@ export const uploadRouter = router({
    */
   deleteFile: protectedProcedure
     .input(deleteFileSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user?.id) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Authentification requise",
@@ -87,7 +87,7 @@ export const uploadRouter = router({
       try {
         const result = await UploadService.deleteFile(
           input.fileUrl,
-          ctx.session.user.id,
+          _ctx.session.user.id,
         );
 
         return {
@@ -113,8 +113,8 @@ export const uploadRouter = router({
    */
   getFileInfo: protectedProcedure
     .input(getFileInfoSchema)
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
+    .query(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user?.id) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Authentification requise",
@@ -124,7 +124,7 @@ export const uploadRouter = router({
       try {
         const result = await UploadService.getFileInfo(
           input.filename,
-          ctx.session.user.id,
+          _ctx.session.user.id,
         );
 
         return {
@@ -155,8 +155,8 @@ export const uploadRouter = router({
         metadata: z.record(z.any()).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user?.id) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Authentification requise",
@@ -168,7 +168,7 @@ export const uploadRouter = router({
           return await UploadService.uploadFile({
             file: photo,
             type: "announcement",
-            userId: ctx.session.user.id,
+            userId: _ctx.session.user.id,
             description: `Photo d'annonce ${index + 1}`,
             metadata: {
               ...input.metadata,
@@ -213,8 +213,8 @@ export const uploadRouter = router({
         limit: z.number().min(1).max(50).default(10),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
+    .query(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user?.id) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Authentification requise",
@@ -226,7 +226,7 @@ export const uploadRouter = router({
         if (input.type === "document" || !input.type) {
           const documents = await ctx.db.document.findMany({
             where: {
-              userId: ctx.session.user.id,
+              userId: _ctx.session.user.id,
               ...(input.type && { type: { not: undefined } }),
             },
             select: {
@@ -246,7 +246,7 @@ export const uploadRouter = router({
 
           const total = await ctx.db.document.count({
             where: {
-              userId: ctx.session.user.id,
+              userId: _ctx.session.user.id,
               ...(input.type && { type: { not: undefined } }),
             },
           });

@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
 import { DocumentService } from "@/server/services/common/document.service";
-import { DocumentStatus, DocumentType } from "@/server/db/enums";
+import { DocumentStatus } from "@/server/db/enums";
 import { UserRole, VerificationStatus } from "@prisma/client";
 import {
   uploadDocumentSchema,
@@ -21,7 +21,7 @@ export const documentRouter = router({
   /**
    * Obtenir les documents de l'utilisateur connecté
    */
-  getMyDocuments: protectedProcedure.query(async ({ ctx }) => {
+  getMyDocuments: protectedProcedure.query(async ({ _ctx }) => {
     try {
       const userId = ctx.session.user.id;
       // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
@@ -47,7 +47,7 @@ export const documentRouter = router({
         })
         .optional(),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = input?.userId || ctx.session.user.id;
         console.log(`Récupération des documents pour l'utilisateur ${userId}`);
@@ -82,7 +82,7 @@ export const documentRouter = router({
         userRole: z.enum(["DELIVERER", "PROVIDER", "MERCHANT", "CLIENT"]),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       try {
         // Utiliser la fonction centralisée depuis document-utils
         const {
@@ -113,7 +113,7 @@ export const documentRouter = router({
         })
         .optional(),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       try {
         const status = input?.status || "PENDING";
         const userRole = input?.userRole;
@@ -142,10 +142,10 @@ export const documentRouter = router({
         rejectionReason: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { documentId, status, rejectionReason } = input;
-        if (!ctx.session?.user?.id) {
+        const { documentId: _documentId, status: _status, rejectionReason: _rejectionReason } = input;
+        if (!_ctx.session?.user?.id) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
             message: "Session utilisateur non trouvée",
@@ -187,7 +187,7 @@ export const documentRouter = router({
    */
   uploadDocument: protectedProcedure
     .input(uploadDocumentSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
 
@@ -199,10 +199,10 @@ export const documentRouter = router({
           });
         }
 
-        let fileUrl = "";
-        let fileName = "";
-        let mimeType = "";
-        let fileSize = 0;
+        const fileUrl = "";
+        const fileName = "";
+        const mimeType = "";
+        const fileSize = 0;
 
         // Traiter le fichier selon son type
         if (typeof input.file === "string") {
@@ -227,7 +227,7 @@ export const documentRouter = router({
           fileSize = buffer.length;
 
           // Déterminer l'extension de fichier en fonction du MIME type
-          let extension = ".bin";
+          const extension = ".bin";
           if (mimeType === "image/jpeg") extension = ".jpg";
           else if (mimeType === "image/png") extension = ".png";
           else if (mimeType === "image/heic") extension = ".heic";
@@ -325,7 +325,7 @@ export const documentRouter = router({
               "application/octet-stream";
 
             // Déterminer l'extension de fichier
-            let extension = ".bin";
+            const extension = ".bin";
             if (mimeType === "image/jpeg") extension = ".jpg";
             else if (mimeType === "image/png") extension = ".png";
             else if (mimeType === "image/heic") extension = ".heic";
@@ -386,7 +386,7 @@ export const documentRouter = router({
                 } else {
                   throw new Error("Format de fichier non pris en charge");
                 }
-              } catch (e) {
+              } catch (_e) {
                 console.error("Erreur lors de la sérialisation du fichier:", e);
                 throw new TRPCError({
                   code: "BAD_REQUEST",
@@ -406,7 +406,7 @@ export const documentRouter = router({
               console.log(
                 `Fichier écrit avec succès: ${filePath}, taille: ${fileSize} octets`,
               );
-            } catch (writeError) {
+            } catch (_writeError) {
               console.error(
                 "Erreur lors de l'écriture du fichier:",
                 writeError,
@@ -456,9 +456,9 @@ export const documentRouter = router({
    */
   deleteDocument: protectedProcedure
     .input(z.object({ documentId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const { documentId } = input;
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _documentId: __documentId } = input;
+      const { _user: __user } = ctx.session;
 
       // Vérifier que le document existe
       const document = await ctx.db.document.findUnique({
@@ -488,7 +488,7 @@ export const documentRouter = router({
   // Mettre à jour un document
   updateDocument: protectedProcedure
     .input(updateDocumentSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que le document appartient à l'utilisateur
         const document = await ctx.db.document.findUnique({
@@ -503,8 +503,8 @@ export const documentRouter = router({
         }
 
         if (
-          document.userId !== ctx.session.user.id &&
-          ctx.session.user.role !== "ADMIN"
+          document.userId !== _ctx.session.user.id &&
+          _ctx.session.user.role !== "ADMIN"
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -526,7 +526,7 @@ export const documentRouter = router({
   // Obtenir un document par ID
   getDocumentById: protectedProcedure
     .input(z.object({ documentId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const document = await documentService.getDocumentById(
           input.documentId,
@@ -534,8 +534,8 @@ export const documentRouter = router({
 
         // Vérifier que l'utilisateur a le droit de voir ce document
         if (
-          document.userId !== ctx.session.user.id &&
-          ctx.session.user.role !== "ADMIN"
+          document.userId !== _ctx.session.user.id &&
+          _ctx.session.user.role !== "ADMIN"
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -556,9 +556,9 @@ export const documentRouter = router({
     }),
 
   // Admin: Obtenir tous les documents en attente de vérification
-  getPendingVerifications: protectedProcedure.query(async ({ ctx }) => {
+  getPendingVerifications: protectedProcedure.query(async ({ _ctx }) => {
     // Vérifier que l'utilisateur est admin
-    if (ctx.session?.user?.role !== "ADMIN") {
+    if (_ctx.session?.user?.role !== "ADMIN") {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Accès refusé",
@@ -571,7 +571,7 @@ export const documentRouter = router({
   // Créer une demande de vérification pour un document
   createVerification: protectedProcedure
     .input(createVerificationSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier que le document appartient à l'utilisateur
@@ -604,9 +604,9 @@ export const documentRouter = router({
   // Admin: Mettre à jour une vérification
   updateVerification: protectedProcedure
     .input(updateVerificationSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur est admin
-      if (ctx.session?.user?.role !== "ADMIN") {
+      if (_ctx.session?.user?.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Accès refusé",
@@ -615,7 +615,7 @@ export const documentRouter = router({
 
       return await documentService.updateVerification({
         verificationId: input.verificationId,
-        verifierId: ctx.session.user.id,
+        verifierId: _ctx.session.user.id,
         status: input.status as DocumentStatus,
         notes: input.notes,
       });
@@ -624,7 +624,7 @@ export const documentRouter = router({
   // Obtenir les vérifications pour un document
   getDocumentVerifications: protectedProcedure
     .input(z.object({ documentId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       // Vérifier que le document appartient à l'utilisateur ou que l'utilisateur est admin
       const document = await ctx.db.document.findUnique({
         where: { id: input.documentId },
@@ -638,8 +638,8 @@ export const documentRouter = router({
       }
 
       if (
-        document.userId !== ctx.session.user.id &&
-        ctx.session.user.role !== "ADMIN"
+        document.userId !== _ctx.session.user.id &&
+        _ctx.session.user.role !== "ADMIN"
       ) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -656,7 +656,7 @@ export const documentRouter = router({
    */
   downloadDocument: protectedProcedure
     .input(z.object({ filePath: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // Sécurité: s'assurer que le chemin est dans le répertoire uploads
         const normalizedPath = path
@@ -682,7 +682,7 @@ export const documentRouter = router({
         // Vérifier si le fichier existe
         try {
           await fs.access(fullPath);
-        } catch (error) {
+        } catch (_error) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Fichier non trouvé",
@@ -694,7 +694,7 @@ export const documentRouter = router({
         const fileExt = path.extname(fullPath).toLowerCase();
 
         // Déterminer le type MIME basé sur l'extension
-        let contentType = "application/octet-stream";
+        const contentType = "application/octet-stream";
         switch (fileExt) {
           case ".pdf":
             contentType = "application/pdf";

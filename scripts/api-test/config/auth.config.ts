@@ -1,4 +1,4 @@
-import { TestUser } from './users.config';
+import { TestUser } from "./users.config";
 
 export interface AuthConfig {
   sessionCookieName: string;
@@ -8,10 +8,10 @@ export interface AuthConfig {
 }
 
 export const authConfig: AuthConfig = {
-  sessionCookieName: 'next-auth.session-token',
-  csrfCookieName: 'next-auth.csrf-token',
+  sessionCookieName: "next-auth.session-token",
+  csrfCookieName: "next-auth.csrf-token",
   tokenExpiry: 86400, // 24 hours
-  refreshBeforeExpiry: 3600 // Refresh 1 hour before expiry
+  refreshBeforeExpiry: 3600, // Refresh 1 hour before expiry
 };
 
 export interface AuthSession {
@@ -60,7 +60,9 @@ export class SessionStorage {
 
   static needsRefresh(session: AuthSession): boolean {
     const now = new Date();
-    const refreshTime = new Date(session.expiresAt.getTime() - authConfig.refreshBeforeExpiry * 1000);
+    const refreshTime = new Date(
+      session.expiresAt.getTime() - authConfig.refreshBeforeExpiry * 1000,
+    );
     return now >= refreshTime;
   }
 }

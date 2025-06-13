@@ -8,7 +8,7 @@ import { TRPCError } from "@trpc/server";
  */
 export const adminServicesRouter = router({
   // Récupérer les statistiques des services
-  getStats: protectedProcedure.query(async ({ ctx }) => {
+  getStats: protectedProcedure.query(async ({ _ctx }) => {
     try {
       // Calculer les vraies statistiques depuis la base de données
       const totalServices = await ctx.db.service.count();
@@ -131,7 +131,7 @@ export const adminServicesRouter = router({
       };
 
       return stats;
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des statistiques",
@@ -152,10 +152,10 @@ export const adminServicesRouter = router({
         limit: z.number().min(1).max(100).default(50),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions selon le rôle
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         // Récupérer les services depuis la base de données
         const whereClause: any = {};
@@ -203,7 +203,7 @@ export const adminServicesRouter = router({
           page: input.page,
           limit: input.limit,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des services",
@@ -218,7 +218,7 @@ export const adminServicesRouter = router({
         id: z.string(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // Récupérer le service depuis la base de données
         const service = await ctx.db.service.findUnique({
@@ -244,7 +244,7 @@ export const adminServicesRouter = router({
         }
 
         return service;
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Service non trouvé",
@@ -268,7 +268,7 @@ export const adminServicesRouter = router({
         price: z.number().min(0),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions
         // TODO: Implémenter la création en base
@@ -286,7 +286,7 @@ export const adminServicesRouter = router({
           success: true,
           service: newService,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la création du service",
@@ -307,7 +307,7 @@ export const adminServicesRouter = router({
         price: z.number().min(0).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Implémenter la mise à jour en base
 
@@ -315,7 +315,7 @@ export const adminServicesRouter = router({
           success: true,
           message: "Service mis à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour du service",
@@ -331,7 +331,7 @@ export const adminServicesRouter = router({
         status: z.enum(["ACTIVE", "INACTIVE", "DRAFT", "SUSPENDED"]),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Implémenter la mise à jour du statut en base
 
@@ -339,7 +339,7 @@ export const adminServicesRouter = router({
           success: true,
           message: "Statut du service mis à jour",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour du statut",
@@ -354,7 +354,7 @@ export const adminServicesRouter = router({
         id: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier que le service peut être supprimé
         // TODO: Implémenter la suppression en base
@@ -363,7 +363,7 @@ export const adminServicesRouter = router({
           success: true,
           message: "Service supprimé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la suppression du service",
@@ -375,7 +375,7 @@ export const adminServicesRouter = router({
 
   // Récupérer toutes les catégories
   categories: router({
-    getAll: protectedProcedure.query(async ({ ctx }) => {
+    getAll: protectedProcedure.query(async ({ _ctx }) => {
       try {
         // Récupérer les catégories depuis la base de données
         const categories = await ctx.db.serviceCategory.findMany({
@@ -413,7 +413,7 @@ export const adminServicesRouter = router({
           categories: formattedCategories,
           total: categories.length,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des catégories",
@@ -431,7 +431,7 @@ export const adminServicesRouter = router({
           icon: z.string().min(1),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ _ctx, input: _input }) => {
         try {
           const newCategory = {
             id: Math.random().toString(36).substr(2, 9),
@@ -445,7 +445,7 @@ export const adminServicesRouter = router({
             success: true,
             category: newCategory,
           };
-        } catch (error) {
+        } catch (_error) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Erreur lors de la création de la catégorie",
@@ -467,13 +467,13 @@ export const adminServicesRouter = router({
           icon: z.string().min(1).optional(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ _ctx, input: _input }) => {
         try {
           return {
             success: true,
             message: "Catégorie mise à jour avec succès",
           };
-        } catch (error) {
+        } catch (_error) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Erreur lors de la mise à jour de la catégorie",
@@ -489,13 +489,13 @@ export const adminServicesRouter = router({
           isActive: z.boolean(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ _ctx, input: _input }) => {
         try {
           return {
             success: true,
             message: `Catégorie ${input.isActive ? "activée" : "désactivée"} avec succès`,
           };
-        } catch (error) {
+        } catch (_error) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Erreur lors de la modification du statut",
@@ -510,13 +510,13 @@ export const adminServicesRouter = router({
           id: z.string(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ _ctx, input: _input }) => {
         try {
           return {
             success: true,
             message: "Catégorie supprimée avec succès",
           };
-        } catch (error) {
+        } catch (_error) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Erreur lors de la suppression de la catégorie",

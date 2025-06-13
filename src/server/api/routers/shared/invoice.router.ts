@@ -27,25 +27,28 @@ export const invoiceRouter = router({
    */
   getMyInvoices: protectedProcedure
     .input(
-      z.object({
-        page: z.number().int().positive().default(1),
-        limit: z.number().int().positive().max(100).default(10),
-        status: z.nativeEnum(InvoiceStatus).optional(),
-        startDate: z.date().optional(),
-        endDate: z.date().optional(),
-        sortOrder: z.enum(["asc", "desc"]).default("desc"),
-      }).optional().default({}),
+      z
+        .object({
+          page: z.number().int().positive().default(1),
+          limit: z.number().int().positive().max(100).default(10),
+          status: z.nativeEnum(InvoiceStatus).optional(),
+          startDate: z.date().optional(),
+          endDate: z.date().optional(),
+          sortOrder: z.enum(["asc", "desc"]).default("desc"),
+        })
+        .optional()
+        .default({}),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { 
-          page = 1, 
-          limit = 10, 
-          status, 
-          startDate, 
-          endDate, 
-          sortOrder = "desc" 
+        const {
+          page = 1,
+          limit = 10,
+          status: _status,
+          startDate: _startDate,
+          endDate: _endDate,
+          sortOrder = "desc",
         } = input || {};
 
         // Construire le filtre
@@ -65,7 +68,7 @@ export const invoiceRouter = router({
 
         // Récupérer les factures
         const [invoices, total] = await Promise.all([
-          ctx.db.invoice.findMany({
+          _ctx.db.invoice.findMany({
             where,
             orderBy: { issueDate: sortOrder },
             skip: (page - 1) * limit,
@@ -113,10 +116,10 @@ export const invoiceRouter = router({
         invoiceId: z.string(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { invoiceId } = input;
+        const { _invoiceId: __invoiceId } = input;
 
         // Récupérer la facture
         const invoice = await ctx.db.invoice.findUnique({
@@ -145,7 +148,7 @@ export const invoiceRouter = router({
         // Vérifier l'accès
         if (
           invoice.userId !== userId &&
-          !isRoleAllowed(ctx.session.user.role, [UserRole.ADMIN])
+          !isRoleAllowed(_ctx.session.user.role, [UserRole.ADMIN])
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -181,10 +184,10 @@ export const invoiceRouter = router({
         invoiceId: z.string(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { invoiceId } = input;
+        const { _invoiceId: __invoiceId } = input;
 
         // Récupérer la facture avec tous les détails
         const invoice = await ctx.db.invoice.findUnique({
@@ -213,7 +216,7 @@ export const invoiceRouter = router({
         // Vérifier l'accès
         if (
           invoice.userId !== userId &&
-          !isRoleAllowed(ctx.session.user.role, [UserRole.ADMIN])
+          !isRoleAllowed(_ctx.session.user.role, [UserRole.ADMIN])
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -249,23 +252,26 @@ export const invoiceRouter = router({
    */
   getMyInvoiceStats: protectedProcedure
     .input(
-      z.object({
-        period: z
-          .enum(["day", "week", "month", "quarter", "year"])
-          .default("month"),
-        compareWithPrevious: z.boolean().default(true),
-        startDate: z.date().optional(),
-        endDate: z.date().optional(),
-      }).optional().default({}),
+      z
+        .object({
+          period: z
+            .enum(["day", "week", "month", "quarter", "year"])
+            .default("month"),
+          compareWithPrevious: z.boolean().default(true),
+          startDate: z.date().optional(),
+          endDate: z.date().optional(),
+        })
+        .optional()
+        .default({}),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { 
-          period = "month", 
-          compareWithPrevious = true, 
-          startDate, 
-          endDate 
+        const {
+          period = "month",
+          compareWithPrevious = true,
+          startDate: _startDate,
+          endDate: _endDate,
         } = input || {};
 
         // Calculer les dates de la période actuelle et précédente
@@ -334,7 +340,7 @@ export const invoiceRouter = router({
           previousInvoices,
           previousPaidInvoices,
         ] = await Promise.all([
-          ctx.db.invoice.findMany({
+          _ctx.db.invoice.findMany({
             where: {
               userId,
               issueDate: {
@@ -475,10 +481,10 @@ export const invoiceRouter = router({
         invoiceId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { invoiceId } = input;
+        const { _invoiceId: __invoiceId } = input;
 
         // Récupérer la facture
         const invoice = await ctx.db.invoice.findUnique({
@@ -505,7 +511,7 @@ export const invoiceRouter = router({
         // Vérifier l'accès
         if (
           invoice.userId !== userId &&
-          !isRoleAllowed(ctx.session.user.role, [UserRole.ADMIN])
+          !isRoleAllowed(_ctx.session.user.role, [UserRole.ADMIN])
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -554,10 +560,14 @@ export const invoiceRouter = router({
         message: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { invoiceId, recipientEmail, message } = input;
+        const {
+          invoiceId: _invoiceId,
+          recipientEmail: _recipientEmail,
+          message: _message,
+        } = input;
 
         // Récupérer la facture
         const invoice = await ctx.db.invoice.findUnique({
@@ -583,7 +593,7 @@ export const invoiceRouter = router({
         // Vérifier l'accès
         if (
           invoice.userId !== userId &&
-          !isRoleAllowed(ctx.session.user.role, [UserRole.ADMIN])
+          !isRoleAllowed(_ctx.session.user.role, [UserRole.ADMIN])
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -641,10 +651,14 @@ export const invoiceRouter = router({
         notes: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { invoiceId, paymentMethod, notes } = input;
+        const {
+          invoiceId: _invoiceId,
+          paymentMethod: _paymentMethod,
+          notes: _notes,
+        } = input;
 
         // Récupérer la facture
         const invoice = await ctx.db.invoice.findUnique({
@@ -661,7 +675,7 @@ export const invoiceRouter = router({
         // Vérifier que c'est une facture de l'utilisateur ou un admin
         if (
           invoice.userId !== userId &&
-          !isRoleAllowed(ctx.session.user.role, [UserRole.ADMIN])
+          !isRoleAllowed(_ctx.session.user.role, [UserRole.ADMIN])
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -689,7 +703,7 @@ export const invoiceRouter = router({
               status: "COMPLETED",
               metadata: {
                 notes: notes || "Paiement manuel confirmé",
-                confirmedBy: ctx.session.user.id,
+                confirmedBy: _ctx.session.user.id,
               },
             },
           });
@@ -718,7 +732,7 @@ export const invoiceRouter = router({
             entityId: invoiceId,
             details: {
               paymentMethod: paymentMethod || "MANUAL",
-              confirmedBy: ctx.session.user.id,
+              confirmedBy: _ctx.session.user.id,
             },
           },
         });
@@ -742,7 +756,7 @@ export const invoiceRouter = router({
   /**
    * Obtient un résumé des factures récentes
    */
-  getInvoiceSummary: protectedProcedure.query(async ({ ctx }) => {
+  getInvoiceSummary: protectedProcedure.query(async ({ _ctx }) => {
     try {
       const userId = ctx.session.user.id;
 
@@ -752,7 +766,7 @@ export const invoiceRouter = router({
       const [recentInvoices, paidAmount, pendingAmount, invoicesByStatus] =
         await Promise.all([
           // Factures récentes
-          ctx.db.invoice.findMany({
+          _ctx.db.invoice.findMany({
             where: {
               userId,
               issuedDate: {
@@ -864,7 +878,7 @@ export const invoiceRouter = router({
           .optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const {
           page,
@@ -900,7 +914,7 @@ export const invoiceRouter = router({
 
         // Récupérer les factures
         const [invoices, total] = await Promise.all([
-          ctx.db.invoice.findMany({
+          _ctx.db.invoice.findMany({
             where,
             orderBy: { issuedDate: sortOrder },
             skip: (page - 1) * limit,
@@ -988,7 +1002,7 @@ export const invoiceRouter = router({
    */
   createInvoice: adminProcedure
     .input(createInvoiceSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -1074,10 +1088,10 @@ export const invoiceRouter = router({
           .optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
-        const { invoiceId, ...updateData } = input;
+        const { invoiceId: _invoiceId, ...updateData } = input;
 
         // Récupérer la facture
         const invoice = await ctx.db.invoice.findUnique({
@@ -1151,10 +1165,10 @@ export const invoiceRouter = router({
         reason: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
-        const { invoiceId, reason } = input;
+        const { invoiceId: _invoiceId, reason: _reason } = input;
 
         // Récupérer la facture
         const invoice = await ctx.db.invoice.findUnique({
@@ -1233,9 +1247,14 @@ export const invoiceRouter = router({
         endDate: z.date().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
-        const { period, compareWithPrevious, startDate, endDate } = input;
+        const {
+          period: _period,
+          compareWithPrevious: _compareWithPrevious,
+          startDate: _startDate,
+          endDate: _endDate,
+        } = input;
 
         // Obtenir les statistiques
         const stats = await invoiceService.generateInvoiceStats({
@@ -1271,7 +1290,7 @@ export const invoiceRouter = router({
         format: z.enum(["PDF", "CSV", "EXCEL"]).default("PDF"),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -1318,7 +1337,7 @@ export const invoiceRouter = router({
    */
   generateMonthlyMerchantBilling: adminProcedure
     .input(monthlyMerchantBillingSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -1384,7 +1403,7 @@ export const invoiceRouter = router({
    */
   generateMonthlyProviderBilling: adminProcedure
     .input(monthlyProviderBillingSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -1450,7 +1469,7 @@ export const invoiceRouter = router({
    */
   createBillingCycle: adminProcedure
     .input(billingCycleSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -1511,10 +1530,10 @@ export const invoiceRouter = router({
         billingCycleId: z.string().cuid("ID cycle invalide"),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
-        const { billingCycleId } = input;
+        const { _billingCycleId: __billingCycleId } = input;
 
         const result = await billingService.executeBillingCycle(billingCycleId);
 
@@ -1557,7 +1576,7 @@ export const invoiceRouter = router({
         forceRun: z.boolean().default(false),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -1601,7 +1620,7 @@ export const invoiceRouter = router({
    */
   getBillingStats: adminProcedure
     .input(billingStatsSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const stats = await billingService.getBillingStats(input.period);
 
@@ -1629,7 +1648,7 @@ export const invoiceRouter = router({
         scheduledDate: z.date().default(() => new Date()),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -1671,7 +1690,7 @@ export const invoiceRouter = router({
   /**
    * Exécute les cycles de facturation programmés pour aujourd'hui (admin uniquement)
    */
-  executeScheduledCycles: adminProcedure.mutation(async ({ ctx }) => {
+  executeScheduledCycles: adminProcedure.mutation(async ({ _ctx }) => {
     try {
       const adminId = ctx.session.user.id;
 
@@ -1721,11 +1740,10 @@ export const invoiceRouter = router({
         forceRun: z.boolean().default(false),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { merchantBillingService } = await import(
-          "@/server/services/billing-merchant.service"
-        );
+        const { _merchantBillingService: __merchantBillingService } =
+          await import("@/server/services/billing-merchant.service");
         const result = await merchantBillingService.runMonthlyMerchantBilling(
           input.date,
         );
@@ -1735,7 +1753,7 @@ export const invoiceRouter = router({
           data: {
             entityType: "SYSTEM",
             entityId: "monthly-merchant-billing",
-            performedById: ctx.session.user.id,
+            performedById: _ctx.session.user.id,
             action: "RUN_MONTHLY_MERCHANT_BILLING",
             changes: {
               merchantsProcessed: result.merchantsProcessed,
@@ -1763,40 +1781,41 @@ export const invoiceRouter = router({
   /**
    * Traite les paiements automatiques programmés (admin)
    */
-  processScheduledMerchantPayments: adminProcedure.mutation(async ({ ctx }) => {
-    try {
-      const { merchantBillingService } = await import(
-        "@/server/services/billing-merchant.service"
-      );
-      const result =
-        await merchantBillingService.processScheduledMerchantPayments();
+  processScheduledMerchantPayments: adminProcedure.mutation(
+    async ({ _ctx }) => {
+      try {
+        const { _merchantBillingService: __merchantBillingService } =
+          await import("@/server/services/billing-merchant.service");
+        const result =
+          await merchantBillingService.processScheduledMerchantPayments();
 
-      // Log d'audit
-      await ctx.db.auditLog.create({
-        data: {
-          entityType: "SYSTEM",
-          entityId: "scheduled-merchant-payments",
-          performedById: ctx.session.user.id,
-          action: "PROCESS_SCHEDULED_MERCHANT_PAYMENTS",
-          changes: result,
-        },
-      });
+        // Log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: "SYSTEM",
+            entityId: "scheduled-merchant-payments",
+            performedById: _ctx.session.user.id,
+            action: "PROCESS_SCHEDULED_MERCHANT_PAYMENTS",
+            changes: result,
+          },
+        });
 
-      return {
-        success: true,
-        result,
-        message: `${result.successfulPayments}/${result.paymentsProcessed} paiements traités avec succès`,
-      };
-    } catch (error: any) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message:
-          error.message ||
-          "Erreur lors du traitement des paiements automatiques",
-        cause: error,
-      });
-    }
-  }),
+        return {
+          success: true,
+          result,
+          message: `${result.successfulPayments}/${result.paymentsProcessed} paiements traités avec succès`,
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error.message ||
+            "Erreur lors du traitement des paiements automatiques",
+          cause: error,
+        });
+      }
+    },
+  ),
 
   /**
    * Récupère les factures du merchant connecté avec filtres étendus
@@ -1815,7 +1834,7 @@ export const invoiceRouter = router({
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier que l'utilisateur est un merchant
@@ -1848,7 +1867,7 @@ export const invoiceRouter = router({
       }
 
       const [invoices, total] = await Promise.all([
-        ctx.db.invoice.findMany({
+        _ctx.db.invoice.findMany({
           where,
           orderBy: { issuedDate: input.sortOrder },
           skip: (input.page - 1) * input.limit,
@@ -1890,7 +1909,7 @@ export const invoiceRouter = router({
         endDate: z.date().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const merchant = await ctx.db.merchant.findUnique({
@@ -1936,7 +1955,7 @@ export const invoiceRouter = router({
         paidAmount,
         pendingInvoices,
       ] = await Promise.all([
-        ctx.db.invoice.count({
+        _ctx.db.invoice.count({
           where: {
             userId,
             invoiceType: "MERCHANT_FEE",

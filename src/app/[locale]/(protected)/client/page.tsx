@@ -5,14 +5,27 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth/next-auth";
 import { redirect } from "next/navigation";
 import { UserStatus } from "@/server/db/enums";
+import { getTranslations } from "next-intl/server";
+import { Metadata } from "next";
 
 interface Props {
   params: Promise<{ locale: string }>;
 }
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "dashboard.client" });
+
+  return {
+    title: t("pageTitle"),
+    description: t("pageDescription"),
+  };
+}
+
 export default async function ClientDashboardPage({ params }: Props) {
   const { locale } = await params;
   const session = await getServerSession(authOptions);
+  const t = await getTranslations({ locale, namespace: "dashboard.client" });
 
   // Vérifications de sécurité
   if (!session || !session.user) {
@@ -31,10 +44,8 @@ export default async function ClientDashboardPage({ params }: Props) {
   return (
     <div className="container mx-auto py-6 px-4 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Tableau de bord</h1>
-        <p className="text-muted-foreground">
-          Gérez vos annonces, services et livraisons
-        </p>
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <Suspense

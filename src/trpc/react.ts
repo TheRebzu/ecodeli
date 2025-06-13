@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { httpBatchLink, createTRPCReact } from '@trpc/react-query';
-import { type AppRouter } from '@/server/api/root';
-import superjson from 'superjson';
+import { httpBatchLink, createTRPCReact } from "@trpc/react-query";
+import { type AppRouter } from "@/server/api/root";
+import superjson from "superjson";
 
 /**
  * Client tRPC configuré pour React avec @trpc/react-query
@@ -16,10 +16,10 @@ export const trpcClient = api.createClient({
   transformer: superjson,
   links: [
     httpBatchLink({
-      url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/trpc`,
+      url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/trpc`,
       headers() {
         return {
-          'content-type': 'application/json',
+          "content-type": "application/json",
         };
       },
     }),

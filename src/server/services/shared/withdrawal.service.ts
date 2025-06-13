@@ -589,7 +589,13 @@ export const withdrawalService = {
       endDate?: Date;
     },
   ) {
-    const { page = 1, limit = 10, status, startDate, endDate } = options;
+    const {
+      page = 1,
+      limit = 10,
+      status: _status,
+      startDate: _startDate,
+      endDate: _endDate,
+    } = options;
     const skip = (page - 1) * limit;
 
     // Récupérer le portefeuille de l'utilisateur
@@ -654,7 +660,12 @@ export const withdrawalService = {
     priority?: boolean;
     reviewRequired?: boolean;
   }) {
-    const { page = 1, limit = 20, priority, reviewRequired } = options;
+    const {
+      page = 1,
+      limit = 20,
+      priority: _priority,
+      reviewRequired: _reviewRequired,
+    } = options;
     const skip = (page - 1) * limit;
 
     // Construire les filtres

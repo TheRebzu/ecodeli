@@ -124,7 +124,7 @@ export class PartialDeliveryService {
         ...plan,
         fallbackPlan,
       };
-    } catch (error) {
+    } catch (_error) {
       logger.error(
         "Erreur lors de la planification de livraison partielle:",
         error,
@@ -244,7 +244,7 @@ export class PartialDeliveryService {
     maxSegmentDistance: number,
   ): Promise<PartialDeliverySegment[]> {
     const segments: PartialDeliverySegment[] = [];
-    let segmentNumber = 1;
+    const segmentNumber = 1;
 
     // Premier segment : du pickup au premier relais
     if (relayPoints.length > 0) {
@@ -276,7 +276,7 @@ export class PartialDeliveryService {
       segmentNumber++;
 
       // Segments intermédiaires (si plusieurs relais)
-      for (let i = 0; i < relayPoints.length - 1; i++) {
+      for (const i = 0; i < relayPoints.length - 1; i++) {
         const currentRelay = relayPoints[i];
         const nextRelay = relayPoints[i + 1];
 
@@ -344,9 +344,9 @@ export class PartialDeliveryService {
     segments: PartialDeliverySegment[],
     relayPoints: RelayPoint[],
   ): Promise<PartialDeliveryPlan> {
-    let totalDistance = 0;
-    let totalDurationMinutes = 0;
-    let totalPrice = 0;
+    const totalDistance = 0;
+    const totalDurationMinutes = 0;
+    const totalPrice = 0;
 
     // Calculer pour chaque segment
     for (const segment of segments) {
@@ -419,7 +419,7 @@ export class PartialDeliveryService {
       }
 
       return true;
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de l'assignation des livreurs:", error);
       return false;
     }
@@ -435,7 +435,7 @@ export class PartialDeliveryService {
       if (!plan) return;
 
       // Vérifier le statut de chaque segment
-      for (let i = 0; i < plan.segments.length; i++) {
+      for (const i = 0; i < plan.segments.length; i++) {
         const segment = plan.segments[i];
         const nextSegment = plan.segments[i + 1];
 
@@ -459,7 +459,7 @@ export class PartialDeliveryService {
       if (allCompleted) {
         await this.completePartialDelivery(planId);
       }
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de la coordination des segments:", error);
     }
   }
@@ -494,7 +494,7 @@ export class PartialDeliveryService {
         fallbackSegments,
         fallbackRelayPoints,
       );
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de la création du plan de secours:", error);
       return undefined;
     }

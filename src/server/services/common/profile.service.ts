@@ -10,7 +10,7 @@ import {
   type UpdateMerchantProfile,
   type UpdateProviderProfile,
 } from "@/schemas/user/profile.schema";
-import { Prisma, UserRole } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 class ProfileService {
   /**
@@ -116,7 +116,12 @@ class ProfileService {
       image?: string;
     },
   ) {
-    const { name, email, phoneNumber, image } = data;
+    const {
+      name: _name,
+      email: _email,
+      phoneNumber: _phoneNumber,
+      image: _image,
+    } = data;
 
     const updateData: Prisma.UserUpdateInput = {};
 
@@ -142,10 +147,17 @@ class ProfileService {
    */
   async updateClientProfile(userId: string, data: UpdateClientProfile) {
     // Extraire les données spécifiques de l'utilisateur de base
-    const { name, email, phoneNumber, image, ...clientData } = data;
+    const {
+      name: _name,
+      email: _email,
+      phoneNumber: _phoneNumber,
+      image: _image,
+      ...clientData
+    } = data;
 
     // Extraire les adresses de livraison si présentes
-    const { deliveryAddresses, ...clientProfileData } = clientData;
+    const { deliveryAddresses: _deliveryAddresses, ...clientProfileData } =
+      clientData;
 
     try {
       // Mettre à jour l'utilisateur de base si nécessaire
@@ -215,7 +227,7 @@ class ProfileService {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la mise à jour du profil client:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -228,7 +240,13 @@ class ProfileService {
    * Met à jour le profil livreur
    */
   async updateDelivererProfile(userId: string, data: UpdateDelivererProfile) {
-    const { name, email, phoneNumber, image, ...delivererData } = data;
+    const {
+      name: _name,
+      email: _email,
+      phoneNumber: _phoneNumber,
+      image: _image,
+      ...delivererData
+    } = data;
 
     try {
       // Mettre à jour l'utilisateur de base si nécessaire
@@ -250,7 +268,7 @@ class ProfileService {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la mise à jour du profil livreur:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -263,7 +281,13 @@ class ProfileService {
    * Met à jour le profil commerçant
    */
   async updateMerchantProfile(userId: string, data: UpdateMerchantProfile) {
-    const { name, email, phoneNumber, image, ...merchantData } = data;
+    const {
+      name: _name,
+      email: _email,
+      phoneNumber: _phoneNumber,
+      image: _image,
+      ...merchantData
+    } = data;
 
     try {
       // Mettre à jour l'utilisateur de base si nécessaire
@@ -285,7 +309,7 @@ class ProfileService {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la mise à jour du profil commerçant:",
         error,
@@ -301,7 +325,13 @@ class ProfileService {
    * Met à jour le profil prestataire
    */
   async updateProviderProfile(userId: string, data: UpdateProviderProfile) {
-    const { name, email, phoneNumber, image, ...providerData } = data;
+    const {
+      name: _name,
+      email: _email,
+      phoneNumber: _phoneNumber,
+      image: _image,
+      ...providerData
+    } = data;
 
     try {
       // Mettre à jour l'utilisateur de base si nécessaire
@@ -323,7 +353,7 @@ class ProfileService {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la mise à jour du profil prestataire:",
         error,
@@ -371,7 +401,7 @@ class ProfileService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la suppression de l'adresse:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

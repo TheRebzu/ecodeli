@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import {
   MerchantAnnouncementType,
@@ -111,8 +111,8 @@ export const merchantAnnouncementsRouter = router({
    */
   createAnnouncement: protectedProcedure
     .input(createAnnouncementSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -232,7 +232,7 @@ export const merchantAnnouncementsRouter = router({
             ? "Annonce créée et publiée avec succès"
             : "Annonce créée en brouillon",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -246,8 +246,8 @@ export const merchantAnnouncementsRouter = router({
    */
   getMyAnnouncements: protectedProcedure
     .input(announcementFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -311,7 +311,7 @@ export const merchantAnnouncementsRouter = router({
         orderBy[input.sortBy] = input.sortOrder;
 
         const [announcements, totalCount] = await Promise.all([
-          ctx.db.merchantAnnouncement.findMany({
+          _ctx.db.merchantAnnouncement.findMany({
             where,
             include: {
               stats: {
@@ -374,7 +374,7 @@ export const merchantAnnouncementsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -388,8 +388,8 @@ export const merchantAnnouncementsRouter = router({
    */
   getAnnouncementById: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -468,7 +468,7 @@ export const merchantAnnouncementsRouter = router({
               : 0,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -482,8 +482,8 @@ export const merchantAnnouncementsRouter = router({
    */
   updateAnnouncement: protectedProcedure
     .input(updateAnnouncementSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -526,7 +526,7 @@ export const merchantAnnouncementsRouter = router({
           });
         }
 
-        const { id, ...updateData } = input;
+        const { id: _id, ...updateData } = input;
 
         // Vérifier les dates si modifiées
         if (
@@ -553,7 +553,7 @@ export const merchantAnnouncementsRouter = router({
           data: updatedAnnouncement,
           message: "Annonce mise à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -572,8 +572,8 @@ export const merchantAnnouncementsRouter = router({
         publish: z.boolean(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -637,7 +637,7 @@ export const merchantAnnouncementsRouter = router({
           data: updatedAnnouncement,
           message: input.publish ? "Annonce publiée" : "Annonce dépubliée",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -651,8 +651,8 @@ export const merchantAnnouncementsRouter = router({
    */
   deleteAnnouncement: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -715,7 +715,7 @@ export const merchantAnnouncementsRouter = router({
           success: true,
           message: "Annonce supprimée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -729,8 +729,8 @@ export const merchantAnnouncementsRouter = router({
    */
   getAnnouncementStats: protectedProcedure
     .input(announcementStatsSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -783,7 +783,7 @@ export const merchantAnnouncementsRouter = router({
 
         // Récupérer les statistiques
         const [totalUsages, periodUsages, revenueData] = await Promise.all([
-          ctx.db.merchantAnnouncementUsage.count({
+          _ctx.db.merchantAnnouncementUsage.count({
             where: { announcementId: input.announcementId },
           }),
           ctx.db.merchantAnnouncementUsage.count({
@@ -819,7 +819,7 @@ export const merchantAnnouncementsRouter = router({
               : null,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des statistiques",
@@ -839,7 +839,7 @@ export const merchantAnnouncementsRouter = router({
         limit: z.number().min(1).max(50).default(10),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const now = new Date();
 
@@ -894,7 +894,7 @@ export const merchantAnnouncementsRouter = router({
             },
           })),
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des annonces",

@@ -109,7 +109,7 @@ export const PdfService = {
 
         // Finaliser le PDF
         doc.end();
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de la génération du PDF:", error);
         reject(error);
       }
@@ -199,7 +199,7 @@ export const PdfService = {
     this.generateHr(doc, invoiceTableTop + 20);
     doc.font("Helvetica");
 
-    let position = invoiceTableTop + 30;
+    const position = invoiceTableTop + 30;
 
     // Ajouter les éléments
     for (i = 0; i < items.length; i++) {
@@ -307,7 +307,7 @@ export const PdfService = {
    * Formate un montant en devise
    */
   formatCurrency(amount: number, currency: string): string {
-    let currencySymbol = "€";
+    const currencySymbol = "€";
     switch (currency.toUpperCase()) {
       case "USD":
         currencySymbol = "$";
@@ -379,7 +379,7 @@ export const PdfService = {
 
         // Finaliser le PDF
         doc.end();
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de la génération du rapport PDF:", error);
         reject(error);
       }
@@ -438,10 +438,10 @@ export const PdfService = {
     const startY = 210;
     doc.fillColor("#444444").fontSize(16).text("Résumé Exécutif", 50, startY);
 
-    let currentY = startY + 30;
+    const currentY = startY + 30;
     const columnWidth = 150;
     const columns = 3;
-    let currentColumn = 0;
+    const currentColumn = 0;
 
     summary.forEach((item, index) => {
       const x = 50 + currentColumn * (columnWidth + 20);
@@ -494,7 +494,7 @@ export const PdfService = {
     // Titre du tableau
     doc.fillColor("#444444").fontSize(14).text(table.title, 50, currentY);
 
-    let tableY = currentY + 30;
+    const tableY = currentY + 30;
     const columnWidth = (500 - 50) / table.headers.length;
 
     // En-têtes

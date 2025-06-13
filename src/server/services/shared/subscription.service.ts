@@ -455,7 +455,7 @@ export const subscriptionService = {
         subscription: updatedSubscription,
         invoiceId: invoice.id,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         `Erreur lors du renouvellement de l'abonnement ${subscriptionId}:`,
         error,
@@ -525,7 +525,7 @@ export const subscriptionService = {
     }
 
     // Calcul des remises en fonction du plan et du type d'opération
-    let discountPercent = 0;
+    const discountPercent = 0;
 
     switch (subscription.planType) {
       case "PREMIUM":
@@ -798,8 +798,8 @@ export const subscriptionService = {
       },
     });
 
-    let renewedCount = 0;
-    let failedCount = 0;
+    const renewedCount = 0;
+    const failedCount = 0;
 
     // Traiter chaque renouvellement
     for (const subscription of subscriptionsToRenew) {
@@ -855,7 +855,7 @@ export const subscriptionService = {
   _getSubscriptionStatusInfo(subscription: any) {
     const now = new Date();
 
-    let statusInfo = {
+    const statusInfo = {
       label: "",
       description: "",
       color: "",

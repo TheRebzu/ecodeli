@@ -54,7 +54,7 @@ export default function UserDetailPage() {
   } | null>(null);
 
   // API pour récupérer les détails complets de l'utilisateur
-  const { data: user, isLoading } = api.admin.users.getUserDetail.useQuery({ 
+  const { data: user, isLoading } = api.admin.users.getUserDetail.useQuery({
     userId,
     includeDocuments: true,
     includeVerificationHistory: true,
@@ -66,11 +66,13 @@ export default function UserDetailPage() {
     includePaymentMethods: false,
     includeNotificationSettings: false,
   });
-  const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation({
-    onSuccess: () => {
-      router.refresh();
+  const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation(
+    {
+      onSuccess: () => {
+        router.refresh();
+      },
     },
-  });
+  );
 
   // Helper functions to show status/role badges
   const getStatusBadge = (status: UserStatus) => {
@@ -189,12 +191,12 @@ export default function UserDetailPage() {
   const isVerified =
     user.role === UserRole.CLIENT || user.role === UserRole.ADMIN
       ? true
-              : user.role === UserRole.DELIVERER && user.deliverer
-          ? user.deliverer.isVerified
-          : user.role === UserRole.MERCHANT && user.merchant
-            ? user.merchant.isVerified
-            : user.role === UserRole.PROVIDER && user.provider
-              ? user.provider.isVerified
+      : user.role === UserRole.DELIVERER && user.deliverer
+        ? user.deliverer.isVerified
+        : user.role === UserRole.MERCHANT && user.merchant
+          ? user.merchant.isVerified
+          : user.role === UserRole.PROVIDER && user.provider
+            ? user.provider.isVerified
             : false;
 
   return (

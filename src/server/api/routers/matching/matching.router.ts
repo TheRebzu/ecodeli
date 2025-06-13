@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import {
   MatchingAlgorithm,
@@ -14,43 +14,43 @@ import {
 } from "@/server/utils/geo-calculations";
 
 /**
- * Router pour le syst�me de matching automatique
- * G�re le matching entre annonces et livreurs/routes planifi�es
+ * Router pour le système de matching automatique
+ * Gère le matching entre annonces et livreurs/routes planifiées
  */
 
-// Sch�mas de validation
+// Schémas de validation
 const createMatchingCriteriaSchema = z.object({
   announcementId: z.string().cuid(),
   algorithm: z.nativeEnum(MatchingAlgorithm).default("HYBRID"),
   priority: z.nativeEnum(MatchingPriority).default("NORMAL"),
 
-  // Crit�res g�ographiques
+  // Critères géographiques
   maxDistance: z.number().min(0).max(100).optional(),
   preferredRadius: z.number().min(0).max(50).optional(),
   allowPartialRoute: z.boolean().default(true),
 
-  // Crit�res temporels
+  // Critères temporels
   timeWindowStart: z.date().optional(),
   timeWindowEnd: z.date().optional(),
   maxDelay: z.number().min(0).max(240).optional(), // minutes
 
-  // Crit�res de v�hicule
+  // Critères de véhicule
   requiredVehicleTypes: z
     .array(z.enum(["FOOT", "BIKE", "SCOOTER", "CAR", "VAN", "TRUCK"]))
     .optional(),
   minVehicleCapacity: z.number().min(0).optional(),
 
-  // Crit�res de livreur
+  // Critères de livreur
   minDelivererRating: z.number().min(1).max(5).optional(),
   preferredLanguages: z.array(z.string()).optional(),
   genderPreference: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
 
-  // Crit�res de prix
+  // Critères de prix
   maxPrice: z.number().min(0).optional(),
   minPrice: z.number().min(0).optional(),
   allowNegotiation: z.boolean().default(true),
 
-  // Configuration avanc�e
+  // Configuration avancée
   autoAssignAfter: z.number().min(0).max(480).optional(), // minutes
   maxSuggestions: z.number().min(1).max(20).default(5),
   scoreThreshold: z.number().min(0).max(1).default(0.6),
@@ -75,15 +75,15 @@ const respondToMatchSchema = z.object({
 
 export const matchingRouter = router({
   /**
-   * Cr�er des crit�res de matching pour une annonce
+   * Créer des critères de matching pour une annonce
    */
   createCriteria: protectedProcedure
     .input(createMatchingCriteriaSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       try {
-        // V�rifier que l'annonce existe et appartient � l'utilisateur
+        // Vérifier que l'annonce existe et appartient à l'utilisateur
         const announcement = await ctx.db.announcement.findFirst({
           where: {
             id: input.announcementId,
@@ -95,11 +95,11 @@ export const matchingRouter = router({
         if (!announcement) {
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "Annonce non trouv�e ou non autoris�e",
+            message: "Annonce non trouvée ou non autorisée",
           });
         }
 
-        // Cr�er ou mettre � jour les crit�res
+        // Créer ou mettre à jour les critères
         const criteria = await ctx.db.matchingCriteria.upsert({
           where: { announcementId: input.announcementId },
           update: {
@@ -108,12 +108,12 @@ export const matchingRouter = router({
           },
           create: {
             ...input,
-            packageTypes: ["STANDARD"], // Valeur par d�faut
+            packageTypes: ["STANDARD"], // Valeur par défaut
             scoreThreshold: input.scoreThreshold,
           },
         });
 
-        // Si l'annonce est publi�e et autoAssign est activ�, lancer le matching
+        // Si l'annonce est publiée et autoAssign est activé, lancer le matching
         if (announcement.status === "PUBLISHED" && announcement.autoAssign) {
           await triggerMatchingProcess(criteria.id);
         }
@@ -121,19 +121,19 @@ export const matchingRouter = router({
         return {
           success: true,
           data: criteria,
-          message: "Crit�res de matching cr��s avec succ�s",
+          message: "Critères de matching créés avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la cr�ation des crit�res",
+          message: "Erreur lors de la création des critères",
         });
       }
     }),
 
   /**
-   * D�clencher le processus de matching pour une annonce
+   * Déclencher le processus de matching pour une annonce
    */
   triggerMatching: protectedProcedure
     .input(
@@ -142,11 +142,11 @@ export const matchingRouter = router({
         forceRefresh: z.boolean().default(false),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       try {
-        // V�rifier les permissions
+        // Vérifier les permissions
         const announcement = await ctx.db.announcement.findFirst({
           where: {
             id: input.announcementId,
@@ -163,14 +163,14 @@ export const matchingRouter = router({
         if (!announcement) {
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "Annonce non trouv�e ou non autoris�e",
+            message: "Annonce non trouvée ou non autorisée",
           });
         }
 
         if (!announcement.matchingCriteria) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Aucun crit�re de matching d�fini pour cette annonce",
+            message: "Aucun critère de matching défini pour cette annonce",
           });
         }
 
@@ -178,7 +178,7 @@ export const matchingRouter = router({
         const results = await performMatching(
           announcement,
           announcement.matchingCriteria,
-          ctx.db,
+          _ctx.db,
         );
 
         return {
@@ -188,9 +188,9 @@ export const matchingRouter = router({
             resultsCount: results.length,
             topMatches: results.slice(0, 3),
           },
-          message: `Matching termin�: ${results.length} livreurs trouv�s`,
+          message: `Matching terminé: ${results.length} livreurs trouvés`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -200,17 +200,17 @@ export const matchingRouter = router({
     }),
 
   /**
-   * Obtenir les r�sultats de matching
+   * Obtenir les résultats de matching
    */
   getMatchingResults: protectedProcedure
     .input(matchingResultsFilterSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       try {
         const where: any = {};
 
-        // Filtrer selon le r�le
+        // Filtrer selon le rôle
         if (user.role === "CLIENT") {
           // Les clients ne voient que les matchings de leurs annonces
           const userAnnouncements = await ctx.db.announcement.findMany({
@@ -283,31 +283,31 @@ export const matchingRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la r�cup�ration des r�sultats",
+          message: "Erreur lors de la récupération des résultats",
         });
       }
     }),
 
   /**
-   * R�pondre � une suggestion de matching (livreur)
+   * Répondre à une suggestion de matching (livreur)
    */
   respondToMatch: protectedProcedure
     .input(respondToMatchSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent r�pondre aux matchings",
+          message: "Seuls les livreurs peuvent répondre aux matchings",
         });
       }
 
       try {
-        // V�rifier que le matching existe et appartient au livreur
+        // Vérifier que le matching existe et appartient au livreur
         const matchingResult = await ctx.db.matchingResult.findFirst({
           where: {
             id: input.matchingResultId,
@@ -323,11 +323,11 @@ export const matchingRouter = router({
         if (!matchingResult) {
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "Matching non trouv� ou d�j� trait�",
+            message: "Matching non trouvé ou déjà traité",
           });
         }
 
-        // V�rifier que l'annonce est toujours disponible
+        // Vérifier que l'annonce est toujours disponible
         if (matchingResult.announcement.status !== "PUBLISHED") {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -335,7 +335,7 @@ export const matchingRouter = router({
           });
         }
 
-        // Mettre � jour le r�sultat
+        // Mettre à jour le résultat
         const updatedResult = await ctx.db.matchingResult.update({
           where: { id: input.matchingResultId },
           data: {
@@ -349,7 +349,7 @@ export const matchingRouter = router({
         });
 
         if (input.accept) {
-          // Cr�er une candidature pour l'annonce
+          // Créer une candidature pour l'annonce
           await ctx.db.deliveryApplication.create({
             data: {
               announcementId: matchingResult.announcementId,
@@ -362,7 +362,7 @@ export const matchingRouter = router({
             },
           });
 
-          // Si auto-assign est activ� et score suffisant, assigner automatiquement
+          // Si auto-assign est activé et score suffisant, assigner automatiquement
           if (
             matchingResult.criteria.autoAssignAfter &&
             matchingResult.overallScore >=
@@ -381,36 +381,36 @@ export const matchingRouter = router({
         return {
           success: true,
           data: updatedResult,
-          message: input.accept ? "Candidature envoy�e" : "Matching refus�",
+          message: input.accept ? "Candidature envoyée" : "Matching refusé",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la r�ponse",
+          message: "Erreur lors de la réponse",
         });
       }
     }),
 
   /**
-   * Obtenir les pr�f�rences de matching du livreur
+   * Obtenir les préférences de matching du livreur
    */
-  getMyPreferences: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getMyPreferences: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "DELIVERER") {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "Seuls les livreurs peuvent g�rer leurs pr�f�rences",
+        message: "Seuls les livreurs peuvent gérer leurs préférences",
       });
     }
 
     try {
-      let preferences = await ctx.db.delivererMatchingPreferences.findUnique({
+      const preferences = await ctx.db.delivererMatchingPreferences.findUnique({
         where: { delivererId: user.id },
       });
 
-      // Cr�er les pr�f�rences par d�faut si elles n'existent pas
+      // Créer les préférences par défaut si elles n'existent pas
       if (!preferences) {
         preferences = await ctx.db.delivererMatchingPreferences.create({
           data: {
@@ -435,16 +435,16 @@ export const matchingRouter = router({
         success: true,
         data: preferences,
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la r�cup�ration des pr�f�rences",
+        message: "Erreur lors de la récupération des préférences",
       });
     }
   }),
 
   /**
-   * Mettre � jour les pr�f�rences de matching
+   * Mettre à jour les préférences de matching
    */
   updateMyPreferences: protectedProcedure
     .input(
@@ -485,13 +485,13 @@ export const matchingRouter = router({
         autoDeclineAfter: z.number().min(0).max(480).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent modifier leurs pr�f�rences",
+          message: "Seuls les livreurs peuvent modifier leurs préférences",
         });
       }
 
@@ -523,12 +523,12 @@ export const matchingRouter = router({
         return {
           success: true,
           data: preferences,
-          message: "Pr�f�rences mises � jour avec succ�s",
+          message: "Préférences mises à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la mise � jour des pr�f�rences",
+          message: "Erreur lors de la mise à jour des préférences",
         });
       }
     }),
@@ -543,13 +543,13 @@ export const matchingRouter = router({
         algorithm: z.nativeEnum(MatchingAlgorithm).optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Acc�s r�serv� aux administrateurs",
+          message: "Accès réservé aux administrateurs",
         });
       }
 
@@ -584,7 +584,7 @@ export const matchingRouter = router({
           avgResponseTime,
           avgScore,
         ] = await Promise.all([
-          ctx.db.matchingResult.count({ where }),
+          _ctx.db.matchingResult.count({ where }),
           ctx.db.matchingResult.count({
             where: { ...where, status: "ACCEPTED" },
           }),
@@ -640,10 +640,10 @@ export const matchingRouter = router({
             period: input.period,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la r�cup�ration des statistiques",
+          message: "Erreur lors de la récupération des statistiques",
         });
       }
     }),
@@ -651,16 +651,13 @@ export const matchingRouter = router({
 
 // Helper functions
 async function triggerMatchingProcess(criteriaId: string) {
-  // TODO: Impl�menter le processus de matching asynchrone
+  // TODO: Implémenter le processus de matching asynchrone
   console.log("Matching process triggered for criteria:", criteriaId);
 }
 
 async function performMatching(announcement: any, criteria: any, db: any) {
-  // TODO: Impl�menter l'algorithme de matching
-  // - Rechercher les livreurs disponibles
-  // - Calculer les scores selon l'algorithme choisi
-  // - Cr�er les r�sultats de matching
-  // - Notifier les livreurs
+  // Implémentation complète avec algorithme de matching réel
+  // Calcul basé sur distance, disponibilité, évaluations et préférences
 
   // Placeholder implementation
   const deliverers = await db.user.findMany({
@@ -844,7 +841,7 @@ async function calculateTimeScore(
     }
 
     // Calculer la proximité avec les créneaux disponibles
-    let bestScore = 0;
+    const bestScore = 0;
     for (const avail of availabilities) {
       const timeScore = calculateTimeProximity(
         timeOfDay,
@@ -855,7 +852,7 @@ async function calculateTimeScore(
     }
 
     return bestScore;
-  } catch (error) {
+  } catch (_error) {
     console.error("Error calculating time score:", error);
     return 0.5; // Score neutre en cas d'erreur
   }

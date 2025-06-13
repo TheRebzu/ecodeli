@@ -6,42 +6,42 @@ import {
 } from "@/schemas/user/user-preferences.schema";
 
 export const userPreferencesRouter = router({
-  getUserPreferences: protectedProcedure.query(async ({ ctx }) => {
-    return userPreferencesService.getUserPreferences(ctx.session.user.id);
+  getUserPreferences: protectedProcedure.query(async ({ _ctx }) => {
+    return userPreferencesService.getUserPreferences(_ctx.session.user.id);
   }),
 
   updateUserPreferences: protectedProcedure
     .input(updateUserPreferencesSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return userPreferencesService.updateUserPreferences(
-        ctx.session.user.id,
+        _ctx.session.user.id,
         input,
       );
     }),
 
   updatePreferences: protectedProcedure
     .input(updateUserPreferencesSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return userPreferencesService.updateUserPreferences(
-        ctx.session.user.id,
+        _ctx.session.user.id,
         input,
       );
     }),
 
-  getOnboardingStatus: protectedProcedure.query(async ({ ctx }) => {
-    return userPreferencesService.getOnboardingStatus(ctx.session.user.id);
+  getOnboardingStatus: protectedProcedure.query(async ({ _ctx }) => {
+    return userPreferencesService.getOnboardingStatus(_ctx.session.user.id);
   }),
 
   updateOnboardingStatus: protectedProcedure
     .input(updateOnboardingStatusSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return userPreferencesService.updateOnboardingStatus(
-        ctx.session.user.id,
+        _ctx.session.user.id,
         input,
       );
     }),
 
-  resetOnboardingStatus: protectedProcedure.mutation(async ({ ctx }) => {
-    return userPreferencesService.resetOnboardingStatus(ctx.session.user.id);
+  resetOnboardingStatus: protectedProcedure.mutation(async ({ _ctx }) => {
+    return userPreferencesService.resetOnboardingStatus(_ctx.session.user.id);
   }),
 });

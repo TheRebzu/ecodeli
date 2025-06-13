@@ -171,7 +171,7 @@ export class DocumentVerificationService
         approvedDocuments,
         rejectedDocuments,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error getting user document status:", error);
       throw error;
     }
@@ -206,7 +206,7 @@ export class DocumentVerificationService
           true,
         );
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Error updating user verification status:", error);
       throw error;
     }
@@ -244,7 +244,7 @@ export class DocumentVerificationService
       }
 
       return document;
-    } catch (error) {
+    } catch (_error) {
       console.error("Error processing document verification:", error);
       throw error;
     }

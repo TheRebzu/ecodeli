@@ -26,9 +26,9 @@ export const auditRouter = router({
    */
   getAuditLogs: protectedProcedure
     .input(auditLogFilterSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur est un administrateur
-      if (ctx.session.user.role !== UserRole.ADMIN) {
+      if (_ctx.session.user.role !== UserRole.ADMIN) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à accéder aux logs d'audit",
@@ -48,9 +48,9 @@ export const auditRouter = router({
         entityId: z.string(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur est un administrateur
-      if (ctx.session.user.role !== UserRole.ADMIN) {
+      if (_ctx.session.user.role !== UserRole.ADMIN) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à accéder aux logs d'audit",
@@ -69,9 +69,9 @@ export const auditRouter = router({
         limit: z.number().int().min(1).max(50).default(10),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur est un administrateur
-      if (ctx.session.user.role !== UserRole.ADMIN) {
+      if (_ctx.session.user.role !== UserRole.ADMIN) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à accéder aux logs d'audit",

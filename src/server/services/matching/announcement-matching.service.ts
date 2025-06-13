@@ -110,7 +110,7 @@ export class AnnouncementMatchingService {
       return matches.sort(
         (a, b) => b.compatibilityScore - a.compatibilityScore,
       );
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors du matching:", error);
       throw new Error("Erreur lors de la recherche de correspondances");
     }
@@ -204,7 +204,7 @@ export class AnnouncementMatchingService {
           },
         },
       };
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de l'évaluation du match:", error);
       return null;
     }
@@ -226,8 +226,8 @@ export class AnnouncementMatchingService {
     );
 
     // Vérifier si les points de l'annonce sont sur le trajet ou à proximité
-    let bestMatch = null;
-    let minDetour = Infinity;
+    const bestMatch = null;
+    const minDetour = Infinity;
 
     // Vérifier le trajet direct
     const directMatch = this.checkDirectRouteMatch(
@@ -406,7 +406,7 @@ export class AnnouncementMatchingService {
     route: RouteData,
   ) {
     const reasons = [];
-    let isCompatible = true;
+    const isCompatible = true;
 
     // Vérifier le poids
     if (announcement.weight && announcement.weight > route.maxWeight) {
@@ -462,7 +462,7 @@ export class AnnouncementMatchingService {
     announcement: AnnouncementData,
     route: RouteData,
   ): number {
-    let score = 0;
+    const score = 0;
 
     // Score géographique (40%)
     const maxDetourPenalty = Math.min(
@@ -473,7 +473,7 @@ export class AnnouncementMatchingService {
     score += geographicScore;
 
     // Score temporel (25%)
-    let temporalScore = 0;
+    const temporalScore = 0;
     switch (temporalMatch.flexibility) {
       case "RECURRING_MATCH":
       case "FLEXIBLE":
@@ -496,7 +496,7 @@ export class AnnouncementMatchingService {
     score += capacityScore;
 
     // Score de prix (10%)
-    let priceScore = 0;
+    const priceScore = 0;
     if (route.isNegotiable || announcement.isNegotiable) {
       priceScore = 10;
     } else if (
@@ -509,7 +509,7 @@ export class AnnouncementMatchingService {
     score += priceScore;
 
     // Score de priorité (5%)
-    let priorityScore = 0;
+    const priorityScore = 0;
     if (
       announcement.priority === "HIGH" ||
       announcement.priority === "URGENT"
@@ -599,7 +599,7 @@ export class AnnouncementMatchingService {
     }
 
     // Calcul basé sur la distance et le prix au km
-    let basePrice = routeDetails.totalDistance * route.pricePerKm;
+    const basePrice = routeDetails.totalDistance * route.pricePerKm;
 
     // Ajustements selon le type d'annonce
     if (announcement.isFragile) {
@@ -670,7 +670,7 @@ export class AnnouncementMatchingService {
           }
         }
       }
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de l'envoi des notifications:", error);
     }
   }

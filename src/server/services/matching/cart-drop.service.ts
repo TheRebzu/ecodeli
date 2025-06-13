@@ -203,7 +203,7 @@ export class CartDropService {
 
       logger.info(`Nouvelle commande cart drop créée: ${orderId}`);
       return order;
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de la création de commande cart drop:", error);
       throw error;
     }
@@ -275,7 +275,7 @@ export class CartDropService {
           error: paymentResult.error,
         };
       }
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors du traitement du paiement:", error);
       return {
         success: false,
@@ -311,7 +311,7 @@ export class CartDropService {
     );
 
     // Calculer le prix des produits
-    let totalProductsPrice = 0;
+    const totalProductsPrice = 0;
     const productsWithPricing = productDetails.map((product) => {
       const totalPrice = product.price * product.quantity;
       totalProductsPrice += totalPrice;
@@ -333,7 +333,7 @@ export class CartDropService {
       params.deliveryAddress.longitude,
     );
 
-    let deliveryPrice = params.timeSlot.basePrice;
+    const deliveryPrice = params.timeSlot.basePrice;
     const appliedRules: string[] = [];
 
     // Appliquer les règles de tarification
@@ -342,7 +342,7 @@ export class CartDropService {
     for (const rule of pricingRules) {
       if (!rule.isActive) continue;
 
-      let shouldApply = false;
+      const shouldApply = false;
 
       // Vérifier les conditions
       switch (rule.condition.field) {
@@ -437,7 +437,7 @@ export class CartDropService {
         `Livreur ${bestDeliverer.id} assigné à la commande ${orderId}`,
       );
       return { success: true, delivererId: bestDeliverer.id };
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de l'assignation du livreur:", error);
       return { success: false };
     }
@@ -482,7 +482,7 @@ export class CartDropService {
         `Collecte de commande réussie: ${orderId} par ${delivererId}`,
       );
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de la collecte:", error);
       return {
         success: false,
@@ -547,7 +547,7 @@ export class CartDropService {
 
       logger.info(`Livraison validée avec succès: ${orderId}`);
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de la validation de livraison:", error);
       return {
         success: false,

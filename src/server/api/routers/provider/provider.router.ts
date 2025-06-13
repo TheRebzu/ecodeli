@@ -1,4 +1,4 @@
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { serviceService } from "@/server/services/provider/provider-service.service";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -34,6 +34,206 @@ interface AppointmentWithRelations {
 }
 
 export const providerRouter = router({
+  // Récupération des contrats du prestataire
+  getContracts: protectedProcedure
+    .input(
+      z.object({
+        status: z.string().optional(),
+        page: z.number().default(1),
+        limit: z.number().default(10),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Vérifier si l'utilisateur est un prestataire
+      const provider = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { provider: true },
+      });
+
+      if (!provider?.provider) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès refusé - Prestataire uniquement",
+        });
+      }
+
+      const where = {
+        providerId: provider.provider.id,
+        ...(input.status && { status: input.status }),
+      };
+
+      const [contracts, total] = await Promise.all([
+        ctx.db.contract.findMany({
+          where,
+          include: {
+            client: {
+              include: { user: true }
+            },
+            service: true,
+          },
+          orderBy: { createdAt: "desc" },
+          skip: (input.page - 1) * input.limit,
+          take: input.limit,
+        }),
+        ctx.db.contract.count({ where }),
+      ]);
+
+      return {
+        contracts: contracts.map(contract => ({
+          id: contract.id,
+          title: contract.title || `Contrat - ${contract.service?.name || 'Service'}`,
+          status: contract.status,
+          clientName: contract.client?.user?.name || "Client",
+          serviceType: contract.service?.name || "Service",
+          startDate: contract.startDate,
+          endDate: contract.endDate,
+          amount: contract.amount || 0,
+          commission: contract.commission || 0,
+          createdAt: contract.createdAt,
+          updatedAt: contract.updatedAt,
+        })),
+        total,
+        page: input.page,
+        totalPages: Math.ceil(total / input.limit),
+      };
+    }),
+
+  // Statistiques des contrats
+  getContractStats: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const provider = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { provider: true },
+    });
+
+    if (!provider?.provider) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Accès refusé - Prestataire uniquement",
+      });
+    }
+
+    const [totalContracts, activeContracts, pendingContracts, earningsData] = await Promise.all([
+      ctx.db.contract.count({
+        where: { providerId: provider.provider.id },
+      }),
+      ctx.db.contract.count({
+        where: { providerId: provider.provider.id, status: "ACTIVE" },
+      }),
+      ctx.db.contract.count({
+        where: { providerId: provider.provider.id, status: "PENDING" },
+      }),
+      ctx.db.contract.aggregate({
+        where: { 
+          providerId: provider.provider.id,
+          status: { in: ["ACTIVE", "COMPLETED"] }
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    return {
+      totalContracts,
+      activeContracts,
+      pendingContracts,
+      totalEarnings: earningsData._sum.amount || 0,
+    };
+  }),
+
+  // Récupération des créneaux de disponibilité
+  getSchedule: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const provider = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { 
+        provider: {
+          include: {
+            availability: true
+          }
+        }
+      },
+    });
+
+    if (!provider?.provider) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Accès refusé - Prestataire uniquement",
+      });
+    }
+
+    return {
+      availability: provider.provider.availability || [],
+      zones: provider.provider.serviceZones || [],
+    };
+  }),
+
+  // Mise à jour du planning
+  updateSchedule: protectedProcedure
+    .input(
+      z.object({
+        schedule: z.array(z.object({
+          day: z.string(),
+          startTime: z.string(),
+          endTime: z.string(),
+          isAvailable: z.boolean(),
+          zones: z.array(z.string()),
+        })),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const provider = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { provider: true },
+      });
+
+      if (!provider?.provider) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès refusé - Prestataire uniquement",
+        });
+      }
+
+      // Supprimer les anciens créneaux
+      await ctx.db.providerAvailability.deleteMany({
+        where: { providerId: provider.provider.id },
+      });
+
+      // Créer les nouveaux créneaux
+      const availabilityData = input.schedule
+        .filter(slot => slot.isAvailable)
+        .map(slot => ({
+          providerId: provider.provider.id,
+          dayOfWeek: slot.day,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          isAvailable: slot.isAvailable,
+        }));
+
+      if (availabilityData.length > 0) {
+        await ctx.db.providerAvailability.createMany({
+          data: availabilityData,
+        });
+      }
+
+      // Mettre à jour les zones de service
+      const allZones = Array.from(new Set(
+        input.schedule.flatMap(slot => slot.zones)
+      ));
+
+      await ctx.db.provider.update({
+        where: { id: provider.provider.id },
+        data: { serviceZones: allZones },
+      });
+
+      return { success: true };
+    }),
+
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
@@ -74,7 +274,7 @@ export const providerRouter = router({
         availability: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un prestataire
@@ -91,7 +291,7 @@ export const providerRouter = router({
       }
 
       // Extraire les données à mettre à jour
-      const { name, phoneNumber, ...providerData } = input;
+      const { name: _name, phoneNumber: _phoneNumber, ...providerData } = input;
 
       // Mise à jour des données utilisateur
       if (name || phoneNumber) {
@@ -129,7 +329,7 @@ export const providerRouter = router({
       };
     }),
 
-  getServices: protectedProcedure.query(async ({ ctx }) => {
+  getServices: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier si l'utilisateur est un prestataire
@@ -176,7 +376,7 @@ export const providerRouter = router({
         category: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un prestataire
@@ -217,7 +417,7 @@ export const providerRouter = router({
       };
     }),
 
-  getAppointments: protectedProcedure.query(async ({ ctx }) => {
+  getAppointments: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier si l'utilisateur est un prestataire
@@ -240,7 +440,7 @@ export const providerRouter = router({
   // ===== NOUVELLES FONCTIONNALITÉS ÉTENDUES =====
 
   // Gestion des disponibilités
-  getAvailabilities: protectedProcedure.query(async ({ ctx }) => {
+  getAvailabilities: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
@@ -266,7 +466,7 @@ export const providerRouter = router({
         endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
@@ -286,7 +486,7 @@ export const providerRouter = router({
 
   deleteAvailability: protectedProcedure
     .input(z.object({ availabilityId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
@@ -315,7 +515,7 @@ export const providerRouter = router({
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
@@ -351,7 +551,7 @@ export const providerRouter = router({
         ]),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
@@ -374,7 +574,7 @@ export const providerRouter = router({
 
   getBookingDetails: protectedProcedure
     .input(z.object({ bookingId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
@@ -393,7 +593,7 @@ export const providerRouter = router({
     }),
 
   // Gestion des évaluations
-  getMyReviews: protectedProcedure.query(async ({ ctx }) => {
+  getMyReviews: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
@@ -412,7 +612,7 @@ export const providerRouter = router({
   }),
 
   // Statistiques du prestataire
-  getProviderStats: protectedProcedure.query(async ({ ctx }) => {
+  getProviderStats: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
@@ -453,12 +653,12 @@ export const providerRouter = router({
         limit: z.number().default(10),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return serviceService.searchProviders(input);
     }),
 
   // Dashboard Provider - Statistiques principales
-  getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
+  getDashboardStats: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier que l'utilisateur est un prestataire
@@ -492,7 +692,7 @@ export const providerRouter = router({
       activeContracts,
     ] = await Promise.all([
       // Revenus mensuels
-      ctx.db.serviceBooking.aggregate({
+      _ctx.db.serviceBooking.aggregate({
         where: {
           providerId: provider.provider.id,
           status: "COMPLETED",
@@ -579,7 +779,7 @@ export const providerRouter = router({
   // Prochains rendez-vous
   getUpcomingAppointments: protectedProcedure
     .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
@@ -621,7 +821,7 @@ export const providerRouter = router({
   // Historique des interventions récentes
   getRecentInterventions: protectedProcedure
     .input(z.object({ limit: z.number().min(1).max(20).default(10) }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
@@ -666,7 +866,7 @@ export const providerRouter = router({
         period: z.enum(["week", "month", "quarter"]).default("month"),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
@@ -752,7 +952,7 @@ export const providerRouter = router({
   // Évaluations récentes
   getRecentRatings: protectedProcedure
     .input(z.object({ limit: z.number().min(1).max(10).default(5) }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
@@ -794,14 +994,14 @@ export const providerRouter = router({
   // Profil public du prestataire
   getPublicProfile: publicProcedure
     .input(z.object({ providerId: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return serviceService.getProviderPublicProfile(input.providerId);
     }),
 
   // Services publics d'un prestataire
   getPublicServices: publicProcedure
     .input(z.object({ providerId: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return serviceService.getProviderPublicServices(input.providerId);
     }),
 
@@ -814,7 +1014,7 @@ export const providerRouter = router({
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return serviceService.getAvailableTimeSlots(
         input.providerId,
         input.serviceId,

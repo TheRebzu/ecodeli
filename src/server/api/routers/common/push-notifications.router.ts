@@ -1,9 +1,6 @@
 import { z } from "zod";
-import {
-  router as router,
-  protectedProcedure,
-  publicProcedure,
-} from "@/server/api/trpc";
+import { router as router,
+  protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/server/db";
 import { UserRole } from "@prisma/client";
@@ -22,9 +19,9 @@ export const pushNotificationsRouter = router({
         unreadOnly: z.boolean().default(false),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         const notifications = await db.notification.findMany({
           where: {
@@ -60,7 +57,7 @@ export const pushNotificationsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des notifications",
@@ -89,9 +86,9 @@ export const pushNotificationsRouter = router({
         metadata: z.record(z.any()).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         // Vérifier les permissions d'envoi
         if (user.role !== UserRole.ADMIN) {
@@ -143,7 +140,7 @@ export const pushNotificationsRouter = router({
           success: true,
           data: notification,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -159,9 +156,9 @@ export const pushNotificationsRouter = router({
         notificationId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         const notification = await db.notification.updateMany({
           where: {
@@ -178,7 +175,7 @@ export const pushNotificationsRouter = router({
           success: true,
           data: notification,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la mise à jour de la notification",
@@ -187,9 +184,9 @@ export const pushNotificationsRouter = router({
     }),
 
   // Marquer toutes les notifications comme lues
-  markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
+  markAllAsRead: protectedProcedure.mutation(async ({ _ctx }) => {
     try {
-      const { user } = ctx.session;
+      const { _user: __user } = ctx.session;
 
       await db.notification.updateMany({
         where: {
@@ -206,7 +203,7 @@ export const pushNotificationsRouter = router({
         success: true,
         message: "Toutes les notifications ont été marquées comme lues",
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la mise à jour des notifications",
@@ -221,9 +218,9 @@ export const pushNotificationsRouter = router({
         notificationId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         await db.notification.deleteMany({
           where: {
@@ -236,7 +233,7 @@ export const pushNotificationsRouter = router({
           success: true,
           message: "Notification supprimée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la suppression de la notification",
@@ -245,9 +242,9 @@ export const pushNotificationsRouter = router({
     }),
 
   // Obtenir le nombre de notifications non lues
-  getUnreadCount: protectedProcedure.query(async ({ ctx }) => {
+  getUnreadCount: protectedProcedure.query(async ({ _ctx }) => {
     try {
-      const { user } = ctx.session;
+      const { _user: __user } = ctx.session;
 
       const count = await db.notification.count({
         where: {
@@ -260,7 +257,7 @@ export const pushNotificationsRouter = router({
         success: true,
         data: { unreadCount: count },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors du comptage des notifications",
@@ -323,7 +320,7 @@ async function sendPushNotification(notification: any): Promise<void> {
         actionUrl: notification.actionUrl,
       },
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Erreur envoi push notification:', error);
     // Ne pas faire échouer la création de notification si l'envoi push échoue
   }

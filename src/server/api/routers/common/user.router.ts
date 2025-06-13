@@ -7,7 +7,7 @@ import { userBanSchema } from "@/schemas/user/user-ban.schema";
 import { UserBanAction } from "@/types/users/verification";
 
 export const userRouter = router({
-  getProfile: protectedProcedure.query(async ({ ctx }) => {
+  getProfile: protectedProcedure.query(async ({ _ctx }) => {
     // Récupération du profil utilisateur
     return {
       id: ctx.session.user.id,
@@ -27,7 +27,7 @@ export const userRouter = router({
         // Autres champs de profil
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Mise à jour du profil
       return {
         id: ctx.session.user.id,
@@ -41,9 +41,9 @@ export const userRouter = router({
    */
   toggleActivation: protectedProcedure
     .input(toggleUserActivationSchema)
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, _ctx }) => {
       // Vérification que l'utilisateur est admin
-      if (ctx.session.user.role !== "ADMIN") {
+      if (_ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -51,7 +51,7 @@ export const userRouter = router({
         });
       }
 
-      const { userId, isActive } = input;
+      const { userId: _userId, isActive: _isActive } = input;
       return userService.toggleUserActivation(userId, isActive);
     }),
 
@@ -60,16 +60,16 @@ export const userRouter = router({
    */
   banOrUnban: protectedProcedure
     .input(userBanSchema)
-    .mutation(async ({ input, ctx }) => {
-      if (ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ input, _ctx }) => {
+      if (_ctx.session.user.role !== "ADMIN") {
         throw new Error("Permission refusée : admin requis");
       }
-      const { userId, action, reason } = input;
+      const { userId: _userId, action: _action, reason: _reason } = input;
       return userService.banOrUnbanUser(
         userId,
         action as UserBanAction,
         reason,
-        ctx.session.user.id,
+        _ctx.session.user.id,
       );
     }),
 });

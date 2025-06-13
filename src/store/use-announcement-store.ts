@@ -217,7 +217,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
                 isFavorite: state.favorites.includes(ann.id),
               }));
             });
-          } catch (error) {
+          } catch (_error) {
             set({
               isLoading: false,
               error:
@@ -230,7 +230,11 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
         },
 
         fetchMoreAnnouncements: async () => {
-          const { isLoading, hasMore, page } = get();
+          const {
+            isLoading: _isLoading,
+            hasMore: _hasMore,
+            page: _page,
+          } = get();
           if (isLoading || !hasMore) return;
 
           set((state) => {
@@ -269,7 +273,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               };
               state.lastDetailsUpdated[id] = now;
             });
-          } catch (error) {
+          } catch (_error) {
             set({
               isLoadingDetails: false,
               error:
@@ -282,7 +286,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
         },
 
         refreshCurrentAnnouncement: async () => {
-          const { currentAnnouncement } = get();
+          const { _currentAnnouncement: __currentAnnouncement } = get();
           if (currentAnnouncement) {
             await get().fetchAnnouncementById(currentAnnouncement.id);
           }
@@ -306,7 +310,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Annonce créée avec succès");
             return result.id;
-          } catch (error) {
+          } catch (_error) {
             set({
               isCreating: false,
               error:
@@ -348,7 +352,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Annonce mise à jour avec succès");
             return true;
-          } catch (error) {
+          } catch (_error) {
             set({
               isUpdating: false,
               error:
@@ -386,7 +390,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Annonce supprimée avec succès");
             return true;
-          } catch (error) {
+          } catch (_error) {
             set({
               isDeleting: false,
               error:
@@ -432,7 +436,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Annonce annulée avec succès");
             return true;
-          } catch (error) {
+          } catch (_error) {
             set({
               isUpdating: false,
               error:
@@ -473,7 +477,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Annonce publiée avec succès");
             return true;
-          } catch (error) {
+          } catch (_error) {
             set({
               isUpdating: false,
               error:
@@ -536,7 +540,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Livreur assigné avec succès");
             return true;
-          } catch (error) {
+          } catch (_error) {
             set({
               isUpdating: false,
               error:
@@ -582,7 +586,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Livraison confirmée avec succès");
             return true;
-          } catch (error) {
+          } catch (_error) {
             set({
               isUpdating: false,
               error:
@@ -625,7 +629,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Problème signalé avec succès");
             return true;
-          } catch (error) {
+          } catch (_error) {
             set({
               isUpdating: false,
               error:
@@ -666,7 +670,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Candidature envoyée avec succès");
             return true;
-          } catch (error) {
+          } catch (_error) {
             set({
               isApplying: false,
               error:
@@ -705,7 +709,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Candidature retirée avec succès");
             return true;
-          } catch (error) {
+          } catch (_error) {
             set({
               isUpdating: false,
               error:
@@ -752,7 +756,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
           // Sauvegarder l'état des favoris sur le serveur
           try {
             api.user.toggleFavoriteAnnouncement.mutate({ announcementId });
-          } catch (error) {
+          } catch (_error) {
             console.error("Erreur lors de la sauvegarde des favoris:", error);
             // Ne pas afficher d'erreur à l'utilisateur pour ne pas perturber l'expérience
           }

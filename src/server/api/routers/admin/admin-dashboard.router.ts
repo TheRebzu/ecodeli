@@ -14,7 +14,7 @@ export const adminDashboardRouter = router({
         endDate: z.coerce.date(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       try {
         // Utilise getDashboardData comme source pour les statistiques overview
         const dashboardData = await dashboardService.getDashboardData();
@@ -29,7 +29,7 @@ export const adminDashboardRouter = router({
             endDate: input.endDate,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur dans getOverviewStats:", error);
         throw error;
       }
@@ -43,7 +43,7 @@ export const adminDashboardRouter = router({
     .query(async () => {
       try {
         return await dashboardService.getDashboardData();
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur dans le router getDashboardData:", error);
         throw error;
       }
@@ -89,7 +89,7 @@ export const adminDashboardRouter = router({
    */
   getRecentActivities: adminProcedure
     .input(z.object({ limit: z.number().optional() }).optional())
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       const limit = input?.limit || 10;
       return await dashboardService.getRecentActivities(limit);
     }),
@@ -121,7 +121,7 @@ export const adminDashboardRouter = router({
         categoryFilter: z.string().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que les dates sont valides
         if (input.endDate < input.startDate) {
@@ -138,7 +138,7 @@ export const adminDashboardRouter = router({
           comparison: input.comparison || false,
           categoryFilter: input.categoryFilter,
         });
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur dans le rapport de ventes:", error);
         throw error;
       }
@@ -157,7 +157,7 @@ export const adminDashboardRouter = router({
         userRoleFilter: z.string().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que les dates sont valides
         if (input.endDate < input.startDate) {
@@ -174,7 +174,7 @@ export const adminDashboardRouter = router({
           comparison: input.comparison || false,
           userRoleFilter: input.userRoleFilter,
         });
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur dans le rapport d'activité utilisateur:", error);
         throw error;
       }
@@ -194,7 +194,7 @@ export const adminDashboardRouter = router({
         delivererFilter: z.string().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que les dates sont valides
         if (input.endDate < input.startDate) {
@@ -212,7 +212,7 @@ export const adminDashboardRouter = router({
           zoneFilter: input.zoneFilter,
           delivererFilter: input.delivererFilter,
         });
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur dans le rapport de performance de livraison:",
           error,

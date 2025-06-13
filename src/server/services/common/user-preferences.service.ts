@@ -165,7 +165,7 @@ export const userPreferencesService = {
       updateData.onboardingCompletionDate = new Date(onboardingCompletionDate);
 
     // Récupérer les préférences actuelles pour les mettre à jour
-    let currentPreferences = {};
+    const currentPreferences = {};
     if (tutorialSkipped !== undefined) {
       const user = await db.user.findUnique({
         where: { id: userId },
@@ -429,7 +429,7 @@ export const userPreferencesService = {
       });
 
       return true;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la mise à jour des préférences de notification:",
         error,
@@ -498,7 +498,7 @@ export const userPreferencesService = {
         default:
           return true;
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la vérification des permissions de notification:",
         error,
@@ -543,7 +543,7 @@ export const userPreferencesService = {
         success: true,
         unsnoozeAt,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la mise en pause des notifications:",
         error,
@@ -591,7 +591,7 @@ export const userPreferencesService = {
       }
 
       return true;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la réactivation des notifications:", error);
       return false;
     }

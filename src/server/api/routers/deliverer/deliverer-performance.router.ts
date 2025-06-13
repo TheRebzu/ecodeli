@@ -72,8 +72,8 @@ export const delivererPerformanceRouter = router({
    */
   getPerformanceStats: protectedProcedure
     .input(performanceFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -124,23 +124,23 @@ export const delivererPerformanceRouter = router({
 
         // Gains et commissions
         const currentEarnings = await getEarningsForPeriod(
-          ctx,
+          _ctx,
           user.id,
           startDate,
           endDate,
         );
         const previousEarnings = await getEarningsForPeriod(
-          ctx,
+          _ctx,
           user.id,
           previousStartDate,
           previousEndDate,
         );
 
         // Projections si demandées
-        let projections = null;
+        const projections = null;
         if (input.includeProjections) {
           projections = await calculateProjections(
-            ctx,
+            _ctx,
             user.id,
             currentMetrics,
             input.period,
@@ -148,7 +148,7 @@ export const delivererPerformanceRouter = router({
         }
 
         // Top routes de la période
-        const topRoutes = await getTopRoutes(ctx, user.id, startDate, endDate);
+        const topRoutes = await getTopRoutes(_ctx, user.id, startDate, endDate);
 
         return {
           success: true,
@@ -192,7 +192,7 @@ export const delivererPerformanceRouter = router({
             ),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des performances",
@@ -205,8 +205,8 @@ export const delivererPerformanceRouter = router({
    */
   optimizeRoute: protectedProcedure
     .input(routeOptimizationSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -268,7 +268,7 @@ export const delivererPerformanceRouter = router({
           },
           message: "Trajet optimisé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'optimisation du trajet",
@@ -288,8 +288,8 @@ export const delivererPerformanceRouter = router({
         includeRoutes: z.boolean().default(true),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -328,7 +328,7 @@ export const delivererPerformanceRouter = router({
         });
 
         // Routes planifiées si demandées
-        let plannedRoutes = [];
+        const plannedRoutes = [];
         if (input.includeRoutes) {
           plannedRoutes = await ctx.db.delivererPlannedRoute.findMany({
             where: {
@@ -391,7 +391,7 @@ export const delivererPerformanceRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération du planning",
@@ -404,8 +404,8 @@ export const delivererPerformanceRouter = router({
    */
   exportPlanning: protectedProcedure
     .input(planningExportSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -509,7 +509,7 @@ export const delivererPerformanceRouter = router({
           data: exportResult,
           message: `Planning exporté en ${input.format} avec succès`,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'export du planning",
@@ -529,8 +529,8 @@ export const delivererPerformanceRouter = router({
         considerWeather: z.boolean().default(false),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -635,7 +635,7 @@ export const delivererPerformanceRouter = router({
               : null,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors du calcul des estimations",
@@ -647,10 +647,10 @@ export const delivererPerformanceRouter = router({
 // Helper functions
 function calculatePeriodDates(input: any) {
   const now = new Date();
-  let startDate = new Date();
-  let endDate = new Date();
-  let previousStartDate = new Date();
-  let previousEndDate = new Date();
+  const startDate = new Date();
+  const endDate = new Date();
+  const previousStartDate = new Date();
+  const previousEndDate = new Date();
 
   if (input.startDate && input.endDate) {
     startDate = input.startDate;
@@ -858,7 +858,11 @@ async function optimizeDeliveryRoute(params: any) {
   // Algorithme d'optimisation simplifié
   // En production, utiliser un service comme Google Routes API ou OSRM
 
-  const { startLocation, deliveries, optimizationGoal } = params;
+  const {
+    startLocation: _startLocation,
+    deliveries: _deliveries,
+    optimizationGoal: _optimizationGoal,
+  } = params;
 
   // Tri simple par priorité et proximité
   const sortedDeliveries = deliveries.sort((a: any, b: any) => {
@@ -965,7 +969,7 @@ function calculateRouteCompatibility(route: any, deliveries: any[]) {
   // Calcul de la compatibilité des livraisons avec une route
   if (!deliveries || deliveries.length === 0) return 0;
 
-  let compatibilityScore = 100;
+  const compatibilityScore = 100;
 
   for (const delivery of deliveries) {
     // Vérifier la proximité géographique

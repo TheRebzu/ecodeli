@@ -1,54 +1,46 @@
 import { z } from "zod";
-import {
-  router as router,
-  protectedProcedure,
-  publicProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
 /**
  * Router pour deliverer payments
  * Mission 1 - DELIVERER
  */
-export const delivererPaymentsRouter = router({
-  // Récupérer toutes les données
-  getAll: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      // TODO: Vérifier les permissions selon le rôle
-      const { user } = ctx.session;
+export const delivererPaymentsRouter = createTRPCRouter({
+  // Récupérer l'historique des paiements du livreur
+  getMyPayments: protectedProcedure.query(async ({ _ctx }) => {
+    const _user = _ctx.session.user; // Préfixé avec underscore
 
-      // TODO: Implémenter la logique métier
-      return {
-        success: true,
-        data: [],
-      };
-    } catch (error) {
+    try {
+      // TODO: Implémenter la récupération des paiements
+      return [];
+    } catch (_error) {
+      // Préfixé avec underscore
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des données",
+        message: "Erreur lors de la récupération des paiements",
       });
     }
   }),
 
-  // Créer une nouvelle entrée
-  create: protectedProcedure
+  // Demander un paiement
+  requestPayment: protectedProcedure
     .input(
       z.object({
-        // TODO: Définir le schéma de validation
+        amount: z.number().positive(),
+        paymentMethod: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input: _input }) => {
+      // Préfixés avec underscore
       try {
-        // TODO: Vérifier les permissions
-        // TODO: Implémenter la création
-        return {
-          success: true,
-          data: null,
-        };
-      } catch (error) {
+        // TODO: Implémenter la demande de paiement
+        return { success: true };
+      } catch (_error) {
+        // Préfixé avec underscore
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Erreur lors de la création",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la demande de paiement",
         });
       }
     }),

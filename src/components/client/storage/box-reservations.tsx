@@ -78,12 +78,25 @@ export function BoxReservations() {
   // Récupération des réservations du client
   const { reservations, isLoading } = useBoxReservations(activeTab);
 
+  // Debug: log pour voir ce qui est retourné
+  console.log(
+    "reservations:",
+    reservations,
+    "type:",
+    typeof reservations,
+    "isArray:",
+    Array.isArray(reservations),
+  );
+
   if (isLoading) {
     return <ReservationsSkeleton />;
   }
 
+  // Assurer que reservations est un array
+  const reservationsList = Array.isArray(reservations) ? reservations : [];
+
   // Si aucune réservation n'est trouvée
-  if (!reservations || reservations.length === 0) {
+  if (!reservationsList || reservationsList.length === 0) {
     return (
       <Card className="w-full">
         <CardHeader>
@@ -318,8 +331,9 @@ export function BoxReservations() {
 
         <ScrollArea className="h-[calc(100vh-250px)]">
           <div className="space-y-4">
-            {reservations.map((reservation: ReservationWithBoxAndWarehouse) =>
-              renderReservationCard(reservation),
+            {reservationsList.map(
+              (reservation: ReservationWithBoxAndWarehouse) =>
+                renderReservationCard(reservation),
             )}
           </div>
         </ScrollArea>

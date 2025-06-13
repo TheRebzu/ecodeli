@@ -72,8 +72,8 @@ export const adminCommissionRouter = router({
    */
   getCommissionRates: protectedProcedure
     .input(commissionFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -125,7 +125,7 @@ export const adminCommissionRouter = router({
         orderBy[input.sortBy] = input.sortOrder;
 
         const [commissions, totalCount] = await Promise.all([
-          ctx.db.commissionRule.findMany({
+          _ctx.db.commissionRule.findMany({
             where,
             orderBy,
             skip: input.offset,
@@ -149,7 +149,7 @@ export const adminCommissionRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -163,8 +163,8 @@ export const adminCommissionRouter = router({
    */
   createCommissionRate: protectedProcedure
     .input(commissionRateSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -230,7 +230,7 @@ export const adminCommissionRouter = router({
           data: commissionRule,
           message: "Taux de commission créé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -250,8 +250,8 @@ export const adminCommissionRouter = router({
         })
         .merge(commissionRateSchema.partial()),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -262,7 +262,7 @@ export const adminCommissionRouter = router({
       }
 
       try {
-        const { id, ...updateData } = input;
+        const { id: _id, ...updateData } = input;
 
         const existingRule = await ctx.db.commissionRule.findUnique({
           where: { id },
@@ -310,7 +310,7 @@ export const adminCommissionRouter = router({
           data: updatedRule,
           message: "Taux de commission mis à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -329,8 +329,8 @@ export const adminCommissionRouter = router({
         reason: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -371,7 +371,7 @@ export const adminCommissionRouter = router({
           data: updatedRule,
           message: "Taux de commission désactivé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -385,8 +385,8 @@ export const adminCommissionRouter = router({
    */
   getCommissionStats: protectedProcedure
     .input(commissionStatsSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -396,7 +396,8 @@ export const adminCommissionRouter = router({
       }
 
       try {
-        const { startDate, endDate } = calculatePeriodDates(input.period);
+        const { startDate: _startDate, endDate: _endDate } =
+          calculatePeriodDates(input.period);
 
         const baseWhere = {
           createdAt: { gte: startDate, lte: endDate },
@@ -413,7 +414,7 @@ export const adminCommissionRouter = router({
           recentChanges,
         ] = await Promise.all([
           // Total des règles
-          ctx.db.commissionRule.count({ where: baseWhere }),
+          _ctx.db.commissionRule.count({ where: baseWhere }),
 
           // Règles actives
           ctx.db.commissionRule.count({
@@ -485,7 +486,7 @@ export const adminCommissionRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des statistiques",
@@ -507,8 +508,8 @@ export const adminCommissionRouter = router({
         transactionDate: z.date().default(() => new Date()),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -570,7 +571,7 @@ export const adminCommissionRouter = router({
         }
 
         // Calculer la commission
-        let commissionAmount = 0;
+        const commissionAmount = 0;
 
         if (applicableRule.calculationType === "PERCENTAGE") {
           commissionAmount = input.transactionAmount * applicableRule.rate;
@@ -612,7 +613,7 @@ export const adminCommissionRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors du calcul de la commission",

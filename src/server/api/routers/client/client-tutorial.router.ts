@@ -28,8 +28,8 @@ export const clientTutorialRouter = router({
   /**
    * Obtenir la configuration et le progr�s du tutoriel pour le client
    */
-  getTutorialState: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getTutorialState: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "CLIENT") {
       throw new TRPCError({
@@ -52,7 +52,7 @@ export const clientTutorialRouter = router({
       }
 
       // R�cup�rer la configuration du tutoriel
-      let tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
+      const tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
         where: { clientId: client.id },
         include: {
           progress: {
@@ -68,7 +68,7 @@ export const clientTutorialRouter = router({
 
       // Si pas de config, cr�er une par d�faut
       if (!tutorialConfig) {
-        tutorialConfig = await createDefaultTutorialConfig(ctx, client.id);
+        tutorialConfig = await createDefaultTutorialConfig(_ctx, client.id);
       }
 
       // R�cup�rer toutes les �tapes disponibles
@@ -122,7 +122,7 @@ export const clientTutorialRouter = router({
           canSkip: tutorialConfig.allowSkipping,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -136,8 +136,8 @@ export const clientTutorialRouter = router({
    */
   updateStepProgress: protectedProcedure
     .input(updateProgressSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -171,12 +171,12 @@ export const clientTutorialRouter = router({
         }
 
         // R�cup�rer ou cr�er la configuration
-        let tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
+        const tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
           where: { clientId: client.id },
         });
 
         if (!tutorialConfig) {
-          tutorialConfig = await createDefaultTutorialConfig(ctx, client.id);
+          tutorialConfig = await createDefaultTutorialConfig(_ctx, client.id);
         }
 
         // Mettre � jour ou cr�er le progr�s
@@ -240,7 +240,7 @@ export const clientTutorialRouter = router({
           data: {
             progress,
             tutorialCompleted: isCompleted,
-            nextStep: await getNextStep(ctx, tutorialConfig.id),
+            nextStep: await getNextStep(_ctx, tutorialConfig.id),
           },
           message: input.completed
             ? "�tape marqu�e comme termin�e"
@@ -248,7 +248,7 @@ export const clientTutorialRouter = router({
               ? "�tape ignor�e"
               : "Progr�s mis � jour",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -260,8 +260,8 @@ export const clientTutorialRouter = router({
   /**
    * R�initialiser le tutoriel
    */
-  resetTutorial: protectedProcedure.mutation(async ({ ctx }) => {
-    const { user } = ctx.session;
+  resetTutorial: protectedProcedure.mutation(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "CLIENT") {
       throw new TRPCError({
@@ -288,14 +288,14 @@ export const clientTutorialRouter = router({
       });
 
       // Cr�er une nouvelle configuration
-      const newConfig = await createDefaultTutorialConfig(ctx, client.id);
+      const newConfig = await createDefaultTutorialConfig(_ctx, client.id);
 
       return {
         success: true,
         data: newConfig,
         message: "Tutoriel r�initialis� avec succ�s",
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -309,8 +309,8 @@ export const clientTutorialRouter = router({
    */
   updateConfig: protectedProcedure
     .input(tutorialConfigSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -332,12 +332,12 @@ export const clientTutorialRouter = router({
         }
 
         // R�cup�rer ou cr�er la configuration
-        let tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
+        const tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
           where: { clientId: client.id },
         });
 
         if (!tutorialConfig) {
-          tutorialConfig = await createDefaultTutorialConfig(ctx, client.id);
+          tutorialConfig = await createDefaultTutorialConfig(_ctx, client.id);
         }
 
         // Mettre � jour la configuration
@@ -357,7 +357,7 @@ export const clientTutorialRouter = router({
           data: updatedConfig,
           message: "Configuration mise � jour",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -369,8 +369,8 @@ export const clientTutorialRouter = router({
   /**
    * Marquer le tutoriel comme termin� (skip all)
    */
-  completeTutorial: protectedProcedure.mutation(async ({ ctx }) => {
-    const { user } = ctx.session;
+  completeTutorial: protectedProcedure.mutation(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "CLIENT") {
       throw new TRPCError({
@@ -392,12 +392,12 @@ export const clientTutorialRouter = router({
       }
 
       // R�cup�rer ou cr�er la configuration
-      let tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
+      const tutorialConfig = await ctx.db.clientTutorialConfig.findUnique({
         where: { clientId: client.id },
       });
 
       if (!tutorialConfig) {
-        tutorialConfig = await createDefaultTutorialConfig(ctx, client.id);
+        tutorialConfig = await createDefaultTutorialConfig(_ctx, client.id);
       }
 
       // V�rifier si le skip est autoris�
@@ -457,7 +457,7 @@ export const clientTutorialRouter = router({
         data: updatedConfig,
         message: "Tutoriel termin�",
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -469,8 +469,8 @@ export const clientTutorialRouter = router({
   /**
    * Obtenir l'�tape actuelle avec overlay
    */
-  getCurrentOverlay: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getCurrentOverlay: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "CLIENT") {
       throw new TRPCError({
@@ -530,7 +530,7 @@ export const clientTutorialRouter = router({
           canSkip: tutorialConfig.allowSkipping,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la r�cup�ration de l'overlay",

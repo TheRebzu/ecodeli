@@ -12,7 +12,7 @@ const handler = async (req: Request) => {
       createContext: () => createTRPCContext(),
       onError: ({ error, path }) => {
         console.error(`❌ tRPC Error on '${path}':`, error.message);
-        
+
         // Log détaillé de l'erreur Zod si c'est une erreur de validation
         if (error.code === "BAD_REQUEST" && error.cause) {
           console.error("Validation error details:", error.cause);

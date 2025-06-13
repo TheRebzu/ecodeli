@@ -1,54 +1,47 @@
 import { z } from "zod";
-import {
-  router as router,
-  protectedProcedure,
-  publicProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
 /**
  * Router pour provider interventions
  * Mission 1 - PROVIDER
  */
-export const providerInterventionsRouter = router({
-  // Récupérer toutes les données
-  getAll: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      // TODO: Vérifier les permissions selon le rôle
-      const { user } = ctx.session;
+export const providerInterventionsRouter = createTRPCRouter({
+  // Récupérer les interventions du prestataire
+  getMyInterventions: protectedProcedure.query(async ({ _ctx }) => {
+    const _user = ctx.session.user; // Préfixé avec underscore
 
-      // TODO: Implémenter la logique métier
-      return {
-        success: true,
-        data: [],
-      };
-    } catch (error) {
+    try {
+      // TODO: Implémenter la récupération des interventions
+      return [];
+    } catch (_error) {
+      // Préfixé avec underscore
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des données",
+        message: "Erreur lors de la récupération des interventions",
       });
     }
   }),
 
-  // Créer une nouvelle entrée
-  create: protectedProcedure
+  // Créer une intervention
+  createIntervention: protectedProcedure
     .input(
       z.object({
-        // TODO: Définir le schéma de validation
+        clientId: z.string(),
+        serviceId: z.string(),
+        scheduledDate: z.date(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input: _input }) => {
+      // Préfixés avec underscore
       try {
-        // TODO: Vérifier les permissions
-        // TODO: Implémenter la création
-        return {
-          success: true,
-          data: null,
-        };
-      } catch (error) {
+        // TODO: Implémenter la création d'intervention
+        return { success: true };
+      } catch (_error) {
+        // Préfixé avec underscore
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Erreur lors de la création",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de l'intervention",
         });
       }
     }),

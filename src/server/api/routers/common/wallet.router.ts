@@ -10,7 +10,7 @@ import {
   createWalletTransaction,
   calculateEarnings,
 } from "@/server/services/shared/wallet.service";
-import { TransactionType, UserRole } from "@prisma/client";
+import { TransactionType } from "@prisma/client";
 import { isRoleAllowed } from "@/lib/auth/auth-helpers";
 import { db } from "@/server/db";
 import {
@@ -28,7 +28,7 @@ export const walletRouter = router({
   /**
    * Récupère le portefeuille de l'utilisateur connecté
    */
-  getMyWallet: protectedProcedure.query(async ({ ctx }) => {
+  getMyWallet: protectedProcedure.query(async ({ _ctx }) => {
     try {
       const userId = ctx.session.user.id;
       const wallet = await getOrCreateWallet(userId);
@@ -91,7 +91,7 @@ export const walletRouter = router({
    * Récupère un résumé du portefeuille client pour la page payments
    * Utilisé spécifiquement par la page payments du client
    */
-  getClientWalletSummary: protectedProcedure.query(async ({ ctx }) => {
+  getClientWalletSummary: protectedProcedure.query(async ({ _ctx }) => {
     try {
       const userId = ctx.session.user.id;
       const wallet = await getOrCreateWallet(userId);
@@ -167,7 +167,7 @@ export const walletRouter = router({
   /**
    * Récupère le solde du portefeuille de l'utilisateur
    */
-  getBalance: protectedProcedure.query(async ({ ctx }) => {
+  getBalance: protectedProcedure.query(async ({ _ctx }) => {
     try {
       const userId = ctx.session.user.id;
       const walletBalance = await getWalletBalance(userId);
@@ -204,7 +204,7 @@ export const walletRouter = router({
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
 
@@ -251,7 +251,7 @@ export const walletRouter = router({
         endDate: z.date().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
         const wallet = await getOrCreateWallet(userId);
@@ -319,7 +319,7 @@ export const walletRouter = router({
    */
   updateWalletConfig: protectedProcedure
     .input(WalletConfigSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
         const wallet = await getOrCreateWallet(userId);
@@ -380,7 +380,7 @@ export const walletRouter = router({
           .default("individual"),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
         const wallet = await getOrCreateWallet(userId);
@@ -441,7 +441,7 @@ export const walletRouter = router({
         userId: z.string(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const wallet = await getOrCreateWallet(input.userId);
 
@@ -504,7 +504,7 @@ export const walletRouter = router({
         reason: z.string().min(5).max(200),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
         const wallet = await getOrCreateWallet(input.userId);

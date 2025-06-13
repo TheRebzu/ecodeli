@@ -16,17 +16,17 @@ export const notificationRouter = router({
         types: z.array(z.string()).optional(), // Ajout du filtrage par types
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const result = await notificationService.getUserNotifications(
-          ctx.session.user.id,
+          _ctx.session.user.id,
           {
             limit: input.limit,
             // Autres paramètres comme nécessaire
           },
         );
         return result;
-      } catch (error) {
+      } catch (_error) {
         console.error("Error fetching notifications:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -44,16 +44,16 @@ export const notificationRouter = router({
         })
         .optional(),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const result = await notificationService.getUserNotifications(
-          ctx.session.user.id,
+          _ctx.session.user.id,
           {
             includeRead: false,
           },
         );
         return result.notifications;
-      } catch (error) {
+      } catch (_error) {
         console.error("Error fetching unread notifications:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -63,11 +63,11 @@ export const notificationRouter = router({
     }),
 
   // Get urgent notifications (high priority)
-  getUrgentNotifications: protectedProcedure.query(async ({ ctx }) => {
+  getUrgentNotifications: protectedProcedure.query(async ({ _ctx }) => {
     try {
       return await ctx.db.notification.findMany({
         where: {
-          userId: ctx.session.user.id,
+          userId: _ctx.session.user.id,
           priority: "HIGH",
           read: false,
           createdAt: {
@@ -77,7 +77,7 @@ export const notificationRouter = router({
         orderBy: { createdAt: "desc" },
         take: 5,
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Error fetching urgent notifications:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -95,16 +95,16 @@ export const notificationRouter = router({
         })
         .optional(),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const result = await notificationService.getUserNotifications(
-          ctx.session.user.id,
+          _ctx.session.user.id,
           {
             includeRead: false,
           },
         );
         return result.total;
-      } catch (error) {
+      } catch (_error) {
         console.error("Error fetching unread count:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -116,10 +116,10 @@ export const notificationRouter = router({
   // Mark notification as read
   markAsRead: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         return await notificationService.markAsRead(input.id);
-      } catch (error) {
+      } catch (_error) {
         console.error("Error marking notification as read:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -137,10 +137,10 @@ export const notificationRouter = router({
         })
         .optional(),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        return await notificationService.markAllAsRead(ctx.session.user.id);
-      } catch (error) {
+        return await notificationService.markAllAsRead(_ctx.session.user.id);
+      } catch (_error) {
         console.error("Error marking all notifications as read:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -152,7 +152,7 @@ export const notificationRouter = router({
   // Delete notification
   deleteNotification: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Si la méthode deleteNotification n'existe pas dans NotificationService,
         // nous utiliserons une alternative
@@ -160,7 +160,7 @@ export const notificationRouter = router({
           where: { id: input.id },
         });
 
-        if (!notification || notification.userId !== ctx.session.user.id) {
+        if (!notification || notification.userId !== _ctx.session.user.id) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "You do not have permission to delete this notification",
@@ -170,7 +170,7 @@ export const notificationRouter = router({
         return await ctx.db.notification.delete({
           where: { id: input.id },
         });
-      } catch (error) {
+      } catch (_error) {
         console.error("Error deleting notification:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -188,7 +188,7 @@ export const notificationRouter = router({
         })
         .optional(),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Si la méthode deleteAllNotifications n'existe pas dans NotificationService,
         // nous utiliserons une alternative
@@ -202,7 +202,7 @@ export const notificationRouter = router({
         return await ctx.db.notification.deleteMany({
           where,
         });
-      } catch (error) {
+      } catch (_error) {
         console.error("Error deleting all notifications:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

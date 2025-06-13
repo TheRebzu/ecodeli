@@ -59,7 +59,7 @@ export default function VerificationList() {
 
     // Simuler le chargement des statistiques
     setStatsLoading(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       // Charger les vraies statistiques depuis l'API
       try {
         const response = await fetch("/api/trpc/admin.verification.getStats");
@@ -221,6 +221,39 @@ function StatCard({ title, value, variant }: StatCardProps) {
     <div className={`${bgColors[variant]} rounded-lg p-4`}>
       <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
       <p className={`text-2xl font-bold ${textColors[variant]}`}>{value}</p>
+    </div>
+  );
+}
+
+// Composant VerificationStatusBanner pour afficher le statut de vérification
+export function VerificationStatusBanner({
+  status,
+  ...props
+}: {
+  status: string;
+  [key: string]: any;
+}) {
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "approved":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "rejected":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  return (
+    <div
+      className={`p-4 border rounded-lg ${getStatusColor(status)}`}
+      {...props}
+    >
+      <p className="text-center font-medium">
+        Statut de vérification: {status || "Inconnu"}
+      </p>
     </div>
   );
 }

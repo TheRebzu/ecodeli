@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import {
   AnnouncementStatus,
@@ -182,8 +182,8 @@ export const clientAnnouncementsRouter = router({
    */
   getMyAnnouncements: protectedProcedure
     .input(filtersSchema.optional())
-    .query(async ({ ctx, input = {} }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input = {} }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -287,7 +287,7 @@ export const clientAnnouncementsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -390,8 +390,8 @@ export const clientAnnouncementsRouter = router({
    */
   createAnnouncement: protectedProcedure
     .input(createAnnouncementSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -429,7 +429,7 @@ export const clientAnnouncementsRouter = router({
         }
 
         // Calculer la distance estimée si coordonnées disponibles
-        let estimatedDistance = null;
+        const estimatedDistance = null;
         if (
           input.pickupLatitude &&
           input.pickupLongitude &&
@@ -529,7 +529,7 @@ export const clientAnnouncementsRouter = router({
           },
           message: "Annonce créée avec succès et publiée",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -543,8 +543,8 @@ export const clientAnnouncementsRouter = router({
    */
   updateAnnouncement: protectedProcedure
     .input(updateAnnouncementSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -589,7 +589,7 @@ export const clientAnnouncementsRouter = router({
         }
 
         // Préparer les données de mise à jour
-        const { id, ...updateData } = input;
+        const { id: _id, ...updateData } = input;
 
         // Mettre à jour l'annonce
         const updatedAnnouncement = await ctx.db.announcement.update({
@@ -610,7 +610,7 @@ export const clientAnnouncementsRouter = router({
           },
           message: "Annonce mise à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -624,8 +624,8 @@ export const clientAnnouncementsRouter = router({
    */
   getAnnouncementById: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -718,7 +718,7 @@ export const clientAnnouncementsRouter = router({
             ),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -737,8 +737,8 @@ export const clientAnnouncementsRouter = router({
         reason: z.string().min(10).max(500),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -825,7 +825,7 @@ export const clientAnnouncementsRouter = router({
           data: cancelledAnnouncement,
           message: "Annonce annulée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -844,8 +844,8 @@ export const clientAnnouncementsRouter = router({
         notes: z.string().max(500).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -962,7 +962,7 @@ export const clientAnnouncementsRouter = router({
           data: result,
           message: "Proposition acceptée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

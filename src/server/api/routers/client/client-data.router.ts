@@ -10,7 +10,7 @@ export const clientDataRouter = createTRPCRouter({
   /**
    * Récupérer les statistiques du dashboard
    */
-  getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
+  getDashboardStats: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     try {
@@ -33,7 +33,7 @@ export const clientDataRouter = createTRPCRouter({
         completedDeliveries,
         totalServices,
       ] = await Promise.all([
-        ctx.db.announcement.count({
+        _ctx.db.announcement.count({
           where: { clientId: client.id },
         }),
         ctx.db.delivery.count({
@@ -67,7 +67,7 @@ export const clientDataRouter = createTRPCRouter({
               )
             : 0,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du calcul des statistiques:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -79,7 +79,7 @@ export const clientDataRouter = createTRPCRouter({
   /**
    * Récupérer l'activité récente
    */
-  getRecentActivity: protectedProcedure.query(async ({ ctx }) => {
+  getRecentActivity: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     try {
@@ -98,7 +98,7 @@ export const clientDataRouter = createTRPCRouter({
       // Récupérer les dernières activités
       const [recentDeliveries, recentBookings, recentAnnouncements] =
         await Promise.all([
-          ctx.db.delivery.findMany({
+          _ctx.db.delivery.findMany({
             where: { clientId: client.id },
             orderBy: { createdAt: "desc" },
             take: 5,
@@ -142,7 +142,7 @@ export const clientDataRouter = createTRPCRouter({
         recentBookings,
         recentAnnouncements,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération de l'activité récente:",
         error,
@@ -157,7 +157,7 @@ export const clientDataRouter = createTRPCRouter({
   /**
    * Récupérer les métriques financières
    */
-  getFinancialMetrics: protectedProcedure.query(async ({ ctx }) => {
+  getFinancialMetrics: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     try {
@@ -175,7 +175,7 @@ export const clientDataRouter = createTRPCRouter({
 
       // Calculer les métriques financières
       const [totalSpent, pendingPayments, monthlySpent] = await Promise.all([
-        ctx.db.payment.aggregate({
+        _ctx.db.payment.aggregate({
           where: {
             userId: userId,
             status: "COMPLETED",
@@ -215,14 +215,14 @@ export const clientDataRouter = createTRPCRouter({
           totalSpent._sum.amount && totalSpent._sum.amount > 0
             ? totalSpent._sum.amount /
               Math.max(
-                await ctx.db.announcement.count({
+                await _ctx.db.announcement.count({
                   where: { clientId: client.id },
                 }),
                 1,
               )
             : 0,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du calcul des métriques financières:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -234,7 +234,7 @@ export const clientDataRouter = createTRPCRouter({
   /**
    * Récupérer les éléments actifs (annonces, livraisons, réservations)
    */
-  getActiveItems: protectedProcedure.query(async ({ ctx }) => {
+  getActiveItems: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     try {
@@ -253,7 +253,7 @@ export const clientDataRouter = createTRPCRouter({
       // Récupérer les éléments actifs
       const [activeAnnouncements, activeDeliveries, activeBookings] =
         await Promise.all([
-          ctx.db.announcement.findMany({
+          _ctx.db.announcement.findMany({
             where: {
               clientId: client.id,
               status: { in: ["DRAFT", "PUBLISHED", "IN_APPLICATION"] },
@@ -303,7 +303,7 @@ export const clientDataRouter = createTRPCRouter({
         activeDeliveries,
         activeBookings,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des éléments actifs:",
         error,

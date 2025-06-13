@@ -29,7 +29,7 @@ export const MapsService = {
       }
 
       throw new Error("Calcul de distance impossible");
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur API Google Maps:", error);
       throw new Error("Calcul de distance impossible");
     }
@@ -48,12 +48,13 @@ export const MapsService = {
       );
 
       if (response.data.status === "OK") {
-        const { lat, lng } = response.data.results[0].geometry.location;
+        const { lat: _lat, lng: _lng } =
+          response.data.results[0].geometry.location;
         return { lat, lng };
       }
 
       throw new Error("Géocodage impossible");
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur API Google Maps:", error);
       throw new Error("Géocodage impossible");
     }

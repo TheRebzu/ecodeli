@@ -39,8 +39,8 @@ export const delivererWalletRouter = router({
   /**
    * Obtenir le solde et les informations du portefeuille
    */
-  getWalletInfo: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getWalletInfo: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "DELIVERER") {
       throw new TRPCError({
@@ -51,7 +51,7 @@ export const delivererWalletRouter = router({
 
     try {
       // Récupérer ou créer le portefeuille
-      let wallet = await ctx.db.wallet.findUnique({
+      const wallet = await ctx.db.wallet.findUnique({
         where: { userId: user.id },
       });
 
@@ -137,7 +137,7 @@ export const delivererWalletRouter = router({
           nextPayoutDate: getNextPayoutDate(),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération du portefeuille",
@@ -150,8 +150,8 @@ export const delivererWalletRouter = router({
    */
   getTransactionHistory: protectedProcedure
     .input(transactionFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -235,7 +235,7 @@ export const delivererWalletRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération de l'historique",
@@ -248,8 +248,8 @@ export const delivererWalletRouter = router({
    */
   requestWithdrawal: protectedProcedure
     .input(withdrawalRequestSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -298,7 +298,7 @@ export const delivererWalletRouter = router({
         }
 
         // Calculer les frais de virement
-        let withdrawalFee = 0;
+        const withdrawalFee = 0;
         if (input.urgency === "URGENT") {
           withdrawalFee = Math.min(input.amount * 0.02, 5); // 2% max 5€
         } else {
@@ -369,7 +369,7 @@ export const delivererWalletRouter = router({
               : "Traitement sous 3-5 jours ouvrés."
           }`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -383,8 +383,8 @@ export const delivererWalletRouter = router({
    */
   cancelWithdrawal: protectedProcedure
     .input(z.object({ withdrawalId: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -448,7 +448,7 @@ export const delivererWalletRouter = router({
           success: true,
           message: "Virement annulé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -468,8 +468,8 @@ export const delivererWalletRouter = router({
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -530,7 +530,7 @@ export const delivererWalletRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des virements",
@@ -549,8 +549,8 @@ export const delivererWalletRouter = router({
         month: z.number().min(1).max(12).optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -650,7 +650,7 @@ export const delivererWalletRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des statistiques",
@@ -735,10 +735,10 @@ function getEstimatedArrival(withdrawal: any): Date | null {
 
 function calculatePeriodDates(input: any) {
   const now = new Date();
-  let startDate = new Date();
-  let endDate = new Date();
-  let previousStartDate = new Date();
-  let previousEndDate = new Date();
+  const startDate = new Date();
+  const endDate = new Date();
+  const previousStartDate = new Date();
+  const previousEndDate = new Date();
 
   switch (input.period) {
     case "week":

@@ -35,7 +35,7 @@ export const warehouseLocationsRouter = router({
       });
 
       return warehouses;
-    } catch (error) {
+    } catch (_error) {
       console.error("Error fetching warehouse locations:", error);
       throw new Error("Failed to fetch warehouse locations");
     }
@@ -49,7 +49,7 @@ export const warehouseLocationsRouter = router({
         radius: z.number().default(50), // km
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       try {
         // Utilise la formule de Haversine pour calculer la distance
         const warehouses = await prisma.$queryRaw`
@@ -65,7 +65,7 @@ export const warehouseLocationsRouter = router({
         `;
 
         return warehouses;
-      } catch (error) {
+      } catch (_error) {
         console.error("Error fetching nearby warehouses:", error);
         throw new Error("Failed to fetch nearby warehouses");
       }
@@ -77,7 +77,7 @@ export const warehouseLocationsRouter = router({
         id: z.string(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       try {
         const warehouse = await prisma.warehouse.findUnique({
           where: {
@@ -106,7 +106,7 @@ export const warehouseLocationsRouter = router({
         }
 
         return warehouse;
-      } catch (error) {
+      } catch (_error) {
         console.error("Error fetching warehouse details:", error);
         throw new Error("Failed to fetch warehouse details");
       }

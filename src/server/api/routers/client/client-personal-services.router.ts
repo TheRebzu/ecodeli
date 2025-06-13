@@ -90,8 +90,8 @@ export const clientPersonalServicesRouter = router({
    */
   createServiceRequest: protectedProcedure
     .input(createPersonalServiceRequestSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -167,7 +167,7 @@ export const clientPersonalServicesRouter = router({
           },
           message: "Demande de service créée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -181,8 +181,8 @@ export const clientPersonalServicesRouter = router({
    */
   getMyServiceRequests: protectedProcedure
     .input(serviceFiltersSchema.optional())
-    .query(async ({ ctx, input = {} }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input = {} }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -280,7 +280,7 @@ export const clientPersonalServicesRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -294,8 +294,8 @@ export const clientPersonalServicesRouter = router({
    */
   getServiceRequestById: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -395,7 +395,7 @@ export const clientPersonalServicesRouter = router({
             serviceTypeLabel: getServiceTypeLabel(serviceRequest.serviceType),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -409,8 +409,8 @@ export const clientPersonalServicesRouter = router({
    */
   updateServiceRequest: protectedProcedure
     .input(updateServiceRequestSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -454,7 +454,7 @@ export const clientPersonalServicesRouter = router({
         }
 
         // Préparer les données de mise à jour
-        const { id, ...updateData } = input;
+        const { id: _id, ...updateData } = input;
 
         // Mettre à jour la demande
         const updatedRequest = await ctx.db.personalServiceRequest.update({
@@ -473,7 +473,7 @@ export const clientPersonalServicesRouter = router({
           },
           message: "Demande mise à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -492,8 +492,8 @@ export const clientPersonalServicesRouter = router({
         notes: z.string().max(500).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -611,7 +611,7 @@ export const clientPersonalServicesRouter = router({
           data: result,
           message: "Proposition acceptée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -630,8 +630,8 @@ export const clientPersonalServicesRouter = router({
         reason: z.string().min(10).max(500),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -716,7 +716,7 @@ export const clientPersonalServicesRouter = router({
           data: cancelledRequest,
           message: "Demande annulée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -730,8 +730,8 @@ export const clientPersonalServicesRouter = router({
    */
   rateService: protectedProcedure
     .input(rateServiceSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -835,7 +835,7 @@ export const clientPersonalServicesRouter = router({
           data: review,
           message: "Évaluation enregistrée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -847,7 +847,7 @@ export const clientPersonalServicesRouter = router({
   /**
    * Obtenir les types de services disponibles
    */
-  getAvailableServiceTypes: protectedProcedure.query(async ({ ctx }) => {
+  getAvailableServiceTypes: protectedProcedure.query(async ({ _ctx }) => {
     const serviceTypes = [
       {
         type: "PERSON_TRANSPORT",

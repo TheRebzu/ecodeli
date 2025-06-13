@@ -67,8 +67,8 @@ export const delivererDocumentsRouter = router({
    */
   uploadDocument: protectedProcedure
     .input(uploadDocumentSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -141,7 +141,7 @@ export const delivererDocumentsRouter = router({
         });
 
         // Mettre � jour le statut de v�rification du livreur
-        await updateDelivererVerificationStatus(user.id, ctx.db);
+        await updateDelivererVerificationStatus(user.id, _ctx.db);
 
         // TODO: Envoyer notification aux admins pour r�vision
 
@@ -151,7 +151,7 @@ export const delivererDocumentsRouter = router({
           message:
             "Document t�l�charg� avec succ�s. Il sera examin� par nos �quipes.",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -165,8 +165,8 @@ export const delivererDocumentsRouter = router({
    */
   getMyDocuments: protectedProcedure
     .input(documentFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -214,7 +214,7 @@ export const delivererDocumentsRouter = router({
         const totalCount = await ctx.db.document.count({ where });
 
         // Obtenir les exigences de documents pour ce livreur
-        const requirements = await getDocumentRequirements(user.id, ctx.db);
+        const requirements = await getDocumentRequirements(user.id, _ctx.db);
 
         return {
           success: true,
@@ -227,7 +227,7 @@ export const delivererDocumentsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la r�cup�ration des documents",
@@ -245,8 +245,8 @@ export const delivererDocumentsRouter = router({
         newDocument: uploadDocumentSchema,
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -328,7 +328,7 @@ export const delivererDocumentsRouter = router({
           document: newDocument,
           message: "Document remplac� avec succ�s",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -340,8 +340,8 @@ export const delivererDocumentsRouter = router({
   /**
    * Obtenir le statut de v�rification global
    */
-  getVerificationStatus: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getVerificationStatus: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "DELIVERER") {
       throw new TRPCError({
@@ -381,7 +381,7 @@ export const delivererDocumentsRouter = router({
       }
 
       // Calculer le statut global
-      const requirements = await getDocumentRequirements(user.id, ctx.db);
+      const requirements = await getDocumentRequirements(user.id, _ctx.db);
       const documentStatus = calculateDocumentCompletionStatus(
         deliverer.user.documents,
         requirements,
@@ -411,7 +411,7 @@ export const delivererDocumentsRouter = router({
           ),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -434,7 +434,7 @@ export const delivererDocumentsRouter = router({
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const where: any = {
           status: "PENDING",
@@ -480,7 +480,7 @@ export const delivererDocumentsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la r�cup�ration des documents",
@@ -493,7 +493,7 @@ export const delivererDocumentsRouter = router({
    */
   verifyDocument: adminProcedure
     .input(verifyDocumentSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const document = await ctx.db.document.findUnique({
           where: { id: input.documentId },
@@ -539,7 +539,7 @@ export const delivererDocumentsRouter = router({
           data: {
             status: input.status,
             reviewNotes: input.reviewNotes,
-            reviewedByAdminId: ctx.session.user.id,
+            reviewedByAdminId: _ctx.session.user.id,
             reviewedAt: new Date(),
             metadata: {
               requiresResubmission: input.requiresResubmission,
@@ -549,7 +549,7 @@ export const delivererDocumentsRouter = router({
         });
 
         // Mettre � jour le statut global du livreur
-        await updateDelivererVerificationStatus(document.userId, ctx.db);
+        await updateDelivererVerificationStatus(document.userId, _ctx.db);
 
         // TODO: Envoyer notification au livreur
 
@@ -558,7 +558,7 @@ export const delivererDocumentsRouter = router({
           document: updatedDocument,
           message: `Document ${input.status === "VERIFIED" ? "approuv�" : "rejet�"} avec succ�s`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -572,7 +572,7 @@ export const delivererDocumentsRouter = router({
    */
   setDocumentRequirements: adminProcedure
     .input(documentRequirementsSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // V�rifier que le livreur existe
         const deliverer = await ctx.db.deliverer.findUnique({
@@ -593,7 +593,7 @@ export const delivererDocumentsRouter = router({
           success: true,
           message: "Exigences d�finies avec succ�s",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

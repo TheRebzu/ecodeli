@@ -1,9 +1,9 @@
 import { router, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-// import { contractRouter } from '../../../../app/api/auth/[...nextauth]/route'; // Import incorrect
 import { billingService } from "@/server/services/shared/billing.service";
 import { invoiceService } from "@/server/services/shared/invoice.service";
+import { merchantDashboardRouter } from "./merchant-dashboard.router";
 
 // Définir l'interface pour les données de livraison
 interface DeliveryWithClient {
@@ -21,6 +21,330 @@ interface DeliveryWithClient {
 }
 
 export const merchantRouter = router({
+  // Récupération des commandes du marchand
+  getOrders: protectedProcedure
+    .input(
+      z.object({
+        status: z.string().optional(),
+        searchTerm: z.string().optional(),
+        paymentStatus: z.string().optional(),
+        page: z.number().default(1),
+        limit: z.number().default(10),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Vérifier si l'utilisateur est un marchand
+      const merchant = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { merchant: true },
+      });
+
+      if (!merchant?.merchant) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès refusé - Marchand uniquement",
+        });
+      }
+
+      const where = {
+        merchantId: merchant.merchant.id,
+        ...(input.status && { status: input.status }),
+        ...(input.paymentStatus && { paymentStatus: input.paymentStatus }),
+        ...(input.searchTerm && {
+          OR: [
+            { orderNumber: { contains: input.searchTerm, mode: "insensitive" } },
+            { customerName: { contains: input.searchTerm, mode: "insensitive" } },
+            { customerEmail: { contains: input.searchTerm, mode: "insensitive" } },
+          ],
+        }),
+      };
+
+      const [orders, total] = await Promise.all([
+        ctx.db.order.findMany({
+          where,
+          include: {
+            customer: {
+              include: { user: true }
+            },
+            items: true,
+          },
+          orderBy: { createdAt: "desc" },
+          skip: (input.page - 1) * input.limit,
+          take: input.limit,
+        }),
+        ctx.db.order.count({ where }),
+      ]);
+
+      return {
+        orders: orders.map(order => ({
+          id: order.id,
+          orderNumber: order.orderNumber || `ORD-${order.id.slice(-6)}`,
+          status: order.status,
+          customerName: order.customer?.user?.name || order.customerName || "Client",
+          customerEmail: order.customer?.user?.email || order.customerEmail || "",
+          totalAmount: order.totalAmount || 0,
+          itemCount: order.items?.length || 0,
+          paymentStatus: order.paymentStatus || "PENDING",
+          deliveryAddress: order.deliveryAddress || "",
+          estimatedDelivery: order.estimatedDelivery,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+        })),
+        total,
+        page: input.page,
+        totalPages: Math.ceil(total / input.limit),
+      };
+    }),
+
+  // Statistiques des commandes
+  getOrderStats: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const merchant = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { merchant: true },
+    });
+
+    if (!merchant?.merchant) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Accès refusé - Marchand uniquement",
+      });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [totalOrders, pendingOrders, confirmedOrders, revenueData, todayOrders] = await Promise.all([
+      ctx.db.order.count({
+        where: { merchantId: merchant.merchant.id },
+      }),
+      ctx.db.order.count({
+        where: { merchantId: merchant.merchant.id, status: "PENDING" },
+      }),
+      ctx.db.order.count({
+        where: { merchantId: merchant.merchant.id, status: "CONFIRMED" },
+      }),
+      ctx.db.order.aggregate({
+        where: { 
+          merchantId: merchant.merchant.id,
+          status: { in: ["CONFIRMED", "DELIVERED"] }
+        },
+        _sum: { totalAmount: true },
+      }),
+      ctx.db.order.count({
+        where: { 
+          merchantId: merchant.merchant.id,
+          createdAt: { gte: today }
+        },
+      }),
+    ]);
+
+    return {
+      totalOrders,
+      pendingOrders,
+      confirmedOrders,
+      totalRevenue: revenueData._sum.totalAmount || 0,
+      todayOrders,
+    };
+  }),
+
+  // Statistiques avancées du marchand
+  getStats: protectedProcedure
+    .input(
+      z.object({
+        period: z.number().default(30),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const merchant = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { merchant: true },
+      });
+
+      if (!merchant?.merchant) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès refusé - Marchand uniquement",
+        });
+      }
+
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - input.period);
+
+      // Récupérer les commandes de la période
+      const orders = await ctx.db.order.findMany({
+        where: {
+          merchantId: merchant.merchant.id,
+          createdAt: { gte: startDate },
+          status: { in: ["CONFIRMED", "DELIVERED"] }
+        },
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  category: true
+                }
+              }
+            }
+          }
+        },
+      });
+
+      // Calculer les métriques overview
+      const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+      const totalOrders = orders.length;
+      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+      
+      const uniqueCustomers = new Set(orders.map(order => order.customerId)).size;
+      
+      // Simuler quelques métriques
+      const conversionRate = 12.5;
+      const returnRate = 2.1;
+      const averageRating = 4.7;
+
+      // Top produits
+      const productSales: Record<string, { name: string; sales: number; revenue: number }> = {};
+      orders.forEach(order => {
+        order.items?.forEach(item => {
+          const productId = item.productId;
+          const productName = item.product?.name || "Produit";
+          const quantity = item.quantity || 1;
+          const price = item.price || 0;
+          
+          if (!productSales[productId]) {
+            productSales[productId] = { name: productName, sales: 0, revenue: 0 };
+          }
+          productSales[productId].sales += quantity;
+          productSales[productId].revenue += price * quantity;
+        });
+      });
+
+      const topProducts = Object.entries(productSales)
+        .map(([id, data]) => ({ id, ...data }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5);
+
+      // Tendances quotidiennes
+      const dailyStats: Record<string, { revenue: number; orders: number; customers: Set<string> }> = {};
+      
+      for (let i = 0; i < input.period; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().split('T')[0];
+        dailyStats[dateKey] = { revenue: 0, orders: 0, customers: new Set() };
+      }
+
+      orders.forEach(order => {
+        const dateKey = order.createdAt.toISOString().split('T')[0];
+        if (dailyStats[dateKey]) {
+          dailyStats[dateKey].revenue += order.totalAmount || 0;
+          dailyStats[dateKey].orders += 1;
+          if (order.customerId) {
+            dailyStats[dateKey].customers.add(order.customerId);
+          }
+        }
+      });
+
+      const daily = Object.entries(dailyStats)
+        .map(([date, stats]) => ({
+          date,
+          revenue: stats.revenue,
+          orders: stats.orders,
+          customers: stats.customers.size,
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      // Catégories
+      const categoryRevenue: Record<string, number> = {};
+      orders.forEach(order => {
+        order.items?.forEach(item => {
+          const categoryName = item.product?.category?.name || "Autres";
+          const revenue = (item.price || 0) * (item.quantity || 1);
+          categoryRevenue[categoryName] = (categoryRevenue[categoryName] || 0) + revenue;
+        });
+      });
+
+      const categories = Object.entries(categoryRevenue).map(([name, value], index) => ({
+        name,
+        value,
+        color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+      }));
+
+      return {
+        overview: {
+          totalRevenue,
+          totalOrders,
+          averageOrderValue,
+          totalCustomers: uniqueCustomers,
+          conversionRate,
+          returnRate,
+          averageRating,
+          topProducts,
+        },
+        trends: {
+          daily,
+          monthly: [], // À implémenter si nécessaire
+        },
+        categories,
+      };
+    }),
+
+  // Mise à jour du statut d'une commande
+  updateOrderStatus: protectedProcedure
+    .input(
+      z.object({
+        orderId: z.string(),
+        status: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const merchant = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { merchant: true },
+      });
+
+      if (!merchant?.merchant) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Accès refusé - Marchand uniquement",
+        });
+      }
+
+      // Vérifier que la commande appartient au marchand
+      const order = await ctx.db.order.findFirst({
+        where: {
+          id: input.orderId,
+          merchantId: merchant.merchant.id,
+        },
+      });
+
+      if (!order) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Commande non trouvée",
+        });
+      }
+
+      // Mettre à jour le statut
+      const updatedOrder = await ctx.db.order.update({
+        where: { id: input.orderId },
+        data: { 
+          status: input.status,
+          updatedAt: new Date(),
+        },
+      });
+
+      return { success: true, order: updatedOrder };
+    }),
+
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
@@ -71,7 +395,7 @@ export const merchantRouter = router({
         websiteUrl: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un commerçant
@@ -88,7 +412,7 @@ export const merchantRouter = router({
       }
 
       // Extraire les données à mettre à jour
-      const { name, phoneNumber, ...merchantData } = input;
+      const { name: _name, phoneNumber: _phoneNumber, ...merchantData } = input;
 
       // Mise à jour des données utilisateur
       if (name || phoneNumber) {
@@ -126,7 +450,7 @@ export const merchantRouter = router({
       };
     }),
 
-  getDeliveries: protectedProcedure.query(async ({ ctx }) => {
+  getDeliveries: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier si l'utilisateur est un commerçant
@@ -172,7 +496,7 @@ export const merchantRouter = router({
 
   // ===== NOUVEAU: TABLEAU DE BORD =====
   dashboard: router({
-    getStats: protectedProcedure.query(async ({ ctx }) => {
+    getStats: protectedProcedure.query(async ({ _ctx }) => {
       const userId = ctx.session.user.id;
 
       const merchant = await ctx.db.merchant.findUnique({
@@ -190,7 +514,7 @@ export const merchantRouter = router({
       // Statistiques basiques (à adapter selon votre modèle de données)
       const [totalDeliveries, activeDeliveries, pendingPayments] =
         await Promise.all([
-          ctx.db.delivery.count({
+          _ctx.db.delivery.count({
             where: { merchantId: merchant.id },
           }),
           ctx.db.delivery.count({
@@ -215,7 +539,7 @@ export const merchantRouter = router({
       };
     }),
 
-    getRecentActivity: protectedProcedure.query(async ({ ctx }) => {
+    getRecentActivity: protectedProcedure.query(async ({ _ctx }) => {
       const userId = ctx.session.user.id;
 
       // Récupérer les activités récentes (à adapter)
@@ -250,7 +574,7 @@ export const merchantRouter = router({
           status: z.string().optional(),
         }),
       )
-      .query(async ({ ctx, input }) => {
+      .query(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         return await invoiceService.listInvoices({
@@ -261,7 +585,7 @@ export const merchantRouter = router({
         });
       }),
 
-    getBillingStats: protectedProcedure.query(async ({ ctx }) => {
+    getBillingStats: protectedProcedure.query(async ({ _ctx }) => {
       const userId = ctx.session.user.id;
 
       const merchant = await ctx.db.merchant.findUnique({
@@ -304,7 +628,7 @@ export const merchantRouter = router({
           notes: z.string().optional(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         return await invoiceService.createInvoice({
@@ -322,7 +646,7 @@ export const merchantRouter = router({
           period: z.enum(["MONTH", "QUARTER", "YEAR"]).default("MONTH"),
         }),
       )
-      .query(async ({ ctx, input }) => {
+      .query(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         const merchant = await ctx.db.merchant.findUnique({
@@ -349,7 +673,7 @@ export const merchantRouter = router({
           description: z.string().optional(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         const merchant = await ctx.db.merchant.findUnique({
@@ -379,7 +703,7 @@ export const merchantRouter = router({
           limit: z.number().int().positive().max(50).default(10),
         }),
       )
-      .query(async ({ ctx, input }) => {
+      .query(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         const merchant = await ctx.db.merchant.findUnique({
@@ -423,7 +747,7 @@ export const merchantRouter = router({
           endDate: z.date().optional(),
         }),
       )
-      .query(async ({ ctx, input }) => {
+      .query(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         // Utilise invoiceService.listInvoices() existant
@@ -442,7 +766,7 @@ export const merchantRouter = router({
      */
     getById: protectedProcedure
       .input(z.object({ invoiceId: z.string() }))
-      .query(async ({ ctx, input }) => {
+      .query(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         // Vérifier que la facture appartient au merchant
@@ -471,7 +795,7 @@ export const merchantRouter = router({
      */
     generatePdf: protectedProcedure
       .input(z.object({ invoiceId: z.string() }))
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         // Vérifier que la facture appartient au merchant
@@ -503,7 +827,7 @@ export const merchantRouter = router({
           paymentId: z.string().optional(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         // Vérifier que la facture appartient au merchant
@@ -544,7 +868,7 @@ export const merchantRouter = router({
           limit: z.number().int().positive().max(50).default(10),
         }),
       )
-      .query(async ({ ctx, input }) => {
+      .query(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         const merchant = await ctx.db.merchant.findUnique({
@@ -588,7 +912,7 @@ export const merchantRouter = router({
           description: z.string().optional(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         // Créer l'enregistrement du document
@@ -617,7 +941,7 @@ export const merchantRouter = router({
           period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
         }),
       )
-      .query(async ({ ctx, input }) => {
+      .query(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         const merchant = await ctx.db.merchant.findUnique({
@@ -645,7 +969,7 @@ export const merchantRouter = router({
 
         const [deliveriesCount, totalRevenue, averageRating] =
           await Promise.all([
-            ctx.db.delivery.count({
+            _ctx.db.delivery.count({
               where: {
                 merchantId: merchant.id,
                 createdAt: { gte: startDate },
@@ -678,4 +1002,7 @@ export const merchantRouter = router({
         };
       }),
   }),
+
+  // Dashboard router
+  dashboard: merchantDashboardRouter,
 });

@@ -212,7 +212,7 @@ export const delivererAdminService = {
 
       console.log("📊 Stats livreurs:", result);
       return result;
-    } catch (error) {
+    } catch (_error) {
       console.error("❌ Erreur dans getDeliverersStats:", error);
       // Retourner des valeurs par défaut en cas d'erreur
       return {

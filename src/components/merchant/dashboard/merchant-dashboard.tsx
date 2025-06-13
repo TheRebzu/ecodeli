@@ -399,16 +399,17 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
     data: stats,
     isLoading: isLoadingStats,
     refetch: refetchStats,
-  } = api.merchant.getDashboardStats.useQuery();
+  } = api.merchant.dashboard.getDashboardStats.useQuery();
 
   const { data: recentOrders, isLoading: isLoadingOrders } =
-    api.merchant.getRecentOrders.useQuery({
+    api.merchant.dashboard.getRecentOrders.useQuery({
       limit: 5,
     });
 
-  const { data: stockAlerts } = api.merchant.getStockAlerts.useQuery();
+  const { data: stockAlerts } =
+    api.merchant.dashboard.getStockAlerts.useQuery();
 
-  const { data: salesChart } = api.merchant.getSalesChart.useQuery({
+  const { data: salesChart } = api.merchant.dashboard.getSalesChart.useQuery({
     period: "week",
   });
 

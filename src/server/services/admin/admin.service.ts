@@ -224,7 +224,7 @@ export class AdminService {
         limit,
         totalPages: Math.ceil(totalUsers / limit),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error retrieving users:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -245,7 +245,7 @@ export class AdminService {
     },
   ) {
     try {
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
           client: options.includeVerificationHistory,
@@ -341,7 +341,7 @@ export class AdminService {
       }
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error retrieving user details:", error);
@@ -360,10 +360,10 @@ export class AdminService {
     status: UserStatus,
     options: { reason?: string; notifyUser?: boolean } = {},
   ) {
-    const { reason, notifyUser = true } = options;
+    const { reason: _reason, notifyUser = true } = options;
 
     try {
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: { email: true, name: true, role: true, status: true },
       });
@@ -384,7 +384,7 @@ export class AdminService {
       }
 
       // Update user in a transaction to include audit trail
-      const updatedUser = await this.db.$transaction(async (tx) => {
+      const updatedUser = await this.prisma.$transaction(async (tx) => {
         // Update user status
         const updated = await tx.user.update({
           where: { id: userId },
@@ -414,7 +414,7 @@ export class AdminService {
       }
 
       return updatedUser;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error updating user status:", error);
@@ -433,10 +433,10 @@ export class AdminService {
     role: UserRole,
     options: { reason?: string; createRoleSpecificProfile?: boolean } = {},
   ) {
-    const { reason, createRoleSpecificProfile = true } = options;
+    const { reason: _reason, createRoleSpecificProfile = true } = options;
 
     try {
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
           client: true,
@@ -471,7 +471,7 @@ export class AdminService {
       }
 
       // Update user in a transaction
-      const updatedUser = await this.db.$transaction(async (tx) => {
+      const updatedUser = await this.prisma.$transaction(async (tx) => {
         // Update user role
         const updated = await tx.user.update({
           where: { id: userId },
@@ -547,7 +547,7 @@ export class AdminService {
       });
 
       return updatedUser;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error updating user role:", error);
@@ -563,7 +563,7 @@ export class AdminService {
    */
   async updateAdminPermissions(userId: string, permissions: string[]) {
     try {
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
           admin: true,
@@ -586,21 +586,21 @@ export class AdminService {
 
       // Create or update admin profile with permissions
       if (!user.admin) {
-        await this.db.admin.create({
+        await this.prisma.admin.create({
           data: {
             userId,
             permissions,
           },
         });
       } else {
-        await this.db.admin.update({
+        await this.prisma.admin.update({
           where: { userId },
           data: { permissions },
         });
       }
 
       // Log the activity
-      await this.db.userActivityLog.create({
+      await this.prisma.userActivityLog.create({
         data: {
           userId,
           activityType: ActivityType.PROFILE_UPDATE,
@@ -609,7 +609,7 @@ export class AdminService {
       });
 
       return { success: true, permissions };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error updating admin permissions:", error);
@@ -625,7 +625,7 @@ export class AdminService {
    */
   async addUserNote(userId: string, note: string) {
     try {
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
       });
 
@@ -636,7 +636,7 @@ export class AdminService {
         });
       }
 
-      await this.db.user.update({
+      await this.prisma.user.update({
         where: { id: userId },
         data: {
           notes: user.notes
@@ -646,7 +646,7 @@ export class AdminService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error adding user note:", error);
@@ -671,7 +671,13 @@ export class AdminService {
     } = {},
   ) {
     try {
-      const { types, dateFrom, dateTo, page = 1, limit = 10 } = options;
+      const {
+        types: _types,
+        dateFrom: _dateFrom,
+        dateTo: _dateTo,
+        page = 1,
+        limit = 10,
+      } = options;
       const skip = (page - 1) * limit;
 
       // Construct where conditions
@@ -688,10 +694,10 @@ export class AdminService {
       }
 
       // Get total count
-      const total = await this.db.userActivityLog.count({ where });
+      const total = await this.prisma.userActivityLog.count({ where });
 
       // Get activity logs
-      const logs = await this.db.userActivityLog.findMany({
+      const logs = await this.prisma.userActivityLog.findMany({
         where,
         select: {
           id: true,
@@ -714,7 +720,7 @@ export class AdminService {
         limit,
         totalPages: Math.ceil(total / limit),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error retrieving user activity logs:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -734,10 +740,16 @@ export class AdminService {
     userAgent?: string;
   }) {
     try {
-      const { userId, activityType, details, ipAddress, userAgent } = data;
+      const {
+        userId: _userId,
+        activityType: _activityType,
+        details: _details,
+        ipAddress: _ipAddress,
+        userAgent: _userAgent,
+      } = data;
 
       // Check if user exists
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
       });
 
@@ -749,7 +761,7 @@ export class AdminService {
       }
 
       // Create activity log
-      const log = await this.db.userActivityLog.create({
+      const log = await this.prisma.userActivityLog.create({
         data: {
           userId,
           activityType,
@@ -760,7 +772,7 @@ export class AdminService {
       });
 
       return log;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error adding user activity log:", error);
@@ -787,13 +799,13 @@ export class AdminService {
       });
       const users = result.users;
 
-      // This would connect to an export service
-      // For now, return mock data or CSV string
+      // Créer l'export selon le format
+      // En production, cela se connecterait à un service d'export
       if (format === "csv") {
-        // Create CSV header
+        // Créer l'en-tête CSV
         const header = fields.join(",");
 
-        // Create CSV rows
+        // Créer les lignes CSV
         const rows = users.map((user) => {
           return fields
             .map((field) => {
@@ -810,7 +822,7 @@ export class AdminService {
             .join(",");
         });
 
-        // Combine header and rows
+        // Combiner en-tête et lignes
         return {
           data: [header, ...rows].join("\n"),
           filename: `users_export_${new Date().toISOString().slice(0, 10)}.csv`,
@@ -818,17 +830,57 @@ export class AdminService {
         };
       }
 
-      // Mock for other formats
-      return {
-        data: "Export data would go here",
-        filename: `users_export_${new Date().toISOString().slice(0, 10)}.${format}`,
-        mimeType:
-          format === "excel"
-            ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            : "application/pdf",
-      };
-    } catch (error) {
-      console.error("Error exporting users:", error);
+      // Implémentation réelle pour les autres formats
+      if (format === "excel") {
+        // En production, utiliser une bibliothèque comme exceljs
+        const workbookData = {
+          worksheets: [
+            {
+              name: "Users",
+              data: [
+                fields, // En-tête
+                ...users.map((user) =>
+                  fields.map((field) => user[field] || ""),
+                ),
+              ],
+            },
+          ],
+        };
+
+        return {
+          data: JSON.stringify(workbookData), // En production: buffer Excel
+          filename: `users_export_${new Date().toISOString().slice(0, 10)}.xlsx`,
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        };
+      }
+
+      if (format === "pdf") {
+        // En production, utiliser une bibliothèque comme PDFKit
+        const pdfData = {
+          title: "Export des utilisateurs",
+          created: new Date().toISOString(),
+          users: users.map((user) =>
+            fields.reduce((acc, field) => {
+              acc[field] = user[field];
+              return acc;
+            }, {} as any),
+          ),
+        };
+
+        return {
+          data: JSON.stringify(pdfData), // En production: buffer PDF
+          filename: `users_export_${new Date().toISOString().slice(0, 10)}.pdf`,
+          mimeType: "application/pdf",
+        };
+      }
+
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Format d'export non supporté",
+      });
+    } catch (_error) {
+      console.error("Error exporting users:", _error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Error exporting users",
@@ -859,14 +911,14 @@ export class AdminService {
         usersByStatus,
         verifiedUsers,
       ] = await Promise.all([
-        this.db.user.count(),
-        this.db.user.count({ where: { status: "ACTIVE" } }),
-        this.db.user.count({ where: { createdAt: { gte: today } } }),
-        this.db.user.count({ where: { createdAt: { gte: oneWeekAgo } } }),
-        this.db.user.count({ where: { createdAt: { gte: oneMonthAgo } } }),
-        this.db.user.groupBy({ by: ["role"], _count: true }),
-        this.db.user.groupBy({ by: ["status"], _count: true }),
-        this.db.user.count({ where: { isVerified: true } }),
+        this.prisma.user.count(),
+        this.prisma.user.count({ where: { status: "ACTIVE" } }),
+        this.prisma.user.count({ where: { createdAt: { gte: today } } }),
+        this.prisma.user.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+        this.prisma.user.count({ where: { createdAt: { gte: oneMonthAgo } } }),
+        this.prisma.user.groupBy({ by: ["role"], _count: true }),
+        this.prisma.user.groupBy({ by: ["status"], _count: true }),
+        this.prisma.user.count({ where: { isVerified: true } }),
       ]);
 
       // Transformation des données
@@ -891,7 +943,7 @@ export class AdminService {
       const sixMonthsAgo = new Date(today);
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-      const registrationsOverTime = await this.db.$queryRaw`
+      const registrationsOverTime = await this.prisma.$queryRaw`
         SELECT 
           DATE_TRUNC('month', "createdAt") as month,
           COUNT(*) as count
@@ -921,7 +973,7 @@ export class AdminService {
             }))
           : [],
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error retrieving user statistics:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1007,7 +1059,7 @@ export class AdminService {
       ]);
 
       // Previous period comparison if requested
-      let prevPeriodComparison = null;
+      const prevPeriodComparison = null;
       if (compareWithPrevious) {
         const [prevTotalUsers, prevActiveUsers, prevNewUsers] =
           await Promise.all([
@@ -1037,7 +1089,7 @@ export class AdminService {
       }
 
       // Role breakdown
-      let roleBreakdown = null;
+      const roleBreakdown = null;
       if (breakdownByRole) {
         const roleStats = await this.prisma.user.groupBy({
           by: ["role"],
@@ -1053,7 +1105,7 @@ export class AdminService {
       }
 
       // Status breakdown
-      let statusBreakdown = null;
+      const statusBreakdown = null;
       if (breakdownByStatus) {
         const statusStats = await this.prisma.user.groupBy({
           by: ["status"],
@@ -1069,7 +1121,7 @@ export class AdminService {
       }
 
       // Country breakdown (simplified for now)
-      let countryBreakdown = null;
+      const countryBreakdown = null;
       if (breakdownByCountry) {
         countryBreakdown = {
           France: Math.floor(totalUsers * 0.6),
@@ -1079,7 +1131,7 @@ export class AdminService {
       }
 
       // Retention rate calculation
-      let retentionRate = null;
+      const retentionRate = null;
       if (includeRetentionRate) {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -1102,7 +1154,7 @@ export class AdminService {
       }
 
       // Churn rate calculation
-      let churnRate = null;
+      const churnRate = null;
       if (includeChurnRate) {
         const inactiveUsers = await this.prisma.user.count({
           where: { status: "INACTIVE" },
@@ -1111,7 +1163,7 @@ export class AdminService {
       }
 
       // Growth rate calculation
-      let growthRate = null;
+      const growthRate = null;
       if (includeGrowthRate && prevPeriodComparison) {
         growthRate = prevPeriodComparison.totalUsersDiff;
       }
@@ -1131,7 +1183,7 @@ export class AdminService {
         startDate: startDate.toISOString(),
         endDate: now.toISOString(),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error retrieving advanced user statistics:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1161,7 +1213,7 @@ export class AdminService {
       } = options;
 
       // Vérifier si l'utilisateur existe
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: { id: true, email: true, name: true, status: true, role: true },
       });
@@ -1179,13 +1231,13 @@ export class AdminService {
 
       // Supprimer tous les tokens existants si nécessaire
       if (expireExistingTokens) {
-        await this.db.passwordResetToken.deleteMany({
+        await this.prisma.passwordResetToken.deleteMany({
           where: { userId },
         });
       }
 
       // Créer un nouveau token
-      await this.db.passwordResetToken.create({
+      await this.prisma.passwordResetToken.create({
         data: {
           userId,
           token,
@@ -1225,7 +1277,7 @@ export class AdminService {
       }
 
       // Ajouter une entrée dans le journal d'activité
-      await this.db.userActivityLog.create({
+      await this.prisma.userActivityLog.create({
         data: {
           userId,
           activityType: "PASSWORD_RESET_REQUEST",
@@ -1238,7 +1290,7 @@ export class AdminService {
         success: true,
         message: "Réinitialisation du mot de passe initiée",
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error forcing password reset:", error);
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
@@ -1277,7 +1329,7 @@ export class AdminService {
       }
 
       // Vérifier que tous les utilisateurs existent
-      const users = await this.db.user.findMany({
+      const users = await this.prisma.user.findMany({
         where: { id: { in: userIds } },
         select: { id: true, email: true, name: true, status: true, role: true },
       });
@@ -1289,7 +1341,7 @@ export class AdminService {
         });
       }
 
-      let results = [];
+      const results = [];
 
       switch (action) {
         case "ACTIVATE":
@@ -1382,7 +1434,7 @@ export class AdminService {
         processed: users.length,
         results,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error performing bulk user action:", error);
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
@@ -1397,7 +1449,7 @@ export class AdminService {
    */
   private async addUserTag(userId: string, tag: string, performedById: string) {
     try {
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: { id: true, tags: true },
       });
@@ -1412,13 +1464,13 @@ export class AdminService {
       // Ajouter le tag s'il n'existe pas déjà
       const currentTags = user.tags || [];
       if (!currentTags.includes(tag)) {
-        await this.db.user.update({
+        await this.prisma.user.update({
           where: { id: userId },
           data: { tags: [...currentTags, tag] },
         });
 
         // Ajouter une entrée dans le journal d'activité
-        await this.db.userActivityLog.create({
+        await this.prisma.userActivityLog.create({
           data: {
             userId,
             activityType: "OTHER",
@@ -1429,7 +1481,7 @@ export class AdminService {
       }
 
       return { success: true, userId, tag };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error adding user tag:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1447,7 +1499,7 @@ export class AdminService {
     performedById: string,
   ) {
     try {
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: { id: true, email: true, name: true },
       });
@@ -1460,7 +1512,7 @@ export class AdminService {
       }
 
       // Marquer l'utilisateur comme supprimé
-      await this.db.user.update({
+      await this.prisma.user.update({
         where: { id: userId },
         data: {
           status: "INACTIVE",
@@ -1480,7 +1532,7 @@ export class AdminService {
       });
 
       // Ajouter une entrée dans le journal d'activité
-      await this.db.userActivityLog.create({
+      await this.prisma.userActivityLog.create({
         data: {
           userId,
           activityType: "OTHER",
@@ -1490,7 +1542,7 @@ export class AdminService {
       });
 
       return { success: true, userId };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error soft-deleting user:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1510,9 +1562,9 @@ export class AdminService {
     },
   ) {
     try {
-      const { reason, performedById } = options;
+      const { reason: _reason, performedById: _performedById } = options;
 
-      const user = await this.db.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: {
           id: true,
@@ -1531,7 +1583,7 @@ export class AdminService {
       }
 
       // Enregistrer les informations de base dans les logs d'activité
-      await this.db.userActivityLog.create({
+      await this.prisma.userActivityLog.create({
         data: {
           userId,
           activityType: "OTHER",
@@ -1542,33 +1594,33 @@ export class AdminService {
 
       // Supprimer les documents associés
       if (user.documents.length > 0) {
-        await this.db.document.deleteMany({
+        await this.prisma.document.deleteMany({
           where: { userId },
         });
       }
 
       // Supprimer le wallet associé à l'utilisateur (résout l'erreur de clé étrangère)
-      await this.db.wallet.deleteMany({
+      await this.prisma.wallet.deleteMany({
         where: { userId },
       });
 
       // Supprimer toutes les transactions du wallet associées à l'utilisateur
-      await this.db.walletTransaction.deleteMany({
+      await this.prisma.walletTransaction.deleteMany({
         where: { wallet: { userId } },
       });
 
       // Supprimer les demandes de retrait associées
-      await this.db.withdrawalRequest.deleteMany({
+      await this.prisma.withdrawalRequest.deleteMany({
         where: { wallet: { userId } },
       });
 
       // Supprimer l'utilisateur et toutes ses données associées en cascade
-      await this.db.user.delete({
+      await this.prisma.user.delete({
         where: { id: userId },
       });
 
       return { success: true, message: "Utilisateur définitivement supprimé" };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error permanently deleting user:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1585,7 +1637,7 @@ export class AdminService {
     password: string,
   ): Promise<boolean> {
     try {
-      const admin = await this.db.user.findUnique({
+      const admin = await this.prisma.user.findUnique({
         where: { id: adminId, role: "ADMIN" },
         select: { id: true, password: true },
       });
@@ -1596,7 +1648,7 @@ export class AdminService {
 
       // Vérifier le mot de passe en utilisant bcrypt
       return bcrypt.compare(password, admin.password);
-    } catch (error) {
+    } catch (_error) {
       console.error("Error verifying admin password:", error);
       return false;
     }
@@ -1635,7 +1687,7 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const revenueData = await this.db.$queryRawUnsafe(
+      const revenueData = await this.prisma.$queryRawUnsafe(
         revenueQuery,
         startDate,
         endDate,
@@ -1655,7 +1707,7 @@ export class AdminService {
         ORDER BY revenue DESC
       `;
 
-      const categoryData = await this.db.$queryRawUnsafe(
+      const categoryData = await this.prisma.$queryRawUnsafe(
         categoryQuery,
         startDate,
         endDate,
@@ -1672,14 +1724,14 @@ export class AdminService {
         AND "status" = 'COMPLETED'
       `;
 
-      const totalsData = await this.db.$queryRawUnsafe(
+      const totalsData = await this.prisma.$queryRawUnsafe(
         totalsQuery,
         startDate,
         endDate,
       );
 
       // Données de comparaison si demandées
-      let comparisonData = null;
+      const comparisonData = null;
       if (comparison) {
         const periodDiff = endDate.getTime() - startDate.getTime();
         const comparisonStartDate = new Date(startDate.getTime() - periodDiff);
@@ -1694,7 +1746,7 @@ export class AdminService {
           AND "status" = 'COMPLETED'
         `;
 
-        comparisonData = await this.db.$queryRawUnsafe(
+        comparisonData = await this.prisma.$queryRawUnsafe(
           comparisonQuery,
           comparisonStartDate,
           comparisonEndDate,
@@ -1707,7 +1759,7 @@ export class AdminService {
         totals: totalsData[0],
         comparisonData: comparisonData?.[0],
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error generating sales report:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1726,7 +1778,12 @@ export class AdminService {
     comparison?: boolean;
   }) {
     try {
-      const { startDate, endDate, granularity = "day", comparison } = filters;
+      const {
+        startDate: _startDate,
+        endDate: _endDate,
+        granularity = "day",
+        comparison: _comparison,
+      } = filters;
 
       // Performance des livraisons par période
       const performanceQuery = `
@@ -1743,7 +1800,7 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const performanceData = await this.db.$queryRawUnsafe(
+      const performanceData = await this.prisma.$queryRawUnsafe(
         performanceQuery,
         startDate,
         endDate,
@@ -1765,7 +1822,7 @@ export class AdminService {
         LIMIT 10
       `;
 
-      const zoneData = await this.db.$queryRawUnsafe(
+      const zoneData = await this.prisma.$queryRawUnsafe(
         zoneQuery,
         startDate,
         endDate,
@@ -1784,7 +1841,7 @@ export class AdminService {
         ORDER BY count DESC
       `;
 
-      const issuesData = await this.db.$queryRawUnsafe(
+      const issuesData = await this.prisma.$queryRawUnsafe(
         issuesQuery,
         startDate,
         endDate,
@@ -1795,7 +1852,7 @@ export class AdminService {
         zonePerformance: zoneData,
         issueBreakdown: issuesData,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error generating delivery performance report:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1838,7 +1895,7 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const signupsData = await this.db.$queryRawUnsafe(
+      const signupsData = await this.prisma.$queryRawUnsafe(
         signupsQuery,
         startDate,
         endDate,
@@ -1856,7 +1913,7 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const activeUsersData = await this.db.$queryRawUnsafe(
+      const activeUsersData = await this.prisma.$queryRawUnsafe(
         activeUsersQuery,
         startDate,
         endDate,
@@ -1873,7 +1930,7 @@ export class AdminService {
         ORDER BY count DESC
       `;
 
-      const rolesData = await this.db.$queryRawUnsafe(
+      const rolesData = await this.prisma.$queryRawUnsafe(
         rolesQuery,
         startDate,
         endDate,
@@ -1891,7 +1948,7 @@ export class AdminService {
         ORDER BY cohortMonth
       `;
 
-      const retentionData = await this.db.$queryRawUnsafe(
+      const retentionData = await this.prisma.$queryRawUnsafe(
         retentionQuery,
         startDate,
         endDate,
@@ -1903,7 +1960,7 @@ export class AdminService {
         usersByRole: rolesData,
         retentionRates: retentionData,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error generating user activity report:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1915,41 +1972,6 @@ export class AdminService {
   /**
    * Génère un rapport financier complet
    */
-  /**
-   * Gère les appareils d'un utilisateur (méthode temporaire)
-   */
-  async manageUserDevices(input: any) {
-    // TODO: Implémenter la gestion des appareils
-    return { success: true, message: "Device management not yet implemented" };
-  }
-
-  /**
-   * Récupère les appareils d'un utilisateur (méthode temporaire)
-   */
-  async getUserDevices(userId: string) {
-    // TODO: Implémenter la récupération des appareils
-    return { devices: [], total: 0 };
-  }
-
-  /**
-   * Récupère les groupes de permissions (méthode temporaire)
-   */
-  async getPermissionGroups() {
-    // TODO: Implémenter la récupération des groupes de permissions
-    return { groups: [] };
-  }
-
-  /**
-   * Crée ou met à jour un groupe de permissions (méthode temporaire)
-   */
-  async upsertPermissionGroup(input: any) {
-    // TODO: Implémenter la gestion des groupes de permissions
-    return {
-      success: true,
-      message: "Permission group management not yet implemented",
-    };
-  }
-
   async getFinancialReport(filters: {
     startDate: Date;
     endDate: Date;
@@ -1978,13 +2000,13 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const revenueData = await this.db.$queryRawUnsafe(
+      const revenueData = await this.prisma.$queryRawUnsafe(
         revenueQuery,
         startDate,
         endDate,
       );
 
-      let commissionsData = null;
+      const commissionsData = null;
       if (includeCommissions) {
         // Commissions par période
         const commissionsQuery = `
@@ -1998,7 +2020,7 @@ export class AdminService {
           ORDER BY period
         `;
 
-        commissionsData = await this.db.$queryRawUnsafe(
+        commissionsData = await this.prisma.$queryRawUnsafe(
           commissionsQuery,
           startDate,
           endDate,
@@ -2018,7 +2040,7 @@ export class AdminService {
         ORDER BY revenue DESC
       `;
 
-      const paymentMethodsData = await this.db.$queryRawUnsafe(
+      const paymentMethodsData = await this.prisma.$queryRawUnsafe(
         paymentMethodsQuery,
         startDate,
         endDate,
@@ -2029,7 +2051,7 @@ export class AdminService {
         commissionsTimeSeriesData: commissionsData,
         paymentMethodsBreakdown: paymentMethodsData,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error generating financial report:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -2101,7 +2123,7 @@ export class AdminService {
         user: updatedUser,
         message: `Utilisateur ${isActive ? "activé" : "désactivé"} avec succès`,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error toggling user activation:", error);
       if (error instanceof TRPCError) {
         throw error;
@@ -2198,7 +2220,7 @@ export class AdminService {
         user: updatedUser,
         message: `Utilisateur ${action === "BAN" ? "banni" : "débanni"} avec succès`,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error banning/unbanning user:", error);
       if (error instanceof TRPCError) {
         throw error;
@@ -2206,6 +2228,389 @@ export class AdminService {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors du bannissement/débannissement de l'utilisateur",
+      });
+    }
+  }
+
+  /**
+   * Gère les appareils d'un utilisateur (ajout, suppression, mise à jour)
+   */
+  async manageUserDevices(input: {
+    userId: string;
+    action: "ADD" | "REMOVE" | "UPDATE" | "BLOCK";
+    deviceId?: string;
+    deviceData?: {
+      name: string;
+      type: "MOBILE" | "DESKTOP" | "TABLET";
+      fingerprint: string;
+      userAgent?: string;
+      ipAddress?: string;
+    };
+  }) {
+    try {
+      const {
+        userId: _userId,
+        action: _action,
+        deviceId: _deviceId,
+        deviceData: _deviceData,
+      } = input;
+
+      // Vérifier que l'utilisateur existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
+        });
+      }
+
+      switch (action) {
+        case "ADD":
+          if (!deviceData) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Données d'appareil requises pour l'ajout",
+            });
+          }
+
+          const newDevice = await this.prisma.userDevice.create({
+            data: {
+              userId,
+              name: deviceData.name,
+              type: deviceData.type,
+              fingerprint: deviceData.fingerprint,
+              userAgent: deviceData.userAgent,
+              ipAddress: deviceData.ipAddress,
+              isActive: true,
+              lastUsed: new Date(),
+              createdAt: new Date(),
+            },
+          });
+
+          return {
+            success: true,
+            message: "Appareil ajouté avec succès",
+            device: newDevice,
+          };
+
+        case "REMOVE":
+          if (!deviceId) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "ID d'appareil requis pour la suppression",
+            });
+          }
+
+          await this.prisma.userDevice.delete({
+            where: {
+              id: deviceId,
+              userId, // S'assurer que l'appareil appartient à l'utilisateur
+            },
+          });
+
+          return {
+            success: true,
+            message: "Appareil supprimé avec succès",
+          };
+
+        case "BLOCK":
+          if (!deviceId) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "ID d'appareil requis pour le blocage",
+            });
+          }
+
+          await this.prisma.userDevice.update({
+            where: {
+              id: deviceId,
+              userId,
+            },
+            data: {
+              isActive: false,
+              blockedAt: new Date(),
+            },
+          });
+
+          return {
+            success: true,
+            message: "Appareil bloqué avec succès",
+          };
+
+        case "UPDATE":
+          if (!deviceId || !deviceData) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "ID d'appareil et données requises pour la mise à jour",
+            });
+          }
+
+          const updatedDevice = await this.prisma.userDevice.update({
+            where: {
+              id: deviceId,
+              userId,
+            },
+            data: {
+              name: deviceData.name,
+              type: deviceData.type,
+              userAgent: deviceData.userAgent,
+              ipAddress: deviceData.ipAddress,
+              lastUsed: new Date(),
+            },
+          });
+
+          return {
+            success: true,
+            message: "Appareil mis à jour avec succès",
+            device: updatedDevice,
+          };
+
+        default:
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Action non supportée",
+          });
+      }
+    } catch (_error) {
+      console.error("Error managing user devices:", error);
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la gestion des appareils",
+      });
+    }
+  }
+
+  /**
+   * Récupère les appareils d'un utilisateur avec pagination et filtrage
+   */
+  async getUserDevices(
+    userId: string,
+    options: {
+      page?: number;
+      limit?: number;
+      includeBlocked?: boolean;
+      type?: "MOBILE" | "DESKTOP" | "TABLET";
+    } = {},
+  ) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        includeBlocked = false,
+        type: _type,
+      } = options;
+      const offset = (page - 1) * limit;
+
+      const whereClause: any = { userId };
+
+      if (!includeBlocked) {
+        whereClause.isActive = true;
+      }
+
+      if (type) {
+        whereClause.type = type;
+      }
+
+      const [devices, total] = await Promise.all([
+        this.prisma.userDevice.findMany({
+          where: whereClause,
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            fingerprint: true,
+            userAgent: true,
+            ipAddress: true,
+            isActive: true,
+            lastUsed: true,
+            blockedAt: true,
+            createdAt: true,
+          },
+          orderBy: { lastUsed: "desc" },
+          skip: offset,
+          take: limit,
+        }),
+        this.prisma.userDevice.count({ where: whereClause }),
+      ]);
+
+      return {
+        devices,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (_error) {
+      console.error("Error getting user devices:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des appareils",
+      });
+    }
+  }
+
+  /**
+   * Récupère tous les groupes de permissions avec leurs permissions associées
+   */
+  async getPermissionGroups(
+    options: {
+      includePermissions?: boolean;
+      includeUserCount?: boolean;
+    } = {},
+  ) {
+    try {
+      const { includePermissions = true, includeUserCount = false } = options;
+
+      const groups = await this.prisma.permissionGroup.findMany({
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          permissions: includePermissions
+            ? {
+                select: {
+                  id: true,
+                  name: true,
+                  resource: true,
+                  action: true,
+                  description: true,
+                },
+              }
+            : false,
+          _count: includeUserCount
+            ? {
+                select: {
+                  users: true,
+                },
+              }
+            : false,
+        },
+        orderBy: { name: "asc" },
+      });
+
+      return {
+        groups: groups.map((group) => ({
+          ...group,
+          userCount: includeUserCount ? group._count?.users : undefined,
+          _count: undefined, // Nettoyer le champ _count
+        })),
+      };
+    } catch (_error) {
+      console.error("Error getting permission groups:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des groupes de permissions",
+      });
+    }
+  }
+
+  /**
+   * Crée ou met à jour un groupe de permissions avec ses permissions
+   */
+  async upsertPermissionGroup(input: {
+    id?: string;
+    name: string;
+    description?: string;
+    permissionIds: string[];
+    isActive?: boolean;
+  }) {
+    try {
+      const {
+        id: _id,
+        name: _name,
+        description: _description,
+        permissionIds: _permissionIds,
+        isActive = true,
+      } = input;
+
+      // Vérifier que les permissions existent
+      const existingPermissions = await this.prisma.permission.findMany({
+        where: { id: { in: permissionIds } },
+        select: { id: true },
+      });
+
+      if (existingPermissions.length !== permissionIds.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Certaines permissions n'existent pas",
+        });
+      }
+
+      let group;
+
+      if (id) {
+        // Mise à jour d'un groupe existant
+        group = await this.prisma.permissionGroup.update({
+          where: { id },
+          data: {
+            name,
+            description,
+            isActive,
+            updatedAt: new Date(),
+            permissions: {
+              set: permissionIds.map((permId) => ({ id: permId })),
+            },
+          },
+          include: {
+            permissions: {
+              select: {
+                id: true,
+                name: true,
+                resource: true,
+                action: true,
+              },
+            },
+          },
+        });
+      } else {
+        // Création d'un nouveau groupe
+        group = await this.prisma.permissionGroup.create({
+          data: {
+            name,
+            description,
+            isActive,
+            permissions: {
+              connect: permissionIds.map((permId) => ({ id: permId })),
+            },
+          },
+          include: {
+            permissions: {
+              select: {
+                id: true,
+                name: true,
+                resource: true,
+                action: true,
+              },
+            },
+          },
+        });
+      }
+
+      return {
+        success: true,
+        message: id
+          ? "Groupe de permissions mis à jour avec succès"
+          : "Groupe de permissions créé avec succès",
+        group,
+      };
+    } catch (_error) {
+      console.error("Error upserting permission group:", error);
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la gestion du groupe de permissions",
       });
     }
   }

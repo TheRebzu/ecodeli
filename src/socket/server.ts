@@ -36,7 +36,7 @@ export async function initializeSocketServer(httpServer: any) {
       };
 
       next();
-    } catch (error) {
+    } catch (_error) {
       next(new Error("Authentication error"));
     }
   });
@@ -72,7 +72,7 @@ export function getSocketServer(): Server | null {
 
 // Configurer les chambres selon le rôle de l'utilisateur
 function setupUserRooms(socket: any) {
-  const { id, role } = socket.user;
+  const { id: _id, role: _role } = socket.user;
 
   // Chambre personnelle
   socket.join(`user:${id}`);

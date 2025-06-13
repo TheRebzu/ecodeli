@@ -40,7 +40,7 @@ export async function verifyToken(token: string) {
     // Sinon, on pourrait appeler le service de token
     // Mais pour l'instant, on refuse les autres types de tokens
     return null;
-  } catch (error) {
+  } catch (_error) {
     console.error("Erreur lors de la vérification du token socket:", error);
     return null;
   }

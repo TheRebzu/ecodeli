@@ -182,22 +182,24 @@ export default function AdminSettingsPage() {
     setUnsavedChanges(true);
   };
 
-  const saveSettingsMutation = api.admin.settings.updateSystemSettings.useMutation({
-    onSuccess: () => {
-      toast({
-        title: "Paramètres sauvegardés",
-        description: "Les paramètres système ont été mis à jour avec succès.",
-      });
-      setUnsavedChanges(false);
-    },
-    onError: (error) => {
-      toast({
-        title: "Erreur",
-        description: error.message || "Erreur lors de la sauvegarde des paramètres.",
-        variant: "destructive",
-      });
-    },
-  });
+  const saveSettingsMutation =
+    api.admin.settings.updateSystemSettings.useMutation({
+      onSuccess: () => {
+        toast({
+          title: "Paramètres sauvegardés",
+          description: "Les paramètres système ont été mis à jour avec succès.",
+        });
+        setUnsavedChanges(false);
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description:
+            error.message || "Erreur lors de la sauvegarde des paramètres.",
+          variant: "destructive",
+        });
+      },
+    });
 
   const saveSettings = async () => {
     try {
@@ -205,7 +207,7 @@ export default function AdminSettingsPage() {
         settings,
       });
     } catch (error) {
-      console.error('Erreur sauvegarde paramètres:', error);
+      console.error("Erreur sauvegarde paramètres:", error);
     }
   };
 

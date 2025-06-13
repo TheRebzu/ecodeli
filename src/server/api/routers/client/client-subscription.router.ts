@@ -15,9 +15,9 @@ export const subscriptionRouter = router({
   /**
    * Récupère l'abonnement actif de l'utilisateur avec usage
    */
-  getMySubscription: protectedProcedure.query(async ({ ctx }) => {
+  getMySubscription: protectedProcedure.query(async ({ _ctx }) => {
     try {
-      const { user } = ctx.session;
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -74,7 +74,7 @@ export const subscriptionRouter = router({
       }
 
       // Calculer l'usage du mois en cours
-      const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
+      const currentUsage = await calculateCurrentMonthUsage(user.id, _ctx.db);
       const limits = getPlanLimits(activeSubscription.plan);
 
       return {
@@ -106,9 +106,9 @@ export const subscriptionRouter = router({
   /**
    * Récupère tous les plans d'abonnement EcoDeli
    */
-  getAvailablePlans: protectedProcedure.query(async ({ ctx }) => {
+  getAvailablePlans: protectedProcedure.query(async ({ _ctx }) => {
     try {
-      const { user } = ctx.session;
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -227,10 +227,10 @@ export const subscriptionRouter = router({
         paymentMethodId: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
-        const { newPlan, paymentMethodId } = input;
+        const { _user: __user } = ctx.session;
+        const { newPlan: _newPlan, paymentMethodId: _paymentMethodId } = input;
 
         if (user.role !== "CLIENT") {
           throw new TRPCError({
@@ -348,10 +348,10 @@ export const subscriptionRouter = router({
         feedback: z.string().max(1000).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
-        const { reason, feedback } = input;
+        const { _user: __user } = ctx.session;
+        const { reason: _reason, feedback: _feedback } = input;
 
         if (user.role !== "CLIENT") {
           throw new TRPCError({
@@ -447,10 +447,10 @@ export const subscriptionRouter = router({
         metadata: z.record(z.any()).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
-        const { type, amount, metadata } = input;
+        const { _user: __user } = ctx.session;
+        const { type: _type, amount: _amount, metadata: _metadata } = input;
 
         if (user.role !== "CLIENT") {
           throw new TRPCError({
@@ -475,7 +475,7 @@ export const subscriptionRouter = router({
         }
 
         // Vérifier les limites avant d'enregistrer l'usage
-        const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
+        const currentUsage = await calculateCurrentMonthUsage(user.id, _ctx.db);
         const limits = getPlanLimits(subscription.plan);
 
         const canUse = await checkUsageLimit(
@@ -560,10 +560,10 @@ export const subscriptionRouter = router({
         limit: z.number().min(1).max(100).default(50),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
-        const { type, month, year, limit } = input;
+        const { _user: __user } = ctx.session;
+        const { type: _type, month: _month, year: _year, limit: _limit } = input;
 
         if (user.role !== "CLIENT") {
           throw new TRPCError({
@@ -635,10 +635,10 @@ export const subscriptionRouter = router({
         amount: z.number().min(1).default(1),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
-        const { type, amount } = input;
+        const { _user: __user } = ctx.session;
+        const { type: _type, amount: _amount } = input;
 
         if (user.role !== "CLIENT") {
           throw new TRPCError({
@@ -659,13 +659,13 @@ export const subscriptionRouter = router({
           // Plan FREE par défaut
           const currentUsage = await calculateCurrentMonthUsage(
             user.id,
-            ctx.db,
+            _ctx.db,
           );
           const limits = getPlanLimits("FREE");
           return await checkUsageLimit(type, currentUsage, limits, amount);
         }
 
-        const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
+        const currentUsage = await calculateCurrentMonthUsage(user.id, _ctx.db);
         const limits = getPlanLimits(subscription.plan);
 
         return await checkUsageLimit(type, currentUsage, limits, amount);
@@ -697,9 +697,9 @@ export const subscriptionRouter = router({
         userId: z.string().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
-        const { page, limit, status, planType, sortOrder, userId } = input;
+        const { page: _page, limit: _limit, status: _status, planType: _planType, sortOrder: _sortOrder, userId: _userId } = input;
 
         // Construire le filtre
         const where: any = {};
@@ -718,7 +718,7 @@ export const subscriptionRouter = router({
 
         // Récupérer les abonnements
         const [subscriptions, total] = await Promise.all([
-          ctx.db.subscription.findMany({
+          _ctx.db.subscription.findMany({
             where,
             orderBy: { createdAt: sortOrder },
             skip: (page - 1) * limit,
@@ -801,10 +801,10 @@ export const subscriptionRouter = router({
         notes: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
-        const { subscriptionId, ...updateData } = input;
+        const { subscriptionId: _subscriptionId, ...updateData } = input;
 
         // Récupérer l'abonnement
         const subscription = await ctx.db.subscription.findUnique({
@@ -895,10 +895,10 @@ export const subscriptionRouter = router({
         generateInvoice: z.boolean().default(true),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
-        const { userId, generateInvoice, ...subscriptionData } = input;
+        const { userId: _userId, generateInvoice: _generateInvoice, ...subscriptionData } = input;
 
         // Vérifier que l'utilisateur existe
         const user = await ctx.db.user.findUnique({
@@ -939,7 +939,7 @@ export const subscriptionRouter = router({
         );
 
         // Générer une facture si demandé
-        let invoice = null;
+        const invoice = null;
         if (generateInvoice && subscription.planType !== "FREE") {
           const renewalResult = await subscriptionService.processRenewal(
             subscription.id,
@@ -998,7 +998,7 @@ export const subscriptionRouter = router({
         isActive: z.boolean().default(true),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -1069,7 +1069,7 @@ export const subscriptionRouter = router({
         trialDays: z.number().int().min(0).default(0),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -1152,9 +1152,9 @@ export const subscriptionRouter = router({
         endDate: z.date().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
-        const { period, startDate, endDate } = input;
+        const { period: _period, startDate: _startDate, endDate: _endDate } = input;
 
         // Filtrage par date
         const dateFilter: any = {};

@@ -51,8 +51,8 @@ export const nfcManagementRouter = router({
   /**
    * Obtenir les cartes NFC d'un livreur
    */
-  getMyCards: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getMyCards: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "DELIVERER") {
       throw new TRPCError({
@@ -106,7 +106,7 @@ export const nfcManagementRouter = router({
       });
 
       return { cards };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des cartes NFC",
@@ -119,8 +119,8 @@ export const nfcManagementRouter = router({
    */
   validateDelivery: protectedProcedure
     .input(validateDeliverySchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -230,7 +230,7 @@ export const nfcManagementRouter = router({
           transaction,
           message: "Livraison validée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         // Enregistrer la tentative échouée
         if (input.cardNumber) {
           try {
@@ -256,7 +256,7 @@ export const nfcManagementRouter = router({
                 },
               });
             }
-          } catch (logError) {
+          } catch (_logError) {
             // Ignorer les erreurs de logging
           }
         }
@@ -274,8 +274,8 @@ export const nfcManagementRouter = router({
    */
   getTransactionHistory: protectedProcedure
     .input(transactionFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       // Les livreurs ne peuvent voir que leurs propres transactions
       if (user.role === "DELIVERER") {
@@ -345,7 +345,7 @@ export const nfcManagementRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération de l'historique",
@@ -364,8 +364,8 @@ export const nfcManagementRouter = router({
         description: z.string().min(10).max(500),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -429,7 +429,7 @@ export const nfcManagementRouter = router({
           message:
             "Problème signalé avec succès. Notre équipe va traiter votre demande.",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -445,7 +445,7 @@ export const nfcManagementRouter = router({
    */
   createCard: adminProcedure
     .input(nfcCardSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que le numéro de carte n'existe pas déjà
         const existingCard = await ctx.db.nFCCard.findUnique({
@@ -475,7 +475,7 @@ export const nfcManagementRouter = router({
             data: {
               cardId: card.id,
               delivererId: input.delivererId,
-              adminId: ctx.session.user.id,
+              adminId: _ctx.session.user.id,
               isActive: true,
               startDate: new Date(),
             },
@@ -487,7 +487,7 @@ export const nfcManagementRouter = router({
           card,
           message: "Carte NFC créée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -501,7 +501,7 @@ export const nfcManagementRouter = router({
    */
   assignCard: adminProcedure
     .input(assignCardSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que la carte existe et est disponible
         const card = await ctx.db.nFCCard.findUnique({
@@ -547,7 +547,7 @@ export const nfcManagementRouter = router({
           data: {
             cardId: input.cardId,
             delivererId: input.delivererId,
-            adminId: ctx.session.user.id,
+            adminId: _ctx.session.user.id,
             isActive: true,
             startDate: new Date(),
             notes: input.notes,
@@ -568,7 +568,7 @@ export const nfcManagementRouter = router({
           assignment,
           message: "Carte attribuée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -587,7 +587,7 @@ export const nfcManagementRouter = router({
         reason: z.string().min(5).max(200),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Désactiver la carte
         const card = await ctx.db.nFCCard.update({
@@ -595,7 +595,7 @@ export const nfcManagementRouter = router({
           data: {
             status: "INACTIVE",
             metadata: {
-              deactivatedBy: ctx.session.user.id,
+              deactivatedBy: _ctx.session.user.id,
               deactivatedAt: new Date().toISOString(),
               reason: input.reason,
             },
@@ -620,7 +620,7 @@ export const nfcManagementRouter = router({
           card,
           message: "Carte désactivée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la désactivation",
@@ -631,7 +631,7 @@ export const nfcManagementRouter = router({
   /**
    * Statistiques des cartes NFC (Admin)
    */
-  getCardStats: adminProcedure.query(async ({ ctx }) => {
+  getCardStats: adminProcedure.query(async ({ _ctx }) => {
     try {
       const [
         totalCards,
@@ -640,7 +640,7 @@ export const nfcManagementRouter = router({
         totalTransactions,
         successfulTransactions,
       ] = await Promise.all([
-        ctx.db.nFCCard.count(),
+        _ctx.db.nFCCard.count(),
         ctx.db.nFCCard.count({ where: { status: "ACTIVE" } }),
         ctx.db.nFCCardAssignment.count({ where: { isActive: true } }),
         ctx.db.nFCCardTransaction.count(),
@@ -665,7 +665,7 @@ export const nfcManagementRouter = router({
           successRate: Math.round(successRate * 100) / 100,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des statistiques",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useClientDashboard } from "@/hooks/client/use-client-dashboard";
-import { useClientAnnouncements } from "@/hooks/merchant/use-merchant-announcements";
+import { useClientAnnouncements } from "@/hooks/client/use-client-announcements";
 import { useClientServices } from "@/hooks/client/use-client-services";
 import { useClientStorageBoxes } from "@/hooks/client/use-client-storage-boxes";
 import { useSocket } from "@/hooks/system/use-socket";

@@ -334,7 +334,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       isInQuietHours: () => {
         const state = get();
-        const { quietHours } = state.preferences;
+        const { _quietHours: __quietHours } = state.preferences;
 
         if (!quietHours.enabled) return false;
 
@@ -354,7 +354,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       canReceiveNotification: (type, priority = "MEDIUM") => {
         const state = get();
-        const { preferences } = state;
+        const { _preferences: __preferences } = state;
 
         // Notifications en pause
         if (preferences.snoozed?.enabled) {

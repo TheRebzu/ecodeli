@@ -71,8 +71,8 @@ export const adminReportsRouter = router({
         type: z.literal("FINANCIAL"),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -102,7 +102,7 @@ export const adminReportsRouter = router({
           refunds,
         ] = await Promise.all([
           // Revenus totaux
-          ctx.db.payment.aggregate({
+          _ctx.db.payment.aggregate({
             where: {
               status: "COMPLETED",
               createdAt: { gte: startDate, lte: endDate },
@@ -188,7 +188,7 @@ export const adminReportsRouter = router({
         ]);
 
         // Comparaison avec la p�riode pr�c�dente si demand�e
-        let comparison = null;
+        const comparison = null;
         if (input.includeComparison && previousStartDate && previousEndDate) {
           const previousRevenue = await ctx.db.payment.aggregate({
             where: {
@@ -256,7 +256,7 @@ export const adminReportsRouter = router({
             }),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -274,8 +274,8 @@ export const adminReportsRouter = router({
         type: z.literal("DELIVERY_PERFORMANCE"),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -285,11 +285,8 @@ export const adminReportsRouter = router({
       }
 
       try {
-        const { startDate, endDate } = calculateReportPeriod(
-          input.period,
-          input.startDate,
-          input.endDate,
-        );
+        const { startDate: _startDate, endDate: _endDate } =
+          calculateReportPeriod(input.period, input.startDate, input.endDate);
 
         const [
           deliveryStats,
@@ -299,7 +296,7 @@ export const adminReportsRouter = router({
           issueStats,
         ] = await Promise.all([
           // Statistiques g�n�rales des livraisons
-          ctx.db.delivery.aggregate({
+          _ctx.db.delivery.aggregate({
             where: {
               createdAt: { gte: startDate, lte: endDate },
               ...(input.city && {
@@ -443,7 +440,7 @@ export const adminReportsRouter = router({
             }),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -461,8 +458,8 @@ export const adminReportsRouter = router({
         type: z.literal("USER_ACTIVITY"),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -472,11 +469,8 @@ export const adminReportsRouter = router({
       }
 
       try {
-        const { startDate, endDate } = calculateReportPeriod(
-          input.period,
-          input.startDate,
-          input.endDate,
-        );
+        const { startDate: _startDate, endDate: _endDate } =
+          calculateReportPeriod(input.period, input.startDate, input.endDate);
 
         const [
           userRegistrations,
@@ -488,7 +482,7 @@ export const adminReportsRouter = router({
           engagementMetrics,
         ] = await Promise.all([
           // Nouvelles inscriptions
-          ctx.db.user.count({
+          _ctx.db.user.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
               ...(input.userRole && { role: input.userRole }),
@@ -631,7 +625,7 @@ export const adminReportsRouter = router({
             }),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -649,8 +643,8 @@ export const adminReportsRouter = router({
         type: z.literal("PLATFORM_HEALTH"),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -660,11 +654,8 @@ export const adminReportsRouter = router({
       }
 
       try {
-        const { startDate, endDate } = calculateReportPeriod(
-          input.period,
-          input.startDate,
-          input.endDate,
-        );
+        const { startDate: _startDate, endDate: _endDate } =
+          calculateReportPeriod(input.period, input.startDate, input.endDate);
 
         const [
           systemErrors,
@@ -674,7 +665,7 @@ export const adminReportsRouter = router({
           capacityMetrics,
         ] = await Promise.all([
           // Erreurs syst�me
-          ctx.db.errorLog.count({
+          _ctx.db.errorLog.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
               level: { in: ["ERROR", "CRITICAL"] },
@@ -695,7 +686,7 @@ export const adminReportsRouter = router({
           // Indicateurs de qualit�
           Promise.all([
             // Taux de satisfaction moyen
-            ctx.db.serviceReview.aggregate({
+            _ctx.db.serviceReview.aggregate({
               where: {
                 createdAt: { gte: startDate, lte: endDate },
               },
@@ -717,7 +708,7 @@ export const adminReportsRouter = router({
           // M�triques de s�curit�
           Promise.all([
             // Tentatives de connexion �chou�es
-            ctx.db.securityLog.count({
+            _ctx.db.securityLog.count({
               where: {
                 eventType: "FAILED_LOGIN",
                 createdAt: { gte: startDate, lte: endDate },
@@ -735,7 +726,7 @@ export const adminReportsRouter = router({
           // M�triques de capacit�
           Promise.all([
             // Stockage utilis�
-            ctx.db.document.aggregate({
+            _ctx.db.document.aggregate({
               _sum: { fileSize: true },
             }),
             // Pics de charge
@@ -836,7 +827,7 @@ export const adminReportsRouter = router({
             }),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -850,8 +841,8 @@ export const adminReportsRouter = router({
    */
   createCustomReport: protectedProcedure
     .input(customReportSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -875,7 +866,7 @@ export const adminReportsRouter = router({
           data: report,
           message: "Rapport personnalis� cr�� avec succ�s",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la cr�ation du rapport",
@@ -888,8 +879,8 @@ export const adminReportsRouter = router({
    */
   exportReport: protectedProcedure
     .input(reportExportSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -922,7 +913,7 @@ export const adminReportsRouter = router({
           },
           message: "Export g�n�r� avec succ�s",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'export du rapport",
@@ -1039,7 +1030,7 @@ function calculatePlatformHealthScore(metrics: {
   satisfaction: number;
   securityIncidents: number;
 }): number {
-  let score = 100;
+  const score = 100;
 
   // D�duction pour erreurs (max -30 points)
   score -= Math.min(metrics.errorCount * 2, 30);
@@ -1146,7 +1137,7 @@ async function generateReportExport(input: any): Promise<string> {
       default:
         throw new Error(`Format d'export non supporté: ${input.format}`);
     }
-  } catch (error) {
+  } catch (_error) {
     console.error("Erreur lors de la génération d'export:", error);
     throw new Error("Échec de la génération d'export");
   }

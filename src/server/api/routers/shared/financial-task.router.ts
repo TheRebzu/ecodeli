@@ -21,9 +21,15 @@ export const financialTaskRouter = router({
         sortDirection: "desc",
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
-      const { page, limit, sortField, sortDirection, filters } = input;
+      const {
+        page: _page,
+        limit: _limit,
+        sortField: _sortField,
+        sortDirection: _sortDirection,
+        filters: _filters,
+      } = input;
 
       return await financialTaskService.getFinancialTasks(
         userId,
@@ -40,7 +46,7 @@ export const financialTaskRouter = router({
   // Récupérer une tâche financière par ID
   getTaskById: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       return await financialTaskService.getFinancialTaskById(input.id, userId);
     }),
@@ -48,7 +54,7 @@ export const financialTaskRouter = router({
   // Créer une nouvelle tâche financière
   createTask: protectedProcedure
     .input(createFinancialTaskSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       return await financialTaskService.createFinancialTask(userId, input);
     }),
@@ -56,7 +62,7 @@ export const financialTaskRouter = router({
   // Mettre à jour une tâche financière
   updateTask: protectedProcedure
     .input(updateFinancialTaskSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       return await financialTaskService.updateFinancialTask(input, userId);
     }),
@@ -64,7 +70,7 @@ export const financialTaskRouter = router({
   // Changer le statut (terminé/non terminé) d'une tâche
   toggleTaskStatus: protectedProcedure
     .input(toggleFinancialTaskSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       return await financialTaskService.toggleFinancialTaskStatus(
         input.id,
@@ -76,13 +82,13 @@ export const financialTaskRouter = router({
   // Supprimer une tâche financière
   deleteTask: protectedProcedure
     .input(deleteFinancialTaskSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       return await financialTaskService.deleteFinancialTask(input.id, userId);
     }),
 
   // Obtenir des statistiques sur les tâches financières
-  getTaskStats: protectedProcedure.query(async ({ ctx }) => {
+  getTaskStats: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
     return await financialTaskService.getFinancialTaskStats(userId);
   }),

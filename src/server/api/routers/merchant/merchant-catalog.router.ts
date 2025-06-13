@@ -112,8 +112,8 @@ export const merchantCatalogRouter = router({
    */
   getProducts: protectedProcedure
     .input(productFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -146,7 +146,7 @@ export const merchantCatalogRouter = router({
           }),
           ...(input.lowStock && {
             trackInventory: true,
-            stockQuantity: { lte: ctx.db.product.fields.lowStockAlert },
+            stockQuantity: { lte: _ctx.db.product.fields.lowStockAlert },
           }),
           ...(input.search && {
             OR: [
@@ -165,7 +165,7 @@ export const merchantCatalogRouter = router({
         orderBy[input.sortBy] = input.sortOrder;
 
         const [products, totalCount] = await Promise.all([
-          ctx.db.product.findMany({
+          _ctx.db.product.findMany({
             where,
             include: {
               inventoryMovements: {
@@ -216,7 +216,7 @@ export const merchantCatalogRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -230,8 +230,8 @@ export const merchantCatalogRouter = router({
    */
   createProduct: protectedProcedure
     .input(createProductSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -305,7 +305,7 @@ export const merchantCatalogRouter = router({
           },
           message: "Produit créé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -319,8 +319,8 @@ export const merchantCatalogRouter = router({
    */
   updateProduct: protectedProcedure
     .input(updateProductSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -373,7 +373,7 @@ export const merchantCatalogRouter = router({
           }
         }
 
-        const { id, ...updateData } = input;
+        const { id: _id, ...updateData } = input;
 
         const updatedProduct = await ctx.db.product.update({
           where: { id: input.id },
@@ -393,7 +393,7 @@ export const merchantCatalogRouter = router({
           },
           message: "Produit mis à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -407,8 +407,8 @@ export const merchantCatalogRouter = router({
    */
   deleteProduct: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -473,7 +473,7 @@ export const merchantCatalogRouter = router({
           success: true,
           message: "Produit supprimé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -487,8 +487,8 @@ export const merchantCatalogRouter = router({
    */
   adjustInventory: protectedProcedure
     .input(adjustInventorySchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -564,7 +564,7 @@ export const merchantCatalogRouter = router({
           data: result,
           message: `Stock ajusté: ${input.adjustment > 0 ? "+" : ""}${input.adjustment} unités`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -578,8 +578,8 @@ export const merchantCatalogRouter = router({
    */
   bulkUpdate: protectedProcedure
     .input(bulkUpdateSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -633,7 +633,7 @@ export const merchantCatalogRouter = router({
           updatedCount: result.count,
           message: `${result.count} produits mis à jour avec succès`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -645,8 +645,8 @@ export const merchantCatalogRouter = router({
   /**
    * Obtenir les statistiques du catalogue
    */
-  getCatalogStats: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getCatalogStats: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "MERCHANT") {
       throw new TRPCError({
@@ -674,7 +674,7 @@ export const merchantCatalogRouter = router({
         totalValue,
         byCategory,
       ] = await Promise.all([
-        ctx.db.product.count({
+        _ctx.db.product.count({
           where: { merchantId: merchant.id },
         }),
         ctx.db.product.count({
@@ -688,7 +688,7 @@ export const merchantCatalogRouter = router({
           where: {
             merchantId: merchant.id,
             trackInventory: true,
-            stockQuantity: { lte: ctx.db.product.fields.lowStockAlert },
+            stockQuantity: { lte: _ctx.db.product.fields.lowStockAlert },
           },
         }),
         ctx.db.product.aggregate({
@@ -717,7 +717,7 @@ export const merchantCatalogRouter = router({
           })),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des statistiques",

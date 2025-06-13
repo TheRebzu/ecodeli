@@ -198,7 +198,7 @@ export class NotificationService {
 
       // Sinon, renvoyer les paramètres existants
       return user.notificationPreferences as unknown as UserNotificationSettings;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error(
@@ -262,7 +262,7 @@ export class NotificationService {
         weeklyDigest: data.weeklyDigest,
         notificationCategories: data.notificationCategories,
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error(
@@ -447,7 +447,7 @@ export class NotificationService {
               channelsUsed.push("in_app");
               break;
           }
-        } catch (channelError) {
+        } catch (_channelError) {
           console.error(
             `Erreur lors de l'envoi via ${notifChannel}:`,
             channelError,
@@ -477,7 +477,7 @@ export class NotificationService {
         id: notification.id,
         channels: channelsUsed,
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Erreur lors de l'envoi de la notification:", error);
@@ -665,7 +665,7 @@ export class NotificationService {
           `Type de notification ${options.type} envoyé via OneSignal générique`,
         );
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'envoi OneSignal:", error);
       // Ne pas faire échouer le processus si OneSignal échoue
     }
@@ -709,7 +709,7 @@ export class NotificationService {
         options.locale || (await getUserPreferredLocale(user.id)) || "fr";
 
       // Sélectionner le template en fonction du type de notification et de la priorité
-      let templateName = "notification-default";
+      const templateName = "notification-default";
 
       if (options.priority === "URGENT") {
         templateName = "notification-urgent";
@@ -741,7 +741,7 @@ export class NotificationService {
         },
         locale: locale as SupportedLanguage,
       });
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de l'envoi de l'email de notification:",
         error,
@@ -770,7 +770,7 @@ export class NotificationService {
       const locale = options.locale || (await getUserPreferredLocale(user.id));
 
       // Déterminer le template email selon le type de notification
-      let templateName = "notification-general";
+      const templateName = "notification-general";
       if (options.type.includes("DELIVERY")) {
         templateName = "notification-delivery";
       } else if (options.type.includes("PAYMENT")) {
@@ -795,7 +795,7 @@ export class NotificationService {
         },
         locale: locale as SupportedLanguage,
       });
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de l'envoi de l'email de notification:",
         error,
@@ -846,7 +846,7 @@ export class NotificationService {
       // });
 
       console.log(`Notification push envoyée à l'utilisateur ${user.id}`);
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'envoi de la notification push:", error);
       // Ne pas faire échouer le processus si la notification push échoue
     }
@@ -865,7 +865,7 @@ export class NotificationService {
   ): Promise<void> {
     try {
       // Utiliser le numéro fourni ou récupérer celui de la base
-      let phoneNumber = user.phoneNumber;
+      const phoneNumber = user.phoneNumber;
 
       if (!phoneNumber) {
         const userData = await this.db.user.findUnique({
@@ -883,7 +883,7 @@ export class NotificationService {
       }
 
       // Formatage du message selon la priorité
-      let formattedMessage = message;
+      const formattedMessage = message;
       if (options?.priority === "URGENT") {
         formattedMessage = `🚨 URGENT: ${message}`;
       } else if (options?.priority === "HIGH") {
@@ -912,7 +912,7 @@ export class NotificationService {
           `[CONFIG MANQUANTE] SMS non envoyé à ${phoneNumber}: ${formattedMessage}`,
         );
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'envoi du SMS:", error);
       // Ne pas faire échouer le processus si le SMS échoue
     }
@@ -931,7 +931,12 @@ export class NotificationService {
     } = {},
   ) {
     try {
-      const { page = 1, limit = 10, includeRead = false, types } = options;
+      const {
+        page = 1,
+        limit = 10,
+        includeRead = false,
+        types: _types,
+      } = options;
 
       const skip = (page - 1) * limit;
 
@@ -975,7 +980,7 @@ export class NotificationService {
         limit,
         totalPages: Math.ceil(total / limit),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des notifications:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1011,7 +1016,7 @@ export class NotificationService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error(
@@ -1060,7 +1065,7 @@ export class NotificationService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error(
@@ -1100,7 +1105,7 @@ export class NotificationService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la suppression de la notification:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1133,7 +1138,7 @@ export class NotificationService {
           confirmed: false,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'envoi de la notification:", error);
       return null;
     }
@@ -1184,7 +1189,7 @@ export class NotificationService {
 
         await Promise.all(notificationPromises);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la notification des livreurs:", error);
     }
   }
@@ -1228,7 +1233,7 @@ export class NotificationService {
           data: { status: AnnouncementStatus.IN_APPLICATION },
         });
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la notification du client:", error);
     }
   }
@@ -1368,7 +1373,7 @@ export class NotificationService {
           }
           break;
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la notification du changement de statut:",
         error,
@@ -1440,7 +1445,7 @@ export class NotificationService {
           { announcementId, routeId: route.id },
         );
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la notification des livreurs correspondants:",
         error,
@@ -1472,8 +1477,8 @@ export class NotificationService {
     results: Array<{ userId: string; success: boolean; error?: string }>;
   }> {
     const results = [];
-    let successCount = 0;
-    let failedCount = 0;
+    const successCount = 0;
+    const failedCount = 0;
 
     for (const userId of options.userIds) {
       try {
@@ -1500,7 +1505,7 @@ export class NotificationService {
           userId,
           success: result.success,
         });
-      } catch (error) {
+      } catch (_error) {
         failedCount++;
         results.push({
           userId,
@@ -1590,7 +1595,7 @@ export class NotificationService {
         sent: result.success,
         failed: result.failed,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'envoi des digest:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1651,7 +1656,7 @@ export class NotificationService {
         success: true,
         scheduledNotificationId: scheduledNotification.id,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la planification de notification:", error);
       return { success: false };
     }
@@ -1689,7 +1694,7 @@ export class NotificationService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'annulation de notification:", error);
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
@@ -1780,7 +1785,7 @@ export class NotificationService {
             totalWithAction > 0 ? (confirmed / totalWithAction) * 100 : 0,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des statistiques:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1863,7 +1868,7 @@ export class NotificationService {
         sent: result.success,
         failed: result.failed,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'envoi de notification système:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1912,7 +1917,7 @@ export class NotificationService {
       });
 
       return { success: true, count: result.count };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors du marquage de toutes les notifications comme lues:",
         error,
@@ -1966,7 +1971,7 @@ export const sendNotification = async ({
     ]);
 
     return true;
-  } catch (error) {
+  } catch (_error) {
     console.error("Erreur lors de l'envoi de la notification:", error);
     return false;
   }
@@ -2006,8 +2011,8 @@ export const notifyDeliveryStatusChange = async (
     if (!delivery) return false;
 
     // Déterminer le message en fonction du statut
-    let title = "Mise à jour de votre livraison";
-    let message = notes || `Statut changé de ${oldStatus} à ${newStatus}`;
+    const title = "Mise à jour de votre livraison";
+    const message = notes || `Statut changé de ${oldStatus} à ${newStatus}`;
 
     // Messages personnalisés par statut
     switch (newStatus) {
@@ -2085,8 +2090,8 @@ export const notifyDeliveryStatusChange = async (
     // Notifier le livreur (avec un message différent si nécessaire)
     if (delivery.deliverer?.user) {
       // Adapter le message pour le livreur
-      let delivererTitle = title;
-      let delivererMessage = message;
+      const delivererTitle = title;
+      const delivererMessage = message;
 
       // Si le client a annulé, adapter le message
       if (newStatus === "CANCELLED") {
@@ -2109,7 +2114,7 @@ export const notifyDeliveryStatusChange = async (
     }
 
     return true;
-  } catch (error) {
+  } catch (_error) {
     console.error(
       "Erreur lors de la notification de changement de statut:",
       error,
@@ -2193,7 +2198,7 @@ export const notifyDeliveryApproaching = async (
     }
 
     return true;
-  } catch (error) {
+  } catch (_error) {
     console.error("Erreur lors de la notification d'approche:", error);
     return false;
   }
@@ -2226,7 +2231,7 @@ export const notifyDeliveryDelayed = async (
     if (!delivery || !delivery.client?.user) return false;
 
     // Formater le délai de façon lisible
-    let delayText = "";
+    const delayText = "";
     if (delayInMinutes < 60) {
       delayText = `${delayInMinutes} minutes`;
     } else {
@@ -2274,7 +2279,7 @@ export const notifyDeliveryDelayed = async (
     );
 
     return true;
-  } catch (error) {
+  } catch (_error) {
     console.error("Erreur lors de la notification de retard:", error);
     return false;
   }
@@ -2312,8 +2317,8 @@ export const notifyCheckpointReached = async (
     if (!delivery || !delivery.client?.user || !checkpoint) return false;
 
     // Déterminer le message en fonction du type de point de passage
-    let title = "Point de passage atteint";
-    let message = "";
+    const title = "Point de passage atteint";
+    const message = "";
     const checkpointDisplayName =
       checkpointName || checkpoint.name || "Un point de passage";
 
@@ -2381,7 +2386,7 @@ export const notifyCheckpointReached = async (
     }
 
     return true;
-  } catch (error) {
+  } catch (_error) {
     console.error("Erreur lors de la notification de point de passage:", error);
     return false;
   }
@@ -2456,7 +2461,7 @@ export const notifyDeliveryCompleted = async (
     );
 
     return true;
-  } catch (error) {
+  } catch (_error) {
     console.error(
       "Erreur lors de la notification de livraison terminée:",
       error,
@@ -2506,7 +2511,7 @@ const sendDeliveryStatusEmail = async (
       },
       locale: "fr",
     });
-  } catch (error) {
+  } catch (_error) {
     console.error(
       "Erreur lors de l'envoi de l'email de statut de livraison:",
       error,
@@ -2539,7 +2544,7 @@ const sendDeliveryApproachingEmail = async (
       },
       locale: "fr",
     });
-  } catch (error) {
+  } catch (_error) {
     console.error(
       "Erreur lors de l'envoi de l'email d'approche de livraison:",
       error,
@@ -2573,7 +2578,7 @@ const sendDeliveryDelayedEmail = async (
       },
       locale: "fr",
     });
-  } catch (error) {
+  } catch (_error) {
     console.error(
       "Erreur lors de l'envoi de l'email de retard de livraison:",
       error,
@@ -2607,7 +2612,7 @@ const sendCheckpointReachedEmail = async (
       },
       locale: "fr",
     });
-  } catch (error) {
+  } catch (_error) {
     console.error(
       "Erreur lors de l'envoi de l'email de point de passage:",
       error,
@@ -2648,7 +2653,7 @@ const sendDeliveryCompletedEmail = async (
       },
       locale: "fr",
     });
-  } catch (error) {
+  } catch (_error) {
     console.error(
       "Erreur lors de l'envoi de l'email de livraison terminée:",
       error,

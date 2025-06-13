@@ -6,7 +6,7 @@ import {
   createWithdrawalRequest,
   processWithdrawalRequest,
 } from "@/server/services/shared/wallet.service";
-import { WithdrawalStatus, UserRole } from "@prisma/client";
+import { WithdrawalStatus } from "@prisma/client";
 import { isRoleAllowed, hasDocumentAccess } from "@/lib/auth/auth-helpers";
 import { db } from "@/server/db";
 import {
@@ -36,14 +36,19 @@ export const withdrawalRouter = router({
         notes: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { amount, method, expedited, notes } = input;
+        const {
+          amount: _amount,
+          method: _method,
+          expedited: _expedited,
+          notes: _notes,
+        } = input;
 
         // Vérifier que le rôle de l'utilisateur lui permet de faire des retraits
         if (
-          !isRoleAllowed(ctx.session.user.role as UserRole, [
+          !isRoleAllowed(_ctx.session.user.role as UserRole, [
             "DELIVERER",
             "PROVIDER",
             "MERCHANT",
@@ -122,10 +127,15 @@ export const withdrawalRouter = router({
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { page, limit, status, sortOrder } = input;
+        const {
+          page: _page,
+          limit: _limit,
+          status: _status,
+          sortOrder: _sortOrder,
+        } = input;
 
         // Récupérer le portefeuille
         const wallet = await getOrCreateWallet(userId);
@@ -141,7 +151,7 @@ export const withdrawalRouter = router({
 
         // Récupérer les demandes de retrait
         const [withdrawals, total] = await Promise.all([
-          ctx.db.withdrawalRequest.findMany({
+          _ctx.db.withdrawalRequest.findMany({
             where,
             orderBy: { requestedAt: sortOrder },
             skip: (page - 1) * limit,
@@ -186,10 +196,10 @@ export const withdrawalRouter = router({
         withdrawalId: z.string(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { withdrawalId } = input;
+        const { _withdrawalId: __withdrawalId } = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
@@ -222,7 +232,7 @@ export const withdrawalRouter = router({
         // Vérifier que l'utilisateur a le droit d'accéder à cette demande
         if (
           withdrawal.wallet.userId !== userId &&
-          ctx.session.user.role !== "ADMIN"
+          _ctx.session.user.role !== "ADMIN"
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -293,10 +303,10 @@ export const withdrawalRouter = router({
         withdrawalId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { withdrawalId } = input;
+        const { _withdrawalId: __withdrawalId } = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
@@ -402,7 +412,7 @@ export const withdrawalRouter = router({
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const { page, limit, status, userId, startDate, endDate, sortOrder } =
           input;
@@ -444,7 +454,7 @@ export const withdrawalRouter = router({
 
         // Récupérer les demandes de retrait
         const [withdrawals, total] = await Promise.all([
-          ctx.db.withdrawalRequest.findMany({
+          _ctx.db.withdrawalRequest.findMany({
             where,
             orderBy: { requestedAt: sortOrder },
             skip: (page - 1) * limit,
@@ -514,10 +524,14 @@ export const withdrawalRouter = router({
         processImmediately: z.boolean().default(false),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
-        const { withdrawalId, notes, processImmediately } = input;
+        const {
+          withdrawalId: _withdrawalId,
+          notes: _notes,
+          processImmediately: _processImmediately,
+        } = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
@@ -596,10 +610,14 @@ export const withdrawalRouter = router({
         notifyUser: z.boolean().default(true),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
-        const { withdrawalId, reason, notifyUser } = input;
+        const {
+          withdrawalId: _withdrawalId,
+          reason: _reason,
+          notifyUser: _notifyUser,
+        } = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
@@ -687,10 +705,15 @@ export const withdrawalRouter = router({
         notifyUser: z.boolean().default(true),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const adminId = ctx.session.user.id;
-        const { withdrawalId, transferReference, notes, notifyUser } = input;
+        const {
+          withdrawalId: _withdrawalId,
+          transferReference: _transferReference,
+          notes: _notes,
+          notifyUser: _notifyUser,
+        } = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
@@ -776,9 +799,13 @@ export const withdrawalRouter = router({
         groupBy: z.enum(["day", "week", "month"]).optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
-        const { startDate, endDate, groupBy } = input;
+        const {
+          startDate: _startDate,
+          endDate: _endDate,
+          groupBy: _groupBy,
+        } = input;
 
         // Filtrage par date
         const dateFilter: any = {};
@@ -788,7 +815,7 @@ export const withdrawalRouter = router({
         // Statistiques globales
         const [totalStats, statusStats, userStats] = await Promise.all([
           // Statistiques totales
-          ctx.db.withdrawalRequest.aggregate({
+          _ctx.db.withdrawalRequest.aggregate({
             _count: true,
             _sum: {
               amount: true,

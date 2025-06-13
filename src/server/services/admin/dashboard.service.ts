@@ -27,7 +27,7 @@ export const dashboardService = {
 
       try {
         userStats = await this.getUserStats();
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la récupération des statistiques utilisateurs:",
           error,
@@ -50,7 +50,7 @@ export const dashboardService = {
 
       try {
         documentStats = await this.getDocumentStats();
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la récupération des statistiques documents:",
           error,
@@ -70,7 +70,7 @@ export const dashboardService = {
 
       try {
         transactionStats = await this.getTransactionStats();
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la récupération des statistiques transactions:",
           error,
@@ -91,7 +91,7 @@ export const dashboardService = {
 
       try {
         warehouseStats = await this.getWarehouseStats();
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la récupération des statistiques entrepôts:",
           error,
@@ -112,7 +112,7 @@ export const dashboardService = {
 
       try {
         deliveryStats = await this.getDeliveryStats();
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la récupération des statistiques livraisons:",
           error,
@@ -130,7 +130,7 @@ export const dashboardService = {
 
       try {
         recentActivities = await this.getRecentActivities(10);
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la récupération des activités récentes:",
           error,
@@ -140,7 +140,7 @@ export const dashboardService = {
 
       try {
         activityChartData = await this.getActivityChartData();
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la récupération des données graphiques:",
           error,
@@ -154,7 +154,7 @@ export const dashboardService = {
 
       try {
         actionItems = await this.getActionItems();
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la récupération des actions requises:",
           error,
@@ -177,7 +177,7 @@ export const dashboardService = {
         activityChartData,
         actionItems,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des données du tableau de bord:",
         error,
@@ -283,7 +283,7 @@ export const dashboardService = {
         },
         totalActiveUsersToday: activeUsersToday,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des statistiques utilisateurs:",
         error,
@@ -400,7 +400,7 @@ export const dashboardService = {
           OTHER: others,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des statistiques de documents:",
         error,
@@ -462,7 +462,7 @@ export const dashboardService = {
           FAILED: failed,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des statistiques de transactions:",
         error,
@@ -537,7 +537,7 @@ export const dashboardService = {
         activeReservations,
         warehouseOccupancy,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des statistiques d'entrepôts:",
         error,
@@ -664,7 +664,7 @@ export const dashboardService = {
         }),
         completedDeliveries: completedThisMonth,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des statistiques de livraisons:",
         error,
@@ -745,7 +745,7 @@ export const dashboardService = {
         .slice(0, limit);
 
       return allActivities;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des activités récentes:",
         error,
@@ -770,7 +770,7 @@ export const dashboardService = {
       const transactionValues = [];
 
       // Générer une date pour chaque jour des 30 derniers jours
-      for (let i = 0; i < 30; i++) {
+      for (const i = 0; i < 30; i++) {
         const date = new Date(thirtyDaysAgo);
         date.setDate(date.getDate() + i);
         dates.push(date.toISOString().split("T")[0]);
@@ -840,7 +840,7 @@ export const dashboardService = {
         transactions,
         registrations,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des données du graphique d'activité:",
         error,
@@ -883,7 +883,7 @@ export const dashboardService = {
           pendingWithdrawals,
           pendingReports: 0, // Valeur par défaut
         };
-      } catch (error) {
+      } catch (_error) {
         // Si la table report n'existe pas, retourner sans elle
         return {
           pendingDocuments,
@@ -891,7 +891,7 @@ export const dashboardService = {
           pendingWithdrawals,
         };
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des éléments d'action:",
         error,
@@ -976,7 +976,7 @@ export const dashboardService = {
         bookedServices,
         unpaidInvoices,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des statistiques du client:",
         error,
@@ -1056,7 +1056,7 @@ export const dashboardService = {
         .slice(0, 10);
 
       return allActivities;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération de l'activité récente du client:",
         error,
@@ -1146,7 +1146,7 @@ export const dashboardService = {
         unpaidInvoicesCount: unpaidInvoices.length,
         monthlySpending: monthlySpendingArray,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des métriques financières du client:",
         error,
@@ -1238,7 +1238,7 @@ export const dashboardService = {
         upcomingAppointments,
         activeBoxReservations,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des éléments actifs du client:",
         error,
@@ -1270,7 +1270,7 @@ export const dashboardService = {
 
     try {
       // Requête principale pour les ventes de la période sélectionnée
-      let salesQuery = await db.invoice.findMany({
+      const salesQuery = await db.invoice.findMany({
         where: {
           createdAt: {
             gte: startDateFormatted,
@@ -1292,7 +1292,7 @@ export const dashboardService = {
       });
 
       // Données pour comparaison avec période précédente si demandé
-      let comparisonData = null;
+      const comparisonData = null;
       if (comparison && compareStartDate && compareEndDate) {
         comparisonData = await db.invoice.findMany({
           where: {
@@ -1379,7 +1379,7 @@ export const dashboardService = {
             salesQuery.length > 0 ? totalSales / salesQuery.length : 0,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la génération du rapport de ventes:",
         error,
@@ -1454,8 +1454,8 @@ export const dashboardService = {
       });
 
       // Données de comparaison
-      let comparisonSignups = null;
-      let comparisonLogins = null;
+      const comparisonSignups = null;
+      const comparisonLogins = null;
 
       if (comparison && compareStartDate && compareEndDate) {
         comparisonSignups = await db.user.findMany({
@@ -1568,7 +1568,7 @@ export const dashboardService = {
           uniqueLogins: activeUsersCount,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la génération du rapport d'activité utilisateur:",
         error,
@@ -1631,7 +1631,7 @@ export const dashboardService = {
       });
 
       // Données de comparaison
-      let comparisonDeliveries = null;
+      const comparisonDeliveries = null;
 
       if (comparison && compareStartDate && compareEndDate) {
         comparisonDeliveries = await db.delivery.findMany({
@@ -1748,7 +1748,7 @@ export const dashboardService = {
       });
 
       // Données de comparaison pour le taux de livraison à temps
-      let previousOnTimePercentage = null;
+      const previousOnTimePercentage = null;
       if (comparisonDeliveries) {
         const prevCompletedDeliveries = comparisonDeliveries.filter(
           (d) =>
@@ -1882,7 +1882,7 @@ export const dashboardService = {
           cancelRate,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la génération du rapport de performance de livraison:",
         error,

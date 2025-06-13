@@ -7,14 +7,6 @@ import { createSeedCleaner, CleanOptions } from "./utils/seed-cleaner";
 import { createSeedValidator, ValidationOptions } from "./utils/seed-validator";
 import { defaultSeedConfig } from "./seed.config";
 
-// Import des seeds de base
-import { seedPermissions } from "./base/permissions-seed";
-import { seedServiceCategories } from "./base/service-categories-seed";
-import { seedServiceTypes } from "./services/service-types-seed";
-import { seedProviderAvailability } from "./services/provider-availability-seed";
-import { seedServiceRatings } from "./services/service-ratings-seed";
-// import { seedCompleteUsers } from './users/users-complete-seed'; // Désactivé temporairement à cause des erreurs de linter
-
 // Import des seeds utilisateurs
 import { seedAdminUsers } from "./users/admin-users-seed";
 import { seedClientUsers } from "./users/client-users-seed";
@@ -28,10 +20,10 @@ import {
   seedDelivererDocuments,
   validateDelivererDocuments,
 } from "./verifications/deliverer-documents-seed";
-import {
-  seedProviderDocuments,
-  validateProviderDocuments,
-} from "./verifications/provider-documents-seed";
+// import {
+//   seedProviderDocuments,
+//   validateProviderDocuments,
+// } from "./verifications/provider-documents-seed";
 import {
   seedMerchantDocuments,
   validateMerchantDocuments,
@@ -57,7 +49,7 @@ import { seedClientAnnouncements } from "./announcements/client-announcements-se
 import { seedMerchantAnnouncements } from "./announcements/merchant-announcements-seed";
 
 // Import des seeds de notifications
-import { seedNotificationTemplates } from "./notifications/notification-templates-seed";
+// import { seedNotificationTemplates } from "./notifications/notification-templates-seed";
 
 // Import des seeds de services
 import { seedProviderServices } from "./services/provider-services-seed";
@@ -87,29 +79,11 @@ interface SeedDefinition {
  * Configuration complète des seeds EcoDeli
  */
 const SEED_DEFINITIONS: SeedDefinition[] = [
-  // 1. Seeds de base (priorité 1)
-  {
-    name: "permissions",
-    category: "base",
-    dependencies: [],
-    seedFunction: seedPermissions,
-    description: "Permissions système par rôle",
-    priority: 1,
-  },
-  {
-    name: "service-categories",
-    category: "base",
-    dependencies: [],
-    seedFunction: seedServiceCategories,
-    description: "Catégories de services disponibles",
-    priority: 1,
-  },
-
   // 2. Seeds utilisateurs (priorité 2)
   {
     name: "admin-users",
     category: "users",
-    dependencies: ["permissions"],
+    dependencies: [], // Suppression dépendance permissions
     seedFunction: seedAdminUsers,
     description: "Utilisateurs administrateurs",
     priority: 2,
@@ -117,7 +91,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
   {
     name: "client-users",
     category: "users",
-    dependencies: ["permissions"],
+    dependencies: [], // Suppression dépendance permissions
     seedFunction: seedClientUsers,
     description: "Utilisateurs clients",
     priority: 2,
@@ -125,7 +99,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
   {
     name: "deliverer-users",
     category: "users",
-    dependencies: ["permissions"],
+    dependencies: [], // Suppression dépendance permissions
     seedFunction: seedDelivererUsers,
     description: "Utilisateurs livreurs",
     priority: 2,
@@ -133,7 +107,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
   {
     name: "merchant-users",
     category: "users",
-    dependencies: ["permissions"],
+    dependencies: [], // Suppression dépendance permissions
     seedFunction: seedMerchantUsers,
     description: "Utilisateurs commerçants",
     priority: 2,
@@ -141,7 +115,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
   {
     name: "provider-users",
     category: "users",
-    dependencies: ["permissions"],
+    dependencies: [], // Suppression dépendance permissions
     seedFunction: seedProviderUsers,
     description: "Utilisateurs prestataires",
     priority: 2,
@@ -149,7 +123,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
   {
     name: "multi-verification-users",
     category: "users",
-    dependencies: ["permissions"],
+    dependencies: [], // Suppression dépendance permissions
     seedFunction: seedMultiVerificationUsers,
     description: "Utilisateurs de test avec statuts de vérification variés",
     priority: 2,
@@ -164,14 +138,14 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     description: "Documents des livreurs",
     priority: 3,
   },
-  {
-    name: "provider-documents",
-    category: "verifications",
-    dependencies: ["provider-users"],
-    seedFunction: seedProviderDocuments,
-    description: "Documents des prestataires",
-    priority: 3,
-  },
+  // {
+  //   name: "provider-documents",
+  //   category: "verifications",
+  //   dependencies: ["provider-users"],
+  //   seedFunction: seedProviderDocuments,
+  //   description: "Documents des prestataires",
+  //   priority: 3,
+  // },
   {
     name: "merchant-documents",
     category: "verifications",
@@ -258,31 +232,31 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     priority: 5,
   },
 
-  // 6. Seeds spécifiques
-  {
-    name: "service-types",
-    category: "services",
-    dependencies: ["service-categories"],
-    seedFunction: seedServiceTypes,
-    description: "Types de services détaillés",
-    priority: 6,
-  },
-  {
-    name: "provider-availability",
-    category: "services",
-    dependencies: ["service-types"],
-    seedFunction: seedProviderAvailability,
-    description: "Disponibilités des prestataires",
-    priority: 6,
-  },
-  {
-    name: "service-ratings",
-    category: "services",
-    dependencies: ["provider-availability"],
-    seedFunction: seedServiceRatings,
-    description: "Évaluations de services",
-    priority: 6,
-  },
+  // 6. Seeds spécifiques - TEMPORAIREMENT DÉSACTIVÉS
+  // {
+  //   name: "service-types",
+  //   category: "services",
+  //   dependencies: ["service-categories"],
+  //   seedFunction: seedServiceTypes,
+  //   description: "Types de services détaillés",
+  //   priority: 6,
+  // },
+  // {
+  //   name: "provider-availability",
+  //   category: "services",
+  //   dependencies: ["service-types"],
+  //   seedFunction: seedProviderAvailability,
+  //   description: "Disponibilités des prestataires",
+  //   priority: 6,
+  // },
+  // {
+  //   name: "service-ratings",
+  //   category: "services",
+  //   dependencies: ["provider-availability"],
+  //   seedFunction: seedServiceRatings,
+  //   description: "Évaluations de services",
+  //   priority: 6,
+  // },
   {
     name: "provider-services",
     category: "services",
@@ -319,14 +293,14 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
   },
 
   // 8. Seeds de notifications (priorité 8)
-  {
-    name: "notification-templates",
-    category: "notifications",
-    dependencies: [],
-    seedFunction: seedNotificationTemplates,
-    description: "Modèles de notifications",
-    priority: 8,
-  },
+  // {
+  //   name: "notification-templates",
+  //   category: "notifications",
+  //   dependencies: [],
+  //   seedFunction: seedNotificationTemplates,
+  //   description: "Modèles de notifications",
+  //   priority: 8,
+  // },
 ];
 
 /**

@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   router,
-  publicProcedure,
   protectedProcedure,
   verifiedDelivererProcedure,
 } from "@/server/api/trpc";
@@ -25,10 +24,10 @@ export const announcementRouter = router({
   // Récupération de toutes les annonces avec filtres
   getAll: publicProcedure
     .input(announcementFilterSchema.optional().default({}))
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       try {
         return await AnnouncementService.getAll(input);
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -47,7 +46,7 @@ export const announcementRouter = router({
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const filters = {
           clientId: ctx.session.user.id,
@@ -57,7 +56,7 @@ export const announcementRouter = router({
         };
 
         return await AnnouncementService.getAll(filters);
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -70,10 +69,10 @@ export const announcementRouter = router({
   // Récupération d'une annonce par ID
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       try {
         return await AnnouncementService.getById(input.id);
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof Error && error.message === "Annonce non trouvée") {
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -94,12 +93,12 @@ export const announcementRouter = router({
   // Création d'une annonce
   create: protectedProcedure
     .input(createAnnouncementSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérification du rôle utilisateur
       if (
-        ctx.session.user.role !== UserRole.CLIENT &&
-        ctx.session.user.role !== UserRole.MERCHANT &&
-        ctx.session.user.role !== UserRole.ADMIN
+        _ctx.session.user.role !== UserRole.CLIENT &&
+        _ctx.session.user.role !== UserRole.MERCHANT &&
+        _ctx.session.user.role !== UserRole.ADMIN
       ) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -109,8 +108,8 @@ export const announcementRouter = router({
 
       // Pour être sûr que l'utilisateur connecté est celui qui crée l'annonce
       if (
-        input.clientId !== ctx.session.user.id &&
-        ctx.session.user.role !== UserRole.ADMIN
+        input.clientId !== _ctx.session.user.id &&
+        _ctx.session.user.role !== UserRole.ADMIN
       ) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -160,7 +159,7 @@ export const announcementRouter = router({
         });
 
         return announcement;
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de la création de l'annonce:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -172,7 +171,7 @@ export const announcementRouter = router({
   // Mise à jour d'une annonce
   update: protectedProcedure
     .input(updateAnnouncementSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que l'annonce existe
         const announcement = await ctx.db.announcement.findUnique({
@@ -215,7 +214,7 @@ export const announcementRouter = router({
         }
 
         // Supprimer l'id de input avant de l'utiliser pour la mise à jour
-        const { id, ...updateData } = input;
+        const { id: _id, ...updateData } = input;
 
         // Convertir les dates si nécessaires
         const finalUpdateData = { ...updateData };
@@ -227,7 +226,7 @@ export const announcementRouter = router({
         });
 
         return updatedAnnouncement;
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
 
         console.error("Erreur lors de la mise à jour de l'annonce:", error);
@@ -242,7 +241,7 @@ export const announcementRouter = router({
   // Suppression d'une annonce
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const announcement = await ctx.db.announcement.findUnique({
           where: { id: input.id },
@@ -292,7 +291,7 @@ export const announcementRouter = router({
         });
 
         return deletedAnnouncement;
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
 
         console.error("Erreur lors de la suppression de l'annonce:", error);
@@ -307,19 +306,23 @@ export const announcementRouter = router({
   // Postuler à une annonce (pour les livreurs vérifiés uniquement)
   applyForAnnouncement: verifiedDelivererProcedure
     .input(createAnnouncementApplicationSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { announcementId, proposedPrice, message } = input;
+        const {
+          announcementId: _announcementId,
+          proposedPrice: _proposedPrice,
+          message: _message,
+        } = input;
 
         return await AnnouncementService.applyForAnnouncement(
           announcementId,
-          ctx.session.user.id,
+          _ctx.session.user.id,
           {
             proposedPrice,
             message,
           },
         );
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof Error && error.message.includes("livreurs")) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -345,24 +348,24 @@ export const announcementRouter = router({
         status: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que l'utilisateur est authentifié
-        if (!ctx.session?.user?.id) {
+        if (!_ctx.session?.user?.id) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
             message: "Vous devez être connecté pour gérer une candidature",
           });
         }
 
-        const { applicationId, status } = input;
+        const { applicationId: _applicationId, status: _status } = input;
 
         return await AnnouncementService.updateApplicationStatus(
           applicationId,
           status,
-          ctx.session.user.id,
+          _ctx.session.user.id,
         );
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof Error && error.message.includes("autorisé")) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -383,7 +386,7 @@ export const announcementRouter = router({
   // Publier une annonce
   publish: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const announcement = await ctx.db.announcement.findUnique({
           where: { id: input.id },
@@ -425,7 +428,7 @@ export const announcementRouter = router({
         });
 
         return publishedAnnouncement;
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
 
         console.error("Erreur lors de la publication de l'annonce:", error);
@@ -440,10 +443,10 @@ export const announcementRouter = router({
   // Marquer une annonce comme complétée
   complete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que l'utilisateur est authentifié
-        if (!ctx.session?.user?.id) {
+        if (!_ctx.session?.user?.id) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
             message: "Vous devez être connecté pour compléter une annonce",
@@ -452,9 +455,9 @@ export const announcementRouter = router({
 
         return await AnnouncementService.completeAnnouncement(
           input.id,
-          ctx.session.user.id,
+          _ctx.session.user.id,
         );
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof Error && error.message.includes("autorisé")) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -475,7 +478,7 @@ export const announcementRouter = router({
   // Changer le statut d'une annonce
   updateStatus: protectedProcedure
     .input(updateAnnouncementStatusSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que l'annonce existe
         const announcement = await ctx.db.announcement.findUnique({
@@ -573,7 +576,7 @@ export const announcementRouter = router({
         });
 
         return updatedAnnouncement;
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
 
         console.error(
@@ -591,7 +594,7 @@ export const announcementRouter = router({
   // Rechercher et filtrer les annonces
   search: publicProcedure
     .input(searchAnnouncementSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const skip = (input.page - 1) * input.limit;
 
@@ -603,7 +606,7 @@ export const announcementRouter = router({
           where.status = input.status;
         } else {
           // Par défaut, ne montrer que les annonces publiées aux utilisateurs non connectés
-          if (!ctx.session?.user) {
+          if (!_ctx.session?.user) {
             where.status = "PUBLISHED";
           }
         }
@@ -705,7 +708,7 @@ export const announcementRouter = router({
 
         // Exécuter la requête
         const [announcements, totalCount] = await Promise.all([
-          ctx.db.announcement.findMany({
+          _ctx.db.announcement.findMany({
             where,
             orderBy,
             skip,
@@ -736,7 +739,7 @@ export const announcementRouter = router({
           limit: input.limit,
           totalPages: Math.ceil(totalCount / input.limit),
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de la recherche d'annonces:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -748,7 +751,7 @@ export const announcementRouter = router({
   // Attribuer une annonce à un livreur
   assignDeliverer: protectedProcedure
     .input(assignDelivererSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que l'annonce existe
         const announcement = await ctx.db.announcement.findUnique({
@@ -833,7 +836,7 @@ export const announcementRouter = router({
         }
 
         return updatedAnnouncement;
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
 
         console.error("Erreur lors de l'attribution de l'annonce:", error);
@@ -847,7 +850,7 @@ export const announcementRouter = router({
   // Obtenir des statistiques sur les annonces
   getStats: protectedProcedure
     .input(announcementStatsSchema.optional().default({}))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que l'utilisateur est un admin, sinon limiter aux statistiques personnelles
         const isAdmin = ctx.session.user.role === UserRole.ADMIN;
@@ -882,11 +885,11 @@ export const announcementRouter = router({
         } else if (!isAdmin) {
           // Si non admin, limiter aux annonces de l'utilisateur
           if (
-            ctx.session.user.role === UserRole.CLIENT ||
-            ctx.session.user.role === UserRole.MERCHANT
+            _ctx.session.user.role === UserRole.CLIENT ||
+            _ctx.session.user.role === UserRole.MERCHANT
           ) {
             where.clientId = userId;
-          } else if (ctx.session.user.role === UserRole.DELIVERER) {
+          } else if (_ctx.session.user.role === UserRole.DELIVERER) {
             where.delivererId = userId;
           }
         }
@@ -905,7 +908,7 @@ export const announcementRouter = router({
           averagePrice,
           totalRevenue,
         ] = await Promise.all([
-          ctx.db.announcement.count({ where }),
+          _ctx.db.announcement.count({ where }),
           ctx.db.announcement.count({
             where: { ...where, status: "PUBLISHED" },
           }),
@@ -933,7 +936,7 @@ export const announcementRouter = router({
         ]);
 
         // Obtenir la distribution par type si admin
-        let typeDistribution = {};
+        const typeDistribution = {};
         if (isAdmin) {
           const typeCounts = await ctx.db.announcement.groupBy({
             by: ["type"],
@@ -956,7 +959,7 @@ export const announcementRouter = router({
           totalRevenue: totalRevenue._sum.suggestedPrice || 0,
           typeDistribution: isAdmin ? typeDistribution : undefined,
         };
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la récupération des statistiques:",
           error,
@@ -979,7 +982,7 @@ export const announcementRouter = router({
         limit: z.number().int().min(1).max(100).default(20),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const skip = (input.page - 1) * input.limit;
 
@@ -1007,7 +1010,7 @@ export const announcementRouter = router({
 
         // Exécuter la requête
         const [announcements, totalCount] = await Promise.all([
-          ctx.db.announcement.findMany({
+          _ctx.db.announcement.findMany({
             where,
             orderBy: { createdAt: "desc" },
             skip,
@@ -1030,7 +1033,7 @@ export const announcementRouter = router({
           limit: input.limit,
           totalPages: Math.ceil(totalCount / input.limit),
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
 
         console.error(
@@ -1055,7 +1058,7 @@ export const announcementRouter = router({
         limit: z.number().int().min(1).max(100).default(20),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const skip = (input.page - 1) * input.limit;
 
@@ -1084,7 +1087,7 @@ export const announcementRouter = router({
 
         // Exécuter la requête
         const [announcements, totalCount] = await Promise.all([
-          ctx.db.announcement.findMany({
+          _ctx.db.announcement.findMany({
             where,
             orderBy: { createdAt: "desc" },
             skip,
@@ -1109,7 +1112,7 @@ export const announcementRouter = router({
           limit: input.limit,
           totalPages: Math.ceil(totalCount / input.limit),
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
 
         console.error(

@@ -6,9 +6,9 @@ export const walletService = {
     // Récupérer le solde réel depuis la base de données
     const wallet = await db.wallet.findUnique({
       where: { userId },
-      select: { balance: true, currency: true }
+      select: { balance: true, currency: true },
     });
-    
+
     return wallet || { balance: 0, currency: "EUR" };
   },
 

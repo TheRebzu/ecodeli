@@ -120,7 +120,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Déterminer si l'utilisateur est vérifié selon son rôle
-        let isVerified = true; // Par défaut, les comptes sont considérés comme vérifiés
+        const isVerified = true; // Par défaut, les comptes sont considérés comme vérifiés
         const status = user.status;
 
         // Déterminer le profileId en fonction du rôle
@@ -238,7 +238,7 @@ export const authOptions: NextAuthOptions = {
               `Session mise à jour pour ${currentUser.email}: status=${token.status}, isVerified=${token.isVerified}`,
             );
           }
-        } catch (error) {
+        } catch (_error) {
           console.error(
             "Erreur lors de la mise à jour dynamique de la session:",
             error,
@@ -269,13 +269,13 @@ export const authOptions: NextAuthOptions = {
  * Fonction pour obtenir la session côté serveur
  * Compatible avec les deux approches (Pages Router et App Router)
  */
-export const getServerAuthSession = (ctx?: {
+export const getServerAuthSession = (_ctx?: {
   req: GetServerSidePropsContext["req"];
   res: GetServerSidePropsContext["res"];
 }) => {
-  if (ctx?.req && ctx?.res) {
+  if (_ctx?.req && _ctx?.res) {
     // Pages Router: utilisation des objets req et res
-    return getServerSession(ctx.req, ctx.res, authOptions);
+    return getServerSession(_ctx.req, _ctx.res, authOptions);
   }
   // App Router: utilisation sans contexte spécifique
   return getServerSession(authOptions);

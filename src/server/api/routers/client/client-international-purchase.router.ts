@@ -11,7 +11,7 @@ export const clientInternationalPurchaseRouter = router({
         description: z.string(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input: _input }) => {
       // Créer une demande d'achat international
       return { success: true };
     }),

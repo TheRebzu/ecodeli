@@ -1,24 +1,28 @@
-﻿"use client";
-
-import { useTranslations } from "next-intl";
+﻿import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { MerchantStats } from "@/components/merchant/stats/merchant-stats";
 import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
 
-export default function StatsPage() {
-  const t = useTranslations();
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("merchant.stats");
+
+  return {
+    title: t("title") || "Statistiques | EcoDeli Marchand",
+    description: t("description") || "Analysez les performances de votre boutique",
+  };
+}
+
+export default async function MerchantStatsPage() {
+  const t = await getTranslations("merchant.stats");
 
   return (
     <div className="container mx-auto py-6 space-y-6">
       <PageHeader
-        title="Statistiques"
-        description={t("merchant.Stats.description")}
+        title="Statistiques de Performance"
+        description="Analysez les performances de votre boutique et suivez vos ventes"
       />
 
-      <Card className="p-6">
-        <p className="text-muted-foreground">
-          Statistiques - En cours de développement
-        </p>
-      </Card>
+      <MerchantStats />
     </div>
   );
 }

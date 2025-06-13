@@ -86,7 +86,7 @@ class WarehouseService {
       }
 
       return warehouses;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des entrepôts:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -115,7 +115,7 @@ class WarehouseService {
       }
 
       return warehouse;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       console.error(
         "Erreur lors de la récupération des détails de l'entrepôt:",
@@ -131,7 +131,12 @@ class WarehouseService {
   // Récupération des boxes d'un entrepôt avec filtrage par disponibilité
   async getWarehouseBoxes(input: BoxSearchInput) {
     try {
-      const { warehouseId, startDate, endDate, availableOnly = true } = input;
+      const {
+        warehouseId: _warehouseId,
+        startDate: _startDate,
+        endDate: _endDate,
+        availableOnly = true,
+      } = input;
 
       let whereClause: Prisma.BoxWhereInput = {
         warehouseId,
@@ -184,7 +189,7 @@ class WarehouseService {
       });
 
       return boxes;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des boxes:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -196,7 +201,12 @@ class WarehouseService {
   // Recherche d'entrepôts par proximité géographique
   async searchNearbyWarehouses(input: NearbySearchInput) {
     try {
-      const { lat, lng, radius, maxResults } = input;
+      const {
+        lat: _lat,
+        lng: _lng,
+        radius: _radius,
+        maxResults: _maxResults,
+      } = input;
 
       const nearbyWarehouses = await db.$queryRaw`
         SELECT w.*, 
@@ -218,7 +228,7 @@ class WarehouseService {
       `;
 
       return nearbyWarehouses;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la recherche d'entrepôts proximité:",
         error,
@@ -298,7 +308,7 @@ class WarehouseService {
       }
 
       return basicStats;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       console.error("Erreur lors de la récupération des statistiques:", error);
       throw new TRPCError({
@@ -311,7 +321,13 @@ class WarehouseService {
   // Récupération des créneaux de disponibilité
   async getAvailabilitySlots(input: any) {
     try {
-      const { warehouseId, startDate, endDate, boxType, minSize } = input;
+      const {
+        warehouseId: _warehouseId,
+        startDate: _startDate,
+        endDate: _endDate,
+        boxType: _boxType,
+        minSize: _minSize,
+      } = input;
 
       let whereClause: Prisma.BoxWhereInput = {
         warehouseId,
@@ -351,7 +367,7 @@ class WarehouseService {
         totalAvailable: availableBoxes.length,
         period: { startDate, endDate },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des créneaux:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -393,7 +409,7 @@ class WarehouseService {
       }
 
       return { success: true, message: "Box libérée avec succès" };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la libération de la box:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -405,7 +421,13 @@ class WarehouseService {
   // Signalement d'un problème
   async reportIssue(input: ReportIssueInput, userId: string) {
     try {
-      const { warehouseId, boxId, issueType, description, priority } = input;
+      const {
+        warehouseId: _warehouseId,
+        boxId: _boxId,
+        issueType: _issueType,
+        description: _description,
+        priority: _priority,
+      } = input;
 
       // Vérifier que l'entrepôt existe
       const warehouse = await db.warehouse.findUnique({
@@ -431,7 +453,7 @@ class WarehouseService {
       `;
 
       return { success: true, message: "Signalement enregistré avec succès" };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du signalement:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -462,7 +484,7 @@ class WarehouseService {
       }
 
       return warehouse;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       console.error("Erreur lors de la récupération des horaires:", error);
       throw new TRPCError({
@@ -475,7 +497,11 @@ class WarehouseService {
   // Vérifier la capacité d'un entrepôt
   async checkCapacity(input: CapacityCheckInput) {
     try {
-      const { warehouseId, startDate, endDate } = input;
+      const {
+        warehouseId: _warehouseId,
+        startDate: _startDate,
+        endDate: _endDate,
+      } = input;
 
       const totalBoxes = await db.box.count({
         where: { warehouseId },
@@ -505,7 +531,7 @@ class WarehouseService {
         capacityRate: Math.round(capacityRate * 100) / 100,
         hasCapacity: availableBoxes > 0,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la vérification de capacité:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '@/server/api/trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import { router, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Router pour les logs système admin
@@ -11,21 +11,29 @@ export const adminLogsRouter = router({
   getAll: protectedProcedure
     .input(
       z.object({
-        level: z.enum(['ERROR', 'WARN', 'INFO', 'DEBUG']).optional(),
+        level: z.enum(["ERROR", "WARN", "INFO", "DEBUG"]).optional(),
         category: z
-          .enum(['AUTH', 'API', 'DATABASE', 'PAYMENT', 'DELIVERY', 'SYSTEM', 'USER'])
+          .enum([
+            "AUTH",
+            "API",
+            "DATABASE",
+            "PAYMENT",
+            "DELIVERY",
+            "SYSTEM",
+            "USER",
+          ])
           .optional(),
         search: z.string().optional(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(100).default(50),
-      })
+      }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions admin
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         // Récupérer les logs depuis la base de données
         const whereClause: any = {};
@@ -40,8 +48,8 @@ export const adminLogsRouter = router({
 
         if (input.search) {
           whereClause.OR = [
-            { message: { contains: input.search, mode: 'insensitive' } },
-            { source: { contains: input.search, mode: 'insensitive' } },
+            { message: { contains: input.search, mode: "insensitive" } },
+            { source: { contains: input.search, mode: "insensitive" } },
           ];
         }
 
@@ -61,7 +69,7 @@ export const adminLogsRouter = router({
         // Récupérer les logs avec pagination
         const logs = await ctx.db.systemLog.findMany({
           where: whereClause,
-          orderBy: { timestamp: 'desc' },
+          orderBy: { timestamp: "desc" },
           skip: (input.page - 1) * input.limit,
           take: input.limit,
           select: {
@@ -82,10 +90,10 @@ export const adminLogsRouter = router({
           limit: input.limit,
           totalPages: Math.ceil(total / input.limit),
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des logs',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des logs",
         });
       }
     }),
@@ -95,9 +103,9 @@ export const adminLogsRouter = router({
     .input(
       z.object({
         id: z.string(),
-      })
+      }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // Récupérer le log depuis la base de données
         const log = await ctx.db.systemLog.findUnique({
@@ -116,16 +124,16 @@ export const adminLogsRouter = router({
 
         if (!log) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Log non trouvé',
+            code: "NOT_FOUND",
+            message: "Log non trouvé",
           });
         }
 
         return log;
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Log non trouvé',
+          code: "NOT_FOUND",
+          message: "Log non trouvé",
         });
       }
     }),
@@ -134,26 +142,26 @@ export const adminLogsRouter = router({
   getStats: protectedProcedure
     .input(
       z.object({
-        period: z.enum(['1h', '24h', '7d', '30d']).default('24h'),
-      })
+        period: z.enum(["1h", "24h", "7d", "30d"]).default("24h"),
+      }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // Calculer la période de temps
         const now = new Date();
         let startDate: Date;
-        
+
         switch (input.period) {
-          case '1h':
+          case "1h":
             startDate = new Date(now.getTime() - 60 * 60 * 1000);
             break;
-          case '24h':
+          case "24h":
             startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
             break;
-          case '7d':
+          case "7d":
             startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             break;
-          case '30d':
+          case "30d":
             startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
             break;
           default:
@@ -171,7 +179,7 @@ export const adminLogsRouter = router({
 
         // Statistiques par niveau
         const byLevel = await ctx.db.systemLog.groupBy({
-          by: ['level'],
+          by: ["level"],
           where: {
             timestamp: {
               gte: startDate,
@@ -184,7 +192,7 @@ export const adminLogsRouter = router({
 
         // Statistiques par catégorie
         const byCategory = await ctx.db.systemLog.groupBy({
-          by: ['category'],
+          by: ["category"],
           where: {
             timestamp: {
               gte: startDate,
@@ -198,13 +206,13 @@ export const adminLogsRouter = router({
         // Erreurs récentes
         const recentErrors = await ctx.db.systemLog.findMany({
           where: {
-            level: 'ERROR',
+            level: "ERROR",
             timestamp: {
               gte: startDate,
             },
           },
           orderBy: {
-            timestamp: 'desc',
+            timestamp: "desc",
           },
           take: 5,
           select: {
@@ -215,7 +223,7 @@ export const adminLogsRouter = router({
 
         // Tendances horaires (simplifié)
         const hourlyTrends = await ctx.db.systemLog.groupBy({
-          by: ['timestamp'],
+          by: ["timestamp"],
           where: {
             timestamp: {
               gte: startDate,
@@ -228,15 +236,21 @@ export const adminLogsRouter = router({
 
         const stats = {
           totalLogs,
-          byLevel: byLevel.reduce((acc, item) => {
-            acc[item.level] = item._count.id;
-            return acc;
-          }, {} as Record<string, number>),
-          byCategory: byCategory.reduce((acc, item) => {
-            acc[item.category] = item._count.id;
-            return acc;
-          }, {} as Record<string, number>),
-          recentErrors: recentErrors.map(error => ({
+          byLevel: byLevel.reduce(
+            (acc, item) => {
+              acc[item.level] = item._count.id;
+              return acc;
+            },
+            {} as Record<string, number>,
+          ),
+          byCategory: byCategory.reduce(
+            (acc, item) => {
+              acc[item.category] = item._count.id;
+              return acc;
+            },
+            {} as Record<string, number>,
+          ),
+          recentErrors: recentErrors.map((error) => ({
             timestamp: error.timestamp,
             message: error.message,
             count: 1, // Simplifié pour l'instant
@@ -250,10 +264,10 @@ export const adminLogsRouter = router({
         };
 
         return stats;
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des statistiques',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques",
         });
       }
     }),
@@ -263,10 +277,10 @@ export const adminLogsRouter = router({
     .input(
       z.object({
         olderThan: z.date(),
-        level: z.enum(['ERROR', 'WARN', 'INFO', 'DEBUG']).optional(),
-      })
+        level: z.enum(["ERROR", "WARN", "INFO", "DEBUG"]).optional(),
+      }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions super admin
         // TODO: Implémenter le nettoyage en base
@@ -291,10 +305,10 @@ export const adminLogsRouter = router({
           deletedCount: deletedCount.count,
           message: `${deletedCount.count} logs supprimés avec succès`,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Erreur lors du nettoyage des logs',
+          code: "BAD_REQUEST",
+          message: "Erreur lors du nettoyage des logs",
         });
       }
     }),
@@ -303,20 +317,28 @@ export const adminLogsRouter = router({
   export: protectedProcedure
     .input(
       z.object({
-        format: z.enum(['CSV', 'JSON', 'TXT']).default('CSV'),
+        format: z.enum(["CSV", "JSON", "TXT"]).default("CSV"),
         filters: z
           .object({
-            level: z.enum(['ERROR', 'WARN', 'INFO', 'DEBUG']).optional(),
+            level: z.enum(["ERROR", "WARN", "INFO", "DEBUG"]).optional(),
             category: z
-              .enum(['AUTH', 'API', 'DATABASE', 'PAYMENT', 'DELIVERY', 'SYSTEM', 'USER'])
+              .enum([
+                "AUTH",
+                "API",
+                "DATABASE",
+                "PAYMENT",
+                "DELIVERY",
+                "SYSTEM",
+                "USER",
+              ])
               .optional(),
             startDate: z.date().optional(),
             endDate: z.date().optional(),
           })
           .optional(),
-      })
+      }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Implémenter l'export réel
 
@@ -325,11 +347,11 @@ export const adminLogsRouter = router({
         return {
           success: true,
           downloadUrl: exportUrl,
-          message: 'Export généré avec succès',
+          message: "Export généré avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
+          code: "BAD_REQUEST",
           message: "Erreur lors de l'export des logs",
         });
       }

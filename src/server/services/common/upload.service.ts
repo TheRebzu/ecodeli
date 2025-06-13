@@ -48,7 +48,13 @@ export class UploadService {
    */
   static async uploadFile(input: UploadFileInput): Promise<UploadFileResult> {
     try {
-      const { file, type, userId, description, metadata } = input;
+      const {
+        file: _file,
+        type: _type,
+        userId: _userId,
+        description: _description,
+        metadata: _metadata,
+      } = input;
 
       // Validation du type d'upload
       if (!ALLOWED_TYPES[type]) {
@@ -58,10 +64,10 @@ export class UploadService {
         });
       }
 
-      let fileUrl = "";
-      let fileName = "";
-      let mimeType = "";
-      let fileSize = 0;
+      const fileUrl = "";
+      const fileName = "";
+      const mimeType = "";
+      const fileSize = 0;
 
       // Traitement selon le type de fichier
       if (typeof file === "string") {
@@ -170,7 +176,11 @@ export class UploadService {
     const filename = `${randomUUID()}${extension}`;
 
     // Créer le répertoire et écrire le fichier
-    const { uploadDir, filepath } = this.getFilePaths(type, userId, filename);
+    const { uploadDir: _uploadDir, filepath: _filepath } = this.getFilePaths(
+      type,
+      userId,
+      filename,
+    );
     await this.ensureDirectoryExists(uploadDir);
     await writeFile(filepath, buffer);
 
@@ -231,7 +241,11 @@ export class UploadService {
     const filename = `${randomUUID()}${extension}`;
 
     // Créer le répertoire et écrire le fichier
-    const { uploadDir, filepath } = this.getFilePaths(type, userId, filename);
+    const { uploadDir: _uploadDir, filepath: _filepath } = this.getFilePaths(
+      type,
+      userId,
+      filename,
+    );
     await this.ensureDirectoryExists(uploadDir);
     await writeFile(filepath, buffer);
 
@@ -266,7 +280,7 @@ export class UploadService {
 
       // Supprimer le fichier physique
       if (existsSync(filepath)) {
-        const { unlink } = await import("fs/promises");
+        const { _unlink: __unlink } = await import("fs/promises");
         await unlink(filepath);
       }
 

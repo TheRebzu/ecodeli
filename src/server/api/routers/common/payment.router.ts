@@ -25,7 +25,7 @@ import {
   paymentFilterSchema,
   releaseEscrowPaymentSchema,
 } from "@/schemas/payment/payment.schema";
-import { PaymentStatus, UserRole } from "@prisma/client";
+import { PaymentStatus } from "@prisma/client";
 import {
   isRoleAllowed,
   checkPaymentAccessRights,
@@ -36,7 +36,7 @@ let importedWalletService: any;
 try {
   importedWalletService =
     require("@/server/services/wallet.service").walletService;
-} catch (error) {
+} catch (_error) {
   console.warn("Wallet service could not be imported:", error);
   importedWalletService = null;
 }
@@ -80,7 +80,7 @@ export const paymentRouter = router({
    */
   getUserPayments: protectedProcedure
     .input(paymentFilterSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
         const result = await getPaymentHistory(userId, input);
@@ -113,10 +113,10 @@ export const paymentRouter = router({
         endDate: z.string().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
-        const { page, limit, type, status, search, startDate, endDate } = input;
+        const { page: _page, limit: _limit, type: _type, status: _status, search: _search, startDate: _startDate, endDate: _endDate } = input;
 
         // Construire les conditions de recherche
         const where: any = { userId };
@@ -216,9 +216,9 @@ export const paymentRouter = router({
    */
   getPaymentById: protectedProcedure
     .input(z.object({ paymentId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
-        const { id: userId, role } = ctx.session.user;
+        const { id: _userId, role: _role } = ctx.session.user;
 
         // Récupérer le paiement avec ses relations
         const payment = await ctx.db.payment.findUnique({
@@ -246,7 +246,7 @@ export const paymentRouter = router({
         }
 
         // Vérifier les autorisations d'accès au paiement
-        await checkPaymentAccessRights(ctx.db, payment, userId, role);
+        await checkPaymentAccessRights(_ctx.db, payment, userId, role);
 
         // Récupérer les événements associés si disponibles en mode démo
         // ou les événements réels en production
@@ -280,7 +280,7 @@ export const paymentRouter = router({
    */
   createPayment: protectedProcedure
     .input(createPaymentSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Assignation automatique de l'ID utilisateur depuis la session
         const paymentData = {
@@ -298,7 +298,7 @@ export const paymentRouter = router({
             eventType: "PAYMENT_CREATED",
             description: `Paiement créé: ${input.amount} ${input.currency}`,
             metadata: {
-              createdBy: ctx.session.user.id,
+              createdBy: _ctx.session.user.id,
             },
           },
         });
@@ -318,7 +318,7 @@ export const paymentRouter = router({
    */
   createPaymentIntent: protectedProcedure
     .input(createPaymentIntentSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
 
@@ -348,9 +348,9 @@ export const paymentRouter = router({
         paymentId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { id: userId, role } = ctx.session.user;
+        const { id: _userId, role: _role } = ctx.session.user;
 
         // Récupérer le paiement
         const payment = await ctx.db.payment.findUnique({
@@ -382,7 +382,7 @@ export const paymentRouter = router({
             eventType: "PAYMENT_CONFIRMED",
             description: `Paiement confirmé`,
             metadata: {
-              confirmedBy: ctx.session.user.id,
+              confirmedBy: _ctx.session.user.id,
             },
           },
         });
@@ -414,12 +414,12 @@ export const paymentRouter = router({
         metadata: z.record(z.string()).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
 
         // Vérifier que l'utilisateur est un client
-        if (ctx.session.user.role !== "CLIENT") {
+        if (_ctx.session.user.role !== "CLIENT") {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "Seul un client peut créer un paiement sous séquestre",
@@ -455,9 +455,9 @@ export const paymentRouter = router({
    */
   releaseEscrowPayment: protectedProcedure
     .input(releaseEscrowPaymentSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { id: userId, role } = ctx.session.user;
+        const { id: _userId, role: _role } = ctx.session.user;
 
         // Récupérer le paiement
         const payment = await ctx.db.payment.findUnique({
@@ -506,10 +506,10 @@ export const paymentRouter = router({
         paymentId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que l'utilisateur est autorisé à annuler ce paiement
-        const { id: userId, role } = ctx.session.user;
+        const { id: _userId, role: _role } = ctx.session.user;
         const payment = await ctx.db.payment.findUnique({
           where: { id: input.paymentId },
           select: { userId: true, status: true },
@@ -578,10 +578,10 @@ export const paymentRouter = router({
    */
   refundPayment: protectedProcedure
     .input(refundPaymentSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que l'utilisateur est autorisé à rembourser ce paiement
-        const { id: userId, role } = ctx.session.user;
+        const { id: _userId, role: _role } = ctx.session.user;
 
         // Seules ces rôles peuvent effectuer un remboursement
         if (!["ADMIN", "MERCHANT"].includes(role)) {
@@ -660,7 +660,7 @@ export const paymentRouter = router({
    */
   getPaymentHistory: protectedProcedure
     .input(paymentHistorySchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const userId = ctx.session.user.id;
         const result = await getPaymentHistory(userId, input);
@@ -680,7 +680,7 @@ export const paymentRouter = router({
    */
   getAllPayments: adminProcedure
     .input(paymentFilterSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // Construction du filtre
         const where: any = {};
@@ -708,7 +708,7 @@ export const paymentRouter = router({
 
         // Récupérer les paiements
         const [payments, total] = await Promise.all([
-          ctx.db.payment.findMany({
+          _ctx.db.payment.findMany({
             where,
             orderBy: { createdAt: "desc" },
             skip,
@@ -775,7 +775,7 @@ export const paymentRouter = router({
         format: z.enum(["CSV", "PDF"]).default("PDF"),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // Vérifier que la période demandée est valide
         if (input.startDate >= input.endDate) {
@@ -792,7 +792,7 @@ export const paymentRouter = router({
           status: input.status,
           type: input.type,
           format: input.format,
-          generatedBy: ctx.session.user.id,
+          generatedBy: _ctx.session.user.id,
         });
 
         return {

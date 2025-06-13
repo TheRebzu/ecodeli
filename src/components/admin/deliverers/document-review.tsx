@@ -328,3 +328,24 @@ export function DocumentVerification() {
     ));
   }
 }
+
+// Composant JsonView pour afficher des données JSON
+export function JsonView({
+  data,
+  ...props
+}: {
+  data: any;
+  [key: string]: any;
+}) {
+  return (
+    <div
+      className="p-4 border border-dashed border-gray-300 rounded-lg"
+      {...props}
+    >
+      <p className="text-gray-500 text-center mb-2">Composant JsonView</p>
+      <pre className="text-xs text-gray-600 bg-gray-50 p-2 rounded overflow-auto max-h-64">
+        {JSON.stringify(data, null, 2)}
+      </pre>
+    </div>
+  );
+}

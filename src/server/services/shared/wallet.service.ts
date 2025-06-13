@@ -35,7 +35,7 @@ export const walletService = {
    * Récupère le portefeuille d'un utilisateur ou le crée s'il n'existe pas
    */
   async getOrCreateWallet(userId: string) {
-    let wallet = await db.wallet.findUnique({
+    const wallet = await db.wallet.findUnique({
       where: { userId },
     });
 
@@ -273,15 +273,15 @@ export const walletService = {
     const newBalance = previousBalance.add(decimalAmount);
 
     // Mettre à jour les statistiques mensuelles
-    let earningsThisMonth = wallet.earningsThisMonth || new Decimal(0);
-    let totalEarned = wallet.totalEarned || new Decimal(0);
+    const earningsThisMonth = wallet.earningsThisMonth || new Decimal(0);
+    const totalEarned = wallet.totalEarned || new Decimal(0);
 
     if (data.type === "EARNING" && decimalAmount.gt(0)) {
       earningsThisMonth = earningsThisMonth.add(decimalAmount);
       totalEarned = totalEarned.add(decimalAmount);
     }
 
-    let totalWithdrawn = wallet.totalWithdrawn || new Decimal(0);
+    const totalWithdrawn = wallet.totalWithdrawn || new Decimal(0);
     if (data.type === "WITHDRAWAL" && decimalAmount.lt(0)) {
       totalWithdrawn = totalWithdrawn.add(decimalAmount.abs());
     }
@@ -440,7 +440,11 @@ export const walletService = {
       transferReference?: string;
     },
   ) {
-    const { adminId, comments, transferReference } = options;
+    const {
+      adminId: _adminId,
+      comments: _comments,
+      transferReference: _transferReference,
+    } = options;
     const approved = action === "approve";
 
     const withdrawal = await db.withdrawalRequest.findUnique({
@@ -577,7 +581,7 @@ export const walletService = {
     });
 
     // Obtenir les transactions détaillées si demandé
-    let detailedTransactions = [];
+    const detailedTransactions = [];
     if (includeDetails) {
       detailedTransactions = await db.walletTransaction.findMany({
         where: {
@@ -684,7 +688,14 @@ export async function addWalletTransaction(data: {
   reference?: string;
   paymentId?: string;
 }): Promise<Transaction> {
-  const { userId, amount, type, description, reference, paymentId } = data;
+  const {
+    userId: _userId,
+    amount: _amount,
+    type: _type,
+    description: _description,
+    reference: _reference,
+    paymentId: _paymentId,
+  } = data;
 
   // Récupérer le portefeuille
   const wallet = await getOrCreateWallet(userId);

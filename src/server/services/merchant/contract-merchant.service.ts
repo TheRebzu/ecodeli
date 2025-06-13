@@ -349,10 +349,8 @@ export class MerchantContractService extends ContractService {
     });
 
     // Calculer bonus/pénalités
-    const { bonusEarned, penaltiesApplied } = this.calculateBonusAndPenalties(
-      contract,
-      targetsMet,
-    );
+    const { bonusEarned: _bonusEarned, penaltiesApplied: _penaltiesApplied } =
+      this.calculateBonusAndPenalties(contract, targetsMet);
 
     // Enregistrer les performances
     return await db.contractPerformance.create({
@@ -401,7 +399,7 @@ export class MerchantContractService extends ContractService {
           status: "success",
           renewed,
         });
-      } catch (error) {
+      } catch (_error) {
         renewalResults.push({
           contractId: contract.id,
           status: "error",
@@ -518,18 +516,20 @@ export class MerchantContractService extends ContractService {
   private calculateSLACompliance(contract: any, deliveries: any[]): number {
     // Calculer le pourcentage de respect du SLA basé sur les livraisons réelles
     if (!deliveries.length) return 100;
-    
+
     const slaTargets = contract.serviceLevelAgreement || {};
     const targetDeliveryTime = slaTargets.maxDeliveryTime || 48; // heures par défaut
-    
-    const onTimeDeliveries = deliveries.filter(delivery => {
+
+    const onTimeDeliveries = deliveries.filter((delivery) => {
       const orderTime = new Date(delivery.createdAt).getTime();
-      const deliveryTime = new Date(delivery.deliveredAt || delivery.updatedAt).getTime();
+      const deliveryTime = new Date(
+        delivery.deliveredAt || delivery.updatedAt,
+      ).getTime();
       const hoursDifference = (deliveryTime - orderTime) / (1000 * 60 * 60);
-      
+
       return hoursDifference <= targetDeliveryTime;
     });
-    
+
     return Math.round((onTimeDeliveries.length / deliveries.length) * 100);
   }
 
@@ -553,8 +553,8 @@ export class MerchantContractService extends ContractService {
     targetsMet: Record<string, boolean>,
   ) {
     // Calculer les bonus et pénalités selon les résultats
-    let bonusEarned = 0;
-    let penaltiesApplied = 0;
+    const bonusEarned = 0;
+    const penaltiesApplied = 0;
 
     // Logique de calcul basée sur contract.bonusStructure et contract.penaltyClause
 

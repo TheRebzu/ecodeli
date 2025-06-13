@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { PaymentStatus, PaymentMethod, UserRole } from "@prisma/client";
+import { PaymentStatus, PaymentMethod } from "@prisma/client";
 
 /**
  * Router pour la gestion administrative des paiements
@@ -68,8 +68,8 @@ export const adminPaymentsRouter = router({
    */
   getAllPayments: protectedProcedure
     .input(paymentFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -154,7 +154,7 @@ export const adminPaymentsRouter = router({
         orderBy[input.sortBy] = input.sortOrder;
 
         const [payments, totalCount] = await Promise.all([
-          ctx.db.payment.findMany({
+          _ctx.db.payment.findMany({
             where,
             include: {
               user: {
@@ -222,7 +222,7 @@ export const adminPaymentsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -241,8 +241,8 @@ export const adminPaymentsRouter = router({
         includeComparison: z.boolean().default(false),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -252,7 +252,8 @@ export const adminPaymentsRouter = router({
       }
 
       try {
-        const { startDate, endDate } = calculatePeriodDates(input.period);
+        const { startDate: _startDate, endDate: _endDate } =
+          calculatePeriodDates(input.period);
 
         const [
           totalPayments,
@@ -267,7 +268,7 @@ export const adminPaymentsRouter = router({
           suspiciousPayments,
         ] = await Promise.all([
           // Total des paiements
-          ctx.db.payment.count({
+          _ctx.db.payment.count({
             where: { createdAt: { gte: startDate, lte: endDate } },
           }),
 
@@ -393,7 +394,7 @@ export const adminPaymentsRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des statistiques",
@@ -406,8 +407,8 @@ export const adminPaymentsRouter = router({
    */
   validatePayment: protectedProcedure
     .input(paymentValidationSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -484,7 +485,7 @@ export const adminPaymentsRouter = router({
           data: updatedPayment,
           message: `Paiement ${input.action.toLowerCase()} avec succès`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -498,8 +499,8 @@ export const adminPaymentsRouter = router({
    */
   initiateRefund: protectedProcedure
     .input(refundRequestSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -590,7 +591,7 @@ export const adminPaymentsRouter = router({
           data: refund,
           message: "Remboursement initié avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -604,8 +605,8 @@ export const adminPaymentsRouter = router({
    */
   bulkActions: protectedProcedure
     .input(bulkPaymentActionSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -677,7 +678,7 @@ export const adminPaymentsRouter = router({
           },
           message: `${results.length} paiement(s) traité(s) avec succès`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -689,7 +690,7 @@ export const adminPaymentsRouter = router({
 
 // Helper functions
 function calculateRiskLevel(payment: any): "LOW" | "MEDIUM" | "HIGH" {
-  let riskScore = 0;
+  const riskScore = 0;
 
   // Montant élevé
   if (payment.amount > 1000) riskScore += 2;

@@ -31,17 +31,20 @@ export const isServer = typeof window === "undefined";
 export const isClient = typeof window !== "undefined";
 
 // Client socket réel utilisant socket.io-client
-import { io, Socket } from 'socket.io-client';
+import { io, Socket } from "socket.io-client";
 
 let socketInstance: Socket | null = null;
 
 const getSocket = (): Socket | null => {
   if (!isClient) return null;
-  
+
   if (!socketInstance) {
-    socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
-      autoConnect: false,
-    });
+    socketInstance = io(
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001",
+      {
+        autoConnect: false,
+      },
+    );
   }
   return socketInstance;
 };

@@ -6,13 +6,13 @@ import { TRPCError } from "@trpc/server";
 import { endOfMonth, startOfMonth, format, subMonths } from "date-fns";
 import { fr } from "date-fns/locale";
 import { invoiceService } from "@/server/services/shared/invoice.service";
-import { CommissionStatus, ServiceType, UserRole } from "@prisma/client";
+import { CommissionStatus, ServiceType } from "@prisma/client";
 
 // Vérifier si le wallet service est correctement initialisé
 const isWalletServiceAvailable = () => {
   try {
     return walletService && typeof walletService.getWallet === "function";
-  } catch (error) {
+  } catch (_error) {
     console.warn("WalletService n'est pas disponible:", error);
     return false;
   }
@@ -81,8 +81,8 @@ export const commissionService = {
     }
 
     // Déterminer le type de paiement et le taux de commission applicable
-    let serviceType = "DELIVERY";
-    let rate = 0;
+    const serviceType = "DELIVERY";
+    const rate = 0;
 
     if (payment.deliveryId) {
       serviceType = "DELIVERY";
@@ -110,7 +110,7 @@ export const commissionService = {
 
     // Appliquer la promotion si elle existe
     const originalRate = rate;
-    let discountAmount = new Decimal(0);
+    const discountAmount = new Decimal(0);
 
     if (promotion) {
       rate = Number(promotion.rate);
@@ -226,7 +226,7 @@ export const commissionService = {
         commission,
         commissionAmount,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du traitement de la commission:", error);
       throw error;
     }
@@ -470,7 +470,13 @@ export const commissionService = {
     endDate: Date;
     description: string;
   }) {
-    const { serviceType, rate, startDate, endDate, description } = data;
+    const {
+      serviceType: _serviceType,
+      rate: _rate,
+      startDate: _startDate,
+      endDate: _endDate,
+      description: _description,
+    } = data;
 
     // Vérifier que le taux est valide
     if (rate < 0 || rate > 1) {
@@ -625,7 +631,13 @@ export async function createCommission(data: {
   serviceType: ServiceType;
   description?: string;
 }) {
-  const { paymentId, amount, rate, serviceType, description } = data;
+  const {
+    paymentId: _paymentId,
+    amount: _amount,
+    rate: _rate,
+    serviceType: _serviceType,
+    description: _description,
+  } = data;
 
   // Calculer le montant de la commission
   const commissionAmount = amount * rate;

@@ -37,7 +37,7 @@ export const stripeService = {
         payment_method_types: ["card"],
         metadata,
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la création du paiement Stripe:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -53,7 +53,7 @@ export const stripeService = {
   async retrievePaymentIntent(paymentIntentId: string) {
     try {
       return await stripeClient.paymentIntents.retrieve(paymentIntentId);
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération du paiement Stripe:",
         error,
@@ -94,7 +94,7 @@ export const stripeService = {
           userId,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du retrait Stripe:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -115,7 +115,7 @@ export const stripeService = {
       type?: string;
     },
   ) {
-    const { email, country = "FR", type = "express" } = accountInfo;
+    const { email: _email, country = "FR", type = "express" } = accountInfo;
 
     try {
       const account = await stripeClient.accounts.create({
@@ -140,7 +140,7 @@ export const stripeService = {
       });
 
       return account;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la création du compte Connect:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -165,7 +165,7 @@ export const stripeService = {
         return_url: returnUrl,
         type: "account_onboarding",
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la création du lien d'onboarding:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -181,7 +181,7 @@ export const stripeService = {
   async retrieveConnectAccount(accountId: string) {
     try {
       return await stripeClient.accounts.retrieve(accountId);
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération du compte Connect:", error);
       throw new TRPCError({
         code: "NOT_FOUND",
@@ -226,7 +226,7 @@ export const stripeService = {
       }
 
       return transfer;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du transfert Stripe Connect:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -275,7 +275,7 @@ export const stripeService = {
       }
 
       return payout;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du payout Stripe Connect:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -299,7 +299,7 @@ export const stripeService = {
         name,
         metadata,
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la création du customer:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -322,7 +322,7 @@ export const stripeService = {
       // Récupérer le customer existant
       try {
         return await stripeClient.customers.retrieve(user.stripeCustomerId);
-      } catch (error) {
+      } catch (_error) {
         console.warn(
           "Customer Stripe non trouvé, création d'un nouveau:",
           error,
@@ -356,7 +356,7 @@ export const stripeService = {
         payment_method_types: ["card"],
         metadata,
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la création du Setup Intent:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -397,7 +397,7 @@ export const stripeService = {
       }
 
       return await stripeClient.subscriptions.create(subscriptionData);
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la création de l'abonnement récurrent:",
         error,
@@ -450,7 +450,7 @@ export const stripeService = {
         subscriptionId,
         updateData,
       );
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la mise à jour de l'abonnement:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -475,7 +475,7 @@ export const stripeService = {
           cancel_at_period_end: true,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'annulation de l'abonnement:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

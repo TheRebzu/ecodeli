@@ -482,9 +482,11 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
   };
 
   // Récupérer les données réelles depuis l'API
-  const { data: analyticsData, isLoading: analyticsLoading } = api.admin.analytics.getDashboardOverview.useQuery();
+  const { data: analyticsData, isLoading: analyticsLoading } =
+    api.admin.analytics.getDashboardOverview.useQuery();
   const { data: alertsData } = api.admin.system.getAlerts.useQuery();
-  const { data: activityData } = api.admin.analytics.getRecentActivity.useQuery();
+  const { data: activityData } =
+    api.admin.analytics.getRecentActivity.useQuery();
 
   const overviewData = {
     activityChart: analyticsData?.activityChart || [],
@@ -493,10 +495,13 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
   };
 
   // Récupérer les données réelles des différentes sections
-  const { data: deliveryAnalytics } = api.admin.analytics.getDeliveryStats.useQuery();
-  const { data: userAnalytics } = api.admin.analytics.getUserStats.useQuery();  
-  const { data: financialAnalytics } = api.admin.analytics.getFinancialData.useQuery();
-  const { data: announcementAnalytics } = api.admin.analytics.getAnnouncementStats.useQuery();
+  const { data: deliveryAnalytics } =
+    api.admin.analytics.getDeliveryStats.useQuery();
+  const { data: userAnalytics } = api.admin.analytics.getUserStats.useQuery();
+  const { data: financialAnalytics } =
+    api.admin.analytics.getFinancialData.useQuery();
+  const { data: announcementAnalytics } =
+    api.admin.analytics.getAnnouncementStats.useQuery();
 
   const deliveryData = {
     statusDistribution: deliveryAnalytics?.statusDistribution || [],

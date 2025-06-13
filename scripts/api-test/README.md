@@ -14,11 +14,13 @@ Un système complet de test pour l'API tRPC d'EcoDeli avec gestion automatique d
 ## 🚀 Installation
 
 1. Installer les dépendances nécessaires :
+
 ```bash
 pnpm add -D axios chalk dotenv zod tsx
 ```
 
 2. Copier le fichier de configuration :
+
 ```bash
 cp scripts/api-test/.env.test.example scripts/api-test/.env.test
 ```
@@ -124,33 +126,31 @@ VERBOSE=true pnpm test:api:scenario
 ### Test simple d'une route
 
 ```typescript
-import { RequestHelper } from '../helpers/request.helper';
-import { defaultUsers } from '../config/users.config';
+import { RequestHelper } from "../helpers/request.helper";
+import { defaultUsers } from "../config/users.config";
 
 // Faire une requête authentifiée
 const announcements = await RequestHelper.trpc(
   defaultUsers.client,
-  'client.announcements.list',
-  { page: 1, limit: 10 }
+  "client.announcements.list",
+  { page: 1, limit: 10 },
 );
 ```
 
 ### Test avec validation Zod
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 const AnnouncementSchema = z.object({
   id: z.string(),
   title: z.string(),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'COMPLETED'])
+  status: z.enum(["DRAFT", "PUBLISHED", "COMPLETED"]),
 });
 
-const result = await RequestHelper.trpc(
-  user,
-  'client.announcements.get',
-  { id: 'announcement-id' }
-);
+const result = await RequestHelper.trpc(user, "client.announcements.get", {
+  id: "announcement-id",
+});
 
 // Valider la réponse
 const validated = AnnouncementSchema.parse(result);
@@ -159,32 +159,31 @@ const validated = AnnouncementSchema.parse(result);
 ### Créer un nouveau test
 
 ```typescript
-import { Logger } from '../../helpers/logger.helper';
-import { RequestHelper } from '../../helpers/request.helper';
-import { defaultUsers } from '../../config/users.config';
+import { Logger } from "../../helpers/logger.helper";
+import { RequestHelper } from "../../helpers/request.helper";
+import { defaultUsers } from "../../config/users.config";
 
 export class MyFeatureTests {
   private logger: Logger;
 
   constructor() {
-    this.logger = new Logger('MyFeature');
+    this.logger = new Logger("MyFeature");
   }
 
   async testCreateItem() {
-    this.logger.title('Test: Create Item');
-    
+    this.logger.title("Test: Create Item");
+
     try {
       const result = await RequestHelper.trpc(
         defaultUsers.client,
-        'client.myFeature.create',
-        { name: 'Test Item' }
+        "client.myFeature.create",
+        { name: "Test Item" },
       );
-      
-      this.logger.success('Item created', result);
+
+      this.logger.success("Item created", result);
       return result;
-      
     } catch (error) {
-      this.logger.error('Failed to create item', error);
+      this.logger.error("Failed to create item", error);
       throw error;
     }
   }
@@ -195,29 +194,29 @@ export class MyFeatureTests {
 
 ```typescript
 export async function myScenario() {
-  const logger = new Logger('MyScenario');
-  
+  const logger = new Logger("MyScenario");
+
   // 1. Login as client
   const client = defaultUsers.client;
-  logger.info('Starting scenario as client...');
-  
+  logger.info("Starting scenario as client...");
+
   // 2. Create announcement
   const announcement = await RequestHelper.trpc(
     client,
-    'client.announcements.create',
-    { /* data */ }
+    "client.announcements.create",
+    {
+      /* data */
+    },
   );
-  
+
   // 3. Switch to deliverer
   const deliverer = defaultUsers.deliverer;
-  
+
   // 4. Apply to announcement
-  await RequestHelper.trpc(
-    deliverer,
-    'deliverer.announcements.apply',
-    { announcementId: announcement.id }
-  );
-  
+  await RequestHelper.trpc(deliverer, "deliverer.announcements.apply", {
+    announcementId: announcement.id,
+  });
+
   // Continue scenario...
 }
 ```
@@ -227,11 +226,13 @@ export async function myScenario() {
 ### Ajouter un nouveau module de test
 
 1. Créer un dossier dans `tests/` :
+
 ```bash
 mkdir scripts/api-test/tests/mon-module
 ```
 
 2. Créer le fichier de test :
+
 ```typescript
 // scripts/api-test/tests/mon-module/mon-module.test.ts
 export class MonModuleTests {
@@ -244,26 +245,27 @@ export class MonModuleTests {
 ### Logger personnalisé
 
 ```typescript
-const logger = new Logger('MonModule', {
+const logger = new Logger("MonModule", {
   showTimestamp: true,
   colorize: true,
-  verbose: true
+  verbose: true,
 });
 
 // Logs colorés
-logger.info('Information');
-logger.success('Succès!');
-logger.warning('Attention');
-logger.error('Erreur', error);
+logger.info("Information");
+logger.success("Succès!");
+logger.warning("Attention");
+logger.error("Erreur", error);
 
 // Logs de requête/réponse
-logger.request('POST', '/api/endpoint', data);
+logger.request("POST", "/api/endpoint", data);
 logger.response(200, responseData, 123); // 123ms
 ```
 
 ### Gestion des erreurs
 
 Le système gère automatiquement :
+
 - Retry avec backoff exponentiel
 - Refresh des tokens expirés
 - Logging détaillé des erreurs
@@ -280,6 +282,7 @@ VERBOSE=true pnpm test:api:annonces
 ### Logs détaillés
 
 Les logs incluent :
+
 - Timestamps
 - Niveaux (INFO, SUCCESS, WARNING, ERROR)
 - Contexte (Auth, Request, Test)
@@ -289,9 +292,11 @@ Les logs incluent :
 ### Erreurs communes
 
 1. **401 Unauthorized** : Token expiré ou invalide
+
    - Solution : Le système refresh automatiquement
 
 2. **Network Error** : Serveur inaccessible
+
    - Vérifier que le serveur est lancé
    - Vérifier l'URL dans `.env.test`
 

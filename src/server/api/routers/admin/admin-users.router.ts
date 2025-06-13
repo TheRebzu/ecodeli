@@ -29,14 +29,14 @@ export const adminUserRouter = router({
    */
   getUsers: adminProcedure
     .input(z.any().optional())
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         console.log("🔍 [SERVER] adminUser.getUsers appelé avec:", {
           input,
-          userId: ctx.session?.user?.id,
+          userId: _ctx.session?.user?.id,
         });
 
-        const adminService = new AdminService(ctx.db);
+        const adminService = new AdminService(_ctx.db);
 
         // Valeurs par défaut si input est vide
         const {
@@ -92,7 +92,7 @@ export const adminUserRouter = router({
         });
 
         return simpleResult;
-      } catch (error) {
+      } catch (_error) {
         console.error("❌ [SERVER] Erreur dans getUsers:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -107,8 +107,8 @@ export const adminUserRouter = router({
    */
   getUserDetail: adminProcedure
     .input(getUserDetailSchema)
-    .query(async ({ ctx, input }) => {
-      const adminService = new AdminService(ctx.db);
+    .query(async ({ _ctx, input: _input }) => {
+      const adminService = new AdminService(_ctx.db);
       return adminService.getUserDetail(input.userId, {
         includeDocuments: input.includeDocuments,
         includeVerificationHistory: input.includeVerificationHistory,
@@ -121,9 +121,9 @@ export const adminUserRouter = router({
    */
   updateUserStatus: adminProcedure
     .input(updateUserStatusSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier les permissions administratives
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -131,14 +131,14 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
 
       // Journaliser l'action avant de l'effectuer
       await AuditService.createAuditLog(
         "user",
         input.userId,
         "status_change",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         { previousStatus: "unknown" }, // Le service récupérera l'état actuel
         {
           newStatus: input.status,
@@ -159,9 +159,9 @@ export const adminUserRouter = router({
    */
   updateUserRole: adminProcedure
     .input(updateUserRoleSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier les permissions administratives
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -169,14 +169,14 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
 
       // Journaliser l'action avant de l'effectuer
       await AuditService.createAuditLog(
         "user",
         input.userId,
         "role_change",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         { previousRole: "unknown" }, // Le service récupérera l'état actuel
         {
           newRole: input.role,
@@ -196,7 +196,7 @@ export const adminUserRouter = router({
    */
   updateAdminPermissions: adminProcedure
     .input(updateUserPermissionsSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier si l'admin actuel a la permission de gérer les utilisateurs
       const adminUser = ctx.session?.user;
       if (!adminUser || adminUser.role !== "ADMIN") {
@@ -207,14 +207,14 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
 
       // Journaliser l'action
       await AuditService.createAuditLog(
         "user",
         input.userId,
         "permissions_change",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         { previousPermissions: "unknown" }, // Le service récupérera l'état actuel
         {
           newPermissions: input.permissions,
@@ -235,8 +235,8 @@ export const adminUserRouter = router({
    */
   getUserActivityLogs: adminProcedure
     .input(userActivityLogSchema)
-    .query(async ({ ctx, input }) => {
-      const adminService = new AdminService(ctx.db);
+    .query(async ({ _ctx, input: _input }) => {
+      const adminService = new AdminService(_ctx.db);
 
       return adminService.getUserActivityLogs(input.userId, {
         types: input.types,
@@ -252,8 +252,8 @@ export const adminUserRouter = router({
    */
   addUserActivityLog: adminProcedure
     .input(addUserActivityLogSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -261,7 +261,7 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
       return adminService.addUserActivityLog(input);
     }),
 
@@ -270,15 +270,15 @@ export const adminUserRouter = router({
    */
   addUserNote: adminProcedure
     .input(userNoteSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user) {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Vous devez être connecté pour effectuer cette action.",
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
       return adminService.addUserNote(input.userId, input.note);
     }),
 
@@ -287,8 +287,8 @@ export const adminUserRouter = router({
    */
   exportUsers: adminProcedure
     .input(exportUsersSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -296,14 +296,14 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
 
       // Journaliser l'action d'export
       await AuditService.createAuditLog(
         "system",
         "user_export",
         "data_export",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         null,
         {
           format: input.format,
@@ -330,8 +330,8 @@ export const adminUserRouter = router({
         endDate: z.coerce.date(),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .query(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -339,7 +339,7 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
       const stats = await adminService.getUserStats();
       return {
         ...stats,
@@ -355,8 +355,8 @@ export const adminUserRouter = router({
    */
   getUserStats: adminProcedure
     .input(z.object({}).optional().default({}))
-    .query(async ({ ctx }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .query(async ({ _ctx }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -364,7 +364,7 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
       return adminService.getUserStats();
     }),
 
@@ -373,8 +373,8 @@ export const adminUserRouter = router({
    */
   getUserStatsAdvanced: adminProcedure
     .input(userStatsAdvancedSchema)
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .query(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -382,7 +382,7 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
       return adminService.getUserStatsAdvanced({
         period: input.period,
         compareWithPrevious: input.compareWithPrevious,
@@ -402,8 +402,8 @@ export const adminUserRouter = router({
    */
   forcePasswordReset: adminProcedure
     .input(forcePasswordResetSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -411,14 +411,14 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
 
       // Journaliser l'action
       await AuditService.createAuditLog(
         "user",
         input.userId,
         "force_password_reset",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         null,
         {
           reason: input.reason,
@@ -431,7 +431,7 @@ export const adminUserRouter = router({
         reason: input.reason,
         notifyUser: input.notifyUser,
         expireExistingTokens: input.expireExistingTokens,
-        performedById: ctx.session.user.id,
+        performedById: _ctx.session.user.id,
       });
     }),
 
@@ -440,8 +440,8 @@ export const adminUserRouter = router({
    */
   bulkUserAction: adminProcedure
     .input(bulkUserActionSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -449,7 +449,7 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
 
       // Journaliser l'action en masse
       await AuditService.createAuditLog(
@@ -475,7 +475,7 @@ export const adminUserRouter = router({
         additionalData: input.additionalData,
         scheduledFor: input.scheduledFor,
         confirmationCode: input.confirmationCode,
-        performedById: ctx.session.user.id,
+        performedById: _ctx.session.user.id,
       });
     }),
 
@@ -484,8 +484,8 @@ export const adminUserRouter = router({
    */
   getAuditLogs: adminProcedure
     .input(auditLogFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .query(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -519,8 +519,8 @@ export const adminUserRouter = router({
         reason: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -528,11 +528,11 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
 
       // Vérifier que l'admin a fourni un mot de passe valide (extra sécurité)
       const isPasswordValid = await adminService.verifyAdminPassword(
-        ctx.session.user.id,
+        _ctx.session.user.id,
         input.adminPassword,
       );
 
@@ -549,14 +549,14 @@ export const adminUserRouter = router({
         "user",
         input.userId,
         "permanent_deletion",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         null,
         { reason: input.reason },
       );
 
       return adminService.permanentlyDeleteUser(input.userId, {
         reason: input.reason,
-        performedById: ctx.session.user.id,
+        performedById: _ctx.session.user.id,
       });
     }),
 
@@ -565,8 +565,8 @@ export const adminUserRouter = router({
    */
   getUserNotificationSettings: adminProcedure
     .input(z.object({ userId: z.string() }))
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .query(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -574,7 +574,7 @@ export const adminUserRouter = router({
         });
       }
 
-      const notificationService = new NotificationService(ctx.db);
+      const notificationService = new NotificationService(_ctx.db);
       return notificationService.getUserNotificationSettings(input.userId);
     }),
 
@@ -583,8 +583,8 @@ export const adminUserRouter = router({
    */
   updateUserNotificationSettings: adminProcedure
     .input(userNotificationSettingsSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -592,14 +592,14 @@ export const adminUserRouter = router({
         });
       }
 
-      const notificationService = new NotificationService(ctx.db);
+      const notificationService = new NotificationService(_ctx.db);
 
       // Journaliser l'action
       await AuditService.createAuditLog(
         "user",
         input.userId,
         "notification_settings_update",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         null,
         { settings: input },
       );
@@ -612,8 +612,8 @@ export const adminUserRouter = router({
    */
   sendUserNotification: adminProcedure
     .input(sendUserNotificationSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -621,14 +621,14 @@ export const adminUserRouter = router({
         });
       }
 
-      const notificationService = new NotificationService(ctx.db);
+      const notificationService = new NotificationService(_ctx.db);
 
       // Journaliser l'action
       await AuditService.createAuditLog(
         "notification",
         "admin_notification",
         "notification_sent",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         null,
         {
           recipient: input.userId,
@@ -640,7 +640,7 @@ export const adminUserRouter = router({
 
       return notificationService.sendUserNotification({
         ...input,
-        sentById: ctx.session.user.id,
+        sentById: _ctx.session.user.id,
       });
     }),
 
@@ -654,8 +654,8 @@ export const adminUserRouter = router({
         isActive: z.boolean(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -663,14 +663,14 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
 
       // Journaliser l'action
       await AuditService.createAuditLog(
         "user",
         input.userId,
         input.isActive ? "user_activated" : "user_deactivated",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         null,
         {
           action: input.isActive ? "activate" : "deactivate",
@@ -692,8 +692,8 @@ export const adminUserRouter = router({
         reason: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user || _ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message:
@@ -701,7 +701,7 @@ export const adminUserRouter = router({
         });
       }
 
-      const adminService = new AdminService(ctx.db);
+      const adminService = new AdminService(_ctx.db);
 
       // Validation: raison obligatoire pour le bannissement
       if (input.action === "BAN" && !input.reason) {
@@ -716,7 +716,7 @@ export const adminUserRouter = router({
         "user",
         input.userId,
         input.action === "BAN" ? "user_banned" : "user_unbanned",
-        ctx.session.user.id,
+        _ctx.session.user.id,
         null,
         {
           action: input.action,
@@ -728,47 +728,68 @@ export const adminUserRouter = router({
       return adminService.banUser(input.userId, input.action, input.reason);
     }),
 
-  // /**
-  //  * Manage user devices - Temporarily disabled
-  //  */
-  // manageUserDevices: adminProcedure.input(userDevicesSchema).mutation(async ({ ctx, input }) => {
-  //   // TODO: Implement device management
-  //   return { success: true, message: 'Device management not yet implemented' };
-  // }),
+  // Routes pour la gestion des appareils utilisateur
+  manageUserDevices: adminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        action: z.enum(["ADD", "REMOVE", "UPDATE", "BLOCK"]),
+        deviceId: z.string().optional(),
+        deviceData: z
+          .object({
+            name: z.string(),
+            type: z.enum(["MOBILE", "DESKTOP", "TABLET"]),
+            fingerprint: z.string(),
+            userAgent: z.string().optional(),
+            ipAddress: z.string().optional(),
+          })
+          .optional(),
+      }),
+    )
+    .mutation(async ({ input, _ctx }) => {
+      return await ctx.adminService.manageUserDevices(input);
+    }),
 
-  // /**
-  //  * Get user devices - Temporarily disabled
-  //  */
-  // getUserDevices: adminProcedure
-  //   .input(z.object({ userId: z.string() }))
-  //   .query(async ({ ctx, input }) => {
-  //     // TODO: Implement device retrieval
-  //     return { devices: [], total: 0 };
-  //   }),
+  getUserDevices: adminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        page: z.number().optional(),
+        limit: z.number().optional(),
+        includeBlocked: z.boolean().optional(),
+        type: z.enum(["MOBILE", "DESKTOP", "TABLET"]).optional(),
+      }),
+    )
+    .query(async ({ input, _ctx }) => {
+      const { userId: _userId, ...options } = input;
+      return await ctx.adminService.getUserDevices(userId, options);
+    }),
 
-  // /**
-  //  * Get permission groups - Temporarily disabled
-  //  */
-  // getPermissionGroups: adminProcedure.query(async ({ ctx }) => {
-  //   // TODO: Implement permission groups
-  //   return { groups: [] };
-  // }),
+  // Routes pour la gestion des groupes de permissions
+  getPermissionGroups: adminProcedure
+    .input(
+      z
+        .object({
+          includePermissions: z.boolean().optional(),
+          includeUserCount: z.boolean().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input, _ctx }) => {
+      return await ctx.adminService.getPermissionGroups(input);
+    }),
 
-  // /**
-  //  * Create or update permission group - Temporarily disabled
-  //  */
-  // upsertPermissionGroup: adminProcedure
-  //   .input(
-  //     z.object({
-  //       id: z.string().optional(),
-  //       name: z.string().min(1),
-  //       description: z.string(),
-  //       permissions: z.array(z.string()),
-  //       isPreDefined: z.boolean().default(false),
-  //     })
-  //   )
-  //   .mutation(async ({ ctx, input }) => {
-  //     // TODO: Implement permission group management
-  //     return { success: true, message: 'Permission group management not yet implemented' };
-  //   }),
+  upsertPermissionGroup: adminProcedure
+    .input(
+      z.object({
+        id: z.string().optional(),
+        name: z.string(),
+        description: z.string().optional(),
+        permissionIds: z.array(z.string()),
+        isActive: z.boolean().optional(),
+      }),
+    )
+    .mutation(async ({ input, _ctx }) => {
+      return await ctx.adminService.upsertPermissionGroup(input);
+    }),
 });

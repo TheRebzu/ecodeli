@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { serviceService } from "@/server/services/provider/provider-service.service";
 import {
   createAvailabilitySchema,
@@ -22,25 +22,25 @@ export const serviceRouter = router({
 
   searchServices: publicProcedure
     .input(searchServicesSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return await serviceService.searchServices(input);
     }),
 
   getServiceById: publicProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return await serviceService.getServiceById(input.id);
     }),
 
   getServiceReviews: publicProcedure
     .input(z.object({ serviceId: z.string().cuid() }))
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return await serviceService.getServiceReviews(input.serviceId);
     }),
 
   getProviderReviews: publicProcedure
     .input(z.object({ providerId: z.string().cuid() }))
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return await serviceService.getProviderReviews(input.providerId);
     }),
 
@@ -52,8 +52,12 @@ export const serviceRouter = router({
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       }),
     )
-    .query(async ({ input }) => {
-      const { providerId, serviceId, date } = input;
+    .query(async ({ input: _input }) => {
+      const {
+        providerId: _providerId,
+        serviceId: _serviceId,
+        date: _date,
+      } = input;
       return await serviceService.getAvailableTimeSlots(
         providerId,
         serviceId,
@@ -64,37 +68,43 @@ export const serviceRouter = router({
   // Endpoints protégés pour tous les utilisateurs authentifiés
   createBooking: protectedProcedure
     .input(createBookingSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur n'est pas le prestataire
-      if (ctx.session.user.id === input.providerId) {
+      if (_ctx.session.user.id === input.providerId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Vous ne pouvez pas réserver votre propre service",
         });
       }
 
-      return await serviceService.createBooking(ctx.session.user.id, input);
+      return await serviceService.createBooking(_ctx.session.user.id, input);
     }),
 
   updateBookingStatus: protectedProcedure
     .input(updateBookingSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return await serviceService.updateBookingStatus(
-        ctx.session.user.id,
+        _ctx.session.user.id,
         input,
       );
     }),
 
   rescheduleBooking: protectedProcedure
     .input(updateBookingSchema)
-    .mutation(async ({ ctx, input }) => {
-      return await serviceService.rescheduleBooking(ctx.session.user.id, input);
+    .mutation(async ({ _ctx, input: _input }) => {
+      return await serviceService.rescheduleBooking(
+        _ctx.session.user.id,
+        input,
+      );
     }),
 
   getBookingById: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
-      return await serviceService.getBookingById(ctx.session.user.id, input.id);
+    .query(async ({ _ctx, input: _input }) => {
+      return await serviceService.getBookingById(
+        _ctx.session.user.id,
+        input.id,
+      );
     }),
 
   getMyClientBookings: protectedProcedure
@@ -111,26 +121,26 @@ export const serviceRouter = router({
           .optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       return await serviceService.getClientBookings(
-        ctx.session.user.id,
+        _ctx.session.user.id,
         input.status,
       );
     }),
 
   createReview: protectedProcedure
     .input(createReviewSchema)
-    .mutation(async ({ ctx, input }) => {
-      return await serviceService.createReview(ctx.session.user.id, input);
+    .mutation(async ({ _ctx, input: _input }) => {
+      return await serviceService.createReview(_ctx.session.user.id, input);
     }),
 
   // Endpoints pour les prestataires
   createService: protectedProcedure
     .input(createServiceSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur est un prestataire
       const user = await ctx.db.user.findUnique({
-        where: { id: ctx.session.user.id },
+        where: { id: _ctx.session.user.id },
         select: { isProvider: true, providerVerified: true },
       });
 
@@ -149,19 +159,19 @@ export const serviceRouter = router({
         });
       }
 
-      return await serviceService.createService(ctx.session.user.id, input);
+      return await serviceService.createService(_ctx.session.user.id, input);
     }),
 
   updateService: protectedProcedure
     .input(updateServiceSchema)
-    .mutation(async ({ ctx, input }) => {
-      return await serviceService.updateService(ctx.session.user.id, input);
+    .mutation(async ({ _ctx, input: _input }) => {
+      return await serviceService.updateService(_ctx.session.user.id, input);
     }),
 
-  getMyProviderServices: protectedProcedure.query(async ({ ctx }) => {
+  getMyProviderServices: protectedProcedure.query(async ({ _ctx }) => {
     // Vérifier que l'utilisateur est un prestataire
     const user = await ctx.db.user.findUnique({
-      where: { id: ctx.session.user.id },
+      where: { id: _ctx.session.user.id },
       select: { isProvider: true },
     });
 
@@ -172,7 +182,7 @@ export const serviceRouter = router({
       });
     }
 
-    return await serviceService.getProviderServices(ctx.session.user.id);
+    return await serviceService.getProviderServices(_ctx.session.user.id);
   }),
 
   getMyProviderBookings: protectedProcedure
@@ -189,10 +199,10 @@ export const serviceRouter = router({
           .optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur est un prestataire
       const user = await ctx.db.user.findUnique({
-        where: { id: ctx.session.user.id },
+        where: { id: _ctx.session.user.id },
         select: { isProvider: true },
       });
 
@@ -205,17 +215,17 @@ export const serviceRouter = router({
       }
 
       return await serviceService.getProviderBookings(
-        ctx.session.user.id,
+        _ctx.session.user.id,
         input.status,
       );
     }),
 
   createAvailability: protectedProcedure
     .input(createAvailabilitySchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur est un prestataire
       const user = await ctx.db.user.findUnique({
-        where: { id: ctx.session.user.id },
+        where: { id: _ctx.session.user.id },
         select: { isProvider: true },
       });
 
@@ -228,15 +238,15 @@ export const serviceRouter = router({
       }
 
       return await serviceService.createAvailability(
-        ctx.session.user.id,
+        _ctx.session.user.id,
         input,
       );
     }),
 
-  getMyAvailabilities: protectedProcedure.query(async ({ ctx }) => {
+  getMyAvailabilities: protectedProcedure.query(async ({ _ctx }) => {
     // Vérifier que l'utilisateur est un prestataire
     const user = await ctx.db.user.findUnique({
-      where: { id: ctx.session.user.id },
+      where: { id: _ctx.session.user.id },
       select: { isProvider: true },
     });
 
@@ -248,14 +258,14 @@ export const serviceRouter = router({
       });
     }
 
-    return await serviceService.getProviderAvailabilities(ctx.session.user.id);
+    return await serviceService.getProviderAvailabilities(_ctx.session.user.id);
   }),
 
   deleteAvailability: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return await serviceService.deleteAvailability(
-        ctx.session.user.id,
+        _ctx.session.user.id,
         input.id,
       );
     }),
@@ -263,9 +273,9 @@ export const serviceRouter = router({
   // Endpoints pour l'administrateur
   createCategory: protectedProcedure
     .input(createServiceCategorySchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur est un administrateur
-      if (ctx.session.user.role !== "ADMIN") {
+      if (_ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous devez être administrateur pour créer une catégorie",
@@ -277,9 +287,9 @@ export const serviceRouter = router({
 
   updateCategory: protectedProcedure
     .input(updateServiceCategorySchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier que l'utilisateur est un administrateur
-      if (ctx.session.user.role !== "ADMIN") {
+      if (_ctx.session.user.role !== "ADMIN") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous devez être administrateur pour modifier une catégorie",

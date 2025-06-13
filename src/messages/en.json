@@ -509,7 +509,10 @@
       "avgBid": "[EN] avgBid",
       "lowestBid": "[EN] lowestBid",
       "highestBid": "[EN] highestBid"
-    }
+    },
+    "selectDeliveryType": "[TO_TRANSLATE] selectDeliveryType",
+    "selectDeliveryTypeDescription": "[TO_TRANSLATE] selectDeliveryTypeDescription",
+    "continueWithType": "[TO_TRANSLATE] continueWithType"
   },
   "matching": {
     "title": "Title",
@@ -556,7 +559,30 @@
       "newMatchFound": "[EN] Nouvelle correspondance trouvée !",
       "applicationSent": "[EN] Candidature envoyée",
       "matchRejected": "[EN] Correspondance refusée"
-    }
+    },
+    "subtitle": "[TO_TRANSLATE] subtitle",
+    "matchesFound": "[TO_TRANSLATE] matchesFound",
+    "notificationsOn": "[TO_TRANSLATE] notificationsOn",
+    "notificationsOff": "[TO_TRANSLATE] notificationsOff",
+    "disableNotifications": "[TO_TRANSLATE] disableNotifications",
+    "enableNotifications": "[TO_TRANSLATE] enableNotifications",
+    "new": "[TO_TRANSLATE] new",
+    "completedOrders": "[TO_TRANSLATE] completedOrders",
+    "completedDeliveries": "[TO_TRANSLATE] completedDeliveries",
+    "pickup": "[TO_TRANSLATE] pickup",
+    "delivery": "[TO_TRANSLATE] delivery",
+    "matchingReasons": "[TO_TRANSLATE] matchingReasons",
+    "contact": "[TO_TRANSLATE] contact",
+    "details": "[TO_TRANSLATE] details",
+    "apply": "[TO_TRANSLATE] apply",
+    "accept": "[TO_TRANSLATE] accept",
+    "matchDetails": "[TO_TRANSLATE] matchDetails",
+    "matchDetailsDescription": "[TO_TRANSLATE] matchDetailsDescription",
+    "announcement": "[TO_TRANSLATE] announcement",
+    "route": "[TO_TRANSLATE] route",
+    "matchingDetails": "[TO_TRANSLATE] matchingDetails",
+    "estimatedEarnings": "[TO_TRANSLATE] estimatedEarnings",
+    "whyThisMatch": "[TO_TRANSLATE] whyThisMatch"
   },
   "delivery": {
     "onTimeRate": "[EN] onTimeRate",
@@ -584,7 +610,65 @@
     "issues": "[EN] issues",
     "count": "[EN] count",
     "deliveries": "[EN] deliveries",
-    "target": "[EN] target"
+    "target": "[EN] target",
+    "validationError": "[TO_TRANSLATE] validationError",
+    "missingRequiredPhoto": "[TO_TRANSLATE] missingRequiredPhoto",
+    "deliveryValidatedSuccess": "[TO_TRANSLATE] deliveryValidatedSuccess",
+    "redirectingToMessages": "[TO_TRANSLATE] redirectingToMessages",
+    "error": "[TO_TRANSLATE] error",
+    "deliveryNotFound": "[TO_TRANSLATE] deliveryNotFound",
+    "backToDeliveries": "[TO_TRANSLATE] backToDeliveries",
+    "deliveryValidated": "[TO_TRANSLATE] deliveryValidated",
+    "deliveryValidatedDescription": "[TO_TRANSLATE] deliveryValidatedDescription",
+    "paymentProcessing": "[TO_TRANSLATE] paymentProcessing",
+    "paymentWillBeProcessed": "[TO_TRANSLATE] paymentWillBeProcessed",
+    "viewEarnings": "[TO_TRANSLATE] viewEarnings",
+    "validateDelivery": "[TO_TRANSLATE] validateDelivery",
+    "deliveryId": "[TO_TRANSLATE] deliveryId",
+    "back": "[TO_TRANSLATE] back",
+    "deliveryStatus": "[TO_TRANSLATE] deliveryStatus",
+    "estimatedArrival": "[TO_TRANSLATE] estimatedArrival",
+    "notSpecified": "[TO_TRANSLATE] notSpecified",
+    "distance": "[TO_TRANSLATE] distance",
+    "packageWeight": "[TO_TRANSLATE] packageWeight",
+    "cannotValidate": "[TO_TRANSLATE] cannotValidate",
+    "deliveryNotStarted": "[TO_TRANSLATE] deliveryNotStarted",
+    "deliveryAlreadyDelivered": "[TO_TRANSLATE] deliveryAlreadyDelivered",
+    "deliveryAlreadyValidated": "[TO_TRANSLATE] deliveryAlreadyValidated",
+    "importantInstructions": "[TO_TRANSLATE] importantInstructions",
+    "clientInstruction1": "[TO_TRANSLATE] clientInstruction1",
+    "clientInstruction2": "[TO_TRANSLATE] clientInstruction2",
+    "clientInstruction3": "[TO_TRANSLATE] clientInstruction3",
+    "clientInstruction4": "[TO_TRANSLATE] clientInstruction4",
+    "validation": {
+      "2d": "[TO_TRANSLATE] 2d"
+    },
+    "codeCopied": "[TO_TRANSLATE] codeCopied",
+    "textarea": "[TO_TRANSLATE] textarea",
+    "copyError": "[TO_TRANSLATE] copyError",
+    "arrived": "[TO_TRANSLATE] arrived",
+    "arrivesInHours": "[TO_TRANSLATE] arrivesInHours",
+    "arrivesInMinutes": "[TO_TRANSLATE] arrivesInMinutes",
+    "validationCode": "[TO_TRANSLATE] validationCode",
+    "shareCodeWithDeliverer": "[TO_TRANSLATE] shareCodeWithDeliverer",
+    "copyCode": "[TO_TRANSLATE] copyCode",
+    "showQRCode": "[TO_TRANSLATE] showQRCode",
+    "qrCodeTitle": "[TO_TRANSLATE] qrCodeTitle",
+    "qrCodeDescription": "[TO_TRANSLATE] qrCodeDescription",
+    "qrCodeAlt": "[TO_TRANSLATE] qrCodeAlt",
+    "refreshCode": "[TO_TRANSLATE] refreshCode",
+    "expiresIn": "[TO_TRANSLATE] expiresIn",
+    "codeExpiresIn": "[TO_TRANSLATE] codeExpiresIn",
+    "codeExpired": "[TO_TRANSLATE] codeExpired",
+    "codeExpiredDescription": "[TO_TRANSLATE] codeExpiredDescription",
+    "delivererInfo": "[TO_TRANSLATE] delivererInfo",
+    "messageDeliverer": "[TO_TRANSLATE] messageDeliverer",
+    "callDeliverer": "[TO_TRANSLATE] callDeliverer",
+    "instructions": "[TO_TRANSLATE] instructions",
+    "instruction1": "[TO_TRANSLATE] instruction1",
+    "instruction2": "[TO_TRANSLATE] instruction2",
+    "instruction3": "[TO_TRANSLATE] instruction3",
+    "instruction4": "[TO_TRANSLATE] instruction4"
   },
   "cartDrop": {
     "title": "Title",
@@ -627,7 +711,68 @@
     "deliverySlots": "[EN] Créneaux de livraison",
     "availableDeliverySlots": "[EN] Créneaux de livraison disponibles",
     "orderCreatedSuccess": "[EN] Commande {orderId} créée avec succès",
-    "orderCreationError": "[EN] Erreur lors de la création de la commande"
+    "orderCreationError": "[EN] Erreur lors de la création de la commande",
+    "error": "[TO_TRANSLATE] error",
+    "terminalNotFound": "[TO_TRANSLATE] terminalNotFound",
+    "backToAnnouncements": "[TO_TRANSLATE] backToAnnouncements",
+    "serviceDisabled": "[TO_TRANSLATE] serviceDisabled",
+    "cartDropNotEnabled": "[TO_TRANSLATE] cartDropNotEnabled",
+    "enableService": "[TO_TRANSLATE] enableService",
+    "clientIdentified": "[TO_TRANSLATE] clientIdentified",
+    "clientNotFound": "[TO_TRANSLATE] clientNotFound",
+    "identificationError": "[TO_TRANSLATE] identificationError",
+    "fillAllFields": "[TO_TRANSLATE] fillAllFields",
+    "clientAdded": "[TO_TRANSLATE] clientAdded",
+    "productAdded": "[TO_TRANSLATE] productAdded",
+    "incompleteOrder": "[TO_TRANSLATE] incompleteOrder",
+    "orderError": "[TO_TRANSLATE] orderError",
+    "cartDropTerminal": "[TO_TRANSLATE] cartDropTerminal",
+    "terminalDescription": "[TO_TRANSLATE] terminalDescription",
+    "identifyClient": "[TO_TRANSLATE] identifyClient",
+    "identifyClientDescription": "[TO_TRANSLATE] identifyClientDescription",
+    "scanQRCode": "[TO_TRANSLATE] scanQRCode",
+    "qrDescription": "[TO_TRANSLATE] qrDescription",
+    "nfcReady": "[TO_TRANSLATE] nfcReady",
+    "nfcDescription": "[TO_TRANSLATE] nfcDescription",
+    "clientName": "[TO_TRANSLATE] clientName",
+    "clientNamePlaceholder": "[TO_TRANSLATE] clientNamePlaceholder",
+    "clientPhone": "[TO_TRANSLATE] clientPhone",
+    "clientPhonePlaceholder": "[TO_TRANSLATE] clientPhonePlaceholder",
+    "clientEmail": "[TO_TRANSLATE] clientEmail",
+    "clientEmailPlaceholder": "[TO_TRANSLATE] clientEmailPlaceholder",
+    "deliveryAddress": "[TO_TRANSLATE] deliveryAddress",
+    "addressPlaceholder": "[TO_TRANSLATE] addressPlaceholder",
+    "addClient": "[TO_TRANSLATE] addClient",
+    "selectProducts": "[TO_TRANSLATE] selectProducts",
+    "selectProductsDescription": "[TO_TRANSLATE] selectProductsDescription",
+    "allCategories": "[TO_TRANSLATE] allCategories",
+    "fragile": "[TO_TRANSLATE] fragile",
+    "cooling": "[TO_TRANSLATE] cooling",
+    "emptyCart": "[TO_TRANSLATE] emptyCart",
+    "totalWeight": "[TO_TRANSLATE] totalWeight",
+    "totalPrice": "[TO_TRANSLATE] totalPrice",
+    "continueToDelivery": "[TO_TRANSLATE] continueToDelivery",
+    "clientInfo": "[TO_TRANSLATE] clientInfo",
+    "selectDeliverySlot": "[TO_TRANSLATE] selectDeliverySlot",
+    "selectDeliverySlotDescription": "[TO_TRANSLATE] selectDeliverySlotDescription",
+    "noSlotsAvailable": "[TO_TRANSLATE] noSlotsAvailable",
+    "noSlotsDescription": "[TO_TRANSLATE] noSlotsDescription",
+    "availableDeliverers": "[TO_TRANSLATE] availableDeliverers",
+    "continueToPayment": "[TO_TRANSLATE] continueToPayment",
+    "paymentMethodDescription": "[TO_TRANSLATE] paymentMethodDescription",
+    "products": "[TO_TRANSLATE] products",
+    "delivery": "[TO_TRANSLATE] delivery",
+    "choosePaymentMethod": "[TO_TRANSLATE] choosePaymentMethod",
+    "specialInstructions": "[TO_TRANSLATE] specialInstructions",
+    "specialInstructionsPlaceholder": "[TO_TRANSLATE] specialInstructionsPlaceholder",
+    "confirmOrder": "[TO_TRANSLATE] confirmOrder",
+    "orderConfirmed": "[TO_TRANSLATE] orderConfirmed",
+    "orderConfirmedDescription": "[TO_TRANSLATE] orderConfirmedDescription",
+    "newOrder": "[TO_TRANSLATE] newOrder",
+    "printReceipt": "[TO_TRANSLATE] printReceipt",
+    "scanQRDescription": "[TO_TRANSLATE] scanQRDescription",
+    "scannerReady": "[TO_TRANSLATE] scannerReady",
+    "cancel": "[TO_TRANSLATE] cancel"
   },
   "routes": {
     "routeDeleted": "[EN] routeDeleted",
@@ -689,7 +834,72 @@
     "noSuggestions": "[EN] noSuggestions",
     "noSuggestionsHelp": "[EN] noSuggestionsHelp",
     "manageRoutes": "[EN] manageRoutes",
-    "noRoutesYet": "[EN] noRoutesYet"
+    "noRoutesYet": "[EN] noRoutesYet",
+    "routeCreated": "[TO_TRANSLATE] routeCreated",
+    "announceRoute": "[TO_TRANSLATE] announceRoute",
+    "announceRouteDescription": "[TO_TRANSLATE] announceRouteDescription",
+    "editRoute": "[TO_TRANSLATE] editRoute",
+    "editRouteDescription": "[TO_TRANSLATE] editRouteDescription",
+    "route": "[TO_TRANSLATE] route",
+    "schedule": "[TO_TRANSLATE] schedule",
+    "capacity": "[TO_TRANSLATE] capacity",
+    "matching": "[TO_TRANSLATE] matching",
+    "routeTitle": "[TO_TRANSLATE] routeTitle",
+    "routeTitlePlaceholder": "[TO_TRANSLATE] routeTitlePlaceholder",
+    "routeTitleDescription": "[TO_TRANSLATE] routeTitleDescription",
+    "routeDescription": "[TO_TRANSLATE] routeDescription",
+    "routeDescriptionPlaceholder": "[TO_TRANSLATE] routeDescriptionPlaceholder",
+    "departureAddress": "[TO_TRANSLATE] departureAddress",
+    "arrivalAddress": "[TO_TRANSLATE] arrivalAddress",
+    "intermediatePoints": "[TO_TRANSLATE] intermediatePoints",
+    "addPoint": "[TO_TRANSLATE] addPoint",
+    "pointAddress": "[TO_TRANSLATE] pointAddress",
+    "pointAddressPlaceholder": "[TO_TRANSLATE] pointAddressPlaceholder",
+    "radius": "[TO_TRANSLATE] radius",
+    "noIntermediatePoints": "[TO_TRANSLATE] noIntermediatePoints",
+    "recurringRoute": "[TO_TRANSLATE] recurringRoute",
+    "recurringRouteDescription": "[TO_TRANSLATE] recurringRouteDescription",
+    "recurringEndDate": "[TO_TRANSLATE] recurringEndDate",
+    "T": "[TO_TRANSLATE] T",
+    "recurringEndDateDescription": "[TO_TRANSLATE] recurringEndDateDescription",
+    "departureDate": "[TO_TRANSLATE] departureDate",
+    "arrivalDate": "[TO_TRANSLATE] arrivalDate",
+    "vehicleCapacity": "[TO_TRANSLATE] vehicleCapacity",
+    "maxWeight": "[TO_TRANSLATE] maxWeight",
+    "maxVolume": "[TO_TRANSLATE] maxVolume",
+    "availableSeats": "[TO_TRANSLATE] availableSeats",
+    "acceptedPackageTypes": "[TO_TRANSLATE] acceptedPackageTypes",
+    "acceptsFragile": "[TO_TRANSLATE] acceptsFragile",
+    "acceptsFragileDescription": "[TO_TRANSLATE] acceptsFragileDescription",
+    "acceptsCooling": "[TO_TRANSLATE] acceptsCooling",
+    "acceptsCoolingDescription": "[TO_TRANSLATE] acceptsCoolingDescription",
+    "acceptsLiveAnimals": "[TO_TRANSLATE] acceptsLiveAnimals",
+    "acceptsLiveAnimalsDescription": "[TO_TRANSLATE] acceptsLiveAnimalsDescription",
+    "acceptsOversized": "[TO_TRANSLATE] acceptsOversized",
+    "acceptsOversizedDescription": "[TO_TRANSLATE] acceptsOversizedDescription",
+    "enableNotifications": "[TO_TRANSLATE] enableNotifications",
+    "enableNotificationsDescription": "[TO_TRANSLATE] enableNotificationsDescription",
+    "autoMatch": "[TO_TRANSLATE] autoMatch",
+    "autoMatchDescription": "[TO_TRANSLATE] autoMatchDescription",
+    "matchingSettings": "[TO_TRANSLATE] matchingSettings",
+    "minMatchDistance": "[TO_TRANSLATE] minMatchDistance",
+    "minMatchDistanceDescription": "[TO_TRANSLATE] minMatchDistanceDescription",
+    "maxDetour": "[TO_TRANSLATE] maxDetour",
+    "maxDetourDescription": "[TO_TRANSLATE] maxDetourDescription",
+    "pricing": "[TO_TRANSLATE] pricing",
+    "pricePerKm": "[TO_TRANSLATE] pricePerKm",
+    "fixedPrice": "[TO_TRANSLATE] fixedPrice",
+    "fixedPriceDescription": "[TO_TRANSLATE] fixedPriceDescription",
+    "isNegotiable": "[TO_TRANSLATE] isNegotiable",
+    "isNegotiableDescription": "[TO_TRANSLATE] isNegotiableDescription",
+    "clientPreferences": "[TO_TRANSLATE] clientPreferences",
+    "preferredClientTypes": "[TO_TRANSLATE] preferredClientTypes",
+    "preferredClientTypesDescription": "[TO_TRANSLATE] preferredClientTypesDescription",
+    "specialInstructions": "[TO_TRANSLATE] specialInstructions",
+    "specialInstructionsPlaceholder": "[TO_TRANSLATE] specialInstructionsPlaceholder",
+    "reset": "[TO_TRANSLATE] reset",
+    "submitting": "[TO_TRANSLATE] submitting",
+    "updateRoute": "[TO_TRANSLATE] updateRoute"
   },
   "escrow": {
     "title": "Title",
@@ -929,7 +1139,41 @@
         "documents": "[EN] Documents",
         "created": "[EN] Créé le",
         "actions": "[EN] Actions"
-      }
+      },
+      "users": {
+        "title": "[TO_TRANSLATE] title",
+        "subtitle": "[TO_TRANSLATE] subtitle",
+        "quickStats": "[TO_TRANSLATE] quickStats",
+        "stats": {
+          "totalUsers": "[TO_TRANSLATE] totalUsers",
+          "activeUsers": "[TO_TRANSLATE] activeUsers",
+          "newUsers": "[TO_TRANSLATE] newUsers",
+          "churnRate": "[TO_TRANSLATE] churnRate",
+          "growthRate": "[TO_TRANSLATE] growthRate"
+        },
+        "selectAll": "[TO_TRANSLATE] selectAll",
+        "noUsers": "[TO_TRANSLATE] noUsers",
+        "verified": "[TO_TRANSLATE] verified",
+        "unverified": "[TO_TRANSLATE] unverified",
+        "never": "[TO_TRANSLATE] never",
+        "pending": "[TO_TRANSLATE] pending",
+        "openMenu": "[TO_TRANSLATE] openMenu",
+        "bulkActions": {
+          "button": "[TO_TRANSLATE] button",
+          "title": "[TO_TRANSLATE] title",
+          "confirmationText": "[TO_TRANSLATE] confirmationText",
+          "cancel": "[TO_TRANSLATE] cancel",
+          "processing": "[TO_TRANSLATE] processing",
+          "confirm": "[TO_TRANSLATE] confirm"
+        }
+      },
+      "documents": "[TO_TRANSLATE] documents",
+      "viewDocument": "[TO_TRANSLATE] viewDocument",
+      "rejectionReason": "[TO_TRANSLATE] rejectionReason",
+      "close": "[TO_TRANSLATE] close"
+    },
+    "Verification": {
+      "loading": "[TO_TRANSLATE] loading"
     }
   },
   "verification": {
@@ -1061,14 +1305,17 @@
       "updating": "[EN] updating",
       "button": "[EN] button"
     },
-    "verified": "[EN] verified",
+    "verified": {
+      "description": "[TO_TRANSLATE] description"
+    },
     "pendingVerification": "[EN] pendingVerification",
     "documentStatus": "[EN] documentStatus",
     "allDocumentsVerified": "[EN] allDocumentsVerified",
     "documentsInVerification": "[EN] documentsInVerification",
     "processingVerification": "[EN] processingVerification",
     "viewDocuments": "[EN] viewDocuments",
-    "auto_check": "[EN] auto_check"
+    "auto_check": "[EN] auto_check",
+    "required": "[TO_TRANSLATE] required"
   },
   "common": {
     "loading": "[EN] Loading",
@@ -2103,7 +2350,29 @@
     "minRating": "[EN] minRating",
     "ratingPlaceholder": "[EN] ratingPlaceholder",
     "anyRating": "[EN] anyRating",
-    "search": "[EN] search"
+    "search": "[EN] search",
+    "style": "[TO_TRANSLATE] style",
+    "EXCEL": "[TO_TRANSLATE] EXCEL",
+    "CSV": "[TO_TRANSLATE] CSV",
+    "sortBy": "[TO_TRANSLATE] sortBy",
+    "sortDirection": "[TO_TRANSLATE] sortDirection",
+    "asc": "[TO_TRANSLATE] asc",
+    "relevance": "[TO_TRANSLATE] relevance",
+    "week": "[TO_TRANSLATE] week",
+    "sales": "[TO_TRANSLATE] sales",
+    "createdAt": "[TO_TRANSLATE] createdAt",
+    "NORMAL": "[TO_TRANSLATE] NORMAL",
+    "day": "[TO_TRANSLATE] day",
+    "year": "[TO_TRANSLATE] year",
+    "STANDARD": "[TO_TRANSLATE] STANDARD",
+    "WEEK": "[TO_TRANSLATE] WEEK",
+    "HYBRID": "[TO_TRANSLATE] HYBRID",
+    "FR": "[TO_TRANSLATE] FR",
+    "TIME": "[TO_TRANSLATE] TIME",
+    "fr": "[TO_TRANSLATE] fr",
+    "MANUAL": "[TO_TRANSLATE] MANUAL",
+    "24h": "[TO_TRANSLATE] 24h",
+    "ANYTIME": "[TO_TRANSLATE] ANYTIME"
   },
   "auth": {
     "login": {
@@ -2494,7 +2763,8 @@
           "placeholder": "[EN] Sélectionnez une date d'expiration",
           "description": "Description"
         }
-      }
+      },
+      "T": "[TO_TRANSLATE] T"
     },
     "form": {
       "documentType": "[EN] Type de document",
@@ -2616,7 +2886,8 @@
     "totalDocuments": "[EN] totalDocuments",
     "refresh": "[EN] [À TRADUIRE] refresh",
     "emptyTitle": "[EN] emptyTitle",
-    "emptyDescription": "[EN] emptyDescription"
+    "emptyDescription": "[EN] emptyDescription",
+    "back": "[TO_TRANSLATE] back"
   },
   "uploadForm": {
     "title": "Title",
@@ -3411,6 +3682,44 @@
     },
     "CancelAppointment": {
       "description": "Description"
+    },
+    "welcome": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content"
+    },
+    "features": {
+      "deliveries": "[TO_TRANSLATE] deliveries",
+      "deliveriesDesc": "[TO_TRANSLATE] deliveriesDesc",
+      "services": "[TO_TRANSLATE] services",
+      "servicesDesc": "[TO_TRANSLATE] servicesDesc"
+    },
+    "announcement": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "step1": "[TO_TRANSLATE] step1",
+      "step1Desc": "[TO_TRANSLATE] step1Desc",
+      "step2": "[TO_TRANSLATE] step2",
+      "step2Desc": "[TO_TRANSLATE] step2Desc",
+      "createFirst": "[TO_TRANSLATE] createFirst"
+    },
+    "tracking": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "notifications": "[TO_TRANSLATE] notifications",
+      "realtime": "[TO_TRANSLATE] realtime",
+      "communication": "[TO_TRANSLATE] communication"
+    },
+    "payments": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "secure": "[TO_TRANSLATE] secure",
+      "encrypted": "[TO_TRANSLATE] encrypted",
+      "rating": "[TO_TRANSLATE] rating",
+      "optional": "[TO_TRANSLATE] optional"
     }
   },
   "until": "[EN] [en] until",
@@ -3850,6 +4159,26 @@
     },
     "EditProduct": {
       "description": "Description"
+    },
+    "welcome": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content"
+    },
+    "features": {
+      "analytics": "[TO_TRANSLATE] analytics",
+      "analyticsDesc": "[TO_TRANSLATE] analyticsDesc",
+      "customers": "[TO_TRANSLATE] customers",
+      "customersDesc": "[TO_TRANSLATE] customersDesc"
+    },
+    "catalog": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "step1": "[TO_TRANSLATE] step1",
+      "step2": "[TO_TRANSLATE] step2",
+      "step3": "[TO_TRANSLATE] step3",
+      "createProduct": "[TO_TRANSLATE] createProduct"
     }
   },
   "expiresAt": "[EN] [en] expiresAt",
@@ -3912,6 +4241,39 @@
     },
     "Terms": {
       "description": "Description"
+    },
+    "welcome": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "earnings": "[TO_TRANSLATE] earnings",
+      "earningsDesc": "[TO_TRANSLATE] earningsDesc"
+    },
+    "documents": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "identity": "[TO_TRANSLATE] identity",
+      "license": "[TO_TRANSLATE] license",
+      "insurance": "[TO_TRANSLATE] insurance",
+      "background": "[TO_TRANSLATE] background",
+      "upload": "[TO_TRANSLATE] upload"
+    },
+    "deliveries": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "matching": "[TO_TRANSLATE] matching",
+      "matchingDesc": "[TO_TRANSLATE] matchingDesc",
+      "tracking": "[TO_TRANSLATE] tracking",
+      "trackingDesc": "[TO_TRANSLATE] trackingDesc"
+    },
+    "wallet": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "averagePerDelivery": "[TO_TRANSLATE] averagePerDelivery",
+      "viewWallet": "[TO_TRANSLATE] viewWallet"
     }
   },
   "resetSuccess": {
@@ -4105,6 +4467,23 @@
     },
     "AutoInvoices": {
       "description": "Description"
+    },
+    "welcome": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "expertise": "[TO_TRANSLATE] expertise",
+      "expertiseDesc": "[TO_TRANSLATE] expertiseDesc"
+    },
+    "services": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "content": "[TO_TRANSLATE] content",
+      "home": "[TO_TRANSLATE] home",
+      "homeDesc": "[TO_TRANSLATE] homeDesc",
+      "maintenance": "[TO_TRANSLATE] maintenance",
+      "maintenanceDesc": "[TO_TRANSLATE] maintenanceDesc",
+      "create": "[TO_TRANSLATE] create"
     }
   },
   "statusBanner": {
@@ -4492,7 +4871,9 @@
     "paymentInstructions": "[EN] paymentInstructions",
     "termsAndConditions": "[EN] termsAndConditions",
     "downloadPdf": "[EN] downloadPdf",
-    "paymentDue": "[EN] paymentDue"
+    "paymentDue": "[EN] paymentDue",
+    "a": "[TO_TRANSLATE] a",
+    "T": "[TO_TRANSLATE] T"
   },
   "wallet": {
     "refreshSuccess": "[EN] refreshSuccess",
@@ -6236,7 +6617,8 @@
       "adding": "[EN] adding",
       "addMultiple": "[EN] addMultiple",
       "add": "[EN] add"
-    }
+    },
+    "EUR": "[TO_TRANSLATE] EUR"
   },
   "faq": {
     "title1": "[EN] title1",
@@ -7249,7 +7631,8 @@
   "paymentMethods": {
     "card": "[EN] card",
     "cash": "[EN] cash",
-    "both": "[EN] both"
+    "both": "[EN] both",
+    "account": "[TO_TRANSLATE] account"
   },
   "categories": {
     "package": "[EN] package",
@@ -7273,5 +7656,29 @@
   "anyTime": "[EN] anyTime",
   "minRating": "[EN] minRating",
   "ratingPlaceholder": "[EN] ratingPlaceholder",
-  "anyRating": "[EN] anyRating"
+  "anyRating": "[EN] anyRating",
+  "onboarding": {
+    "step": "[TO_TRANSLATE] step",
+    "of": "[TO_TRANSLATE] of",
+    "skipTutorial": "[TO_TRANSLATE] skipTutorial",
+    "previous": "[TO_TRANSLATE] previous",
+    "finish": "[TO_TRANSLATE] finish",
+    "next": "[TO_TRANSLATE] next"
+  },
+  "steps": {
+    "client": "[TO_TRANSLATE] client",
+    "products": "[TO_TRANSLATE] products",
+    "delivery": "[TO_TRANSLATE] delivery",
+    "payment": "[TO_TRANSLATE] payment",
+    "confirmation": "[TO_TRANSLATE] confirmation"
+  },
+  "noMatches": {
+    "title": "[TO_TRANSLATE] title",
+    "delivererDescription": "[TO_TRANSLATE] delivererDescription",
+    "clientDescription": "[TO_TRANSLATE] clientDescription"
+  },
+  "newMatches": {
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description"
+  }
 }

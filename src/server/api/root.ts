@@ -51,6 +51,7 @@ import { providerCalendarRouter } from "./routers/provider/provider-calendar.rou
 import { providerEvaluationsRouter } from "./routers/provider/provider-evaluations.router";
 
 // Merchant routers
+import { merchantRouter } from "./routers/merchant/merchant.router";
 import { contractRouter } from "./routers/merchant/merchant-contracts.router";
 import { merchantCatalogRouter } from "./routers/merchant/merchant-catalog.router";
 import { merchantAnnouncementsRouter } from "./routers/merchant/merchant-announcements.router";
@@ -150,6 +151,7 @@ export const appRouter = router({
   providerEvaluations: providerEvaluationsRouter,
 
   // Merchant
+  merchant: merchantRouter,
   contract: contractRouter,
   merchantCatalog: merchantCatalogRouter,
   merchantAnnouncements: merchantAnnouncementsRouter,

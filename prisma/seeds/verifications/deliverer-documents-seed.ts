@@ -285,9 +285,9 @@ export async function validateDelivererDocuments(
 
   // Vérifier que tous les documents requis sont présents et vérifiés
   const requiredTypes = [
-    DocumentType.DRIVING_LICENSE,
+    DocumentType.DRIVERS_LICENSE,
     DocumentType.VEHICLE_REGISTRATION,
-    DocumentType.INSURANCE,
+    DocumentType.VEHICLE_INSURANCE,
   ];
   const verifiedDocs = documents.filter(
     (d) =>

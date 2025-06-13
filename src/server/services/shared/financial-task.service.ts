@@ -30,7 +30,7 @@ export class FinancialTaskService {
           userId,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la création de la tâche financière:",
         error,
@@ -67,7 +67,7 @@ export class FinancialTaskService {
       }
 
       return task;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error(
@@ -153,7 +153,7 @@ export class FinancialTaskService {
         limit,
         totalPages: Math.ceil(totalTasks / limit),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des tâches financières:",
         error,
@@ -189,7 +189,7 @@ export class FinancialTaskService {
       });
 
       return updatedTask;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error(
@@ -223,7 +223,7 @@ export class FinancialTaskService {
           completedAt: completed ? new Date() : null,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error(
@@ -251,7 +251,7 @@ export class FinancialTaskService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       console.error(
@@ -347,7 +347,7 @@ export class FinancialTaskService {
         priorityStats,
         categoryStats,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des statistiques:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

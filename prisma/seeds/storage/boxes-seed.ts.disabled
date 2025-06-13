@@ -272,7 +272,7 @@ export async function seedBoxes(
             }
 
             // Statut de la box
-            let status = BoxStatus.AVAILABLE;
+            let status: BoxStatus = BoxStatus.AVAILABLE;
             if (isOccupied && selectedClient) {
               status = BoxStatus.OCCUPIED;
             } else if (faker.datatype.boolean(0.05)) {

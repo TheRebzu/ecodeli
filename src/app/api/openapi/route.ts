@@ -20,14 +20,15 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error generating OpenAPI spec:", error);
-    
+
     // Retourner une spec minimale en cas d'erreur
     const fallbackSpec = {
       openapi: "3.0.0",
       info: {
         title: "EcoDeli API",
         version: "1.0.0",
-        description: "API documentation temporarily unavailable - Server error occurred"
+        description:
+          "API documentation temporarily unavailable - Server error occurred",
       },
       paths: {
         "/api/health": {
@@ -43,15 +44,15 @@ export async function GET() {
                     schema: {
                       type: "object",
                       properties: {
-                        status: { type: "string", example: "healthy" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                        status: { type: "string", example: "healthy" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       components: {
         schemas: {
@@ -62,15 +63,15 @@ export async function GET() {
                 type: "object",
                 properties: {
                   message: { type: "string" },
-                  code: { type: "string" }
-                }
-              }
-            }
-          }
-        }
-      }
+                  code: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+      },
     };
-    
+
     return NextResponse.json(fallbackSpec, {
       status: 200, // Retourner 200 avec spec minimale plutôt que 500
       headers: {

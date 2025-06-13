@@ -90,7 +90,7 @@ export class ContractService {
     }
 
     // Récupérer le template si spécifié
-    let templateData = null;
+    const templateData = null;
     if (data.templateId) {
       templateData = await db.contractTemplate.findUnique({
         where: { id: data.templateId },
@@ -265,7 +265,7 @@ export class ContractService {
       limit?: number;
     } = {},
   ) {
-    const { status, page = 1, limit = 10 } = options;
+    const { status: _status, page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
 
     const where: any = { merchantId };

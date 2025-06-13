@@ -102,7 +102,7 @@ export const paymentService = {
         clientSecret: intent.client_secret,
         redirectUrl: null,
       };
-    } catch (error) {
+    } catch (_error) {
       // En cas d'erreur, marquer le paiement comme échoué
       await db.payment.update({
         where: { id: payment.id },
@@ -178,7 +178,7 @@ export const paymentService = {
 
         return updatedPayment;
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du traitement du paiement réussi:", error);
 
       // Marquer le paiement comme problématique
@@ -407,7 +407,7 @@ export const paymentService = {
           refundPayment,
         };
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du remboursement:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -740,7 +740,7 @@ export async function processPaymentIntent(input: {
   paymentIntentId: string;
   status: string;
 }> {
-  const { paymentId, action, amount } = input;
+  const { paymentId: _paymentId, action: _action, amount: _amount } = input;
 
   // Récupérer le paiement
   const payment = await db.payment.findUnique({
@@ -900,7 +900,7 @@ export async function confirmPayment(paymentId: string): Promise<Payment> {
           status: "PENDING_PICKUP", // Statut à adapter selon votre modèle
         },
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error(
         "Erreur lors de la mise à jour du statut de livraison",
         error,
@@ -919,7 +919,7 @@ export async function refundPayment(input: {
   amount?: number;
   reason?: string;
 }): Promise<any> {
-  const { paymentId, amount, reason } = input;
+  const { paymentId: _paymentId, amount: _amount, reason: _reason } = input;
 
   // Récupérer le paiement
   const payment = await db.payment.findUnique({
@@ -980,7 +980,7 @@ export async function refundPayment(input: {
         reference: refundId,
         paymentId: payment.id,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error(
         "Erreur lors de la création de la transaction de remboursement",
         error,
@@ -1005,7 +1005,14 @@ export async function getPaymentHistory(
     type?: string;
   } = {},
 ): Promise<{ payments: Payment[]; total: number; pages: number }> {
-  const { limit = 10, page = 1, status, startDate, endDate, type } = options;
+  const {
+    limit = 10,
+    page = 1,
+    status: _status,
+    startDate: _startDate,
+    endDate: _endDate,
+    type: _type,
+  } = options;
   const skip = (page - 1) * limit;
 
   // Construire les filtres
@@ -1128,7 +1135,11 @@ export async function releasePaymentToDeliverer(
     adminId?: string;
   } = {},
 ): Promise<Payment> {
-  const { releaseCode, releaseByAdmin = false, adminId } = options;
+  const {
+    releaseCode: _releaseCode,
+    releaseByAdmin = false,
+    adminId: _adminId,
+  } = options;
 
   // Récupérer le paiement
   const payment = await db.payment.findUnique({
@@ -1226,7 +1237,7 @@ export async function releasePaymentToDeliverer(
       recipientId: delivererId,
       commissionAmount,
     });
-  } catch (error) {
+  } catch (_error) {
     logger.error(
       "Erreur lors de l'ajout des fonds au portefeuille du livreur",
       error,

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure } from "@/server/api/trpc";
+import { router } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import path from "path";
 import fs from "fs/promises";
@@ -18,11 +18,11 @@ export const i18nRouter = router({
   // Récupérer les messages de traduction pour une locale donnée
   getMessages: publicProcedure
     .input(getMessagesSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       console.log("i18n.getMessages called with input:", input);
       
       try {
-        const { locale } = input;
+        const { _locale: __locale } = input;
 
         // Chemin vers le fichier de messages
         const messagesPath = path.join(
@@ -47,11 +47,11 @@ export const i18nRouter = router({
 
         // Lire et parser le fichier JSON
         const messagesContent = readFileSync(messagesPath, "utf-8");
-        let messages = {};
+        const messages = {};
         
         try {
           messages = JSON.parse(messagesContent);
-        } catch (parseError) {
+        } catch (_parseError) {
           console.error("Erreur lors du parsing des messages:", parseError);
           messages = {};
         }
@@ -69,7 +69,7 @@ export const i18nRouter = router({
         
         console.log("Returning messages result:", { locale, hasMessages: Object.keys(messages).length > 0 });
         return result;
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors du chargement des messages i18n:", error);
 
         // Retourner un objet par défaut en cas d'erreur
@@ -95,8 +95,8 @@ export const i18nRouter = router({
   // Vérifier si une locale est supportée
   isLocaleSupported: publicProcedure
     .input(z.object({ locale: z.string() }))
-    .query(async ({ input }) => {
-      const { locale } = input;
+    .query(async ({ input: _input }) => {
+      const { _locale: __locale } = input;
       const isSupported = SUPPORTED_LOCALES.includes(locale);
 
       return {

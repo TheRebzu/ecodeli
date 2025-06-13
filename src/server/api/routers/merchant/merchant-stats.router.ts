@@ -33,8 +33,8 @@ export const merchantStatsRouter = router({
    */
   getDashboardStats: protectedProcedure
     .input(statsFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -68,12 +68,12 @@ export const merchantStatsRouter = router({
           pendingOrdersCount,
         ] = await Promise.all([
           // Statistiques période actuelle
-          getBasicStats(ctx.db, merchant.id, startDate, endDate),
+          getBasicStats(_ctx.db, merchant.id, startDate, endDate),
 
           // Statistiques période précédente (pour comparaison)
           input.compareWithPrevious
             ? getBasicStats(
-                ctx.db,
+                _ctx.db,
                 merchant.id,
                 previousStartDate!,
                 previousEndDate!,
@@ -191,7 +191,7 @@ export const merchantStatsRouter = router({
             })),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -205,8 +205,8 @@ export const merchantStatsRouter = router({
    */
   getSalesStats: protectedProcedure
     .input(statsFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -227,11 +227,12 @@ export const merchantStatsRouter = router({
           });
         }
 
-        const { startDate, endDate } = calculatePeriodDates(input);
+        const { startDate: _startDate, endDate: _endDate } =
+          calculatePeriodDates(input);
 
         // Données de ventes par jour/semaine/mois selon la période
         const interval = getTimeInterval(input.period);
-        const salesTimeline = (await ctx.db.$queryRaw`
+        const salesTimeline = (await _ctx.db.$queryRaw`
           SELECT 
             DATE_TRUNC(${interval}, created_at) as period,
             COUNT(*)::int as orders_count,
@@ -329,7 +330,7 @@ export const merchantStatsRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -343,8 +344,8 @@ export const merchantStatsRouter = router({
    */
   getProductStats: protectedProcedure
     .input(productStatsSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -365,9 +366,10 @@ export const merchantStatsRouter = router({
           });
         }
 
-        const { startDate, endDate } = calculatePeriodDates({
-          period: input.period,
-        });
+        const { startDate: _startDate, endDate: _endDate } =
+          calculatePeriodDates({
+            period: input.period,
+          });
 
         // Statistiques des produits
         const productStats = await ctx.db.product.findMany({
@@ -499,7 +501,7 @@ export const merchantStatsRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -513,8 +515,8 @@ export const merchantStatsRouter = router({
    */
   getCustomerStats: protectedProcedure
     .input(customerStatsSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -535,9 +537,10 @@ export const merchantStatsRouter = router({
           });
         }
 
-        const { startDate, endDate } = calculatePeriodDates({
-          period: input.period,
-        });
+        const { startDate: _startDate, endDate: _endDate } =
+          calculatePeriodDates({
+            period: input.period,
+          });
 
         // Statistiques des clients
         const [
@@ -548,7 +551,7 @@ export const merchantStatsRouter = router({
           topCustomers,
         ] = await Promise.all([
           // Total des clients ayant commandé
-          ctx.db.order.findMany({
+          _ctx.db.order.findMany({
             where: {
               merchantId: merchant.id,
               status: { in: ["COMPLETED", "DELIVERED"] },
@@ -691,7 +694,7 @@ export const merchantStatsRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -712,8 +715,8 @@ export const merchantStatsRouter = router({
           .default(["revenue", "orders"]),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -734,13 +737,14 @@ export const merchantStatsRouter = router({
           });
         }
 
-        const { startDate, endDate } = calculatePeriodDates({
-          period: input.period,
-        });
+        const { startDate: _startDate, endDate: _endDate } =
+          calculatePeriodDates({
+            period: input.period,
+          });
         const interval = getTimeInterval(input.period);
 
         // Données temporelles pour les graphiques
-        const timeSeriesData = (await ctx.db.$queryRaw`
+        const timeSeriesData = (await _ctx.db.$queryRaw`
           SELECT 
             DATE_TRUNC(${interval}, created_at) as period,
             COUNT(*)::int as orders_count,
@@ -789,7 +793,7 @@ export const merchantStatsRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

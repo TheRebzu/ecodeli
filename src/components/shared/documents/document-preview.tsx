@@ -67,7 +67,7 @@ const DOCUMENT_LABELS: Record<string, string> = {
   ADDRESS_PROOF: "Justificatif de domicile",
 };
 
-export default function DocumentPreview({
+export function DocumentPreview({
   document,
   onClose,
   onDownload,
@@ -483,3 +483,6 @@ export default function DocumentPreview({
     </Dialog>
   );
 }
+
+// Export par défaut pour la compatibilité
+export default DocumentPreview;

@@ -77,7 +77,7 @@ export const adminContractsRouter = createTRPCRouter({
         filters: ContractFiltersSchema.default({}),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const { page, pageSize, filters = {} } = input;
         const skip = (page - 1) * pageSize;
@@ -133,7 +133,7 @@ export const adminContractsRouter = createTRPCRouter({
 
         // Exécuter les requêtes en parallèle
         const [contracts, totalCount] = await Promise.all([
-          ctx.db.contract.findMany({
+          _ctx.db.contract.findMany({
             where,
             include: {
               merchant: {
@@ -164,7 +164,7 @@ export const adminContractsRouter = createTRPCRouter({
           totalPages: Math.ceil(totalCount / pageSize),
           currentPage: page,
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de la récupération des contrats:", error);
 
         // Retourner des données par défaut en cas d'erreur
@@ -178,7 +178,7 @@ export const adminContractsRouter = createTRPCRouter({
     }),
 
   // Récupérer les statistiques des contrats
-  getStats: protectedProcedure.query(async ({ ctx }) => {
+  getStats: protectedProcedure.query(async ({ _ctx }) => {
     try {
       const [
         totalContracts,
@@ -191,7 +191,7 @@ export const adminContractsRouter = createTRPCRouter({
         averageCommission,
         totalMonthlyRevenue,
       ] = await Promise.all([
-        ctx.db.contract.count(),
+        _ctx.db.contract.count(),
         ctx.db.contract.count({ where: { status: "ACTIVE" } }),
         ctx.db.contract.count({
           where: {
@@ -233,7 +233,7 @@ export const adminContractsRouter = createTRPCRouter({
         averageCommission: averageCommission._avg.commissionRate || 0,
         totalMonthlyRevenue: totalMonthlyRevenue._sum.monthlyFee || 0,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des statistiques de contrats:",
         error,
@@ -255,7 +255,7 @@ export const adminContractsRouter = createTRPCRouter({
   }),
 
   // Récupérer la liste des commerçants
-  getMerchants: protectedProcedure.query(async ({ ctx }) => {
+  getMerchants: protectedProcedure.query(async ({ _ctx }) => {
     try {
       return ctx.db.merchant.findMany({
         select: {
@@ -278,7 +278,7 @@ export const adminContractsRouter = createTRPCRouter({
           companyName: "asc",
         },
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des commerçants:", error);
       return [];
     }
@@ -287,7 +287,7 @@ export const adminContractsRouter = createTRPCRouter({
   // Créer un nouveau contrat
   create: protectedProcedure
     .input(ContractFormSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Vérifier que le commerçant existe
       const merchant = await ctx.db.merchant.findUnique({
         where: { id: input.merchantId },
@@ -307,7 +307,7 @@ export const adminContractsRouter = createTRPCRouter({
         data: {
           ...input,
           contractNumber,
-          signedById: ctx.session.user.id,
+          signedById: _ctx.session.user.id,
         },
         include: {
           merchant: {
@@ -330,8 +330,8 @@ export const adminContractsRouter = createTRPCRouter({
         })
         .merge(ContractFormSchema.partial()),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { id: _id, ...data } = input;
 
       const contract = await ctx.db.contract.findUnique({
         where: { id },
@@ -362,7 +362,7 @@ export const adminContractsRouter = createTRPCRouter({
   // Supprimer un contrat
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const contract = await ctx.db.contract.findUnique({
         where: { id: input.id },
       });
@@ -390,7 +390,7 @@ export const adminContractsRouter = createTRPCRouter({
   // Activer un contrat
   activate: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return ctx.db.contract.update({
         where: { id: input.id },
         data: {
@@ -409,7 +409,7 @@ export const adminContractsRouter = createTRPCRouter({
         reason: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return ctx.db.contract.update({
         where: { id: input.id },
         data: {
@@ -422,7 +422,7 @@ export const adminContractsRouter = createTRPCRouter({
   // Générer un PDF du contrat
   generatePdf: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const contract = await ctx.db.contract.findUnique({
         where: { id: input.id },
         include: {
@@ -450,7 +450,7 @@ export const adminContractsRouter = createTRPCRouter({
     }),
 
   // Templates de contrats
-  getTemplates: protectedProcedure.query(async ({ ctx }) => {
+  getTemplates: protectedProcedure.query(async ({ _ctx }) => {
     return ctx.db.contractTemplate.findMany({
       include: {
         createdBy: {
@@ -468,7 +468,7 @@ export const adminContractsRouter = createTRPCRouter({
     });
   }),
 
-  getActiveTemplates: protectedProcedure.query(async ({ ctx }) => {
+  getActiveTemplates: protectedProcedure.query(async ({ _ctx }) => {
     return ctx.db.contractTemplate.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
@@ -477,11 +477,11 @@ export const adminContractsRouter = createTRPCRouter({
 
   createTemplate: protectedProcedure
     .input(TemplateFormSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return ctx.db.contractTemplate.create({
         data: {
           ...input,
-          createdById: ctx.session.user.id,
+          createdById: _ctx.session.user.id,
         },
       });
     }),
@@ -494,8 +494,8 @@ export const adminContractsRouter = createTRPCRouter({
         })
         .merge(TemplateFormSchema.partial()),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { id: _id, ...data } = input;
       return ctx.db.contractTemplate.update({
         where: { id },
         data,
@@ -504,7 +504,7 @@ export const adminContractsRouter = createTRPCRouter({
 
   deleteTemplate: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const template = await ctx.db.contractTemplate.findUnique({
         where: { id: input.id },
         include: { _count: { select: { contracts: true } } },
@@ -532,7 +532,7 @@ export const adminContractsRouter = createTRPCRouter({
 
   activateTemplate: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return ctx.db.contractTemplate.update({
         where: { id: input.id },
         data: { isActive: true },
@@ -541,7 +541,7 @@ export const adminContractsRouter = createTRPCRouter({
 
   deactivateTemplate: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return ctx.db.contractTemplate.update({
         where: { id: input.id },
         data: { isActive: false },

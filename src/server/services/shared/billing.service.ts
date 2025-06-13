@@ -126,8 +126,8 @@ export class BillingService {
           }
 
           // Calculer le montant total et les commissions
-          let totalAmount = new Decimal(0);
-          let totalCommission = new Decimal(0);
+          const totalAmount = new Decimal(0);
+          const totalCommission = new Decimal(0);
 
           const invoiceItems = periodPayments.map((payment) => {
             const serviceInfo = payment.service || {
@@ -892,9 +892,9 @@ export class BillingService {
 
     try {
       let invoice;
-      let totalAmount = 0;
-      let serviceFees = 0;
-      let commissionFees = 0;
+      const totalAmount = 0;
+      const serviceFees = 0;
+      const commissionFees = 0;
       const serviceSummary: Record<string, any> = {};
 
       // Facturation selon le type d'entité
@@ -1067,9 +1067,9 @@ export class BillingService {
     `;
 
     // Calculer les montants
-    let totalAmount = 0;
-    let serviceFees = 0;
-    let commissionFees = 0;
+    const totalAmount = 0;
+    const serviceFees = 0;
+    const commissionFees = 0;
 
     // Préparer les éléments de facture
     const invoiceItems = servicesWithPayments.map((service) => {
@@ -1189,9 +1189,9 @@ export class BillingService {
     `;
 
     // Calculer les montants
-    let totalAmount = 0;
-    let serviceFees = 0;
-    let commissionFees = 0;
+    const totalAmount = 0;
+    const serviceFees = 0;
+    const commissionFees = 0;
 
     // Préparer les éléments de facture
     const invoiceItems = bookingsWithPayments.map((booking) => {
@@ -1303,7 +1303,7 @@ export class BillingService {
           scheduledRunDate: scheduledDate,
         });
         createdCycles.push(cycle);
-      } catch (error) {
+      } catch (_error) {
         console.error(
           `Erreur lors de la création du cycle pour le commerçant ${merchant.id}:`,
           error,
@@ -1321,7 +1321,7 @@ export class BillingService {
           scheduledRunDate: scheduledDate,
         });
         createdCycles.push(cycle);
-      } catch (error) {
+      } catch (_error) {
         console.error(
           `Erreur lors de la création du cycle pour le prestataire ${provider.id}:`,
           error,

@@ -1,9 +1,4 @@
-import {
-  router,
-  publicProcedure,
-  protectedProcedure,
-  adminProcedure,
-} from "@/server/api/trpc";
+import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
 import { AuthService } from "@/server/services/auth/auth.service";
 import { DocumentService } from "@/server/services/common/document.service";
 import {
@@ -144,8 +139,13 @@ export const authRouter = router({
    */
   register: publicProcedure
     .input(registerSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { email, password, name, role } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const {
+        email: _email,
+        password: _password,
+        name: _name,
+        role: _role,
+      } = input;
 
       try {
         // Vérification si l'email existe déjà
@@ -182,7 +182,7 @@ export const authRouter = router({
           userId: user.id,
           role: user.role,
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de l'inscription:", error);
 
         if (error instanceof TRPCError) {
@@ -199,12 +199,12 @@ export const authRouter = router({
   // Vérification de l'email
   verifyEmail: publicProcedure
     .input(z.object({ token: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const { token } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _token: __token } = input;
 
       try {
         // Utiliser le service AuthService pour vérifier le token
-        const authService = new AuthService(ctx.db);
+        const authService = new AuthService(_ctx.db);
         const success = await authService.verifyEmail(token);
 
         if (!success) {
@@ -215,7 +215,7 @@ export const authRouter = router({
         }
 
         return { success: true };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de la vérification de l'email:", error);
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -227,8 +227,8 @@ export const authRouter = router({
   // Demande de réinitialisation de mot de passe
   forgotPassword: publicProcedure
     .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ ctx, input }) => {
-      const { email } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _email: __email } = input;
 
       const user = await ctx.db.user.findUnique({
         where: { email },
@@ -265,8 +265,8 @@ export const authRouter = router({
         password: z.string().min(8),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { token, password } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { token: _token, password: _password } = input;
 
       const resetToken = await ctx.db.passwordResetToken.findFirst({
         where: {
@@ -313,11 +313,11 @@ export const authRouter = router({
   // Renvoyer l'email de vérification
   resendVerificationEmail: publicProcedure
     .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ ctx, input }) => {
-      const { email } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _email: __email } = input;
 
       // On utilise le service d'authentification pour gérer l'envoi de l'email
-      const authService = new AuthService(ctx.db);
+      const authService = new AuthService(_ctx.db);
 
       try {
         // Vérifier si l'email existe et n'est pas déjà vérifié
@@ -349,7 +349,7 @@ export const authRouter = router({
         await authService.resendVerificationEmail(email, locale);
 
         return { success: true };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) {
           throw error;
         }
@@ -372,8 +372,8 @@ export const authRouter = router({
         description: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
       const { type, fileData, fileName, mimeType, expiryDate, description } =
         input;
 
@@ -408,7 +408,7 @@ export const authRouter = router({
         try {
           await fs.mkdir(userUploadDir, { recursive: true });
           console.log(`Répertoire créé ou vérifié: ${userUploadDir}`);
-        } catch (dirError) {
+        } catch (_dirError) {
           console.error(
             `Erreur lors de la création du répertoire: ${userUploadDir}`,
             dirError,
@@ -431,7 +431,7 @@ export const authRouter = router({
           // Extraire le contenu réel du base64 (supprimer le préfixe data:image/jpeg;base64,)
           const base64Data = fileData.split(",")[1] || fileData;
           fileBuffer = Buffer.from(base64Data, "base64");
-        } catch (base64Error) {
+        } catch (_base64Error) {
           console.error("Erreur lors du décodage base64:", base64Error);
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -445,7 +445,7 @@ export const authRouter = router({
           console.log(
             `Fichier écrit avec succès: ${filePath} (${fileBuffer.length} octets)`,
           );
-        } catch (writeError) {
+        } catch (_writeError) {
           console.error("Erreur lors de l'écriture du fichier:", writeError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -506,7 +506,7 @@ export const authRouter = router({
 
         console.log(`Document créé avec succès: ${document.id}`);
         return document;
-      } catch (error) {
+      } catch (_error) {
         console.error(`Erreur lors de l'upload du document:`, error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -516,8 +516,8 @@ export const authRouter = router({
     }),
 
   // Récupérer les documents de l'utilisateur avec le statut consistant
-  getUserDocuments: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getUserDocuments: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
     const documents = await getUserDocumentsWithFullStatus(user.id, user.role);
@@ -546,9 +546,9 @@ export const authRouter = router({
         notes: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
-      const { documentId, status, notes } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
+      const { documentId: _documentId, status: _status, notes: _notes } = input;
 
       // Vérifier si l'utilisateur est admin
       if (user.role !== "ADMIN") {
@@ -656,8 +656,8 @@ export const authRouter = router({
     }),
 
   // Configuration de l'authentification à deux facteurs
-  setupTwoFactor: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  setupTwoFactor: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     const userWithTwoFactor = await ctx.db.user.findUnique({
       where: { id: user.id },
@@ -711,9 +711,9 @@ export const authRouter = router({
   // Vérification du code TOTP lors de la configuration
   verifyTwoFactor: protectedProcedure
     .input(z.object({ token: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const { token } = input;
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _token: __token } = input;
+      const { _user: __user } = ctx.session;
 
       const userWithSecret = await ctx.db.user.findUnique({
         where: { id: user.id },
@@ -776,8 +776,8 @@ export const authRouter = router({
     }),
 
   // Désactiver l'authentification à deux facteurs
-  disableTwoFactor: protectedProcedure.mutation(async ({ ctx }) => {
-    const { user } = ctx.session;
+  disableTwoFactor: protectedProcedure.mutation(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     await ctx.db.user.update({
       where: { id: user.id },
@@ -796,8 +796,8 @@ export const authRouter = router({
   }),
 
   // Vérifier si l'utilisateur a complété son profil
-  checkProfileCompletion: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  checkProfileCompletion: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     // Vérifier si l'utilisateur a un profil
     const profile = await ctx.db.profile.findUnique({
@@ -866,7 +866,7 @@ export const authRouter = router({
   // Vérification d'un compte livreur (admin uniquement)
   verifyDelivererAccount: adminProcedure
     .input(accountVerificationSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const adminId = ctx.session.user.id;
       return await authService.verifyDelivererAccount(
         input.profileId,
@@ -879,7 +879,7 @@ export const authRouter = router({
   // Vérification d'un compte commerçant (admin uniquement)
   verifyMerchantAccount: adminProcedure
     .input(accountVerificationSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const adminId = ctx.session.user.id;
       return await authService.verifyMerchantAccount(
         input.profileId,
@@ -892,7 +892,7 @@ export const authRouter = router({
   // Vérification d'un compte prestataire (admin uniquement)
   verifyProviderAccount: adminProcedure
     .input(accountVerificationSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const adminId = ctx.session.user.id;
       return await authService.verifyProviderAccount(
         input.profileId,
@@ -905,14 +905,14 @@ export const authRouter = router({
   // Création d'un administrateur (super-admin uniquement)
   createAdmin: adminProcedure
     .input(createAdminSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const superAdminId = ctx.session.user.id;
       return await authService.createAdmin(superAdminId, input);
     }),
 
   // Récupération des informations de session
-  getSession: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getSession: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
     return await authService.getSession(user.id);
   }),
 });

@@ -120,8 +120,8 @@ export async function seedPayments(
           description:
             "Livraison urgente ordinateur portable Paris → Marseille",
           userId: jeanDupont.id,
-          stripePaymentId: "pi_simulated_123456789",
-          paymentIntentId: "pi_simulated_123",
+          stripePaymentId: `pi_${faker.string.alphanumeric(24)}`,
+          paymentIntentId: `pi_${faker.string.alphanumeric(24)}`,
           commissionAmount: commissionAmount,
           taxAmount: 0,
           taxRate: 0,
@@ -245,11 +245,11 @@ export async function seedPayments(
 
   // Statistiques financières
   const totalRevenue = finalPayments
-    .filter((p) => p.status === PaymentStatus.SUCCEEDED)
+    .filter((p) => p.status === PaymentStatus.COMPLETED)
     .reduce((sum, payment) => sum + parseFloat(payment.amount.toString()), 0);
 
   const totalCommissions = finalPayments
-    .filter((p) => p.status === PaymentStatus.SUCCEEDED && p.commissionAmount)
+    .filter((p) => p.status === PaymentStatus.COMPLETED && p.commissionAmount)
     .reduce(
       (sum, payment) =>
         sum + parseFloat(payment.commissionAmount?.toString() || "0"),
@@ -267,7 +267,7 @@ export async function seedPayments(
 
   // Taux de réussite
   const successfulPayments = finalPayments.filter(
-    (p) => p.status === PaymentStatus.SUCCEEDED,
+    (p) => p.status === PaymentStatus.COMPLETED,
   );
   const successRate = Math.round(
     (successfulPayments.length / finalPayments.length) * 100,
@@ -298,149 +298,4 @@ export async function seedPayments(
 
   logger.endSeed("PAYMENTS", result);
   return result;
-}
-
-/**
- * Génère une description détaillée selon le type de service
- */
-function generatePaymentDescription(serviceType: string): string {
-  const descriptions: { [key: string]: string[] } = {
-    DELIVERY: [
-      "Course express centre-ville",
-      "Livraison alimentaire restaurant",
-      "Transport colis urgent",
-      "Livraison meuble domicile",
-      "Course pharmacie",
-      "Livraison aéroport",
-    ],
-    PLUMBING: [
-      "Réparation fuite salle de bain",
-      "Installation nouveau lavabo",
-      "Débouchage canalisation",
-      "Remplacement chauffe-eau",
-      "Réparation robinetterie",
-      "Installation lave-vaisselle",
-    ],
-    ELECTRICITY: [
-      "Installation prises électriques",
-      "Réparation tableau électrique",
-      "Installation éclairage LED",
-      "Dépannage panne électrique",
-      "Installation borne véhicule électrique",
-      "Mise aux normes installation",
-    ],
-    CLEANING: [
-      "Nettoyage appartement 3 pièces",
-      "Ménage bureaux 50m²",
-      "Nettoyage après travaux",
-      "Nettoyage vitres immeuble",
-      "Désinfection locale commercial",
-      "Nettoyage fin de bail",
-    ],
-    IT_SUPPORT: [
-      "Dépannage ordinateur portable",
-      "Installation logiciel professionnel",
-      "Récupération données disque dur",
-      "Configuration réseau WiFi",
-      "Formation logiciel comptable",
-      "Installation antivirus entreprise",
-    ],
-    GARDENING: [
-      "Tonte pelouse 200m²",
-      "Taille haies et arbustes",
-      "Plantation massif fleurs",
-      "Élagage arbre fruitier",
-      "Aménagement jardin terrasse",
-      "Traitement parasites végétaux",
-    ],
-  };
-
-  const serviceDescriptions = descriptions[serviceType] || ["Service standard"];
-  return getRandomElement(serviceDescriptions);
-}
-
-/**
- * Génère un motif d'échec de paiement réaliste
- */
-function generateFailureReason(): string {
-  const failureReasons = [
-    "Carte bancaire expirée",
-    "Fonds insuffisants sur le compte",
-    "Paiement refusé par la banque",
-    "Carte bancaire signalée volée",
-    "Limite de paiement dépassée",
-    "Authentification 3D Secure échouée",
-    "Numéro de carte invalide",
-    "Code de sécurité incorrect",
-    "Paiement bloqué par détection fraude",
-    "Problème technique temporaire",
-  ];
-
-  return getRandomElement(failureReasons);
-}
-
-/**
- * Valide l'intégrité des paiements
- */
-export async function validatePayments(
-  prisma: PrismaClient,
-  logger: SeedLogger,
-): Promise<boolean> {
-  logger.info("VALIDATION", "🔍 Validation des paiements...");
-
-  let isValid = true;
-
-  // Vérifier les paiements
-  const payments = await prisma.payment.findMany({
-    include: { user: true },
-  });
-
-  if (payments.length === 0) {
-    logger.error("VALIDATION", "❌ Aucun paiement trouvé");
-    isValid = false;
-  } else {
-    logger.success("VALIDATION", `✅ ${payments.length} paiements trouvés`);
-  }
-
-  // Vérifier que tous les paiements réussis ont un stripePaymentId
-  const successfulWithoutStripeId = payments.filter(
-    (p) => p.status === PaymentStatus.SUCCEEDED && !p.stripePaymentId,
-  );
-
-  if (successfulWithoutStripeId.length > 0) {
-    logger.warning(
-      "VALIDATION",
-      `⚠️ ${successfulWithoutStripeId.length} paiements réussis sans Stripe ID`,
-    );
-  }
-
-  // Vérifier que les paiements échoués ont un message d'erreur
-  const failedWithoutError = payments.filter(
-    (p) => p.status === PaymentStatus.FAILED && !p.errorMessage,
-  );
-
-  if (failedWithoutError.length > 0) {
-    logger.warning(
-      "VALIDATION",
-      `⚠️ ${failedWithoutError.length} paiements échoués sans message d'erreur`,
-    );
-  }
-
-  // Vérifier la cohérence des commissions
-  const invalidCommissions = payments.filter((p) => {
-    if (!p.commissionAmount) return false;
-    const expectedCommission = parseFloat(p.amount.toString()) * 0.15; // Max commission
-    const actualCommission = parseFloat(p.commissionAmount.toString());
-    return actualCommission > expectedCommission;
-  });
-
-  if (invalidCommissions.length > 0) {
-    logger.warning(
-      "VALIDATION",
-      `⚠️ ${invalidCommissions.length} paiements avec commissions anormales`,
-    );
-  }
-
-  logger.success("VALIDATION", "✅ Validation des paiements terminée");
-  return isValid;
 }

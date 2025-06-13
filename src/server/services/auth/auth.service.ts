@@ -361,7 +361,7 @@ export class AuthService {
       await this.tokenService.deleteToken(token);
 
       return true;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la vérification du token:", error);
       throw new TRPCError({
         code: "NOT_FOUND",
@@ -433,7 +433,7 @@ export class AuthService {
    * Vérifie les identifiants de connexion
    */
   async verifyCredentials(data: LoginSchemaType): Promise<UserResult> {
-    const { email, password } = data;
+    const { email: _email, password: _password } = data;
 
     // Recherche de l'utilisateur
     const user = await this.db.user.findUnique({
@@ -952,7 +952,13 @@ export class AuthService {
     role: UserRole;
     locale: SupportedLanguage;
   }) {
-    const { name, email, password, role, locale } = data;
+    const {
+      name: _name,
+      email: _email,
+      password: _password,
+      role: _role,
+      locale: _locale,
+    } = data;
 
     const hashedPassword = await hash(password, 12);
 
@@ -1296,8 +1302,8 @@ export class AuthService {
     }
 
     // Déterminer le profileId en fonction du rôle
-    let profileId = null;
-    let additionalInfo = {};
+    const profileId = null;
+    const additionalInfo = {};
 
     switch (user.role) {
       case UserRole.CLIENT:

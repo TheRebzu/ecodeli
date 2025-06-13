@@ -296,6 +296,7 @@ async function createAdministrators(
   quotas: UserQuotas["admins"],
   defaultPassword: string,
   dataGenerator: TestDataGenerator,
+  options: SeedOptions,
 ): Promise<void> {
   const adminTypes = [
     { type: "SUPER_ADMIN", count: quotas.super, permissions: ["ALL"] },

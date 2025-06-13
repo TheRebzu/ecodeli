@@ -57,7 +57,8 @@ export function ProcessedVerificationsTab({
   const router = useRouter();
 
   // Utiliser l'API réelle pour récupérer les vérifications traitées
-  const { data, isLoading, isError } = api.admin.verification.getProcessedVerifications.useQuery(filters);
+  const { data, isLoading, isError } =
+    api.admin.verification.getProcessedVerifications.useQuery(filters);
 
   const handleViewVerification = (id: string) => {
     router.push(`/admin/verifications/${id}`);

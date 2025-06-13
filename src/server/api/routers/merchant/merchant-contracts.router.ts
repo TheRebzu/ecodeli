@@ -3,6 +3,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { ContractStatus, ContractType } from "@prisma/client";
 import { contractService } from "@/server/services/shared/contract.service";
+import { startOfMonth, endOfMonth } from "date-fns";
 
 // Schémas de validation
 const contractCreateSchema = z.object({
@@ -99,7 +100,7 @@ export const contractRouter = router({
         limit: z.number().int().positive().max(50).default(10),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Récupérer le merchant associé à l'utilisateur
@@ -126,7 +127,7 @@ export const contractRouter = router({
   /**
    * Récupère le contrat actif du merchant
    */
-  getActiveContract: protectedProcedure.query(async ({ ctx }) => {
+  getActiveContract: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     const merchant = await ctx.db.merchant.findUnique({
@@ -149,7 +150,7 @@ export const contractRouter = router({
    */
   signContract: protectedProcedure
     .input(contractSignSchema.omit({ signedById: true }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier que l'utilisateur est propriétaire du contrat
@@ -180,7 +181,7 @@ export const contractRouter = router({
    */
   getContractById: protectedProcedure
     .input(z.object({ contractId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const contract = await ctx.db.contract.findUnique({
@@ -222,7 +223,7 @@ export const contractRouter = router({
    */
   generatePdf: protectedProcedure
     .input(z.object({ contractId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier les permissions
@@ -256,7 +257,7 @@ export const contractRouter = router({
   /**
    * Récupère les statistiques de contrats du merchant
    */
-  getMerchantStats: protectedProcedure.query(async ({ ctx }) => {
+  getMerchantStats: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     const merchant = await ctx.db.merchant.findUnique({
@@ -273,7 +274,7 @@ export const contractRouter = router({
 
     // Calculer les statistiques
     const [total, active, pending, expired] = await Promise.all([
-      ctx.db.contract.count({ where: { merchantId: merchant.id } }),
+      _ctx.db.contract.count({ where: { merchantId: merchant.id } }),
       ctx.db.contract.count({
         where: {
           merchantId: merchant.id,
@@ -322,6 +323,27 @@ export const contractRouter = router({
           ) / activeContracts.length
         : 0;
 
+    // Calcul des métriques de performance réelles
+    const performanceMetrics = await this.calculateMerchantPerformance(
+      merchant.userId,
+      startOfMonth(new Date()),
+      endOfMonth(new Date()),
+    );
+
+    const contractMetrics = {
+      averageRating: performanceMetrics.averageRating || 0,
+      slaCompliance: performanceMetrics.slaCompliance || 0,
+      totalDeliveries: performanceMetrics.totalDeliveries || 0,
+      onTimeDeliveries: performanceMetrics.onTimeDeliveries || 0,
+      customerSatisfaction: performanceMetrics.customerSatisfaction || 0,
+      qualityScore: performanceMetrics.qualityScore || 0,
+      penalties: {
+        quality: performanceMetrics.qualityPenalties > 0,
+        time: performanceMetrics.timePenalties > 0,
+        totalAmount: performanceMetrics.totalPenalties || 0,
+      },
+    };
+
     return {
       totalContracts: total,
       activeContracts: active,
@@ -329,6 +351,7 @@ export const contractRouter = router({
       expiringContracts: expired,
       totalMonthlyFees,
       averageCommissionRate,
+      contractMetrics,
     };
   }),
 
@@ -337,7 +360,7 @@ export const contractRouter = router({
    */
   initiateNegotiation: protectedProcedure
     .input(negotiationCreateSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier que l'utilisateur peut négocier ce contrat
@@ -389,7 +412,7 @@ export const contractRouter = router({
    */
   getNegotiationHistory: protectedProcedure
     .input(z.object({ contractId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const contract = await ctx.db.contract.findUnique({
@@ -437,7 +460,7 @@ export const contractRouter = router({
    */
   getContractPerformance: protectedProcedure
     .input(performanceQuerySchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const contract = await ctx.db.contract.findUnique({
@@ -501,13 +524,13 @@ export const contractRouter = router({
           deliveryCount,
           totalRevenue,
           avgOrderValue,
-          averageRating: 4.2, // Placeholder
-          slaCompliance: 94.5, // Placeholder
+          averageRating: contractMetrics.averageRating,
+          slaCompliance: contractMetrics.slaCompliance,
         },
         targets: {
           volume: deliveryCount >= 100,
-          quality: true, // Placeholder
-          time: true, // Placeholder
+          quality: !contractMetrics.penalties.quality,
+          time: !contractMetrics.penalties.time,
         },
       };
     }),
@@ -515,7 +538,7 @@ export const contractRouter = router({
   /**
    * Récupère les templates de contrats disponibles
    */
-  getAvailableTemplates: protectedProcedure.query(async ({ ctx }) => {
+  getAvailableTemplates: protectedProcedure.query(async ({ _ctx }) => {
     return await contractService.getActiveTemplates();
   }),
 
@@ -530,7 +553,7 @@ export const contractRouter = router({
         notes: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       const contract = await ctx.db.contract.findUnique({
@@ -589,7 +612,7 @@ export const contractRouter = router({
    */
   createContract: adminProcedure
     .input(contractCreateSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return await contractService.createContract(input);
     }),
 
@@ -598,8 +621,8 @@ export const contractRouter = router({
    */
   updateContract: adminProcedure
     .input(contractUpdateSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { contractId, ...updateData } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { contractId: _contractId, ...updateData } = input;
       return await contractService.updateContract(contractId, updateData);
     }),
 
@@ -608,10 +631,10 @@ export const contractRouter = router({
    */
   adminSignContract: adminProcedure
     .input(contractSignSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return await contractService.signContract({
         ...input,
-        signedById: ctx.session.user.id,
+        signedById: _ctx.session.user.id,
       });
     }),
 
@@ -620,7 +643,7 @@ export const contractRouter = router({
    */
   listAllContracts: adminProcedure
     .input(listContractsSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       // Utiliser directement Prisma pour plus de flexibilité côté admin
       const where: any = {};
 
@@ -633,7 +656,7 @@ export const contractRouter = router({
       }
 
       const [contracts, total] = await Promise.all([
-        ctx.db.contract.findMany({
+        _ctx.db.contract.findMany({
           where,
           include: {
             merchant: {
@@ -662,7 +685,7 @@ export const contractRouter = router({
   /**
    * Statistiques globales des contrats (admin)
    */
-  getGlobalStats: adminProcedure.query(async ({ ctx }) => {
+  getGlobalStats: adminProcedure.query(async ({ _ctx }) => {
     return await contractService.getContractStats();
   }),
 
@@ -671,10 +694,10 @@ export const contractRouter = router({
    */
   createTemplate: adminProcedure
     .input(templateCreateSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return await contractService.createContractTemplate({
         ...input,
-        createdById: ctx.session.user.id,
+        createdById: _ctx.session.user.id,
       });
     }),
 
@@ -683,7 +706,7 @@ export const contractRouter = router({
    */
   createAmendment: adminProcedure
     .input(amendmentCreateSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return await contractService.createAmendment(
         input.contractId,
         input.title,
@@ -702,7 +725,7 @@ export const contractRouter = router({
         reason: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       return await contractService.terminateContract(
         input.contractId,
         input.reason,

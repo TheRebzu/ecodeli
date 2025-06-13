@@ -83,8 +83,8 @@ export const cartDropRouter = router({
    */
   createCashRegister: protectedProcedure
     .input(createCashRegisterSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -110,7 +110,11 @@ export const cartDropRouter = router({
           });
         }
 
-        const { deliveryZones, operatingHours, ...registerData } = input;
+        const {
+          deliveryZones: _deliveryZones,
+          operatingHours: _operatingHours,
+          ...registerData
+        } = input;
 
         const cashRegister = await ctx.db.merchantCashRegister.create({
           data: {
@@ -140,7 +144,7 @@ export const cartDropRouter = router({
           message:
             "Caisse enregistreuse créée avec succès. Vérification en cours par nos équipes.",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -152,8 +156,8 @@ export const cartDropRouter = router({
   /**
    * Obtenir les caisses du commerçant
    */
-  getMyCashRegisters: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getMyCashRegisters: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "MERCHANT") {
       throw new TRPCError({
@@ -196,7 +200,7 @@ export const cartDropRouter = router({
       });
 
       return { cashRegisters };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des caisses",
@@ -209,8 +213,8 @@ export const cartDropRouter = router({
    */
   createCartDrop: protectedProcedure
     .input(createCartDropSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -275,7 +279,7 @@ export const cartDropRouter = router({
         // Générer un numéro de commande unique
         const orderNumber = `CD-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
-        const { items, ...cartDropData } = input;
+        const { items: _items, ...cartDropData } = input;
 
         const cartDrop = await ctx.db.cartDrop.create({
           data: {
@@ -308,7 +312,7 @@ export const cartDropRouter = router({
           message:
             "Lâcher de chariot créé avec succès. Recherche d'un livreur en cours...",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -322,8 +326,8 @@ export const cartDropRouter = router({
    */
   getCartDrops: protectedProcedure
     .input(cartDropFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       try {
         const where: any = {};
@@ -413,7 +417,7 @@ export const cartDropRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -432,8 +436,8 @@ export const cartDropRouter = router({
         estimatedPickupTime: z.date().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -511,7 +515,7 @@ export const cartDropRouter = router({
           cartDrop: updatedCartDrop,
           message: "Lâcher de chariot accepté avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -525,8 +529,8 @@ export const cartDropRouter = router({
    */
   updateStatus: protectedProcedure
     .input(updateCartDropStatusSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       try {
         // Vérifier les permissions
@@ -604,7 +608,7 @@ export const cartDropRouter = router({
           cartDrop: updatedCartDrop,
           message: `Statut mis à jour vers ${input.status}`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -624,8 +628,8 @@ export const cartDropRouter = router({
         delivererId: z.string().cuid().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (!["ADMIN", "MERCHANT"].includes(user.role)) {
         throw new TRPCError({
@@ -692,7 +696,7 @@ export const cartDropRouter = router({
           group,
           message: "Groupement créé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

@@ -15,7 +15,7 @@ export const profileRouter = router({
   /**
    * Récupère le profil complet de l'utilisateur connecté
    */
-  getMyProfile: protectedProcedure.query(async ({ ctx }) => {
+  getMyProfile: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
     return profileService.getProfileByUserId(userId);
   }),
@@ -23,7 +23,7 @@ export const profileRouter = router({
   /**
    * Récupère le profil spécifique au rôle de l'utilisateur connecté
    */
-  getMyRoleSpecificProfile: protectedProcedure.query(async ({ ctx }) => {
+  getMyRoleSpecificProfile: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
     const role = ctx.session.user.role;
 
@@ -49,7 +49,7 @@ export const profileRouter = router({
         data: z.object({}).passthrough(), // Accept any data, will be validated based on role
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
 
@@ -87,7 +87,7 @@ export const profileRouter = router({
    */
   addClientAddress: protectedProcedure
     .input(addressSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
 
@@ -127,7 +127,7 @@ export const profileRouter = router({
         });
 
         return address;
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de l'ajout d'une adresse:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -146,7 +146,7 @@ export const profileRouter = router({
         data: addressSchema,
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
 
@@ -199,7 +199,7 @@ export const profileRouter = router({
         });
 
         return updatedAddress;
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de la modification d'une adresse:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -217,7 +217,7 @@ export const profileRouter = router({
         addressId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       return profileService.deleteAddress(input.addressId, userId);
     }),
@@ -231,7 +231,7 @@ export const profileRouter = router({
         addressId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
 
@@ -282,7 +282,7 @@ export const profileRouter = router({
         });
 
         return { success: true };
-      } catch (error) {
+      } catch (_error) {
         console.error(
           "Erreur lors de la définition de l'adresse par défaut:",
           error,

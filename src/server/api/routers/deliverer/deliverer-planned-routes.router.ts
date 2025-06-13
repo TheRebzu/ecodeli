@@ -84,8 +84,8 @@ export const delivererPlannedRoutesRouter = router({
    */
   getMyRoutes: protectedProcedure
     .input(routeFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -177,7 +177,7 @@ export const delivererPlannedRoutesRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des routes planifiées",
@@ -190,8 +190,8 @@ export const delivererPlannedRoutesRouter = router({
    */
   create: protectedProcedure
     .input(createPlannedRouteSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -278,7 +278,7 @@ export const delivererPlannedRoutesRouter = router({
           success: true,
           route,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la création de la route planifiée",
@@ -291,9 +291,9 @@ export const delivererPlannedRoutesRouter = router({
    */
   update: protectedProcedure
     .input(updatePlannedRouteSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
-      const { id, ...updateData } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
+      const { id: _id, ...updateData } = input;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -348,7 +348,7 @@ export const delivererPlannedRoutesRouter = router({
           success: true,
           route: updatedRoute,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -362,8 +362,8 @@ export const delivererPlannedRoutesRouter = router({
    */
   delete: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -408,7 +408,7 @@ export const delivererPlannedRoutesRouter = router({
         });
 
         return { success: true };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -427,8 +427,8 @@ export const delivererPlannedRoutesRouter = router({
         isPublic: z.boolean(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -469,7 +469,7 @@ export const delivererPlannedRoutesRouter = router({
           success: true,
           route: updatedRoute,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -483,8 +483,8 @@ export const delivererPlannedRoutesRouter = router({
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       try {
         const route = await ctx.db.delivererPlannedRoute.findFirst({
@@ -535,7 +535,7 @@ export const delivererPlannedRoutesRouter = router({
         }
 
         return { route };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -559,7 +559,7 @@ export const delivererPlannedRoutesRouter = router({
         limit: z.number().min(1).max(20).default(10),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Implémenter la recherche géospatiale avancée
         // Pour l'instant, recherche basique par ville et temps
@@ -587,7 +587,7 @@ export const delivererPlannedRoutesRouter = router({
         });
 
         return { routes };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la recherche de routes",
@@ -600,9 +600,9 @@ export const delivererPlannedRoutesRouter = router({
 async function calculateRouteDistance(stops: any[]): Promise<number> {
   if (stops.length < 2) return 0;
 
-  let totalDistance = 0;
+  const totalDistance = 0;
 
-  for (let i = 0; i < stops.length - 1; i++) {
+  for (const i = 0; i < stops.length - 1; i++) {
     const start = stops[i];
     const end = stops[i + 1];
 

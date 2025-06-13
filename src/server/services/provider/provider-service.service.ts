@@ -35,7 +35,7 @@ export const serviceService = {
       return await db.serviceCategory.create({
         data,
       });
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la création de la catégorie de service",
@@ -49,7 +49,7 @@ export const serviceService = {
       return await db.serviceCategory.findMany({
         orderBy: { name: "asc" },
       });
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des catégories de service",
@@ -67,7 +67,7 @@ export const serviceService = {
           providerId,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2003") {
           throw new TRPCError({
@@ -86,7 +86,7 @@ export const serviceService = {
   },
 
   async updateService(providerId: string, data: UpdateServiceInput) {
-    const { id, ...updateData } = data;
+    const { id: _id, ...updateData } = data;
 
     // Vérifier que le service appartient bien au prestataire
     const service = await db.service.findFirst({
@@ -105,7 +105,7 @@ export const serviceService = {
         where: { id },
         data: updateData,
       });
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la mise à jour du service",
@@ -143,7 +143,7 @@ export const serviceService = {
       }
 
       return service;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
@@ -163,7 +163,7 @@ export const serviceService = {
         },
         orderBy: { createdAt: "desc" },
       });
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des services du prestataire",
@@ -213,7 +213,7 @@ export const serviceService = {
       const totalCount = await db.service.count({ where });
 
       // Récupérer les services
-      let services = await db.service.findMany({
+      const services = await db.service.findMany({
         where,
         include: {
           provider: {
@@ -284,7 +284,7 @@ export const serviceService = {
           perPage: limit,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la recherche des services",
@@ -295,7 +295,11 @@ export const serviceService = {
 
   // Gestion des disponibilités
   async createAvailability(providerId: string, data: CreateAvailabilityInput) {
-    const { dayOfWeek, startTime, endTime } = data;
+    const {
+      dayOfWeek: _dayOfWeek,
+      startTime: _startTime,
+      endTime: _endTime,
+    } = data;
 
     try {
       // Convertir les chaînes d'heure en objets Date pour le stockage
@@ -314,7 +318,7 @@ export const serviceService = {
           endTime: endDateTime,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la création de la disponibilité",
@@ -329,7 +333,7 @@ export const serviceService = {
         where: { providerId },
         orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
       });
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des disponibilités",
@@ -356,7 +360,7 @@ export const serviceService = {
       return await db.providerAvailability.delete({
         where: { id: availabilityId },
       });
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la suppression de la disponibilité",
@@ -445,7 +449,7 @@ export const serviceService = {
         const endHour = availability.endTime.getHours();
         const endMinute = availability.endTime.getMinutes();
 
-        let currentTime = new Date(
+        const currentTime = new Date(
           dateObj.getFullYear(),
           dateObj.getMonth(),
           dateObj.getDate(),
@@ -493,7 +497,7 @@ export const serviceService = {
       }
 
       return { timeSlots };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
@@ -506,7 +510,13 @@ export const serviceService = {
 
   // Gestion des réservations
   async createBooking(clientId: string, data: CreateBookingInput) {
-    const { serviceId, providerId, date, startTime, notes } = data;
+    const {
+      serviceId: _serviceId,
+      providerId: _providerId,
+      date: _date,
+      startTime: _startTime,
+      notes: _notes,
+    } = data;
 
     try {
       // Récupérer le service pour connaître sa durée et son prix
@@ -602,7 +612,7 @@ export const serviceService = {
           payment: true,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
@@ -614,7 +624,7 @@ export const serviceService = {
   },
 
   async updateBookingStatus(userId: string, data: UpdateBookingInput) {
-    const { id, status } = data;
+    const { id: _id, status: _status } = data;
 
     try {
       // Récupérer la réservation
@@ -676,7 +686,7 @@ export const serviceService = {
           },
         },
       });
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
@@ -688,7 +698,7 @@ export const serviceService = {
   },
 
   async rescheduleBooking(userId: string, data: UpdateBookingInput) {
-    const { id, date, startTime } = data;
+    const { id: _id, date: _date, startTime: _startTime } = data;
 
     if (!date || !startTime) {
       throw new TRPCError({
@@ -780,7 +790,7 @@ export const serviceService = {
           },
         },
       });
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
@@ -844,7 +854,7 @@ export const serviceService = {
       }
 
       return booking;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
@@ -878,7 +888,7 @@ export const serviceService = {
         },
         orderBy: { startTime: "desc" },
       });
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des réservations client",
@@ -909,7 +919,7 @@ export const serviceService = {
         },
         orderBy: { startTime: "desc" },
       });
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des réservations prestataire",
@@ -923,7 +933,7 @@ export const serviceService = {
     clientId: string,
     data: { bookingId: string; rating: number; comment?: string },
   ) {
-    const { bookingId, rating, comment } = data;
+    const { bookingId: _bookingId, rating: _rating, comment: _comment } = data;
 
     try {
       // Vérifier que la réservation existe et qu'elle appartient au client
@@ -963,7 +973,7 @@ export const serviceService = {
           comment,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
@@ -1006,7 +1016,7 @@ export const serviceService = {
           bookingId: booking.id,
         }))
         .filter((review) => review.id);
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des évaluations",
@@ -1054,7 +1064,7 @@ export const serviceService = {
           bookingId: booking.id,
         }))
         .filter((review) => review.id);
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des évaluations",
@@ -1147,7 +1157,7 @@ export const serviceService = {
       await this.updateProviderRatingStats(booking.service.provider.id);
 
       return review;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
@@ -1284,7 +1294,7 @@ export const serviceService = {
           service: review.booking.service,
         })),
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors du calcul des statistiques de ratings",
@@ -1409,7 +1419,7 @@ export const serviceService = {
           totalBookings: providerStats.bookings.total,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors du calcul des badges",
@@ -1438,7 +1448,7 @@ export const serviceService = {
       });
 
       return stats;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la mise à jour des stats de rating:",
         error,
@@ -1499,7 +1509,7 @@ export const serviceService = {
         verified: provider.provider?.providerVerified,
         services: provider.provider?.services || [],
       }));
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des top prestataires",
@@ -1611,7 +1621,7 @@ export const serviceService = {
         },
         popularServices: popularServicesWithDetails,
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des statistiques",
@@ -1689,7 +1699,7 @@ export const serviceService = {
       }
 
       // Récupérer les prestataires
-      let providers = await db.user.findMany({
+      const providers = await db.user.findMany({
         where,
         include: {
           provider: {
@@ -1767,7 +1777,7 @@ export const serviceService = {
           perPage: limit,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la recherche de prestataires",
@@ -1830,7 +1840,7 @@ export const serviceService = {
         services: provider.provider.services,
         memberSince: provider.createdAt,
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
 
       throw new TRPCError({
@@ -1889,7 +1899,7 @@ export const serviceService = {
       );
 
       return servicesWithStats;
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des services",

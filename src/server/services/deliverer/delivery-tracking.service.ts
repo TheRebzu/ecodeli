@@ -9,7 +9,7 @@ import {
   updateETASchema,
   deliveryCoordinatesUpdateSchema,
 } from "@/schemas/delivery/delivery-tracking.schema";
-import { DeliveryStatus, UserRole } from "@prisma/client";
+import { DeliveryStatus } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import type { Coordinates, GeoPoint } from "@/socket/delivery-tracking";
 import {
@@ -457,7 +457,7 @@ export const deliveryTrackingService = {
         updatedDelivery,
         statusHistory,
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -649,7 +649,7 @@ export const deliveryTrackingService = {
     });
 
     // Calculer la vitesse moyenne si assez de points
-    let averageSpeed = 30; // Valeur par défaut en km/h
+    const averageSpeed = 30; // Valeur par défaut en km/h
 
     if (recentPositions.length >= 2) {
       const speeds = recentPositions
@@ -703,7 +703,7 @@ export const deliveryTrackingService = {
     const etaMinutes = calculateETA(distanceInMeters, averageSpeed);
 
     // Déterminer la condition de trafic
-    let trafficCondition = "MODERATE";
+    const trafficCondition = "MODERATE";
     if (averageSpeed > 40) trafficCondition = "LIGHT";
     if (averageSpeed < 20) trafficCondition = "HEAVY";
 
@@ -1099,7 +1099,7 @@ export const deliveryTrackingService = {
       });
 
       return position;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1147,8 +1147,8 @@ export const deliveryTrackingService = {
     if (!delivery || !delivery.client) return false;
 
     // Préparer le titre et message en fonction du statut
-    let title = "Mise à jour de votre livraison";
-    let message = notes || "Votre livraison a été mise à jour";
+    const title = "Mise à jour de votre livraison";
+    const message = notes || "Votre livraison a été mise à jour";
 
     switch (status) {
       case "ASSIGNED":
@@ -1265,7 +1265,7 @@ export const deliveryTrackingService = {
       });
 
       return tracking;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1374,7 +1374,7 @@ export const deliveryTrackingService = {
       });
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1576,7 +1576,7 @@ export const deliveryTrackingService = {
         eta,
         issues,
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1629,7 +1629,7 @@ export const deliveryTrackingService = {
         count: positions.length,
         bounds: this.calculateBounds(positions),
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1646,10 +1646,10 @@ export const deliveryTrackingService = {
   calculateBounds(positions: any[]) {
     if (positions.length === 0) return null;
 
-    let minLat = Infinity;
-    let maxLat = -Infinity;
-    let minLng = Infinity;
-    let maxLng = -Infinity;
+    const minLat = Infinity;
+    const maxLat = -Infinity;
+    const minLng = Infinity;
+    const maxLng = -Infinity;
 
     positions.forEach((pos) => {
       const lng = pos.location.coordinates[0];
@@ -1816,7 +1816,7 @@ export const deliveryTrackingService = {
           totalPages: Math.ceil(total / (filters.limit || 10)),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1889,7 +1889,7 @@ export const deliveryTrackingService = {
       });
 
       return deliveries;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1945,7 +1945,7 @@ export const deliveryTrackingService = {
         success: true,
         code: confirmationCode,
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -2016,7 +2016,7 @@ export const deliveryTrackingService = {
         speed: lastPosition.speed,
         updatedAt: lastPosition.timestamp,
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -2087,7 +2087,7 @@ export const deliveryTrackingService = {
         history,
         currentStatus: delivery.currentStatus,
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

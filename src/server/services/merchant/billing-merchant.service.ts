@@ -118,7 +118,7 @@ export class MerchantBillingService extends BillingService {
             // Marquer la facture comme émise et envoyer notification
             await this.finalizeAndSendMerchantInvoice(result.invoice.id);
           }
-        } catch (error) {
+        } catch (_error) {
           console.error(
             `[MERCHANT BILLING] Erreur merchant ${merchant.id}:`,
             error,
@@ -141,7 +141,7 @@ export class MerchantBillingService extends BillingService {
       }
 
       return results;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "[MERCHANT BILLING] Erreur facturation mensuelle merchants:",
         error,
@@ -216,7 +216,7 @@ export class MerchantBillingService extends BillingService {
 
     // Construire les éléments de facture
     const invoiceItems = [];
-    let totalAmount = new Decimal(0);
+    const totalAmount = new Decimal(0);
 
     // 1. Frais mensuels fixes
     if (contract.monthlyFee && contractTerms.daysInPeriod > 0) {
@@ -374,7 +374,7 @@ export class MerchantBillingService extends BillingService {
       });
 
       return invoice;
-    } catch (error) {
+    } catch (_error) {
       console.error(`Erreur finalisation facture ${invoiceId}:`, error);
       throw error;
     }
@@ -425,7 +425,7 @@ export class MerchantBillingService extends BillingService {
           `Paiement automatique programmé pour facture ${invoiceId} le ${paymentDate.toISOString()}`,
         );
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(
         `Erreur programmation paiement automatique facture ${invoiceId}:`,
         error,
@@ -507,7 +507,7 @@ export class MerchantBillingService extends BillingService {
               scheduledPayment.invoice.totalAmount.toString(),
             );
           }
-        } catch (error) {
+        } catch (_error) {
           console.error(
             `Erreur traitement paiement programmé ${scheduledPayment.id}:`,
             error,
@@ -536,7 +536,7 @@ export class MerchantBillingService extends BillingService {
         results,
       );
       return results;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "[MERCHANT BILLING] Erreur traitement paiements automatiques:",
         error,
@@ -564,7 +564,7 @@ export class MerchantBillingService extends BillingService {
         await invoiceService.generateInvoicePdf(invoiceId);
 
         results.successful++;
-      } catch (error) {
+      } catch (_error) {
         console.error(`Erreur génération PDF facture ${invoiceId}:`, error);
         results.failed++;
         results.errors.push(
@@ -656,8 +656,8 @@ export class MerchantBillingService extends BillingService {
     }
 
     // volumeDiscounts format: { "100": 0.05, "500": 0.10 }
-    let discountRate = 0;
-    let threshold = 0;
+    const discountRate = 0;
+    const threshold = 0;
 
     for (const [volumeThreshold, discount] of Object.entries(volumeDiscounts)) {
       const volume = parseInt(volumeThreshold);
@@ -701,7 +701,7 @@ export class MerchantBillingService extends BillingService {
           results,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur envoi rapport facturation:", error);
     }
   }

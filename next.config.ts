@@ -12,16 +12,6 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === "production",
   },
 
-  // Temporairement ignorer les erreurs ESLint durant le build
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
-  // Ignorer aussi les warnings TypeScript non critiques
-  typescript: {
-    ignoreBuildErrors: false, // Garder les erreurs TS critiques
-  },
-
   // Turbopack configuration (stable)
   turbopack: {
     rules: {

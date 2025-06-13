@@ -155,14 +155,25 @@ export const useBoxReservations = (status?: string) => {
     error,
     refetch,
   } = api.storage.getMyBoxReservations.useQuery(
-    { status: status },
+    status ? { status: status } : {},
     {
       onError: (error) => {
+        console.error("Storage API Error:", error);
         toast({
           title: t("reservations.error"),
           description: error.message,
           variant: "destructive",
         });
+      },
+      onSuccess: (data) => {
+        console.log(
+          "Storage API Success:",
+          data,
+          "Type:",
+          typeof data,
+          "IsArray:",
+          Array.isArray(data),
+        );
       },
     },
   );

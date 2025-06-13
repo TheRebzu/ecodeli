@@ -5,6 +5,9 @@ import { execSync } from "child_process";
 import chalk from "chalk";
 import fs from "fs/promises";
 import path from "path";
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { glob } from "glob";
+import { fileURLToPath } from "url";
 
 interface MissingExport {
   exportName: string;
@@ -12,6 +15,28 @@ interface MissingExport {
   importingFile: string;
   type: "component" | "hook" | "type" | "function";
 }
+
+interface FixResult {
+  file: string;
+  fixes: number;
+  errors: string[];
+}
+
+// Mapping des exports manquants
+const missingExports = {
+  "@/components/admin/deliverers/document-review": {
+    file: "src/components/admin/deliverers/document-review.tsx",
+    exports: ["JsonView"],
+  },
+  "@/components/shared/documents/document-preview": {
+    file: "src/components/shared/documents/document-preview.tsx",
+    exports: ["DocumentPreview"],
+  },
+  "@/components/admin/verification/verification-list": {
+    file: "src/components/admin/verification/verification-list.tsx",
+    exports: ["VerificationStatusBanner"],
+  },
+};
 
 class ExportFixer {
   private projectRoot: string = process.cwd();
@@ -410,3 +435,120 @@ export default AnnouncementForm;
 // Exécution du script
 const fixer = new ExportFixer();
 fixer.run().catch(console.error);
+
+function createMissingComponent(
+  filePath: string,
+  componentName: string,
+): string {
+  const componentCode = `import React from 'react';
+
+interface ${componentName}Props {
+  [key: string]: any;
+}
+
+export function ${componentName}(props: ${componentName}Props) {
+  return (
+    <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+      <p className="text-gray-500 text-center">
+        Composant ${componentName} en cours de développement
+      </p>
+      <pre className="mt-2 text-xs text-gray-400">
+        {JSON.stringify(props, null, 2)}
+      </pre>
+    </div>
+  );
+}
+
+export default ${componentName};
+`;
+  return componentCode;
+}
+
+function addExportToFile(filePath: string, exportName: string): boolean {
+  try {
+    if (!existsSync(filePath)) {
+      // Créer le fichier avec le composant manquant
+      const componentCode = createMissingComponent(filePath, exportName);
+      writeFileSync(filePath, componentCode, "utf-8");
+      console.log(`✅ Fichier créé: ${filePath}`);
+      return true;
+    }
+
+    let content = readFileSync(filePath, "utf-8");
+
+    // Vérifier si l'export existe déjà
+    if (
+      content.includes(`export function ${exportName}`) ||
+      content.includes(`export const ${exportName}`) ||
+      content.includes(`export { ${exportName}`)
+    ) {
+      console.log(`⚠️ Export ${exportName} déjà présent dans ${filePath}`);
+      return false;
+    }
+
+    // Ajouter l'export à la fin du fichier
+    const exportCode = `
+
+export function ${exportName}(props: any) {
+  return (
+    <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+      <p className="text-gray-500 text-center">
+        Composant ${exportName} en cours de développement
+      </p>
+      <pre className="mt-2 text-xs text-gray-400">
+        {JSON.stringify(props, null, 2)}
+      </pre>
+    </div>
+  );
+}
+`;
+
+    content += exportCode;
+    writeFileSync(filePath, content, "utf-8");
+    console.log(`✅ Export ${exportName} ajouté à ${filePath}`);
+    return true;
+  } catch (error) {
+    console.error(
+      `❌ Erreur lors de l'ajout de ${exportName} à ${filePath}:`,
+      error,
+    );
+    return false;
+  }
+}
+
+async function main() {
+  console.log("🔧 Correction des exports manquants...\n");
+
+  let totalFixed = 0;
+
+  for (const [importPath, config] of Object.entries(missingExports)) {
+    console.log(`📁 Traitement de ${importPath}:`);
+
+    for (const exportName of config.exports) {
+      const fixed = addExportToFile(config.file, exportName);
+      if (fixed) {
+        totalFixed++;
+      }
+    }
+    console.log("");
+  }
+
+  console.log(`📊 RÉSUMÉ:`);
+  console.log(`✅ Exports corrigés: ${totalFixed}`);
+
+  if (totalFixed > 0) {
+    console.log(
+      '\n💡 Exécutez "pnpm run build" pour vérifier que les erreurs sont corrigées.',
+    );
+  }
+}
+
+// Vérifier si le script est exécuté directement
+const __filename = fileURLToPath(import.meta.url);
+const isMainModule = process.argv[1] === __filename;
+
+if (isMainModule) {
+  main().catch(console.error);
+}
+
+export { addExportToFile };

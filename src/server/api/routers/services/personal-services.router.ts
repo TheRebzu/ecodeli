@@ -118,7 +118,7 @@ export const personalServicesRouter = router({
    */
   searchServices: protectedProcedure
     .input(serviceFiltersSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const where: any = {};
 
@@ -198,7 +198,7 @@ export const personalServicesRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la recherche de services",
@@ -211,8 +211,8 @@ export const personalServicesRouter = router({
    */
   createService: protectedProcedure
     .input(createServiceSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -231,7 +231,7 @@ export const personalServicesRouter = router({
       }
 
       try {
-        const { photos, ...serviceData } = input;
+        const { photos: _photos, ...serviceData } = input;
 
         const service = await ctx.db.personalService.create({
           data: {
@@ -261,7 +261,7 @@ export const personalServicesRouter = router({
           message:
             "Service créé avec succès. Il sera examiné par nos équipes avant publication.",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la création du service",
@@ -274,8 +274,8 @@ export const personalServicesRouter = router({
    */
   bookService: protectedProcedure
     .input(bookingSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -389,7 +389,7 @@ export const personalServicesRouter = router({
           message:
             "Réservation créée avec succès. Le prestataire va vous confirmer sous 24h.",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -409,8 +409,8 @@ export const personalServicesRouter = router({
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -459,7 +459,7 @@ export const personalServicesRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des réservations",
@@ -477,8 +477,8 @@ export const personalServicesRouter = router({
         includeInactive: z.boolean().default(false),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
       const targetProviderId = input.providerId || user.id;
 
       // Vérifier les permissions
@@ -537,7 +537,7 @@ export const personalServicesRouter = router({
         });
 
         return { services };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des services",
@@ -558,8 +558,8 @@ export const personalServicesRouter = router({
         photos: z.array(z.string().url()).max(3).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -619,7 +619,7 @@ export const personalServicesRouter = router({
           review,
           message: "Avis ajouté avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -633,7 +633,7 @@ export const personalServicesRouter = router({
    */
   getServiceById: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const service = await ctx.db.personalService.findUnique({
           where: { id: input.id },
@@ -695,7 +695,7 @@ export const personalServicesRouter = router({
             averageRating: Math.round(avgRating * 10) / 10,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -715,7 +715,7 @@ export const personalServicesRouter = router({
         reason: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const service = await ctx.db.personalService.update({
           where: { id: input.serviceId },
@@ -732,7 +732,7 @@ export const personalServicesRouter = router({
           service,
           message: `Service ${input.action === "APPROVE" ? "approuvé" : "rejeté"} avec succès`,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la modération",
@@ -758,7 +758,7 @@ function extractSpecificData(input: any) {
 
 function calculateServicePrice(service: any, booking: any): number {
   // Logique de calcul du prix selon le type de service
-  let basePrice = service.basePrice;
+  const basePrice = service.basePrice;
 
   // Appliquer des modificateurs selon le type de service
   switch (service.type) {

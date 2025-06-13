@@ -55,7 +55,7 @@ export default function DelivererDeliveriesPage() {
 
   // Récupérer les livraisons avec tRPC
   const { data: deliveries, isLoading } =
-    trpc.deliveries.getDelivererDeliveries.useQuery({
+    api.deliveries.getDelivererDeliveries.useQuery({
       status:
         filters.status === "all"
           ? undefined

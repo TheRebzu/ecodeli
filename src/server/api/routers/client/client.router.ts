@@ -40,7 +40,7 @@ interface InvoiceWithRelations {
 }
 
 export const clientRouter = router({
-  getProfile: protectedProcedure.query(async ({ ctx }) => {
+  getProfile: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
@@ -81,7 +81,7 @@ export const clientRouter = router({
         phoneNumber: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un client
@@ -98,7 +98,7 @@ export const clientRouter = router({
       }
 
       // Mise à jour des données utilisateur
-      const { name, phoneNumber, ...clientData } = input;
+      const { name: _name, phoneNumber: _phoneNumber, ...clientData } = input;
 
       // Mise à jour des données utilisateur
       if (name || phoneNumber) {
@@ -138,7 +138,7 @@ export const clientRouter = router({
       };
     }),
 
-  getDeliveries: protectedProcedure.query(async ({ ctx }) => {
+  getDeliveries: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier si l'utilisateur est un client
@@ -198,7 +198,7 @@ export const clientRouter = router({
     }));
   }),
 
-  getInvoices: protectedProcedure.query(async ({ ctx }) => {
+  getInvoices: protectedProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier si l'utilisateur est un client
@@ -244,7 +244,7 @@ export const clientRouter = router({
         notes: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un client
@@ -313,7 +313,7 @@ export const clientRouter = router({
     }),
 
   // Nouvelle procédure pour récupérer les statistiques du dashboard client
-  getDashboardStats: clientProcedure.query(async ({ ctx }) => {
+  getDashboardStats: clientProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Récupérer l'utilisateur client avec le contexte tRPC
@@ -339,7 +339,7 @@ export const clientRouter = router({
       bookedServices,
       unpaidInvoices,
     ] = await Promise.all([
-      ctx.db.delivery.count({ where: { clientId } }),
+      _ctx.db.delivery.count({ where: { clientId } }),
       ctx.db.delivery.count({
         where: {
           clientId,
@@ -365,7 +365,7 @@ export const clientRouter = router({
   }),
 
   // Procédure pour récupérer l'activité récente du client
-  getRecentActivity: clientProcedure.query(async ({ ctx }) => {
+  getRecentActivity: clientProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Récupérer l'utilisateur client avec le contexte tRPC
@@ -386,7 +386,7 @@ export const clientRouter = router({
     // Activité récente simplifiée
     const [recentDeliveries, recentServices, recentInvoices] =
       await Promise.all([
-        ctx.db.delivery.findMany({
+        _ctx.db.delivery.findMany({
           where: { clientId },
           orderBy: { createdAt: "desc" },
           take: 5,
@@ -438,12 +438,12 @@ export const clientRouter = router({
   }),
 
   // Procédure pour récupérer les métriques financières du client
-  getFinancialMetrics: clientProcedure.query(async ({ ctx }) => {
+  getFinancialMetrics: clientProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Métriques financières simplifiées
     const [totalSpent, unpaidInvoices] = await Promise.all([
-      ctx.db.payment.aggregate({
+      _ctx.db.payment.aggregate({
         where: { userId, status: "COMPLETED" },
         _sum: { amount: true },
       }),
@@ -465,7 +465,7 @@ export const clientRouter = router({
   }),
 
   // Procédure pour récupérer les éléments actifs du client
-  getActiveItems: clientProcedure.query(async ({ ctx }) => {
+  getActiveItems: clientProcedure.query(async ({ _ctx }) => {
     const userId = ctx.session.user.id;
 
     // Récupérer l'utilisateur client avec le contexte tRPC
@@ -486,7 +486,7 @@ export const clientRouter = router({
     // Éléments actifs
     const [activeDeliveries, upcomingServices, pendingPayments] =
       await Promise.all([
-        ctx.db.delivery.findMany({
+        _ctx.db.delivery.findMany({
           where: {
             clientId,
             status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] },
@@ -533,7 +533,7 @@ export const clientRouter = router({
         })
         .optional(),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un client
@@ -561,7 +561,7 @@ export const clientRouter = router({
         id: z.string().cuid(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un client
@@ -633,7 +633,7 @@ export const clientRouter = router({
         .optional()
         .default({}),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       const {
         page = 1,
         limit = 10,
@@ -665,7 +665,7 @@ export const clientRouter = router({
 
       // Requête pour récupérer les clients avec pagination
       const [clients, totalCount] = await Promise.all([
-        ctx.db.user.findMany({
+        _ctx.db.user.findMany({
           where,
           include: {
             client: true,
@@ -690,7 +690,7 @@ export const clientRouter = router({
 
           // Récupérer les statistiques du client
           const [totalOrders, totalSpent, lastOrderDate] = await Promise.all([
-            ctx.db.announcement.count({
+            _ctx.db.announcement.count({
               where: { clientId: client.client.id },
             }),
             ctx.db.payment.aggregate({
@@ -751,7 +751,7 @@ export const clientRouter = router({
   /**
    * Get client statistics for admin dashboard
    */
-  getClientStats: adminProcedure.query(async ({ ctx }) => {
+  getClientStats: adminProcedure.query(async ({ _ctx }) => {
     const [
       totalClients,
       activeClients,
@@ -762,7 +762,7 @@ export const clientRouter = router({
       totalRevenue,
       averageOrderValue,
     ] = await Promise.all([
-      ctx.db.user.count({ where: { role: "CLIENT" } }),
+      _ctx.db.user.count({ where: { role: "CLIENT" } }),
       ctx.db.user.count({ where: { role: "CLIENT", status: "ACTIVE" } }),
       ctx.db.user.count({
         where: { role: "CLIENT", status: "PENDING_VERIFICATION" },
@@ -807,7 +807,7 @@ export const clientRouter = router({
           limit: z.number().min(1).max(20).default(5),
         }),
       )
-      .query(async ({ ctx, input }) => {
+      .query(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
         const user = await ctx.db.user.findUnique({
           where: { id: userId },
@@ -838,7 +838,7 @@ export const clientRouter = router({
   }),
 
   storage: router({
-    getActiveBoxes: clientProcedure.query(async ({ ctx }) => {
+    getActiveBoxes: clientProcedure.query(async ({ _ctx }) => {
       const userId = ctx.session.user.id;
       const user = await ctx.db.user.findUnique({
         where: { id: userId },
@@ -877,7 +877,7 @@ export const clientRouter = router({
           limit: z.number().min(1).max(20).default(5),
         }),
       )
-      .query(async ({ ctx, input }) => {
+      .query(async ({ _ctx, input: _input }) => {
         const userId = ctx.session.user.id;
 
         return await ctx.db.invoice.findMany({

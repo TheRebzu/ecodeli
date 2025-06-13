@@ -19,8 +19,8 @@ export const deliveryTrackingRouter = router({
   // Récupération des détails d'une livraison
   getDeliveryById: protectedProcedure
     .input(z.object({ deliveryId: z.string() }))
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user) {
+    .query(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Vous devez être connecté pour accéder à ces données",
@@ -29,8 +29,8 @@ export const deliveryTrackingRouter = router({
 
       return DeliveryService.getById(
         input.deliveryId,
-        ctx.session.user.id,
-        ctx.session.user.role,
+        _ctx.session.user.id,
+        _ctx.session.user.role,
       );
     }),
 
@@ -45,8 +45,8 @@ export const deliveryTrackingRouter = router({
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user) {
+    .query(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Vous devez être connecté pour accéder à ces données",
@@ -67,10 +67,10 @@ export const deliveryTrackingRouter = router({
 
         return DeliveryService.getAll(
           filters,
-          ctx.session.user.id,
-          ctx.session.user.role,
+          _ctx.session.user.id,
+          _ctx.session.user.role,
         );
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur getDeliveries:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -80,15 +80,15 @@ export const deliveryTrackingRouter = router({
     }),
 
   // Récupère les livraisons actives
-  getActiveDeliveries: protectedProcedure.query(async ({ ctx }) => {
-    if (!ctx.session?.user) {
+  getActiveDeliveries: protectedProcedure.query(async ({ _ctx }) => {
+    if (!_ctx.session?.user) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "Vous devez être connecté pour accéder à ces données",
       });
     }
 
-    return DeliveryService.getActiveDeliveries(ctx.session.user.id);
+    return DeliveryService.getActiveDeliveries(_ctx.session.user.id);
   }),
 
   // Mise à jour des coordonnées GPS
@@ -101,8 +101,8 @@ export const deliveryTrackingRouter = router({
         accuracy: z.number().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user) {
+    .mutation(async ({ _ctx, input: _input }) => {
+      if (!_ctx.session?.user) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message:
@@ -110,7 +110,7 @@ export const deliveryTrackingRouter = router({
         });
       }
 
-      if (ctx.session.user.role !== UserRole.DELIVERER) {
+      if (_ctx.session.user.role !== UserRole.DELIVERER) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Seuls les livreurs peuvent mettre à jour les coordonnées",
@@ -127,11 +127,11 @@ export const deliveryTrackingRouter = router({
 
         const result = await DeliveryService.updateCoordinates(
           coordinatesInput,
-          ctx.session.user.id,
+          _ctx.session.user.id,
         );
 
         return result;
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

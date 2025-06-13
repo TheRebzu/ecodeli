@@ -8,7 +8,7 @@ export const merchantBillingService = {
       // Récupérer les abonnements actifs avec paiements dus
       const dueSubscriptions = await db.subscription.findMany({
         where: {
-          status: 'ACTIVE',
+          status: "ACTIVE",
           nextPaymentDate: {
             lte: new Date(),
           },
@@ -22,8 +22,8 @@ export const merchantBillingService = {
         },
       });
 
-      let processed = 0;
-      let errors = 0;
+      const processed = 0;
+      const errors = 0;
 
       for (const subscription of dueSubscriptions) {
         try {
@@ -32,12 +32,12 @@ export const merchantBillingService = {
             data: {
               userId: subscription.userId,
               subscriptionId: subscription.id,
-              type: 'SUBSCRIPTION',
-              status: 'PENDING',
+              type: "SUBSCRIPTION",
+              status: "PENDING",
               totalAmount: subscription.priceMonthly,
               issuedDate: new Date(),
               dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
-              description: `Abonnement ${subscription.planType} - ${new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`,
+              description: `Abonnement ${subscription.planType} - ${new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`,
             },
           });
 
@@ -51,15 +51,18 @@ export const merchantBillingService = {
 
           processed++;
           console.log(`Facture créée pour l'abonnement ${subscription.id}`);
-        } catch (error) {
+        } catch (_error) {
           console.error(`Erreur pour l'abonnement ${subscription.id}:`, error);
           errors++;
         }
       }
 
       return { processed, errors };
-    } catch (error) {
-      console.error('Erreur lors du traitement des paiements programmés:', error);
+    } catch (_error) {
+      console.error(
+        "Erreur lors du traitement des paiements programmés:",
+        error,
+      );
       return { processed: 0, errors: 1 };
     }
   },

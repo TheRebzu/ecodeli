@@ -1,8 +1,8 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { apiConfig, getApiUrl } from '../config/api.config';
-import { AuthHelper } from './auth.helper';
-import { TestUser } from '../config/users.config';
-import { requestLogger } from './logger.helper';
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { apiConfig, getApiUrl } from "../config/api.config";
+import { AuthHelper } from "./auth.helper";
+import { TestUser } from "../config/users.config";
+import { requestLogger } from "./logger.helper";
 
 export interface TrpcRequest<T = any> {
   input?: T;
@@ -40,7 +40,7 @@ export class RequestHelper {
     user: TestUser,
     procedure: string,
     input?: TInput,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<TOutput> {
     const session = await AuthHelper.getSession(user);
     if (!session) {
@@ -50,22 +50,25 @@ export class RequestHelper {
     const url = getApiUrl(procedure);
     const startTime = Date.now();
 
-    requestLogger.request('POST', url, input);
+    requestLogger.request("POST", url, input);
 
     try {
-      const response = await this.makeRequest<TrpcResponse<TOutput>>({
-        method: 'POST',
-        url,
-        data: { input },
-        headers: {
-          ...apiConfig.headers,
-          ...AuthHelper.getAuthHeaders(session)
+      const response = await this.makeRequest<TrpcResponse<TOutput>>(
+        {
+          method: "POST",
+          url,
+          data: { input },
+          headers: {
+            ...apiConfig.headers,
+            ...AuthHelper.getAuthHeaders(session),
+          },
+          timeout: options?.timeout || apiConfig.timeout,
+          validateStatus: options?.validateStatus,
+          maxRedirects: 5,
+          withCredentials: true,
         },
-        timeout: options?.timeout || apiConfig.timeout,
-        validateStatus: options?.validateStatus,
-        maxRedirects: 5,
-        withCredentials: true
-      }, options);
+        options,
+      );
 
       const duration = Date.now() - startTime;
       requestLogger.response(response.status, response.data, duration);
@@ -74,8 +77,7 @@ export class RequestHelper {
         return response.data.result.data;
       }
 
-      throw new Error('Invalid tRPC response format');
-
+      throw new Error("Invalid tRPC response format");
     } catch (error) {
       this.handleError(error, procedure);
       throw error;
@@ -88,22 +90,25 @@ export class RequestHelper {
   static async publicTrpc<TInput = any, TOutput = any>(
     procedure: string,
     input?: TInput,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<TOutput> {
     const url = getApiUrl(procedure);
     const startTime = Date.now();
 
-    requestLogger.request('POST', url, input);
+    requestLogger.request("POST", url, input);
 
     try {
-      const response = await this.makeRequest<TrpcResponse<TOutput>>({
-        method: 'POST',
-        url,
-        data: { input },
-        headers: apiConfig.headers,
-        timeout: options?.timeout || apiConfig.timeout,
-        validateStatus: options?.validateStatus
-      }, options);
+      const response = await this.makeRequest<TrpcResponse<TOutput>>(
+        {
+          method: "POST",
+          url,
+          data: { input },
+          headers: apiConfig.headers,
+          timeout: options?.timeout || apiConfig.timeout,
+          validateStatus: options?.validateStatus,
+        },
+        options,
+      );
 
       const duration = Date.now() - startTime;
       requestLogger.response(response.status, response.data, duration);
@@ -112,8 +117,7 @@ export class RequestHelper {
         return response.data.result.data;
       }
 
-      throw new Error('Invalid tRPC response format');
-
+      throw new Error("Invalid tRPC response format");
     } catch (error) {
       this.handleError(error, procedure);
       throw error;
@@ -126,7 +130,7 @@ export class RequestHelper {
   static async raw<T = any>(
     user: TestUser,
     config: AxiosRequestConfig,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<AxiosResponse<T>> {
     const session = await AuthHelper.getSession(user);
     if (!session) {
@@ -134,24 +138,30 @@ export class RequestHelper {
     }
 
     const startTime = Date.now();
-    requestLogger.request(config.method?.toUpperCase() || 'GET', config.url || '', config.data);
+    requestLogger.request(
+      config.method?.toUpperCase() || "GET",
+      config.url || "",
+      config.data,
+    );
 
     try {
-      const response = await this.makeRequest<T>({
-        ...config,
-        headers: {
-          ...apiConfig.headers,
-          ...config.headers,
-          ...AuthHelper.getAuthHeaders(session)
+      const response = await this.makeRequest<T>(
+        {
+          ...config,
+          headers: {
+            ...apiConfig.headers,
+            ...config.headers,
+            ...AuthHelper.getAuthHeaders(session),
+          },
+          withCredentials: true,
         },
-        withCredentials: true
-      }, options);
+        options,
+      );
 
       const duration = Date.now() - startTime;
       requestLogger.response(response.status, response.data, duration);
 
       return response;
-
     } catch (error) {
       this.handleError(error);
       throw error;
@@ -163,11 +173,12 @@ export class RequestHelper {
    */
   private static async makeRequest<T = any>(
     config: AxiosRequestConfig,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<AxiosResponse<T>> {
-    const maxAttempts = options?.retry !== false 
-      ? (options?.retryAttempts || apiConfig.retryAttempts)
-      : 1;
+    const maxAttempts =
+      options?.retry !== false
+        ? options?.retryAttempts || apiConfig.retryAttempts
+        : 1;
     const retryDelay = options?.retryDelay || apiConfig.retryDelay;
 
     let lastError: any;
@@ -176,21 +187,24 @@ export class RequestHelper {
       try {
         const response = await axios.request<T>(config);
         return response;
-
       } catch (error) {
         lastError = error;
         const axiosError = error as AxiosError;
 
         // Don't retry on client errors (4xx) except 429 (rate limit)
-        if (axiosError.response && 
-            axiosError.response.status >= 400 && 
-            axiosError.response.status < 500 &&
-            axiosError.response.status !== 429) {
+        if (
+          axiosError.response &&
+          axiosError.response.status >= 400 &&
+          axiosError.response.status < 500 &&
+          axiosError.response.status !== 429
+        ) {
           throw error;
         }
 
         if (attempt < maxAttempts) {
-          requestLogger.warning(`Request failed (attempt ${attempt}/${maxAttempts}), retrying in ${retryDelay}ms...`);
+          requestLogger.warning(
+            `Request failed (attempt ${attempt}/${maxAttempts}), retrying in ${retryDelay}ms...`,
+          );
           await this.sleep(retryDelay * attempt); // Exponential backoff
         }
       }
@@ -208,26 +222,26 @@ export class RequestHelper {
     if (axiosError.response?.data?.error) {
       const trpcError = axiosError.response.data.error;
       requestLogger.error(
-        `tRPC Error${context ? ` in ${context}` : ''}: ${trpcError.message}`,
+        `tRPC Error${context ? ` in ${context}` : ""}: ${trpcError.message}`,
         {
           code: trpcError.code,
           httpStatus: trpcError.httpStatus,
-          path: trpcError.path
-        }
+          path: trpcError.path,
+        },
       );
     } else if (axiosError.response) {
       requestLogger.error(
-        `HTTP Error${context ? ` in ${context}` : ''}: ${axiosError.response.status} ${axiosError.response.statusText}`,
-        axiosError.response.data
+        `HTTP Error${context ? ` in ${context}` : ""}: ${axiosError.response.status} ${axiosError.response.statusText}`,
+        axiosError.response.data,
       );
     } else if (axiosError.request) {
       requestLogger.error(
-        `Network Error${context ? ` in ${context}` : ''}: No response received`,
-        { message: axiosError.message }
+        `Network Error${context ? ` in ${context}` : ""}: No response received`,
+        { message: axiosError.message },
       );
     } else {
       requestLogger.error(
-        `Request Error${context ? ` in ${context}` : ''}: ${axiosError.message}`
+        `Request Error${context ? ` in ${context}` : ""}: ${axiosError.message}`,
       );
     }
   }
@@ -236,7 +250,7 @@ export class RequestHelper {
    * Sleep helper
    */
   private static sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -245,7 +259,7 @@ export class RequestHelper {
   static async batchTrpc<T extends Record<string, any>>(
     user: TestUser,
     requests: Array<{ procedure: string; input?: any }>,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<T> {
     const results: any = {};
 
@@ -259,7 +273,7 @@ export class RequestHelper {
 
     // Map results
     responses.forEach(({ procedure, result }) => {
-      const key = procedure.split('.').pop() || procedure;
+      const key = procedure.split(".").pop() || procedure;
       results[key] = result;
     });
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure } from "@/server/api/trpc";
+import { router } from "@/server/api/trpc";
 
 export const geocodingRouter = router({
   // Recherche d'adresse (géocodage)
@@ -12,8 +12,8 @@ export const geocodingRouter = router({
         limit: z.number().min(1).max(10).default(5),
       }),
     )
-    .query(async ({ input }) => {
-      const { query, limit } = input;
+    .query(async ({ input: _input }) => {
+      const { query: _query, limit: _limit } = input;
 
       try {
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
@@ -41,7 +41,7 @@ export const geocodingRouter = router({
           type: item.type,
           importance: item.importance,
         }));
-      } catch (error) {
+      } catch (_error) {
         console.error("Geocoding error:", error);
         throw new Error("Erreur lors de la recherche d'adresse");
       }
@@ -56,8 +56,8 @@ export const geocodingRouter = router({
         zoom: z.number().min(1).max(18).default(18),
       }),
     )
-    .query(async ({ input }) => {
-      const { lat, lon, zoom } = input;
+    .query(async ({ input: _input }) => {
+      const { lat: _lat, lon: _lon, zoom: _zoom } = input;
 
       try {
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=${zoom}&addressdetails=1`;
@@ -86,7 +86,7 @@ export const geocodingRouter = router({
           place_id: data.place_id,
           type: data.type,
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Reverse geocoding error:", error);
         throw new Error("Erreur lors du géocodage inverse");
       }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { PlannedRouteStatus, VehicleType } from "@prisma/client";
 
@@ -82,8 +82,8 @@ export const delivererRoutesRouter = router({
    */
   getAll: protectedProcedure
     .input(routeFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -155,7 +155,7 @@ export const delivererRoutesRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des routes",
@@ -168,8 +168,8 @@ export const delivererRoutesRouter = router({
    */
   create: protectedProcedure
     .input(createPlannedRouteSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -262,7 +262,7 @@ export const delivererRoutesRouter = router({
           data: route,
           message: "Route créée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la création de la route",
@@ -275,9 +275,9 @@ export const delivererRoutesRouter = router({
    */
   update: protectedProcedure
     .input(updatePlannedRouteSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
-      const { id, ...updateData } = input;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
+      const { id: _id, ...updateData } = input;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -338,7 +338,7 @@ export const delivererRoutesRouter = router({
           data: updatedRoute,
           message: "Route mise à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -352,8 +352,8 @@ export const delivererRoutesRouter = router({
    */
   delete: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -400,7 +400,7 @@ export const delivererRoutesRouter = router({
           success: true,
           message: "Route supprimée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -419,8 +419,8 @@ export const delivererRoutesRouter = router({
         isPublic: z.boolean(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -461,7 +461,7 @@ export const delivererRoutesRouter = router({
           data: updatedRoute,
           message: input.isPublic ? "Route publiée" : "Route dépubliée",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -475,8 +475,8 @@ export const delivererRoutesRouter = router({
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       try {
         const route = await ctx.db.delivererPlannedRoute.findFirst({
@@ -527,7 +527,7 @@ export const delivererRoutesRouter = router({
           success: true,
           data: route,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -551,7 +551,7 @@ export const delivererRoutesRouter = router({
         limit: z.number().min(1).max(20).default(10),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Implémenter recherche géospatiale avec PostGIS
         const routes = await ctx.db.delivererPlannedRoute.findMany({
@@ -587,7 +587,7 @@ export const delivererRoutesRouter = router({
           success: true,
           data: routes,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la recherche",
@@ -606,8 +606,8 @@ export const delivererRoutesRouter = router({
         proposedPrice: z.number().min(0),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -685,7 +685,7 @@ export const delivererRoutesRouter = router({
           data: match,
           message: "Annonce acceptée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -704,8 +704,8 @@ export const delivererRoutesRouter = router({
         period: z.enum(["week", "month", "year"]).default("month"),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -774,7 +774,7 @@ export const delivererRoutesRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des statistiques",

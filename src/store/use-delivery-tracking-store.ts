@@ -280,7 +280,7 @@ export const useDeliveryTrackingStore = create<
               },
             );
           });
-        } catch (error) {
+        } catch (_error) {
           const errorMessage =
             error instanceof Error ? error.message : "Erreur inconnue";
           set((state) => {
@@ -347,7 +347,7 @@ export const useDeliveryTrackingStore = create<
               },
             );
           });
-        } catch (error) {
+        } catch (_error) {
           console.error("Erreur lors de la mise à jour de la position:", error);
           return false;
         }
@@ -501,8 +501,8 @@ export const useDeliveryTrackingStore = create<
             description,
           });
           return response.success;
-        } catch (error) {
-          console.error('Erreur lors du signalement du problème:', error);
+        } catch (_error) {
+          console.error("Erreur lors du signalement du problème:", error);
           return false;
         }
       },
@@ -532,8 +532,8 @@ export const useDeliveryTrackingStore = create<
             resolutionNotes,
           });
           return response.success;
-        } catch (error) {
-          console.error('Erreur lors de la résolution du problème:', error);
+        } catch (_error) {
+          console.error("Erreur lors de la résolution du problème:", error);
           return false;
         }
       },
@@ -600,19 +600,24 @@ export const useDeliveryTrackingStore = create<
 
 // Fonction pour calculer les métriques à partir de l'état
 function calculateMetrics(state: DeliveryTrackingState): DeliveryMetrics {
-  const { positionHistory, currentPosition, lastEta, deliveryInfo } = state;
+  const {
+    positionHistory: _positionHistory,
+    currentPosition: _currentPosition,
+    lastEta: _lastEta,
+    deliveryInfo: _deliveryInfo,
+  } = state;
 
   // Valeurs par défaut
-  let distanceTraveled = 0;
-  let remainingDistance = lastEta?.distance ?? 0;
-  let averageSpeed = 0;
-  let remainingTime = 0;
-  let estimatedTimeOfArrival = lastEta?.eta ?? null;
-  let completionPercentage = 0;
+  const distanceTraveled = 0;
+  const remainingDistance = lastEta?.distance ?? 0;
+  const averageSpeed = 0;
+  const remainingTime = 0;
+  const estimatedTimeOfArrival = lastEta?.eta ?? null;
+  const completionPercentage = 0;
 
   // Calculer la distance parcourue
   if (positionHistory.length >= 2) {
-    for (let i = 1; i < positionHistory.length; i++) {
+    for (const i = 1; i < positionHistory.length; i++) {
       const prev = positionHistory[i - 1];
       const curr = positionHistory[i];
 

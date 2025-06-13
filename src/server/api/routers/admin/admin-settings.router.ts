@@ -8,10 +8,10 @@ import { TRPCError } from "@trpc/server";
  */
 export const adminSettingsRouter = router({
   // Récupérer tous les paramètres
-  getAll: protectedProcedure.query(async ({ ctx }) => {
+  getAll: protectedProcedure.query(async ({ _ctx }) => {
     try {
       // TODO: Vérifier les permissions admin
-      const { user } = ctx.session;
+      const { _user: __user } = ctx.session;
 
       // Récupérer les paramètres depuis la base de données
       const settings = await ctx.db.systemSettings.findMany({
@@ -107,7 +107,7 @@ export const adminSettingsRouter = router({
       });
 
       return finalSettings;
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des paramètres",
@@ -129,7 +129,7 @@ export const adminSettingsRouter = router({
         timezone: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions super admin
         // TODO: Implémenter la mise à jour en base
@@ -138,7 +138,7 @@ export const adminSettingsRouter = router({
           success: true,
           message: "Paramètres généraux mis à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour des paramètres généraux",
@@ -160,13 +160,13 @@ export const adminSettingsRouter = router({
         welcomeEmailEnabled: z.boolean().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         return {
           success: true,
           message: "Paramètres email mis à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour des paramètres email",
@@ -189,13 +189,13 @@ export const adminSettingsRouter = router({
         ipWhitelistEnabled: z.boolean().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         return {
           success: true,
           message: "Paramètres de sécurité mis à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour des paramètres de sécurité",
@@ -217,13 +217,13 @@ export const adminSettingsRouter = router({
         payoutSchedule: z.enum(["daily", "weekly", "monthly"]).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         return {
           success: true,
           message: "Paramètres de paiement mis à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour des paramètres de paiement",
@@ -246,13 +246,13 @@ export const adminSettingsRouter = router({
           .optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         return {
           success: true,
           message: "Paramètres de livraison mis à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour des paramètres de livraison",
@@ -273,13 +273,13 @@ export const adminSettingsRouter = router({
         digestEmailFrequency: z.enum(["never", "daily", "weekly"]).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         return {
           success: true,
           message: "Paramètres de notifications mis à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message:
@@ -295,7 +295,7 @@ export const adminSettingsRouter = router({
         testEmail: z.string().email(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Implémenter l'envoi d'email de test
 
@@ -303,7 +303,7 @@ export const adminSettingsRouter = router({
           success: true,
           message: `Email de test envoyé à ${input.testEmail}`,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de l'envoi de l'email de test",
@@ -325,7 +325,7 @@ export const adminSettingsRouter = router({
         ]),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions super admin
         // TODO: Implémenter la réinitialisation
@@ -334,7 +334,7 @@ export const adminSettingsRouter = router({
           success: true,
           message: `Paramètres ${input.section} réinitialisés aux valeurs par défaut`,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la réinitialisation des paramètres",

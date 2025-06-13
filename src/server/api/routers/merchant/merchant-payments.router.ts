@@ -43,8 +43,8 @@ export const merchantPaymentsRouter = router({
   /**
    * Obtenir le wallet et solde du commerçant
    */
-  getWallet: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getWallet: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "MERCHANT") {
       throw new TRPCError({
@@ -66,7 +66,7 @@ export const merchantPaymentsRouter = router({
       }
 
       // Récupérer ou créer le wallet
-      let wallet = await ctx.db.merchantWallet.findUnique({
+      const wallet = await ctx.db.merchantWallet.findUnique({
         where: { merchantId: merchant.id },
         include: {
           transactions: {
@@ -132,7 +132,7 @@ export const merchantPaymentsRouter = router({
           maxWithdrawal: wallet.balance.toNumber(),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -146,8 +146,8 @@ export const merchantPaymentsRouter = router({
    */
   getPayments: protectedProcedure
     .input(paymentFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -186,7 +186,7 @@ export const merchantPaymentsRouter = router({
         orderBy[input.sortBy] = input.sortOrder;
 
         const [payments, totalCount] = await Promise.all([
-          ctx.db.payment.findMany({
+          _ctx.db.payment.findMany({
             where,
             include: {
               order: {
@@ -241,7 +241,7 @@ export const merchantPaymentsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -255,8 +255,8 @@ export const merchantPaymentsRouter = router({
    */
   requestWithdrawal: protectedProcedure
     .input(withdrawalRequestSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -364,7 +364,7 @@ export const merchantPaymentsRouter = router({
               ? "Demande de retrait urgent créée (traitement sous 24h)"
               : "Demande de retrait créée (traitement sous 3-5 jours)",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -384,8 +384,8 @@ export const merchantPaymentsRouter = router({
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -412,7 +412,7 @@ export const merchantPaymentsRouter = router({
         };
 
         const [withdrawals, totalCount] = await Promise.all([
-          ctx.db.merchantWithdrawal.findMany({
+          _ctx.db.merchantWithdrawal.findMany({
             where,
             orderBy: { createdAt: "desc" },
             skip: input.offset,
@@ -440,7 +440,7 @@ export const merchantPaymentsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -454,8 +454,8 @@ export const merchantPaymentsRouter = router({
    */
   cancelWithdrawal: protectedProcedure
     .input(z.object({ withdrawalId: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -534,7 +534,7 @@ export const merchantPaymentsRouter = router({
           data: result,
           message: "Demande de retrait annulée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -548,8 +548,8 @@ export const merchantPaymentsRouter = router({
    */
   getPaymentStats: protectedProcedure
     .input(paymentStatsSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
         throw new TRPCError({
@@ -593,7 +593,7 @@ export const merchantPaymentsRouter = router({
         // Statistiques générales
         const [totalRevenue, totalPayments, avgPayment, byMethod] =
           await Promise.all([
-            ctx.db.payment.aggregate({
+            _ctx.db.payment.aggregate({
               where: {
                 merchantId: merchant.id,
                 status: "COMPLETED",
@@ -630,7 +630,7 @@ export const merchantPaymentsRouter = router({
 
         // Timeline des paiements
         const interval = input.groupBy;
-        const timeline = (await ctx.db.$queryRaw`
+        const timeline = (await _ctx.db.$queryRaw`
           SELECT 
             DATE_TRUNC(${interval}, created_at) as period,
             COUNT(*)::int as payments_count,
@@ -673,7 +673,7 @@ export const merchantPaymentsRouter = router({
             })),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des statistiques",

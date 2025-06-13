@@ -82,7 +82,7 @@ export class EmailService {
         html: html,
       });
       console.log(`Email envoyé avec succès à ${to}`);
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'envoi d'email:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -147,7 +147,7 @@ export class EmailService {
       // Cette méthode pourrait être implémentée pour récupérer le nom de l'utilisateur
       // depuis la base de données, mais pour l'instant, on renvoie simplement null
       return null;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération du nom d'utilisateur:",
         error,

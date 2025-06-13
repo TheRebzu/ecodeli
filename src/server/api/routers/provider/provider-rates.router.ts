@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  router as router,
-  protectedProcedure,
-  publicProcedure,
-} from "@/server/api/trpc";
+import { router as router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/server/db";
 import { UserRole } from "@prisma/client";
@@ -14,9 +10,9 @@ import { UserRole } from "@prisma/client";
  */
 export const providerRatesRouter = router({
   // Récupérer les tarifs du prestataire
-  getRates: protectedProcedure.query(async ({ ctx }) => {
+  getRates: protectedProcedure.query(async ({ _ctx }) => {
     try {
-      const { user } = ctx.session;
+      const { _user: __user } = ctx.session;
 
       // Vérifier que l'utilisateur est un prestataire
       if (user.role !== UserRole.PROVIDER) {
@@ -36,7 +32,7 @@ export const providerRatesRouter = router({
                 include: {
                   serviceCategory: true,
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: { createdAt: "desc" },
               },
             },
           },
@@ -57,7 +53,7 @@ export const providerRatesRouter = router({
           totalRates: provider.provider.serviceRates.length,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -80,9 +76,9 @@ export const providerRatesRouter = router({
         maxDistanceKm: z.number().min(0).optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         if (user.role !== UserRole.PROVIDER) {
           throw new TRPCError({
@@ -154,7 +150,7 @@ export const providerRatesRouter = router({
           success: true,
           data: rate,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -170,9 +166,9 @@ export const providerRatesRouter = router({
         serviceCategoryId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         if (user.role !== UserRole.PROVIDER) {
           throw new TRPCError({
@@ -206,7 +202,7 @@ export const providerRatesRouter = router({
           success: true,
           message: "Tarif supprimé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -224,9 +220,9 @@ export const providerRatesRouter = router({
         distanceKm: z.number().min(0).optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         if (user.role !== UserRole.PROVIDER) {
           throw new TRPCError({
@@ -268,7 +264,7 @@ export const providerRatesRouter = router({
         }
 
         // Calculer le coût
-        let totalCost = rate.baseRate;
+        const totalCost = rate.baseRate;
 
         // Ajouter les heures si spécifiées
         if (input.estimatedHours && rate.hourlyRate) {
@@ -281,7 +277,7 @@ export const providerRatesRouter = router({
         }
 
         // Ajouter les frais de déplacement si nécessaire
-        let travelCost = 0;
+        const travelCost = 0;
         if (input.distanceKm && !rate.travelCostIncluded) {
           if (rate.maxDistanceKm && input.distanceKm > rate.maxDistanceKm) {
             // Frais supplémentaires pour dépassement
@@ -303,15 +299,17 @@ export const providerRatesRouter = router({
             },
             calculation: {
               baseRate: rate.baseRate,
-              hourlyCharge: input.estimatedHours && rate.hourlyRate 
-                ? input.estimatedHours * rate.hourlyRate 
-                : 0,
+              hourlyCharge:
+                input.estimatedHours && rate.hourlyRate
+                  ? input.estimatedHours * rate.hourlyRate
+                  : 0,
               travelCharge: travelCost,
-              minimumApplied: rate.minimumCharge && totalCost < rate.minimumCharge,
+              minimumApplied:
+                rate.minimumCharge && totalCost < rate.minimumCharge,
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -321,18 +319,18 @@ export const providerRatesRouter = router({
     }),
 
   // Obtenir les catégories de services disponibles
-  getAvailableServiceCategories: protectedProcedure.query(async ({ ctx }) => {
+  getAvailableServiceCategories: protectedProcedure.query(async ({ _ctx }) => {
     try {
       const categories = await db.serviceCategory.findMany({
         where: { isActive: true },
-        orderBy: { name: 'asc' },
+        orderBy: { name: "asc" },
       });
 
       return {
         success: true,
         data: categories,
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des catégories",

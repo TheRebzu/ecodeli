@@ -605,5 +605,4 @@ export async function validateServiceTypes(
   return isValid;
 }
 
-// Export de la configuration pour utilisation dans d'autres seeds
-export { CATEGORIES_CONFIG };
+// La configuration CATEGORIES_CONFIG est définie à l'intérieur de la fonction seedServiceTypes

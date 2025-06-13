@@ -234,8 +234,7 @@ export async function middleware(request: NextRequest) {
     // Vérifier si le chemin est un chemin commun accessible à tous les utilisateurs authentifiés
     const isCommonAuthenticatedPath = commonAuthenticatedPaths.some(
       (path) =>
-        pathWithoutLocale === path ||
-        pathWithoutLocale.startsWith(`${path}/`),
+        pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`),
     );
 
     // Si c'est un chemin commun authentifié, autoriser l'accès

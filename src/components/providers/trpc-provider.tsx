@@ -25,7 +25,7 @@ export function TRPCProvider({ children }: TRPCProviderProps) {
             retry: 1,
           },
         },
-      })
+      }),
   );
 
   // Création du client tRPC
@@ -43,14 +43,12 @@ export function TRPCProvider({ children }: TRPCProviderProps) {
           },
         }),
       ],
-    })
+    }),
   );
 
   return (
     <api.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </api.Provider>
   );
 }

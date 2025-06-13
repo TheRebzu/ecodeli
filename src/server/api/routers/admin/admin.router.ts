@@ -16,6 +16,8 @@ import { adminInvoicesRouter } from "./admin-invoices.router";
 import { adminPaymentsRouter } from "./admin-payments.router";
 import { auditRouter } from "./admin-audit.router";
 import { adminCommissionRouter } from "./admin-commission.router";
+import { adminAnalyticsRouter } from "./admin-analytics.router";
+import { adminSystemRouter } from "./admin-system.router";
 
 /**
  * Router admin principal
@@ -39,4 +41,6 @@ export const adminRouter = router({
   payments: adminPaymentsRouter,
   audit: auditRouter,
   commission: adminCommissionRouter,
+  analytics: adminAnalyticsRouter,
+  system: adminSystemRouter,
 });

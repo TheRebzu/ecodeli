@@ -78,7 +78,7 @@ export default function SwaggerUIComponent({
         setApiSpec(data);
         setIsLoading(false);
       } catch (err) {
-        setError('Failed to load API specification');
+        setError("Failed to load API specification");
         setIsLoading(false);
       }
     };
@@ -176,24 +176,31 @@ export default function SwaggerUIComponent({
   // Check API documentation completeness
   const getDocumentationStats = () => {
     if (!apiSpec?.paths) return { endpoints: 0, documented: 0 };
-    
+
     const endpoints = Object.keys(apiSpec.paths).length;
-    const documented = Object.values(apiSpec.paths).filter((path: any) => 
-      Object.values(path).some((method: any) => method.summary || method.description)
+    const documented = Object.values(apiSpec.paths).filter((path: any) =>
+      Object.values(path).some(
+        (method: any) => method.summary || method.description,
+      ),
     ).length;
-    
+
     return { endpoints, documented };
   };
 
   const stats = getDocumentationStats();
-  const completeness = stats.endpoints > 0 ? Math.round((stats.documented / stats.endpoints) * 100) : 0;
+  const completeness =
+    stats.endpoints > 0
+      ? Math.round((stats.documented / stats.endpoints) * 100)
+      : 0;
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Chargement de la documentation API...</p>
+          <p className="text-muted-foreground">
+            Chargement de la documentation API...
+          </p>
         </div>
       </div>
     );
@@ -202,13 +209,22 @@ export default function SwaggerUIComponent({
   if (error) {
     return (
       <div className="p-6 border rounded-lg bg-destructive/10 border-destructive/20">
-        <h3 className="text-lg font-semibold text-destructive mb-2">Erreur de chargement</h3>
+        <h3 className="text-lg font-semibold text-destructive mb-2">
+          Erreur de chargement
+        </h3>
         <p className="text-destructive/80 mb-4">{error}</p>
         <div className="space-y-2 text-sm">
-          <p><strong>Solutions possibles :</strong></p>
+          <p>
+            <strong>Solutions possibles :</strong>
+          </p>
           <ul className="list-disc list-inside space-y-1 text-destructive/70">
             <li>Vérifiez que le serveur Next.js est en cours d'exécution</li>
-            <li>Consultez la <a href="/fr/developers/api-manual" className="underline">documentation manuelle</a></li>
+            <li>
+              Consultez la{" "}
+              <a href="/fr/developers/api-manual" className="underline">
+                documentation manuelle
+              </a>
+            </li>
             <li>Actualisez la page</li>
           </ul>
         </div>
@@ -224,12 +240,13 @@ export default function SwaggerUIComponent({
           <div>
             <h4 className="font-medium">État de la documentation</h4>
             <p className="text-sm text-muted-foreground">
-              {stats.documented} sur {stats.endpoints} endpoints documentés ({completeness}%)
+              {stats.documented} sur {stats.endpoints} endpoints documentés (
+              {completeness}%)
             </p>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-primary transition-all duration-300"
                 style={{ width: `${completeness}%` }}
               />
@@ -237,11 +254,20 @@ export default function SwaggerUIComponent({
             <span className="text-sm font-medium">{completeness}%</span>
           </div>
         </div>
-        
+
         {completeness < 100 && (
           <div className="mt-3 text-sm text-muted-foreground">
             <p>🚧 Documentation en cours de développement.</p>
-            <p>Pour une documentation complète, consultez la <a href="/fr/developers/api-manual" className="text-primary hover:underline">version manuelle</a>.</p>
+            <p>
+              Pour une documentation complète, consultez la{" "}
+              <a
+                href="/fr/developers/api-manual"
+                className="text-primary hover:underline"
+              >
+                version manuelle
+              </a>
+              .
+            </p>
           </div>
         )}
       </div>

@@ -1,54 +1,53 @@
 import { z } from "zod";
-import {
-  router as router,
-  protectedProcedure,
-  publicProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
 /**
  * Router pour provider invoices
  * Mission 1 - PROVIDER
  */
-export const providerInvoicesRouter = router({
-  // Récupérer toutes les données
-  getAll: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      // TODO: Vérifier les permissions selon le rôle
-      const { user } = ctx.session;
+export const providerInvoicesRouter = createTRPCRouter({
+  // Récupérer les factures du prestataire
+  getMyInvoices: protectedProcedure.query(async ({ _ctx }) => {
+    const _user = ctx.session.user; // Préfixé avec underscore
 
-      // TODO: Implémenter la logique métier
-      return {
-        success: true,
-        data: [],
-      };
-    } catch (error) {
+    try {
+      // TODO: Implémenter la récupération des factures
+      return [];
+    } catch (_error) {
+      // Préfixé avec underscore
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des données",
+        message: "Erreur lors de la récupération des factures",
       });
     }
   }),
 
-  // Créer une nouvelle entrée
-  create: protectedProcedure
+  // Créer une facture
+  createInvoice: protectedProcedure
     .input(
       z.object({
-        // TODO: Définir le schéma de validation
+        clientId: z.string(),
+        amount: z.number().positive(),
+        items: z.array(
+          z.object({
+            description: z.string(),
+            quantity: z.number(),
+            unitPrice: z.number(),
+          }),
+        ),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input: _input }) => {
+      // Préfixés avec underscore
       try {
-        // TODO: Vérifier les permissions
-        // TODO: Implémenter la création
-        return {
-          success: true,
-          data: null,
-        };
-      } catch (error) {
+        // TODO: Implémenter la création de facture
+        return { success: true };
+      } catch (_error) {
+        // Préfixé avec underscore
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Erreur lors de la création",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de la facture",
         });
       }
     }),

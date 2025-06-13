@@ -113,8 +113,8 @@ export const providerCalendarRouter = router({
    */
   getCalendar: protectedProcedure
     .input(calendarFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -140,7 +140,7 @@ export const providerCalendarRouter = router({
         // Disponibilit�s r�currentes et ponctuelles
         if (input.includeAvailabilities) {
           promises.push(
-            ctx.db.providerAvailability.findMany({
+            _ctx.db.providerAvailability.findMany({
               where: {
                 providerId: provider.id,
                 isActive: true,
@@ -179,7 +179,7 @@ export const providerCalendarRouter = router({
         // R�servations existantes
         if (input.includeBookings) {
           promises.push(
-            ctx.db.serviceBooking.findMany({
+            _ctx.db.serviceBooking.findMany({
               where: {
                 providerId: provider.id,
                 scheduledAt: {
@@ -219,7 +219,7 @@ export const providerCalendarRouter = router({
         // Exceptions et absences
         if (input.includeExceptions) {
           promises.push(
-            ctx.db.providerException.findMany({
+            _ctx.db.providerException.findMany({
               where: {
                 providerId: provider.id,
                 date: {
@@ -244,7 +244,7 @@ export const providerCalendarRouter = router({
 
         // G�n�rer les cr�neaux disponibles pour la p�riode
         const availableSlots = await generateAvailableSlots(
-          ctx.db,
+          _ctx.db,
           provider.id,
           input.startDate,
           input.endDate,
@@ -276,7 +276,7 @@ export const providerCalendarRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -290,8 +290,8 @@ export const providerCalendarRouter = router({
    */
   createAvailability: protectedProcedure
     .input(createAvailabilitySchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -349,7 +349,7 @@ export const providerCalendarRouter = router({
 
         // V�rifier les conflits avec les disponibilit�s existantes
         const conflicts = await checkAvailabilityConflicts(
-          ctx.db,
+          _ctx.db,
           provider.id,
           input,
           null, // Pas d'ID � exclure pour une cr�ation
@@ -384,7 +384,7 @@ export const providerCalendarRouter = router({
           data: formatAvailability(availability),
           message: "Disponibilit� cr��e avec succ�s",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -398,8 +398,8 @@ export const providerCalendarRouter = router({
    */
   updateAvailability: protectedProcedure
     .input(updateAvailabilitySchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -443,7 +443,7 @@ export const providerCalendarRouter = router({
           input.specificDate
         ) {
           const affectedBookings = await getAffectedBookings(
-            ctx.db,
+            _ctx.db,
             availability,
             input,
           );
@@ -456,7 +456,7 @@ export const providerCalendarRouter = router({
           }
         }
 
-        const { id, ...updateData } = input;
+        const { id: _id, ...updateData } = input;
 
         // V�rifier les conflits
         if (
@@ -466,7 +466,7 @@ export const providerCalendarRouter = router({
           updateData.specificDate
         ) {
           const conflicts = await checkAvailabilityConflicts(
-            ctx.db,
+            _ctx.db,
             provider.id,
             updateData,
             input.id,
@@ -501,7 +501,7 @@ export const providerCalendarRouter = router({
           data: formatAvailability(updatedAvailability),
           message: "Disponibilit� mise � jour avec succ�s",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -515,8 +515,8 @@ export const providerCalendarRouter = router({
    */
   deleteAvailability: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -578,7 +578,7 @@ export const providerCalendarRouter = router({
           success: true,
           message: "Disponibilit� supprim�e avec succ�s",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -592,8 +592,8 @@ export const providerCalendarRouter = router({
    */
   createException: protectedProcedure
     .input(createExceptionSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -669,7 +669,7 @@ export const providerCalendarRouter = router({
           message: `Exception cr��e. ${affectedBookings.length} r�servation(s) potentiellement affect�e(s)`,
           affectedBookings: affectedBookings.length,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -683,8 +683,8 @@ export const providerCalendarRouter = router({
    */
   getAvailableSlots: protectedProcedure
     .input(timeSlotsSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -725,7 +725,7 @@ export const providerCalendarRouter = router({
 
         // R�cup�rer les disponibilit�s, r�servations et exceptions
         const [availabilities, bookings, exceptions] = await Promise.all([
-          ctx.db.providerAvailability.findMany({
+          _ctx.db.providerAvailability.findMany({
             where: {
               providerId: provider.id,
               isActive: true,
@@ -762,7 +762,7 @@ export const providerCalendarRouter = router({
         ]);
 
         const slots = await generateAvailableSlots(
-          ctx.db,
+          _ctx.db,
           provider.id,
           input.date,
           endDate,
@@ -791,7 +791,7 @@ export const providerCalendarRouter = router({
             })),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -805,8 +805,8 @@ export const providerCalendarRouter = router({
    */
   createBulkAvailability: protectedProcedure
     .input(bulkAvailabilitySchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -876,7 +876,7 @@ export const providerCalendarRouter = router({
           },
           message: `${availabilities.length} disponibilit�s cr��es avec succ�s`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -894,8 +894,8 @@ export const providerCalendarRouter = router({
         period: z.enum(["WEEK", "MONTH", "QUARTER"]).default("MONTH"),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -917,7 +917,8 @@ export const providerCalendarRouter = router({
           });
         }
 
-        const { startDate, endDate } = calculatePeriodDates(input.period);
+        const { startDate: _startDate, endDate: _endDate } =
+          calculatePeriodDates(input.period);
 
         const [
           totalAvailabilities,
@@ -927,7 +928,7 @@ export const providerCalendarRouter = router({
           totalRevenue,
           exceptions,
         ] = await Promise.all([
-          ctx.db.providerAvailability.count({
+          _ctx.db.providerAvailability.count({
             where: {
               providerId: provider.id,
               isActive: true,
@@ -1005,7 +1006,7 @@ export const providerCalendarRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la r�cup�ration des statistiques",
@@ -1235,7 +1236,7 @@ async function checkAvailabilityConflicts(
     conflicts.push(...bookingConflicts);
 
     return conflicts;
-  } catch (error) {
+  } catch (_error) {
     console.error("Error checking availability conflicts:", error);
     return [];
   }
@@ -1298,7 +1299,7 @@ async function getAffectedBookings(
 
     // Filtrer les réservations qui seraient affectées
     for (const booking of bookings) {
-      let isAffected = false;
+      const isAffected = false;
       const bookingDate = new Date(booking.startTime);
 
       if (availability.type === "RECURRING") {
@@ -1358,7 +1359,7 @@ async function getAffectedBookings(
     }
 
     return affectedBookings;
-  } catch (error) {
+  } catch (_error) {
     console.error("Error finding affected bookings:", error);
     return [];
   }
@@ -1524,7 +1525,7 @@ async function checkBookingConflicts(
     // Vérifier les conflits pour chaque réservation
     for (const booking of existingBookings) {
       const bookingDate = new Date(booking.startTime);
-      let hasConflict = false;
+      const hasConflict = false;
 
       if (availability.type === "RECURRING") {
         // Vérifier si la réservation tombe sur le jour modifié
@@ -1557,7 +1558,7 @@ async function checkBookingConflicts(
         });
       }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error("Error checking booking conflicts:", error);
   }
 

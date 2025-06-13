@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  router as router,
-  protectedProcedure,
-  publicProcedure,
-} from "@/server/api/trpc";
+import { router as router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
 /**
@@ -26,10 +22,10 @@ export const adminDeliverersRouter = router({
           limit: 10,
         }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions selon le rôle
-        // const { user } = ctx.session;
+        // const { _user: __user } = ctx.session;
 
         // Construction de la requête de base
         const where = {
@@ -120,7 +116,7 @@ export const adminDeliverersRouter = router({
           hasNext: input.page < totalPages,
           hasPrev: input.page > 1,
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de la récupération des livreurs:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -130,10 +126,10 @@ export const adminDeliverersRouter = router({
     }),
 
   // Récupérer les statistiques
-  getStats: publicProcedure.query(async ({ ctx }) => {
+  getStats: publicProcedure.query(async ({ _ctx }) => {
     try {
       // TODO: Vérifier les permissions selon le rôle
-      // const { user } = ctx.session;
+      // const { _user: __user } = ctx.session;
 
       // Statistiques depuis la base de données
       const totalDeliverers = await ctx.db.user.count({
@@ -260,7 +256,7 @@ export const adminDeliverersRouter = router({
         monthlyGrowth,
         satisfactionRate: Number(satisfactionRate.toFixed(1)),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des statistiques:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -272,7 +268,7 @@ export const adminDeliverersRouter = router({
   // Récupérer un livreur par son ID
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const deliverer = await ctx.db.user.findUnique({
           where: {
@@ -336,7 +332,7 @@ export const adminDeliverersRouter = router({
           vehicleType: deliverer.delivererProfile?.vehicleType,
           preferredZones: deliverer.delivererProfile?.preferredZones || [],
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur lors de la récupération du livreur:", error);
         if (error instanceof TRPCError) {
           throw error;
@@ -355,7 +351,7 @@ export const adminDeliverersRouter = router({
         // TODO: Définir le schéma de validation
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions
         // TODO: Implémenter la création
@@ -363,7 +359,7 @@ export const adminDeliverersRouter = router({
           success: true,
           data: null,
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la création",
@@ -384,7 +380,7 @@ export const adminDeliverersRouter = router({
         ]),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions admin
         // TODO: Implémenter la mise à jour du statut dans la DB
@@ -400,7 +396,7 @@ export const adminDeliverersRouter = router({
             newStatus: input.status,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour du statut",
@@ -416,7 +412,7 @@ export const adminDeliverersRouter = router({
         approved: z.boolean().default(true),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         // TODO: Vérifier les permissions admin
         // TODO: Implémenter la vérification dans la DB
@@ -435,7 +431,7 @@ export const adminDeliverersRouter = router({
             verificationStatus: input.approved ? "APPROVED" : "REJECTED",
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Erreur lors de la vérification",

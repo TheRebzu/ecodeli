@@ -68,9 +68,11 @@ export function useAdminUsers() {
       {
         enabled: !!userId,
         onError: (error) => {
-          toast.error(`Erreur de chargement des détails utilisateur: ${error.message}`);
+          toast.error(
+            `Erreur de chargement des détails utilisateur: ${error.message}`,
+          );
         },
-      }
+      },
     );
   };
 

@@ -86,7 +86,7 @@ export const useTodoStore = create<TodoState>()(
       setFilter: (filter) => set({ activeFilter: filter }),
 
       getFilteredTodos: () => {
-        const { todos, activeFilter } = get();
+        const { todos: _todos, activeFilter: _activeFilter } = get();
         switch (activeFilter) {
           case "active":
             return todos.filter((todo) => !todo.completed);

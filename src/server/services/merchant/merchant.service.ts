@@ -116,7 +116,7 @@ export class MerchantService {
           period: { startDate, endDate },
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur génération rapport facturation merchant:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -276,7 +276,7 @@ export class MerchantService {
       limit?: number;
     } = {},
   ) {
-    const { page = 1, limit = 10, status } = options;
+    const { page = 1, limit = 10, status: _status } = options;
 
     const where = {
       merchantId,
@@ -336,7 +336,7 @@ export class MerchantService {
       status?: string;
     } = {},
   ) {
-    const { page = 1, limit = 10, status } = options;
+    const { page = 1, limit = 10, status: _status } = options;
 
     const where = {
       merchantId,

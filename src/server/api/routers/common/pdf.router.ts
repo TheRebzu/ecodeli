@@ -19,9 +19,9 @@ export const pdfRouter = router({
   // Générer un PDF de contrat
   generateContract: protectedProcedure
     .input(contractPdfSchema)
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, _ctx }) => {
       try {
-        const { contractId, templateType } = input;
+        const { contractId: _contractId, templateType: _templateType } = input;
 
         // Récupérer le contrat avec les informations nécessaires
         const contract = await ctx.db.contractTemplate.findUnique({
@@ -53,8 +53,8 @@ export const pdfRouter = router({
 
         // Vérifier que l'utilisateur a le droit d'accéder à ce contrat
         if (
-          contract.userId !== ctx.session.user.id &&
-          ctx.session.user.role !== "ADMIN"
+          contract.userId !== _ctx.session.user.id &&
+          _ctx.session.user.role !== "ADMIN"
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -84,7 +84,7 @@ export const pdfRouter = router({
               contract.user.profile?.lastName,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur génération PDF contrat:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -96,9 +96,9 @@ export const pdfRouter = router({
   // Générer un PDF de facture
   generateInvoice: protectedProcedure
     .input(invoicePdfSchema)
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, _ctx }) => {
       try {
-        const { invoiceId, includePaymentDetails } = input;
+        const { invoiceId: _invoiceId, includePaymentDetails: _includePaymentDetails } = input;
 
         // Récupérer la facture avec tous les détails
         const invoice = await ctx.db.invoice.findUnique({
@@ -138,8 +138,8 @@ export const pdfRouter = router({
 
         // Vérifier que l'utilisateur a le droit d'accéder à cette facture
         if (
-          invoice.userId !== ctx.session.user.id &&
-          ctx.session.user.role !== "ADMIN"
+          invoice.userId !== _ctx.session.user.id &&
+          _ctx.session.user.role !== "ADMIN"
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -166,7 +166,7 @@ export const pdfRouter = router({
             dueDate: invoice.dueDate,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur génération PDF facture:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -176,14 +176,14 @@ export const pdfRouter = router({
     }),
 
   // Obtenir la liste des contrats disponibles pour génération PDF
-  getAvailableContracts: protectedProcedure.query(async ({ ctx }) => {
+  getAvailableContracts: protectedProcedure.query(async ({ _ctx }) => {
     try {
       const contracts = await ctx.db.contractTemplate.findMany({
         where: {
           OR: [
-            { userId: ctx.session.user.id },
+            { userId: _ctx.session.user.id },
             { isPublic: true },
-            ...(ctx.session.user.role === "ADMIN" ? [{}] : []),
+            ...(_ctx.session.user.role === "ADMIN" ? [{}] : []),
           ],
         },
         select: {
@@ -200,7 +200,7 @@ export const pdfRouter = router({
       });
 
       return contracts;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur récupération contrats:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -210,13 +210,13 @@ export const pdfRouter = router({
   }),
 
   // Obtenir la liste des factures disponibles pour génération PDF
-  getAvailableInvoices: protectedProcedure.query(async ({ ctx }) => {
+  getAvailableInvoices: protectedProcedure.query(async ({ _ctx }) => {
     try {
       const invoices = await ctx.db.invoice.findMany({
         where:
-          ctx.session.user.role === "ADMIN"
+          _ctx.session.user.role === "ADMIN"
             ? {}
-            : { userId: ctx.session.user.id },
+            : { userId: _ctx.session.user.id },
         select: {
           id: true,
           number: true,
@@ -233,7 +233,7 @@ export const pdfRouter = router({
       });
 
       return invoices;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur récupération factures:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -402,9 +402,9 @@ function generateInvoiceHTML(
   const today = format(new Date(), "dd MMMM yyyy", { locale: fr });
 
   // Calculer les totaux
-  let subtotal = 0;
-  let totalTax = 0;
-  let total = 0;
+  const subtotal = 0;
+  const totalTax = 0;
+  const total = 0;
 
   invoice.invoiceItems.forEach((item: any) => {
     subtotal += Number(item.unitPrice) * item.quantity;

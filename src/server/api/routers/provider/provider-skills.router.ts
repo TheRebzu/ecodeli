@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { SkillLevel, CertificationStatus } from "@prisma/client";
 
@@ -98,8 +98,8 @@ export const providerSkillsRouter = router({
    */
   getMySkills: protectedProcedure
     .input(skillFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -144,7 +144,7 @@ export const providerSkillsRouter = router({
         orderBy[input.sortBy] = input.sortOrder;
 
         const [skills, totalCount] = await Promise.all([
-          ctx.db.providerSkill.findMany({
+          _ctx.db.providerSkill.findMany({
             where,
             include: {
               certifications: {
@@ -211,7 +211,7 @@ export const providerSkillsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -225,8 +225,8 @@ export const providerSkillsRouter = router({
    */
   createSkill: protectedProcedure
     .input(createSkillSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -293,7 +293,7 @@ export const providerSkillsRouter = router({
           },
           message: "Compétence ajoutée avec succès. En attente de validation.",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -307,8 +307,8 @@ export const providerSkillsRouter = router({
    */
   updateSkill: protectedProcedure
     .input(updateSkillSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -343,7 +343,7 @@ export const providerSkillsRouter = router({
           });
         }
 
-        const { id, ...updateData } = input;
+        const { id: _id, ...updateData } = input;
 
         // Si la compétence était validée et qu'on modifie des éléments critiques,
         // remettre en attente de validation
@@ -381,7 +381,7 @@ export const providerSkillsRouter = router({
             ? "Compétence mise à jour. En attente de re-validation."
             : "Compétence mise à jour avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -395,8 +395,8 @@ export const providerSkillsRouter = router({
    */
   deleteSkill: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -456,7 +456,7 @@ export const providerSkillsRouter = router({
           success: true,
           message: "Compétence supprimée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -470,8 +470,8 @@ export const providerSkillsRouter = router({
    */
   createCertification: protectedProcedure
     .input(createCertificationSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -532,7 +532,7 @@ export const providerSkillsRouter = router({
           message:
             "Certification ajoutée avec succès. En attente de validation.",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -553,8 +553,8 @@ export const providerSkillsRouter = router({
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -593,7 +593,7 @@ export const providerSkillsRouter = router({
         }
 
         const [certifications, totalCount] = await Promise.all([
-          ctx.db.providerCertification.findMany({
+          _ctx.db.providerCertification.findMany({
             where,
             include: {
               skills: {
@@ -645,7 +645,7 @@ export const providerSkillsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -657,8 +657,8 @@ export const providerSkillsRouter = router({
   /**
    * Obtenir les statistiques des compétences
    */
-  getSkillsStats: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getSkillsStats: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "PROVIDER") {
       throw new TRPCError({
@@ -689,7 +689,7 @@ export const providerSkillsRouter = router({
         topPerformingSkills,
       ] = await Promise.all([
         // Total des compétences
-        ctx.db.providerSkill.count({
+        _ctx.db.providerSkill.count({
           where: { providerId: provider.id },
         }),
 
@@ -791,7 +791,7 @@ export const providerSkillsRouter = router({
           }),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des statistiques",
@@ -818,7 +818,7 @@ export const providerSkillsRouter = router({
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const where: any = {
           isAvailable: true,
@@ -864,7 +864,7 @@ export const providerSkillsRouter = router({
         }
 
         const [skills, totalCount] = await Promise.all([
-          ctx.db.providerSkill.findMany({
+          _ctx.db.providerSkill.findMany({
             where,
             include: {
               provider: {
@@ -928,7 +928,7 @@ export const providerSkillsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la recherche de compétences",
@@ -943,7 +943,7 @@ function calculateProfileCompleteness(stats: {
   verifiedSkills: number;
   activeCertifications: number;
 }): number {
-  let score = 0;
+  const score = 0;
 
   // Points pour les compétences (40%)
   if (stats.totalSkills >= 3) score += 40;

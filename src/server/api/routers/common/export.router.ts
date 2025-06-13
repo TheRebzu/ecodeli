@@ -39,9 +39,9 @@ export const exportRouter = router({
   // Export CSV
   exportCsv: protectedProcedure
     .input(csvExportSchema)
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, _ctx }) => {
       try {
-        const { reportType, data, filters } = input;
+        const { reportType: _reportType, data: _data, filters: _filters } = input;
 
         if (!data) {
           throw new TRPCError({
@@ -51,7 +51,7 @@ export const exportRouter = router({
         }
 
         // Générer le contenu CSV selon le type de rapport
-        let csvContent = "";
+        const csvContent = "";
 
         switch (reportType) {
           case "sales":
@@ -85,7 +85,7 @@ export const exportRouter = router({
           filename,
           mimeType: "text/csv;charset=utf-8",
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur export CSV:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -97,9 +97,9 @@ export const exportRouter = router({
   // Export Excel
   exportExcel: protectedProcedure
     .input(excelExportSchema)
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, _ctx }) => {
       try {
-        const { reportType, data, filters } = input;
+        const { reportType: _reportType, data: _data, filters: _filters } = input;
 
         if (!data) {
           throw new TRPCError({
@@ -151,7 +151,7 @@ export const exportRouter = router({
           mimeType:
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         };
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur export Excel:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -185,9 +185,9 @@ export const exportRouter = router({
           .optional(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, _ctx }) => {
       try {
-        const { reportType, format, data, filters } = input;
+        const { reportType: _reportType, format: _format, data: _data, filters: _filters } = input;
 
         if (!data) {
           throw new TRPCError({
@@ -200,7 +200,7 @@ export const exportRouter = router({
 
         switch (format) {
           case "csv": {
-            let csvContent = "";
+            const csvContent = "";
             switch (reportType) {
               case "sales":
                 csvContent = generateSalesCsv(data);
@@ -276,7 +276,7 @@ export const exportRouter = router({
               message: "Format non supporté",
             });
         }
-      } catch (error) {
+      } catch (_error) {
         console.error("Erreur export:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import {
   DocumentVerificationStatus,
@@ -112,8 +112,8 @@ export const delivererValidationRouter = router({
    */
   submitApplication: protectedProcedure
     .input(submitApplicationSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -215,7 +215,7 @@ export const delivererValidationRouter = router({
           message:
             "Demande soumise avec succès. Vous devez maintenant télécharger vos documents.",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -229,8 +229,8 @@ export const delivererValidationRouter = router({
    */
   uploadDocument: protectedProcedure
     .input(uploadDocumentSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
         throw new TRPCError({
@@ -324,7 +324,7 @@ export const delivererValidationRouter = router({
           data: document,
           message: "Document téléchargé avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -336,8 +336,8 @@ export const delivererValidationRouter = router({
   /**
    * Obtenir le statut de sa demande
    */
-  getApplicationStatus: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getApplicationStatus: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "DELIVERER") {
       throw new TRPCError({
@@ -400,7 +400,7 @@ export const delivererValidationRouter = router({
           nextSteps: getNextSteps(application, documentStatus),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération du statut",
@@ -411,8 +411,8 @@ export const delivererValidationRouter = router({
   /**
    * Obtenir la liste des documents requis
    */
-  getRequiredDocuments: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getRequiredDocuments: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "DELIVERER") {
       throw new TRPCError({
@@ -489,8 +489,8 @@ export const delivererValidationRouter = router({
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -547,7 +547,7 @@ export const delivererValidationRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des demandes",
@@ -560,8 +560,8 @@ export const delivererValidationRouter = router({
    */
   reviewApplication: protectedProcedure
     .input(z.object({ applicationId: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -629,7 +629,7 @@ export const delivererValidationRouter = router({
             recommendations: getAdminRecommendations(application),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -643,8 +643,8 @@ export const delivererValidationRouter = router({
    */
   processApplication: protectedProcedure
     .input(adminReviewSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -754,7 +754,7 @@ export const delivererValidationRouter = router({
           data: updatedApplication,
           message: `Demande ${input.decision === "APPROVE" ? "approuvée" : input.decision === "REJECT" ? "rejetée" : "mise en attente"} avec succès`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

@@ -191,7 +191,12 @@ class StorageService {
     input: BoxReservationCreateInput,
     clientId: string,
   ) {
-    const { boxId, startDate, endDate, notes } = input;
+    const {
+      boxId: _boxId,
+      startDate: _startDate,
+      endDate: _endDate,
+      notes: _notes,
+    } = input;
 
     // Récupération des informations de la box
     const box = await db.box.findUnique({
@@ -298,7 +303,12 @@ class StorageService {
     input: BoxReservationUpdateInput,
     clientId: string,
   ) {
-    const { id, endDate, notes, status } = input;
+    const {
+      id: _id,
+      endDate: _endDate,
+      notes: _notes,
+      status: _status,
+    } = input;
 
     // Récupération de la réservation
     const reservation = await db.reservation.findUnique({
@@ -322,7 +332,7 @@ class StorageService {
     }
 
     // Calcul du nouveau prix si la date de fin change
-    let totalPrice = reservation.totalPrice;
+    const totalPrice = reservation.totalPrice;
 
     if (endDate) {
       // Vérification que la nouvelle période est disponible
@@ -659,7 +669,7 @@ class StorageService {
 
   // Extension d'une réservation
   async extendReservation(input: ExtendReservationInput, clientId: string) {
-    const { reservationId, newEndDate } = input;
+    const { reservationId: _reservationId, newEndDate: _newEndDate } = input;
 
     // Récupération de la réservation
     const reservation = await db.reservation.findUnique({
@@ -763,7 +773,7 @@ class StorageService {
 
   // Accès à une box (vérification du code d'accès)
   async accessBox(input: BoxAccessInput, clientId: string) {
-    const { reservationId, accessCode } = input;
+    const { reservationId: _reservationId, accessCode: _accessCode } = input;
 
     // Récupération de la réservation
     const reservation = await db.reservation.findUnique({
@@ -1020,7 +1030,7 @@ class StorageService {
         preferences,
         total: recommendedBoxes.length,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des recommandations:",
         error,
@@ -1202,7 +1212,7 @@ class StorageService {
           ),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des statistiques client:",
         error,
@@ -1318,7 +1328,7 @@ class StorageService {
 
       // Calculer les scores de compatibilité
       const scoredAlternatives = allAlternatives.map((box) => {
-        let compatibilityScore = 100;
+        const compatibilityScore = 100;
 
         // Pénalité pour différence de taille
         const sizeDiff =
@@ -1353,7 +1363,7 @@ class StorageService {
           .sort((a, b) => b.compatibilityScore - a.compatibilityScore)
           .slice(0, 8),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la recherche d'alternatives:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -1370,7 +1380,12 @@ class StorageService {
     clientId: string;
   }) {
     try {
-      const { boxId, startDate, endDate, clientId } = input;
+      const {
+        boxId: _boxId,
+        startDate: _startDate,
+        endDate: _endDate,
+        clientId: _clientId,
+      } = input;
 
       // Récupérer la box et l'historique client
       const [box, clientHistory] = await Promise.all([
@@ -1394,7 +1409,7 @@ class StorageService {
         (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
       );
       const basePrice = box.pricePerDay * days;
-      let finalPrice = basePrice;
+      const finalPrice = basePrice;
       const discounts: Array<{
         type: string;
         amount: number;
@@ -1470,7 +1485,7 @@ class StorageService {
           total: totalWithVat,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du calcul du prix optimal:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

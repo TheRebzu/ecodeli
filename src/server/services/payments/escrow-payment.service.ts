@@ -209,7 +209,7 @@ export class EscrowPaymentService {
         `Paiement escrow initié: ${escrowTransaction.id} pour ${params.amount}${params.currency}`,
       );
       return escrowTransaction;
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de l'initiation du paiement escrow:", error);
       throw error;
     }
@@ -260,7 +260,7 @@ export class EscrowPaymentService {
 
       logger.info(`Fonds capturés et séquestrés: ${escrowTransactionId}`);
       return true;
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de la capture et séquestration:", error);
       return false;
     }
@@ -341,7 +341,7 @@ export class EscrowPaymentService {
       } else {
         throw new Error(`Échec des transferts: ${transferResults.error}`);
       }
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de la libération des fonds:", error);
       return false;
     }
@@ -419,7 +419,7 @@ export class EscrowPaymentService {
       } else {
         throw new Error(`Échec du remboursement: ${refundResult.error}`);
       }
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors du traitement du remboursement:", error);
       return false;
     }
@@ -475,7 +475,7 @@ export class EscrowPaymentService {
       logger.info(
         `Dispute initiée pour la transaction: ${escrowTransactionId}`,
       );
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de la gestion de dispute:", error);
       throw error;
     }
@@ -513,7 +513,7 @@ export class EscrowPaymentService {
 
         logger.info(`Libération automatique des fonds: ${escrowTransactionId}`);
       }
-    } catch (error) {
+    } catch (_error) {
       logger.error("Erreur lors de la libération automatique:", error);
     }
   }
@@ -536,7 +536,7 @@ export class EscrowPaymentService {
   }
 
   private async assessPaymentRisk(params: any): Promise<number> {
-    let riskScore = 0;
+    const riskScore = 0;
 
     // Facteurs de risque basiques (simulation)
     if (params.amount > 500) riskScore += 10;
@@ -596,7 +596,7 @@ export class EscrowPaymentService {
     transaction: EscrowTransaction,
     validationData: any,
   ): Promise<EscrowTransaction["breakdown"]> {
-    let breakdown = { ...transaction.breakdown };
+    const breakdown = { ...transaction.breakdown };
 
     // Appliquer des bonus/pénalités selon la qualité de service
     if (validationData.clientRating) {

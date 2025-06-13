@@ -2,13 +2,13 @@ import { router, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 
 export const messagingRouter = router({
-  getConversations: protectedProcedure.query(async ({ ctx }) => {
+  getConversations: protectedProcedure.query(async ({ _ctx }) => {
     // Récupérer les conversations de l'utilisateur
   }),
 
   getMessages: protectedProcedure
     .input(z.object({ conversationId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       // Récupérer les messages d'une conversation
     }),
 
@@ -19,7 +19,7 @@ export const messagingRouter = router({
         content: z.string().min(1),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Envoyer un message
     }),
 
@@ -30,7 +30,7 @@ export const messagingRouter = router({
         initialMessage: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       // Créer une nouvelle conversation
     }),
 });

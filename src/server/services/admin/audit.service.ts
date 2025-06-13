@@ -41,7 +41,7 @@ export const AuditService = {
           changes,
         },
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la création du log d'audit:", error);
       // Ne pas échouer l'opération principale si l'audit échoue
     }

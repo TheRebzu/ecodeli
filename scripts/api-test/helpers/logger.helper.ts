@@ -1,6 +1,6 @@
-import chalk from 'chalk';
+import chalk from "chalk";
 
-export type LogLevel = 'debug' | 'info' | 'success' | 'warning' | 'error';
+export type LogLevel = "debug" | "info" | "success" | "warning" | "error";
 
 export interface LoggerConfig {
   showTimestamp: boolean;
@@ -13,7 +13,7 @@ const defaultConfig: LoggerConfig = {
   showTimestamp: true,
   showLevel: true,
   colorize: true,
-  verbose: process.env.VERBOSE === 'true'
+  verbose: process.env.VERBOSE === "true",
 };
 
 export class Logger {
@@ -29,7 +29,7 @@ export class Logger {
     const parts: string[] = [];
 
     if (this.config.showTimestamp) {
-      const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+      const timestamp = new Date().toISOString().split("T")[1].split(".")[0];
       parts.push(chalk.gray(`[${timestamp}]`));
     }
 
@@ -39,7 +39,7 @@ export class Logger {
         info: chalk.blue,
         success: chalk.green,
         warning: chalk.yellow,
-        error: chalk.red
+        error: chalk.red,
       };
       const color = levelColors[level];
       parts.push(color(`[${level.toUpperCase()}]`));
@@ -50,40 +50,40 @@ export class Logger {
     }
 
     parts.push(message);
-    return parts.join(' ');
+    return parts.join(" ");
   }
 
   debug(message: string, data?: any): void {
     if (!this.config.verbose) return;
-    console.log(this.formatMessage('debug', message));
+    console.log(this.formatMessage("debug", message));
     if (data) {
       console.log(chalk.gray(JSON.stringify(data, null, 2)));
     }
   }
 
   info(message: string, data?: any): void {
-    console.log(this.formatMessage('info', message));
+    console.log(this.formatMessage("info", message));
     if (data && this.config.verbose) {
       console.log(chalk.blue(JSON.stringify(data, null, 2)));
     }
   }
 
   success(message: string, data?: any): void {
-    console.log(this.formatMessage('success', message));
+    console.log(this.formatMessage("success", message));
     if (data && this.config.verbose) {
       console.log(chalk.green(JSON.stringify(data, null, 2)));
     }
   }
 
   warning(message: string, data?: any): void {
-    console.log(this.formatMessage('warning', message));
+    console.log(this.formatMessage("warning", message));
     if (data) {
       console.log(chalk.yellow(JSON.stringify(data, null, 2)));
     }
   }
 
   error(message: string, error?: any): void {
-    console.error(this.formatMessage('error', message));
+    console.error(this.formatMessage("error", message));
     if (error) {
       if (error instanceof Error) {
         console.error(chalk.red(error.stack || error.message));
@@ -95,43 +95,69 @@ export class Logger {
 
   // Helper methods for API testing
   request(method: string, url: string, data?: any): void {
-    const methodColor = method === 'GET' ? chalk.green : 
-                       method === 'POST' ? chalk.yellow :
-                       method === 'PUT' ? chalk.blue :
-                       method === 'DELETE' ? chalk.red : chalk.white;
+    const methodColor =
+      method === "GET"
+        ? chalk.green
+        : method === "POST"
+          ? chalk.yellow
+          : method === "PUT"
+            ? chalk.blue
+            : method === "DELETE"
+              ? chalk.red
+              : chalk.white;
 
-    console.log(chalk.gray('→') + ' ' + methodColor(method) + ' ' + chalk.white(url));
-    
+    console.log(
+      chalk.gray("→") + " " + methodColor(method) + " " + chalk.white(url),
+    );
+
     if (data && this.config.verbose) {
-      console.log(chalk.gray('  Request body:'));
-      console.log(chalk.gray(JSON.stringify(data, null, 2).split('\n').map(line => '  ' + line).join('\n')));
+      console.log(chalk.gray("  Request body:"));
+      console.log(
+        chalk.gray(
+          JSON.stringify(data, null, 2)
+            .split("\n")
+            .map((line) => "  " + line)
+            .join("\n"),
+        ),
+      );
     }
   }
 
   response(status: number, data?: any, duration?: number): void {
-    const statusColor = status >= 200 && status < 300 ? chalk.green :
-                       status >= 300 && status < 400 ? chalk.yellow :
-                       status >= 400 && status < 500 ? chalk.orange :
-                       chalk.red;
+    const statusColor =
+      status >= 200 && status < 300
+        ? chalk.green
+        : status >= 300 && status < 400
+          ? chalk.yellow
+          : status >= 400 && status < 500
+            ? chalk.orange
+            : chalk.red;
 
-    let message = chalk.gray('←') + ' ' + statusColor(`${status}`);
+    let message = chalk.gray("←") + " " + statusColor(`${status}`);
     if (duration) {
       message += chalk.gray(` (${duration}ms)`);
     }
     console.log(message);
 
     if (data && this.config.verbose) {
-      console.log(chalk.gray('  Response body:'));
-      console.log(chalk.gray(JSON.stringify(data, null, 2).split('\n').map(line => '  ' + line).join('\n')));
+      console.log(chalk.gray("  Response body:"));
+      console.log(
+        chalk.gray(
+          JSON.stringify(data, null, 2)
+            .split("\n")
+            .map((line) => "  " + line)
+            .join("\n"),
+        ),
+      );
     }
   }
 
   separator(): void {
-    console.log(chalk.gray('─'.repeat(60)));
+    console.log(chalk.gray("─".repeat(60)));
   }
 
   title(title: string): void {
-    console.log('\n' + chalk.bold.underline(title) + '\n');
+    console.log("\n" + chalk.bold.underline(title) + "\n");
   }
 
   table(data: any[]): void {
@@ -140,15 +166,17 @@ export class Logger {
 
   // Create a child logger with additional context
   child(childContext: string): Logger {
-    const newContext = this.context ? `${this.context}:${childContext}` : childContext;
+    const newContext = this.context
+      ? `${this.context}:${childContext}`
+      : childContext;
     return new Logger(newContext, this.config);
   }
 }
 
 // Default logger instance
-export const logger = new Logger('API-Test');
+export const logger = new Logger("API-Test");
 
 // Specialized loggers
-export const authLogger = new Logger('Auth');
-export const requestLogger = new Logger('Request');
-export const testLogger = new Logger('Test');
+export const authLogger = new Logger("Auth");
+export const requestLogger = new Logger("Request");
+export const testLogger = new Logger("Test");

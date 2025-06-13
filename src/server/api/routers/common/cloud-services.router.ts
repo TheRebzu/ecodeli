@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
 /**
@@ -38,8 +38,8 @@ export const cloudServicesRouter = router({
   /**
    * Obtenir les métriques de santé des services cloud
    */
-  getServiceHealth: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getServiceHealth: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     if (user.role !== "ADMIN") {
       throw new TRPCError({
@@ -51,7 +51,7 @@ export const cloudServicesRouter = router({
     try {
       // Simuler des métriques de santé des services
       const services = await Promise.all([
-        checkDatabaseHealth(ctx.db),
+        checkDatabaseHealth(_ctx.db),
         checkFileStorageHealth(),
         checkEmailServiceHealth(),
         checkPaymentServiceHealth(),
@@ -71,10 +71,10 @@ export const cloudServicesRouter = router({
           services,
           lastCheck: new Date(),
           uptime: calculateUptime(),
-          responseTime: await calculateAverageResponseTime(ctx.db),
+          responseTime: await calculateAverageResponseTime(_ctx.db),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la vérification de la santé des services",
@@ -87,12 +87,12 @@ export const cloudServicesRouter = router({
    */
   uploadFile: protectedProcedure
     .input(fileUploadSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
-        const { user } = ctx.session;
+        const { _user: __user } = ctx.session;
 
         // Vérifier les limites de stockage
-        const userStorageUsed = await calculateUserStorage(ctx.db, user.id);
+        const userStorageUsed = await calculateUserStorage(_ctx.db, user.id);
         const storageLimit = getStorageLimitForRole(user.role);
 
         if (userStorageUsed + input.fileSize > storageLimit) {
@@ -138,7 +138,7 @@ export const cloudServicesRouter = router({
             expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -157,7 +157,7 @@ export const cloudServicesRouter = router({
         checksum: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ _ctx, input: _input }) => {
       try {
         const document = await ctx.db.document.findUnique({
           where: { id: input.documentId },
@@ -171,7 +171,7 @@ export const cloudServicesRouter = router({
         }
 
         // Vérifier que l'utilisateur est le propriétaire
-        if (document.uploaderId !== ctx.session.user.id) {
+        if (document.uploaderId !== _ctx.session.user.id) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "Accès non autorisé",
@@ -201,7 +201,7 @@ export const cloudServicesRouter = router({
             accessUrl,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -215,8 +215,8 @@ export const cloudServicesRouter = router({
    */
   createBackup: protectedProcedure
     .input(backupRequestSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -236,7 +236,7 @@ export const cloudServicesRouter = router({
             encryption: input.encryption,
             initiatedById: user.id,
             status: "PENDING",
-            estimatedSize: await estimateBackupSize(ctx.db, input),
+            estimatedSize: await estimateBackupSize(_ctx.db, input),
           },
         });
 
@@ -248,7 +248,7 @@ export const cloudServicesRouter = router({
           data: backup,
           message: "Sauvegarde initiée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la création de la sauvegarde",
@@ -267,8 +267,8 @@ export const cloudServicesRouter = router({
         entityType: z.enum(["DATABASE", "FILES", "LOGS", "FULL"]).optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -279,7 +279,7 @@ export const cloudServicesRouter = router({
 
       try {
         const [backups, total] = await Promise.all([
-          ctx.db.systemBackup.findMany({
+          _ctx.db.systemBackup.findMany({
             where: {
               ...(input.entityType && { entityType: input.entityType }),
             },
@@ -311,7 +311,7 @@ export const cloudServicesRouter = router({
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des sauvegardes",
@@ -324,8 +324,8 @@ export const cloudServicesRouter = router({
    */
   createMonitoringAlert: protectedProcedure
     .input(monitoringAlertSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -347,7 +347,7 @@ export const cloudServicesRouter = router({
           data: alert,
           message: "Alerte créée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la création de l'alerte",
@@ -358,14 +358,14 @@ export const cloudServicesRouter = router({
   /**
    * Obtenir les métriques de stockage
    */
-  getStorageMetrics: protectedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx.session;
+  getStorageMetrics: protectedProcedure.query(async ({ _ctx }) => {
+    const { _user: __user } = ctx.session;
 
     try {
       if (user.role === "ADMIN") {
         // Métriques globales pour les admins
         const [totalStorage, userStorage, fileTypes] = await Promise.all([
-          ctx.db.document.aggregate({
+          _ctx.db.document.aggregate({
             _sum: { fileSize: true },
             _count: true,
           }),
@@ -419,7 +419,7 @@ export const cloudServicesRouter = router({
           },
         };
       }
-    } catch (error) {
+    } catch (_error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des métriques de stockage",
@@ -442,7 +442,7 @@ async function checkDatabaseHealth(db: any) {
       responseTime,
       lastCheck: new Date(),
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       name: "Database",
       status: "CRITICAL",
@@ -556,7 +556,7 @@ async function generateFileAccessUrl(
 
 async function estimateBackupSize(db: any, config: any): Promise<number> {
   // TODO: Calculer la taille estimée de la sauvegarde
-  let estimatedSize = 0;
+  const estimatedSize = 0;
 
   if (config.entityType === "DATABASE" || config.entityType === "FULL") {
     // Estimer la taille de la DB

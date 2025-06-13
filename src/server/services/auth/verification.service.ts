@@ -283,7 +283,9 @@ export class VerificationService {
   private async uploadFileToStorage(file: File): Promise<UploadResult> {
     try {
       // Upload réel vers S3/CloudStorage
-      const storageService = await import('@/server/services/shared/storage.service');
+      const storageService = await import(
+        "@/server/services/shared/storage.service"
+      );
       const timestamp = Date.now();
       const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
       const fileName = `documents/${timestamp}_${sanitizedFilename}`;
@@ -307,8 +309,8 @@ export class VerificationService {
         mimeType: file.type,
         fileSize: file.size,
       };
-    } catch (error) {
-      console.error('Erreur upload fichier:', error);
+    } catch (_error) {
+      console.error("Erreur upload fichier:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors du téléchargement du fichier",
@@ -1146,7 +1148,13 @@ export class VerificationService {
   async updateVerificationStatus(
     data: VerificationUpdateRequest,
   ): Promise<any> {
-    const { id, type, status, verifierId, rejectionReason } = data;
+    const {
+      id: _id,
+      type: _type,
+      status: _status,
+      verifierId: _verifierId,
+      rejectionReason: _rejectionReason,
+    } = data;
 
     return await this.db.$transaction(async (tx) => {
       // Vérifier si l'utilisateur est un admin
@@ -1305,7 +1313,7 @@ export class VerificationService {
         verificationResult.isComplete &&
         verificationResult.verificationStatus === "APPROVED"
       );
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la vérification du statut:", error);
       return false;
     }
@@ -1397,7 +1405,7 @@ export class VerificationService {
           message: `Vérification non nécessaire: ${reasons.join(", ")}`,
         };
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(`❌ Erreur lors de la vérification manuelle:`, error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

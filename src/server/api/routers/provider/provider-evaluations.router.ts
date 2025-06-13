@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
 /**
@@ -67,8 +67,8 @@ export const providerEvaluationsRouter = router({
    */
   createReview: protectedProcedure
     .input(createReviewSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({
@@ -169,17 +169,17 @@ export const providerEvaluationsRouter = router({
         });
 
         // Mettre à jour les statistiques du prestataire
-        await updateProviderRating(ctx.db, booking.providerId);
+        await updateProviderRating(_ctx.db, booking.providerId);
 
         // Mettre à jour les statistiques du service
-        await updateServiceRating(ctx.db, booking.serviceId);
+        await updateServiceRating(_ctx.db, booking.serviceId);
 
         return {
           success: true,
           data: review,
           message: "Évaluation créée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -193,8 +193,8 @@ export const providerEvaluationsRouter = router({
    */
   respondToReview: protectedProcedure
     .input(providerResponseSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -253,7 +253,7 @@ export const providerEvaluationsRouter = router({
           data: updatedReview,
           message: "Réponse ajoutée avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -267,8 +267,8 @@ export const providerEvaluationsRouter = router({
    */
   getMyReviews: protectedProcedure
     .input(reviewFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -322,7 +322,7 @@ export const providerEvaluationsRouter = router({
         }
 
         const [reviews, totalCount] = await Promise.all([
-          ctx.db.serviceReview.findMany({
+          _ctx.db.serviceReview.findMany({
             where,
             include: {
               client: {
@@ -387,7 +387,7 @@ export const providerEvaluationsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -411,7 +411,7 @@ export const providerEvaluationsRouter = router({
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input: _input }) => {
       try {
         const where: any = {
           providerId: input.providerId,
@@ -433,7 +433,7 @@ export const providerEvaluationsRouter = router({
         }
 
         const [reviews, totalCount] = await Promise.all([
-          ctx.db.serviceReview.findMany({
+          _ctx.db.serviceReview.findMany({
             where,
             include: {
               client: {
@@ -510,7 +510,7 @@ export const providerEvaluationsRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des évaluations",
@@ -523,8 +523,8 @@ export const providerEvaluationsRouter = router({
    */
   getEvaluationAnalysis: protectedProcedure
     .input(evaluationAnalysisSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "PROVIDER") {
         throw new TRPCError({
@@ -564,7 +564,7 @@ export const providerEvaluationsRouter = router({
           responseRate,
         ] = await Promise.all([
           // Reviews de la période
-          ctx.db.serviceReview.findMany({
+          _ctx.db.serviceReview.findMany({
             where: {
               ...baseWhere,
               createdAt: { gte: startDate, lte: endDate },
@@ -654,7 +654,7 @@ export const providerEvaluationsRouter = router({
         ]);
 
         // Comparaison avec période précédente si demandée
-        let comparison = null;
+        const comparison = null;
         if (input.compareWithPrevious) {
           const previousStats = await ctx.db.serviceReview.aggregate({
             where: {
@@ -746,7 +746,7 @@ export const providerEvaluationsRouter = router({
             ),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -765,8 +765,8 @@ export const providerEvaluationsRouter = router({
         helpful: z.boolean(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       try {
         // Vérifier que l'utilisateur n'a pas déjà marqué cet avis
@@ -807,7 +807,7 @@ export const providerEvaluationsRouter = router({
           success: true,
           message: "Vote enregistré avec succès",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

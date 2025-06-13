@@ -202,7 +202,7 @@ export const AnnouncementService = {
           hasMore: offset + announcements.length < totalCount,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des annonces:", error);
       throw new Error("Erreur lors de la récupération des annonces");
     }
@@ -274,7 +274,7 @@ export const AnnouncementService = {
       } as unknown as Announcement;
 
       return formattedAnnouncement;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération de l'annonce:", error);
       throw new Error("Erreur lors de la récupération de l'annonce");
     }
@@ -374,7 +374,7 @@ export const AnnouncementService = {
       );
 
       return announcement;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la création de l'annonce:", error);
       throw new Error("Erreur lors de la création de l'annonce");
     }
@@ -408,7 +408,7 @@ export const AnnouncementService = {
       }
 
       // Exclure l'ID de l'objet de mise à jour
-      const { id: idToIgnore, ...updateData } = data;
+      const { id: _idToIgnore, ...updateData } = data;
 
       // Mettre à jour l'annonce
       await db.announcement.update({
@@ -430,7 +430,7 @@ export const AnnouncementService = {
       );
 
       return updatedAnnouncement;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la mise à jour de l'annonce:", error);
       throw new Error("Erreur lors de la mise à jour de l'annonce");
     }
@@ -490,7 +490,7 @@ export const AnnouncementService = {
       });
 
       return { success: true, message: "Annonce supprimée avec succès" };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la suppression de l'annonce:", error);
       throw new Error("Erreur lors de la suppression de l'annonce");
     }
@@ -581,7 +581,7 @@ export const AnnouncementService = {
       );
 
       return application;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la candidature:", error);
       throw new Error("Erreur lors de la candidature");
     }
@@ -676,7 +676,7 @@ export const AnnouncementService = {
       }
 
       return updatedApplication;
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la mise à jour du statut de la candidature:",
         error,
@@ -737,7 +737,7 @@ export const AnnouncementService = {
       );
 
       return updatedAnnouncement;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la publication de l'annonce:", error);
       throw new Error("Erreur lors de la publication de l'annonce");
     }
@@ -795,7 +795,7 @@ export const AnnouncementService = {
       );
 
       return updatedAnnouncement;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la complétion de l'annonce:", error);
       throw new Error("Erreur lors de la complétion de l'annonce");
     }
@@ -805,7 +805,13 @@ export const AnnouncementService = {
    * Recherche des annonces à proximité d'un point géographique
    */
   async findNearby(params: GeoSearchParams) {
-    const { latitude, longitude, radiusKm, limit = 10, offset = 0 } = params;
+    const {
+      latitude: _latitude,
+      longitude: _longitude,
+      radiusKm: _radiusKm,
+      limit = 10,
+      offset = 0,
+    } = params;
 
     try {
       // Récupérer toutes les annonces avec coordonnées
@@ -870,7 +876,7 @@ export const AnnouncementService = {
           hasMore: offset + nearbyAnnouncements.length < totalCount,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la recherche d'annonces à proximité:",
         error,
@@ -985,7 +991,7 @@ export const AnnouncementService = {
         radiusKm: 20,
         limit: 10,
       });
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la suggestion d'annonces pour le livreur:",
         error,
@@ -1039,7 +1045,7 @@ export const AnnouncementService = {
         });
         return { isFavorite: true };
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la modification des favoris:", error);
       throw new Error("Erreur lors de la modification des favoris");
     }
@@ -1071,7 +1077,7 @@ export const AnnouncementService = {
         ...fav.announcement,
         isFavorite: true,
       }));
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des favoris:", error);
       throw new Error("Erreur lors de la récupération des favoris");
     }
@@ -1167,7 +1173,7 @@ export const AnnouncementService = {
         success: true,
         message: "Proposition acceptée avec succès",
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'acceptation de la proposition:", error);
       throw new Error("Erreur lors de l'acceptation de la proposition");
     }
@@ -1228,7 +1234,7 @@ export const AnnouncementService = {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la mise à jour des coordonnées GPS:",
         error,
@@ -1336,7 +1342,7 @@ export const AnnouncementService = {
       const scoredDeliverers = deliverers
         .map((deliverer: any) => {
           // Calculer la distance si les coordonnées du livreur sont disponibles
-          let distance = null;
+          const distance = null;
           if (deliverer.currentLatitude && deliverer.currentLongitude) {
             distance = calculateDistance(
               announcement.pickupLatitude!,
@@ -1366,7 +1372,7 @@ export const AnnouncementService = {
           const currentWorkload = deliverer.applications.length;
 
           // Calculer un score de compatibilité global (0-100)
-          let compatibilityScore = 0;
+          const compatibilityScore = 0;
 
           // Score de distance (plus proche = meilleur)
           if (distance !== null) {
@@ -1480,7 +1486,7 @@ export const AnnouncementService = {
             ) / finalResults.length,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la recherche de livreurs compatibles:",
         error,
@@ -1575,7 +1581,7 @@ export const AnnouncementService = {
           distance: d.distance,
         })),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la notification des livreurs:", error);
       throw new Error("Erreur lors de la notification des livreurs");
     }
@@ -1595,7 +1601,7 @@ export const AnnouncementService = {
   }) {
     try {
       // Calculer la distance si les coordonnées sont fournies
-      let distance = 0;
+      const distance = 0;
       if (
         announcementData.pickupLatitude &&
         announcementData.pickupLongitude &&
@@ -1682,7 +1688,7 @@ export const AnnouncementService = {
       ];
 
       // Ajustements selon la distance
-      let distanceAdjustment = 1;
+      const distanceAdjustment = 1;
       if (distance > 0) {
         const avgDistance =
           similarAnnouncements
@@ -1696,7 +1702,7 @@ export const AnnouncementService = {
       }
 
       // Ajustements selon le poids
-      let weightAdjustment = 1;
+      const weightAdjustment = 1;
       if (announcementData.weight) {
         const avgWeight =
           similarAnnouncements
@@ -1756,7 +1762,7 @@ export const AnnouncementService = {
           priorityMultiplier,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du calcul du prix optimal:", error);
       throw new Error("Erreur lors du calcul du prix optimal");
     }
@@ -1772,7 +1778,12 @@ export const AnnouncementService = {
     radiusKm?: number;
   }) {
     try {
-      const { type, latitude, longitude, radiusKm = 10 } = params;
+      const {
+        type: _type,
+        latitude: _latitude,
+        longitude: _longitude,
+        radiusKm = 10,
+      } = params;
 
       const now = new Date();
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -1788,7 +1799,7 @@ export const AnnouncementService = {
       }
 
       // Récupérer les annonces pour l'analyse
-      let announcements = await db.announcement.findMany({
+      const announcements = await db.announcement.findMany({
         where: baseFilters,
         select: {
           id: true,
@@ -1844,7 +1855,7 @@ export const AnnouncementService = {
           : "STABLE";
 
       // Analyser la compétition (nombre d'applications moyen)
-      let competitionLevel = "LOW";
+      const competitionLevel = "LOW";
       if (averageApplications > 5) competitionLevel = "HIGH";
       else if (averageApplications > 2) competitionLevel = "MEDIUM";
 
@@ -1853,7 +1864,7 @@ export const AnnouncementService = {
         .filter((ann) => ann.finalPrice)
         .map((ann) => ann.finalPrice!);
 
-      let priceAnalysis = null;
+      const priceAnalysis = null;
       if (pricesData.length > 0) {
         const avgPrice =
           pricesData.reduce((sum, price) => sum + price, 0) / pricesData.length;
@@ -1910,7 +1921,7 @@ export const AnnouncementService = {
           ].filter(Boolean),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'analyse de la demande:", error);
       throw new Error("Erreur lors de l'analyse de la demande");
     }
@@ -1990,7 +2001,7 @@ export const AnnouncementService = {
         const completedDeliveries = deliverer.assignedAnnouncements.length;
 
         // Calculer la distance si les coordonnées sont disponibles
-        let distance = null;
+        const distance = null;
         if (
           announcement.pickupLatitude &&
           announcement.pickupLongitude &&
@@ -2006,7 +2017,7 @@ export const AnnouncementService = {
         }
 
         // Calculer un score de compatibilité
-        let compatibilityScore = 70; // Score de base
+        const compatibilityScore = 70; // Score de base
 
         // Bonus pour rating élevé
         compatibilityScore += (averageRating / 5) * 20;
@@ -2067,7 +2078,7 @@ export const AnnouncementService = {
         rejected: enrichedProposals.filter((p) => p.status === "REJECTED")
           .length,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la récupération des propositions:", error);
       throw error;
     }
@@ -2182,7 +2193,7 @@ export const AnnouncementService = {
       });
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'acceptation de la proposition:", error);
       throw error;
     }
@@ -2247,7 +2258,7 @@ export const AnnouncementService = {
       });
 
       return rejectedProposal;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du rejet de la proposition:", error);
       throw error;
     }
@@ -2302,7 +2313,7 @@ export const AnnouncementService = {
       });
 
       return { proposalsSummary: summary };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération du résumé des propositions:",
         error,
@@ -2409,7 +2420,7 @@ export const AnnouncementService = {
           Math.round(averageProposalsPerAnnouncement * 10) / 10,
         satisfactionScore: 0, // TODO: Implémenter système de satisfaction
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         "Erreur lors de la récupération des statistiques client:",
         error,

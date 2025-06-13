@@ -66,24 +66,29 @@ export function AddressMapPicker({
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Utiliser une API réelle de géocodage
-  const searchAddressesWithAPI = async (query: string): Promise<AddressSuggestion[]> => {
+  const searchAddressesWithAPI = async (
+    query: string,
+  ): Promise<AddressSuggestion[]> => {
     try {
       // TODO: Intégrer avec une API réelle de géocodage (Nominatim, Google Maps, etc.)
       // Exemple avec Nominatim (OpenStreetMap)
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=fr&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=fr&limit=5`,
       );
       const data = await response.json();
-      
+
       return data.map((item: any, index: number) => ({
         id: index.toString(),
-        label: item.display_name.split(',')[0],
+        label: item.display_name.split(",")[0],
         address: item.display_name,
         coordinates: { lat: parseFloat(item.lat), lng: parseFloat(item.lon) },
-        type: item.type === 'house' || item.type === 'residential' ? 'address' : 'poi',
+        type:
+          item.type === "house" || item.type === "residential"
+            ? "address"
+            : "poi",
       }));
     } catch (error) {
-      console.error('Erreur lors de la recherche d\'adresses:', error);
+      console.error("Erreur lors de la recherche d'adresses:", error);
       return [];
     }
   };

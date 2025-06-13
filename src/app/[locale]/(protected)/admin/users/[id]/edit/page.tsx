@@ -70,44 +70,12 @@ export default function UserEditPage() {
   const [activeTab, setActiveTab] = useState("general");
   const { toast } = useToast();
 
-  // API pour récupérer les détails complets de l'utilisateur
+  // API réelle pour récupérer les détails utilisateur
   const {
-    data: usersData,
+    data: user,
     isLoading,
     error,
-  } = api.adminUser.getUsers.useQuery({
-    page: 1,
-    limit: 50, // Récupérer plus d'utilisateurs pour être sûr de trouver le bon
-  });
-
-  // DEBUG: Afficher les données reçues
-  console.log("🔍 DEBUG EDIT - usersData:", usersData);
-  console.log("🔍 DEBUG EDIT - userId cherché:", userId);
-  console.log(
-    "🔍 DEBUG EDIT - usersData?.json?.users:",
-    usersData?.json?.users,
-  );
-
-  // Trouver l'utilisateur avec l'ID correct dans la liste (les données sont dans json.users)
-  const foundUser = usersData?.json?.users?.find((u: any) => u.id === userId);
-  console.log("🔍 DEBUG EDIT - user trouvé:", foundUser);
-
-  // Si l'utilisateur n'est pas trouvé, créer des données par défaut
-  const user = foundUser
-    ? {
-        id: foundUser.id,
-        name: foundUser.name || "Nom non défini",
-        email: foundUser.email,
-        role: foundUser.role,
-        status: foundUser.status,
-        phoneNumber: foundUser.phoneNumber || "",
-        createdAt: foundUser.createdAt,
-        updatedAt: foundUser.createdAt, // Utiliser createdAt comme updatedAt
-      }
-    : null;
-
-  // API réelle pour récupérer les détails utilisateur
-  const { data: user, isLoading, error } = api.admin.users.getUserDetail.useQuery({
+  } = api.admin.users.getUserDetail.useQuery({
     userId,
     includeDocuments: true,
     includeVerificationHistory: true,
@@ -125,22 +93,25 @@ export default function UserEditPage() {
     console.error("❌ Erreur getUserDetail:", error);
   }
 
-  const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation({
-    onSuccess: () => {
-      toast({
-        title: "Statut mis à jour",
-        description: "Le statut de l'utilisateur a été mis à jour avec succès.",
-      });
+  const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation(
+    {
+      onSuccess: () => {
+        toast({
+          title: "Statut mis à jour",
+          description:
+            "Le statut de l'utilisateur a été mis à jour avec succès.",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Erreur",
+          description:
+            "Erreur lors de la mise à jour du statut: " + error.message,
+          variant: "destructive",
+        });
+      },
     },
-    onError: (error) => {
-      toast({
-        title: "Erreur",
-        description:
-          "Erreur lors de la mise à jour du statut: " + error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  );
 
   const updateUserRoleMutation = api.admin.users.updateUserRole.useMutation({
     onSuccess: () => {

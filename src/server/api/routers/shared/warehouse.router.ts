@@ -23,7 +23,7 @@ export const warehouseRouter = router({
   // Récupération des détails d'un entrepôt spécifique
   getWarehouseDetails: protectedProcedure
     .input(z.object({ warehouseId: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return warehouseService.getWarehouseDetails(input.warehouseId);
     }),
 
@@ -37,7 +37,7 @@ export const warehouseRouter = router({
         availableOnly: z.boolean().optional().default(true),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return warehouseService.getWarehouseBoxes(input);
     }),
 
@@ -51,14 +51,14 @@ export const warehouseRouter = router({
         maxResults: z.number().optional().default(10),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return warehouseService.searchNearbyWarehouses(input);
     }),
 
   // Obtenir les statistiques d'un entrepôt
   getWarehouseStats: protectedProcedure
     .input(z.object({ warehouseId: z.string() }))
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input, _ctx }) => {
       // Vérification des droits admin pour certaines stats
       const isAdmin = ctx.session.user.role === "ADMIN";
       return warehouseService.getWarehouseStats(input.warehouseId, isAdmin);
@@ -84,7 +84,7 @@ export const warehouseRouter = router({
         minSize: z.number().optional(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return warehouseService.getAvailabilitySlots(input);
     }),
 
@@ -98,26 +98,26 @@ export const warehouseRouter = router({
         notes: z.string().optional(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, _ctx }) => {
       // Redirection vers le service de stockage pour la réservation
-      const { storageService } = await import(
+      const { _storageService: __storageService } = await import(
         "@/server/services/storage.service"
       );
-      return storageService.createBoxReservation(input, ctx.session.user.id);
+      return storageService.createBoxReservation(input, _ctx.session.user.id);
     }),
 
   // Libération d'une box (admin seulement)
   releaseBox: protectedProcedure
     .input(z.object({ boxId: z.string(), reason: z.string().optional() }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, _ctx }) => {
       // Vérification des droits admin
-      if (ctx.session.user.role !== "ADMIN") {
+      if (_ctx.session.user.role !== "ADMIN") {
         throw new Error("Accès non autorisé");
       }
       return warehouseService.releaseBox(
         input.boxId,
         input.reason,
-        ctx.session.user.id,
+        _ctx.session.user.id,
       );
     }),
 
@@ -138,14 +138,14 @@ export const warehouseRouter = router({
         priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      return warehouseService.reportIssue(input, ctx.session.user.id);
+    .mutation(async ({ input, _ctx }) => {
+      return warehouseService.reportIssue(input, _ctx.session.user.id);
     }),
 
   // Obtenir les horaires d'accès pour un entrepôt
   getAccessHours: protectedProcedure
     .input(z.object({ warehouseId: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return warehouseService.getAccessHours(input.warehouseId);
     }),
 
@@ -158,7 +158,7 @@ export const warehouseRouter = router({
         endDate: z.coerce.date(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input: _input }) => {
       return warehouseService.checkCapacity(input);
     }),
 });

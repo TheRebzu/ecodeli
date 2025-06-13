@@ -98,7 +98,7 @@ export function useWalletBalance(options: UseWalletBalanceOptions = {}) {
     isLoading,
     error,
     refetch,
-  } = trpc.wallet.getBalance.useQuery(undefined, {
+  } = api.wallet.getBalance.useQuery(undefined, {
     enabled: initialFetch,
     refetchInterval: refreshInterval > 0 ? refreshInterval : undefined,
   });
@@ -108,7 +108,7 @@ export function useWalletBalance(options: UseWalletBalanceOptions = {}) {
     data: statsData,
     isLoading: isLoadingStats,
     refetch: refetchStats,
-  } = trpc.wallet.getWalletStats.useQuery(undefined, {
+  } = api.wallet.getWalletStats.useQuery(undefined, {
     enabled: initialFetch,
     refetchInterval: refreshInterval > 0 ? refreshInterval : undefined,
   });
@@ -183,7 +183,7 @@ export function useWalletTransactions(
 
   // Requête pour récupérer les transactions
   const { data, isLoading, error, refetch } =
-    trpc.wallet.getTransactionHistory.useQuery(
+    api.wallet.getTransactionHistory.useQuery(
       {
         page: currentPage,
         limit: currentLimit,
@@ -261,7 +261,7 @@ export function useWalletTransactions(
    */
   const exportTransactions = useCallback(async () => {
     try {
-      const exportMutation = trpc.wallet.exportTransactions.useMutation();
+      const exportMutation = api.wallet.exportTransactions.useMutation();
       const result = await exportMutation.mutateAsync({
         format: "CSV",
         filters: {
@@ -346,7 +346,7 @@ export function useWithdrawalRequest(
     data: withdrawalsData,
     isLoading: isLoadingWithdrawals,
     refetch: refetchWithdrawals,
-  } = trpc.wallet.getWithdrawals.useQuery(
+  } = api.wallet.getWithdrawals.useQuery(
     { page: 1, limit: 10 },
     {
       enabled: true,
@@ -358,12 +358,12 @@ export function useWithdrawalRequest(
     data: bankAccountStatus,
     isLoading: isCheckingBankAccount,
     refetch: refetchBankAccountStatus,
-  } = trpc.wallet.checkBankAccountStatus.useQuery(undefined, {
+  } = api.wallet.checkBankAccountStatus.useQuery(undefined, {
     enabled: true,
   });
 
   // Mutation pour créer une demande de retrait
-  const withdrawalMutation = trpc.wallet.createWithdrawalRequest.useMutation({
+  const withdrawalMutation = api.wallet.createWithdrawalRequest.useMutation({
     onSuccess: (data) => {
       toast({
         title: "Demande de retrait soumise",
@@ -397,7 +397,7 @@ export function useWithdrawalRequest(
   });
 
   // Mutation pour annuler une demande de retrait
-  const cancelWithdrawalMutation = trpc.wallet.cancelWithdrawal.useMutation({
+  const cancelWithdrawalMutation = api.wallet.cancelWithdrawal.useMutation({
     onSuccess: (data) => {
       toast({
         title: "Retrait annulé",
@@ -657,25 +657,25 @@ export function useWallet(options: UseWalletOptions = {}) {
   );
 
   // Requêtes tRPC
-  const walletQuery = trpc.wallet.getWallet.useQuery(undefined, {
+  const walletQuery = api.wallet.getWallet.useQuery(undefined, {
     enabled: false,
   });
-  const balanceQuery = trpc.wallet.getBalance.useQuery(undefined, {
+  const balanceQuery = api.wallet.getBalance.useQuery(undefined, {
     enabled: false,
   });
-  const transactionHistoryQuery = trpc.wallet.getTransactionHistory.useQuery(
+  const transactionHistoryQuery = api.wallet.getTransactionHistory.useQuery(
     { page: 1, limit: 10 },
     { enabled: false },
   );
-  const walletStatsQuery = trpc.wallet.getWalletStats.useQuery(undefined, {
+  const walletStatsQuery = api.wallet.getWalletStats.useQuery(undefined, {
     enabled: false,
   });
   const createConnectAccountMutation =
-    trpc.wallet.createConnectAccount.useMutation();
+    api.wallet.createConnectAccount.useMutation();
   const generateOnboardingLinkMutation =
-    trpc.wallet.generateOnboardingLink.useMutation();
+    api.wallet.generateOnboardingLink.useMutation();
   const checkConnectAccountStatusQuery =
-    trpc.wallet.checkConnectAccountStatus.useQuery(undefined, {
+    api.wallet.checkConnectAccountStatus.useQuery(undefined, {
       enabled: false,
     });
 

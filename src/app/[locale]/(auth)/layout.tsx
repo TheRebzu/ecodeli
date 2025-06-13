@@ -14,7 +14,7 @@ type Props = {
 export default async function AuthLayout({ children, params }: Props) {
   const { locale } = await params;
   const session = await getServerAuthSession();
-  
+
   // Si l'utilisateur est déjà connecté, rediriger vers le dashboard
   if (session?.user) {
     redirect(`/${locale}/dashboard`);

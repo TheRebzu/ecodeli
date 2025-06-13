@@ -72,7 +72,7 @@ export const DeliveryService = {
             : 0,
         timeRange: { startDate, endDate },
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur dans getStats:", error);
       throw error;
     }
@@ -594,7 +594,7 @@ export const DeliveryService = {
     }
 
     // Créer une application fictive pour les documents du profil
-    let application = await db.deliveryApplication.findFirst({
+    const application = await db.deliveryApplication.findFirst({
       where: { delivererId, announcementId: "profile-documents" },
     });
 
@@ -1154,11 +1154,11 @@ export const DeliveryService = {
       return null;
     }
 
-    let totalScore = 0;
-    let distanceScore = 0;
-    let ratingScore = 0;
-    let availabilityScore = 0;
-    let preferenceScore = 0;
+    const totalScore = 0;
+    const distanceScore = 0;
+    const ratingScore = 0;
+    const availabilityScore = 0;
+    const preferenceScore = 0;
 
     // 1. Score de distance (30%)
     const distance = await this.calculateDistance(
@@ -1848,7 +1848,7 @@ export const DeliveryService = {
    * Calcule la priorité d'une suggestion de route
    */
   calculateSuggestionPriority(pattern: any): number {
-    let priority = 0;
+    const priority = 0;
 
     // Fréquence (40%)
     priority += pattern.frequency * 10 * 0.4;
@@ -1953,7 +1953,7 @@ export const DeliveryService = {
   analyzeProfitableTimeSlots(stats: any[]): Record<number, any> {
     const dayAnalysis: Record<number, any> = {};
 
-    for (let day = 0; day < 7; day++) {
+    for (const day = 0; day < 7; day++) {
       const dayStats = stats.filter((s) => s.dayOfWeek === day);
 
       if (dayStats.length > 0) {
@@ -1990,7 +1990,7 @@ export const DeliveryService = {
    * Calcule la projection hebdomadaire des gains
    */
   calculateWeeklyProjection(schedule: any[], recentStats: any[]): number {
-    let weeklyProjection = 0;
+    const weeklyProjection = 0;
 
     for (const daySchedule of schedule) {
       if (daySchedule.isAvailable) {
@@ -2064,7 +2064,7 @@ export const DeliveryService = {
       });
 
       return deliveries;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur getActiveDeliveries:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

@@ -18,7 +18,7 @@ import {
   Eye,
 } from "lucide-react";
 import DocumentUploadForm from "@/components/shared/documents/document-upload-form";
-import DocumentPreview from "@/components/shared/documents/document-preview";
+import { DocumentPreview } from "@/components/shared/documents/document-preview";
 
 const REQUIRED_DOCUMENTS = [
   { type: "IDENTITY", label: "Pièce d'identité", required: true },
@@ -127,12 +127,20 @@ export default function DelivererDocumentManager() {
     if (data.expiryDate) formData.append("expiryDate", data.expiryDate);
     if (data.notes) formData.append("notes", data.notes);
 
-    // Pour la simulation, on crée une URL temporaire
-    const simulatedUrl = URL.createObjectURL(data.file);
+    const newDocument: Document = {
+      id: `temp-${Date.now()}`,
+      name: data.file.name,
+      type: data.type,
+      status: "UPLOADING",
+      uploadedAt: new Date(),
+      documentUrl: "", // URL sera mise à jour après l'upload réel
+      size: data.file.size,
+      mimeType: data.file.type,
+    };
 
     await uploadMutation.mutateAsync({
       documentType,
-      documentUrl: simulatedUrl,
+      documentUrl: newDocument.documentUrl,
       mimeType: data.file.type,
       fileSize: data.file.size,
       expiryDate: data.expiryDate,

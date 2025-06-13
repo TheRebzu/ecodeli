@@ -194,7 +194,7 @@ export const invoiceService = {
         data: { pdfUrl },
         include: { items: true },
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la génération du PDF de facture:", error);
       return invoice;
     }
@@ -258,7 +258,7 @@ export const invoiceService = {
 
       // Retourner l'URL relative du fichier
       return `/uploads/invoices/${filename}`;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du stockage du PDF:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -288,7 +288,7 @@ export const invoiceService = {
 
       // Retourner l'URL relative du fichier
       return `/uploads/invoices/${filename}`;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du stockage du PDF:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -581,7 +581,7 @@ export const invoiceService = {
       });
 
       return `/uploads/invoices/${filename}`;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors du stockage du PDF:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -680,7 +680,7 @@ export const invoiceService = {
               await this._sendInvoiceEmail(invoice.id, user.email);
             }
           }
-        } catch (error) {
+        } catch (_error) {
           console.error(`Erreur génération facture pour ${user.id}:`, error);
           results.errors.push(
             `${user.name}: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
@@ -703,7 +703,7 @@ export const invoiceService = {
       });
 
       return results;
-    } catch (error) {
+    } catch (_error) {
       // Marquer la tâche comme échouée
       await db.financialTask.update({
         where: { id: batchTask.id },
@@ -789,7 +789,7 @@ export const invoiceService = {
     const timeSeriesData = await this._getInvoiceTimeSeries(baseWhere, groupBy);
 
     // Projections (si demandées)
-    let projections = null;
+    const projections = null;
     if (includeProjections) {
       projections = await this._calculateInvoiceProjections(
         globalStats,
@@ -831,16 +831,11 @@ export const invoiceService = {
     options: {
       month?: Date;
       userType?: "MERCHANT" | "PROVIDER" | "DELIVERER";
-      simulateOnly?: boolean;
+      dryRun?: boolean;
       adminId?: string;
     } = {},
   ) {
-    const {
-      month = new Date(),
-      userType,
-      simulateOnly = false,
-      adminId,
-    } = options;
+    const { month = new Date(), userType, dryRun = false, adminId } = options;
 
     // Définir la période de facturation (mois précédent par défaut)
     const billingMonth = subMonths(month, 1);
@@ -850,7 +845,7 @@ export const invoiceService = {
     const periodLabel = format(periodStart, "MMMM yyyy", { locale: fr });
 
     // Log d'audit pour tracer l'opération
-    if (!simulateOnly && adminId) {
+    if (!dryRun && adminId) {
       await db.auditLog.create({
         data: {
           entityType: "INVOICE",
@@ -870,7 +865,7 @@ export const invoiceService = {
         periodStart,
         periodEnd,
         periodLabel,
-        simulateOnly,
+        dryRun,
       );
     }
 
@@ -880,7 +875,7 @@ export const invoiceService = {
         periodStart,
         periodEnd,
         periodLabel,
-        simulateOnly,
+        dryRun,
       );
     }
 
@@ -890,12 +885,12 @@ export const invoiceService = {
         periodStart,
         periodEnd,
         periodLabel,
-        simulateOnly,
+        dryRun,
       );
     }
 
-    // En mode simulation, calculer les estimations réelles
-    if (simulateOnly) {
+    // En mode prévisualisation (dry run), calculer les estimations réelles
+    if (dryRun) {
       const estimatedMerchants = await this._estimateMerchantInvoices(
         periodStart,
         periodEnd,
@@ -1155,9 +1150,9 @@ export const invoiceService = {
     periodStart: Date,
     periodEnd: Date,
     periodLabel: string,
-    simulateOnly: boolean,
+    dryRun: boolean,
   ) {
-    if (simulateOnly) return;
+    if (dryRun) return;
 
     // Cette fonction serait implémentée en production pour générer les factures mensuelles
     // des commerçants (abonnements, frais de plateforme, etc.)
@@ -1207,9 +1202,9 @@ export const invoiceService = {
     periodStart: Date,
     periodEnd: Date,
     periodLabel: string,
-    simulateOnly: boolean,
+    dryRun: boolean,
   ) {
-    if (simulateOnly) return;
+    if (dryRun) return;
 
     // Cette fonction serait implémentée en production pour générer les factures de commission
     // pour les prestataires
@@ -1251,9 +1246,9 @@ export const invoiceService = {
     periodStart: Date,
     periodEnd: Date,
     periodLabel: string,
-    simulateOnly: boolean,
+    dryRun: boolean,
   ) {
-    if (simulateOnly) return;
+    if (dryRun) return;
 
     // Cette fonction serait implémentée en production pour générer les factures de commission
     // pour les livreurs
@@ -1527,7 +1522,7 @@ export const invoiceService = {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de l'envoi de la facture par email:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

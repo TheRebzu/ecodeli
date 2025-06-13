@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { VerificationStatus, DocumentType, UserRole } from "@prisma/client";
+import { VerificationStatus, DocumentType } from "@prisma/client";
 
 /**
  * Router pour la gestion des v�rifications administratives
@@ -62,8 +62,8 @@ export const adminVerificationRouter = router({
    */
   getPendingVerifications: protectedProcedure
     .input(verificationFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -104,7 +104,7 @@ export const adminVerificationRouter = router({
         orderBy[input.sortBy] = input.sortOrder;
 
         const [verifications, totalCount] = await Promise.all([
-          ctx.db.verification.findMany({
+          _ctx.db.verification.findMany({
             where,
             include: {
               user: {
@@ -169,7 +169,7 @@ export const adminVerificationRouter = router({
             hasMore: input.offset + input.limit < totalCount,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -183,8 +183,8 @@ export const adminVerificationRouter = router({
    */
   getVerificationDetails: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -239,7 +239,7 @@ export const adminVerificationRouter = router({
         }
 
         // Informations suppl�mentaires selon le r�le
-        let roleSpecificData = {};
+        const roleSpecificData = {};
         switch (verification.user.role) {
           case "DELIVERER":
             if (verification.user.deliverer) {
@@ -279,10 +279,10 @@ export const adminVerificationRouter = router({
               verification.documents,
             ),
             recommendedAction: getRecommendedAction(verification),
-            similarCases: await findSimilarVerifications(ctx.db, verification),
+            similarCases: await findSimilarVerifications(_ctx.db, verification),
           },
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -296,8 +296,8 @@ export const adminVerificationRouter = router({
    */
   processVerification: protectedProcedure
     .input(processVerificationSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -395,7 +395,7 @@ export const adminVerificationRouter = router({
               ? "V�rification approuv�e avec succ�s"
               : "V�rification rejet�e",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -409,8 +409,8 @@ export const adminVerificationRouter = router({
    */
   bulkProcessVerifications: protectedProcedure
     .input(bulkVerificationSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -466,7 +466,7 @@ export const adminVerificationRouter = router({
           await Promise.all(
             verifications.map((verification) =>
               updateUserVerificationStatus(
-                ctx.db,
+                _ctx.db,
                 verification.user.id,
                 verification.user.role,
                 true,
@@ -483,7 +483,7 @@ export const adminVerificationRouter = router({
           },
           message: `${results.length} v�rification(s) trait�e(s) avec succ�s`,
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -497,8 +497,8 @@ export const adminVerificationRouter = router({
    */
   getVerificationStats: protectedProcedure
     .input(verificationStatsSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .query(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -508,7 +508,8 @@ export const adminVerificationRouter = router({
       }
 
       try {
-        const { startDate, endDate } = calculatePeriodDates(input.period);
+        const { startDate: _startDate, endDate: _endDate } =
+          calculatePeriodDates(input.period);
 
         const baseWhere = {
           ...(input.userRole && {
@@ -528,7 +529,7 @@ export const adminVerificationRouter = router({
           urgentVerifications,
         ] = await Promise.all([
           // Total des v�rifications
-          ctx.db.verification.count({
+          _ctx.db.verification.count({
             where: baseWhere,
           }),
 
@@ -648,13 +649,13 @@ export const adminVerificationRouter = router({
             timeline: timeline,
             averageProcessingTime: 0, // TODO: Calculer correctement
             alerts: {
-              oldestPending: await getOldestPendingVerification(ctx.db),
+              oldestPending: await getOldestPendingVerification(_ctx.db),
               highPriorityCount: urgentVerifications,
               backlogSize: pendingVerifications,
             },
           },
         };
-      } catch (error) {
+      } catch (_error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la r�cup�ration des statistiques",
@@ -674,8 +675,8 @@ export const adminVerificationRouter = router({
         deadline: z.date().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+    .mutation(async ({ _ctx, input: _input }) => {
+      const { _user: __user } = ctx.session;
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({
@@ -737,7 +738,7 @@ export const adminVerificationRouter = router({
           data: request,
           message: "Demande de documents envoy�e � l'utilisateur",
         };
-      } catch (error) {
+      } catch (_error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

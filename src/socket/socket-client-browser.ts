@@ -69,7 +69,7 @@ export const initializeSocket = (token: string): Socket => {
     });
 
     return socket;
-  } catch (error) {
+  } catch (_error) {
     console.error("Erreur lors de la création du socket:", error);
     throw new Error("Impossible de créer la connexion socket");
   }
@@ -90,7 +90,7 @@ export const closeSocket = (): void => {
       socket.disconnect();
       socket.removeAllListeners();
       socket = null;
-    } catch (error) {
+    } catch (_error) {
       console.error("Erreur lors de la fermeture du socket:", error);
     }
   }
