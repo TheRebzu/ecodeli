@@ -23,8 +23,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   BarChart,
-  Bar,
-} from "recharts";
+  Bar} from "recharts";
 
 // Icons
 import {
@@ -49,8 +48,7 @@ import {
   Users,
   MapPin,
   FileText,
-  Sparkles,
-} from "lucide-react";
+  Sparkles} from "lucide-react";
 
 // Types
 interface MerchantStats {
@@ -108,8 +106,7 @@ const StatCard = ({
   isLoading = false,
   onClick,
   color = "text-primary",
-  bgColor = "bg-primary/10",
-}: {
+  bgColor = "bg-primary/10"}: {
   title: string;
   value: string | number;
   icon: React.ReactNode;
@@ -191,8 +188,7 @@ const StatCard = ({
 // Composant de commande récente
 const OrderCard = ({
   order,
-  onView,
-}: {
+  onView}: {
   order: Order;
   onView: (id: string) => void;
 }) => {
@@ -219,8 +215,7 @@ const OrderCard = ({
       CONFIRMED: "Confirmée",
       PREPARING: "En préparation",
       READY: "Prête",
-      DELIVERED: "Livrée",
-    };
+      DELIVERED: "Livrée"};
     return labels[status] || status;
   };
 
@@ -266,7 +261,7 @@ const OrderCard = ({
 };
 
 // Composant d'alerte stock
-const StockAlertCard = ({ alert }: { alert: StockAlert }) => {
+const StockAlertCard = ({ alert }: { alert }) => {
   const urgencyLevel =
     alert.currentStock <= alert.minimumStock * 0.5 ? "critical" : "warning";
 
@@ -328,30 +323,25 @@ const QuickActionsSection = () => {
       label: "Nouvelle commande",
       description: "Créer une commande manuelle",
       action: () => router.push("/merchant/orders/create"),
-      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50",
-    },
+      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50"},
     {
       icon: <Monitor className="h-5 w-5" />,
       label: "Terminal chariot",
       description: "Lâcher chariot caisse",
       action: () => router.push("/merchant/cart-drop/terminal"),
-      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50",
-    },
+      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50"},
     {
       icon: <Package className="h-5 w-5" />,
       label: "Gérer catalogue",
       description: "Produits et stock",
       action: () => router.push("/merchant/catalog"),
-      color: "text-green-600 bg-green-100 dark:bg-green-900/50",
-    },
+      color: "text-green-600 bg-green-100 dark:bg-green-900/50"},
     {
       icon: <BarChart3 className="h-5 w-5" />,
       label: "Voir analytics",
       description: "Statistiques ventes",
       action: () => router.push("/merchant/stats"),
-      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50",
-    },
-  ];
+      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50"}];
 
   return (
     <Card>
@@ -398,20 +388,15 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
   const {
     data: stats,
     isLoading: isLoadingStats,
-    refetch: refetchStats,
-  } = api.merchant.dashboard.getDashboardStats.useQuery();
+    refetch: refetchStats} = api.merchant.dashboard.getDashboardStats.useQuery();
 
   const { data: recentOrders, isLoading: isLoadingOrders } =
-    api.merchant.dashboard.getRecentOrders.useQuery({
-      limit: 5,
-    });
+    api.merchant.dashboard.getRecentOrders.useQuery({ limit: 5 });
 
-  const { data: stockAlerts } =
+  const { data } =
     api.merchant.dashboard.getStockAlerts.useQuery();
 
-  const { data: salesChart } = api.merchant.dashboard.getSalesChart.useQuery({
-    period: "week",
-  });
+  const { data } = api.merchant.dashboard.getSalesChart.useQuery({ period: "week" });
 
   // Socket.io pour les mises à jour temps réel
   useEffect(() => {
@@ -668,7 +653,7 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
                         className="w-full mt-3"
                         onClick={() => router.push("/merchant/catalog")}
                       >
-                        Voir toutes les alertes ({stockAlerts.length})
+                        Voir toutes les alertes ({ stockAlerts.length })
                       </Button>
                     )}
                   </CardContent>

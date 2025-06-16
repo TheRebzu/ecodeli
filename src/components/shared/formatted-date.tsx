@@ -15,8 +15,7 @@ export function FormattedDate({
   date,
   format = "medium",
   relative = false,
-  className = "",
-}: FormattedDateProps) {
+  className = ""}: FormattedDateProps) {
   const { formatLocalizedDate, formatLocalizedRelativeDate } =
     useLocalizedFormat();
 

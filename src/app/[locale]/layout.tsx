@@ -8,7 +8,7 @@ import { ThemeInitializer } from "@/components/providers/theme-initializer";
 
 interface LayoutProps {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
 }
 
 export default async function LocaleLayout({ children, params }: LayoutProps) {
@@ -36,5 +36,5 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
 }
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return routing.locales.map((locale) => ({ locale  }));
 }

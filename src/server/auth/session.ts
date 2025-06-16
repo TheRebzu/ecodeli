@@ -19,10 +19,7 @@ export async function verifyToken(token: string) {
       const sessionToken = token.replace("nextauth:", "");
       const session = await db.session.findUnique({
         where: { sessionToken },
-        include: {
-          user: true,
-        },
-      });
+        include: { user }});
 
       if (!session || new Date(session.expires) < new Date()) {
         return null;
@@ -32,15 +29,13 @@ export async function verifyToken(token: string) {
         user: {
           id: session.user.id,
           role: session.user.role,
-          email: session.user.email,
-        },
-      };
+          email: session.user.email}};
     }
 
     // Sinon, on pourrait appeler le service de token
     // Mais pour l'instant, on refuse les autres types de tokens
     return null;
-  } catch (_error) {
+  } catch (error) {
     console.error("Erreur lors de la vérification du token socket:", error);
     return null;
   }

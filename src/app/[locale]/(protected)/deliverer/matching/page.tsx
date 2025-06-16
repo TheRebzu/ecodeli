@@ -8,8 +8,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +25,7 @@ import {
   Filter,
   CheckCircle,
   X,
-  MessageCircle,
-} from "lucide-react";
+  MessageCircle} from "lucide-react";
 import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 import { toast } from "sonner";
 import { AnnouncementMatchingDisplay } from "@/components/shared/announcements/announcement-matching-display";
@@ -102,11 +100,8 @@ export default function DelivererMatchingPage() {
   const {
     data: matchingData,
     isLoading,
-    error,
-  } = api.matching.getDelivererMatches.useQuery({
-    minCompatibility,
-    maxDistance,
-  });
+    error} = api.matching.getDelivererMatches.useQuery({ minCompatibility,
+    maxDistance });
 
   const matches = matchingData?.matches || [];
 
@@ -131,7 +126,7 @@ export default function DelivererMatchingPage() {
   const handleApply = async (matchId: string) => {
     try {
       // Utiliser l'API tRPC pour postuler
-      await api.matching.applyToMatch.mutate({ matchId });
+      await api.matching.applyToMatch.mutate({ matchId  });
       toast.success("Candidature envoyée avec succès");
     } catch (error) {
       toast.error("Erreur lors de l'envoi de la candidature");
@@ -141,7 +136,7 @@ export default function DelivererMatchingPage() {
   const handleReject = async (matchId: string) => {
     try {
       // Utiliser l'API tRPC pour rejeter
-      await api.matching.rejectMatch.mutate({ matchId });
+      await api.matching.rejectMatch.mutate({ matchId  });
       toast.success("Match rejeté");
     } catch (error) {
       toast.error("Erreur lors du rejet");

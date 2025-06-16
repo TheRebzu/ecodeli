@@ -7,8 +7,7 @@ import {
   type ClientProfile,
   type DelivererProfile,
   type MerchantProfile,
-  type ProviderProfile,
-} from "@/schemas/user/profile.schema";
+  type ProviderProfile} from "@/schemas/user/profile.schema";
 import { api } from "@/trpc/react";
 import { UserRole } from "@prisma/client";
 
@@ -20,16 +19,14 @@ export function useProfile() {
     data: profile,
     isLoading: isLoadingProfile,
     error: profileError,
-    refetch: refetchProfile,
-  } = api.profile.getMyProfile.useQuery();
+    refetch: refetchProfile} = api.profile.getMyProfile.useQuery();
 
   // Récupération du profil spécifique au rôle
   const {
     data: roleSpecificProfile,
     isLoading: isLoadingRoleProfile,
     error: roleProfileError,
-    refetch: refetchRoleProfile,
-  } = api.profile.getMyRoleSpecificProfile.useQuery();
+    refetch: refetchRoleProfile} = api.profile.getMyRoleSpecificProfile.useQuery();
 
   type RoleSpecificProfile = MerchantProfile | ProviderProfile;
 
@@ -46,8 +43,7 @@ export function useProfile() {
     },
     onError: (error) => {
       toast.error(`Erreur lors de la mise à jour du profil: ${error.message}`);
-    },
-  });
+    }});
 
   // Procédure d'ajout d'adresse (seulement pour les clients)
   const addAddressMutation = api.profile.addClientAddress.useMutation({
@@ -58,8 +54,7 @@ export function useProfile() {
     },
     onError: (error) => {
       toast.error(`Erreur lors de l'ajout de l'adresse: ${error.message}`);
-    },
-  });
+    }});
 
   // Procédure de mise à jour d'adresse (seulement pour les clients)
   const updateAddressMutation = api.profile.updateClientAddress.useMutation({
@@ -72,8 +67,7 @@ export function useProfile() {
       toast.error(
         `Erreur lors de la mise à jour de l'adresse: ${error.message}`,
       );
-    },
-  });
+    }});
 
   // Procédure de suppression d'adresse (seulement pour les clients)
   const deleteAddressMutation = api.profile.deleteClientAddress.useMutation({
@@ -86,8 +80,7 @@ export function useProfile() {
       toast.error(
         `Erreur lors de la suppression de l'adresse: ${error.message}`,
       );
-    },
-  });
+    }});
 
   // Procédure pour définir une adresse par défaut (seulement pour les clients)
   const setDefaultAddressMutation = api.profile.setDefaultAddress.useMutation({
@@ -100,8 +93,7 @@ export function useProfile() {
       toast.error(
         `Erreur lors de la définition de l'adresse par défaut: ${error.message}`,
       );
-    },
-  });
+    }});
 
   /**
    * Met à jour le profil de l'utilisateur en fonction de son rôle
@@ -112,7 +104,7 @@ export function useProfile() {
         ClientProfile | DelivererProfile | MerchantProfile | ProviderProfile
       >,
     ) => {
-      updateProfileMutation.mutate({ data });
+      updateProfileMutation.mutate({ data  });
     },
     [updateProfileMutation],
   );
@@ -161,10 +153,8 @@ export function useProfile() {
         return;
       }
 
-      updateAddressMutation.mutate({
-        addressId,
-        data: addressData,
-      });
+      updateAddressMutation.mutate({ addressId,
+        data: addressData });
     },
     [updateAddressMutation, profile],
   );
@@ -179,7 +169,7 @@ export function useProfile() {
         return;
       }
 
-      deleteAddressMutation.mutate({ addressId });
+      deleteAddressMutation.mutate({ addressId  });
     },
     [deleteAddressMutation, profile],
   );
@@ -196,7 +186,7 @@ export function useProfile() {
         return;
       }
 
-      setDefaultAddressMutation.mutate({ addressId });
+      setDefaultAddressMutation.mutate({ addressId  });
     },
     [setDefaultAddressMutation, profile],
   );
@@ -221,6 +211,5 @@ export function useProfile() {
     refreshProfile: () => {
       refetchProfile();
       refetchRoleProfile();
-    },
-  };
+    }};
 }

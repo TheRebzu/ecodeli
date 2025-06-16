@@ -14,24 +14,21 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import {
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   StarIcon,
   Plus,
   X,
   ThumbsUp,
   ThumbsDown,
-  MessageCircle,
-} from "lucide-react";
+  MessageCircle} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -62,8 +59,7 @@ export function RatingForm({
   providerName,
   onSuccess,
   showDetailedRating = true,
-  existingReview,
-}: RatingFormProps) {
+  existingReview}: RatingFormProps) {
   const t = useTranslations("services.review");
   const router = useRouter();
   const [hoverRating, setHoverRating] = useState(0);
@@ -86,21 +82,18 @@ export function RatingForm({
       punctuality: existingReview?.punctuality || 0,
       quality: existingReview?.quality || 0,
       communication: existingReview?.communication || 0,
-      valueForMoney: existingReview?.valueForMoney || 0,
-    },
-  });
+      valueForMoney: existingReview?.valueForMoney || 0}});
 
   // Récupérer les détails de la réservation pour vérifier si une évaluation existe déjà
   const bookingQuery = api.service.getBookingById.useQuery(
-    { id: bookingId },
+    { id },
     {
       onSuccess: (data) => {
         if (data.review) {
           form.setValue("rating", data.review.rating);
           form.setValue("comment", data.review.comment || "");
         }
-      },
-    },
+      }},
   );
 
   // Mutation pour créer ou mettre à jour une évaluation
@@ -115,8 +108,7 @@ export function RatingForm({
     },
     onError: (error) => {
       toast.error(error.message || t("error"));
-    },
-  });
+    }});
 
   // Mutation pour créer une évaluation détaillée
   const createDetailedReviewMutation =
@@ -131,8 +123,7 @@ export function RatingForm({
       },
       onError: (error) => {
         toast.error(error.message || t("error"));
-      },
-    });
+      }});
 
   // Ajouter/retirer un point positif
   const addPro = () => {
@@ -170,8 +161,7 @@ export function RatingForm({
   const onSubmit = (data: any) => {
     // Utiliser l'API détaillée si le mode détaillé est activé
     if (showDetailedForm) {
-      createDetailedReviewMutation.mutate({
-        bookingId: data.bookingId,
+      createDetailedReviewMutation.mutate({ bookingId: data.bookingId,
         rating: data.rating,
         comment: data.comment,
         pros: data.pros,
@@ -180,14 +170,11 @@ export function RatingForm({
         punctuality: data.punctuality,
         quality: data.quality,
         communication: data.communication,
-        valueForMoney: data.valueForMoney,
-      });
+        valueForMoney: data.valueForMoney });
     } else {
-      createReviewMutation.mutate({
-        bookingId: data.bookingId,
+      createReviewMutation.mutate({ bookingId: data.bookingId,
         rating: data.rating,
-        comment: data.comment,
-      });
+        comment: data.comment });
     }
   };
 
@@ -209,7 +196,7 @@ export function RatingForm({
             <FormField
               control={form.control}
               name="rating"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="space-y-4">
                   <FormLabel>{t("ratingLabel")}</FormLabel>
                   <FormControl>
@@ -241,7 +228,7 @@ export function RatingForm({
                   <FormField
                     control={form.control}
                     name="comment"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("commentLabel")}</FormLabel>
                         <FormControl>
@@ -259,7 +246,7 @@ export function RatingForm({
                   <FormField
                     control={form.control}
                     name="wouldRecommend"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem className="flex items-center justify-between space-y-0">
                         <FormLabel>{t("wouldRecommend")}</FormLabel>
                         <FormControl>
@@ -279,14 +266,13 @@ export function RatingForm({
                       "punctuality",
                       "quality",
                       "communication",
-                      "valueForMoney",
-                    ] as const
+                      "valueForMoney"] as const
                   ).map((criterion) => (
                     <FormField
                       key={criterion}
                       control={form.control}
                       name={criterion}
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t(`criteria.${criterion}`)}</FormLabel>
                           <FormControl>
@@ -398,7 +384,7 @@ export function RatingForm({
               <FormField
                 control={form.control}
                 name="comment"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("commentLabel")}</FormLabel>
                     <FormControl>

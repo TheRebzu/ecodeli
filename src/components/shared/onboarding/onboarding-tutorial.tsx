@@ -9,16 +9,14 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -43,8 +41,7 @@ import {
   Home,
   FileText,
   Wallet,
-  BarChart3,
-} from "lucide-react";
+  BarChart3} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 import { api } from "@/trpc/react";
 
@@ -75,10 +72,9 @@ interface OnboardingTutorialProps {
 export default function OnboardingTutorial({
   userRole,
   onComplete,
-  onSkip,
-}: OnboardingTutorialProps) {
+  onSkip}: OnboardingTutorialProps) {
   const t = useTranslations("onboarding");
-  const { data: session } = useSession();
+  const { data } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
@@ -87,7 +83,7 @@ export default function OnboardingTutorial({
   const completeTutorialMutation = api.user.completeTutorial.useMutation();
 
   // V�rifier si l'utilisateur a d�j� vu le tutorial
-  const { data: userPreferences } = api.user.getPreferences.useQuery();
+  const { data } = api.user.getPreferences.useQuery();
 
   useEffect(() => {
     // Afficher le tutorial si l'utilisateur ne l'a jamais vu
@@ -136,8 +132,7 @@ export default function OnboardingTutorial({
                   </Card>
                 </div>
               </div>
-            ),
-          },
+            )},
           {
             id: "create-announcement",
             title: t("client.announcement.title"),
@@ -184,10 +179,7 @@ export default function OnboardingTutorial({
               primary: {
                 label: t("client.announcement.createFirst"),
                 action: () =>
-                  window.open("/client/announcements/create", "_blank"),
-              },
-            },
-          },
+                  window.open("/client/announcements/create", "blank")}}},
           {
             id: "track-deliveries",
             title: t("client.tracking.title"),
@@ -219,8 +211,7 @@ export default function OnboardingTutorial({
                   </div>
                 </div>
               </div>
-            ),
-          },
+            )},
           {
             id: "payments-tips",
             title: t("client.payments.title"),
@@ -256,9 +247,7 @@ export default function OnboardingTutorial({
                   </div>
                 </div>
               </div>
-            ),
-          },
-        ];
+            )}];
 
       case "DELIVERER":
         return [
@@ -284,8 +273,7 @@ export default function OnboardingTutorial({
                   </p>
                 </div>
               </div>
-            ),
-          },
+            )},
           {
             id: "documents-verification",
             title: t("deliverer.documents.title"),
@@ -301,8 +289,7 @@ export default function OnboardingTutorial({
                     t("deliverer.documents.identity"),
                     t("deliverer.documents.license"),
                     t("deliverer.documents.insurance"),
-                    t("deliverer.documents.background"),
-                  ].map((doc, index) => (
+                    t("deliverer.documents.background")].map((doc, index) => (
                     <div
                       key={index}
                       className="flex items-center gap-2 p-2 border rounded"
@@ -317,10 +304,7 @@ export default function OnboardingTutorial({
             actions: {
               primary: {
                 label: t("deliverer.documents.upload"),
-                action: () => window.open("/deliverer/documents", "_blank"),
-              },
-            },
-          },
+                action: () => window.open("/deliverer/documents", "blank")}}},
           {
             id: "accept-deliveries",
             title: t("deliverer.deliveries.title"),
@@ -352,8 +336,7 @@ export default function OnboardingTutorial({
                   </div>
                 </div>
               </div>
-            ),
-          },
+            )},
           {
             id: "earnings-wallet",
             title: t("deliverer.wallet.title"),
@@ -377,11 +360,7 @@ export default function OnboardingTutorial({
             actions: {
               primary: {
                 label: t("deliverer.wallet.viewWallet"),
-                action: () => window.open("/deliverer/wallet", "_blank"),
-              },
-            },
-          },
-        ];
+                action: () => window.open("/deliverer/wallet", "blank")}}}];
 
       case "MERCHANT":
         return [
@@ -416,8 +395,7 @@ export default function OnboardingTutorial({
                   </Card>
                 </div>
               </div>
-            ),
-          },
+            )},
           {
             id: "catalog-management",
             title: t("merchant.catalog.title"),
@@ -453,11 +431,7 @@ export default function OnboardingTutorial({
             actions: {
               primary: {
                 label: t("merchant.catalog.createProduct"),
-                action: () => window.open("/merchant/catalog/create", "_blank"),
-              },
-            },
-          },
-        ];
+                action: () => window.open("/merchant/catalog/create", "blank")}}}];
 
       case "PROVIDER":
         return [
@@ -483,8 +457,7 @@ export default function OnboardingTutorial({
                   </p>
                 </div>
               </div>
-            ),
-          },
+            )},
           {
             id: "services-skills",
             title: t("provider.services.title"),
@@ -525,11 +498,7 @@ export default function OnboardingTutorial({
               primary: {
                 label: t("provider.services.create"),
                 action: () =>
-                  window.open("/provider/services/create", "_blank"),
-              },
-            },
-          },
-        ];
+                  window.open("/provider/services/create", "blank")}}}];
 
       default:
         return [];

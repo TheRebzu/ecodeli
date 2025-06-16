@@ -9,21 +9,17 @@ import { PaymentStatus, PaymentMethod } from "@prisma/client";
  */
 
 // Schémas de validation
-const paymentFiltersSchema = z.object({
-  status: z.nativeEnum(PaymentStatus).optional(),
+const paymentFiltersSchema = z.object({ status: z.nativeEnum(PaymentStatus).optional(),
   method: z.nativeEnum(PaymentMethod).optional(),
   userRole: z.nativeEnum(UserRole).optional(),
   amountRange: z
     .object({
       min: z.number().min(0).optional(),
-      max: z.number().min(0).optional(),
-    })
+      max: z.number().min(0).optional() })
     .optional(),
   dateRange: z
-    .object({
-      from: z.date().optional(),
-      to: z.date().optional(),
-    })
+    .object({ from: z.date().optional(),
+      to: z.date().optional() })
     .optional(),
   search: z.string().optional(), // Recherche par référence, email utilisateur
   sortBy: z
@@ -35,47 +31,37 @@ const paymentFiltersSchema = z.object({
   // Filtres avancés
   hasIssues: z.boolean().optional(),
   requiresValidation: z.boolean().optional(),
-  isRefunded: z.boolean().optional(),
-});
+  isRefunded: z.boolean().optional()});
 
-const paymentValidationSchema = z.object({
-  paymentId: z.string().cuid(),
+const paymentValidationSchema = z.object({ paymentId: z.string().cuid(),
   action: z.enum(["APPROVE", "REJECT", "REQUIRE_REVIEW"]),
   reason: z.string().min(10).max(500),
   validationNotes: z.string().max(1000).optional(),
-  notifyUser: z.boolean().default(true),
-});
+  notifyUser: z.boolean().default(true) });
 
-const refundRequestSchema = z.object({
-  paymentId: z.string().cuid(),
+const refundRequestSchema = z.object({ paymentId: z.string().cuid(),
   amount: z.number().min(0.01),
   reason: z.string().min(10).max(500),
   refundType: z.enum(["FULL", "PARTIAL"]),
   processImmediately: z.boolean().default(false),
-  notifyUser: z.boolean().default(true),
-});
+  notifyUser: z.boolean().default(true) });
 
-const bulkPaymentActionSchema = z.object({
-  paymentIds: z.array(z.string().cuid()).min(1).max(50),
+const bulkPaymentActionSchema = z.object({ paymentIds: z.array(z.string().cuid()).min(1).max(50),
   action: z.enum(["APPROVE", "REJECT", "EXPORT", "RECONCILE"]),
   reason: z.string().min(10).max(500).optional(),
-  notifyUsers: z.boolean().default(true),
-});
+  notifyUsers: z.boolean().default(true) });
 
-export const adminPaymentsRouter = router({
-  /**
+export const adminPaymentsRouter = router({ /**
    * Obtenir tous les paiements avec filtres avancés
    */
   getAllPayments: protectedProcedure
     .input(paymentFiltersSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent consulter les paiements",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent consulter les paiements" });
       }
 
       try {
@@ -120,26 +106,19 @@ export const adminPaymentsRouter = router({
             {
               stripePaymentIntentId: {
                 contains: input.search,
-                mode: "insensitive",
-              },
-            },
+                mode: "insensitive"}},
             {
               user: {
                 OR: [
                   { email: { contains: input.search, mode: "insensitive" } },
-                  { name: { contains: input.search, mode: "insensitive" } },
-                ],
-              },
-            },
-          ];
+                  { name: { contains: input.search, mode: "insensitive" } }]}}];
         }
 
         if (input.hasIssues) {
           where.OR = [
             { status: "FAILED" },
-            { disputeStatus: { not: null } },
-            { requiresManualReview: true },
-          ];
+            { disputeStatus: { not } },
+            { requiresManualReview }];
         }
 
         if (input.requiresValidation) {
@@ -154,7 +133,7 @@ export const adminPaymentsRouter = router({
         orderBy[input.sortBy] = input.sortOrder;
 
         const [payments, totalCount] = await Promise.all([
-          _ctx.db.payment.findMany({
+          ctx.db.payment.findMany({
             where,
             include: {
               user: {
@@ -162,42 +141,29 @@ export const adminPaymentsRouter = router({
                   id: true,
                   name: true,
                   email: true,
-                  role: true,
-                },
-              },
+                  role: true}},
               refunds: {
                 select: {
                   amount: true,
                   status: true,
-                  createdAt: true,
-                },
-              },
+                  createdAt: true}},
               // Relations selon le contexte
               announcement: {
                 select: {
                   title: true,
-                  id: true,
-                },
-              },
+                  id: true}},
               serviceBooking: {
                 select: {
                   id: true,
                   service: {
-                    select: { name: true },
-                  },
-                },
-              },
-            },
+                    select: { name }}}}},
             orderBy,
             skip: input.offset,
-            take: input.limit,
-          }),
-          ctx.db.payment.count({ where }),
-        ]);
+            take: input.limit}),
+          ctx.db.payment.count({ where  })]);
 
         // Enrichir les données avec des informations calculées
-        const enrichedPayments = payments.map((payment) => ({
-          ...payment,
+        const enrichedPayments = payments.map((payment) => ({ ...payment,
           totalRefunded: payment.refunds.reduce(
             (sum, refund) =>
               refund.status === "COMPLETED" ? sum + refund.amount : sum,
@@ -209,8 +175,7 @@ export const adminPaymentsRouter = router({
               (1000 * 60 * 60 * 24),
           ),
           riskLevel: calculateRiskLevel(payment),
-          isHighValue: payment.amount > 500,
-        }));
+          isHighValue: payment.amount > 500 }));
 
         return {
           success: true,
@@ -219,15 +184,11 @@ export const adminPaymentsRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount,
-          },
-        };
-      } catch (_error) {
+            hasMore: input.offset + input.limit < totalCount}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des paiements",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des paiements" });
       }
     }),
 
@@ -236,23 +197,19 @@ export const adminPaymentsRouter = router({
    */
   getPaymentStats: protectedProcedure
     .input(
-      z.object({
-        period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
-        includeComparison: z.boolean().default(false),
-      }),
+      z.object({ period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
+        includeComparison: z.boolean().default(false) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
-        const { startDate: _startDate, endDate: _endDate } =
+        const { startDate: startDate, endDate: endDate } =
           calculatePeriodDates(input.period);
 
         const [
@@ -265,99 +222,78 @@ export const adminPaymentsRouter = router({
           paymentsByMethod,
           refundStats,
           highValuePayments,
-          suspiciousPayments,
-        ] = await Promise.all([
+          suspiciousPayments] = await Promise.all([
           // Total des paiements
-          _ctx.db.payment.count({
-            where: { createdAt: { gte: startDate, lte: endDate } },
-          }),
+          ctx.db.payment.count({
+            where: { createdAt: { gte: startDate, lte: endDate } }}),
 
           // Paiements réussis
           ctx.db.payment.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              status: "COMPLETED",
-            },
-          }),
+              status: "COMPLETED"}}),
 
           // Paiements échoués
           ctx.db.payment.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              status: "FAILED",
-            },
-          }),
+              status: "FAILED"}}),
 
           // Paiements en attente
           ctx.db.payment.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              status: "PENDING",
-            },
-          }),
+              status: "PENDING"}}),
 
           // Volume total
           ctx.db.payment.aggregate({
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              status: "COMPLETED",
-            },
-            _sum: { amount: true },
-          }),
+              status: "COMPLETED"},
+            sum: { amount }}),
 
           // Montant moyen
           ctx.db.payment.aggregate({
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              status: "COMPLETED",
-            },
-            _avg: { amount: true },
-          }),
+              status: "COMPLETED"},
+            avg: { amount }}),
 
           // Répartition par méthode
           ctx.db.payment.groupBy({
             by: ["method"],
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              status: "COMPLETED",
-            },
-            _sum: { amount: true },
-            _count: true,
-          }),
+              status: "COMPLETED"},
+            sum: { amount },
+            count: true}),
 
           // Statistiques des remboursements
           ctx.db.refund.aggregate({
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              status: "COMPLETED",
-            },
-            _sum: { amount: true },
-            _count: true,
-          }),
+              status: "COMPLETED"},
+            sum: { amount },
+            count: true}),
 
           // Paiements de forte valeur (>500€)
           ctx.db.payment.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
               amount: { gte: 500 },
-              status: "COMPLETED",
-            },
-          }),
+              status: "COMPLETED"}}),
 
           // Paiements suspects (nécessitant une révision)
           ctx.db.payment.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              requiresManualReview: true,
-            },
-          }),
-        ]);
+              requiresManualReview: true}})]);
 
         const successRate =
           totalPayments > 0 ? (successfulPayments / totalPayments) * 100 : 0;
         const refundRate =
           successfulPayments > 0
-            ? ((refundStats._count || 0) / successfulPayments) * 100
+            ? ((refundStats.count || 0) / successfulPayments) * 100
             : 0;
 
         return {
@@ -369,36 +305,27 @@ export const adminPaymentsRouter = router({
               successfulPayments,
               failedPayments,
               pendingPayments,
-              totalVolume: totalVolume._sum.amount || 0,
-              averageAmount: averageAmount._avg.amount || 0,
+              totalVolume: totalVolume.sum.amount || 0,
+              averageAmount: averageAmount.avg.amount || 0,
               successRate: Math.round(successRate * 100) / 100,
-              refundRate: Math.round(refundRate * 100) / 100,
-            },
+              refundRate: Math.round(refundRate * 100) / 100},
             breakdown: {
-              byMethod: paymentsByMethod.map((method) => ({
-                method: method.method,
-                amount: method._sum.amount || 0,
-                count: method._count,
-                percentage: totalVolume._sum.amount
-                  ? ((method._sum.amount || 0) /
-                      (totalVolume._sum.amount || 1)) *
+              byMethod: paymentsByMethod.map((method) => ({ method: method.method,
+                amount: method.sum.amount || 0,
+                count: method.count,
+                percentage: totalVolume.sum.amount
+                  ? ((method.sum.amount || 0) /
+                      (totalVolume.sum.amount || 1)) *
                     100
-                  : 0,
-              })),
-            },
+                  : 0 }))},
             risks: {
               highValuePayments,
               suspiciousPayments,
-              refundedAmount: refundStats._sum.amount || 0,
-              refundCount: refundStats._count || 0,
-            },
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des statistiques",
-        });
+              refundedAmount: refundStats.sum.amount || 0,
+              refundCount: refundStats.count || 0}}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques" });
       }
     }),
 
@@ -407,27 +334,22 @@ export const adminPaymentsRouter = router({
    */
   validatePayment: protectedProcedure
     .input(paymentValidationSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent valider les paiements",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent valider les paiements" });
       }
 
       try {
         const payment = await ctx.db.payment.findUnique({
           where: { id: input.paymentId },
-          include: { user: true },
-        });
+          include: { user }});
 
         if (!payment) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Paiement non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Paiement non trouvé" });
         }
 
         let newStatus: PaymentStatus;
@@ -452,9 +374,7 @@ export const adminPaymentsRouter = router({
               adminValidatedById: user.id,
               adminValidatedAt: new Date(),
               adminNotes: input.validationNotes,
-              requiresManualReview: input.action === "REQUIRE_REVIEW",
-            },
-          });
+              requiresManualReview: input.action === "REQUIRE_REVIEW"}});
 
           // Créer un log d'audit
           await tx.auditLog.create({
@@ -467,10 +387,7 @@ export const adminPaymentsRouter = router({
                 previousStatus: payment.status,
                 newStatus,
                 reason: input.reason,
-                validationNotes: input.validationNotes,
-              },
-            },
-          });
+                validationNotes: input.validationNotes}}});
 
           return updated;
         });
@@ -483,14 +400,11 @@ export const adminPaymentsRouter = router({
         return {
           success: true,
           data: updatedPayment,
-          message: `Paiement ${input.action.toLowerCase()} avec succès`,
-        };
-      } catch (_error) {
+          message: `Paiement ${input.action.toLowerCase()} avec succès`};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la validation du paiement",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la validation du paiement" });
       }
     }),
 
@@ -499,15 +413,13 @@ export const adminPaymentsRouter = router({
    */
   initiateRefund: protectedProcedure
     .input(refundRequestSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent initier des remboursements",
-        });
+            "Seuls les administrateurs peuvent initier des remboursements" });
       }
 
       try {
@@ -515,22 +427,16 @@ export const adminPaymentsRouter = router({
           where: { id: input.paymentId },
           include: {
             user: true,
-            refunds: true,
-          },
-        });
+            refunds: true}});
 
         if (!payment) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Paiement non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Paiement non trouvé" });
         }
 
         if (payment.status !== "COMPLETED") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Seuls les paiements complétés peuvent être remboursés",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Seuls les paiements complétés peuvent être remboursés" });
         }
 
         // Vérifier le montant disponible pour remboursement
@@ -543,8 +449,7 @@ export const adminPaymentsRouter = router({
         if (input.amount > availableAmount) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: `Montant de remboursement supérieur au disponible (${availableAmount}€)`,
-          });
+            message: `Montant de remboursement supérieur au disponible (${availableAmount}€)`});
         }
 
         const refund = await ctx.db.$transaction(async (tx) => {
@@ -556,9 +461,7 @@ export const adminPaymentsRouter = router({
               reason: input.reason,
               status: input.processImmediately ? "COMPLETED" : "PENDING",
               requestedById: user.id,
-              processedAt: input.processImmediately ? new Date() : null,
-            },
-          });
+              processedAt: input.processImmediately ? new Date() : null}});
 
           // Créer un log d'audit
           await tx.auditLog.create({
@@ -571,10 +474,7 @@ export const adminPaymentsRouter = router({
                 paymentId: input.paymentId,
                 amount: input.amount,
                 reason: input.reason,
-                processImmediately: input.processImmediately,
-              },
-            },
-          });
+                processImmediately: input.processImmediately}}});
 
           return newRefund;
         });
@@ -589,14 +489,11 @@ export const adminPaymentsRouter = router({
         return {
           success: true,
           data: refund,
-          message: "Remboursement initié avec succès",
-        };
-      } catch (_error) {
+          message: "Remboursement initié avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'initiation du remboursement",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'initiation du remboursement" });
       }
     }),
 
@@ -605,28 +502,23 @@ export const adminPaymentsRouter = router({
    */
   bulkActions: protectedProcedure
     .input(bulkPaymentActionSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent effectuer des actions en lot",
-        });
+            "Seuls les administrateurs peuvent effectuer des actions en lot" });
       }
 
       try {
         const payments = await ctx.db.payment.findMany({
           where: { id: { in: input.paymentIds } },
-          include: { user: true },
-        });
+          include: { user }});
 
         if (payments.length !== input.paymentIds.length) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Certains paiements n'existent pas",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Certains paiements n'existent pas" });
         }
 
         let results: any[] = [];
@@ -642,9 +534,7 @@ export const adminPaymentsRouter = router({
                     status: input.action === "APPROVE" ? "COMPLETED" : "FAILED",
                     adminValidatedById: user.id,
                     adminValidatedAt: new Date(),
-                    adminNotes: input.reason,
-                  },
-                }),
+                    adminNotes: input.reason}}),
               ),
             );
             break;
@@ -662,9 +552,7 @@ export const adminPaymentsRouter = router({
                   where: { id: payment.id },
                   data: {
                     reconciledAt: new Date(),
-                    reconciledById: user.id,
-                  },
-                }),
+                    reconciledById: user.id}}),
               ),
             );
             break;
@@ -674,19 +562,14 @@ export const adminPaymentsRouter = router({
           success: true,
           data: {
             processedCount: results.length,
-            action: input.action,
-          },
-          message: `${results.length} paiement(s) traité(s) avec succès`,
-        };
-      } catch (_error) {
+            action: input.action},
+          message: `${results.length} paiement(s) traité(s) avec succès`};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du traitement en lot",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du traitement en lot" });
       }
-    }),
-});
+    })});
 
 // Helper functions
 function calculateRiskLevel(payment: any): "LOW" | "MEDIUM" | "HIGH" {

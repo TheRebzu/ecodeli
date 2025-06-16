@@ -16,7 +16,7 @@ export function generateBackupCodes(count: number = 10): string[] {
 
 export function verifyTOTPToken(token: string, secret: string): boolean {
   try {
-    return authenticator.verify({ token, secret });
+    return authenticator.verify({ token, secret  });
   } catch {
     return false;
   }

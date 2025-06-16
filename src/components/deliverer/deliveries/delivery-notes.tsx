@@ -11,8 +11,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
 import {
@@ -22,30 +21,25 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, AlertCircle, MessageCircle, Clock } from "lucide-react";
 
 // Schéma de validation
-const notesSchema = z.object({
-  noteType: z.string({
-    required_error: "Veuillez sélectionner un type de note",
-  }),
+const notesSchema = z.object({ noteType: z.string({
+    requirederror: "Veuillez sélectionner un type de note" }),
   content: z
     .string()
     .min(3, { message: "La note doit contenir au moins 3 caractères" })
-    .max(500, { message: "La note ne doit pas dépasser 500 caractères" }),
-});
+    .max(500, { message: "La note ne doit pas dépasser 500 caractères" })});
 
 type NotesFormValues = z.infer<typeof notesSchema>;
 
@@ -76,8 +70,7 @@ export function DeliveryNotes({
   className = "",
   notes,
   onNotesChange,
-  readOnly = false,
-}: DeliveryNotesProps) {
+  readOnly = false}: DeliveryNotesProps) {
   const t = useTranslations("deliveries.notes");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,9 +81,7 @@ export function DeliveryNotes({
     resolver: zodResolver(notesSchema),
     defaultValues: {
       noteType: "INFO",
-      content: "",
-    },
-  });
+      content: ""}});
 
   // Types de notes
   const noteTypes = [
@@ -98,8 +89,7 @@ export function DeliveryNotes({
     { value: "INSTRUCTION", label: t("noteTypes.instruction") },
     { value: "WARNING", label: t("noteTypes.warning") },
     { value: "CLIENT_REQUEST", label: t("noteTypes.clientRequest") },
-    { value: "MERCHANT_INFO", label: t("noteTypes.merchantInfo") },
-  ];
+    { value: "MERCHANT_INFO", label: t("noteTypes.merchantInfo") }];
 
   // Gérer la soumission du formulaire
   const onSubmit = async (data: NotesFormValues) => {
@@ -114,8 +104,7 @@ export function DeliveryNotes({
       console.log("Note ajoutée:", {
         deliveryId,
         ...data,
-        timestamp: new Date(),
-      });
+        timestamp: new Date()});
 
       setSuccess(true);
       form.reset(); // Réinitialiser le formulaire après soumission réussie
@@ -155,8 +144,7 @@ export function DeliveryNotes({
       month: "2-digit",
       year: "numeric",
       hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+      minute: "2-digit"}).format(date);
   };
 
   // Afficher les notes précédentes
@@ -222,7 +210,7 @@ export function DeliveryNotes({
             <FormField
               control={form.control}
               name="noteType"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("noteTypeLabel")}</FormLabel>
                   <Select
@@ -252,7 +240,7 @@ export function DeliveryNotes({
             <FormField
               control={form.control}
               name="content"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("contentLabel")}</FormLabel>
                   <FormControl>

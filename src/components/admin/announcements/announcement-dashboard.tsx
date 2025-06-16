@@ -11,8 +11,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, DownloadIcon, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -22,54 +21,48 @@ export function AnnouncementDashboard() {
   const t = useTranslations("admin.announcements");
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("all");
-  const [filters, setFilters] = useState({
-    status: "",
+  const [filters, setFilters] = useState({ status: "",
     type: "",
     searchTerm: "",
     startDate: "",
     endDate: "",
     page: 1,
-    limit: 10,
-  });
+    limit: 10 });
 
-  const announcementsQuery = api.announcement.getAll.useQuery({
-    status: filters.status || undefined,
+  const announcementsQuery = api.announcement.getAll.useQuery({ status: filters.status || undefined,
     type: filters.type || undefined,
     searchTerm: filters.searchTerm || undefined,
     startDate: filters.startDate ? new Date(filters.startDate) : undefined,
     endDate: filters.endDate ? new Date(filters.endDate) : undefined,
     page: filters.page,
-    limit: filters.limit,
-  });
+    limit: filters.limit });
 
-  const statsQuery = api.announcement.getStats.useQuery({
-    startDate: filters.startDate ? new Date(filters.startDate) : undefined,
-    endDate: filters.endDate ? new Date(filters.endDate) : undefined,
-  });
+  const statsQuery = api.announcement.getStats.useQuery({ startDate: filters.startDate ? new Date(filters.startDate) : undefined,
+    endDate: filters.endDate ? new Date(filters.endDate) : undefined });
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
 
     // Mettre à jour les filtres en fonction de l'onglet sélectionné
     if (value === "all") {
-      setFilters((prev) => ({ ...prev, status: "" }));
+      setFilters((prev) => ({ ...prev, status: ""  }));
     } else if (value === "pending") {
-      setFilters((prev) => ({ ...prev, status: "PUBLISHED" }));
+      setFilters((prev) => ({ ...prev, status: "PUBLISHED"  }));
     } else if (value === "assigned") {
-      setFilters((prev) => ({ ...prev, status: "ASSIGNED" }));
+      setFilters((prev) => ({ ...prev, status: "ASSIGNED"  }));
     } else if (value === "completed") {
-      setFilters((prev) => ({ ...prev, status: "COMPLETED" }));
+      setFilters((prev) => ({ ...prev, status: "COMPLETED"  }));
     } else if (value === "problems") {
-      setFilters((prev) => ({ ...prev, status: "PROBLEM" }));
+      setFilters((prev) => ({ ...prev, status: "PROBLEM"  }));
     }
   };
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({ ...prev, ...newFilters, page: 1  }));
   };
 
   const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setFilters((prev) => ({ ...prev, page  }));
   };
 
   const handleRefresh = () => {

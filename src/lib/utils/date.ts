@@ -24,8 +24,7 @@ import {
   isWeekend,
   isToday,
   isYesterday,
-  isTomorrow,
-} from "date-fns";
+  isTomorrow} from "date-fns";
 import { fr, enUS, es, de, it } from "date-fns/locale";
 
 // Types
@@ -37,8 +36,7 @@ const localeMap = {
   en: enUS,
   es,
   de,
-  it,
-};
+  it};
 
 /**
  * Utilitaires de manipulation de dates
@@ -70,8 +68,7 @@ export {
   isToday,
   isYesterday,
   isTomorrow,
-  parseISO,
-};
+  parseISO};
 
 /**
  * Formate une date selon la locale spécifiée
@@ -141,8 +138,7 @@ export function getDateRange(
     case "week":
       return {
         start: startOfWeek(date, { weekStartsOn: 1 }),
-        end: endOfWeek(date, { weekStartsOn: 1 }),
-      };
+        end: endOfWeek(date, { weekStartsOn: 1 })};
     case "month":
       return { start: startOfMonth(date), end: endOfMonth(date) };
     default:
@@ -173,7 +169,7 @@ export function calculateAge(birthDate: Date | string): number {
   const birthDateObj =
     typeof birthDate === "string" ? parseISO(birthDate) : birthDate;
   const today = new Date();
-  let age = today.getFullYear() - birthDateObj.getFullYear();
+  const age = today.getFullYear() - birthDateObj.getFullYear();
   const monthDiff = today.getMonth() - birthDateObj.getMonth();
 
   if (

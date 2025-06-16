@@ -43,6 +43,5 @@ export function useAuth() {
 
   return {
     registerUser,
-    isRegistering: registerMutation.isPending,
-  };
+    isRegistering: registerMutation.isPending};
 }

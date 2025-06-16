@@ -12,8 +12,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import DeliveryConfirmationForm from "@/components/deliverer/deliveries/delivery-confirmation-form";
 import { useDeliveryConfirmation } from "@/hooks/delivery/use-delivery-confirmation";
 
@@ -31,8 +30,7 @@ export default function DeliveryConfirmationPage() {
     isLoading,
     error,
     canConfirm,
-    refetchDelivery,
-  } = useDeliveryConfirmation(deliveryId);
+    refetchDelivery} = useDeliveryConfirmation(deliveryId);
 
   // Gérer la redirection après confirmation
   const handleSuccess = () => {

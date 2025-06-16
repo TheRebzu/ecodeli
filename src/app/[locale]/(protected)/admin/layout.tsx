@@ -14,7 +14,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, params }: AdminLayoutProps) {
   const paramsValue = React.use(
-    params as unknown as Promise<{ locale: string }>,
+    params as unknown as Promise<{ locale }>,
   );
   const locale = paramsValue.locale;
 

@@ -24,8 +24,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   BarChart,
-  Bar,
-} from "recharts";
+  Bar} from "recharts";
 
 // Icons
 import {
@@ -54,8 +53,7 @@ import {
   Target,
   Home,
   ChevronRight,
-  AlertCircle,
-} from "lucide-react";
+  AlertCircle} from "lucide-react";
 
 // Types
 interface ProviderStats {
@@ -142,8 +140,7 @@ const StatCard = ({
   isLoading = false,
   onClick,
   color = "text-primary",
-  bgColor = "bg-primary/10",
-}: {
+  bgColor = "bg-primary/10"}: {
   title: string;
   value: string | number;
   icon: React.ReactNode;
@@ -225,8 +222,7 @@ const StatCard = ({
 // Composant de rendez-vous
 const AppointmentCard = ({
   appointment,
-  onView,
-}: {
+  onView}: {
   appointment: Appointment;
   onView: (id: string) => void;
 }) => {
@@ -252,11 +248,9 @@ const AppointmentCard = ({
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      CONFIRMED: "Confirmé",
-      IN_PROGRESS: "En cours",
+      CONFIRMED: "Confirmé", IN_PROGRESS: "En cours",
       COMPLETED: "Terminé",
-      CANCELLED: "Annulé",
-    };
+      CANCELLED: "Annulé"};
     return labels[status] || status;
   };
 
@@ -321,7 +315,7 @@ const AppointmentCard = ({
 };
 
 // Composant d'intervention récente
-const InterventionCard = ({ intervention }: { intervention: Intervention }) => {
+const InterventionCard = ({ intervention }: { intervention }) => {
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardContent className="p-4">
@@ -365,7 +359,7 @@ const InterventionCard = ({ intervention }: { intervention: Intervention }) => {
 };
 
 // Composant d'évaluation
-const RatingCard = ({ rating }: { rating: Rating }) => {
+const RatingCard = ({ rating }: { rating }) => {
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardContent className="p-4">
@@ -405,30 +399,25 @@ const QuickActionsSection = () => {
       label: "Nouveau service",
       description: "Créer un nouveau service",
       action: () => router.push("/provider/services/create"),
-      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50",
-    },
+      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50"},
     {
       icon: <Calendar className="h-5 w-5" />,
       label: "Planning",
       description: "Gérer mon planning",
       action: () => router.push("/provider/schedule"),
-      color: "text-green-600 bg-green-100 dark:bg-green-900/50",
-    },
+      color: "text-green-600 bg-green-100 dark:bg-green-900/50"},
     {
       icon: <Award className="h-5 w-5" />,
       label: "Compétences",
       description: "Gérer mes compétences",
       action: () => router.push("/provider/skills"),
-      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50",
-    },
+      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50"},
     {
       icon: <BarChart3 className="h-5 w-5" />,
       label: "Statistiques",
       description: "Voir mes performances",
       action: () => router.push("/provider/stats"),
-      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50",
-    },
-  ];
+      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50"}];
 
   return (
     <Card>
@@ -480,8 +469,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
     isLoading,
     isLoadingStats,
     isLoadingAppointments,
-    refetchStats,
-  } = useProviderDashboard();
+    refetchStats} = useProviderDashboard();
 
   // Socket.io pour les mises à jour temps réel
   useEffect(() => {

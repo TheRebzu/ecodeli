@@ -4,8 +4,7 @@ import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 
 export const metadata: Metadata = {
   title: "Notifications | EcoDeli Client",
-  description: "Gérez vos notifications",
-};
+  description: "Gérez vos notifications"};
 
 interface ClientNotificationsPageProps {
   params: Promise<{
@@ -14,8 +13,7 @@ interface ClientNotificationsPageProps {
 }
 
 export default async function ClientNotificationsPage({
-  params,
-}: ClientNotificationsPageProps) {
+  params}: ClientNotificationsPageProps) {
   const { locale } = await params;
 
   return (

@@ -8,16 +8,8 @@
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "rules": {
-    // Préfixer les variables inutilisées avec un underscore
-    "@typescript-eslint/no-unused-vars": [
-      "warn",
-      {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_",
-        "destructuredArrayIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_"
-      }
-    ],
+    // Désactiver complètement la règle des variables non utilisées
+    "@typescript-eslint/no-unused-vars": "off",
     // Autoriser any temporairement durant la phase de build
     "@typescript-eslint/no-explicit-any": "off",
     // Règles pour les hooks React

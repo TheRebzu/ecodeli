@@ -8,8 +8,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -20,8 +19,7 @@ import {
   EditIcon,
   BanIcon,
   LoaderIcon,
-  RefreshCcwIcon,
-} from "lucide-react";
+  RefreshCcwIcon} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -31,23 +29,20 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { useAdminClients } from "@/hooks/use-admin-clients";
 
 // Fonctions de formatage temporaires
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "EUR",
-  }).format(amount);
+    currency: "EUR"}).format(amount);
 };
 
 const formatDate = (date: Date | string) => {
@@ -55,8 +50,7 @@ const formatDate = (date: Date | string) => {
   return new Intl.DateTimeFormat("fr-FR", {
     year: "numeric",
     month: "2-digit",
-    day: "2-digit",
-  }).format(dateObj);
+    day: "2-digit"}).format(dateObj);
 };
 
 export default function AdminClientsPage() {
@@ -78,8 +72,7 @@ export default function AdminClientsPage() {
     updateFilters,
     clearFilters,
     setCurrentPage,
-    refetch,
-  } = useAdminClients();
+    refetch} = useAdminClients();
 
   // Gérer la sélection des clients
   const handleClientSelection = (clientId: string, selected: boolean) => {
@@ -100,12 +93,12 @@ export default function AdminClientsPage() {
 
   // Gestion des filtres
   const handleSearchChange = (search: string) => {
-    updateFilters({ search });
+    updateFilters({ search  });
   };
 
   const handleStatusChange = (status: string) => {
     const statusValue = status === "all" ? undefined : (status as any);
-    updateFilters({ status: statusValue });
+    updateFilters({ status  });
   };
 
   if (error) {

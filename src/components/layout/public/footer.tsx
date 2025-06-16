@@ -10,8 +10,7 @@ import {
   Twitter,
   Youtube,
   Phone,
-  Mail,
-} from "lucide-react";
+  Mail} from "lucide-react";
 
 interface MainFooterProps {
   locale?: string;
@@ -34,8 +33,7 @@ export function MainFooter({
   showThemeToggle = true,
   className,
   companyName = "EcoDeli",
-  year = new Date().getFullYear(),
-}: MainFooterProps) {
+  year = new Date().getFullYear()}: MainFooterProps) {
   return (
     <footer className={cn("bg-background border-t py-6", className)}>
       <div className="container px-4 mx-auto">
@@ -143,7 +141,7 @@ export function MainFooter({
                   <div className="flex space-x-3">
                     <a
                       href="https://facebook.com"
-                      target="_blank"
+                      target="blank"
                       rel="noreferrer"
                       className="text-muted-foreground hover:text-primary"
                     >
@@ -151,7 +149,7 @@ export function MainFooter({
                     </a>
                     <a
                       href="https://twitter.com"
-                      target="_blank"
+                      target="blank"
                       rel="noreferrer"
                       className="text-muted-foreground hover:text-primary"
                     >
@@ -159,7 +157,7 @@ export function MainFooter({
                     </a>
                     <a
                       href="https://instagram.com"
-                      target="_blank"
+                      target="blank"
                       rel="noreferrer"
                       className="text-muted-foreground hover:text-primary"
                     >
@@ -167,7 +165,7 @@ export function MainFooter({
                     </a>
                     <a
                       href="https://youtube.com"
-                      target="_blank"
+                      target="blank"
                       rel="noreferrer"
                       className="text-muted-foreground hover:text-primary"
                     >

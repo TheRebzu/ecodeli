@@ -19,7 +19,7 @@ export function useLiveTracking(deliveryId: string) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { socket } = useSocket();
-  const { data: session } = useSession();
+  const { data } = useSession();
 
   useEffect(() => {
     if (!socket || !deliveryId || !session?.user) {
@@ -44,16 +44,15 @@ export function useLiveTracking(deliveryId: string) {
     socket.on(
       `${trackingChannel}:location-update`,
       (data: { latitude: number; longitude: number; timestamp: string }) => {
-        setCurrentLocation({
-          lat: data.latitude,
+        setCurrentLocation({ lat: data.latitude,
           lng: data.longitude,
-        });
+         });
         setLastUpdate(new Date(data.timestamp));
       },
     );
 
     // Handle errors
-    socket.on(`${trackingChannel}:error`, (error: { message: string }) => {
+    socket.on(`${trackingChannel}:error`, (error: { message }) => {
       setIsError(true);
       setErrorMessage(error.message);
     });
@@ -91,19 +90,31 @@ export function useLiveTracking(deliveryId: string) {
 export default useLiveTracking;
 
 // Export ajouté automatiquement
-import { api } from "@/hooks/system/use-trpc";
+import { api } from "@/trpc/react";
 
 export function useLiveTrackingDetails(deliveryId: string) {
-  const { data: tracking, isLoading } = api.delivery.getLiveTracking.useQuery(
+  const { data: trackingData, isLoading, error, refetch } = api.deliveryTracking.getLiveTracking.useQuery(
     { deliveryId },
-    { refetchInterval: 5000 },
+    { 
+      refetchInterval: 5000,
+      enabled: !!deliveryId,
+    },
   );
 
+  const liveTracking = useLiveTracking(deliveryId);
+
+  const refreshData = async () => {
+    await refetch();
+    liveTracking.requestLocationUpdate();
+  };
+
   return {
-    tracking,
+    trackingData,
     isLoading,
-    // TODO: Ajouter d'autres propriétés nécessaires
+    error,
+    refreshData,
+    isActive: liveTracking.isConnected,
+    currentLocation: liveTracking.currentLocation,
+    lastUpdated: liveTracking.lastUpdate,
   };
 }
-
-// ... existing code ...

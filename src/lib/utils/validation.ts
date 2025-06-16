@@ -1,10 +1,9 @@
 import { z } from "zod";
 
 export const validationPatterns = {
-  email: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+  email: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2}$/i,
   phone: /^\+?[0-9]{10,15}$/,
-  siret: /^[0-9]{14}$/,
-};
+  siret: /^[0-9]{14}$/};
 
 export const isValidEmail = (email: string) =>
   validationPatterns.email.test(email);

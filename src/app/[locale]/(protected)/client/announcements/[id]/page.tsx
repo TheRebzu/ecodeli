@@ -26,8 +26,7 @@ import {
   Trash2,
   ArrowUpRight,
   Truck,
-  Loader,
-} from "lucide-react";
+  Loader} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,8 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 import { UserRole } from "@prisma/client";
@@ -67,7 +65,7 @@ interface DelivererApplication {
 export default function AnnouncementDetailsPage() {
   useRoleProtection(["CLIENT"]);
   const t = useTranslations("announcements");
-  const params = useParams<{ id: string }>();
+  const params = useParams<{ id }>();
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
@@ -78,8 +76,7 @@ export default function AnnouncementDetailsPage() {
     isLoading,
     error,
     deleteAnnouncement,
-    isDeleting,
-  } = useAnnouncement();
+    isDeleting} = useAnnouncement();
 
   // Récupérer les détails de l'annonce
   useEffect(() => {
@@ -96,15 +93,13 @@ export default function AnnouncementDetailsPage() {
       await deleteAnnouncement(params.id);
 
       toast.success(t("deleteSuccess"), {
-        description: t("announcementDeleted"),
-      });
+        description: t("announcementDeleted")});
 
       // Rediriger vers la liste des annonces
       router.push("/client/announcements");
     } catch (err) {
       toast.error(t("deleteError"), {
-        description: err instanceof Error ? err.message : String(err),
-      });
+        description: err instanceof Error ? err.message : String(err)});
     } finally {
       setShowDeleteDialog(false);
     }
@@ -183,8 +178,7 @@ export default function AnnouncementDetailsPage() {
             (app as any)?.deliverer?.completedDeliveries || 0,
           averageResponseTime: (app as any)?.deliverer?.averageResponseTime,
           verificationStatus:
-            (app as any)?.deliverer?.verificationStatus || "PENDING",
-        },
+            (app as any)?.deliverer?.verificationStatus || "PENDING"},
         status:
           (app.status as "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED") ||
           "PENDING",
@@ -194,8 +188,7 @@ export default function AnnouncementDetailsPage() {
         hasRequiredEquipment: (app as any)?.hasRequiredEquipment || false,
         canPickupAtScheduledTime:
           (app as any)?.canPickupAtScheduledTime || false,
-        createdAt: app.createdAt,
-      };
+        createdAt: app.createdAt};
 
       return application;
     }) || [];

@@ -7,8 +7,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 import { DocumentType, DocumentStatus } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
@@ -17,16 +16,14 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -35,8 +32,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,8 +42,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTrigger} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -62,10 +57,8 @@ const showToast = (
   title: string,
   variant: "default" | "destructive" | "success",
 ) => {
-  toast({
-    title,
-    variant,
-  });
+  toast({ title,
+    variant });
 };
 
 // Fix type mismatch for UserDocument
@@ -91,8 +84,7 @@ export function UserDocuments({
   documents,
   isLoading,
   onApproveDocument,
-  onRejectDocument,
-}: UserDocumentsProps) {
+  onRejectDocument}: UserDocumentsProps) {
   const [selectedDocument, setSelectedDocument] = useState<UserDocument | null>(
     null,
   );
@@ -133,11 +125,9 @@ export function UserDocuments({
   // Correct the downloadDocument logic to use tRPC's fetch method
   const downloadDocument = async (document: UserDocument) => {
     try {
-      toast({ title: "Préparation du document", variant: "default" });
+      toast({ title: "Préparation du document", variant: "default"  });
 
-      const result = await api.document.downloadDocument.query({
-        filePath: document.fileUrl,
-      });
+      const result = await api.document.downloadDocument.query({ filePath: document.fileUrl });
 
       const binaryData = atob(result.fileData);
       const bytes = new Uint8Array(binaryData.length);
@@ -153,18 +143,13 @@ export function UserDocuments({
       window.document.body.appendChild(link);
       link.click();
 
-      setTimeout(() => {
-        window.document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 100);
+      // Appel API réel via tRPC
 
-      toast({ title: "Téléchargement lancé", variant: "success" });
+      toast({ title: "Téléchargement lancé", variant: "success"  });
     } catch (error) {
       console.error("Erreur lors du téléchargement:", error);
-      toast({
-        title: "Impossible de télécharger le document.",
-        variant: "destructive",
-      });
+      toast({ title: "Impossible de télécharger le document.",
+        variant: "destructive" });
     }
   };
 

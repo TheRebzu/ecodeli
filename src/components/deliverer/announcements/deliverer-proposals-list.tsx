@@ -10,30 +10,26 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -56,8 +52,7 @@ import {
   Filter,
   Search,
   Euro,
-  Loader,
-} from "lucide-react";
+  Loader} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 
 // Types pour le composant
@@ -117,8 +112,7 @@ export default function DelivererProposalsList({
   onViewDelivererProfile,
   onProposalAccepted,
   isLoading = false,
-  error,
-}: DelivererProposalsListProps) {
+  error}: DelivererProposalsListProps) {
   const t = useTranslations("announcements");
   const [sortBy, setSortBy] = useState<string>("proposedPrice");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -132,7 +126,7 @@ export default function DelivererProposalsList({
 
   // Trier les propositions
   const sortedProposals = [...proposals].sort((a, b) => {
-    let comparison = 0;
+    const comparison = 0;
 
     switch (sortBy) {
       case "proposedPrice":
@@ -211,7 +205,7 @@ export default function DelivererProposalsList({
   // Formatter une date pour l'affichage
   const formatDateTime = (date?: Date | string) => {
     if (!date) return t("notSpecified");
-    return format(new Date(date), "Pp", { locale: fr });
+    return format(new Date(date), "Pp", { locale });
   };
 
   // Afficher les étoiles de rating
@@ -258,7 +252,7 @@ export default function DelivererProposalsList({
       <CardHeader>
         <CardTitle>{t("proposalsTitle")}</CardTitle>
         <CardDescription>
-          {t("proposalsDescription", { title: announcementTitle })}
+          {t("proposalsDescription", { title })}
         </CardDescription>
       </CardHeader>
 
@@ -415,8 +409,7 @@ export default function DelivererProposalsList({
                     <TableCell className="text-right font-medium">
                       {proposal.proposedPrice.toLocaleString("fr-FR", {
                         style: "currency",
-                        currency: "EUR",
-                      })}
+                        currency: "EUR"})}
                       {proposal.proposedPrice < suggestedPrice ? (
                         <div className="text-xs text-yellow-600">
                           {t("belowSuggested")}
@@ -543,8 +536,7 @@ export default function DelivererProposalsList({
                       <div className="text-xs text-muted-foreground ml-2">
                         {t("completedDeliveries", {
                           count:
-                            selectedDeliverer.deliverer.completedDeliveries,
-                        })}
+                            selectedDeliverer.deliverer.completedDeliveries})}
                       </div>
                     )}
                   </div>
@@ -561,8 +553,7 @@ export default function DelivererProposalsList({
                   <div className="font-medium text-lg">
                     {selectedDeliverer.proposedPrice.toLocaleString("fr-FR", {
                       style: "currency",
-                      currency: "EUR",
-                    })}
+                      currency: "EUR"})}
                   </div>
                   {selectedDeliverer.proposedPrice !== suggestedPrice && (
                     <div
@@ -579,17 +570,13 @@ export default function DelivererProposalsList({
                               suggestedPrice - selectedDeliverer.proposedPrice
                             ).toLocaleString("fr-FR", {
                               style: "currency",
-                              currency: "EUR",
-                            }),
-                          })
+                              currency: "EUR"})})
                         : t("priceHigherBy", {
                             amount: (
                               selectedDeliverer.proposedPrice - suggestedPrice
                             ).toLocaleString("fr-FR", {
                               style: "currency",
-                              currency: "EUR",
-                            }),
-                          })}
+                              currency: "EUR"})})}
                     </div>
                   )}
                 </div>

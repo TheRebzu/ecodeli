@@ -19,13 +19,9 @@ export function TRPCProvider({ children }: TRPCProviderProps) {
           queries: {
             staleTime: 60 * 1000, // 1 minute
             retry: 3,
-            refetchOnWindowFocus: false,
-          },
+            refetchOnWindowFocus: false},
           mutations: {
-            retry: 1,
-          },
-        },
-      }),
+            retry: 1}}}),
   );
 
   // Création du client tRPC
@@ -38,12 +34,8 @@ export function TRPCProvider({ children }: TRPCProviderProps) {
           headers() {
             return {
               "x-trpc-source": "react",
-              "content-type": "application/json",
-            };
-          },
-        }),
-      ],
-    }),
+              "content-type": "application/json"};
+          }})]}),
   );
 
   return (
@@ -55,7 +47,7 @@ export function TRPCProvider({ children }: TRPCProviderProps) {
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCELURL) return `https://${process.env.VERCEL_URL}`;
+  if (process.env.NEXT_PUBLIC_APPURL) return process.env.NEXT_PUBLIC_APP_URL;
   return `http://localhost:${process.env.PORT ?? 3000}`;
 }

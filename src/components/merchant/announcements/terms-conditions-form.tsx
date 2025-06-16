@@ -9,8 +9,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -18,8 +17,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,22 +26,18 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info, AlertTriangle, FileText } from "lucide-react";
 
 // Define the form schema
-const formSchema = z.object({
-  termsAccepted: z.boolean().refine((val) => val === true, {
-    message: "Vous devez accepter les conditions générales pour continuer",
-  }),
+const formSchema = z.object({ termsAccepted: z.boolean().refine((val) => val === true, {
+    message: "Vous devez accepter les conditions générales pour continuer" }),
   deliveryNotes: z.string().optional(),
   specialInstructions: z.string().optional(),
   cancellationPolicy: z.string().default("STANDARD"),
   returnPolicy: z.string().default("STANDARD"),
-  contactPreference: z.string().default("ANY"),
-});
+  contactPreference: z.string().default("ANY")});
 
 export type TermsAndConditionsData = z.infer<typeof formSchema>;
 
@@ -63,8 +57,7 @@ export function TermsAndConditionsForm({
   onSubmit,
   data,
   onUpdateForm,
-  isLoading = false,
-}: TermsAndConditionsFormProps) {
+  isLoading = false}: TermsAndConditionsFormProps) {
   const t = useTranslations("announcements.terms");
 
   // Use whichever prop is available
@@ -80,9 +73,7 @@ export function TermsAndConditionsForm({
       cancellationPolicy: "STANDARD",
       returnPolicy: "STANDARD",
       contactPreference: "ANY",
-      ...effectiveInitialValues,
-    },
-  });
+      ...effectiveInitialValues}});
 
   // Handle form submission based on which prop was provided
   const handleFormSubmit = (formData: TermsAndConditionsData) => {
@@ -110,7 +101,7 @@ export function TermsAndConditionsForm({
             <FormField
               control={form.control}
               name="deliveryNotes"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("deliveryNotes")}</FormLabel>
                   <FormControl>
@@ -131,7 +122,7 @@ export function TermsAndConditionsForm({
             <FormField
               control={form.control}
               name="specialInstructions"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("specialInstructions")}</FormLabel>
                   <FormControl>
@@ -160,7 +151,7 @@ export function TermsAndConditionsForm({
             <FormField
               control={form.control}
               name="cancellationPolicy"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("cancellationPolicy")}</FormLabel>
                   <Select
@@ -200,7 +191,7 @@ export function TermsAndConditionsForm({
             <FormField
               control={form.control}
               name="returnPolicy"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("returnPolicy")}</FormLabel>
                   <Select
@@ -235,7 +226,7 @@ export function TermsAndConditionsForm({
             <FormField
               control={form.control}
               name="contactPreference"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("contactPreference")}</FormLabel>
                   <Select
@@ -326,7 +317,7 @@ export function TermsAndConditionsForm({
             <FormField
               control={form.control}
               name="termsAccepted"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
                   <FormControl>
                     <Checkbox

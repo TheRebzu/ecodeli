@@ -8,8 +8,7 @@ import {
   AlertCircle,
   CreditCard,
   CheckCircle,
-  Loader2,
-} from "lucide-react";
+  Loader2} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { useToast } from "@/components/ui/use-toast";
@@ -21,8 +20,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -37,8 +35,7 @@ interface PaymentPageProps {
 }
 
 export default async function AnnouncementPaymentPage({
-  params,
-}: AnnouncementPaymentPageProps) {
+  params}: AnnouncementPaymentPageProps) {
   const { id } = await params;
   const t = useTranslations("payments");
   const router = useRouter();
@@ -52,36 +49,29 @@ export default async function AnnouncementPaymentPage({
       { id },
       {
         enabled: !!id,
-        refetchOnWindowFocus: false,
-      },
+        refetchOnWindowFocus: false},
     );
 
   // Récupérer les méthodes de paiement disponibles
   const { data: paymentMethods, isLoading: isLoadingPaymentMethods } =
     api.payment.getPaymentMethods.useQuery(undefined, {
       enabled: !paymentSuccess,
-      refetchOnWindowFocus: false,
-    });
+      refetchOnWindowFocus: false});
 
   // Mutation pour effectuer le paiement
-  const paymentMutation = api.payment.processAnnouncementPayment.useMutation({
-    onSuccess: () => {
+  const paymentMutation = api.payment.processAnnouncementPayment.useMutation({ onSuccess: () => {
       setPaymentSuccess(true);
       toast({
         variant: "default",
         title: t("paymentSuccessTitle"),
-        description: t("paymentSuccessDescription"),
-      });
+        description: t("paymentSuccessDescription") });
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("paymentErrorTitle"),
-        description: error.message || t("paymentErrorDescription"),
-      });
+        description: error.message || t("paymentErrorDescription") });
       setIsProcessing(false);
-    },
-  });
+    }});
 
   // Fonction pour traiter le paiement
   const handlePayment = async () => {
@@ -90,11 +80,9 @@ export default async function AnnouncementPaymentPage({
     setIsProcessing(true);
 
     try {
-      await paymentMutation.mutateAsync({
-        announcementId: id,
+      await paymentMutation.mutateAsync({ announcementId: id,
         amount: announcement.price || 0,
-        paymentMethodId: paymentMethods?.[0]?.id || "card",
-      });
+        paymentMethodId: paymentMethods?.[0]?.id || "card" });
     } catch (error) {
       // Erreur déjà gérée dans onError de la mutation
     }

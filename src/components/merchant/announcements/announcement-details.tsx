@@ -16,16 +16,14 @@ import {
   CircleDollarSign,
   Info,
   Tag,
-  User,
-} from "lucide-react";
+  User} from "lucide-react";
 
 interface AnnouncementDetailsProps {
   announcement: any; // Replace with proper type
 }
 
 export function AnnouncementDetails({
-  announcement,
-}: AnnouncementDetailsProps) {
+  announcement}: AnnouncementDetailsProps) {
   const t = useTranslations("announcements");
 
   if (!announcement) {

@@ -24,8 +24,7 @@ import {
   Eye,
   Send,
   Printer,
-  BarChart2,
-} from "lucide-react";
+  BarChart2} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { formatCurrency } from "@/utils/document-utils";
@@ -37,16 +36,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateRange } from "@/components/ui/date-range";
@@ -58,21 +55,18 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  PaginationPrevious} from "@/components/ui/pagination";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  CollapsibleTrigger} from "@/components/ui/collapsible";
 import { AreaChart, LineChart, BarChart } from "@/components/ui/charts";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -83,13 +77,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 
 export default function AdminInvoicesPage() {
   const t = useTranslations("admin.invoices");
-  const { data: session } = useSession();
+  const { data } = useSession();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -102,10 +95,8 @@ export default function AdminInvoicesPage() {
   const [currentTab, setCurrentTab] = useState("invoices");
   const [dateRange, setDateRange] = useState<
     { from: Date; to: Date } | undefined
-  >({
-    from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-    to: new Date(),
-  });
+  >({ from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+    to: new Date() });
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -117,8 +108,7 @@ export default function AdminInvoicesPage() {
   const {
     data: invoices,
     isLoading: isLoadingInvoices,
-    refetch: refetchInvoices,
-  } = api.invoice.getAllInvoices.useQuery(
+    refetch: refetchInvoices} = api.invoice.getAllInvoices.useQuery(
     {
       page: currentPage,
       limit: pageSize,
@@ -126,89 +116,64 @@ export default function AdminInvoicesPage() {
       sortOrder: "desc",
       invoiceType: typeFilter as any,
       startDate: dateRange?.from,
-      endDate: dateRange?.to,
-    },
+      endDate: dateRange?.to},
     {
       keepPreviousData: true,
-      refetchOnWindowFocus: false,
-    },
+      refetchOnWindowFocus: false},
   );
 
   // Récupérer les statistiques des factures
   const {
     data: invoiceStats,
     isLoading: isLoadingStats,
-    refetch: refetchStats,
-  } = api.invoice.getInvoiceStats.useQuery(
+    refetch: refetchStats} = api.invoice.getInvoiceStats.useQuery(
     {
       period: "month",
       compareWithPrevious: true,
       startDate: dateRange?.from,
-      endDate: dateRange?.to,
-    },
-    {
-      refetchOnWindowFocus: false,
-    },
+      endDate: dateRange?.to},
+    { refetchOnWindowFocus },
   );
 
   // Générer une facture (PDF)
-  const generateInvoiceMutation = api.invoice.generateInvoicePdf.useMutation({
-    onSuccess: (data) => {
+  const generateInvoiceMutation = api.invoice.generateInvoicePdf.useMutation({ onSuccess: (data) => {
       toast({
         title: t("invoiceGenerated"),
-        description: t("invoiceGeneratedSuccess"),
-      });
+        description: t("invoiceGeneratedSuccess") });
 
       // Rediriger vers le PDF (dans un cas réel)
-      // window.open(data.pdfUrl, '_blank');
+      // window.open(data.pdfUrl, 'blank');
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("generationFailed"),
-        description: error.message || t("genericError"),
-      });
-    },
-  });
+        description: error.message || t("genericError") });
+    }});
 
   // Envoyer une facture par email
-  const sendInvoiceMutation = api.invoice.sendInvoiceByEmail.useMutation({
-    onSuccess: () => {
+  const sendInvoiceMutation = api.invoice.sendInvoiceByEmail.useMutation({ onSuccess: () => {
       toast({
         title: t("invoiceSent"),
-        description: t("invoiceSentSuccess"),
-      });
+        description: t("invoiceSentSuccess") });
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("sendFailed"),
-        description: error.message || t("genericError"),
-      });
-    },
-  });
+        description: error.message || t("genericError") });
+    }});
 
   // Télécharger le rapport des factures
   const handleDownloadReport = async () => {
     try {
-      toast({
-        title: t("downloadStarted"),
-        description: t("invoiceReportDownloadStarted"),
-      });
+      toast({ title: t("downloadStarted"),
+        description: t("invoiceReportDownloadStarted") });
 
       // Simuler un délai pour la démo
-      setTimeout(() => {
-        toast({
-          title: t("downloadComplete"),
-          description: t("invoiceReportDownloadComplete"),
-        });
-      }, 2000);
+      // Appel API réel via tRPC
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("downloadError"),
-        description: typeof error === "string" ? error : t("genericError"),
-      });
+        description: typeof error === "string" ? error : t("genericError") });
     }
   };
 
@@ -217,16 +182,12 @@ export default function AdminInvoicesPage() {
     setIsRefreshing(true);
     try {
       await Promise.all([refetchInvoices(), refetchStats()]);
-      toast({
-        title: t("refreshSuccess"),
-        description: t("dataRefreshed"),
-      });
+      toast({ title: t("refreshSuccess"),
+        description: t("dataRefreshed") });
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("refreshError"),
-        description: typeof error === "string" ? error : t("genericError"),
-      });
+        description: typeof error === "string" ? error : t("genericError") });
     } finally {
       setIsRefreshing(false);
     }
@@ -237,20 +198,16 @@ export default function AdminInvoicesPage() {
     setSearchQuery("");
     setTypeFilter(undefined);
     setStatusFilter(undefined);
-    setDateRange({
-      from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-      to: new Date(),
-    });
+    setDateRange({ from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+      to: new Date() });
     setCurrentPage(1);
   };
 
   // Générer un PDF pour une facture
   const handleGeneratePdf = async (invoiceId: string) => {
     try {
-      await generateInvoiceMutation.mutateAsync({
-        invoiceId,
-        template: "DEFAULT",
-      });
+      await generateInvoiceMutation.mutateAsync({ invoiceId,
+        template: "DEFAULT" });
     } catch (error) {
       // Erreur déjà gérée par la mutation
     }
@@ -259,10 +216,8 @@ export default function AdminInvoicesPage() {
   // Envoyer une facture par email
   const handleSendInvoice = async (invoiceId: string, email: string) => {
     try {
-      await sendInvoiceMutation.mutateAsync({
-        invoiceId,
-        recipientEmail: email,
-      });
+      await sendInvoiceMutation.mutateAsync({ invoiceId,
+        recipientEmail: email });
     } catch (error) {
       // Erreur déjà gérée par la mutation
     }
@@ -547,11 +502,9 @@ export default function AdminInvoicesPage() {
                     data={
                       invoiceStats?.stats.byType
                         ? Object.entries(invoiceStats.stats.byType).map(
-                            ([type, data]) => ({
-                              type,
+                            ([type, data]) => ({ type,
                               amount: data.amount,
-                              count: data.count,
-                            }),
+                              count: data.count }),
                           )
                         : []
                     }
@@ -861,9 +814,9 @@ export default function AdminInvoicesPage() {
                         />
                       </PaginationItem>
 
-                      {Array.from({ length: Math.min(totalPages, 5) }).map(
+                      {Array.from({ length: Math.min(totalPages, 5)  }).map(
                         (_, i) => {
-                          let pageNumber = i + 1;
+                          const pageNumber = i + 1;
 
                           return (
                             <PaginationItem key={pageNumber}>

@@ -10,22 +10,19 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Filter,
   X,
   Calendar as CalendarIcon,
-  RotateCcw,
-} from "lucide-react";
+  RotateCcw} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ContractFilters } from "@/hooks/admin/use-admin-contracts";
@@ -43,16 +40,14 @@ const CONTRACT_STATUSES = [
   { value: "SUSPENDED", label: "Suspendu" },
   { value: "TERMINATED", label: "Résilié" },
   { value: "EXPIRED", label: "Expiré" },
-  { value: "CANCELLED", label: "Annulé" },
-];
+  { value: "CANCELLED", label: "Annulé" }];
 
 const CONTRACT_TYPES = [
   { value: "STANDARD", label: "Standard" },
   { value: "PREMIUM", label: "Premium" },
   { value: "PARTNER", label: "Partenaire" },
   { value: "TRIAL", label: "Essai" },
-  { value: "CUSTOM", label: "Personnalisé" },
-];
+  { value: "CUSTOM", label: "Personnalisé" }];
 
 const MERCHANT_CATEGORIES = [
   { value: "RESTAURANT", label: "Restaurant" },
@@ -63,14 +58,12 @@ const MERCHANT_CATEGORIES = [
   { value: "BOOKS", label: "Librairie" },
   { value: "BEAUTY", label: "Beauté" },
   { value: "SPORTS", label: "Sport" },
-  { value: "OTHER", label: "Autre" },
-];
+  { value: "OTHER", label: "Autre" }];
 
 export function ContractsFilters({
   filters,
   onFiltersChange,
-  onClearFilters,
-}: ContractsFiltersProps) {
+  onClearFilters}: ContractsFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const activeFiltersCount = Object.values(filters).filter(
@@ -78,26 +71,26 @@ export function ContractsFilters({
   ).length;
 
   const handleSearchChange = (value: string) => {
-    onFiltersChange({ search: value || undefined });
+    onFiltersChange({ search: value || undefined  });
   };
 
   const handleStatusChange = (value: string) => {
-    onFiltersChange({ status: value === "all" ? undefined : value });
+    onFiltersChange({ status: value === "all" ? undefined : value  });
   };
 
   const handleTypeChange = (value: string) => {
-    onFiltersChange({ type: value === "all" ? undefined : value });
+    onFiltersChange({ type: value === "all" ? undefined : value  });
   };
 
   const handleCategoryChange = (value: string) => {
-    onFiltersChange({ merchantCategory: value === "all" ? undefined : value });
+    onFiltersChange({ merchantCategory: value === "all" ? undefined : value  });
   };
 
   const handleDateChange = (
     field: keyof ContractFilters,
     date: Date | undefined,
   ) => {
-    onFiltersChange({ [field]: date });
+    onFiltersChange({ [field]: date  });
   };
 
   return (
@@ -238,7 +231,7 @@ export function ContractsFilters({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {filters.createdAfter ? (
-                        format(filters.createdAfter, "PPP", { locale: fr })
+                        format(filters.createdAfter, "PPP", { locale })
                       ) : (
                         <span>Sélectionner une date</span>
                       )}
@@ -267,7 +260,7 @@ export function ContractsFilters({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {filters.createdBefore ? (
-                        format(filters.createdBefore, "PPP", { locale: fr })
+                        format(filters.createdBefore, "PPP", { locale })
                       ) : (
                         <span>Sélectionner une date</span>
                       )}

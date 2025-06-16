@@ -9,8 +9,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -19,8 +18,7 @@ import {
   FileBarChart,
   RefreshCw,
   MessageCircle,
-  MapPin,
-} from "lucide-react";
+  MapPin} from "lucide-react";
 import { api } from "@/trpc/react";
 
 export default function AdminDeliverersPage() {
@@ -32,11 +30,9 @@ export default function AdminDeliverersPage() {
     data: usersData,
     isLoading: isLoadingDeliverers,
     refetch: refetchDeliverers,
-    error: deliverersError,
-  } = api.adminUser.getUsers.useQuery({
-    page: 1,
+    error: deliverersError} = api.adminUser.getUsers.useQuery({ page: 1,
     limit: 100, // Récupérer plus d'utilisateurs pour filtrer côté client
-  });
+   });
 
   // DEBUG: Afficher les données reçues
   console.log("🔍 DEBUG DELIVERERS - usersData:", usersData);
@@ -52,7 +48,7 @@ export default function AdminDeliverersPage() {
   );
 
   // Appliquer les filtres côté frontend
-  let filteredDeliverers = delivererUsers;
+  const filteredDeliverers = delivererUsers;
 
   if (searchTerm) {
     const searchLower = searchTerm.toLowerCase();
@@ -64,8 +60,7 @@ export default function AdminDeliverersPage() {
   }
 
   // Transformer les livreurs pour match le format attendu par DeliverersTable
-  const deliverers = filteredDeliverers.map((deliverer: any) => ({
-    id: deliverer.id, // ✅ Utiliser le vrai ID
+  const deliverers = filteredDeliverers.map((deliverer: any) => ({ id: deliverer.id, // ✅ Utiliser le vrai ID
     firstName: deliverer.name?.split(" ")[0] || "Prénom",
     lastName: deliverer.name?.split(" ").slice(1).join(" ") || "Nom",
     email: deliverer.email,
@@ -82,16 +77,14 @@ export default function AdminDeliverersPage() {
     earnings: 0,
     hasVehicle: true,
     vehicleType: "Voiture",
-    preferredZones: ["Paris", "Lyon"],
-  }));
+    preferredZones: ["Paris", "Lyon"] }));
 
   // Créer les données de pagination
   const safeDeliverersData = {
     deliverers,
     totalPages: 1,
     currentPage: 1,
-    total: deliverers.length,
-  };
+    total: deliverers.length};
 
   // Statistiques des livreurs
   const safeStatsData = {
@@ -106,8 +99,7 @@ export default function AdminDeliverersPage() {
     ).length,
     totalDeliveries: 0,
     totalEarnings: 0,
-    averageRating: 4.5,
-  };
+    averageRating: 4.5};
 
   const isLoadingStats = false;
 

@@ -26,7 +26,7 @@ export default function AnnouncementTrackingPage() {
   useRoleProtection(["CLIENT"]);
   const t = useTranslations("deliveries");
   const tAnnouncements = useTranslations("announcements");
-  const params = useParams<{ id: string }>();
+  const params = useParams<{ id }>();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("status");
   const [showRatingForm, setShowRatingForm] = useState(false);
@@ -36,8 +36,7 @@ export default function AnnouncementTrackingPage() {
     fetchAnnouncementById,
     currentAnnouncement,
     isLoading: isLoadingAnnouncement,
-    error: announcementError,
-  } = useAnnouncement();
+    error: announcementError} = useAnnouncement();
 
   const {
     trackingInfo,
@@ -47,8 +46,7 @@ export default function AnnouncementTrackingPage() {
     verifyDeliveryCode,
     submitRating,
     updateDeliveryStatus,
-    lastLocation,
-  } = useDeliveryTracking(params.id);
+    lastLocation} = useDeliveryTracking(params.id);
 
   const isLoading = isLoadingAnnouncement || isLoadingTracking;
   const error = announcementError || trackingError;
@@ -67,8 +65,7 @@ export default function AnnouncementTrackingPage() {
 
       if (success) {
         toast.success(t("codeVerification.success"), {
-          description: t("codeVerification.deliveryConfirmed"),
-        });
+          description: t("codeVerification.deliveryConfirmed")});
 
         // Rafraîchir les informations de suivi
         refreshTracking();
@@ -77,15 +74,13 @@ export default function AnnouncementTrackingPage() {
         return true;
       } else {
         toast.error(t("codeVerification.invalidCode"), {
-          description: t("codeVerification.tryAgain"),
-        });
+          description: t("codeVerification.tryAgain")});
 
         return false;
       }
     } catch (error) {
       toast.error(t("codeVerification.verificationError"), {
-        description: error instanceof Error ? error.message : String(error),
-      });
+        description: error instanceof Error ? error.message : String(error)});
 
       return false;
     }
@@ -98,16 +93,13 @@ export default function AnnouncementTrackingPage() {
     photoUrls?: string[];
   }) => {
     try {
-      await submitRating({
-        deliveryId: params.id,
+      await submitRating({ deliveryId: params.id,
         rating: data.rating,
         comment: data.comment || "",
-        photos: data.photoUrls || [],
-      });
+        photos: data.photoUrls || [] });
 
       toast.success(t("rating.success"), {
-        description: t("rating.thankYou"),
-      });
+        description: t("rating.thankYou")});
 
       // Rafraîchir les informations de suivi
       refreshTracking();
@@ -115,8 +107,7 @@ export default function AnnouncementTrackingPage() {
       return true;
     } catch (error) {
       toast.error(t("rating.error"), {
-        description: error instanceof Error ? error.message : String(error),
-      });
+        description: error instanceof Error ? error.message : String(error)});
 
       return false;
     }
@@ -144,8 +135,7 @@ export default function AnnouncementTrackingPage() {
       "PICKED_UP",
       "IN_TRANSIT",
       "DELIVERED",
-      "CONFIRMED",
-    ].includes(currentAnnouncement.status);
+      "CONFIRMED"].includes(currentAnnouncement.status);
 
   // Afficher un skeleton loader pendant le chargement
   if (isLoading) {
@@ -233,16 +223,14 @@ export default function AnnouncementTrackingPage() {
     currentAnnouncement.pickupLatitude && currentAnnouncement.pickupLongitude
       ? ([
           currentAnnouncement.pickupLatitude,
-          currentAnnouncement.pickupLongitude,
-        ] as [number, number])
+          currentAnnouncement.pickupLongitude] as [number, number])
       : undefined;
   const deliveryCoordinates =
     currentAnnouncement.deliveryLatitude &&
     currentAnnouncement.deliveryLongitude
       ? ([
           currentAnnouncement.deliveryLatitude,
-          currentAnnouncement.deliveryLongitude,
-        ] as [number, number])
+          currentAnnouncement.deliveryLongitude] as [number, number])
       : undefined;
 
   // Préparer les coordonnées pour la carte de suivi
@@ -257,8 +245,7 @@ export default function AnnouncementTrackingPage() {
     lastUpdate: lastLocation?.timestamp
       ? new Date(lastLocation.timestamp)
       : undefined,
-    onRefresh: handleRefreshLocation,
-  };
+    onRefresh: handleRefreshLocation};
 
   // Préparer les props pour le statut de livraison
   const statusProps = {
@@ -276,24 +263,21 @@ export default function AnnouncementTrackingPage() {
               new Date().getTime()) %
               (1000 * 60 * 60)) /
               (1000 * 60),
-          ),
-        }
+          )}
       : null,
     lastUpdate: lastLocation?.timestamp
       ? new Date(lastLocation.timestamp)
       : undefined,
     delivererName: currentAnnouncement.deliverer?.name,
     delivererPhone: currentAnnouncement.deliverer?.phone,
-    onRefresh: refreshTracking,
-  };
+    onRefresh: refreshTracking};
 
   // Préparer les props pour la timeline
   const timelineProps = {
     deliveryId: params.id,
     status: deliveryStatus,
     logs: trackingInfo?.logs || [],
-    onRefresh: refreshTracking,
-  };
+    onRefresh: refreshTracking};
 
   // Préparer les props pour le formulaire de notation
   const ratingProps = {
@@ -301,8 +285,7 @@ export default function AnnouncementTrackingPage() {
     delivererName: currentAnnouncement.deliverer?.name,
     existingRating: trackingInfo?.rating,
     onSubmit: handleSubmitRating,
-    onCancel: () => setShowRatingForm(false),
-  };
+    onCancel: () => setShowRatingForm(false)};
 
   // Déterminer si le bouton de vérification de code doit être affiché
   const showVerifyButton =

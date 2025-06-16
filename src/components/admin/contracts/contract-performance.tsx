@@ -6,8 +6,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,16 +14,14 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import {
   DropdownMenu,
@@ -32,8 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {
   TrendingUp,
   TrendingDown,
@@ -46,8 +42,7 @@ import {
   RefreshCw,
   MoreHorizontal,
   Calendar,
-  BarChart3,
-} from "lucide-react";
+  BarChart3} from "lucide-react";
 import { useContractPerformance } from "@/hooks/admin/use-contract-performance";
 
 interface ContractPerformanceProps {
@@ -57,8 +52,7 @@ interface ContractPerformanceProps {
 
 export function ContractPerformance({
   contractId,
-  merchantId,
-}: ContractPerformanceProps) {
+  merchantId}: ContractPerformanceProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<
     "MONTHLY" | "QUARTERLY" | "YEARLY"
   >("MONTHLY");
@@ -78,13 +72,10 @@ export function ContractPerformance({
     recalculatePerformance,
     formatCurrency,
     formatPercentage,
-    calculateAverageMetrics,
-  } = useContractPerformance({
-    contractId,
+    calculateAverageMetrics} = useContractPerformance({ contractId,
     merchantId,
     period: selectedPeriod,
-    year: selectedYear,
-  });
+    year: selectedYear });
 
   const handlePeriodChange = (period: "MONTHLY" | "QUARTERLY" | "YEARLY") => {
     setSelectedPeriod(period);
@@ -294,8 +285,7 @@ export function ContractPerformance({
                 />
                 {getPerformanceBadge(averageMetrics.averageSatisfaction, {
                   good: 3.5,
-                  excellent: 4.5,
-                })}
+                  excellent: 4.5})}
               </div>
             </CardContent>
           </Card>

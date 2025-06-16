@@ -16,8 +16,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Edit, Eye, AlertTriangle } from "lucide-react";
@@ -39,8 +38,7 @@ export default function AnnouncementDetailsPage() {
     { id },
     {
       retry: 1,
-      refetchOnWindowFocus: false,
-    },
+      refetchOnWindowFocus: false},
   );
 
   // Récupération des statistiques de l'annonce
@@ -48,8 +46,7 @@ export default function AnnouncementDetailsPage() {
     { id },
     {
       enabled: !!announcementQuery.data,
-      refetchOnWindowFocus: false,
-    },
+      refetchOnWindowFocus: false},
   );
 
   // Récupération des demandes de livraison pour cette annonce
@@ -58,8 +55,7 @@ export default function AnnouncementDetailsPage() {
       { id },
       {
         enabled: !!announcementQuery.data,
-        refetchOnWindowFocus: false,
-      },
+        refetchOnWindowFocus: false},
     );
 
   // Mutation pour mettre à jour le statut de l'annonce
@@ -71,8 +67,7 @@ export default function AnnouncementDetailsPage() {
       },
       onError: (error) => {
         toast.error(t("statusUpdateError", { error: error.message }));
-      },
-    });
+      }});
 
   const handleBack = () => {
     router.back();
@@ -83,21 +78,21 @@ export default function AnnouncementDetailsPage() {
   };
 
   const handlePublish = () => {
-    updateStatusMutation.mutate({ id, status: "ACTIVE" });
+    updateStatusMutation.mutate({ id, status: "ACTIVE"  });
   };
 
   const handleDeactivate = () => {
-    updateStatusMutation.mutate({ id, status: "INACTIVE" });
+    updateStatusMutation.mutate({ id, status: "INACTIVE"  });
   };
 
   const handleReactivate = () => {
-    updateStatusMutation.mutate({ id, status: "ACTIVE" });
+    updateStatusMutation.mutate({ id, status: "ACTIVE"  });
   };
 
   const handleDelete = () => {
     // Confirmer avant de supprimer
     if (window.confirm(t("deleteConfirmation"))) {
-      updateStatusMutation.mutate({ id, status: "DELETED" });
+      updateStatusMutation.mutate({ id, status: "DELETED"  });
       router.push("/merchant/announcements");
     }
   };

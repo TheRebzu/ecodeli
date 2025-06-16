@@ -5,42 +5,36 @@ import { createCaller } from "@/trpc/server";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({
-  params,
-}: {
+  params}: {
   params: Promise<{ locale: string; id: string }>;
 }): Promise<Metadata> {
   const { locale, id } = await params;
-  const t = await getTranslations({
-    locale,
-    namespace: "admin.warehouses.form.meta",
-  });
+  const t = await getTranslations({ locale,
+    namespace: "admin.warehouses.form.meta" });
 
   try {
     const caller = await createCaller();
-    const warehouse = await caller.adminWarehouse.getWarehouseById({ id });
+    const warehouse = await caller.adminWarehouse.getWarehouseById({ id  });
 
     return {
       title: `${t("editTitle")} - ${warehouse.warehouse.name}`,
-      description: t("editDescription"),
-    };
+      description: t("editDescription")};
   } catch {
     return {
       title: t("editTitle"),
-      description: t("editDescription"),
-    };
+      description: t("editDescription")};
   }
 }
 
 export default async function EditWarehousePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
+  params}: {
+  params: Promise<{ id }>;
 }) {
   const { id } = await params;
 
   try {
     const caller = await createCaller();
-    const warehouseData = await caller.adminWarehouse.getWarehouseById({ id });
+    const warehouseData = await caller.adminWarehouse.getWarehouseById({ id  });
     const warehouse = warehouseData.warehouse;
 
     return (
@@ -53,8 +47,7 @@ export default async function EditWarehousePage({
             address: warehouse.address,
             capacity: warehouse.capacity,
             description: warehouse.description || "",
-            isActive: warehouse.isActive,
-          }}
+            isActive: warehouse.isActive}}
           isEditing={true}
         />
       </div>

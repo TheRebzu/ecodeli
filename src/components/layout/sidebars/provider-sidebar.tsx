@@ -40,12 +40,10 @@ import {
   PieChart,
   Calendar as CalendarIcon,
   Handshake,
-  Banknote,
-} from "lucide-react";
+  Banknote} from "lucide-react";
 import {
   BaseSidebar,
-  type SidebarSection,
-} from "@/components/layout/sidebars/base-sidebar";
+  type SidebarSection} from "@/components/layout/sidebars/base-sidebar";
 
 interface ProviderSidebarProps {
   locale: string;
@@ -63,10 +61,7 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
           label: "Tableau de bord",
           href: `/${locale}/provider`,
           icon: Home,
-          badge: 3,
-        },
-      ],
-    },
+          badge: 3}]},
 
     // Section Rendez-vous et interventions
     {
@@ -76,15 +71,11 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
           label: "Mes rendez-vous",
           href: `/${locale}/provider/appointments`,
           icon: Calendar,
-          badge: 2,
-        },
+          badge: 2},
         {
           label: "Mon planning",
           href: `/${locale}/provider/schedule`,
-          icon: CalendarIcon,
-        },
-      ],
-    },
+          icon: CalendarIcon}]},
 
     // Section Services et compétences
     {
@@ -93,30 +84,23 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
         {
           label: "Mes services",
           href: `/${locale}/provider/services`,
-          icon: Briefcase,
-        },
+          icon: Briefcase},
         {
           label: "Créer service",
           href: `/${locale}/provider/services/create`,
-          icon: Plus,
-        },
+          icon: Plus},
         {
           label: "Mes compétences",
           href: `/${locale}/provider/skills`,
-          icon: Award,
-        },
+          icon: Award},
         {
           label: "Ajouter compétence",
           href: `/${locale}/provider/skills/add`,
-          icon: Plus,
-        },
+          icon: Plus},
         {
           label: "Certifications",
           href: `/${locale}/provider/skills/certifications`,
-          icon: Certificate,
-        },
-      ],
-    },
+          icon: Certificate}]},
 
     // Section Documents et contrats
     {
@@ -125,25 +109,19 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
         {
           label: "Mes documents",
           href: `/${locale}/provider/documents`,
-          icon: FileText,
-        },
+          icon: FileText},
         {
           label: "Contrats",
           href: `/${locale}/provider/contracts`,
-          icon: FileText,
-        },
+          icon: FileText},
         {
           label: "Négociation",
           href: `/${locale}/provider/contracts/negotiation`,
-          icon: Handshake,
-        },
+          icon: Handshake},
         {
           label: "Vérification",
           href: `/${locale}/provider/verification`,
-          icon: CheckCircle,
-        },
-      ],
-    },
+          icon: CheckCircle}]},
 
     // Section Facturation
     {
@@ -152,20 +130,15 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
         {
           label: "Mes factures",
           href: `/${locale}/provider/invoices`,
-          icon: Receipt,
-        },
+          icon: Receipt},
         {
           label: "Facturation",
           href: `/${locale}/provider/billing`,
-          icon: Receipt,
-        },
+          icon: Receipt},
         {
           label: "Factures automatiques",
           href: `/${locale}/provider/billing/automatic-invoices`,
-          icon: Zap,
-        },
-      ],
-    },
+          icon: Zap}]},
 
     // Section Évaluations
     {
@@ -174,10 +147,7 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
         {
           label: "Mes évaluations",
           href: `/${locale}/provider/ratings`,
-          icon: Star,
-        },
-      ],
-    },
+          icon: Star}]},
 
     // Section Statistiques
     {
@@ -186,15 +156,11 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
         {
           label: "Mes statistiques",
           href: `/${locale}/provider/stats`,
-          icon: BarChart3,
-        },
+          icon: BarChart3},
         {
           label: "Rapport mensuel",
           href: `/${locale}/provider/stats/monthly-report`,
-          icon: FileBarChart,
-        },
-      ],
-    },
+          icon: FileBarChart}]},
 
     // Section Communication
     {
@@ -204,10 +170,7 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
           label: "Messages",
           href: `/${locale}/provider/messages`,
           icon: MessageSquare,
-          badge: 1,
-        },
-      ],
-    },
+          badge: 1}]},
 
     // Section Profil
     {
@@ -216,23 +179,17 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
         {
           label: "Mon profil",
           href: `/${locale}/provider/profile`,
-          icon: User,
-        },
-      ],
-    },
-  ];
+          icon: User}]}];
 
   const userInfo = {
     name: "Prestataire EcoDeli",
     email: "provider@ecodeli.me",
-    avatar: "",
-  };
+    avatar: ""};
 
   const quickAction = {
     label: "Nouveau service",
     icon: Briefcase,
-    href: `/${locale}/provider/services/create`,
-  };
+    href: `/${locale}/provider/services/create`};
 
   return (
     <BaseSidebar

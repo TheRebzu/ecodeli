@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { BoxSearchInput } from "@/schemas/storage/storage.schema";
@@ -20,8 +19,7 @@ import {
   MapPin,
   Trash2,
   Package,
-  AlertCircle,
-} from "lucide-react";
+  AlertCircle} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,8 +33,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import { BoxAvailabilitySubscription } from "@/types/warehouses/storage-box";
 
 export function BoxNotificationsPanel() {
@@ -51,14 +48,12 @@ export function BoxNotificationsPanel() {
     api.storage.subscribeToAvailability.useMutation({
       onSuccess: () => {
         subscriptionsQuery.refetch();
-      },
-    });
+      }});
   const deleteSubscriptionMutation =
     api.storage.deactivateSubscription.useMutation({
       onSuccess: () => {
         subscriptionsQuery.refetch();
-      },
-    });
+      }});
 
   // Gestionnaire de création d'une notification
   const handleCreateNotification = async (data: BoxSearchInput) => {
@@ -73,9 +68,7 @@ export function BoxNotificationsPanel() {
         notificationPreferences: {
           email: true,
           push: true,
-          sms: false,
-        },
-      });
+          sms: false}});
     } catch (error) {
       console.error("Erreur lors de la création de la notification:", error);
     }
@@ -86,9 +79,7 @@ export function BoxNotificationsPanel() {
     if (!subscriptionToDelete) return;
 
     try {
-      await deleteSubscriptionMutation.mutateAsync({
-        subscriptionId: subscriptionToDelete.id,
-      });
+      await deleteSubscriptionMutation.mutateAsync({ subscriptionId: subscriptionToDelete.id });
       setSubscriptionToDelete(null);
     } catch (error) {
       console.error("Erreur lors de la suppression de la notification:", error);
@@ -144,10 +135,7 @@ export function BoxNotificationsPanel() {
                       </div>
                       <CardDescription>
                         {t("notifications.createdAt", {
-                          date: format(new Date(sub.createdAt), "PPP", {
-                            locale: fr,
-                          }),
-                        })}
+                          date: format(new Date(sub.createdAt), "PPP", { locale })})}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -158,11 +146,9 @@ export function BoxNotificationsPanel() {
                             <span className="font-medium">
                               {t("notifications.dateRange")}:
                             </span>{" "}
-                            {format(new Date(sub.startDate), "P", {
-                              locale: fr,
-                            })}{" "}
+                            {format(new Date(sub.startDate), "P", { locale })}{" "}
                             -{" "}
-                            {format(new Date(sub.endDate), "P", { locale: fr })}
+                            {format(new Date(sub.endDate), "P", { locale })}
                           </div>
                         </div>
 
@@ -175,8 +161,7 @@ export function BoxNotificationsPanel() {
                             {sub.location || t("notifications.anyLocation")},{" "}
                             {sub.radius
                               ? t("notifications.radius", {
-                                  radius: sub.radius,
-                                })
+                                  radius: sub.radius})
                               : ""}
                           </div>
                         </div>

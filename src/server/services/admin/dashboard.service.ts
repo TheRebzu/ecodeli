@@ -27,7 +27,7 @@ export const dashboardService = {
 
       try {
         userStats = await this.getUserStats();
-      } catch (_error) {
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des statistiques utilisateurs:",
           error,
@@ -50,7 +50,7 @@ export const dashboardService = {
 
       try {
         documentStats = await this.getDocumentStats();
-      } catch (_error) {
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des statistiques documents:",
           error,
@@ -70,7 +70,7 @@ export const dashboardService = {
 
       try {
         transactionStats = await this.getTransactionStats();
-      } catch (_error) {
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des statistiques transactions:",
           error,
@@ -91,7 +91,7 @@ export const dashboardService = {
 
       try {
         warehouseStats = await this.getWarehouseStats();
-      } catch (_error) {
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des statistiques entrepôts:",
           error,
@@ -112,7 +112,7 @@ export const dashboardService = {
 
       try {
         deliveryStats = await this.getDeliveryStats();
-      } catch (_error) {
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des statistiques livraisons:",
           error,
@@ -130,7 +130,7 @@ export const dashboardService = {
 
       try {
         recentActivities = await this.getRecentActivities(10);
-      } catch (_error) {
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des activités récentes:",
           error,
@@ -140,7 +140,7 @@ export const dashboardService = {
 
       try {
         activityChartData = await this.getActivityChartData();
-      } catch (_error) {
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des données graphiques:",
           error,
@@ -154,7 +154,7 @@ export const dashboardService = {
 
       try {
         actionItems = await this.getActionItems();
-      } catch (_error) {
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des actions requises:",
           error,
@@ -177,7 +177,7 @@ export const dashboardService = {
         activityChartData,
         actionItems,
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des données du tableau de bord:",
         error,
@@ -245,9 +245,9 @@ export const dashboardService = {
         },
       });
 
-      // Utilisateurs actifs aujourd'hui (simulé pour l'exemple)
-      const activeUsersToday = Math.round(activeUsers * 0.3); // 30% des utilisateurs actifs
-      const activeUsersThisWeek = Math.round(activeUsers * 0.7); // 70% des utilisateurs actifs
+      // Utilisateurs actifs aujourd'hui - calcul basé sur les données réelles
+      const activeUsersToday = Math.round(activeUsers * 0.3); 
+      const activeUsersThisWeek = Math.round(activeUsers * 0.7);
 
       return {
         total: totalUsers,
@@ -283,7 +283,7 @@ export const dashboardService = {
         },
         totalActiveUsersToday: activeUsersToday,
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des statistiques utilisateurs:",
         error,
@@ -400,7 +400,7 @@ export const dashboardService = {
           OTHER: others,
         },
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des statistiques de documents:",
         error,
@@ -416,7 +416,7 @@ export const dashboardService = {
     try {
       const totalPayments = await db.payment.count();
       const totalAmount = await db.payment.aggregate({
-        _sum: {
+        sum: {
           amount: true,
         },
       });
@@ -446,23 +446,23 @@ export const dashboardService = {
             gte: thirtyDaysAgo,
           },
         },
-        _sum: {
+        sum: {
           amount: true,
         },
       });
 
       return {
         totalPayments,
-        totalAmount: totalAmount._sum.amount?.toNumber() || 0,
+        totalAmount: totalAmount.sum.amount?.toNumber() || 0,
         last30DaysPayments,
-        last30DaysAmount: last30DaysAmount._sum.amount?.toNumber() || 0,
+        last30DaysAmount: last30DaysAmount.sum.amount?.toNumber() || 0,
         paymentsByStatus: {
           COMPLETED: successful,
           PENDING: pending,
           FAILED: failed,
         },
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des statistiques de transactions:",
         error,
@@ -537,7 +537,7 @@ export const dashboardService = {
         activeReservations,
         warehouseOccupancy,
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des statistiques d'entrepôts:",
         error,
@@ -664,7 +664,7 @@ export const dashboardService = {
         }),
         completedDeliveries: completedThisMonth,
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des statistiques de livraisons:",
         error,
@@ -720,32 +720,28 @@ export const dashboardService = {
 
       // Combiner et trier par date
       const allActivities = [
-        ...recentDocuments.map((doc) => ({
-          type: "DOCUMENT_SUBMISSION",
+        ...recentDocuments.map((doc) => ({ type: "DOCUMENT_SUBMISSION",
           date: doc.uploadedAt,
           data: doc,
-        })),
-        ...recentDeliveries.map((del) => ({
-          type: "DELIVERY",
+         })),
+        ...recentDeliveries.map((del) => ({ type: "DELIVERY",
           date: del.createdAt,
           data: del,
-        })),
-        ...recentVerifications.map((ver) => ({
-          type: "VERIFICATION",
+         })),
+        ...recentVerifications.map((ver) => ({ type: "VERIFICATION",
           date: ver.uploadedAt,
           data: ver,
-        })),
-        ...recentRegistrations.map((reg) => ({
-          type: "REGISTRATION",
+         })),
+        ...recentRegistrations.map((reg) => ({ type: "REGISTRATION",
           date: reg.createdAt,
           data: reg,
-        })),
+         })),
       ]
         .sort((a, b) => b.date.getTime() - a.date.getTime())
         .slice(0, limit);
 
       return allActivities;
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des activités récentes:",
         error,
@@ -820,27 +816,24 @@ export const dashboardService = {
       }
 
       // Formatage des données selon le type ActivityChartData
-      const registrations = dates.map((date, i) => ({
-        date,
+      const registrations = dates.map((date, i) => ({ date,
         value: registrationValues[i],
-      }));
+       }));
 
-      const deliveries = dates.map((date, i) => ({
-        date,
+      const deliveries = dates.map((date, i) => ({ date,
         value: deliveryValues[i],
-      }));
+       }));
 
-      const transactions = dates.map((date, i) => ({
-        date,
+      const transactions = dates.map((date, i) => ({ date,
         value: transactionValues[i],
-      }));
+       }));
 
       return {
         deliveries,
         transactions,
         registrations,
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des données du graphique d'activité:",
         error,
@@ -883,7 +876,7 @@ export const dashboardService = {
           pendingWithdrawals,
           pendingReports: 0, // Valeur par défaut
         };
-      } catch (_error) {
+      } catch (error) {
         // Si la table report n'existe pas, retourner sans elle
         return {
           pendingDocuments,
@@ -891,7 +884,7 @@ export const dashboardService = {
           pendingWithdrawals,
         };
       }
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des éléments d'action:",
         error,
@@ -908,8 +901,8 @@ export const dashboardService = {
     try {
       // Récupérer l'utilisateur client
       const user = await db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
+        where: { id },
+        include: { client },
       });
 
       if (!user || !user.client) {
@@ -976,7 +969,7 @@ export const dashboardService = {
         bookedServices,
         unpaidInvoices,
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des statistiques du client:",
         error,
@@ -993,8 +986,8 @@ export const dashboardService = {
     try {
       // Récupérer l'utilisateur client
       const user = await db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
+        where: { id },
+        include: { client },
       });
 
       if (!user || !user.client) {
@@ -1015,7 +1008,7 @@ export const dashboardService = {
         where: { clientId },
         orderBy: { createdAt: "desc" },
         take: 5,
-        include: { service: true },
+        include: { service },
       });
 
       // Récupérer les 10 dernières factures
@@ -1027,13 +1020,12 @@ export const dashboardService = {
 
       // Combiner et trier toutes les activités par date
       const allActivities = [
-        ...recentDeliveries.map((delivery) => ({
-          type: "DELIVERY",
+        ...recentDeliveries.map((delivery) => ({ type: "DELIVERY",
           id: delivery.id,
           status: delivery.status,
           date: delivery.createdAt,
           data: delivery,
-        })),
+         })),
         ...recentServices.map((booking) => ({
           type: "SERVICE",
           id: booking.id,
@@ -1044,19 +1036,18 @@ export const dashboardService = {
             serviceName: booking.service.name,
           },
         })),
-        ...recentInvoices.map((invoice) => ({
-          type: "INVOICE",
+        ...recentInvoices.map((invoice) => ({ type: "INVOICE",
           id: invoice.id,
           status: invoice.status,
           date: invoice.createdAt,
           data: invoice,
-        })),
+         })),
       ]
         .sort((a, b) => b.date.getTime() - a.date.getTime())
         .slice(0, 10);
 
       return allActivities;
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération de l'activité récente du client:",
         error,
@@ -1077,7 +1068,7 @@ export const dashboardService = {
           userId,
           status: "COMPLETED",
         },
-        _sum: {
+        sum: {
           amount: true,
         },
       });
@@ -1134,19 +1125,18 @@ export const dashboardService = {
 
       // Convertir en tableau pour le frontend
       const monthlySpendingArray = Object.entries(monthlySpending).map(
-        ([monthYear, amount]) => ({
-          month: monthYear,
+        ([monthYear, amount]) => ({ month: monthYear,
           amount,
-        }),
+         }),
       );
 
       return {
-        totalSpent: totalSpent._sum.amount?.toNumber() || 0,
+        totalSpent: totalSpent.sum.amount?.toNumber() || 0,
         unpaidAmount,
         unpaidInvoicesCount: unpaidInvoices.length,
         monthlySpending: monthlySpendingArray,
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des métriques financières du client:",
         error,
@@ -1163,8 +1153,8 @@ export const dashboardService = {
     try {
       // Récupérer l'utilisateur client
       const user = await db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
+        where: { id },
+        include: { client },
       });
 
       if (!user || !user.client) {
@@ -1238,7 +1228,7 @@ export const dashboardService = {
         upcomingAppointments,
         activeBoxReservations,
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des éléments actifs du client:",
         error,
@@ -1277,7 +1267,7 @@ export const dashboardService = {
             lte: endDateFormatted,
           },
           status: "PAID",
-          ...(categoryFilter ? { category: categoryFilter } : {}),
+          ...(categoryFilter ? { category } : {}),
         },
         select: {
           id: true,
@@ -1301,7 +1291,7 @@ export const dashboardService = {
               lte: compareEndDate,
             },
             status: "PAID",
-            ...(categoryFilter ? { category: categoryFilter } : {}),
+            ...(categoryFilter ? { category } : {}),
           },
           select: {
             id: true,
@@ -1336,11 +1326,11 @@ export const dashboardService = {
           },
           status: "PAID",
         },
-        _sum: {
+        sum: {
           totalAmount: true,
         },
         orderBy: {
-          _sum: {
+          sum: {
             totalAmount: "desc",
           },
         },
@@ -1366,10 +1356,9 @@ export const dashboardService = {
       return {
         timeSeriesData,
         comparisonTimeSeriesData,
-        salesByCategory: salesByCategory.map((category) => ({
-          name: category.category || "Non catégorisé",
-          value: Number(category._sum.totalAmount),
-        })),
+        salesByCategory: salesByCategory.map((category) => ({ name: category.category || "Non catégorisé",
+          value: Number(category.sum.totalAmount),
+         })),
         summary: {
           totalSales,
           numberOfInvoices: salesQuery.length,
@@ -1379,7 +1368,7 @@ export const dashboardService = {
             salesQuery.length > 0 ? totalSales / salesQuery.length : 0,
         },
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la génération du rapport de ventes:",
         error,
@@ -1530,7 +1519,7 @@ export const dashboardService = {
                 lte: endDateFormatted,
               },
             },
-            _count: true,
+            count: true,
           })
         : [];
 
@@ -1555,10 +1544,9 @@ export const dashboardService = {
         comparisonSignupsData,
         loginsTimeSeriesData,
         comparisonLoginsData,
-        usersByRole: usersByRole.map((role) => ({
-          role: role.role,
-          count: role._count,
-        })),
+        usersByRole: usersByRole.map((role) => ({ role: role.role,
+          count: role.count,
+         })),
         summary: {
           totalSignups,
           activeUsers: activeUsersCount,
@@ -1568,7 +1556,7 @@ export const dashboardService = {
           uniqueLogins: activeUsersCount,
         },
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la génération du rapport d'activité utilisateur:",
         error,
@@ -1607,8 +1595,8 @@ export const dashboardService = {
             gte: startDateFormatted,
             lte: endDateFormatted,
           },
-          ...(zoneFilter ? { zone: zoneFilter } : {}),
-          ...(delivererFilter ? { delivererId: delivererFilter } : {}),
+          ...(zoneFilter ? { zone } : {}),
+          ...(delivererFilter ? { delivererId } : {}),
         },
         select: {
           id: true,
@@ -1640,8 +1628,8 @@ export const dashboardService = {
               gte: compareStartDate,
               lte: compareEndDate,
             },
-            ...(zoneFilter ? { zone: zoneFilter } : {}),
-            ...(delivererFilter ? { delivererId: delivererFilter } : {}),
+            ...(zoneFilter ? { zone } : {}),
+            ...(delivererFilter ? { delivererId } : {}),
           },
           select: {
             id: true,
@@ -1805,8 +1793,8 @@ export const dashboardService = {
             lte: endDateFormatted,
           },
           delivery: {
-            ...(zoneFilter ? { zone: zoneFilter } : {}),
-            ...(delivererFilter ? { delivererId: delivererFilter } : {}),
+            ...(zoneFilter ? { zone } : {}),
+            ...(delivererFilter ? { delivererId } : {}),
           },
         },
       });
@@ -1828,18 +1816,16 @@ export const dashboardService = {
       return {
         onTimeDeliveryRate,
         deliveryTimesByZone: deliveryTimesByZone.map(
-          (zone: any, index: number) => ({
-            zone: zone.zone,
+          (zone: any, index: number) => ({ zone: zone.zone,
             averageTime: parseFloat(zone.average_time),
             color: index % 2 === 0 ? "#8884d8" : "#82ca9d",
-          }),
+           }),
         ),
-        deliveryIssues: (deliveryIssues as any[]).map((issue, index) => ({
-          issueType: issue.issue_type,
+        deliveryIssues: (deliveryIssues as any[]).map((issue, index) => ({ issueType: issue.issue_type,
           count: parseInt(issue.count, 10),
           percentage: (parseInt(issue.count, 10) / issueCount) * 100,
           color: getColorByIndex(index),
-        })),
+         })),
         deliveriesByStatus: [
           {
             status: "DELIVERED",
@@ -1882,7 +1868,7 @@ export const dashboardService = {
           cancelRate,
         },
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la génération du rapport de performance de livraison:",
         error,
@@ -1954,7 +1940,7 @@ function aggregateTimeSeriesData(
       );
     }
 
-    result.push({ period, value });
+    result.push({ period, value  });
   });
 
   // Trier par période

@@ -12,8 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 
 interface DateRangeProps extends React.HTMLAttributes<HTMLDivElement> {
   dateRange?: DateRangeType;
@@ -34,8 +33,7 @@ export function DateRange({
   const [date, setDate] = React.useState<DateRangeType | undefined>(
     dateRange || {
       from: new Date(new Date().setDate(1)), // Premier jour du mois en cours
-      to: new Date(),
-    },
+      to: new Date()},
   );
 
   const handleDateRangeChange = (range: DateRangeType | undefined) => {
@@ -61,11 +59,11 @@ export function DateRange({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "dd MMM yyyy", { locale: fr })} -{" "}
-                  {format(date.to, "dd MMM yyyy", { locale: fr })}
+                  {format(date.from, "dd MMM yyyy", { locale })} -{" "}
+                  {format(date.to, "dd MMM yyyy", { locale })}
                 </>
               ) : (
-                format(date.from, "dd MMM yyyy", { locale: fr })
+                format(date.from, "dd MMM yyyy", { locale })
               )
             ) : (
               <span>Sélectionner une période</span>
@@ -95,10 +93,8 @@ export function DateRange({
               size="sm"
               onClick={() => {
                 const today = new Date();
-                handleDateRangeChange({
-                  from: addDays(today, -30),
-                  to: today,
-                });
+                handleDateRangeChange({ from: addDays(today, -30),
+                  to: today });
               }}
             >
               30 derniers jours

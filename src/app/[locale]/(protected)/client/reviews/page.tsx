@@ -39,13 +39,10 @@ export default function ReviewsPage() {
     refetch,
     deleteReview,
     voteHelpful,
-    reportReview,
-  } = useClientReviews({
-    rating: ratingFilter !== "all" ? ratingFilter : undefined,
+    reportReview} = useClientReviews({ rating: ratingFilter !== "all" ? ratingFilter : undefined,
     type: typeFilter !== "all" ? typeFilter : undefined,
     verified: verifiedFilter || undefined,
-    search: searchQuery || undefined,
-  });
+    search: searchQuery || undefined });
 
   // Actions
   const handleEditReview = (id: string) => {
@@ -55,53 +52,41 @@ export default function ReviewsPage() {
   const handleDeleteReview = async (id: string) => {
     try {
       await deleteReview(id);
-      toast({
-        title: t("deleteSuccess"),
-        description: t("deleteSuccessDesc"),
-      });
+      toast({ title: t("deleteSuccess"),
+        description: t("deleteSuccessDesc") });
     } catch (error) {
-      toast({
-        title: t("deleteError"),
+      toast({ title: t("deleteError"),
         description:
           error instanceof Error ? error.message : t("deleteErrorDesc"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
   const handleVoteReview = async (id: string, helpful: boolean) => {
     try {
       await voteHelpful(id, helpful);
-      toast({
-        title: t("voteSuccess"),
+      toast({ title: t("voteSuccess"),
         description: helpful
           ? t("voteHelpfulSuccess")
-          : t("voteNotHelpfulSuccess"),
-      });
+          : t("voteNotHelpfulSuccess") });
     } catch (error) {
-      toast({
-        title: t("voteError"),
+      toast({ title: t("voteError"),
         description:
           error instanceof Error ? error.message : t("voteErrorDesc"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
   const handleReportReview = async (id: string) => {
     try {
       await reportReview(id, "inappropriate");
-      toast({
-        title: t("reportSuccess"),
-        description: t("reportSuccessDesc"),
-      });
+      toast({ title: t("reportSuccess"),
+        description: t("reportSuccessDesc") });
     } catch (error) {
-      toast({
-        title: t("reportError"),
+      toast({ title: t("reportError"),
         description:
           error instanceof Error ? error.message : t("reportErrorDesc"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 

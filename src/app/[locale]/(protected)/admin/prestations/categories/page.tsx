@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +17,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -27,14 +25,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -47,8 +43,7 @@ import {
   Package,
   Users,
   TrendingUp,
-  Eye,
-} from "lucide-react";
+  Eye} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface ServiceCategory {
@@ -68,12 +63,10 @@ export default function ServiceCategoriesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] =
     useState<ServiceCategory | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
+  const [formData, setFormData] = useState({ name: "",
     description: "",
     color: "#3B82F6",
-    icon: "Package",
-  });
+    icon: "Package" });
 
   const { toast } = useToast();
 
@@ -81,8 +74,7 @@ export default function ServiceCategoriesPage() {
   const {
     data: categoriesData,
     isLoading,
-    refetch,
-  } = api.admin.services.categories.getAll.useQuery();
+    refetch} = api.admin.services.categories.getAll.useQuery();
 
   const createCategoryMutation =
     api.admin.services.categories.create.useMutation({
@@ -90,24 +82,18 @@ export default function ServiceCategoriesPage() {
         refetch();
         toast({
           title: "Catégorie créée",
-          description: `La catégorie "${formData.name}" a été créée avec succès.`,
-        });
+          description: `La catégorie "${formData.name}" a été créée avec succès.`});
         setIsCreateDialogOpen(false);
-        setFormData({
-          name: "",
+        setFormData({ name: "",
           description: "",
           color: "#3B82F6",
-          icon: "Package",
-        });
+          icon: "Package" });
       },
       onError: (error) => {
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   const updateCategoryMutation =
     api.admin.services.categories.update.useMutation({
@@ -115,61 +101,45 @@ export default function ServiceCategoriesPage() {
         refetch();
         toast({
           title: "Catégorie modifiée",
-          description: `La catégorie "${formData.name}" a été modifiée avec succès.`,
-        });
+          description: `La catégorie "${formData.name}" a été modifiée avec succès.`});
         setIsEditDialogOpen(false);
         setSelectedCategory(null);
-        setFormData({
-          name: "",
+        setFormData({ name: "",
           description: "",
           color: "#3B82F6",
-          icon: "Package",
-        });
+          icon: "Package" });
       },
       onError: (error) => {
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   const deleteCategoryMutation =
-    api.admin.services.categories.delete.useMutation({
-      onSuccess: () => {
+    api.admin.services.categories.delete.useMutation({ onSuccess: () => {
         refetch();
         toast({
           title: "Catégorie supprimée",
-          description: "La catégorie a été supprimée avec succès.",
-        });
+          description: "La catégorie a été supprimée avec succès." });
       },
       onError: (error) => {
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   const toggleStatusMutation =
-    api.admin.services.categories.toggleStatus.useMutation({
-      onSuccess: () => {
+    api.admin.services.categories.toggleStatus.useMutation({ onSuccess: () => {
         refetch();
         toast({
           title: "Statut modifié",
-          description: "Le statut de la catégorie a été modifié avec succès.",
-        });
+          description: "Le statut de la catégorie a été modifié avec succès." });
       },
       onError: (error) => {
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   const categories = categoriesData?.categories || [];
 
@@ -198,34 +168,28 @@ export default function ServiceCategoriesPage() {
   };
 
   const handleCreateCategory = () => {
-    createCategoryMutation.mutate({
-      name: formData.name,
+    createCategoryMutation.mutate({ name: formData.name,
       description: formData.description,
       color: formData.color,
-      icon: formData.icon,
-    });
+      icon: formData.icon });
   };
 
   const handleEditCategory = () => {
     if (!selectedCategory) return;
 
-    updateCategoryMutation.mutate({
-      id: selectedCategory.id,
+    updateCategoryMutation.mutate({ id: selectedCategory.id,
       name: formData.name,
       description: formData.description,
       color: formData.color,
-      icon: formData.icon,
-    });
+      icon: formData.icon });
   };
 
   const handleDeleteCategory = (category: ServiceCategory) => {
     if (category.servicesCount > 0) {
-      toast({
-        title: "Impossible de supprimer",
+      toast({ title: "Impossible de supprimer",
         description:
           "Cette catégorie contient des services. Veuillez d'abord les déplacer ou les supprimer.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
@@ -234,25 +198,21 @@ export default function ServiceCategoriesPage() {
         `Êtes-vous sûr de vouloir supprimer la catégorie "${category.name}" ?`,
       )
     ) {
-      deleteCategoryMutation.mutate({ id: category.id });
+      deleteCategoryMutation.mutate({ id: category.id  });
     }
   };
 
   const handleToggleStatus = (category: ServiceCategory) => {
-    toggleStatusMutation.mutate({
-      id: category.id,
-      isActive: !category.isActive,
-    });
+    toggleStatusMutation.mutate({ id: category.id,
+      isActive: !category.isActive });
   };
 
   const openEditDialog = (category: ServiceCategory) => {
     setSelectedCategory(category);
-    setFormData({
-      name: category.name,
+    setFormData({ name: category.name,
       description: category.description,
       color: category.color,
-      icon: category.icon,
-    });
+      icon: category.icon });
     setIsEditDialogOpen(true);
   };
 
@@ -296,7 +256,7 @@ export default function ServiceCategoriesPage() {
                   id="name"
                   value={formData.name}
                   onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
+                    setFormData({ ...formData, name: e.target.value  })
                   }
                   placeholder="Ex: Livraison, Nettoyage..."
                 />
@@ -307,7 +267,7 @@ export default function ServiceCategoriesPage() {
                   id="description"
                   value={formData.description}
                   onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
+                    setFormData({ ...formData, description: e.target.value  })
                   }
                   placeholder="Décrivez cette catégorie de services..."
                 />
@@ -319,7 +279,7 @@ export default function ServiceCategoriesPage() {
                   type="color"
                   value={formData.color}
                   onChange={(e) =>
-                    setFormData({ ...formData, color: e.target.value })
+                    setFormData({ ...formData, color: e.target.value  })
                   }
                 />
               </div>
@@ -329,7 +289,7 @@ export default function ServiceCategoriesPage() {
                   id="icon"
                   value={formData.icon}
                   onChange={(e) =>
-                    setFormData({ ...formData, icon: e.target.value })
+                    setFormData({ ...formData, icon: e.target.value  })
                   }
                   placeholder="Ex: Package, Truck, Sparkles..."
                 />
@@ -493,8 +453,7 @@ export default function ServiceCategoriesPage() {
                     {new Intl.DateTimeFormat("fr-FR", {
                       day: "2-digit",
                       month: "2-digit",
-                      year: "numeric",
-                    }).format(new Date(category.createdAt))}
+                      year: "numeric"}).format(new Date(category.createdAt))}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -549,7 +508,7 @@ export default function ServiceCategoriesPage() {
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, name: e.target.value  })
                 }
                 placeholder="Ex: Livraison, Nettoyage..."
               />
@@ -560,7 +519,7 @@ export default function ServiceCategoriesPage() {
                 id="edit-description"
                 value={formData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  setFormData({ ...formData, description: e.target.value  })
                 }
                 placeholder="Décrivez cette catégorie de services..."
               />
@@ -572,7 +531,7 @@ export default function ServiceCategoriesPage() {
                 type="color"
                 value={formData.color}
                 onChange={(e) =>
-                  setFormData({ ...formData, color: e.target.value })
+                  setFormData({ ...formData, color: e.target.value  })
                 }
               />
             </div>
@@ -582,7 +541,7 @@ export default function ServiceCategoriesPage() {
                 id="edit-icon"
                 value={formData.icon}
                 onChange={(e) =>
-                  setFormData({ ...formData, icon: e.target.value })
+                  setFormData({ ...formData, icon: e.target.value  })
                 }
                 placeholder="Ex: Package, Truck, Sparkles..."
               />

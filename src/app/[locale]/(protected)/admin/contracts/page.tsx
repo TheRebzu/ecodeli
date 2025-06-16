@@ -11,8 +11,7 @@ import {
   ContractsStats,
   ContractsFilters,
   ContractsList,
-  ContractFormModal,
-} from "@/components/admin/contracts";
+  ContractFormModal} from "@/components/admin/contracts";
 
 // export const metadata: Metadata = {
 //   title: 'Gestion des Contrats - Administration EcoDeli',
@@ -60,8 +59,7 @@ export default function AdminContractsPage() {
 
     // Refetch functions
     refetchContracts,
-    refetchStats,
-  } = useAdminContracts();
+    refetchStats} = useAdminContracts();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
 

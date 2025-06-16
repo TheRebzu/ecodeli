@@ -12,16 +12,14 @@ export function validateCUID(id: string, fieldName: string = "ID"): void {
   if (!id || typeof id !== "string") {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `${fieldName} requis`,
-    });
+      message: `${fieldName} requis`});
   }
 
   // Validation basique du format CUID (commence par 'c' et 25 caractères)
   if (!/^c[a-z0-9]{24}$/.test(id)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Format de ${fieldName} invalide`,
-    });
+      message: `Format de ${fieldName} invalide`});
   }
 }
 
@@ -30,31 +28,23 @@ export function validateCUID(id: string, fieldName: string = "ID"): void {
  */
 export function validateCoordinates(lat: number, lng: number): void {
   if (typeof lat !== "number" || typeof lng !== "number") {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Coordonnées géographiques requises",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Coordonnées géographiques requises" });
   }
 
   if (isNaN(lat) || isNaN(lng)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Coordonnées géographiques invalides",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Coordonnées géographiques invalides" });
   }
 
   if (lat < -90 || lat > 90) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Latitude doit être entre -90 et 90",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Latitude doit être entre -90 et 90" });
   }
 
   if (lng < -180 || lng > 180) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Longitude doit être entre -180 et 180",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Longitude doit être entre -180 et 180" });
   }
 }
 
@@ -68,15 +58,13 @@ export function validateFutureDate(
   if (!(date instanceof Date) || isNaN(date.getTime())) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `${fieldName} invalide`,
-    });
+      message: `${fieldName} invalide`});
   }
 
   if (date <= new Date()) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `${fieldName} doit être dans le futur`,
-    });
+      message: `${fieldName} doit être dans le futur`});
   }
 }
 
@@ -90,15 +78,13 @@ export function validatePositiveAmount(
   if (typeof amount !== "number" || isNaN(amount)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `${fieldName} invalide`,
-    });
+      message: `${fieldName} invalide`});
   }
 
   if (amount <= 0) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `${fieldName} doit être positif`,
-    });
+      message: `${fieldName} doit être positif`});
   }
 }
 
@@ -114,8 +100,7 @@ export function validateResourceAccess(
   if (resourceOwnerId !== currentUserId && userRole !== "ADMIN") {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: `Accès non autorisé à cette ${resourceName}`,
-    });
+      message: `Accès non autorisé à cette ${resourceName}`});
   }
 }
 
@@ -130,31 +115,24 @@ export function handleDatabaseError(
 
   // Erreurs Prisma courantes
   if (error.code === "P2002") {
-    throw new TRPCError({
-      code: "CONFLICT",
-      message: "Cette ressource existe déjà",
-    });
+    throw new TRPCError({ code: "CONFLICT",
+      message: "Cette ressource existe déjà" });
   }
 
   if (error.code === "P2025") {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Ressource non trouvée",
-    });
+    throw new TRPCError({ code: "NOT_FOUND",
+      message: "Ressource non trouvée" });
   }
 
   if (error.code === "P2003") {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Référence invalide vers une ressource liée",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Référence invalide vers une ressource liée" });
   }
 
   // Erreur générique pour les autres cas
   throw new TRPCError({
     code: "INTERNAL_SERVER_ERROR",
-    message: `Erreur lors de l'${operation}`,
-  });
+    message: `Erreur lors de l'${operation}`});
 }
 
 /**
@@ -162,17 +140,13 @@ export function handleDatabaseError(
  */
 export function validatePaginationParams(offset: number, limit: number): void {
   if (typeof offset !== "number" || offset < 0) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Offset doit être un nombre positif",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Offset doit être un nombre positif" });
   }
 
   if (typeof limit !== "number" || limit < 1 || limit > 100) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Limit doit être entre 1 et 100",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Limit doit être entre 1 et 100" });
   }
 }
 
@@ -190,8 +164,7 @@ export function validateStatusTransition(
   if (!allowed.includes(newStatus)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Transition de statut non autorisée: ${currentStatus} → ${newStatus} pour ${resourceName}`,
-    });
+      message: `Transition de statut non autorisée: ${currentStatus} → ${newStatus} pour ${resourceName}`});
   }
 }
 
@@ -202,20 +175,16 @@ export function validateContactInfo(email?: string, phone?: string): void {
   if (email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Format d'email invalide",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Format d'email invalide" });
     }
   }
 
   if (phone) {
     const phoneRegex = /^[+]?[(]?[\d\s\-()]{10,20}$/;
     if (!phoneRegex.test(phone)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Format de téléphone invalide",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Format de téléphone invalide" });
     }
   }
 }

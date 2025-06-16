@@ -4,8 +4,7 @@ import { TRPCError } from "@trpc/server";
 import {
   DocumentVerificationStatus,
   RequiredDocumentType,
-  UserStatus,
-} from "@prisma/client";
+  UserStatus} from "@prisma/client";
 
 /**
  * Router pour la validation des livreurs selon le cahier des charges
@@ -13,8 +12,7 @@ import {
  */
 
 // Schémas de validation
-const submitApplicationSchema = z.object({
-  // Informations personnelles
+const submitApplicationSchema = z.object({ // Informations personnelles
   firstName: z.string().min(2).max(50),
   lastName: z.string().min(2).max(50),
   dateOfBirth: z.date(),
@@ -35,8 +33,7 @@ const submitApplicationSchema = z.object({
     "SCOOTER",
     "VAN",
     "TRUCK",
-    "FOOT",
-  ]),
+    "FOOT"]),
   vehicleBrand: z.string().optional(),
   vehicleModel: z.string().optional(),
   vehicleYear: z.number().min(1990).max(new Date().getFullYear()).optional(),
@@ -45,35 +42,33 @@ const submitApplicationSchema = z.object({
   // Disponibilités
   availableSchedule: z.object({
     monday: z
-      .object({ available: z.boolean(), hours: z.array(z.string()).optional() })
+      .object({ available: z.boolean(), hours: z.array(z.string()).optional()  })
       .optional(),
     tuesday: z
-      .object({ available: z.boolean(), hours: z.array(z.string()).optional() })
+      .object({ available: z.boolean(), hours: z.array(z.string()).optional()  })
       .optional(),
     wednesday: z
-      .object({ available: z.boolean(), hours: z.array(z.string()).optional() })
+      .object({ available: z.boolean(), hours: z.array(z.string()).optional()  })
       .optional(),
     thursday: z
-      .object({ available: z.boolean(), hours: z.array(z.string()).optional() })
+      .object({ available: z.boolean(), hours: z.array(z.string()).optional()  })
       .optional(),
     friday: z
-      .object({ available: z.boolean(), hours: z.array(z.string()).optional() })
+      .object({ available: z.boolean(), hours: z.array(z.string()).optional()  })
       .optional(),
     saturday: z
-      .object({ available: z.boolean(), hours: z.array(z.string()).optional() })
+      .object({ available: z.boolean(), hours: z.array(z.string()).optional()  })
       .optional(),
     sunday: z
-      .object({ available: z.boolean(), hours: z.array(z.string()).optional() })
-      .optional(),
-  }),
+      .object({ available: z.boolean(), hours: z.array(z.string()).optional()  })
+      .optional()}),
 
   // Zones d'intervention
   serviceAreas: z.array(
-    z.object({
-      city: z.string(),
+    z.object({ city: z.string(),
       postalCode: z.string(),
       radius: z.number().min(1).max(50), // km
-    }),
+     }),
   ),
 
   // Expérience
@@ -86,40 +81,32 @@ const submitApplicationSchema = z.object({
   // Acceptations légales
   acceptsTermsOfService: z.boolean().refine((val) => val === true),
   acceptsDataProcessing: z.boolean().refine((val) => val === true),
-  acceptsCommercialCommunication: z.boolean(),
-});
+  acceptsCommercialCommunication: z.boolean()});
 
-const uploadDocumentSchema = z.object({
-  documentType: z.nativeEnum(RequiredDocumentType),
+const uploadDocumentSchema = z.object({ documentType: z.nativeEnum(RequiredDocumentType),
   fileName: z.string().min(1),
   fileUrl: z.string().url(),
   mimeType: z.string(),
   fileSize: z.number().min(1),
-  description: z.string().optional(),
-});
+  description: z.string().optional() });
 
-const adminReviewSchema = z.object({
-  applicationId: z.string().cuid(),
+const adminReviewSchema = z.object({ applicationId: z.string().cuid(),
   decision: z.enum(["APPROVE", "REJECT", "REQUEST_MORE_INFO"]),
   reviewNotes: z.string().min(10).max(1000),
   requestedDocuments: z.array(z.nativeEnum(RequiredDocumentType)).optional(),
-  nextReviewDate: z.date().optional(),
-});
+  nextReviewDate: z.date().optional() });
 
-export const delivererValidationRouter = router({
-  /**
+export const delivererValidationRouter = router({ /**
    * Soumettre une demande de validation livreur
    */
   submitApplication: protectedProcedure
     .input(submitApplicationSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent soumettre une demande",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent soumettre une demande" });
       }
 
       try {
@@ -127,15 +114,11 @@ export const delivererValidationRouter = router({
         const existingApplication = await ctx.db.deliveryApplication.findFirst({
           where: {
             delivererId: user.id,
-            status: { in: ["PENDING", "UNDER_REVIEW"] },
-          },
-        });
+            status: { in: ["PENDING", "UNDER_REVIEW"] }}});
 
         if (existingApplication) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Une demande est déjà en cours de traitement",
-          });
+          throw new TRPCError({ code: "CONFLICT",
+            message: "Une demande est déjà en cours de traitement" });
         }
 
         // Créer la demande
@@ -166,15 +149,12 @@ export const delivererValidationRouter = router({
             acceptsCommercialCommunication:
               input.acceptsCommercialCommunication,
             status: "PENDING",
-            submittedAt: new Date(),
-          },
-        });
+            submittedAt: new Date()}});
 
         // Mettre à jour le statut utilisateur
         await ctx.db.user.update({
           where: { id: user.id },
-          data: { status: "PENDING_VERIFICATION" },
-        });
+          data: { status: "PENDING_VERIFICATION" }});
 
         // Créer les documents requis par défaut
         const requiredDocs = [
@@ -182,8 +162,7 @@ export const delivererValidationRouter = router({
           "DRIVING_LICENSE",
           "INSURANCE",
           "VEHICLE_REGISTRATION",
-          "BANK_RIB",
-        ] as RequiredDocumentType[];
+          "BANK_RIB"] as RequiredDocumentType[];
 
         await Promise.all(
           requiredDocs.map((docType) =>
@@ -193,9 +172,7 @@ export const delivererValidationRouter = router({
                 type: docType,
                 status: "PENDING",
                 isRequired: true,
-                description: `Document requis: ${docType}`,
-              },
-            }),
+                description: `Document requis: ${docType}`}}),
           ),
         );
 
@@ -205,22 +182,17 @@ export const delivererValidationRouter = router({
             userId: user.id, // Admin sera notifié via système
             title: "Nouvelle demande livreur",
             content: `${input.firstName} ${input.lastName} a soumis une demande de validation`,
-            type: "ADMIN_ALERT",
-          },
-        });
+            type: "ADMIN_ALERT"}});
 
         return {
           success: true,
           data: application,
           message:
-            "Demande soumise avec succès. Vous devez maintenant télécharger vos documents.",
-        };
-      } catch (_error) {
+            "Demande soumise avec succès. Vous devez maintenant télécharger vos documents."};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la soumission de la demande",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la soumission de la demande" });
       }
     }),
 
@@ -229,14 +201,12 @@ export const delivererValidationRouter = router({
    */
   uploadDocument: protectedProcedure
     .input(uploadDocumentSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent télécharger des documents",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent télécharger des documents" });
       }
 
       try {
@@ -245,16 +215,11 @@ export const delivererValidationRouter = router({
           where: {
             delivererId: user.id,
             status: {
-              in: ["PENDING", "UNDER_REVIEW", "RESUBMISSION_REQUIRED"],
-            },
-          },
-        });
+              in: ["PENDING", "UNDER_REVIEW", "RESUBMISSION_REQUIRED"]}}});
 
         if (!application) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Aucune demande en cours trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Aucune demande en cours trouvée" });
         }
 
         // Vérifier si un document de ce type existe déjà
@@ -262,9 +227,7 @@ export const delivererValidationRouter = router({
           where: {
             userId: user.id,
             type: input.documentType,
-            status: { in: ["PENDING", "APPROVED"] },
-          },
-        });
+            status: { in: ["PENDING", "APPROVED"] }}});
 
         let document;
         if (existingDoc) {
@@ -278,9 +241,7 @@ export const delivererValidationRouter = router({
               fileSize: input.fileSize,
               description: input.description,
               status: "PENDING",
-              uploadedAt: new Date(),
-            },
-          });
+              uploadedAt: new Date()}});
         } else {
           // Créer un nouveau document
           document = await ctx.db.document.create({
@@ -294,18 +255,14 @@ export const delivererValidationRouter = router({
               description: input.description,
               status: "PENDING",
               isRequired: true,
-              uploadedAt: new Date(),
-            },
-          });
+              uploadedAt: new Date()}});
         }
 
         // Vérifier si tous les documents requis sont maintenant fournis
         const requiredDocs = await ctx.db.document.findMany({
           where: {
             userId: user.id,
-            isRequired: true,
-          },
-        });
+            isRequired: true}});
 
         const allDocsUploaded = requiredDocs.every(
           (doc) => doc.fileUrl !== null,
@@ -315,35 +272,29 @@ export const delivererValidationRouter = router({
           // Passer en revue si tous les documents sont fournis
           await ctx.db.deliveryApplication.update({
             where: { id: application.id },
-            data: { status: "UNDER_REVIEW" },
-          });
+            data: { status: "UNDER_REVIEW" }});
         }
 
         return {
           success: true,
           data: document,
-          message: "Document téléchargé avec succès",
-        };
-      } catch (_error) {
+          message: "Document téléchargé avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du téléchargement",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du téléchargement" });
       }
     }),
 
   /**
    * Obtenir le statut de sa demande
    */
-  getApplicationStatus: protectedProcedure.query(async ({ _ctx }) => {
-    const { _user: __user } = ctx.session;
+  getApplicationStatus: protectedProcedure.query(async ({ ctx  }) => {
+    const { user } = ctx.session;
 
     if (user.role !== "DELIVERER") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Seuls les livreurs peuvent consulter leur demande",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Seuls les livreurs peuvent consulter leur demande" });
     }
 
     try {
@@ -354,23 +305,18 @@ export const delivererValidationRouter = router({
           documents: true,
           reviewHistory: {
             orderBy: { reviewedAt: "desc" },
-            take: 5,
-          },
-        },
-      });
+            take: 5}}});
 
       const documents = await ctx.db.document.findMany({
         where: { userId: user.id },
-        orderBy: { uploadedAt: "desc" },
-      });
+        orderBy: { uploadedAt: "desc" }});
 
       const requiredDocTypes = [
         "IDENTITY",
         "DRIVING_LICENSE",
         "INSURANCE",
         "VEHICLE_REGISTRATION",
-        "BANK_RIB",
-      ] as RequiredDocumentType[];
+        "BANK_RIB"] as RequiredDocumentType[];
 
       const documentStatus = requiredDocTypes.map((type) => {
         const doc = documents.find((d) => d.type === type);
@@ -380,8 +326,7 @@ export const delivererValidationRouter = router({
           status: doc?.status || "MISSING",
           fileName: doc?.fileName,
           uploadedAt: doc?.uploadedAt,
-          reviewNotes: doc?.reviewNotes,
-        };
+          reviewNotes: doc?.reviewNotes};
       });
 
       const progressPercentage = Math.round(
@@ -397,28 +342,22 @@ export const delivererValidationRouter = router({
           documents: documentStatus,
           progressPercentage,
           canSubmitDocuments: application?.status !== "APPROVED",
-          nextSteps: getNextSteps(application, documentStatus),
-        },
-      };
-    } catch (_error) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération du statut",
-      });
+          nextSteps: getNextSteps(application, documentStatus)}};
+    } catch (error) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération du statut" });
     }
   }),
 
   /**
    * Obtenir la liste des documents requis
    */
-  getRequiredDocuments: protectedProcedure.query(async ({ _ctx }) => {
-    const { _user: __user } = ctx.session;
+  getRequiredDocuments: protectedProcedure.query(async ({ ctx  }) => {
+    const { user } = ctx.session;
 
     if (user.role !== "DELIVERER") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Seuls les livreurs peuvent consulter les documents requis",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Seuls les livreurs peuvent consulter les documents requis" });
     }
 
     const requiredDocuments = [
@@ -429,8 +368,7 @@ export const delivererValidationRouter = router({
           "Carte nationale d'identité, passeport ou permis de conduire en cours de validité",
         acceptedFormats: ["PDF", "JPG", "PNG"],
         maxSize: "5 MB",
-        required: true,
-      },
+        required: true},
       {
         type: "DRIVING_LICENSE" as RequiredDocumentType,
         name: "Permis de conduire",
@@ -438,8 +376,7 @@ export const delivererValidationRouter = router({
           "Permis de conduire en cours de validité pour le type de véhicule utilisé",
         acceptedFormats: ["PDF", "JPG", "PNG"],
         maxSize: "5 MB",
-        required: true,
-      },
+        required: true},
       {
         type: "INSURANCE" as RequiredDocumentType,
         name: "Assurance véhicule",
@@ -447,8 +384,7 @@ export const delivererValidationRouter = router({
           "Attestation d'assurance en cours de validité couvrant l'usage professionnel",
         acceptedFormats: ["PDF"],
         maxSize: "5 MB",
-        required: true,
-      },
+        required: true},
       {
         type: "VEHICLE_REGISTRATION" as RequiredDocumentType,
         name: "Carte grise",
@@ -456,22 +392,18 @@ export const delivererValidationRouter = router({
           "Certificat d'immatriculation du véhicule utilisé pour les livraisons",
         acceptedFormats: ["PDF", "JPG", "PNG"],
         maxSize: "5 MB",
-        required: true,
-      },
+        required: true},
       {
         type: "BANK_RIB" as RequiredDocumentType,
         name: "RIB bancaire",
         description: "Relevé d'identité bancaire pour les virements des gains",
         acceptedFormats: ["PDF", "JPG", "PNG"],
         maxSize: "2 MB",
-        required: true,
-      },
-    ];
+        required: true}];
 
     return {
       success: true,
-      data: requiredDocuments,
-    };
+      data: requiredDocuments};
   }),
 
   // ===== ROUTES ADMIN =====
@@ -481,22 +413,18 @@ export const delivererValidationRouter = router({
    */
   listPendingApplications: protectedProcedure
     .input(
-      z.object({
-        status: z
+      z.object({ status: z
           .array(z.enum(["PENDING", "UNDER_REVIEW", "RESUBMISSION_REQUIRED"]))
           .optional(),
         limit: z.number().min(1).max(50).default(20),
-        offset: z.number().min(0).default(0),
-      }),
+        offset: z.number().min(0).default(0) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent consulter les demandes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent consulter les demandes" });
       }
 
       try {
@@ -505,8 +433,7 @@ export const delivererValidationRouter = router({
           where.status = { in: input.status };
         } else {
           where.status = {
-            in: ["PENDING", "UNDER_REVIEW", "RESUBMISSION_REQUIRED"],
-          };
+            in: ["PENDING", "UNDER_REVIEW", "RESUBMISSION_REQUIRED"]};
         }
 
         const applications = await ctx.db.deliveryApplication.findMany({
@@ -518,24 +445,18 @@ export const delivererValidationRouter = router({
                 name: true,
                 email: true,
                 phoneNumber: true,
-                createdAt: true,
-              },
-            },
+                createdAt: true}},
             documents: {
               select: {
                 type: true,
                 status: true,
                 fileName: true,
-                uploadedAt: true,
-              },
-            },
-          },
+                uploadedAt: true}}},
           orderBy: { submittedAt: "asc" },
           skip: input.offset,
-          take: input.limit,
-        });
+          take: input.limit});
 
-        const totalCount = await ctx.db.deliveryApplication.count({ where });
+        const totalCount = await ctx.db.deliveryApplication.count({ where  });
 
         return {
           success: true,
@@ -544,14 +465,10 @@ export const delivererValidationRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount,
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des demandes",
-        });
+            hasMore: input.offset + input.limit < totalCount}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des demandes" });
       }
     }),
 
@@ -559,15 +476,13 @@ export const delivererValidationRouter = router({
    * Examiner une demande en détail (ADMIN)
    */
   reviewApplication: protectedProcedure
-    .input(z.object({ applicationId: z.string().cuid() }))
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .input(z.object({ applicationId: z.string().cuid()  }))
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent examiner les demandes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent examiner les demandes" });
       }
 
       try {
@@ -581,28 +496,18 @@ export const delivererValidationRouter = router({
                 email: true,
                 phoneNumber: true,
                 createdAt: true,
-                lastLoginAt: true,
-              },
-            },
+                lastLoginAt: true}},
             documents: {
-              orderBy: { uploadedAt: "desc" },
-            },
+              orderBy: { uploadedAt: "desc" }},
             reviewHistory: {
               include: {
                 reviewer: {
-                  select: { name: true, email: true },
-                },
-              },
-              orderBy: { reviewedAt: "desc" },
-            },
-          },
-        });
+                  select: { name: true, email: true }}},
+              orderBy: { reviewedAt: "desc" }}}});
 
         if (!application) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Demande non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Demande non trouvée" });
         }
 
         // Calculer le score de complétude
@@ -611,8 +516,7 @@ export const delivererValidationRouter = router({
           "DRIVING_LICENSE",
           "INSURANCE",
           "VEHICLE_REGISTRATION",
-          "BANK_RIB",
-        ];
+          "BANK_RIB"];
         const uploadedDocs = application.documents.filter(
           (d) => d.fileUrl !== null,
         );
@@ -626,15 +530,11 @@ export const delivererValidationRouter = router({
             ...application,
             completionScore,
             riskFactors: calculateRiskFactors(application),
-            recommendations: getAdminRecommendations(application),
-          },
-        };
-      } catch (_error) {
+            recommendations: getAdminRecommendations(application)}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'examen de la demande",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'examen de la demande" });
       }
     }),
 
@@ -643,27 +543,22 @@ export const delivererValidationRouter = router({
    */
   processApplication: protectedProcedure
     .input(adminReviewSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent traiter les demandes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent traiter les demandes" });
       }
 
       try {
         const application = await ctx.db.deliveryApplication.findUnique({
           where: { id: input.applicationId },
-          include: { deliverer: true },
-        });
+          include: { deliverer }});
 
         if (!application) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Demande non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Demande non trouvée" });
         }
 
         let newStatus: string;
@@ -692,18 +587,14 @@ export const delivererValidationRouter = router({
             reviewedAt: new Date(),
             reviewedBy: user.id,
             reviewNotes: input.reviewNotes,
-            nextReviewDate: input.nextReviewDate,
-          },
-        });
+            nextReviewDate: input.nextReviewDate}});
 
         // Mettre à jour l'utilisateur
         await ctx.db.user.update({
           where: { id: application.delivererId },
           data: {
             status: newUserStatus,
-            isVerified: input.decision === "APPROVE",
-          },
-        });
+            isVerified: input.decision === "APPROVE"}});
 
         // Créer l'historique de révision
         await ctx.db.applicationReview.create({
@@ -713,9 +604,7 @@ export const delivererValidationRouter = router({
             decision: input.decision,
             reviewNotes: input.reviewNotes,
             requestedDocuments: input.requestedDocuments || [],
-            reviewedAt: new Date(),
-          },
-        });
+            reviewedAt: new Date()}});
 
         // Marquer les documents requis comme demandés
         if (input.requestedDocuments?.length) {
@@ -724,10 +613,8 @@ export const delivererValidationRouter = router({
               ctx.db.document.updateMany({
                 where: {
                   userId: application.delivererId,
-                  type: docType,
-                },
-                data: { status: "REJECTED" },
-              }),
+                  type: docType},
+                data: { status: "REJECTED" }}),
             ),
           );
         }
@@ -745,24 +632,18 @@ export const delivererValidationRouter = router({
             userId: application.delivererId,
             title: notificationTitle,
             content: input.reviewNotes,
-            type: "APPLICATION_UPDATE",
-          },
-        });
+            type: "APPLICATION_UPDATE"}});
 
         return {
           success: true,
           data: updatedApplication,
-          message: `Demande ${input.decision === "APPROVE" ? "approuvée" : input.decision === "REJECT" ? "rejetée" : "mise en attente"} avec succès`,
-        };
-      } catch (_error) {
+          message: `Demande ${input.decision === "APPROVE" ? "approuvée" : input.decision === "REJECT" ? "rejetée" : "mise en attente"} avec succès`};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du traitement de la demande",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du traitement de la demande" });
       }
-    }),
-});
+    })});
 
 // Helper functions
 function getNextSteps(application: any, documents: any[]): string[] {

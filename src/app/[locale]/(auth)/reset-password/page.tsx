@@ -3,8 +3,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Réinitialisation de mot de passe | EcoDeli",
-  description: "Définissez un nouveau mot de passe pour votre compte EcoDeli",
-};
+  description: "Définissez un nouveau mot de passe pour votre compte EcoDeli"};
 
 export default function ResetPasswordPage() {
   return (

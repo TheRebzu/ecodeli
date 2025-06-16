@@ -10,10 +10,9 @@ let socket: Socket | null = null;
 export const initializeSocket = (token: string): Socket => {
   if (socket) return socket;
 
-  socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "", {
+  socket = io(process.env.NEXT_PUBLIC_SOCKETURL || "", {
     auth: { token },
-    autoConnect: true,
-  });
+    autoConnect: true});
 
   socket.on("connect", () => {
     console.log("Socket connected");

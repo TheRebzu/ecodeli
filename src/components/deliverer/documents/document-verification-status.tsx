@@ -11,11 +11,10 @@ import {
   Clock,
   AlertTriangle,
   FileCheck,
-  Shield,
-} from "lucide-react";
+  Shield} from "lucide-react";
 
 export default function DocumentVerificationStatus() {
-  const { data: verificationStatus } =
+  const { data } =
     api.delivery.verification.getDelivererStatus.useQuery();
 
   if (!verificationStatus) {
@@ -43,8 +42,7 @@ export default function DocumentVerificationStatus() {
           description:
             "Tous vos documents ont été approuvés. Vous pouvez maintenant accepter des livraisons.",
           variant: "success" as const,
-          color: "text-green-600",
-        };
+          color: "text-green-600"};
       case "REJECTED":
         return {
           icon: <XCircle className="h-6 w-6 text-red-500" />,
@@ -52,16 +50,14 @@ export default function DocumentVerificationStatus() {
           description:
             "Certains documents ont été rejetés. Veuillez les corriger et les re-soumettre.",
           variant: "destructive" as const,
-          color: "text-red-600",
-        };
+          color: "text-red-600"};
       case "PENDING":
         return {
           icon: <Clock className="h-6 w-6 text-yellow-500" />,
           title: "Vérification en cours",
           description: "Vos documents sont en cours d'examen par notre équipe.",
           variant: "default" as const,
-          color: "text-yellow-600",
-        };
+          color: "text-yellow-600"};
       default:
         return {
           icon: <AlertTriangle className="h-6 w-6 text-gray-500" />,
@@ -69,8 +65,7 @@ export default function DocumentVerificationStatus() {
           description:
             "Veuillez soumettre tous les documents requis pour commencer la vérification.",
           variant: "default" as const,
-          color: "text-gray-600",
-        };
+          color: "text-gray-600"};
     }
   };
 

@@ -21,8 +21,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+  ResponsiveContainer} from "recharts";
 
 // Icons
 import {
@@ -50,8 +49,7 @@ import {
   Activity,
   Target,
   Bell,
-  MessageSquare,
-} from "lucide-react";
+  MessageSquare} from "lucide-react";
 
 // Types
 interface ProviderStats {
@@ -108,8 +106,7 @@ const StatCard = ({
   onClick,
   color = "text-primary",
   bgColor = "bg-primary/10",
-  subtitle,
-}: {
+  subtitle}: {
   title: string;
   value: string | number;
   icon: React.ReactNode;
@@ -195,8 +192,7 @@ const StatCard = ({
 // Composant de rendez-vous
 const AppointmentCard = ({
   appointment,
-  onView,
-}: {
+  onView}: {
   appointment: Appointment;
   onView: (id: string) => void;
 }) => {
@@ -218,11 +214,9 @@ const AppointmentCard = ({
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       SCHEDULED: "Planifié",
-      CONFIRMED: "Confirmé",
-      IN_PROGRESS: "En cours",
+      CONFIRMED: "Confirmé", IN_PROGRESS: "En cours",
       COMPLETED: "Terminé",
-      CANCELLED: "Annulé",
-    };
+      CANCELLED: "Annulé"};
     return labels[status] || status;
   };
 
@@ -281,7 +275,7 @@ const AppointmentCard = ({
 };
 
 // Composant d'évaluation récente
-const EvaluationCard = ({ evaluation }: { evaluation: RecentEvaluation }) => {
+const EvaluationCard = ({ evaluation }: { evaluation }) => {
   return (
     <Card>
       <CardContent className="p-4">
@@ -293,7 +287,7 @@ const EvaluationCard = ({ evaluation }: { evaluation: RecentEvaluation }) => {
             </p>
           </div>
           <div className="flex items-center gap-1">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 5  }).map((_, i) => (
               <Star
                 key={i}
                 className={cn(
@@ -331,30 +325,25 @@ const QuickActionsSection = () => {
       label: "Planning",
       description: "Gérer les créneaux",
       action: () => router.push("/provider/schedule"),
-      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50",
-    },
+      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50"},
     {
       icon: <Plus className="h-5 w-5" />,
       label: "Nouveau service",
       description: "Ajouter une prestation",
       action: () => router.push("/provider/services/create"),
-      color: "text-green-600 bg-green-100 dark:bg-green-900/50",
-    },
+      color: "text-green-600 bg-green-100 dark:bg-green-900/50"},
     {
       icon: <BarChart3 className="h-5 w-5" />,
       label: "Statistiques",
       description: "Voir les performances",
       action: () => router.push("/provider/stats"),
-      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50",
-    },
+      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50"},
     {
       icon: <FileText className="h-5 w-5" />,
       label: "Factures",
       description: "Gestion facturation",
       action: () => router.push("/provider/invoices"),
-      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50",
-    },
-  ];
+      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50"}];
 
   return (
     <Card>
@@ -401,18 +390,15 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
   const {
     data: stats,
     isLoading: isLoadingStats,
-    refetch: refetchStats,
-  } = api.provider.getDashboardStats.useQuery();
+    refetch: refetchStats} = api.provider.getDashboardStats.useQuery();
 
   const { data: upcomingAppointments, isLoading: isLoadingAppointments } =
-    api.provider.getUpcomingAppointments.useQuery({ limit: 5 });
+    api.provider.getUpcomingAppointments.useQuery({ limit: 5  });
 
-  const { data: recentEvaluations } =
-    api.provider.getRecentEvaluations.useQuery({ limit: 3 });
+  const { data } =
+    api.provider.getRecentEvaluations.useQuery({ limit: 3  });
 
-  const { data: performanceChart } = api.provider.getPerformanceChart.useQuery({
-    period: "month",
-  });
+  const { data } = api.provider.getPerformanceChart.useQuery({ period: "month" });
 
   // Socket.io pour les mises à jour temps réel
   useEffect(() => {
@@ -459,8 +445,7 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
       completionRate: 0,
       nextWeekBookings: 0,
       pendingInterventions: 0,
-      unreadMessages: 0,
-    };
+      unreadMessages: 0};
   const isLoading = isLoadingStats || isLoadingAppointments;
 
   return (

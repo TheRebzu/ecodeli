@@ -11,8 +11,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,8 +23,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   CheckCircle2,
@@ -34,26 +32,22 @@ import {
   Upload,
   User,
   MapPin,
-  Package,
-} from "lucide-react";
+  Package} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DeliveryStatus } from "@/types/delivery/delivery";
 
 // Schéma de validation
-const confirmationSchema = z.object({
-  confirmationCode: z
+const confirmationSchema = z.object({ confirmationCode: z
     .string()
-    .min(4, { message: "Le code doit contenir au moins 4 caractères" })
+    .min(4, { message: "Le code doit contenir au moins 4 caractères"  })
     .max(8, { message: "Le code ne doit pas dépasser 8 caractères" }),
   recipientName: z
     .string()
     .min(2, { message: "Veuillez indiquer qui a reçu le colis" }),
   confirmReceipt: z.boolean().refine((val) => val === true, {
-    message: "Vous devez confirmer que le colis a été remis",
-  }),
+    message: "Vous devez confirmer que le colis a été remis"}),
   safeLocation: z.boolean().optional(),
-  safeLocationDetails: z.string().optional(),
-});
+  safeLocationDetails: z.string().optional()});
 
 // Activer le champ de détails si "lieu sûr" est coché
 const confirmationSchemaWithSafeLocation = confirmationSchema.superRefine(
@@ -62,11 +56,9 @@ const confirmationSchemaWithSafeLocation = confirmationSchema.superRefine(
       data.safeLocation &&
       (!data.safeLocationDetails || data.safeLocationDetails.length < 5)
     ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+      ctx.addIssue({ code: z.ZodIssueCode.custom,
         message: "Veuillez décrire le lieu où le colis a été déposé",
-        path: ["safeLocationDetails"],
-      });
+        path: ["safeLocationDetails"] });
     }
   },
 );
@@ -90,8 +82,7 @@ export default function DeliveryConfirmation({
   currentLocation,
   onConfirmed,
   onCancel,
-  className = "",
-}: DeliveryConfirmationProps) {
+  className = ""}: DeliveryConfirmationProps) {
   const t = useTranslations("deliveries.confirmation");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,10 +101,8 @@ export default function DeliveryConfirmation({
       recipientName: "",
       confirmReceipt: false,
       safeLocation: false,
-      safeLocationDetails: "",
-    },
-    mode: "onChange",
-  });
+      safeLocationDetails: ""},
+    mode: "onChange"});
 
   // Observer les changements sur safeLocation
   const watchSafeLocation = form.watch("safeLocation");
@@ -161,8 +150,7 @@ export default function DeliveryConfirmation({
         ...data,
         photosCount: photos.length,
         location: useCurrentLocation ? currentLocation : null,
-        timestamp: new Date(),
-      });
+        timestamp: new Date()});
 
       setSuccess(true);
       if (onConfirmed) {
@@ -248,7 +236,7 @@ export default function DeliveryConfirmation({
               <FormField
                 control={form.control}
                 name="confirmationCode"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("confirmationCodeLabel")}</FormLabel>
                     <FormControl>
@@ -269,7 +257,7 @@ export default function DeliveryConfirmation({
               <FormField
                 control={form.control}
                 name="recipientName"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">
                       <User className="h-4 w-4 mr-1" />
@@ -292,7 +280,7 @@ export default function DeliveryConfirmation({
                 <FormField
                   control={form.control}
                   name="safeLocation"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
                         <Checkbox
@@ -318,7 +306,7 @@ export default function DeliveryConfirmation({
                   <FormField
                     control={form.control}
                     name="safeLocationDetails"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("safeLocationDetailsLabel")}</FormLabel>
                         <FormControl>
@@ -424,7 +412,7 @@ export default function DeliveryConfirmation({
               <FormField
                 control={form.control}
                 name="confirmReceipt"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-muted/20">
                     <FormControl>
                       <Checkbox

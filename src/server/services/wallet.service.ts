@@ -6,8 +6,7 @@ export const walletService = {
     // Récupérer le solde réel depuis la base de données
     const wallet = await db.wallet.findUnique({
       where: { userId },
-      select: { balance: true, currency: true },
-    });
+      select: { balance: true, currency: true }});
 
     return wallet || { balance: 0, currency: "EUR" };
   },
@@ -19,12 +18,9 @@ export const walletService = {
       create: {
         userId,
         balance: amount,
-        currency: "EUR",
-      },
+        currency: "EUR"},
       update: {
-        balance: { increment: amount },
-      },
-    });
+        balance: { increment }}});
 
     // Créer une transaction d'historique
     await db.walletTransaction.create({
@@ -33,10 +29,7 @@ export const walletService = {
         amount,
         type: "CREDIT",
         description: "Ajout de fonds",
-        status: "COMPLETED",
-      },
-    });
+        status: "COMPLETED"}});
 
     return wallet;
-  },
-};
+  }};

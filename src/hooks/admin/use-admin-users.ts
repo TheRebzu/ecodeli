@@ -9,40 +9,32 @@ import {
   ActivityType,
   UserActionType,
   NoteCategory,
-  NoteVisibility,
-} from "@/types/actors/admin";
+  NoteVisibility} from "@/types/actors/admin";
 
 export function useAdminUsers() {
   const router = useRouter();
   const [filters, setFilters] = useState<
     UserFilters & { page: number; limit: number }
-  >({
-    page: 1,
-    limit: 10,
-  });
-  const [sortOptions, setSortOptions] = useState<UserSortOptions>({
-    field: "createdAt",
-    direction: "desc",
-  });
+  >({ page: 1,
+    limit: 10 });
+  const [sortOptions, setSortOptions] = useState<UserSortOptions>({ field: "createdAt",
+    direction: "desc" });
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   // Query to fetch users
   const {
     data: usersData,
     isLoading: isLoadingUsers,
-    refetch: refetchUsers,
-  } = api.adminUser.getUsers.useQuery(
+    refetch: refetchUsers} = api.adminUser.getUsers.useQuery(
     {
       ...filters,
       sortBy: sortOptions.field,
-      sortDirection: sortOptions.direction,
-    },
+      sortDirection: sortOptions.direction},
     {
       keepPreviousData: true,
       onError: (error) => {
         toast.error(`Erreur de chargement des utilisateurs: ${error.message}`);
-      },
-    },
+      }},
   );
 
   // Query for user statistics
@@ -50,8 +42,7 @@ export function useAdminUsers() {
     api.adminUser.getUserStats.useQuery(undefined, {
       onError: (error) => {
         toast.error(`Erreur de chargement des statistiques: ${error.message}`);
-      },
-    });
+      }});
 
   // Query to fetch a specific user - TEMPORAIRE: Désactivé pour éviter les erreurs d'auth
   const getUserDetail = (
@@ -59,8 +50,7 @@ export function useAdminUsers() {
     options = {
       includeActivityLogs: false,
       includeLoginHistory: false,
-      includeNotes: false,
-    },
+      includeNotes: false},
   ) => {
     // API réelle pour récupérer les détails utilisateur
     return api.admin.users.getUserDetail.useQuery(
@@ -71,8 +61,7 @@ export function useAdminUsers() {
           toast.error(
             `Erreur de chargement des détails utilisateur: ${error.message}`,
           );
-        },
-      },
+        }},
     );
   };
 
@@ -86,8 +75,7 @@ export function useAdminUsers() {
           toast.error(
             `Erreur de chargement des logs d'activité: ${error.message}`,
           );
-        },
-      },
+        }},
     );
   };
 
@@ -99,8 +87,7 @@ export function useAdminUsers() {
     },
     onError: (error) => {
       toast.error(`Erreur de mise à jour du statut: ${error.message}`);
-    },
-  });
+    }});
 
   // Mutation to update user role
   const updateUserRoleMutation = api.adminUser.updateUserRole.useMutation({
@@ -110,8 +97,7 @@ export function useAdminUsers() {
     },
     onError: (error) => {
       toast.error(`Erreur de mise à jour du rôle: ${error.message}`);
-    },
-  });
+    }});
 
   // Mutation to update admin permissions
   const updateAdminPermissionsMutation =
@@ -122,8 +108,7 @@ export function useAdminUsers() {
       },
       onError: (error) => {
         toast.error(`Erreur de mise à jour des permissions: ${error.message}`);
-      },
-    });
+      }});
 
   // Mutation to add a note to a user
   const addUserNoteMutation = api.adminUser.addUserNote.useMutation({
@@ -132,8 +117,7 @@ export function useAdminUsers() {
     },
     onError: (error) => {
       toast.error(`Erreur d'ajout de note: ${error.message}`);
-    },
-  });
+    }});
 
   // Mutation to add activity log
   const addActivityLogMutation = api.adminUser.addUserActivityLog.useMutation({
@@ -142,14 +126,12 @@ export function useAdminUsers() {
     },
     onError: (error) => {
       toast.error(`Erreur d'ajout de journal d'activité: ${error.message}`);
-    },
-  });
+    }});
 
   // Mutation to export users
-  const exportUsersMutation = api.adminUser.exportUsers.useMutation({
-    onSuccess: (data) => {
+  const exportUsersMutation = api.adminUser.exportUsers.useMutation({ onSuccess: (data) => {
       // Create download link for exported data
-      const blob = new Blob([data.data], { type: data.mimeType });
+      const blob = new Blob([data.data], { type: data.mimeType  });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -163,8 +145,7 @@ export function useAdminUsers() {
     },
     onError: (error) => {
       toast.error(`Erreur d'exportation: ${error.message}`);
-    },
-  });
+    }});
 
   // Mutation for force password reset
   const forcePasswordResetMutation =
@@ -177,8 +158,7 @@ export function useAdminUsers() {
         toast.error(
           `Erreur de réinitialisation du mot de passe: ${error.message}`,
         );
-      },
-    });
+      }});
 
   // Mutation for bulk user actions
   const bulkUserActionMutation = api.adminUser.bulkUserAction.useMutation({
@@ -191,8 +171,7 @@ export function useAdminUsers() {
     },
     onError: (error) => {
       toast.error(`Erreur lors de l'action en masse: ${error.message}`);
-    },
-  });
+    }});
 
   // Mutation for permanently deleting a user
   const permanentlyDeleteUserMutation =
@@ -203,31 +182,28 @@ export function useAdminUsers() {
       },
       onError: (error) => {
         toast.error(`Erreur de suppression: ${error.message}`);
-      },
-    });
+      }});
 
   // Function to handle pagination
   const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setFilters((prev) => ({ ...prev, page  }));
   };
 
   // Function to handle limit change
   const handleLimitChange = (limit: number) => {
-    setFilters((prev) => ({ ...prev, limit, page: 1 }));
+    setFilters((prev) => ({ ...prev, limit, page: 1  }));
   };
 
   // Function to handle filter change
   const handleFilterChange = (newFilters: Partial<UserFilters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({ ...prev, ...newFilters, page: 1  }));
   };
 
   // Function to handle sort change
   const handleSortChange = (field: UserSortOptions["field"]) => {
-    setSortOptions((prev) => ({
-      field,
+    setSortOptions((prev) => ({ field,
       direction:
-        prev.field === field && prev.direction === "asc" ? "desc" : "asc",
-    }));
+        prev.field === field && prev.direction === "asc" ? "desc" : "asc" }));
   };
 
   // Function to update user status
@@ -238,13 +214,11 @@ export function useAdminUsers() {
     notifyUser = true,
     expiresAt?: Date,
   ) => {
-    updateUserStatusMutation.mutate({
-      userId,
+    updateUserStatusMutation.mutate({ userId,
       status,
       reason,
       notifyUser,
-      expiresAt,
-    });
+      expiresAt });
   };
 
   // Function to update user role
@@ -255,13 +229,11 @@ export function useAdminUsers() {
     createRoleSpecificProfile = true,
     transferExistingData = false,
   ) => {
-    updateUserRoleMutation.mutate({
-      userId,
+    updateUserRoleMutation.mutate({ userId,
       role,
       reason,
       createRoleSpecificProfile,
-      transferExistingData,
-    });
+      transferExistingData });
   };
 
   // Function to update admin permissions
@@ -270,7 +242,7 @@ export function useAdminUsers() {
     permissions: string[],
     expiresAt?: Date,
   ) => {
-    updateAdminPermissionsMutation.mutate({ userId, permissions, expiresAt });
+    updateAdminPermissionsMutation.mutate({ userId, permissions, expiresAt  });
   };
 
   // Function to add a note to a user
@@ -280,7 +252,7 @@ export function useAdminUsers() {
     category: NoteCategory = NoteCategory.GENERAL,
     visibility: NoteVisibility = NoteVisibility.ADMIN_ONLY,
   ) => {
-    addUserNoteMutation.mutate({ userId, note, category, visibility });
+    addUserNoteMutation.mutate({ userId, note, category, visibility  });
   };
 
   // Function to add activity log
@@ -290,12 +262,10 @@ export function useAdminUsers() {
     details?: string,
     importance: "LOW" | "MEDIUM" | "HIGH" = "MEDIUM",
   ) => {
-    addActivityLogMutation.mutate({
-      userId,
+    addActivityLogMutation.mutate({ userId,
       activityType,
       details,
-      importance,
-    });
+      importance });
   };
 
   // Function to export users
@@ -304,11 +274,9 @@ export function useAdminUsers() {
     fields: string[],
     exportFilters?: UserFilters,
   ) => {
-    exportUsersMutation.mutate({
-      format,
+    exportUsersMutation.mutate({ format,
       fields,
-      filters: exportFilters || filters,
-    });
+      filters: exportFilters || filters });
   };
 
   // Function to force password reset
@@ -320,10 +288,8 @@ export function useAdminUsers() {
       expireExistingTokens?: boolean;
     } = {},
   ) => {
-    forcePasswordResetMutation.mutate({
-      userId,
-      ...options,
-    });
+    forcePasswordResetMutation.mutate({ userId,
+      ...options });
   };
 
   // Function to execute bulk action on selected users
@@ -340,11 +306,9 @@ export function useAdminUsers() {
       return;
     }
 
-    bulkUserActionMutation.mutate({
-      userIds: selectedUsers,
+    bulkUserActionMutation.mutate({ userIds: selectedUsers,
       action,
-      ...options,
-    });
+      ...options });
   };
 
   // Function to permanently delete a user (with admin password confirmation)
@@ -353,11 +317,9 @@ export function useAdminUsers() {
     adminPassword: string,
     reason: string,
   ) => {
-    permanentlyDeleteUserMutation.mutate({
-      userId,
+    permanentlyDeleteUserMutation.mutate({ userId,
       adminPassword,
-      reason,
-    });
+      reason });
   };
 
   // Function to handle user selection for bulk actions
@@ -437,6 +399,5 @@ export function useAdminUsers() {
 
     // Helpers
     getUserDetail,
-    getUserActivityLogs,
-  };
+    getUserActivityLogs};
 }

@@ -68,8 +68,7 @@ export type CurrentPaymentState = {
  * Hook principal pour gérer l'état du paiement en cours
  */
 export const useCurrentPayment = () => {
-  const [currentPayment, setCurrentPayment] = useState<CurrentPaymentState>({
-    id: null,
+  const [currentPayment, setCurrentPayment] = useState<CurrentPaymentState>({ id: null,
     paymentIntentId: null,
     clientSecret: null,
     amount: null,
@@ -77,19 +76,17 @@ export const useCurrentPayment = () => {
     status: null,
     error: null,
     metadata: null,
-    isEscrow: false,
-  });
+    isEscrow: false });
 
   const updateCurrentPayment = useCallback(
     (updates: Partial<CurrentPaymentState>) => {
-      setCurrentPayment((prev) => ({ ...prev, ...updates }));
+      setCurrentPayment((prev) => ({ ...prev, ...updates  }));
     },
     [],
   );
 
   const resetCurrentPayment = useCallback(() => {
-    setCurrentPayment({
-      id: null,
+    setCurrentPayment({ id: null,
       paymentIntentId: null,
       clientSecret: null,
       amount: null,
@@ -97,39 +94,33 @@ export const useCurrentPayment = () => {
       status: null,
       error: null,
       metadata: null,
-      isEscrow: false,
-    });
+      isEscrow: false });
   }, []);
 
   return {
     currentPayment,
     updateCurrentPayment,
-    resetCurrentPayment,
-  };
+    resetCurrentPayment};
 };
 
 /**
  * Hook pour gérer le formulaire de paiement
  */
 export const usePaymentForm = () => {
-  const [form, setForm] = useState<PaymentFormState>({
-    amount: 0,
+  const [form, setForm] = useState<PaymentFormState>({ amount: 0,
     currency: "EUR",
-    description: "",
-  });
+    description: "" });
 
   const [errors, setErrors] = useState<Record<string, string> | null>(null);
 
   const updateForm = useCallback((updates: Partial<PaymentFormState>) => {
-    setForm((prev) => ({ ...prev, ...updates }));
+    setForm((prev) => ({ ...prev, ...updates  }));
   }, []);
 
   const resetForm = useCallback(() => {
-    setForm({
-      amount: 0,
+    setForm({ amount: 0,
       currency: "EUR",
-      description: "",
-    });
+      description: "" });
     setErrors(null);
   }, []);
 
@@ -145,8 +136,7 @@ export const usePaymentForm = () => {
     errors,
     updateForm,
     resetForm,
-    setFormErrors,
-  };
+    setFormErrors};
 };
 
 /**
@@ -176,8 +166,7 @@ export const useCreatePaymentIntent = () => {
 
   return {
     createPaymentIntent,
-    isLoading,
-  };
+    isLoading};
 };
 
 /**
@@ -189,7 +178,7 @@ export const useCapturePayment = () => {
   const capturePayment = useCallback(async (paymentId: string) => {
     setIsLoading(true);
     try {
-      const result = await api.payment.capturePayment.mutate({ paymentId });
+      const result = await api.payment.capturePayment.mutate({ paymentId  });
       toast.success("Paiement capturé avec succès");
       return result;
     } catch (error) {
@@ -207,8 +196,7 @@ export const useCapturePayment = () => {
 
   return {
     capturePayment,
-    isLoading,
-  };
+    isLoading};
 };
 
 /**
@@ -220,7 +208,7 @@ export const useCancelPayment = () => {
   const cancelPayment = useCallback(async (paymentId: string) => {
     setIsLoading(true);
     try {
-      const result = await api.payment.cancelPayment.mutate({ paymentId });
+      const result = await api.payment.cancelPayment.mutate({ paymentId  });
       toast.success("Paiement annulé avec succès");
       return result;
     } catch (error) {
@@ -238,8 +226,7 @@ export const useCancelPayment = () => {
 
   return {
     cancelPayment,
-    isLoading,
-  };
+    isLoading};
 };
 
 /**
@@ -252,10 +239,8 @@ export const useRefundPayment = () => {
     async (paymentId: string, amount?: number) => {
       setIsLoading(true);
       try {
-        const result = await api.payment.refundPayment.mutate({
-          paymentId,
-          amount,
-        });
+        const result = await api.payment.refundPayment.mutate({ paymentId,
+          amount });
         toast.success("Remboursement effectué avec succès");
         return result;
       } catch (error) {
@@ -275,8 +260,7 @@ export const useRefundPayment = () => {
 
   return {
     refundPayment,
-    isLoading,
-  };
+    isLoading};
 };
 
 /**
@@ -305,8 +289,7 @@ export const usePaymentMethods = () => {
     paymentMethods,
     isLoading,
     error,
-    refetch: fetchPaymentMethods,
-  };
+    refetch: fetchPaymentMethods};
 };
 
 /**
@@ -325,12 +308,10 @@ export const usePaymentHistory = (
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>(
     [],
   );
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    total: 0,
+  const [pagination, setPagination] = useState<PaginationInfo>({ total: 0,
     page: 1,
     limit: 10,
-    totalPages: 0,
-  });
+    totalPages: 0 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -338,11 +319,9 @@ export const usePaymentHistory = (
     setIsLoading(true);
     setError(null);
     try {
-      const result = await api.payment.getPaymentHistory.query({
-        page,
+      const result = await api.payment.getPaymentHistory.query({ page,
         limit,
-        filters,
-      });
+        filters });
       setPaymentHistory(result.payments);
       setPagination(result.pagination);
     } catch (err) {
@@ -358,8 +337,7 @@ export const usePaymentHistory = (
     pagination,
     isLoading,
     error,
-    refetch: fetchPaymentHistory,
-  };
+    refetch: fetchPaymentHistory};
 };
 
 /**
@@ -369,8 +347,7 @@ export const useAdvancedPayments = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   return {
-    isLoading,
-  };
+    isLoading};
 };
 
 /**
@@ -392,6 +369,5 @@ export const usePayments = () => {
     ...capturePayment,
     ...cancelPayment,
     ...refundPayment,
-    ...advancedPayments,
-  };
+    ...advancedPayments};
 };

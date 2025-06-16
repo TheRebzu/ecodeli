@@ -7,8 +7,7 @@ import { PrismaClient } from "@prisma/client";
 import { logger } from "@/lib/utils/logger";
 import {
   CartDropService,
-  CartDropOrder,
-} from "../services/matching/cart-drop.service";
+  CartDropOrder} from "../services/matching/cart-drop.service";
 
 export type CartDropStatus =
   | "CREATED"
@@ -76,8 +75,7 @@ export class CartDropWorkflow {
           clientId: order.clientId,
           merchantId: order.merchantId,
           totalPrice: order.totalPrice,
-          productCount: order.products.length,
-        },
+          productCount: order.products.length},
       );
 
       // Programmer le timeout de paiement
@@ -298,8 +296,7 @@ export class CartDropWorkflow {
         "ASSIGNED",
         "SYSTEM",
         {
-          delivererId,
-        },
+          delivererId},
       );
 
       await this.updateOrderStatus(orderId, "ASSIGNED");
@@ -359,8 +356,7 @@ export class CartDropWorkflow {
         "PICKED_UP",
         delivererId,
         {
-          pickupData,
-        },
+          pickupData},
       );
 
       await this.updateOrderStatus(orderId, "PICKED_UP");
@@ -461,8 +457,7 @@ export class CartDropWorkflow {
         "DELIVERED",
         delivererId,
         {
-          deliveryData,
-        },
+          deliveryData},
       );
 
       await this.updateOrderStatus(orderId, "DELIVERED");
@@ -514,8 +509,7 @@ export class CartDropWorkflow {
         cancelledBy,
         {
           reason,
-          refundRequired,
-        },
+          refundRequired},
       );
 
       await this.updateOrderStatus(orderId, "CANCELLED");
@@ -562,10 +556,8 @@ export class CartDropWorkflow {
       triggeredBy,
       triggeredAt: new Date(),
       metadata,
-      terminalId,
-    };
+      terminalId};
 
-    // Sauvegarder l'événement (simulation)
     logger.info(
       `Événement cart drop: ${eventType} pour ${orderId} (${fromStatus} → ${toStatus})`,
     );
@@ -575,12 +567,12 @@ export class CartDropWorkflow {
     orderId: string,
     status: CartDropStatus,
   ): Promise<void> {
-    // Simulation de mise à jour du statut
+    
     logger.info(`Statut commande mis à jour: ${orderId} → ${status}`);
   }
 
   private async getOrderStatus(orderId: string): Promise<CartDropStatus> {
-    // Simulation de récupération du statut
+    
     return "CREATED";
   }
 
@@ -731,7 +723,7 @@ export class CartDropWorkflow {
     orderId: string,
     code: string,
   ): Promise<boolean> {
-    // Simulation de validation de code
+    
     return code === "PICKUP123";
   }
 
@@ -739,7 +731,7 @@ export class CartDropWorkflow {
     orderId: string,
     code: string,
   ): Promise<boolean> {
-    // Simulation de validation de code
+    
     return code === "DELIV456";
   }
 
@@ -747,11 +739,10 @@ export class CartDropWorkflow {
     orderId: string,
     location: { latitude: number; longitude: number },
   ): Promise<boolean> {
-    // Simulation de validation de localisation
+    
     return true; // Dans la vraie implémentation, vérifier la distance
   }
 
-  // Méthodes utilitaires (simulation)
   private async releaseReservedStock(orderId: string): Promise<void> {
     logger.info(`Stock libéré pour la commande ${orderId}`);
   }
@@ -817,7 +808,6 @@ export class CartDropWorkflow {
     logger.info(`Statistiques mises à jour pour ${orderId}`);
   }
 
-  // Méthodes de notification (simulation)
   private async notifyPaymentRequired(order: CartDropOrder): Promise<void> {
     logger.info(`Notification paiement requis envoyée pour ${order.id}`);
   }

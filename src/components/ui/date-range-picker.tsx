@@ -12,15 +12,13 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   defaultDateRange?: DateRange;
@@ -36,8 +34,7 @@ const predefinedRanges = [
   { value: "90", label: "90 derniers jours" },
   { value: "this-month", label: "Ce mois" },
   { value: "last-month", label: "Mois dernier" },
-  { value: "this-year", label: "Cette année" },
-];
+  { value: "this-year", label: "Cette année" }];
 
 export function DateRangePicker({
   defaultDateRange,
@@ -50,8 +47,7 @@ export function DateRangePicker({
   const [date, setDate] = React.useState<DateRange | undefined>(
     defaultDateRange || {
       from: addDays(new Date(), -30), // 30 derniers jours par défaut
-      to: new Date(),
-    },
+      to: new Date()},
   );
   const [selectedRange, setSelectedRange] = React.useState<string>("30");
 
@@ -67,7 +63,7 @@ export function DateRangePicker({
 
     const today = new Date();
     let from: Date;
-    let to = today;
+    const to = today;
 
     switch (value) {
       case "7":
@@ -114,11 +110,11 @@ export function DateRangePicker({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "dd MMM yyyy", { locale: fr })} -{" "}
-                  {format(date.to, "dd MMM yyyy", { locale: fr })}
+                  {format(date.from, "dd MMM yyyy", { locale })} -{" "}
+                  {format(date.to, "dd MMM yyyy", { locale })}
                 </>
               ) : (
-                format(date.from, "dd MMM yyyy", { locale: fr })
+                format(date.from, "dd MMM yyyy", { locale })
               )
             ) : (
               <span>Sélectionner une période</span>
@@ -158,14 +154,14 @@ export function DateRangePicker({
               {date?.from && (
                 <>
                   <strong>Du:</strong>{" "}
-                  {format(date.from, "dd/MM/yyyy", { locale: fr })}
+                  {format(date.from, "dd/MM/yyyy", { locale })}
                 </>
               )}
               {date?.to && (
                 <>
                   {" - "}
                   <strong>au:</strong>{" "}
-                  {format(date.to, "dd/MM/yyyy", { locale: fr })}
+                  {format(date.to, "dd/MM/yyyy", { locale })}
                 </>
               )}
             </p>

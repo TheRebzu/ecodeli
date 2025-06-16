@@ -3,20 +3,16 @@ import { getTranslations } from "next-intl/server";
 import { WarehouseForm } from "@/components/admin/warehouses/warehouse-form";
 
 export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({
-    locale,
-    namespace: "admin.warehouses.form.meta",
-  });
+  const t = await getTranslations({ locale,
+    namespace: "admin.warehouses.form.meta" });
 
   return {
     title: t("createTitle"),
-    description: t("createDescription"),
-  };
+    description: t("createDescription")};
 }
 
 export default async function CreateWarehousePage() {

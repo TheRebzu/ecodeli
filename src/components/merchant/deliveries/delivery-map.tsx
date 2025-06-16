@@ -11,28 +11,24 @@ import { cn } from "@/lib/utils/common";
 // Dynamically import Leaflet-dependent components to avoid SSR issues
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
-  {
-    ssr: false,
-  },
+  { ssr },
 );
 
 const TileLayer = dynamic(
   () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false },
+  { ssr },
 );
 
 const Marker = dynamic(
   () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false },
+  { ssr },
 );
 
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
-  ssr: false,
-});
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr });
 
 const Polyline = dynamic(
   () => import("react-leaflet").then((mod) => mod.Polyline),
-  { ssr: false },
+  { ssr },
 );
 
 // Leaflet icon setup (needs to be imported client-side)
@@ -41,7 +37,7 @@ const LeafletIconSetup = dynamic(
     import("../../shared/maps/leaflet-icon-setup").then((mod) => {
       return mod.LeafletIconSetup;
     }),
-  { ssr: false },
+  { ssr },
 );
 
 interface DeliveryWithCoords extends Delivery {
@@ -70,8 +66,7 @@ export function DeliveryMap({
   selectedDelivery,
   isLoading = false,
   height = "500px",
-  onSelectDelivery,
-}: DeliveryMapProps) {
+  onSelectDelivery}: DeliveryMapProps) {
   const t = useTranslations("merchant.deliveries.map");
 
   // State for map readiness
@@ -95,7 +90,7 @@ export function DeliveryMap({
     const L = window.L;
 
     // Color based on delivery status
-    let color = "#3B82F6"; // Blue default
+    const color = "#3B82F6"; // Blue default
 
     switch (delivery.status) {
       case "PENDING":
@@ -123,8 +118,7 @@ export function DeliveryMap({
       className: "custom-icon",
       html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
       iconSize: [16, 16],
-      iconAnchor: [8, 8],
-    });
+      iconAnchor: [8, 8]});
   };
 
   // Helper function to handle delivery selection
@@ -212,12 +206,10 @@ export function DeliveryMap({
                   <Marker
                     position={[
                       delivery.pickupLatitude!,
-                      delivery.pickupLongitude!,
-                    ]}
+                      delivery.pickupLongitude!]}
                     icon={createCustomIcon(delivery)}
                     eventHandlers={{
-                      click: () => handleDeliverySelect(delivery),
-                    }}
+                      click: () => handleDeliverySelect(delivery)}}
                   >
                     <Popup>
                       <div className="text-sm">
@@ -236,12 +228,10 @@ export function DeliveryMap({
                   <Marker
                     position={[
                       delivery.deliveryLatitude!,
-                      delivery.deliveryLongitude!,
-                    ]}
+                      delivery.deliveryLongitude!]}
                     icon={createCustomIcon(delivery)}
                     eventHandlers={{
-                      click: () => handleDeliverySelect(delivery),
-                    }}
+                      click: () => handleDeliverySelect(delivery)}}
                   >
                     <Popup>
                       <div className="text-sm">
@@ -260,8 +250,7 @@ export function DeliveryMap({
                   <Polyline
                     positions={[
                       [delivery.pickupLatitude!, delivery.pickupLongitude!],
-                      [delivery.deliveryLatitude!, delivery.deliveryLongitude!],
-                    ]}
+                      [delivery.deliveryLatitude!, delivery.deliveryLongitude!]]}
                     color={
                       selectedDelivery && selectedDelivery.id === delivery.id
                         ? "#3B82F6"

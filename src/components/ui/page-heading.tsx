@@ -14,8 +14,7 @@ export function PageHeading({
   description,
   icon,
   className,
-  actions,
-}: PageHeadingProps) {
+  actions}: PageHeadingProps) {
   return (
     <div
       className={cn(

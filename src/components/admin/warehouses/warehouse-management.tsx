@@ -10,16 +10,14 @@ import {
   Settings,
   Activity,
   Calendar,
-  Percent,
-} from "lucide-react";
+  Percent} from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+  CardFooter} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,8 +31,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -42,15 +39,13 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 
 // Types pour les entrepôts
 type WarehouseStatus = "active" | "maintenance" | "closed";
@@ -128,9 +123,7 @@ export function WarehouseManagement() {
             i < 63
               ? new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000)
               : null,
-          clientName: i < 63 ? `Client ${i + 1}` : null,
-        })),
-    },
+          clientName: i < 63 ? `Client ${i + 1}` : null}))},
     {
       id: "2",
       name: "Entrepôt Nord",
@@ -158,9 +151,7 @@ export function WarehouseManagement() {
             i < 53
               ? new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000)
               : null,
-          clientName: i < 53 ? `Client ${i + 100 + 1}` : null,
-        })),
-    },
+          clientName: i < 53 ? `Client ${i + 100 + 1}` : null}))},
     {
       id: "3",
       name: "Entrepôt Sud",
@@ -178,10 +169,7 @@ export function WarehouseManagement() {
           size: i % 3 === 0 ? "S" : i % 3 === 1 ? "M" : "L",
           status: "maintenance",
           occupiedUntil: null,
-          clientName: null,
-        })),
-    },
-  ];
+          clientName: null}))}];
 
   // Problèmes de maintenance simulés
   const maintenanceIssues: MaintenanceIssue[] = [
@@ -195,8 +183,7 @@ export function WarehouseManagement() {
       status: "in_progress",
       priority: "medium",
       reportedAt: new Date("2023-11-20"),
-      resolvedAt: null,
-    },
+      resolvedAt: null},
     {
       id: "2",
       warehouseId: "1",
@@ -207,8 +194,7 @@ export function WarehouseManagement() {
       status: "pending",
       priority: "high",
       reportedAt: new Date("2023-11-22"),
-      resolvedAt: null,
-    },
+      resolvedAt: null},
     {
       id: "3",
       warehouseId: "2",
@@ -219,8 +205,7 @@ export function WarehouseManagement() {
       status: "resolved",
       priority: "low",
       reportedAt: new Date("2023-11-15"),
-      resolvedAt: new Date("2023-11-18"),
-    },
+      resolvedAt: new Date("2023-11-18")},
     {
       id: "4",
       warehouseId: "3",
@@ -231,9 +216,7 @@ export function WarehouseManagement() {
       status: "in_progress",
       priority: "high",
       reportedAt: new Date("2023-11-10"),
-      resolvedAt: null,
-    },
-  ];
+      resolvedAt: null}];
 
   // Filtrer les problèmes de maintenance selon l'entrepôt sélectionné
   const filteredIssues = selectedWarehouse
@@ -264,15 +247,13 @@ export function WarehouseManagement() {
     ),
     maintenanceIssues: maintenanceIssues.filter(
       (issue) => issue.status !== "resolved",
-    ).length,
-  };
+    ).length};
 
   const getWarehouseStatusBadge = (status: WarehouseStatus) => {
     const statusConfig = {
       active: { variant: "default", label: t("status.active") },
       maintenance: { variant: "warning", label: t("status.maintenance") },
-      closed: { variant: "destructive", label: t("status.closed") },
-    };
+      closed: { variant: "destructive", label: t("status.closed") }};
 
     const config = statusConfig[status];
     return <Badge variant={config.variant as any}>{config.label}</Badge>;
@@ -285,9 +266,7 @@ export function WarehouseManagement() {
       reserved: { variant: "outline", label: t("boxStatus.reserved") },
       maintenance: {
         variant: "destructive",
-        label: t("boxStatus.maintenance"),
-      },
-    };
+        label: t("boxStatus.maintenance")}};
 
     const config = statusConfig[status];
     return <Badge variant={config.variant as any}>{config.label}</Badge>;
@@ -295,10 +274,8 @@ export function WarehouseManagement() {
 
   const getIssueStatusBadge = (status: MaintenanceIssue["status"]) => {
     const statusConfig = {
-      pending: { variant: "secondary", label: t("issueStatus.pending") },
-      in_progress: { variant: "default", label: t("issueStatus.inProgress") },
-      resolved: { variant: "outline", label: t("issueStatus.resolved") },
-    };
+      pending: { variant: "secondary", label: t("issueStatus.pending") }, in_progress: { variant: "default", label: t("issueStatus.inProgress") },
+      resolved: { variant: "outline", label: t("issueStatus.resolved") }};
 
     const config = statusConfig[status];
     return <Badge variant={config.variant as any}>{config.label}</Badge>;
@@ -308,8 +285,7 @@ export function WarehouseManagement() {
     const priorityConfig = {
       low: { variant: "outline", label: t("priority.low") },
       medium: { variant: "default", label: t("priority.medium") },
-      high: { variant: "destructive", label: t("priority.high") },
-    };
+      high: { variant: "destructive", label: t("priority.high") }};
 
     const config = priorityConfig[priority];
     return <Badge variant={config.variant as any}>{config.label}</Badge>;
@@ -320,8 +296,7 @@ export function WarehouseManagement() {
     return new Intl.DateTimeFormat("fr-FR", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
-    }).format(date);
+      year: "numeric"}).format(date);
   };
 
   const handleCreateWarehouse = () => {

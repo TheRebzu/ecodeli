@@ -95,7 +95,6 @@ export interface Invoice {
 // Props du composant
 interface InvoiceListProps {
   userId?: string;
-  isDemo?: boolean;
   onViewInvoice: (invoiceId: string) => void;
   onDownloadInvoice?: (invoiceId: string) => Promise<void>;
   className?: string;
@@ -103,7 +102,6 @@ interface InvoiceListProps {
 
 export function InvoiceList({
   userId,
-  isDemo = false,
   onViewInvoice,
   onDownloadInvoice,
   className,
@@ -111,138 +109,44 @@ export function InvoiceList({
   const t = useTranslations("invoices");
   const { toast } = useToast();
 
-  // États pour la pagination, le filtrage et la recherche
+  // États locaux
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
-  const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  // Générer des données démo
-  const generateDemoInvoices = (): { invoices: Invoice[]; total: number } => {
-    const statuses: Array<
-      "DRAFT" | "ISSUED" | "PAID" | "OVERDUE" | "CANCELLED"
-    > = ["DRAFT", "ISSUED", "PAID", "OVERDUE", "CANCELLED"];
-    const types: Array<"STANDARD" | "SUBSCRIPTION" | "COMMISSION" | "SERVICE"> =
-      ["STANDARD", "SUBSCRIPTION", "COMMISSION", "SERVICE"];
+  const pageSize = 10;
 
-    const now = new Date();
-    const invoices: Invoice[] = Array(25)
-      .fill(0)
-      .map((_, i) => {
-        const createdAt = new Date(now);
-        createdAt.setDate(now.getDate() - Math.floor(Math.random() * 120));
-
-        const dueDate = new Date(createdAt);
-        dueDate.setDate(createdAt.getDate() + 30);
-
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-        const type = types[Math.floor(Math.random() * types.length)];
-
-        return {
-          id: `invoice-${i + 1}`,
-          invoiceNumber: `FAC-${2025}-${String(i + 1).padStart(3, "0")}`,
-          createdAt,
-          dueDate,
-          amount: Math.round(Math.random() * 1000 + 50),
-          status,
-          currency: "EUR",
-          description:
-            type === "SUBSCRIPTION"
-              ? `Abonnement ${Math.random() > 0.5 ? "Premium" : "Business"} - ${format(createdAt, "MMMM yyyy", { locale: fr })}`
-              : type === "COMMISSION"
-                ? `Commission sur ventes - ${format(createdAt, "MMMM yyyy", { locale: fr })}`
-                : `Facturation services ${format(createdAt, "MMMM yyyy", { locale: fr })}`,
-          recipient: {
-            name: "Client Demo",
-            email: "client@exemple.fr",
-          },
-          type,
-        };
-      });
-
-    // Filtrer les factures démo en fonction des critères
-    let filtered = invoices;
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (invoice) =>
-          invoice.invoiceNumber.toLowerCase().includes(query) ||
-          (invoice.description &&
-            invoice.description.toLowerCase().includes(query)),
-      );
-    }
-
-    if (statusFilter) {
-      filtered = filtered.filter((invoice) => invoice.status === statusFilter);
-    }
-
-    if (startDate) {
-      filtered = filtered.filter((invoice) => invoice.createdAt >= startDate);
-    }
-
-    if (endDate) {
-      const nextDay = new Date(endDate);
-      nextDay.setDate(nextDay.getDate() + 1);
-      filtered = filtered.filter((invoice) => invoice.createdAt < nextDay);
-    }
-
-    // Pagination simple
-    const start = (currentPage - 1) * pageSize;
-    const paginatedInvoices = filtered.slice(start, start + pageSize);
-
-    return {
-      invoices: paginatedInvoices,
-      total: filtered.length,
-    };
-  };
-
-  // Requête pour récupérer les factures (réelles ou démo)
-  const { data, isLoading, refetch } = isDemo
-    ? {
-        data: generateDemoInvoices(),
-        isLoading: false,
-        refetch: async () => {},
-      }
-    : api.invoice.getMyInvoices.useQuery(
-        {
-          page: currentPage,
-          limit: pageSize,
-          status: statusFilter as any,
-          search: searchQuery || undefined,
-          startDate: startDate?.toISOString(),
-          endDate: endDate?.toISOString(),
-        },
-        {
-          enabled: !isDemo && !!userId,
-          keepPreviousData: true,
-        },
-      );
+  // Requête tRPC réelle pour récupérer les factures
+  const { data, isLoading, refetch } = api.invoice.getMyInvoices.useQuery(
+    {
+      page: currentPage,
+      limit: pageSize,
+      status: statusFilter as any,
+      search: searchQuery || undefined,
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+    },
+    {
+      enabled: !!userId,
+      keepPreviousData: true,
+    },
+  );
 
   // Télécharger une facture
   const handleDownload = async (invoiceId: string) => {
     try {
-      if (isDemo) {
-        toast({
-          title: t("downloadStarted"),
-          description: t("demoDownloadMessage"),
-        });
-        return;
-      }
-
       if (onDownloadInvoice) {
         await onDownloadInvoice(invoiceId);
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("downloadError"),
         description: typeof error === "string" ? error : t("genericError"),
-      });
+       });
     }
   };
 
@@ -289,9 +193,7 @@ export function InvoiceList({
   };
 
   // Calculer le nombre total de pages
-  const totalPages = isDemo
-    ? Math.ceil((data?.total || 0) / pageSize)
-    : Math.ceil((data?.total || 0) / pageSize);
+  const totalPages = Math.ceil((data?.total || 0) / pageSize);
 
   return (
     <Card className={cn("w-full", className)}>
@@ -301,24 +203,6 @@ export function InvoiceList({
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
               {t("title")}
-              {isDemo && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge
-                        variant="outline"
-                        className="ml-2 bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
-                      >
-                        <Zap className="h-3 w-3" />
-                        {t("demoMode")}
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t("demoModeDescription")}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
             </CardTitle>
             <CardDescription>{t("description")}</CardDescription>
           </div>
@@ -541,7 +425,7 @@ export function InvoiceList({
                 />
               </PaginationItem>
 
-              {Array.from({ length: Math.min(3, totalPages) }).map((_, i) => {
+              {Array.from({ length: Math.min(3, totalPages)  }).map((_, i) => {
                 const page = i + 1;
                 return (
                   <PaginationItem key={page}>

@@ -9,15 +9,12 @@ interface ServiceState {
   updateService: (id: string, updates: any) => void;
 }
 
-export const useServiceStore = create<ServiceState>((set) => ({
-  services: [],
+export const useServiceStore = create<ServiceState>((set) => ({ services: [],
   userServices: [],
-  setServices: (services) => set({ services }),
-  setUserServices: (services) => set({ userServices: services }),
+  setServices: (services) => set({ services  }),
+  setUserServices: (services) => set({ userServices  }),
   addService: (service) =>
-    set((state) => ({
-      services: [...state.services, service],
-    })),
+    set((state) => ({ services: [...state.services, service] })),
   updateService: (id, updates) =>
     set((state) => ({
       services: state.services.map((s) =>
@@ -25,6 +22,4 @@ export const useServiceStore = create<ServiceState>((set) => ({
       ),
       userServices: state.userServices.map((s) =>
         s.id === id ? { ...s, ...updates } : s,
-      ),
-    })),
-}));
+      )}))}));

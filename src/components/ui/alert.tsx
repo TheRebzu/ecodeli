@@ -12,13 +12,9 @@ const alertVariants = cva(
         destructive:
           "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
         success:
-          "border-green-500/50 text-green-600 dark:border-green-500 dark:text-green-400 [&>svg]:text-green-600 dark:bg-green-950/20",
-      },
-    },
+          "border-green-500/50 text-green-600 dark:border-green-500 dark:text-green-400 [&>svg]:text-green-600 dark:bg-green-950/20"}},
     defaultVariants: {
-      variant: "default",
-    },
-  },
+      variant: "default"}},
 );
 
 const Alert = React.forwardRef<
@@ -28,7 +24,7 @@ const Alert = React.forwardRef<
   <div
     ref={ref}
     role="alert"
-    className={cn(alertVariants({ variant }), className)}
+    className={cn(alertVariants({ variant  }), className)}
     {...props}
   />
 ));
@@ -52,7 +48,7 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    className={cn("text-sm [&p]:leading-relaxed", className)}
     {...props}
   />
 ));

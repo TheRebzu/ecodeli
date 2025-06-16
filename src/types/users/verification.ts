@@ -9,8 +9,7 @@
  */
 export enum UserBanAction {
   BAN = "BAN",
-  UNBAN = "UNBAN",
-}
+  UNBAN = "UNBAN"}
 
 /**
  * Statuts de vérification possibles
@@ -18,8 +17,7 @@ export enum UserBanAction {
 export enum VerificationStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-}
+  REJECTED = "REJECTED"}
 
 /**
  * Types de raisons de rejet
@@ -28,12 +26,10 @@ export enum RejectionReason {
   UNREADABLE = "UNREADABLE",
   EXPIRED = "EXPIRED",
   INCOMPLETE = "INCOMPLETE",
-  FAKE = "FAKE",
   WRONG_TYPE = "WRONG_TYPE",
   LOW_QUALITY = "LOW_QUALITY",
   INFORMATION_MISMATCH = "INFORMATION_MISMATCH",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 /**
  * Types de documents pour vérification
@@ -48,8 +44,7 @@ export enum VerificationDocumentType {
   BUSINESS_REGISTRATION = "BUSINESS_REGISTRATION",
   VAT_REGISTRATION = "VAT_REGISTRATION",
   INSURANCE_CERTIFICATE = "INSURANCE_CERTIFICATE",
-  PROFESSIONAL_QUALIFICATION = "PROFESSIONAL_QUALIFICATION",
-}
+  PROFESSIONAL_QUALIFICATION = "PROFESSIONAL_QUALIFICATION"}
 
 /**
  * Type pour un document utilisateur dans le frontend

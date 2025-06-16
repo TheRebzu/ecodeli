@@ -9,20 +9,19 @@ import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 
 // Interface pour les propriétés de la page
 interface Props {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
 }
 
 // Génération des métadonnées pour le dashboard livreur
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "dashboard" });
+  const t = await getTranslations({ locale, namespace: "dashboard"  });
 
   return {
     title: t("deliverer.title") || "Tableau de bord Livreur | EcoDeli",
     description:
       t("deliverer.description") ||
-      "Gérez vos livraisons et suivez votre activité sur EcoDeli",
-  };
+      "Gérez vos livraisons et suivez votre activité sur EcoDeli"};
 }
 
 // Composant principal de la page dashboard livreur
@@ -41,7 +40,7 @@ export default async function DelivererPage({ params }: Props) {
   }
 
   // Rediriger vers la page des documents si le livreur est en statut PENDING_VERIFICATION
-  if (session.user.status === UserStatus.PENDING_VERIFICATION) {
+  if (session.user.status === UserStatus.PENDINGVERIFICATION) {
     redirect(`/${locale}/deliverer/documents?verification_required=true`);
   }
 

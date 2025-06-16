@@ -55,8 +55,7 @@ import { addHours, isAfter } from "date-fns";
  */
 export enum TokenType {
   EMAIL_VERIFICATION = "EMAIL_VERIFICATION",
-  PASSWORD_RESET = "PASSWORD_RESET",
-}
+  PASSWORD_RESET = "PASSWORD_RESET"}
 
 /**
  * Génère un token aléatoire
@@ -76,8 +75,7 @@ export function generateVerificationToken(): {
 } {
   return {
     token: generateToken(),
-    expiresAt: getTokenExpiration(TokenType.EMAIL_VERIFICATION),
-  };
+    expiresAt: getTokenExpiration(TokenType.EMAILVERIFICATION)};
 }
 
 /**
@@ -90,8 +88,7 @@ export function generatePasswordResetToken(): {
 } {
   return {
     token: generateToken(),
-    expiresAt: getTokenExpiration(TokenType.PASSWORD_RESET),
-  };
+    expiresAt: getTokenExpiration(TokenType.PASSWORDRESET)};
 }
 
 /**

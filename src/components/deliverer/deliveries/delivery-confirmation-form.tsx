@@ -11,8 +11,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -20,8 +19,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
@@ -37,25 +35,21 @@ import {
   Package,
   Star,
   ThumbsUp,
-  Delete,
-} from "lucide-react";
+  Delete} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 
 // Schéma de validation
-const confirmationSchema = z.object({
-  code: z
+const confirmationSchema = z.object({ code: z
     .string()
-    .min(4, { message: "Le code doit contenir au moins 4 caractères" })
+    .min(4, { message: "Le code doit contenir au moins 4 caractères"  })
     .max(8, { message: "Le code ne doit pas dépasser 8 caractères" }),
   feedback: z
     .string()
     .max(500, { message: "Le feedback ne doit pas dépasser 500 caractères" })
     .optional(),
   acknowledgement: z.boolean().refine((val) => val === true, {
-    message: "Vous devez confirmer la réception de votre commande",
-  }),
-  saveAsDefaultAddress: z.boolean().optional(),
-});
+    message: "Vous devez confirmer la réception de votre commande"}),
+  saveAsDefaultAddress: z.boolean().optional()});
 
 type ConfirmationFormValues = z.infer<typeof confirmationSchema>;
 
@@ -72,8 +66,7 @@ export default function DeliveryConfirmationForm({
   onCancel,
   onSuccess,
   afterConfirmation = "details",
-  className = "",
-}: DeliveryConfirmationFormProps) {
+  className = ""}: DeliveryConfirmationFormProps) {
   const t = useTranslations("deliveries.confirmation");
   const [showSuccess, setShowSuccess] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
@@ -90,9 +83,7 @@ export default function DeliveryConfirmationForm({
       code: "",
       feedback: "",
       acknowledgement: false,
-      saveAsDefaultAddress: false,
-    },
-  });
+      saveAsDefaultAddress: false}});
 
   // Traitement du formulaire
   const onSubmit = async (data: ConfirmationFormValues) => {
@@ -113,13 +104,11 @@ export default function DeliveryConfirmationForm({
       });
 
       // Appeler le service de confirmation
-      const success = await confirmDelivery({
-        code: data.code,
+      const success = await confirmDelivery({ code: data.code,
         feedback: data.feedback,
         photos: photos,
         acknowledgement: data.acknowledgement,
-        saveAsDefaultAddress: data.saveAsDefaultAddress,
-      });
+        saveAsDefaultAddress: data.saveAsDefaultAddress });
 
       if (success) {
         setShowSuccess(true);
@@ -242,7 +231,7 @@ export default function DeliveryConfirmationForm({
             <FormField
               control={form.control}
               name="code"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("codeLabel")}</FormLabel>
                   <FormControl>
@@ -323,7 +312,7 @@ export default function DeliveryConfirmationForm({
             <FormField
               control={form.control}
               name="feedback"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("feedbackLabel")}</FormLabel>
                   <FormControl>
@@ -344,7 +333,7 @@ export default function DeliveryConfirmationForm({
               <FormField
                 control={form.control}
                 name="saveAsDefaultAddress"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 border rounded-md p-3">
                     <FormControl>
                       <Checkbox
@@ -369,7 +358,7 @@ export default function DeliveryConfirmationForm({
             <FormField
               control={form.control}
               name="acknowledgement"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 border rounded-md p-4 bg-muted/20">
                   <FormControl>
                     <Checkbox

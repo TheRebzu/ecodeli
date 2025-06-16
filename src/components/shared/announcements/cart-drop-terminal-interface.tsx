@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +18,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -28,8 +26,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import {
   QrCode,
   Scan,
@@ -49,8 +46,7 @@ import {
   Search,
   Calendar,
   Euro,
-  Zap,
-} from "lucide-react";
+  Zap} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 import { toast } from "sonner";
 
@@ -130,20 +126,17 @@ const DELIVERY_CATEGORIES = [
   { id: "CLOTHING", label: "Vêtements", icon: "👕" },
   { id: "HOME", label: "Maison", icon: "🏠" },
   { id: "BOOKS", label: "Livres", icon: "📚" },
-  { id: "OTHER", label: "Autre", icon: "📦" },
-];
+  { id: "OTHER", label: "Autre", icon: "📦" }];
 
 export const CartDropTerminalInterface: React.FC<
   CartDropTerminalInterfaceProps
-> = ({
-  merchantId,
+> = ({ merchantId,
   availableProducts,
   availableTimeSlots,
   onCreateOrder,
   onScanQR,
   onScanNFC,
-  className,
-}) => {
+  className }) => {
   const t = useTranslations("cartDrop");
 
   // États du composant
@@ -166,12 +159,10 @@ export const CartDropTerminalInterface: React.FC<
   const [isManualClient, setIsManualClient] = useState(false);
 
   // États pour la saisie manuelle du client
-  const [manualClientData, setManualClientData] = useState({
-    name: "",
+  const [manualClientData, setManualClientData] = useState({ name: "",
     phone: "",
     email: "",
-    address: "",
-  });
+    address: "" });
 
   // Filtrer les produits
   const filteredProducts = availableProducts.filter((product) => {
@@ -239,8 +230,7 @@ export const CartDropTerminalInterface: React.FC<
 
     const client: ClientInfo = {
       id: `manual-${Date.now()}`,
-      ...manualClientData,
-    };
+      ...manualClientData};
 
     setClientInfo(client);
     setCurrentStep("products");
@@ -297,12 +287,11 @@ export const CartDropTerminalInterface: React.FC<
         totalWeight,
         totalPrice: finalTotal,
         specialInstructions,
-        paymentMethod,
-      };
+        paymentMethod};
 
       const orderId = await onCreateOrder(order);
       setCurrentStep("confirmation");
-      toast.success(t("orderCreated", { id: orderId }));
+      toast.success(t("orderCreated", { id }));
     } catch (error) {
       console.error("Erreur création commande:", error);
       toast.error(t("orderError"));
@@ -319,7 +308,7 @@ export const CartDropTerminalInterface: React.FC<
     setSelectedTimeSlot(null);
     setPaymentMethod("CARD");
     setSpecialInstructions("");
-    setManualClientData({ name: "", phone: "", email: "", address: "" });
+    setManualClientData({ name: "", phone: "", email: "", address: ""  });
     setIsManualClient(false);
   };
 
@@ -327,8 +316,7 @@ export const CartDropTerminalInterface: React.FC<
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(price);
+      currency: "EUR"}).format(price);
   };
 
   // Obtenir les créneaux disponibles
@@ -355,9 +343,7 @@ export const CartDropTerminalInterface: React.FC<
               {
                 step: "confirmation",
                 label: t("steps.confirmation"),
-                icon: CheckCircle,
-              },
-            ].map(({ step, label, icon: Icon }, index) => (
+                icon: CheckCircle}].map(({ step, label, icon: Icon }, index) => (
               <div key={step} className="flex items-center">
                 <div
                   className={cn(
@@ -370,8 +356,7 @@ export const CartDropTerminalInterface: React.FC<
                             "products",
                             "delivery",
                             "payment",
-                            "confirmation",
-                          ].indexOf(currentStep)
+                            "confirmation"].indexOf(currentStep)
                         ? "bg-green-500 text-white"
                         : "bg-muted text-muted-foreground",
                   )}
@@ -454,10 +439,8 @@ export const CartDropTerminalInterface: React.FC<
                       id="client-name"
                       value={manualClientData.name}
                       onChange={(e) =>
-                        setManualClientData((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
+                        setManualClientData((prev) => ({ ...prev,
+                          name: e.target.value }))
                       }
                       placeholder={t("clientNamePlaceholder")}
                     />
@@ -468,10 +451,8 @@ export const CartDropTerminalInterface: React.FC<
                       id="client-phone"
                       value={manualClientData.phone}
                       onChange={(e) =>
-                        setManualClientData((prev) => ({
-                          ...prev,
-                          phone: e.target.value,
-                        }))
+                        setManualClientData((prev) => ({ ...prev,
+                          phone: e.target.value }))
                       }
                       placeholder={t("clientPhonePlaceholder")}
                     />
@@ -483,10 +464,8 @@ export const CartDropTerminalInterface: React.FC<
                       type="email"
                       value={manualClientData.email}
                       onChange={(e) =>
-                        setManualClientData((prev) => ({
-                          ...prev,
-                          email: e.target.value,
-                        }))
+                        setManualClientData((prev) => ({ ...prev,
+                          email: e.target.value }))
                       }
                       placeholder={t("clientEmailPlaceholder")}
                     />
@@ -499,10 +478,8 @@ export const CartDropTerminalInterface: React.FC<
                       id="client-address"
                       value={manualClientData.address}
                       onChange={(e) =>
-                        setManualClientData((prev) => ({
-                          ...prev,
-                          address: e.target.value,
-                        }))
+                        setManualClientData((prev) => ({ ...prev,
+                          address: e.target.value }))
                       }
                       placeholder={t("addressPlaceholder")}
                     />
@@ -790,8 +767,7 @@ export const CartDropTerminalInterface: React.FC<
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">
                             {t("availableDeliverers", {
-                              count: slot.delivererCount,
-                            })}
+                              count: slot.delivererCount})}
                           </span>
                           <span className="font-bold">
                             {formatPrice(slot.price)}
@@ -837,7 +813,7 @@ export const CartDropTerminalInterface: React.FC<
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>
-                      {t("products")} ({cart.length})
+                      {t("products")} ({ cart.length })
                     </span>
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
@@ -861,19 +837,15 @@ export const CartDropTerminalInterface: React.FC<
                   {
                     value: "CARD",
                     label: t("paymentMethods.card"),
-                    icon: CreditCard,
-                  },
+                    icon: CreditCard},
                   {
                     value: "CASH",
                     label: t("paymentMethods.cash"),
-                    icon: Euro,
-                  },
+                    icon: Euro},
                   {
                     value: "ACCOUNT",
                     label: t("paymentMethods.account"),
-                    icon: User,
-                  },
-                ].map(({ value, label, icon: Icon }) => (
+                    icon: User}].map(({ value, label, icon: Icon  }) => (
                   <Card
                     key={value}
                     className={cn(

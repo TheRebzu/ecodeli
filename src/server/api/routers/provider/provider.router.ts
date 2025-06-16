@@ -33,52 +33,43 @@ interface AppointmentWithRelations {
   } | null;
 }
 
-export const providerRouter = router({
-  // Récupération des contrats du prestataire
+export const providerRouter = router({ // Récupération des contrats du prestataire
   getContracts: protectedProcedure
     .input(
       z.object({
         status: z.string().optional(),
         page: z.number().default(1),
-        limit: z.number().default(10),
-      })
+        limit: z.number().default(10) })
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx, input  }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un prestataire
       const provider = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       if (!provider?.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès refusé - Prestataire uniquement",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès refusé - Prestataire uniquement" });
       }
 
       const where = {
         providerId: provider.provider.id,
-        ...(input.status && { status: input.status }),
-      };
+        ...(input.status && { status: input.status })};
 
       const [contracts, total] = await Promise.all([
         ctx.db.contract.findMany({
           where,
           include: {
             client: {
-              include: { user: true }
+              include: { user }
             },
-            service: true,
-          },
+            service: true},
           orderBy: { createdAt: "desc" },
           skip: (input.page - 1) * input.limit,
-          take: input.limit,
-        }),
-        ctx.db.contract.count({ where }),
-      ]);
+          take: input.limit}),
+        ctx.db.contract.count({ where  })]);
 
       return {
         contracts: contracts.map(contract => ({
@@ -92,133 +83,105 @@ export const providerRouter = router({
           amount: contract.amount || 0,
           commission: contract.commission || 0,
           createdAt: contract.createdAt,
-          updatedAt: contract.updatedAt,
-        })),
+          updatedAt: contract.updatedAt})),
         total,
         page: input.page,
-        totalPages: Math.ceil(total / input.limit),
-      };
+        totalPages: Math.ceil(total / input.limit)};
     }),
 
   // Statistiques des contrats
-  getContractStats: protectedProcedure.query(async ({ ctx }) => {
+  getContractStats: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     const provider = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { provider: true },
-    });
+      where: { id },
+      include: { provider }});
 
     if (!provider?.provider) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Accès refusé - Prestataire uniquement",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Accès refusé - Prestataire uniquement" });
     }
 
     const [totalContracts, activeContracts, pendingContracts, earningsData] = await Promise.all([
       ctx.db.contract.count({
-        where: { providerId: provider.provider.id },
-      }),
+        where: { providerId: provider.provider.id }}),
       ctx.db.contract.count({
-        where: { providerId: provider.provider.id, status: "ACTIVE" },
-      }),
+        where: { providerId: provider.provider.id, status: "ACTIVE" }}),
       ctx.db.contract.count({
-        where: { providerId: provider.provider.id, status: "PENDING" },
-      }),
+        where: { providerId: provider.provider.id, status: "PENDING" }}),
       ctx.db.contract.aggregate({
         where: { 
           providerId: provider.provider.id,
           status: { in: ["ACTIVE", "COMPLETED"] }
         },
-        _sum: { amount: true },
-      }),
-    ]);
+        sum: { amount }})]);
 
     return {
       totalContracts,
       activeContracts,
       pendingContracts,
-      totalEarnings: earningsData._sum.amount || 0,
-    };
+      totalEarnings: earningsData.sum.amount || 0};
   }),
 
   // Récupération des créneaux de disponibilité
-  getSchedule: protectedProcedure.query(async ({ ctx }) => {
+  getSchedule: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     const provider = await ctx.db.user.findUnique({
-      where: { id: userId },
+      where: { id },
       include: { 
         provider: {
-          include: {
-            availability: true
-          }
+          include: { availability }
         }
-      },
-    });
+      }});
 
     if (!provider?.provider) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Accès refusé - Prestataire uniquement",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Accès refusé - Prestataire uniquement" });
     }
 
     return {
       availability: provider.provider.availability || [],
-      zones: provider.provider.serviceZones || [],
-    };
+      zones: provider.provider.serviceZones || []};
   }),
 
   // Mise à jour du planning
   updateSchedule: protectedProcedure
     .input(
-      z.object({
-        schedule: z.array(z.object({
+      z.object({ schedule: z.array(z.object({
           day: z.string(),
           startTime: z.string(),
           endTime: z.string(),
           isAvailable: z.boolean(),
-          zones: z.array(z.string()),
-        })),
-      })
+          zones: z.array(z.string()) }))})
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input  }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       if (!provider?.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès refusé - Prestataire uniquement",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès refusé - Prestataire uniquement" });
       }
 
       // Supprimer les anciens créneaux
       await ctx.db.providerAvailability.deleteMany({
-        where: { providerId: provider.provider.id },
-      });
+        where: { providerId: provider.provider.id }});
 
       // Créer les nouveaux créneaux
       const availabilityData = input.schedule
         .filter(slot => slot.isAvailable)
-        .map(slot => ({
-          providerId: provider.provider.id,
+        .map(slot => ({ providerId: provider.provider.id,
           dayOfWeek: slot.day,
           startTime: slot.startTime,
           endTime: slot.endTime,
-          isAvailable: slot.isAvailable,
-        }));
+          isAvailable: slot.isAvailable }));
 
       if (availabilityData.length > 0) {
-        await ctx.db.providerAvailability.createMany({
-          data: availabilityData,
-        });
+        await ctx.db.providerAvailability.createMany({ data  });
       }
 
       // Mettre à jour les zones de service
@@ -228,27 +191,21 @@ export const providerRouter = router({
 
       await ctx.db.provider.update({
         where: { id: provider.provider.id },
-        data: { serviceZones: allZones },
-      });
+        data: { serviceZones }});
 
-      return { success: true };
+      return { success };
     }),
 
-  getProfile: protectedProcedure.query(async ({ ctx }) => {
+  getProfile: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: {
-        provider: true,
-      },
-    });
+      where: { id },
+      include: { provider }});
 
     if (!user || !user.provider) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Profil prestataire non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Profil prestataire non trouvé" });
     }
 
     return {
@@ -260,63 +217,53 @@ export const providerRouter = router({
       serviceType: user.provider.serviceType,
       isVerified: user.provider.isVerified,
       rating: user.provider.rating,
-      createdAt: user.createdAt,
-    };
+      createdAt: user.createdAt};
   }),
 
   updateProfile: protectedProcedure
     .input(
-      z.object({
-        name: z.string().optional(),
+      z.object({ name: z.string().optional(),
         phoneNumber: z.string().optional(),
         description: z.string().optional(),
         serviceType: z.string().optional(),
-        availability: z.string().optional(),
-      }),
+        availability: z.string().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un prestataire
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       if (!user || !user.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à mettre à jour ce profil",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à mettre à jour ce profil" });
       }
 
       // Extraire les données à mettre à jour
-      const { name: _name, phoneNumber: _phoneNumber, ...providerData } = input;
+      const { name: name, phoneNumber: phoneNumber, ...providerData } = input;
 
       // Mise à jour des données utilisateur
       if (name || phoneNumber) {
         await ctx.db.user.update({
-          where: { id: userId },
+          where: { id },
           data: {
             name: name || undefined,
-            phoneNumber: phoneNumber || undefined,
-          },
-        });
+            phoneNumber: phoneNumber || undefined}});
       }
 
       // Mise à jour des données prestataire
       if (Object.keys(providerData).length > 0) {
         await ctx.db.provider.update({
           where: { userId },
-          data: providerData,
-        });
+          data: providerData});
       }
 
       // Récupération des données mises à jour
       const updatedUser = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       return {
         id: updatedUser?.id,
@@ -325,71 +272,57 @@ export const providerRouter = router({
         phoneNumber: updatedUser?.phoneNumber,
         description: updatedUser?.provider?.description,
         serviceType: updatedUser?.provider?.serviceType,
-        updated: true,
-      };
+        updated: true};
     }),
 
-  getServices: protectedProcedure.query(async ({ _ctx }) => {
+  getServices: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier si l'utilisateur est un prestataire
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { provider: true },
-    });
+      where: { id },
+      include: { provider }});
 
     if (!user || !user.provider) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à accéder à ces données",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à accéder à ces données" });
     }
 
     // Récupérer les services
     const services = await ctx.db.service.findMany({
       where: {
-        providerId: user.provider.id,
-      },
+        providerId: user.provider.id},
       orderBy: {
-        createdAt: "desc",
-      },
-    });
+        createdAt: "desc"}});
 
-    return services.map((service: ServiceData) => ({
-      id: service.id,
+    return services.map((service: ServiceData) => ({ id: service.id,
       providerId: service.providerId,
       name: service.name,
       description: service.description,
       price: service.price,
       duration: service.duration,
-      category: service.category,
-    }));
+      category: service.category }));
   }),
 
   createService: protectedProcedure
     .input(
-      z.object({
-        name: z.string().min(3),
+      z.object({ name: z.string().min(3),
         description: z.string().min(10),
         price: z.number().positive(),
         duration: z.number().int().positive(),
-        category: z.string(),
-      }),
+        category: z.string() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un prestataire
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       if (!user || !user.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à créer un service",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à créer un service" });
       }
 
       // Créer le service
@@ -401,9 +334,7 @@ export const providerRouter = router({
           price: input.price,
           duration: input.duration,
           category: input.category,
-          isActive: true,
-        },
-      });
+          isActive: true}});
 
       return {
         id: service.id,
@@ -413,24 +344,20 @@ export const providerRouter = router({
         price: service.price,
         duration: service.duration,
         category: service.category,
-        createdAt: service.createdAt.toISOString(),
-      };
+        createdAt: service.createdAt.toISOString()};
     }),
 
-  getAppointments: protectedProcedure.query(async ({ _ctx }) => {
+  getAppointments: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier si l'utilisateur est un prestataire
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { provider: true },
-    });
+      where: { id },
+      include: { provider }});
 
     if (!user || !user.provider) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à accéder à ces données",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à accéder à ces données" });
     }
 
     // Récupérer les rendez-vous via le service
@@ -440,19 +367,16 @@ export const providerRouter = router({
   // ===== NOUVELLES FONCTIONNALITÉS ÉTENDUES =====
 
   // Gestion des disponibilités
-  getAvailabilities: protectedProcedure.query(async ({ _ctx }) => {
+  getAvailabilities: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { provider: true },
-    });
+      where: { id },
+      include: { provider }});
 
     if (!user || !user.provider) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à accéder à ces données",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à accéder à ces données" });
     }
 
     return serviceService.getProviderAvailabilities(user.provider.id);
@@ -460,45 +384,37 @@ export const providerRouter = router({
 
   createAvailability: protectedProcedure
     .input(
-      z.object({
-        dayOfWeek: z.number().min(0).max(6),
+      z.object({ dayOfWeek: z.number().min(0).max(6),
         startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-        endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-      }),
+        endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       if (!user || !user.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à créer des disponibilités",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à créer des disponibilités" });
       }
 
       return serviceService.createAvailability(user.provider.id, input);
     }),
 
   deleteAvailability: protectedProcedure
-    .input(z.object({ availabilityId: z.string() }))
-    .mutation(async ({ _ctx, input: _input }) => {
+    .input(z.object({ availabilityId: z.string()  }))
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       if (!user || !user.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à supprimer des disponibilités",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à supprimer des disponibilités" });
       }
 
       return serviceService.deleteAvailability(
@@ -512,22 +428,18 @@ export const providerRouter = router({
     .input(
       z.object({
         serviceId: z.string(),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      }),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)}),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       if (!user || !user.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à consulter ces créneaux",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à consulter ces créneaux" });
       }
 
       return serviceService.getAvailableTimeSlots(
@@ -540,91 +452,75 @@ export const providerRouter = router({
   // Gestion des réservations avancée
   updateBookingStatus: protectedProcedure
     .input(
-      z.object({
-        bookingId: z.string(),
+      z.object({ bookingId: z.string(),
         status: z.enum([
           "PENDING",
           "CONFIRMED",
           "CANCELLED",
           "COMPLETED",
-          "RESCHEDULED",
-        ]),
-      }),
+          "RESCHEDULED"]) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       if (!user || !user.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à modifier cette réservation",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à modifier cette réservation" });
       }
 
       return serviceService.updateBookingStatus(user.provider.id, {
         id: input.bookingId,
-        status: input.status,
-      });
+        status: input.status});
     }),
 
   getBookingDetails: protectedProcedure
-    .input(z.object({ bookingId: z.string() }))
-    .query(async ({ _ctx, input: _input }) => {
+    .input(z.object({ bookingId: z.string()  }))
+    .query(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { provider: true },
-      });
+        where: { id },
+        include: { provider }});
 
       if (!user || !user.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à consulter cette réservation",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à consulter cette réservation" });
       }
 
       return serviceService.getBookingById(user.provider.id, input.bookingId);
     }),
 
   // Gestion des évaluations
-  getMyReviews: protectedProcedure.query(async ({ _ctx }) => {
+  getMyReviews: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { provider: true },
-    });
+      where: { id },
+      include: { provider }});
 
     if (!user || !user.provider) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à consulter ces évaluations",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à consulter ces évaluations" });
     }
 
     return serviceService.getProviderReviews(user.provider.id);
   }),
 
   // Statistiques du prestataire
-  getProviderStats: protectedProcedure.query(async ({ _ctx }) => {
+  getProviderStats: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { provider: true },
-    });
+      where: { id },
+      include: { provider }});
 
     if (!user || !user.provider) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à consulter ces statistiques",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à consulter ces statistiques" });
     }
 
     return serviceService.getProviderStats(user.provider.id);
@@ -638,40 +534,34 @@ export const providerRouter = router({
   // Recherche de prestataires (pour les clients)
   searchProviders: publicProcedure
     .input(
-      z.object({
-        query: z.string().optional(),
+      z.object({ query: z.string().optional(),
         categoryId: z.string().optional(),
         city: z.string().optional(),
         maxDistance: z.number().optional(),
         location: z
           .object({
             lat: z.number(),
-            lng: z.number(),
-          })
+            lng: z.number() })
           .optional(),
         page: z.number().default(1),
-        limit: z.number().default(10),
-      }),
+        limit: z.number().default(10)}),
     )
-    .query(async ({ input: _input }) => {
+    .query(async ({ input  }) => {
       return serviceService.searchProviders(input);
     }),
 
   // Dashboard Provider - Statistiques principales
-  getDashboardStats: protectedProcedure.query(async ({ _ctx }) => {
+  getDashboardStats: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier que l'utilisateur est un prestataire
     const provider = await ctx.db.user.findUnique({
       where: { id: userId, role: "PROVIDER" },
-      include: { provider: true },
-    });
+      include: { provider }});
 
     if (!provider?.provider) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Accès non autorisé",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Accès non autorisé" });
     }
 
     const now = new Date();
@@ -689,196 +579,151 @@ export const providerRouter = router({
       completedMonth,
       averageRating,
       clientsServed,
-      activeContracts,
-    ] = await Promise.all([
+      activeContracts] = await Promise.all([
       // Revenus mensuels
-      _ctx.db.serviceBooking.aggregate({
+      ctx.db.serviceBooking.aggregate({
         where: {
           providerId: provider.provider.id,
           status: "COMPLETED",
-          completedAt: { gte: startOfMonth },
-        },
-        _sum: { price: true },
-      }),
+          completedAt: { gte }},
+        sum: { price }}),
       // Revenus du jour
       ctx.db.serviceBooking.aggregate({
         where: {
           providerId: provider.provider.id,
           status: "COMPLETED",
-          completedAt: { gte: startOfDay, lte: endOfDay },
-        },
-        _sum: { price: true },
-      }),
+          completedAt: { gte: startOfDay, lte: endOfDay }},
+        sum: { price }}),
       // RDV aujourd'hui
       ctx.db.serviceBooking.count({
         where: {
           providerId: provider.provider.id,
           scheduledDate: { gte: startOfDay, lte: endOfDay },
-          status: { in: ["CONFIRMED", "IN_PROGRESS"] },
-        },
-      }),
+          status: { in: ["CONFIRMED", "IN_PROGRESS"] }}}),
       // RDV cette semaine
       ctx.db.serviceBooking.count({
         where: {
           providerId: provider.provider.id,
           scheduledDate: {
             gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-            lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
-          },
-          status: { in: ["CONFIRMED", "IN_PROGRESS"] },
-        },
-      }),
+            lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)},
+          status: { in: ["CONFIRMED", "IN_PROGRESS"] }}}),
       // Interventions terminées ce mois
       ctx.db.serviceBooking.count({
         where: {
           providerId: provider.provider.id,
           status: "COMPLETED",
-          completedAt: { gte: startOfMonth },
-        },
-      }),
+          completedAt: { gte }}}),
       // Note moyenne
       ctx.db.serviceBooking.aggregate({
         where: {
           providerId: provider.provider.id,
-          rating: { not: null },
-        },
-        _avg: { rating: true },
-      }),
+          rating: { not }},
+        avg: { rating }}),
       // Clients uniques servis ce mois
       ctx.db.serviceBooking.groupBy({
         by: ["clientId"],
         where: {
           providerId: provider.provider.id,
           status: "COMPLETED",
-          completedAt: { gte: startOfMonth },
-        },
-      }),
+          completedAt: { gte }}}),
       // Contrats actifs
       ctx.db.providerContract.count({
         where: {
           providerId: provider.provider.id,
-          status: "ACTIVE",
-        },
-      }),
-    ]);
+          status: "ACTIVE"}})]);
 
     return {
-      monthlyRevenue: monthlyRevenue._sum.price || 0,
-      dailyRevenue: dailyRevenue._sum.price || 0,
+      monthlyRevenue: monthlyRevenue.sum.price || 0,
+      dailyRevenue: dailyRevenue.sum.price || 0,
       appointmentsToday,
       appointmentsWeek,
       completedMonth,
-      averageRating: averageRating._avg.rating || 0,
+      averageRating: averageRating.avg.rating || 0,
       clientsServed: clientsServed.length,
       activeContracts,
       certificationsCount: provider.provider.certificationsCount || 0,
-      skillsCount: provider.provider.skillsCount || 0,
-    };
+      skillsCount: provider.provider.skillsCount || 0};
   }),
 
   // Prochains rendez-vous
   getUpcomingAppointments: protectedProcedure
-    .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
-    .query(async ({ _ctx, input: _input }) => {
+    .input(z.object({ limit: z.number().min(1).max(20).default(5)  }))
+    .query(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
         where: { id: userId, role: "PROVIDER" },
-        include: { provider: true },
-      });
+        include: { provider }});
 
       if (!provider?.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       return await ctx.db.serviceBooking.findMany({
         where: {
           providerId: provider.provider.id,
           scheduledDate: { gte: new Date() },
-          status: { in: ["CONFIRMED", "IN_PROGRESS"] },
-        },
+          status: { in: ["CONFIRMED", "IN_PROGRESS"] }},
         include: {
           client: {
             select: {
               id: true,
               profile: {
-                select: { firstName: true, lastName: true, phone: true },
-              },
-            },
-          },
+                select: { firstName: true, lastName: true, phone: true }}}},
           service: {
-            select: { name: true, description: true, category: true },
-          },
-        },
+            select: { name: true, description: true, category: true }}},
         orderBy: { scheduledDate: "asc" },
-        take: input.limit,
-      });
+        take: input.limit});
     }),
 
   // Historique des interventions récentes
   getRecentInterventions: protectedProcedure
-    .input(z.object({ limit: z.number().min(1).max(20).default(10) }))
-    .query(async ({ _ctx, input: _input }) => {
+    .input(z.object({ limit: z.number().min(1).max(20).default(10)  }))
+    .query(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
         where: { id: userId, role: "PROVIDER" },
-        include: { provider: true },
-      });
+        include: { provider }});
 
       if (!provider?.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       return await ctx.db.serviceBooking.findMany({
         where: {
           providerId: provider.provider.id,
-          status: "COMPLETED",
-        },
+          status: "COMPLETED"},
         include: {
           client: {
             select: {
               id: true,
               profile: {
-                select: { firstName: true, lastName: true },
-              },
-            },
-          },
+                select: { firstName: true, lastName: true }}}},
           service: {
-            select: { name: true, category: true },
-          },
-        },
+            select: { name: true, category: true }}},
         orderBy: { completedAt: "desc" },
-        take: input.limit,
-      });
+        take: input.limit});
     }),
 
   // Revenus et statistiques détaillées
   getRevenueChart: protectedProcedure
     .input(
-      z.object({
-        period: z.enum(["week", "month", "quarter"]).default("month"),
-      }),
+      z.object({ period: z.enum(["week", "month", "quarter"]).default("month") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
         where: { id: userId, role: "PROVIDER" },
-        include: { provider: true },
-      });
+        include: { provider }});
 
       if (!provider?.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       const now = new Date();
@@ -903,14 +748,11 @@ export const providerRouter = router({
         where: {
           providerId: provider.provider.id,
           status: "COMPLETED",
-          completedAt: { gte: startDate },
-        },
+          completedAt: { gte }},
         select: {
           price: true,
-          completedAt: true,
-        },
-        orderBy: { completedAt: "asc" },
-      });
+          completedAt: true},
+        orderBy: { completedAt: "asc" }});
 
       // Grouper les données par période
       const chartData: Array<{ date: string; revenue: number; count: number }> =
@@ -934,16 +776,13 @@ export const providerRouter = router({
         const existing = groupedData.get(key) || { revenue: 0, count: 0 };
         groupedData.set(key, {
           revenue: existing.revenue + booking.price,
-          count: existing.count + 1,
-        });
+          count: existing.count + 1});
       });
 
       groupedData.forEach((value, key) => {
-        chartData.push({
-          date: key,
+        chartData.push({ date: key,
           revenue: value.revenue,
-          count: value.count,
-        });
+          count: value.count });
       });
 
       return chartData.sort((a, b) => a.date.localeCompare(b.date));
@@ -951,57 +790,47 @@ export const providerRouter = router({
 
   // Évaluations récentes
   getRecentRatings: protectedProcedure
-    .input(z.object({ limit: z.number().min(1).max(10).default(5) }))
-    .query(async ({ _ctx, input: _input }) => {
+    .input(z.object({ limit: z.number().min(1).max(10).default(5)  }))
+    .query(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       const provider = await ctx.db.user.findUnique({
         where: { id: userId, role: "PROVIDER" },
-        include: { provider: true },
-      });
+        include: { provider }});
 
       if (!provider?.provider) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       return await ctx.db.serviceBooking.findMany({
         where: {
           providerId: provider.provider.id,
-          rating: { not: null },
-          review: { not: null },
-        },
+          rating: { not },
+          review: { not }},
         include: {
           client: {
             select: {
               id: true,
               profile: {
-                select: { firstName: true, lastName: true },
-              },
-            },
-          },
+                select: { firstName: true, lastName: true }}}},
           service: {
-            select: { name: true },
-          },
-        },
+            select: { name }}},
         orderBy: { completedAt: "desc" },
-        take: input.limit,
-      });
+        take: input.limit});
     }),
 
   // Profil public du prestataire
   getPublicProfile: publicProcedure
-    .input(z.object({ providerId: z.string() }))
-    .query(async ({ input: _input }) => {
+    .input(z.object({ providerId: z.string()  }))
+    .query(async ({ input  }) => {
       return serviceService.getProviderPublicProfile(input.providerId);
     }),
 
   // Services publics d'un prestataire
   getPublicServices: publicProcedure
-    .input(z.object({ providerId: z.string() }))
-    .query(async ({ input: _input }) => {
+    .input(z.object({ providerId: z.string()  }))
+    .query(async ({ input  }) => {
       return serviceService.getProviderPublicServices(input.providerId);
     }),
 
@@ -1011,14 +840,12 @@ export const providerRouter = router({
       z.object({
         providerId: z.string(),
         serviceId: z.string(),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      }),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)}),
     )
-    .query(async ({ input: _input }) => {
+    .query(async ({ input  }) => {
       return serviceService.getAvailableTimeSlots(
         input.providerId,
         input.serviceId,
         input.date,
       );
-    }),
-});
+    })});

@@ -5,15 +5,13 @@ import {
   DocumentVerificationStatus,
   ApplicationStatus,
   MatchingStatus,
-  RequiredDocumentType,
-} from "@prisma/client";
+  RequiredDocumentType} from "@prisma/client";
 import type {
   DeliveryFilters,
   DeliveryStatusUpdate,
   DeliveryCoordinatesInput,
   DeliveryConfirmation,
-  DeliveryRatingInput,
-} from "@/types/delivery";
+  DeliveryRatingInput} from "@/types/delivery";
 import { NotificationService } from "@/lib/services/notification.service";
 
 export const DeliveryService = {
@@ -27,38 +25,26 @@ export const DeliveryService = {
         pendingDeliveries,
         inProgressDeliveries,
         completedDeliveries,
-        cancelledDeliveries,
-      ] = await Promise.all([
+        cancelledDeliveries] = await Promise.all([
         db.delivery.count({
-          where: { createdAt: { gte: startDate, lte: endDate } },
-        }),
+          where: { createdAt: { gte: startDate, lte: endDate } }}),
         db.delivery.count({
           where: {
             status: DeliveryStatus.PENDING,
-            createdAt: { gte: startDate, lte: endDate },
-          },
-        }),
+            createdAt: { gte: startDate, lte: endDate }}}),
         db.delivery.count({
           where: {
             status: {
-              in: [DeliveryStatus.PICKED_UP, DeliveryStatus.IN_TRANSIT],
-            },
-            createdAt: { gte: startDate, lte: endDate },
-          },
-        }),
+              in: [DeliveryStatus.PICKED_UP, DeliveryStatus.IN_TRANSIT]},
+            createdAt: { gte: startDate, lte: endDate }}}),
         db.delivery.count({
           where: {
             status: DeliveryStatus.DELIVERED,
-            createdAt: { gte: startDate, lte: endDate },
-          },
-        }),
+            createdAt: { gte: startDate, lte: endDate }}}),
         db.delivery.count({
           where: {
             status: DeliveryStatus.CANCELLED,
-            createdAt: { gte: startDate, lte: endDate },
-          },
-        }),
-      ]);
+            createdAt: { gte: startDate, lte: endDate }}})]);
 
       return {
         totalDeliveries,
@@ -70,9 +56,8 @@ export const DeliveryService = {
           totalDeliveries > 0
             ? (completedDeliveries / totalDeliveries) * 100
             : 0,
-        timeRange: { startDate, endDate },
-      };
-    } catch (_error) {
+        timeRange: { startDate, endDate }};
+    } catch (error) {
       console.error("Erreur dans getStats:", error);
       throw error;
     }
@@ -103,10 +88,7 @@ export const DeliveryService = {
         { trackingCode: { contains: filters.search, mode: "insensitive" } },
         {
           announcement: {
-            title: { contains: filters.search, mode: "insensitive" },
-          },
-        },
-      ];
+            title: { contains: filters.search, mode: "insensitive" }}}];
     }
 
     return await db.delivery.findMany({
@@ -117,9 +99,7 @@ export const DeliveryService = {
             title: true,
             pickupAddress: true,
             deliveryAddress: true,
-            pickupDate: true,
-          },
-        },
+            pickupDate: true}},
         client: {
           select: {
             id: true,
@@ -127,10 +107,7 @@ export const DeliveryService = {
             email: true,
             phoneNumber: true,
             client: {
-              select: { phone: true },
-            },
-          },
-        },
+              select: { phone }}}},
         deliverer: {
           select: {
             id: true,
@@ -138,17 +115,11 @@ export const DeliveryService = {
             email: true,
             phoneNumber: true,
             deliverer: {
-              select: { phone: true },
-            },
-          },
-        },
+              select: { phone }}}},
         coordinates: {
           orderBy: { timestamp: "desc" },
-          take: 1,
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+          take: 1}},
+      orderBy: { createdAt: "desc" }});
   },
 
   /**
@@ -160,28 +131,20 @@ export const DeliveryService = {
       include: {
         announcement: true,
         client: {
-          include: { client: true },
-        },
+          include: { client }},
         deliverer: {
-          include: { deliverer: true },
-        },
+          include: { deliverer }},
         logs: {
-          orderBy: { createdAt: "desc" },
-        },
+          orderBy: { createdAt: "desc" }},
         coordinates: {
           orderBy: { timestamp: "desc" },
-          take: 20,
-        },
+          take: 20},
         proofs: true,
-        ratings: true,
-      },
-    });
+        ratings: true}});
 
     if (!delivery) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Livraison introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Livraison introuvable" });
     }
 
     // Vérification des permissions
@@ -190,7 +153,7 @@ export const DeliveryService = {
       delivery.clientId !== userId &&
       delivery.delivererId !== userId
     ) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
     }
 
     return delivery;
@@ -201,27 +164,21 @@ export const DeliveryService = {
    */
   async assignDelivery(announcementId: string) {
     const announcement = await db.announcement.findUnique({
-      where: { id: announcementId },
+      where: { id },
       include: {
-        proposals: { include: { deliverer: { include: { profile: true } } } },
-      },
-    });
+        proposals: { include: { deliverer: { include: { profile } } } }}});
 
     if (!announcement) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Annonce introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Annonce introuvable" });
     }
 
     // Logique d'assignment intelligent (proximité, évaluations, disponibilité)
     const bestDeliverer = await this.findBestDeliverer(announcement);
 
     if (!bestDeliverer) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Aucun livreur disponible",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Aucun livreur disponible" });
     }
 
     const delivery = await db.delivery.create({
@@ -231,16 +188,13 @@ export const DeliveryService = {
         clientId: announcement.clientId,
         status: DeliveryStatus.PENDING,
         trackingCode: this.generateTrackingCode(),
-        price: announcement.price,
-      },
-    });
+        price: announcement.price}});
 
     // Notification au livreur
     await NotificationService.sendToUser(bestDeliverer.id, {
       title: "Nouvelle livraison assignée",
       body: `Livraison ${delivery.trackingCode} vous a été assignée`,
-      data: { deliveryId: delivery.id, type: "DELIVERY_ASSIGNED" },
-    });
+      data: { deliveryId: delivery.id, type: "DELIVERY_ASSIGNED" }});
 
     return delivery;
   },
@@ -251,21 +205,16 @@ export const DeliveryService = {
   async updateStatus(statusUpdate: DeliveryStatusUpdate, userId: string) {
     const delivery = await db.delivery.findUnique({
       where: { id: statusUpdate.deliveryId },
-      include: { client: true, deliverer: true },
-    });
+      include: { client: true, deliverer: true }});
 
     if (!delivery) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Livraison introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Livraison introuvable" });
     }
 
     if (delivery.delivererId !== userId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Seul le livreur assigné peut modifier le statut",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Seul le livreur assigné peut modifier le statut" });
     }
 
     // Transaction pour mise à jour atomique
@@ -275,14 +224,10 @@ export const DeliveryService = {
         where: { id: statusUpdate.deliveryId },
         data: {
           status: statusUpdate.status,
-          ...(statusUpdate.status === DeliveryStatus.PICKED_UP && {
-            startTime: new Date(),
-          }),
+          ...(statusUpdate.status === DeliveryStatus.PICKEDUP && {
+            startTime: new Date()}),
           ...(statusUpdate.status === DeliveryStatus.DELIVERED && {
-            completionTime: new Date(),
-          }),
-        },
-      });
+            completionTime: new Date()})}});
 
       // Ajout du log
       await tx.deliveryLog.create({
@@ -293,9 +238,7 @@ export const DeliveryService = {
             statusUpdate.comment || `Statut mis à jour: ${statusUpdate.status}`,
           location: statusUpdate.location
             ? `${statusUpdate.location.latitude},${statusUpdate.location.longitude}`
-            : null,
-        },
-      });
+            : null}});
 
       // Enregistrement des coordonnées si fournies
       if (statusUpdate.location) {
@@ -303,9 +246,7 @@ export const DeliveryService = {
           data: {
             deliveryId: statusUpdate.deliveryId,
             latitude: statusUpdate.location.latitude,
-            longitude: statusUpdate.location.longitude,
-          },
-        });
+            longitude: statusUpdate.location.longitude}});
       }
 
       return updatedDelivery;
@@ -315,8 +256,7 @@ export const DeliveryService = {
     await NotificationService.sendToUser(delivery.clientId, {
       title: "Mise à jour de livraison",
       body: `Votre livraison ${delivery.trackingCode} : ${statusUpdate.status}`,
-      data: { deliveryId: delivery.id, status: statusUpdate.status },
-    });
+      data: { deliveryId: delivery.id, status: statusUpdate.status }});
 
     return result;
   },
@@ -329,27 +269,22 @@ export const DeliveryService = {
     userId: string,
   ) {
     const delivery = await db.delivery.findUnique({
-      where: { id: coordinates.deliveryId },
-    });
+      where: { id: coordinates.deliveryId }});
 
     if (!delivery) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Livraison introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Livraison introuvable" });
     }
 
     if (delivery.delivererId !== userId) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
     }
 
     return await db.deliveryCoordinates.create({
       data: {
         deliveryId: coordinates.deliveryId,
         latitude: coordinates.latitude,
-        longitude: coordinates.longitude,
-      },
-    });
+        longitude: coordinates.longitude}});
   },
 
   /**
@@ -361,23 +296,18 @@ export const DeliveryService = {
   ) {
     const delivery = await db.delivery.findUnique({
       where: { id: confirmation.deliveryId },
-      include: { announcement: true },
-    });
+      include: { announcement }});
 
     if (!delivery) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Livraison introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Livraison introuvable" });
     }
 
     // Vérification du code (généré côté client lors de la création)
     const expectedCode = delivery.announcement.confirmationCode;
     if (confirmation.confirmationCode !== expectedCode) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Code de confirmation invalide",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Code de confirmation invalide" });
     }
 
     // Mise à jour du statut
@@ -385,9 +315,7 @@ export const DeliveryService = {
       where: { id: confirmation.deliveryId },
       data: {
         status: DeliveryStatus.DELIVERED,
-        completionTime: new Date(),
-      },
-    });
+        completionTime: new Date()}});
 
     // Enregistrement de la preuve si fournie
     if (confirmation.proofType && confirmation.proofUrl) {
@@ -395,9 +323,7 @@ export const DeliveryService = {
         data: {
           deliveryId: confirmation.deliveryId,
           type: confirmation.proofType,
-          fileUrl: confirmation.proofUrl,
-        },
-      });
+          fileUrl: confirmation.proofUrl}});
     }
 
     return confirmedDelivery;
@@ -416,17 +342,12 @@ export const DeliveryService = {
       where: {
         role: "DELIVERER",
         isActive: true,
-        verificationStatus: "VERIFIED",
-      },
+        verificationStatus: "VERIFIED"},
       include: {
         profile: true,
         delivererDeliveries: {
           where: {
-            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
-          },
-        },
-      },
-    });
+            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] }}}}});
 
     // Filtre les livreurs non surchargés (max 3 livraisons actives)
     const eligibleDeliverers = availableDeliverers.filter(
@@ -453,21 +374,16 @@ export const DeliveryService = {
    */
   async rateDelivery(rating: DeliveryRatingInput, userId: string) {
     const delivery = await db.delivery.findUnique({
-      where: { id: rating.deliveryId },
-    });
+      where: { id: rating.deliveryId }});
 
     if (!delivery) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Livraison introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Livraison introuvable" });
     }
 
     if (delivery.status !== DeliveryStatus.DELIVERED) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "La livraison doit être terminée pour être évaluée",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "La livraison doit être terminée pour être évaluée" });
     }
 
     // Détermine qui évalue qui
@@ -480,9 +396,7 @@ export const DeliveryService = {
         ratedById: userId,
         targetId,
         rating: rating.rating,
-        comment: rating.comment,
-      },
-    });
+        comment: rating.comment}});
   },
 
   // ===== GESTION PROFIL LIVREUR =====
@@ -497,43 +411,28 @@ export const DeliveryService = {
         profile: true,
         stats: true,
         schedules: {
-          orderBy: { dayOfWeek: "asc" },
-        },
+          orderBy: { dayOfWeek: "asc" }},
         routes: {
-          where: { isActive: true },
-          include: {
-            zones: true,
-          },
-        },
+          where: { isActive },
+          include: { zones }},
         availabilities: {
           where: {
-            endDate: { gte: new Date() },
-          },
-          orderBy: { startDate: "asc" },
-        },
+            endDate: { gte: new Date() }},
+          orderBy: { startDate: "asc" }},
         preferences: true,
         delivererDeliveries: {
           where: {
-            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
-          },
+            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] }},
           include: {
             announcement: {
               select: {
                 title: true,
                 pickupAddress: true,
-                deliveryAddress: true,
-              },
-            },
-          },
-        },
-      },
-    });
+                deliveryAddress: true}}}}}});
 
     if (!deliverer) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Livreur introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Livreur introuvable" });
     }
 
     return deliverer;
@@ -549,9 +448,9 @@ export const DeliveryService = {
   ) {
     // Vérification des permissions
     if (delivererId !== userId) {
-      const requester = await db.user.findUnique({ where: { id: userId } });
+      const requester = await db.user.findUnique({ where: { id } });
       if (requester?.role !== "ADMIN") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
       }
     }
 
@@ -559,9 +458,8 @@ export const DeliveryService = {
       // Mise à jour du profil principal
       if (profileData.profile) {
         await tx.userProfile.update({
-          where: { userId: delivererId },
-          data: profileData.profile,
-        });
+          where: { userId },
+          data: profileData.profile});
       }
 
       // Mise à jour des préférences
@@ -570,10 +468,8 @@ export const DeliveryService = {
           where: { delivererId },
           create: {
             delivererId,
-            ...profileData.preferences,
-          },
-          update: profileData.preferences,
-        });
+            ...profileData.preferences},
+          update: profileData.preferences});
       }
 
       return await this.getDelivererProfile(delivererId);
@@ -590,13 +486,12 @@ export const DeliveryService = {
   ) {
     // Vérification des permissions
     if (delivererId !== userId) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
     }
 
     // Créer une application fictive pour les documents du profil
     const application = await db.deliveryApplication.findFirst({
-      where: { delivererId, announcementId: "profile-documents" },
-    });
+      where: { delivererId, announcementId: "profile-documents" }});
 
     if (!application) {
       // Créer une application générique pour les documents du profil
@@ -605,9 +500,7 @@ export const DeliveryService = {
           delivererId,
           announcementId: "profile-documents", // ID spécial pour les documents de profil
           status: ApplicationStatus.PENDING,
-          verificationStatus: DocumentVerificationStatus.PENDING,
-        },
-      });
+          verificationStatus: DocumentVerificationStatus.PENDING}});
     }
 
     return await db.$transaction(async (tx) => {
@@ -615,10 +508,8 @@ export const DeliveryService = {
       const lastVersion = await tx.applicationDocument.findFirst({
         where: {
           applicationId: application.id,
-          documentType: documentData.type,
-        },
-        orderBy: { version: "desc" },
-      });
+          documentType: documentData.type},
+        orderBy: { version: "desc" }});
 
       const newVersion = (lastVersion?.version || 0) + 1;
 
@@ -635,9 +526,7 @@ export const DeliveryService = {
           fileSize: documentData.fileSize,
           mimeType: documentData.mimeType,
           checksum: documentData.checksum,
-          previousVersionId: lastVersion?.id,
-        },
-      });
+          previousVersionId: lastVersion?.id}});
 
       // Créer l'audit log
       await tx.documentValidationAudit.create({
@@ -648,9 +537,7 @@ export const DeliveryService = {
           actionBy: userId,
           actionType: "UPLOAD",
           notes: `Document uploadé - version ${newVersion}`,
-          automated: false,
-        },
-      });
+          automated: false}});
 
       return document;
     });
@@ -662,9 +549,9 @@ export const DeliveryService = {
   async getDelivererDocuments(delivererId: string, userId: string) {
     // Vérification des permissions
     if (delivererId !== userId) {
-      const requester = await db.user.findUnique({ where: { id: userId } });
+      const requester = await db.user.findUnique({ where: { id } });
       if (requester?.role !== "ADMIN") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
       }
     }
 
@@ -677,22 +564,12 @@ export const DeliveryService = {
               include: {
                 actor: {
                   select: {
-                    profile: { select: { firstName: true, lastName: true } },
-                  },
-                },
-              },
-              orderBy: { createdAt: "desc" },
-            },
+                    profile: { select: { firstName: true, lastName: true } }}}},
+              orderBy: { createdAt: "desc" }},
             verifier: {
               select: {
-                profile: { select: { firstName: true, lastName: true } },
-              },
-            },
-          },
-          orderBy: { version: "desc" },
-        },
-      },
-    });
+                profile: { select: { firstName: true, lastName: true } }}}},
+          orderBy: { version: "desc" }}}});
 
     if (!application) {
       return [];
@@ -715,18 +592,14 @@ export const DeliveryService = {
    */
   async autoValidateDocument(documentId: string) {
     const document = await db.applicationDocument.findUnique({
-      where: { id: documentId },
-      include: { application: true },
-    });
+      where: { id },
+      include: { application }});
 
     if (!document) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Document introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Document introuvable" });
     }
 
-    // Simulation de validation automatique (à remplacer par vrai OCR/AI)
     const validationScore = Math.random() * 100;
     const validationFlags = [];
 
@@ -755,7 +628,7 @@ export const DeliveryService = {
     return await db.$transaction(async (tx) => {
       // Mettre à jour le document
       const updatedDocument = await tx.applicationDocument.update({
-        where: { id: documentId },
+        where: { id },
         data: {
           autoValidated,
           validationScore,
@@ -763,10 +636,7 @@ export const DeliveryService = {
           status: newStatus,
           ...(autoValidated && {
             verifiedAt: new Date(),
-            verifiedBy: "system",
-          }),
-        },
-      });
+            verifiedBy: "system"})}});
 
       // Créer l'audit log
       await tx.documentValidationAudit.create({
@@ -779,17 +649,14 @@ export const DeliveryService = {
           notes: `Validation automatique - Score: ${validationScore}`,
           automated: true,
           validationData: { score: validationScore, flags: validationFlags },
-          confidence: validationScore / 100,
-        },
-      });
+          confidence: validationScore / 100}});
 
       // Notification si validation réussie
       if (autoValidated) {
         await NotificationService.sendToUser(document.application.delivererId, {
           title: "Document approuvé automatiquement",
           body: `Votre document ${document.documentType} a été validé automatiquement`,
-          data: { documentId, type: "DOCUMENT_AUTO_APPROVED" },
-        });
+          data: { documentId, type: "DOCUMENT_AUTO_APPROVED" }});
       }
 
       return updatedDocument;
@@ -804,28 +671,22 @@ export const DeliveryService = {
     validation: any,
     adminId: string,
   ) {
-    const admin = await db.user.findUnique({ where: { id: adminId } });
+    const admin = await db.user.findUnique({ where: { id } });
     if (admin?.role !== "ADMIN") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Seuls les admins peuvent valider",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Seuls les admins peuvent valider" });
     }
 
     const document = await db.applicationDocument.update({
-      where: { id: documentId },
+      where: { id },
       data: {
         status: validation.status,
         verifiedAt: new Date(),
         verifiedBy: adminId,
-        rejectionReason: validation.rejectionReason,
-      },
+        rejectionReason: validation.rejectionReason},
       include: {
         application: {
-          include: { deliverer: true },
-        },
-      },
-    });
+          include: { deliverer }}}});
 
     // Notification au livreur
     await NotificationService.sendToUser(document.application.delivererId, {
@@ -834,8 +695,7 @@ export const DeliveryService = {
           ? "Document approuvé"
           : "Document rejeté",
       body: `Votre document ${document.documentType} a été ${validation.status === "APPROVED" ? "approuvé" : "rejeté"}`,
-      data: { documentId: document.id, status: validation.status },
-    });
+      data: { documentId: document.id, status: validation.status }});
 
     return document;
   },
@@ -851,7 +711,7 @@ export const DeliveryService = {
     userId: string,
   ) {
     if (delivererId !== userId) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
     }
 
     return await db.$transaction(async (tx) => {
@@ -868,13 +728,11 @@ export const DeliveryService = {
           weatherSensitive: routeData.weatherSensitive || false,
           preferredTimeSlots: routeData.preferredTimeSlots || [],
           dayPreferences: routeData.dayPreferences || [1, 2, 3, 4, 5], // Lundi à Vendredi par défaut
-        },
-      });
+        }});
 
       // Ajouter les zones géographiques
       if (routeData.zones && routeData.zones.length > 0) {
-        await tx.deliveryZone.createMany({
-          data: routeData.zones.map((zone: any) => ({
+        await tx.deliveryZone.createMany({ data: routeData.zones.map((zone: any) => ({
             routeId: route.id,
             centerLatitude: zone.latitude,
             centerLongitude: zone.longitude,
@@ -887,15 +745,12 @@ export const DeliveryService = {
             accessNotes: zone.accessNotes,
             timeRestrictions: zone.timeRestrictions || [],
             vehicleRestrictions: zone.vehicleRestrictions || [],
-            weatherSensitive: zone.weatherSensitive || false,
-          })),
-        });
+            weatherSensitive: zone.weatherSensitive || false }))});
       }
 
       return await tx.delivererRoute.findUnique({
         where: { id: route.id },
-        include: { zones: true },
-      });
+        include: { zones }});
     });
   },
 
@@ -904,7 +759,7 @@ export const DeliveryService = {
    */
   async optimizeDelivererRoutes(delivererId: string) {
     const deliverer = await db.user.findUnique({
-      where: { id: delivererId },
+      where: { id },
       include: {
         routes: {
           include: {
@@ -913,30 +768,17 @@ export const DeliveryService = {
               where: {
                 date: {
                   gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 derniers jours
-                },
-              },
-            },
-          },
-        },
+                }}}}},
         delivererDeliveries: {
           where: {
             status: DeliveryStatus.DELIVERED,
             completionTime: {
-              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-            },
-          },
-          include: {
-            announcement: true,
-          },
-        },
-      },
-    });
+              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)}},
+          include: { announcement }}}});
 
     if (!deliverer) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Livreur introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Livreur introuvable" });
     }
 
     // Analyser les performances des routes existantes
@@ -953,8 +795,7 @@ export const DeliveryService = {
         stats.reduce((sum, s) => sum + (s.onTimeRate || 0), 0) /
         (stats.length || 1);
 
-      routeAnalysis.push({
-        routeId: route.id,
+      routeAnalysis.push({ routeId: route.id,
         name: route.name,
         efficiency: avgEarnings / (avgTime || 1), // Gains par minute
         successRate,
@@ -966,8 +807,7 @@ export const DeliveryService = {
           avgEarnings,
           avgTime,
           successRate,
-        ),
-      });
+        ) });
     }
 
     // Identifier les zones populaires non couvertes
@@ -995,8 +835,7 @@ export const DeliveryService = {
       recommendations: this.generateOptimizationRecommendations(
         routeAnalysis,
         uncoveredZones,
-      ),
-    };
+      )};
   },
 
   /**
@@ -1009,12 +848,8 @@ export const DeliveryService = {
         status: DeliveryStatus.DELIVERED,
         completionTime: {
           gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 derniers jours
-        },
-      },
-      include: {
-        announcement: true,
-      },
-    });
+        }},
+      include: { announcement }});
 
     // Analyser les patterns de livraisons
     const deliveryPatterns = this.analyzeDeliveryPatterns(recentDeliveries);
@@ -1032,8 +867,7 @@ export const DeliveryService = {
           frequency: pattern.frequency,
           successRate: pattern.successRate,
           bestTimeSlots: pattern.bestTimeSlots,
-          priority: this.calculateSuggestionPriority(pattern),
-        };
+          priority: this.calculateSuggestionPriority(pattern)};
         suggestions.push(suggestion);
       }
     }
@@ -1046,18 +880,13 @@ export const DeliveryService = {
    */
   async updateRouteStatistics(deliveryId: string) {
     const delivery = await db.delivery.findUnique({
-      where: { id: deliveryId },
+      where: { id },
       include: {
         announcement: true,
         deliverer: {
           include: {
             routes: {
-              include: { zones: true },
-            },
-          },
-        },
-      },
-    });
+              include: { zones }}}}}});
 
     if (!delivery || delivery.status !== DeliveryStatus.DELIVERED) {
       return;
@@ -1094,9 +923,7 @@ export const DeliveryService = {
       where: {
         routeId_date: {
           routeId: matchingRoute.id,
-          date: today,
-        },
-      },
+          date: today}},
       create: {
         routeId: matchingRoute.id,
         date: today,
@@ -1105,23 +932,18 @@ export const DeliveryService = {
         averageTime: deliveryTime,
         totalDistance: 0, // À calculer avec GPS
         totalEarnings: delivery.price,
-        dayOfWeek: today.getDay(),
-      },
+        dayOfWeek: today.getDay()},
       update: {
         totalDeliveries: { increment: 1 },
         completedDeliveries: { increment: 1 },
-        totalEarnings: { increment: delivery.price },
-      },
-    });
+        totalEarnings: { increment: delivery.price }}});
 
     // Mettre à jour les stats de la route
     await db.delivererRoute.update({
       where: { id: matchingRoute.id },
       data: {
         completedDeliveries: { increment: 1 },
-        lastUsed: new Date(),
-      },
-    });
+        lastUsed: new Date()}});
   },
 
   /**
@@ -1129,26 +951,20 @@ export const DeliveryService = {
    */
   async calculateMatchingScore(announcementId: string, delivererId: string) {
     const announcement = await db.announcement.findUnique({
-      where: { id: announcementId },
-    });
+      where: { id }});
 
     const deliverer = await db.user.findUnique({
-      where: { id: delivererId },
+      where: { id },
       include: {
         stats: true,
         routes: {
-          include: { zones: true },
-        },
+          include: { zones }},
         availabilities: {
           where: {
             startDate: { lte: new Date() },
             endDate: { gte: new Date() },
-            isAvailable: true,
-          },
-        },
-        preferences: true,
-      },
-    });
+            isAvailable: true}},
+        preferences: true}});
 
     if (!announcement || !deliverer) {
       return null;
@@ -1202,9 +1018,7 @@ export const DeliveryService = {
       where: {
         announcementId_delivererId: {
           announcementId,
-          delivererId,
-        },
-      },
+          delivererId}},
       create: {
         announcementId,
         delivererId,
@@ -1216,8 +1030,7 @@ export const DeliveryService = {
         distance,
         estimatedTime: Math.round(distance * 2), // 2 min par km
         isInRoute,
-        isAvailable: availabilityScore > 0,
-      },
+        isAvailable: availabilityScore > 0},
       update: {
         matchingScore: totalScore,
         distanceScore,
@@ -1228,9 +1041,7 @@ export const DeliveryService = {
         estimatedTime: Math.round(distance * 2),
         isInRoute,
         isAvailable: availabilityScore > 0,
-        updatedAt: new Date(),
-      },
-    });
+        updatedAt: new Date()}});
 
     return {
       totalScore,
@@ -1239,8 +1050,7 @@ export const DeliveryService = {
       availabilityScore,
       preferenceScore,
       distance,
-      isInRoute,
-    };
+      isInRoute};
   },
 
   /**
@@ -1252,9 +1062,7 @@ export const DeliveryService = {
       where: {
         role: "DELIVERER",
         isActive: true,
-        verificationStatus: "VERIFIED",
-      },
-    });
+        verificationStatus: "VERIFIED"}});
 
     // Calculer le score pour chaque livreur
     const matchingPromises = deliverers.map((deliverer) =>
@@ -1273,13 +1081,9 @@ export const DeliveryService = {
         deliverer: {
           include: {
             profile: true,
-            stats: true,
-          },
-        },
-      },
+            stats: true}}},
       orderBy: { matchingScore: "desc" },
-      take: limit,
-    });
+      take: limit});
   },
 
   // ===== GESTION PLANNING ET DISPONIBILITÉS =====
@@ -1293,19 +1097,17 @@ export const DeliveryService = {
     userId: string,
   ) {
     if (delivererId !== userId) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
     }
 
     return await db.$transaction(async (tx) => {
       // Supprimer l'ancien planning
       await tx.delivererSchedule.deleteMany({
-        where: { delivererId },
-      });
+        where: { delivererId }});
 
       // Créer le nouveau planning
       if (schedules.length > 0) {
-        await tx.delivererSchedule.createMany({
-          data: schedules.map((schedule) => ({
+        await tx.delivererSchedule.createMany({ data: schedules.map((schedule) => ({
             delivererId,
             dayOfWeek: schedule.dayOfWeek,
             startTime: schedule.startTime,
@@ -1316,16 +1118,13 @@ export const DeliveryService = {
             breakStart: schedule.breakStart,
             breakEnd: schedule.breakEnd,
             timeSlots: schedule.timeSlots || 4,
-            preferredZones: schedule.preferredZones || [],
-          })),
-        });
+            preferredZones: schedule.preferredZones || [] }))});
       }
 
       return await tx.delivererSchedule.findMany({
         where: { delivererId },
-        include: { exceptions: true },
-        orderBy: { dayOfWeek: "asc" },
-      });
+        include: { exceptions },
+        orderBy: { dayOfWeek: "asc" }});
     });
   },
 
@@ -1338,21 +1137,17 @@ export const DeliveryService = {
     userId: string,
   ) {
     if (delivererId !== userId) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
     }
 
     const schedule = await db.delivererSchedule.findFirst({
       where: {
         delivererId,
-        dayOfWeek: new Date(exceptionData.date).getDay(),
-      },
-    });
+        dayOfWeek: new Date(exceptionData.date).getDay()}});
 
     if (!schedule) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Planning non trouvé pour ce jour",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Planning non trouvé pour ce jour" });
     }
 
     return await db.scheduleException.create({
@@ -1362,9 +1157,7 @@ export const DeliveryService = {
         isAvailable: exceptionData.isAvailable,
         startTime: exceptionData.startTime,
         endTime: exceptionData.endTime,
-        reason: exceptionData.reason,
-      },
-    });
+        reason: exceptionData.reason}});
   },
 
   /**
@@ -1378,23 +1171,17 @@ export const DeliveryService = {
     const [schedule, exceptions, recentStats] = await Promise.all([
       db.delivererSchedule.findMany({
         where: { delivererId },
-        include: { exceptions: true },
-        orderBy: { dayOfWeek: "asc" },
-      }),
+        include: { exceptions },
+        orderBy: { dayOfWeek: "asc" }}),
       db.scheduleException.findMany({
         where: {
           schedule: { delivererId },
-          date: { gte: startDate, lte: endDate },
-        },
-      }),
+          date: { gte: startDate, lte: endDate }}}),
       db.routeStatistics.findMany({
         where: {
           route: { delivererId },
-          date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-        },
-        include: { route: true },
-      }),
-    ]);
+          date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }},
+        include: { route }})]);
 
     // Analyser les créneaux les plus rentables
     const profitableTimeSlots = this.analyzeProfitableTimeSlots(recentStats);
@@ -1411,13 +1198,11 @@ export const DeliveryService = {
 
       if (avgEarnings < 50) {
         // Seuil configurable
-        optimizationSuggestions.push({
-          day: daySchedule.dayOfWeek,
+        optimizationSuggestions.push({ day: daySchedule.dayOfWeek,
           type: "LOW_EARNINGS",
           suggestion: "Envisager de modifier les créneaux horaires",
           potentialImprovement:
-            profitableTimeSlots[daySchedule.dayOfWeek] || null,
-        });
+            profitableTimeSlots[daySchedule.dayOfWeek] || null });
       }
     }
 
@@ -1429,8 +1214,7 @@ export const DeliveryService = {
       weeklyEarningsProjection: this.calculateWeeklyProjection(
         schedule,
         recentStats,
-      ),
-    };
+      )};
   },
 
   /**
@@ -1442,7 +1226,7 @@ export const DeliveryService = {
     userId: string,
   ) {
     if (delivererId !== userId) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
     }
 
     return await db.delivererAvailability.upsert({
@@ -1455,16 +1239,13 @@ export const DeliveryService = {
         isAvailable: availabilityData.isAvailable,
         reason: availabilityData.reason,
         currentLat: availabilityData.latitude,
-        currentLng: availabilityData.longitude,
-      },
+        currentLng: availabilityData.longitude},
       update: {
         isAvailable: availabilityData.isAvailable,
         reason: availabilityData.reason,
         currentLat: availabilityData.latitude,
         currentLng: availabilityData.longitude,
-        lastUpdate: new Date(),
-      },
-    });
+        lastUpdate: new Date()}});
   },
 
   /**
@@ -1484,10 +1265,7 @@ export const DeliveryService = {
           some: {
             isAvailable: true,
             startDate: { lte: new Date() },
-            endDate: { gte: new Date() },
-          },
-        },
-      },
+            endDate: { gte: new Date() }}}},
       include: {
         profile: true,
         stats: true,
@@ -1495,16 +1273,10 @@ export const DeliveryService = {
           where: {
             isAvailable: true,
             startDate: { lte: new Date() },
-            endDate: { gte: new Date() },
-          },
-        },
+            endDate: { gte: new Date() }}},
         delivererDeliveries: {
           where: {
-            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
-          },
-        },
-      },
-    });
+            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] }}}}});
 
     // Filtrer par distance et charge de travail
     const filtered = [];
@@ -1520,11 +1292,9 @@ export const DeliveryService = {
       );
 
       if (distance <= radiusKm && deliverer.delivererDeliveries.length < 3) {
-        filtered.push({
-          ...deliverer,
+        filtered.push({ ...deliverer,
           distance,
-          currentLoad: deliverer.delivererDeliveries.length,
-        });
+          currentLoad: deliverer.delivererDeliveries.length });
       }
     }
 
@@ -1548,47 +1318,35 @@ export const DeliveryService = {
         db.delivery.findMany({
           where: {
             delivererId,
-            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
-          },
+            status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] }},
           include: {
             announcement: {
               select: {
                 title: true,
                 pickupAddress: true,
                 deliveryAddress: true,
-                pickupDate: true,
-              },
-            },
+                pickupDate: true}},
             coordinates: {
               orderBy: { timestamp: "desc" },
-              take: 1,
-            },
-          },
-          orderBy: { createdAt: "asc" },
-        }),
+              take: 1}},
+          orderBy: { createdAt: "asc" }}),
 
         // Livraisons du jour
         db.delivery.count({
           where: {
             delivererId,
-            createdAt: { gte: today, lt: tomorrow },
-          },
-        }),
+            createdAt: { gte: today, lt: tomorrow }}}),
 
         // Statistiques
         db.delivererStats.findUnique({
-          where: { delivererId },
-        }),
+          where: { delivererId }}),
 
         // Notifications non lues
         db.delivererNotification.count({
           where: {
             delivererId,
             status: "SENT",
-            readAt: null,
-          },
-        }),
-      ]);
+            readAt: null}})]);
 
     return {
       activeDeliveries,
@@ -1598,9 +1356,7 @@ export const DeliveryService = {
       earnings: {
         today: 0, // À calculer selon la logique métier
         week: 0,
-        month: 0,
-      },
-    };
+        month: 0}};
   },
 
   /**
@@ -1612,15 +1368,12 @@ export const DeliveryService = {
     delivererId: string,
   ) {
     const matching = await db.announcementMatching.findUnique({
-      where: { id: matchingId },
-      include: { announcement: true },
-    });
+      where: { id },
+      include: { announcement }});
 
     if (!matching || matching.delivererId !== delivererId) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Proposition introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Proposition introuvable" });
     }
 
     if (response === "ACCEPTED") {
@@ -1632,18 +1385,14 @@ export const DeliveryService = {
           clientId: matching.announcement.clientId,
           status: DeliveryStatus.ACCEPTED,
           trackingCode: this.generateTrackingCode(),
-          price: matching.announcement.suggestedPrice || 0,
-        },
-      });
+          price: matching.announcement.suggestedPrice || 0}});
 
       // Mettre à jour le matching
       await db.announcementMatching.update({
-        where: { id: matchingId },
+        where: { id },
         data: {
           status: "ACCEPTED",
-          respondedAt: new Date(),
-        },
-      });
+          respondedAt: new Date()}});
 
       // Notification au client
       await NotificationService.sendToUser(matching.announcement.clientId, {
@@ -1651,20 +1400,16 @@ export const DeliveryService = {
         body: `Un livreur a accepté votre annonce "${matching.announcement.title}"`,
         data: {
           deliveryId: delivery.id,
-          announcementId: matching.announcementId,
-        },
-      });
+          announcementId: matching.announcementId}});
 
       return delivery;
     } else {
       // Refuser la proposition
       await db.announcementMatching.update({
-        where: { id: matchingId },
+        where: { id },
         data: {
           status: "DECLINED",
-          respondedAt: new Date(),
-        },
-      });
+          respondedAt: new Date()}});
 
       return { success: true, message: "Proposition refusée" };
     }
@@ -1681,31 +1426,23 @@ export const DeliveryService = {
     await db.delivererAvailability.updateMany({
       where: {
         delivererId,
-        isAvailable: true,
-      },
+        isAvailable: true},
       data: {
         currentLat: location.latitude,
         currentLng: location.longitude,
-        lastUpdate: new Date(),
-      },
-    });
+        lastUpdate: new Date()}});
 
     // Mettre à jour les coordonnées des livraisons actives
     const activeDeliveries = await db.delivery.findMany({
       where: {
         delivererId,
-        status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
-      },
-    });
+        status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] }}});
 
     if (activeDeliveries.length > 0) {
-      await db.deliveryCoordinates.createMany({
-        data: activeDeliveries.map((delivery) => ({
+      await db.deliveryCoordinates.createMany({ data: activeDeliveries.map((delivery) => ({
           deliveryId: delivery.id,
           latitude: location.latitude,
-          longitude: location.longitude,
-        })),
-      });
+          longitude: location.longitude }))});
     }
 
     return { success: true, updated: activeDeliveries.length };
@@ -1797,8 +1534,7 @@ export const DeliveryService = {
           totalEarnings: 0,
           totalTime: 0,
           deliveries: [],
-          timeSlots: [],
-        });
+          timeSlots: []});
       }
 
       const pattern = patterns.get(key);
@@ -1819,13 +1555,11 @@ export const DeliveryService = {
     }
 
     // Calculer les moyennes et métriques finales
-    return Array.from(patterns.values()).map((pattern) => ({
-      ...pattern,
+    return Array.from(patterns.values()).map((pattern) => ({ ...pattern,
       averageEarnings: pattern.totalEarnings / pattern.frequency,
       averageTime: pattern.totalTime / pattern.frequency,
       successRate: 100, // À calculer selon la logique métier
-      bestTimeSlots: this.findMostCommonTimeSlots(pattern.timeSlots),
-    }));
+      bestTimeSlots: this.findMostCommonTimeSlots(pattern.timeSlots) }));
   },
 
   /**
@@ -1897,8 +1631,7 @@ export const DeliveryService = {
           lng: delivery.announcement.deliveryLongitude,
           city: delivery.announcement.deliveryCity,
           count: 0,
-          totalEarnings: 0,
-        });
+          totalEarnings: 0});
       }
 
       const zone = zoneCounts.get(key);
@@ -1968,8 +1701,7 @@ export const DeliveryService = {
           totalDeliveries: dayStats.reduce(
             (sum, s) => sum + s.completedDeliveries,
             0,
-          ),
-        };
+          )};
       }
     }
 
@@ -2016,11 +1748,9 @@ export const DeliveryService = {
   async getActiveDeliveries(userId: string) {
     try {
       const where: any = {
-        OR: [{ clientId: userId }, { delivererId: userId }],
+        OR: [{ clientId }, { delivererId }],
         status: {
-          in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"],
-        },
-      };
+          in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"]}};
 
       const deliveries = await db.delivery.findMany({
         where,
@@ -2030,9 +1760,7 @@ export const DeliveryService = {
               title: true,
               pickupAddress: true,
               deliveryAddress: true,
-              pickupDate: true,
-            },
-          },
+              pickupDate: true}},
           client: {
             select: {
               id: true,
@@ -2040,10 +1768,7 @@ export const DeliveryService = {
               email: true,
               phoneNumber: true,
               client: {
-                select: { phone: true },
-              },
-            },
-          },
+                select: { phone }}}},
           deliverer: {
             select: {
               id: true,
@@ -2051,25 +1776,16 @@ export const DeliveryService = {
               email: true,
               phoneNumber: true,
               deliverer: {
-                select: { phone: true },
-              },
-            },
-          },
+                select: { phone }}}},
           coordinates: {
             orderBy: { timestamp: "desc" },
-            take: 1,
-          },
-        },
-        orderBy: { updatedAt: "desc" },
-      });
+            take: 1}},
+        orderBy: { updatedAt: "desc" }});
 
       return deliveries;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur getActiveDeliveries:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des livraisons actives",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des livraisons actives" });
     }
-  },
-};
+  }};

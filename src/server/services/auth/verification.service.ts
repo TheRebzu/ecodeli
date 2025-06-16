@@ -4,18 +4,15 @@ import {
   DocumentType,
   UserRole,
   VerificationStatus,
-  UserStatus,
-} from "@prisma/client";
+  UserStatus} from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import {
   MerchantVerificationSubmitInput,
-  ProviderVerificationSubmitInput,
-} from "@/schemas/auth/verification.schema";
+  ProviderVerificationSubmitInput} from "@/schemas/auth/verification.schema";
 import type {
   MerchantVerification,
   ProviderVerification,
-  VerificationUpdateRequest,
-} from "@/types/users/verification";
+  VerificationUpdateRequest} from "@/types/users/verification";
 
 type UploadResult = {
   fileUrl: string;
@@ -43,7 +40,7 @@ type VerificationResult = {
  * - APPROVED: Document vérifié et approuvé
  * - REJECTED: Document rejeté, nécessite une nouvelle soumission
  * - EXPIRED: Document expiré, renouvellement requis
- * - NOT_SUBMITTED: Aucun document soumis
+ * - _NOT_SUBMITTED: Aucun document soumis
  *
  * Les documents expirés sont automatiquement détectés en fonction de leur expiryDate
  */
@@ -57,19 +54,16 @@ export class VerificationService {
         DocumentType.ID_CARD,
         DocumentType.DRIVING_LICENSE,
         DocumentType.VEHICLE_REGISTRATION,
-        DocumentType.INSURANCE,
-      ],
+        DocumentType.INSURANCE],
       [UserRole.PROVIDER]: [
         DocumentType.ID_CARD,
         DocumentType.QUALIFICATION_CERTIFICATE,
         DocumentType.INSURANCE,
-        DocumentType.PROOF_OF_ADDRESS,
-      ],
+        DocumentType.PROOF_OF_ADDRESS],
       [UserRole.MERCHANT]: [
         DocumentType.ID_CARD,
         DocumentType.BUSINESS_REGISTRATION,
-        DocumentType.PROOF_OF_ADDRESS,
-      ],
+        DocumentType.PROOF_OF_ADDRESS],
       [UserRole.CLIENT]: [], // Clients don't need verification
       [UserRole.ADMIN]: [], // Admins don't need verification
     };
@@ -143,8 +137,7 @@ export class VerificationService {
     if (!requiredDocs.includes(type)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: `Document type ${type} is not required for ${userRole}`,
-      });
+        message: `Document type ${type} is not required for ${userRole}`});
     }
 
     // Vérifier si un document de ce type existe déjà
@@ -152,9 +145,7 @@ export class VerificationService {
       where: {
         userId,
         type,
-        userRole,
-      },
-    });
+        userRole}});
 
     // Upload du fichier
     const uploadResult = await this.uploadFileToStorage(file);
@@ -172,9 +163,7 @@ export class VerificationService {
           isVerified: false,
           verificationStatus: VerificationStatus.PENDING,
           rejectionReason: null,
-          updatedAt: new Date(),
-        },
-      });
+          updatedAt: new Date()}});
     } else {
       // Créer un nouveau document
       document = await this.db.document.create({
@@ -185,9 +174,7 @@ export class VerificationService {
           filename: uploadResult.filename,
           fileUrl: uploadResult.fileUrl,
           mimeType: uploadResult.mimeType,
-          fileSize: uploadResult.fileSize,
-        },
-      });
+          fileSize: uploadResult.fileSize}});
     }
 
     // Créer ou mettre à jour la demande de vérification
@@ -201,21 +188,16 @@ export class VerificationService {
    */
   private async validateUser(userId: string, expectedRole: UserRole) {
     const user = await this.db.user.findUnique({
-      where: { id: userId },
-    });
+      where: { id }});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Utilisateur non trouvé" });
     }
 
     if (user.role !== expectedRole) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Type d'utilisateur incorrect",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Type d'utilisateur incorrect" });
     }
   }
 
@@ -227,24 +209,19 @@ export class VerificationService {
       "image/jpeg",
       "image/png",
       "image/jpg",
-      "application/pdf",
-    ];
+      "application/pdf"];
 
     if (!allowedTypes.includes(file.type)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new TRPCError({ code: "BAD_REQUEST",
         message:
-          "Type de fichier non autorisé. Formats acceptés: JPEG, PNG, PDF",
-      });
+          "Type de fichier non autorisé. Formats acceptés: JPEG, PNG, PDF" });
     }
 
     // Limite de taille: 10MB
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Fichier trop volumineux. Taille maximale: 10MB",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Fichier trop volumineux. Taille maximale: 10MB" });
     }
   }
 
@@ -253,8 +230,7 @@ export class VerificationService {
    */
   private async upsertVerificationRequest(userId: string, documentId: string) {
     const existingVerification = await this.db.verification.findFirst({
-      where: { documentId },
-    });
+      where: { documentId }});
 
     if (existingVerification) {
       return await this.db.verification.update({
@@ -264,17 +240,13 @@ export class VerificationService {
           requestedAt: new Date(),
           verifiedAt: null,
           verifierId: null,
-          notes: null,
-        },
-      });
+          notes: null}});
     }
 
     return await this.db.verification.create({
       data: {
         submitterId: userId,
-        documentId,
-      },
-    });
+        documentId}});
   }
 
   /**
@@ -299,22 +271,17 @@ export class VerificationService {
         contentType: file.type,
         metadata: {
           originalName: file.name,
-          uploadedAt: new Date().toISOString(),
-        },
-      });
+          uploadedAt: new Date().toISOString()}});
 
       return {
         fileUrl: uploadResult.url,
         filename: sanitizedFilename,
         mimeType: file.type,
-        fileSize: file.size,
-      };
-    } catch (_error) {
+        fileSize: file.size};
+    } catch (error) {
       console.error("Erreur upload fichier:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors du téléchargement du fichier",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du téléchargement du fichier" });
     }
   }
   /**
@@ -337,16 +304,11 @@ export class VerificationService {
         where: { documentId },
         include: {
           document: {
-            include: { user: true },
-          },
-        },
-      });
+            include: { user }}}});
 
       if (!verification) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Demande de vérification non trouvée",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Demande de vérification non trouvée" });
       }
 
       // Mettre à jour la vérification
@@ -356,21 +318,17 @@ export class VerificationService {
           verifierId,
           status,
           notes,
-          verifiedAt: new Date(),
-        },
-      });
+          verifiedAt: new Date()}});
 
       // Mettre à jour le document
       await tx.document.update({
-        where: { id: documentId },
+        where: { id },
         data: {
           isVerified: status === VerificationStatus.APPROVED,
           reviewerId: verifierId,
           verificationStatus: status,
           rejectionReason:
-            status === VerificationStatus.REJECTED ? notes : null,
-        },
-      });
+            status === VerificationStatus.REJECTED ? notes : null}});
 
       // Vérifier si l'utilisateur peut être complètement vérifié
       if (
@@ -392,10 +350,7 @@ export class VerificationService {
           changes: {
             documentType: verification.document?.type,
             submitterId: verification.submitterId,
-            notes,
-          },
-        },
-      });
+            notes}}});
 
       return updatedVerification;
     });
@@ -406,14 +361,11 @@ export class VerificationService {
    */
   private async validateAdminPermissions(verifierId: string) {
     const verifier = await this.db.user.findUnique({
-      where: { id: verifierId },
-    });
+      where: { id }});
 
     if (!verifier || verifier.role !== UserRole.ADMIN) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Seuls les administrateurs peuvent vérifier les documents",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Seuls les administrateurs peuvent vérifier les documents" });
     }
   }
   /**
@@ -434,9 +386,7 @@ export class VerificationService {
       where: {
         userId,
         userRole,
-        type: { in: requiredDocuments },
-      },
-    });
+        type: { in }}});
 
     // Statut effectif de chaque document
     const statusByType: Record<string, string> = {};
@@ -472,8 +422,7 @@ export class VerificationService {
 
       const systemAdmin = await db.user.findFirst({
         where: { role: UserRole.ADMIN },
-        select: { id: true },
-      });
+        select: { id }});
 
       const systemId = systemAdmin?.id || "system";
 
@@ -487,12 +436,10 @@ export class VerificationService {
 
       // Mettre à jour l'utilisateur principal
       await db.user.update({
-        where: { id: userId },
+        where: { id },
         data: {
           status: UserStatus.ACTIVE,
-          isVerified: true,
-        },
-      });
+          isVerified: true}});
 
       console.log(`✅ Utilisateur ${userId} automatiquement vérifié`);
     } else {
@@ -536,42 +483,35 @@ export class VerificationService {
   ) {
     const updateData = {
       isVerified: true,
-      verificationDate: new Date(),
-    };
+      verificationDate: new Date()};
 
     const historyData = {
       userId,
       verifiedById: verifierId,
       status: VerificationStatus.APPROVED,
       reason: "All required documents verified",
-      createdAt: new Date(),
-    };
+      createdAt: new Date()};
 
     switch (userRole) {
       case UserRole.DELIVERER:
         await db.deliverer.update({
           where: { userId },
-          data: updateData,
-        });
+          data: updateData});
         break;
       case UserRole.PROVIDER:
         await db.provider.update({
           where: { userId },
-          data: updateData,
-        });
+          data: updateData});
         break;
       case UserRole.MERCHANT:
         await db.merchant.update({
           where: { userId },
-          data: updateData,
-        });
+          data: updateData});
         break;
     }
 
     // Ajouter à l'historique
-    await db.verificationHistory.create({
-      data: historyData,
-    });
+    await db.verificationHistory.create({ data  });
   }
   /**
    * Récupère le statut de vérification complet d'un utilisateur
@@ -586,8 +526,7 @@ export class VerificationService {
       return {
         isComplete: true,
         missingDocuments: [],
-        verificationStatus: "APPROVED",
-      };
+        verificationStatus: "APPROVED"};
     }
 
     // Récupérer tous les documents de l'utilisateur
@@ -595,9 +534,7 @@ export class VerificationService {
       where: {
         userId,
         userRole,
-        type: { in: requiredDocuments },
-      },
-    });
+        type: { in }}});
 
     // Analyser le statut de chaque document avec la même logique que document-list.tsx
     const documentStatuses = userDocuments.map((doc) =>
@@ -649,8 +586,7 @@ export class VerificationService {
     return {
       isComplete: missingDocuments.length === 0,
       missingDocuments,
-      verificationStatus,
-    };
+      verificationStatus};
   }
 
   /**
@@ -660,15 +596,11 @@ export class VerificationService {
     const documents = await this.db.document.findMany({
       where: {
         userId,
-        userRole,
-      },
+        userRole},
       orderBy: {
-        uploadedAt: "desc",
-      },
-    });
+        uploadedAt: "desc"}});
 
-    return documents.map((doc) => ({
-      ...doc,
+    return documents.map((doc) => ({ ...doc,
       effectiveStatus: this.getEffectiveDocumentStatus(doc),
       statusInfo: VerificationService.getStatusBadgeProps(
         this.getEffectiveDocumentStatus(doc),
@@ -676,8 +608,7 @@ export class VerificationService {
       isExpired: this.isDocumentExpired(doc),
       canResubmit: ["REJECTED", "EXPIRED"].includes(
         this.getEffectiveDocumentStatus(doc),
-      ),
-    }));
+      ) }));
   }
 
   /**
@@ -688,8 +619,7 @@ export class VerificationService {
       isVerified: true,
       expiryDate: {
         lt: new Date(), // Documents dont la date d'expiration est passée
-      },
-    };
+      }};
 
     if (userId) {
       whereClause.userId = userId;
@@ -701,9 +631,7 @@ export class VerificationService {
         ...whereClause,
         NOT: {
           verificationStatus: "EXPIRED" as any, // Éviter les documents déjà marqués
-        },
-      },
-    });
+        }}});
 
     if (expiredDocuments.length === 0) {
       return { updated: 0, documents: [] };
@@ -712,14 +640,11 @@ export class VerificationService {
     // Marquer les documents comme expirés
     const updateResult = await this.db.document.updateMany({
       where: {
-        id: { in: expiredDocuments.map((doc) => doc.id) },
-      },
+        id: { in: expiredDocuments.map((doc) => doc.id) }},
       data: {
         isVerified: false,
         verificationStatus: "EXPIRED" as any,
-        rejectionReason: "Document expiré automatiquement",
-      },
-    }); // Créer des logs d'audit pour les documents expirés
+        rejectionReason: "Document expiré automatiquement"}}); // Créer des logs d'audit pour les documents expirés
     const auditLogs = expiredDocuments.map((doc) => ({
       action: "DOCUMENT_EXPIRED",
       entityType: "DOCUMENT" as const,
@@ -728,23 +653,16 @@ export class VerificationService {
       details: {
         documentType: doc.type,
         expiryDate: doc.expiryDate,
-        autoExpired: true,
-      },
-    }));
+        autoExpired: true}}));
 
-    await this.db.auditLog.createMany({
-      data: auditLogs,
-    });
+    await this.db.auditLog.createMany({ data  });
 
     return {
       updated: updateResult.count,
-      documents: expiredDocuments.map((doc) => ({
-        id: doc.id,
+      documents: expiredDocuments.map((doc) => ({ id: doc.id,
         type: doc.type,
         userId: doc.userId,
-        expiryDate: doc.expiryDate,
-      })),
-    };
+        expiryDate: doc.expiryDate }))};
   }
 
   /**
@@ -759,13 +677,11 @@ export class VerificationService {
   ) {
     const skip = (page - 1) * limit;
     const whereClause: any = {
-      status: VerificationStatus.PENDING,
-    };
+      status: VerificationStatus.PENDING};
 
     if (userRole) {
       whereClause.document = {
-        userRole,
-      };
+        userRole};
     }
 
     const [verifications, totalCount] = await Promise.all([
@@ -779,19 +695,14 @@ export class VerificationService {
               name: true,
               email: true,
               role: true,
-              createdAt: true,
-            },
-          },
-        },
+              createdAt: true}}},
         orderBy:
           sortBy === "submitterName"
-            ? { submitter: { name: sortOrder } }
-            : { requestedAt: sortOrder },
+            ? { submitter: { name } }
+            : { requestedAt },
         skip,
-        take: limit,
-      }),
-      this.db.verification.count({ where: whereClause }),
-    ]);
+        take: limit}),
+      this.db.verification.count({ where  })]);
 
     return {
       verifications,
@@ -801,9 +712,7 @@ export class VerificationService {
         currentPage: page,
         totalPages: Math.ceil(totalCount / limit),
         hasNext: page < Math.ceil(totalCount / limit),
-        hasPrev: page > 1,
-      },
-    };
+        hasPrev: page > 1}};
   }
 
   /**
@@ -812,27 +721,19 @@ export class VerificationService {
   async getVerificationStats() {
     const [pending, approved, rejected, total] = await Promise.all([
       this.db.verification.count({
-        where: { status: VerificationStatus.PENDING },
-      }),
+        where: { status: VerificationStatus.PENDING }}),
       this.db.verification.count({
-        where: { status: VerificationStatus.APPROVED },
-      }),
+        where: { status: VerificationStatus.APPROVED }}),
       this.db.verification.count({
-        where: { status: VerificationStatus.REJECTED },
-      }),
-      this.db.verification.count(),
-    ]);
+        where: { status: VerificationStatus.REJECTED }}),
+      this.db.verification.count()]);
 
     // Stats par rôle
     const statsByRole = await this.db.verification.groupBy({
       by: ["document.userRole"],
-      _count: {
-        id: true,
-      },
+      count: { id },
       where: {
-        status: VerificationStatus.PENDING,
-      },
-    });
+        status: VerificationStatus.PENDING}});
 
     return {
       total,
@@ -842,12 +743,11 @@ export class VerificationService {
       approvalRate: total > 0 ? Math.round((approved / total) * 100) : 0,
       statsByRole: statsByRole.reduce(
         (acc, stat) => {
-          acc[stat.document.userRole] = stat._count.id;
+          acc[stat.document.userRole] = stat.count.id;
           return acc;
         },
         {} as Record<string, number>,
-      ),
-    };
+      )};
   }
 
   /**
@@ -858,8 +758,7 @@ export class VerificationService {
       DocumentType.ID_CARD,
       DocumentType.DRIVING_LICENSE,
       DocumentType.VEHICLE_REGISTRATION,
-      DocumentType.INSURANCE,
-    ];
+      DocumentType.INSURANCE];
 
     await this.updateUserVerificationStatus(
       userId,
@@ -876,8 +775,7 @@ export class VerificationService {
       DocumentType.ID_CARD,
       DocumentType.QUALIFICATION_CERTIFICATE,
       DocumentType.INSURANCE,
-      DocumentType.PROOF_OF_ADDRESS,
-    ];
+      DocumentType.PROOF_OF_ADDRESS];
 
     await this.updateUserVerificationStatus(
       userId,
@@ -893,8 +791,7 @@ export class VerificationService {
     const requiredDocuments: DocumentType[] = [
       DocumentType.ID_CARD,
       DocumentType.BUSINESS_REGISTRATION,
-      DocumentType.PROOF_OF_ADDRESS,
-    ];
+      DocumentType.PROOF_OF_ADDRESS];
 
     await this.updateUserVerificationStatus(
       userId,
@@ -908,22 +805,15 @@ export class VerificationService {
    */
   async getUserVerifications(userId: string) {
     return await this.db.verification.findMany({
-      where: {
-        submitterId: userId,
-      },
+      where: { submitterId },
       include: {
         document: true,
         verifier: {
           select: {
             id: true,
-            name: true,
-          },
-        },
-      },
+            name: true}}},
       orderBy: {
-        requestedAt: "desc",
-      },
-    });
+        requestedAt: "desc"}});
   }
 
   /**
@@ -932,16 +822,12 @@ export class VerificationService {
   async getMerchantVerificationStatus(merchantId: string) {
     const verification = await db.merchantVerification.findUnique({
       where: { merchantId },
-      include: {
-        merchant: true,
-      },
-    });
+      include: { merchant }});
 
     if (!verification) {
       return {
         status: "NOT_SUBMITTED" as const,
-        isVerified: false,
-      };
+        isVerified: false};
     }
 
     return {
@@ -950,8 +836,7 @@ export class VerificationService {
       submittedAt: verification.requestedAt,
       verifiedAt: verification.verifiedAt,
       notes: verification.notes,
-      rejectionReason: verification.rejectionReason,
-    };
+      rejectionReason: verification.rejectionReason};
   }
 
   /**
@@ -960,16 +845,12 @@ export class VerificationService {
   async getProviderVerificationStatus(providerId: string) {
     const verification = await db.providerVerification.findUnique({
       where: { providerId },
-      include: {
-        provider: true,
-      },
-    });
+      include: { provider }});
 
     if (!verification) {
       return {
         status: "NOT_SUBMITTED" as const,
-        isVerified: false,
-      };
+        isVerified: false};
     }
 
     return {
@@ -978,8 +859,7 @@ export class VerificationService {
       submittedAt: verification.requestedAt,
       verifiedAt: verification.verifiedAt,
       notes: verification.notes,
-      rejectionReason: verification.rejectionReason,
-    };
+      rejectionReason: verification.rejectionReason};
   }
 
   // Conserver les méthodes existantes pour les vérifications Merchant et Provider
@@ -996,35 +876,28 @@ export class VerificationService {
       businessDocuments,
       identityDocuments,
       addressDocuments,
-      notes,
-    } = data;
+      notes} = data;
 
     return await this.db.$transaction(async (tx) => {
       // Vérifier le merchant
       const merchant = await tx.merchant.findUnique({
-        where: { id: merchantId },
-        include: { user: true },
-      });
+        where: { id },
+        include: { user }});
 
       if (!merchant) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Merchant not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Merchant not found" });
       }
 
       // Vérifier si une vérification existe déjà
       const existingVerification = await tx.merchantVerification.findUnique({
-        where: { merchantId },
-      });
+        where: { merchantId }});
 
       if (existingVerification) {
         // Si la vérification est déjà approuvée, ne rien faire
         if (existingVerification.status === "APPROVED") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Le compte est déjà vérifié",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Le compte est déjà vérifié" });
         }
 
         // Sinon, mettre à jour la vérification existante
@@ -1039,9 +912,7 @@ export class VerificationService {
             requestedAt: new Date(),
             verifiedAt: null,
             verifierId: null,
-            rejectionReason: null,
-          },
-        });
+            rejectionReason: null}});
 
         return updatedVerification as unknown as MerchantVerification;
       }
@@ -1054,9 +925,7 @@ export class VerificationService {
           businessDocuments,
           identityDocuments,
           addressDocuments,
-          notes,
-        },
-      });
+          notes}});
 
       return verification as unknown as MerchantVerification;
     });
@@ -1074,35 +943,28 @@ export class VerificationService {
       identityDocuments,
       addressDocuments,
       insuranceDocuments,
-      notes,
-    } = data;
+      notes} = data;
 
     return await this.db.$transaction(async (tx) => {
       // Vérifier le provider
       const provider = await tx.provider.findUnique({
-        where: { id: providerId },
-        include: { user: true },
-      });
+        where: { id },
+        include: { user }});
 
       if (!provider) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Provider not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Provider not found" });
       }
 
       // Vérifier si une vérification existe déjà
       const existingVerification = await tx.providerVerification.findUnique({
-        where: { providerId },
-      });
+        where: { providerId }});
 
       if (existingVerification) {
         // Si la vérification est déjà approuvée, ne rien faire
         if (existingVerification.status === "APPROVED") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Le compte est déjà vérifié",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Le compte est déjà vérifié" });
         }
 
         // Sinon, mettre à jour la vérification existante
@@ -1118,9 +980,7 @@ export class VerificationService {
             requestedAt: new Date(),
             verifiedAt: null,
             verifierId: null,
-            rejectionReason: null,
-          },
-        });
+            rejectionReason: null}});
 
         return updatedVerification as unknown as ProviderVerification;
       }
@@ -1134,9 +994,7 @@ export class VerificationService {
           identityDocuments,
           addressDocuments,
           insuranceDocuments,
-          notes,
-        },
-      });
+          notes}});
 
       return verification as unknown as ProviderVerification;
     });
@@ -1149,38 +1007,31 @@ export class VerificationService {
     data: VerificationUpdateRequest,
   ): Promise<any> {
     const {
-      id: _id,
-      type: _type,
-      status: _status,
-      verifierId: _verifierId,
-      rejectionReason: _rejectionReason,
-    } = data;
+      id: id,
+      type: type,
+      status: status,
+      verifierId: verifierId,
+      rejectionReason: rejectionReason} = data;
 
     return await this.db.$transaction(async (tx) => {
       // Vérifier si l'utilisateur est un admin
       const verifier = await tx.user.findUnique({
-        where: { id: verifierId },
-      });
+        where: { id }});
 
       if (!verifier || verifier.role !== UserRole.ADMIN) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent vérifier les comptes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent vérifier les comptes" });
       }
 
       // Mettre à jour selon le type
       if (type === "MERCHANT") {
         const verification = await tx.merchantVerification.findUnique({
           where: { id },
-          include: { merchant: true },
-        });
+          include: { merchant }});
 
         if (!verification) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Vérification non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Vérification non trouvée" });
         }
 
         // Mettre à jour la vérification
@@ -1190,9 +1041,7 @@ export class VerificationService {
             status,
             verifierId,
             verifiedAt: new Date(),
-            rejectionReason: status === "REJECTED" ? rejectionReason : null,
-          },
-        });
+            rejectionReason: status === "REJECTED" ? rejectionReason : null}});
 
         // Si approuvé, mettre à jour le statut du merchant
         if (status === "APPROVED") {
@@ -1200,18 +1049,14 @@ export class VerificationService {
             where: { id: verification.merchantId },
             data: {
               isVerified: true,
-              verificationDate: new Date(),
-            },
-          });
+              verificationDate: new Date()}});
 
           // Mettre à jour le statut de l'utilisateur
           await tx.user.update({
             where: { id: verification.merchant.userId },
             data: {
               status: UserStatus.ACTIVE,
-              isVerified: true,
-            },
-          });
+              isVerified: true}});
         }
 
         // Ajouter à l'historique
@@ -1222,22 +1067,17 @@ export class VerificationService {
             status: status as any,
             reason:
               status === "REJECTED" ? rejectionReason : "Verification approved",
-            createdAt: new Date(),
-          },
-        });
+            createdAt: new Date()}});
 
-        return { success: true };
+        return { success };
       } else if (type === "PROVIDER") {
         const verification = await tx.providerVerification.findUnique({
           where: { id },
-          include: { provider: true },
-        });
+          include: { provider }});
 
         if (!verification) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Vérification non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Vérification non trouvée" });
         }
 
         // Mettre à jour la vérification
@@ -1247,9 +1087,7 @@ export class VerificationService {
             status,
             verifierId,
             verifiedAt: new Date(),
-            rejectionReason: status === "REJECTED" ? rejectionReason : null,
-          },
-        });
+            rejectionReason: status === "REJECTED" ? rejectionReason : null}});
 
         // Si approuvé, mettre à jour le statut du provider
         if (status === "APPROVED") {
@@ -1257,18 +1095,14 @@ export class VerificationService {
             where: { id: verification.providerId },
             data: {
               isVerified: true,
-              verificationDate: new Date(),
-            },
-          });
+              verificationDate: new Date()}});
 
           // Mettre à jour le statut de l'utilisateur
           await tx.user.update({
             where: { id: verification.provider.userId },
             data: {
               status: UserStatus.ACTIVE,
-              isVerified: true,
-            },
-          });
+              isVerified: true}});
         }
 
         // Ajouter à l'historique
@@ -1279,17 +1113,13 @@ export class VerificationService {
             status: status as any,
             reason:
               status === "REJECTED" ? rejectionReason : "Verification approved",
-            createdAt: new Date(),
-          },
-        });
+            createdAt: new Date()}});
 
-        return { success: true };
+        return { success };
       }
 
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Type de vérification non supporté",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Type de vérification non supporté" });
     });
   }
 
@@ -1313,7 +1143,7 @@ export class VerificationService {
         verificationResult.isComplete &&
         verificationResult.verificationStatus === "APPROVED"
       );
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la vérification du statut:", error);
       return false;
     }
@@ -1331,9 +1161,8 @@ export class VerificationService {
     try {
       // 1. Obtenir le statut actuel de l'utilisateur
       const currentUser = await this.db.user.findUnique({
-        where: { id: userId },
-        select: { isVerified: true, status: true, role: true },
-      });
+        where: { id },
+        select: { isVerified: true, status: true, role: true }});
 
       console.log(`👤 Statut actuel utilisateur:`, currentUser);
 
@@ -1351,13 +1180,11 @@ export class VerificationService {
       );
       console.log(
         `📋 Documents avec statut:`,
-        documentsWithStatus.map((doc) => ({
-          type: doc.type,
+        documentsWithStatus.map((doc) => ({ type: doc.type,
           effectiveStatus: doc.effectiveStatus,
           isVerified: doc.isVerified,
           isExpired: doc.isExpired,
-          expiryDate: doc.expiryDate,
-        })),
+          expiryDate: doc.expiryDate })),
       );
 
       // 4. Si l'utilisateur n'est pas vérifié mais tous ses documents sont approuvés
@@ -1373,9 +1200,8 @@ export class VerificationService {
 
         // Vérifier le nouveau statut
         const updatedUser = await this.db.user.findUnique({
-          where: { id: userId },
-          select: { isVerified: true, status: true },
-        });
+          where: { id },
+          select: { isVerified: true, status: true }});
 
         console.log(`✅ Statut après mise à jour:`, updatedUser);
 
@@ -1385,8 +1211,7 @@ export class VerificationService {
           oldStatus: currentUser,
           newStatus: updatedUser,
           verificationDetails: verificationStatus,
-          message: "Utilisateur automatiquement vérifié",
-        };
+          message: "Utilisateur automatiquement vérifié"};
       } else {
         const reasons = [];
         if (currentUser?.isVerified) reasons.push("Déjà vérifié");
@@ -1402,15 +1227,13 @@ export class VerificationService {
           currentStatus: currentUser,
           verificationDetails: verificationStatus,
           reason: reasons.join(", "),
-          message: `Vérification non nécessaire: ${reasons.join(", ")}`,
-        };
+          message: `Vérification non nécessaire: ${reasons.join(", ")}`};
       }
-    } catch (_error) {
+    } catch (error) {
       console.error(`❌ Erreur lors de la vérification manuelle:`, error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: `Erreur lors de la vérification: ${error.message}`,
-      });
+        message: `Erreur lors de la vérification: ${error.message}`});
     }
   }
 }

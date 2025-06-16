@@ -9,8 +9,7 @@ import {
   MapPin,
   Clock,
   CheckCircle2,
-  Mail,
-} from "lucide-react";
+  Mail} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,8 +17,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, formatTime, formatPrice } from "@/lib/i18n/formatters";
 import { downloadToICS } from "@/components/ui/calendar";
@@ -69,24 +67,19 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
       location: provider.providerAddress || t("calendarEvent.online"),
       organizer: {
         name: provider.name,
-        email: provider.email,
-      },
-    });
+        email: provider.email}});
   };
 
   // Fonction pour partager la réservation
   const handleShare = () => {
     if (navigator.share) {
       navigator
-        .share({
-          title: t("share.title"),
+        .share({ title: t("share.title"),
           text: t("share.text", {
             service: service.name,
             date: formatDate(startTime),
-            time: formatTime(startTime),
-          }),
-          url: window.location.href,
-        })
+            time: formatTime(startTime) }),
+          url: window.location.href})
         .catch((error) => console.error("Partage annulé ou erreur:", error));
     } else {
       // Fallback si Web Share API n'est pas disponible

@@ -13,8 +13,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTrigger} from "@/components/ui/alert-dialog";
 import { Check } from "lucide-react";
 
 interface ForceActivateDelivererButtonProps {
@@ -22,19 +21,16 @@ interface ForceActivateDelivererButtonProps {
 }
 
 export default function ForceActivateDelivererButton({
-  userId,
-}: ForceActivateDelivererButtonProps) {
+  userId}: ForceActivateDelivererButtonProps) {
   const { toast } = useToast();
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   const forceActivateMutation =
-    api.verification.adminForceActivateDeliverer.useMutation({
-      onSuccess: () => {
+    api.verification.adminForceActivateDeliverer.useMutation({ onSuccess: () => {
         toast({
           title: "Compte activé",
           description: "Le compte du livreur a été activé avec succès",
-          variant: "success",
-        });
+          variant: "success" });
         // Rafraîchir la page
         window.location.reload();
       },
@@ -42,13 +38,11 @@ export default function ForceActivateDelivererButton({
         toast({
           title: "Erreur",
           description: `Erreur lors de l'activation du compte: ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive"});
+      }});
 
   const handleActivate = () => {
-    forceActivateMutation.mutate({ userId });
+    forceActivateMutation.mutate({ userId  });
     setIsConfirmDialogOpen(false);
   };
 

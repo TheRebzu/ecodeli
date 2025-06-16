@@ -25,8 +25,7 @@ export function NavBar({
   locale,
   role = "client",
   className,
-  items,
-}: NavBarProps) {
+  items}: NavBarProps) {
   const pathname = usePathname();
 
   // Navigation par défaut par rôle
@@ -36,64 +35,50 @@ export function NavBar({
       {
         label: "Livraisons",
         icon: Package,
-        href: `/${locale}/client/deliveries`,
-      },
+        href: `/${locale}/client/deliveries`},
       {
         label: "Services",
         icon: ShoppingBag,
-        href: `/${locale}/client/services`,
-      },
+        href: `/${locale}/client/services`},
       {
         label: "Messages",
         icon: MessageSquare,
         href: `/${locale}/client/messages`,
-        badge: 3,
-      },
-      { label: "Profil", icon: User, href: `/${locale}/client/profile` },
-    ],
+        badge: 3},
+      { label: "Profil", icon: User, href: `/${locale}/client/profile` }],
     deliverer: [
       { label: "Accueil", icon: Home, href: `/${locale}/deliverer` },
       {
         label: "Livraisons",
         icon: Package,
-        href: `/${locale}/deliverer/deliveries`,
-      },
+        href: `/${locale}/deliverer/deliveries`},
       {
         label: "Messages",
         icon: MessageSquare,
-        href: `/${locale}/deliverer/messages`,
-      },
-      { label: "Profil", icon: User, href: `/${locale}/deliverer/profile` },
-    ],
+        href: `/${locale}/deliverer/messages`},
+      { label: "Profil", icon: User, href: `/${locale}/deliverer/profile` }],
     merchant: [
       { label: "Accueil", icon: Home, href: `/${locale}/merchant` },
       {
         label: "Annonces",
         icon: ShoppingBag,
-        href: `/${locale}/merchant/announcements`,
-      },
+        href: `/${locale}/merchant/announcements`},
       {
         label: "Messages",
         icon: MessageSquare,
-        href: `/${locale}/merchant/messages`,
-      },
-      { label: "Profil", icon: User, href: `/${locale}/merchant/profile` },
-    ],
+        href: `/${locale}/merchant/messages`},
+      { label: "Profil", icon: User, href: `/${locale}/merchant/profile` }],
     provider: [
       { label: "Accueil", icon: Home, href: `/${locale}/provider` },
       {
         label: "Services",
         icon: ShoppingBag,
-        href: `/${locale}/provider/services`,
-      },
+        href: `/${locale}/provider/services`},
       {
         label: "Messages",
         icon: MessageSquare,
-        href: `/${locale}/provider/messages`,
-      },
-      { label: "Profil", icon: User, href: `/${locale}/provider/profile` },
-    ],
-  };
+        href: `/${locale}/provider/messages`},
+      { label: "Profil", icon: User, href: `/${locale}/provider/profile` }]};
 
   const navItems = items || defaultNavItems[role] || defaultNavItems.client;
 
@@ -142,8 +127,7 @@ export function NavBar({
 // Barre de navigation pour le bas de l'écran en mode mobile
 export function MobileNavBar({
   locale,
-  role,
-}: {
+  role}: {
   locale: string;
   role?: string;
 }) {
@@ -153,8 +137,7 @@ export function MobileNavBar({
 // Barre de navigation latérale pour les tablettes et ordinateurs
 export function DesktopSideNav({
   locale,
-  role,
-}: {
+  role}: {
   locale: string;
   role?: string;
 }) {

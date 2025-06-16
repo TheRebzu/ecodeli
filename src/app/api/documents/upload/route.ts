@@ -11,19 +11,16 @@ import fs from "fs/promises";
 
 // Désactive le bodyParser pour permettre la lecture des FormData
 export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+  api: { bodyParser }};
 
 const UPLOAD_DIR = process.cwd() + "/public/uploads";
 
 // Fonction pour s'assurer que le répertoire d'upload existe
 async function ensureUploadDir() {
   try {
-    await fs.access(UPLOAD_DIR);
+    await fs.access(UPLOADDIR);
   } catch (error) {
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+    await fs.mkdir(UPLOADDIR, { recursive });
   }
 }
 
@@ -33,17 +30,16 @@ async function readFormData(req: NextRequest) {
       // Assurer l'existence du répertoire avant de créer le formulaire
       ensureUploadDir()
         .then(() => {
-          const form = formidable({
-            uploadDir: UPLOAD_DIR,
+          const form = formidable({ uploadDir: UPLOAD_DIR,
             keepExtensions: true,
             maxFileSize: 10 * 1024 * 1024, // 10MB
-          });
+           });
 
           form.parse(req as any, (err, fields, files) => {
             if (err) {
               reject(err);
             } else {
-              resolve({ fields, files });
+              resolve({ fields, files  });
             }
           });
         })
@@ -85,8 +81,7 @@ export async function POST(req: NextRequest) {
       req: req as any,
       res: {} as any,
       info: {} as any,
-      auth: { session },
-    });
+      auth: { session }});
 
     const caller = appRouter.createCaller(ctx);
 
@@ -97,19 +92,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Appeler la procédure tRPC uploadDocument
-    const result = await caller.document.uploadDocument({
-      file,
+    const result = await caller.document.uploadDocument({ file,
       type: documentType as DocumentType,
       expiryDate,
       notes: Array.isArray(fields.notes)
         ? fields.notes[0]
-        : (fields.notes as string | undefined),
-    });
+        : (fields.notes as string | undefined) });
 
-    return NextResponse.json({
-      success: true,
-      document: result,
-    });
+    return NextResponse.json({ success: true,
+      document: result });
   } catch (error: any) {
     console.error("Error uploading document:", error);
 
@@ -123,8 +114,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          error.message || "Une erreur est survenue lors du téléchargement",
-      },
+          error.message || "Une erreur est survenue lors du téléchargement"},
       { status: 500 },
     );
   }

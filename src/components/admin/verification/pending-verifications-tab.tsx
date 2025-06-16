@@ -12,8 +12,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,8 +27,7 @@ interface PendingVerificationsTabProps {
 
 export function PendingVerificationsTab({
   filters,
-  onPageChange,
-}: PendingVerificationsTabProps) {
+  onPageChange}: PendingVerificationsTabProps) {
   const t = useTranslations("admin.verification");
   const router = useRouter();
 
@@ -42,9 +40,7 @@ export function PendingVerificationsTab({
     pagination: {
       page: 1,
       totalPages: 1,
-      total: 0,
-    },
-  };
+      total: 0}};
 
   const handleViewVerification = (id: string) => {
     router.push(`/admin/verifications/${id}`);
@@ -54,7 +50,7 @@ export function PendingVerificationsTab({
   const formatSafeDate = (date: Date | string | number | null | undefined) => {
     if (!date) return "";
     try {
-      return format(new Date(date), "PPP", { locale: fr });
+      return format(new Date(date), "PPP", { locale });
     } catch (error) {
       console.error("Error formatting date:", error);
       return "";
@@ -171,8 +167,7 @@ function RoleBadge({ role }: RoleBadgeProps) {
     [UserRole.CLIENT]: "bg-blue-500",
     [UserRole.DELIVERER]: "bg-green-500",
     [UserRole.MERCHANT]: "bg-orange-500",
-    [UserRole.PROVIDER]: "bg-teal-500",
-  };
+    [UserRole.PROVIDER]: "bg-teal-500"};
 
   const t = useTranslations("admin.verification.roles");
 
@@ -203,7 +198,7 @@ function VerificationsTableSkeleton() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 5  }).map((_, i) => (
             <TableRow key={i}>
               <TableCell>
                 <Skeleton className="h-10 w-full" />

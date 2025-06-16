@@ -10,8 +10,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -19,8 +18,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,16 +28,14 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CircleDollarSign, Save } from "lucide-react";
 
 // Define the form schema
-const formSchema = z.object({
-  price: z.number().optional(),
+const formSchema = z.object({ price: z.number().optional(),
   isPriceNegotiable: z.boolean().default(true),
   priceRange: z.array(z.number()).default([0, 100]),
   pricingMethod: z.string().default("FIXED"),
@@ -48,17 +44,14 @@ const formSchema = z.object({
       z.object({
         minWeight: z.number(),
         maxWeight: z.number(),
-        price: z.number(),
-      }),
+        price: z.number() }),
     )
     .optional(),
   distancePricing: z
     .array(
-      z.object({
-        minDistance: z.number(),
+      z.object({ minDistance: z.number(),
         maxDistance: z.number(),
-        pricePerKm: z.number(),
-      }),
+        pricePerKm: z.number() }),
     )
     .optional(),
   rushHourFee: z.number().optional(),
@@ -67,8 +60,7 @@ const formSchema = z.object({
   insuranceAmount: z.number().optional(),
   handlingFee: z.number().optional(),
   paymentMethod: z.enum(["CARD", "CASH", "BOTH"]).default("BOTH"),
-  acceptPartialPayment: z.boolean().default(false),
-});
+  acceptPartialPayment: z.boolean().default(false)});
 
 export type TariffSettingsData = z.infer<typeof formSchema>;
 
@@ -88,8 +80,7 @@ export function TariffSettingsForm({
   onSubmit,
   data,
   onUpdateForm,
-  isLoading,
-}: TariffSettingsFormProps) {
+  isLoading}: TariffSettingsFormProps) {
   // Use create-announcement page props if provided
   const effectiveInitialValues = data || initialValues;
   const effectiveIsSubmitting =
@@ -115,9 +106,7 @@ export function TariffSettingsForm({
       handlingFee: 0,
       paymentMethod: "BOTH",
       acceptPartialPayment: false,
-      ...initialValues,
-    },
-  });
+      ...initialValues}});
 
   const pricingMethod = form.watch("pricingMethod");
   const isPriceNegotiable = form.watch("isPriceNegotiable");
@@ -134,7 +123,7 @@ export function TariffSettingsForm({
             <FormField
               control={form.control}
               name="pricingMethod"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("pricingMethod")}</FormLabel>
                   <Select
@@ -173,7 +162,7 @@ export function TariffSettingsForm({
               <FormField
                 control={form.control}
                 name="price"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("price")}</FormLabel>
                     <FormControl>
@@ -204,7 +193,7 @@ export function TariffSettingsForm({
               <FormField
                 control={form.control}
                 name="priceRange"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("priceRange")}</FormLabel>
                     <FormControl>
@@ -244,7 +233,7 @@ export function TariffSettingsForm({
             <FormField
               control={form.control}
               name="isPriceNegotiable"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">
@@ -276,7 +265,7 @@ export function TariffSettingsForm({
               <FormField
                 control={form.control}
                 name="rushHourFee"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("rushHourFee")}</FormLabel>
                     <FormControl>
@@ -307,7 +296,7 @@ export function TariffSettingsForm({
               <FormField
                 control={form.control}
                 name="weekendFee"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("weekendFee")}</FormLabel>
                     <FormControl>
@@ -338,7 +327,7 @@ export function TariffSettingsForm({
               <FormField
                 control={form.control}
                 name="holidayFee"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("holidayFee")}</FormLabel>
                     <FormControl>
@@ -373,7 +362,7 @@ export function TariffSettingsForm({
               <FormField
                 control={form.control}
                 name="insuranceAmount"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("insuranceAmount")}</FormLabel>
                     <FormControl>
@@ -404,7 +393,7 @@ export function TariffSettingsForm({
               <FormField
                 control={form.control}
                 name="handlingFee"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("handlingFee")}</FormLabel>
                     <FormControl>
@@ -444,7 +433,7 @@ export function TariffSettingsForm({
             <FormField
               control={form.control}
               name="paymentMethod"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("paymentMethod")}</FormLabel>
                   <Select
@@ -479,7 +468,7 @@ export function TariffSettingsForm({
             <FormField
               control={form.control}
               name="acceptPartialPayment"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">

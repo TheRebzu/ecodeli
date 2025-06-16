@@ -6,16 +6,14 @@ import {
   updateDelivererProfileSchema,
   updateMerchantProfileSchema,
   updateProviderProfileSchema,
-  profileSchemaMap,
-} from "@/schemas/user/profile.schema";
+  profileSchemaMap} from "@/schemas/user/profile.schema";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
-export const profileRouter = router({
-  /**
+export const profileRouter = router({ /**
    * Récupère le profil complet de l'utilisateur connecté
    */
-  getMyProfile: protectedProcedure.query(async ({ _ctx }) => {
+  getMyProfile: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
     return profileService.getProfileByUserId(userId);
   }),
@@ -23,15 +21,13 @@ export const profileRouter = router({
   /**
    * Récupère le profil spécifique au rôle de l'utilisateur connecté
    */
-  getMyRoleSpecificProfile: protectedProcedure.query(async ({ _ctx }) => {
+  getMyRoleSpecificProfile: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
     const role = ctx.session.user.role;
 
     if (!["CLIENT", "DELIVERER", "MERCHANT", "PROVIDER"].includes(role)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid user role",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Invalid user role" });
     }
 
     const profile = await profileService.getRoleSpecificProfile(userId, role);
@@ -45,20 +41,17 @@ export const profileRouter = router({
    */
   updateProfile: protectedProcedure
     .input(
-      z.object({
-        data: z.object({}).passthrough(), // Accept any data, will be validated based on role
+      z.object({ data: z.object({ }).passthrough(), // Accept any data, will be validated based on role
       }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
 
       // Vérifier si le rôle est valide pour la mise à jour du profil
       if (!profileSchemaMap[role]) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Rôle utilisateur non valide pour la mise à jour du profil",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Rôle utilisateur non valide pour la mise à jour du profil" });
       }
 
       // Valider les données en fonction du rôle
@@ -75,10 +68,8 @@ export const profileRouter = router({
         case "PROVIDER":
           return profileService.updateProviderProfile(userId, validatedData);
         default:
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Mise à jour de profil non prise en charge pour ce rôle",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Mise à jour de profil non prise en charge pour ce rôle" });
       }
     }),
 
@@ -87,29 +78,24 @@ export const profileRouter = router({
    */
   addClientAddress: protectedProcedure
     .input(addressSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
 
       if (role !== "CLIENT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent ajouter des adresses",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les clients peuvent ajouter des adresses" });
       }
 
       try {
         // Récupérer le client ID
         const client = await ctx.db.client.findUnique({
           where: { userId },
-          select: { id: true },
-        });
+          select: { id }});
 
         if (!client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Client non trouvé" });
         }
 
         // Créer l'adresse
@@ -122,17 +108,13 @@ export const profileRouter = router({
             postalCode: input.postalCode,
             country: input.country,
             isDefault: input.isDefault,
-            clientId: client.id,
-          },
-        });
+            clientId: client.id}});
 
         return address;
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur lors de l'ajout d'une adresse:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'ajout d'une adresse",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'ajout d'une adresse" });
       }
     }),
 
@@ -141,20 +123,16 @@ export const profileRouter = router({
    */
   updateClientAddress: protectedProcedure
     .input(
-      z.object({
-        addressId: z.string(),
-        data: addressSchema,
-      }),
+      z.object({ addressId: z.string(),
+        data: addressSchema }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
 
       if (role !== "CLIENT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent modifier des adresses",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les clients peuvent modifier des adresses" });
       }
 
       try {
@@ -163,25 +141,16 @@ export const profileRouter = router({
           where: { id: input.addressId },
           include: {
             client: {
-              select: {
-                userId: true,
-              },
-            },
-          },
-        });
+              select: { userId }}}});
 
         if (!address) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Adresse non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Adresse non trouvée" });
         }
 
         if (address.client.userId !== userId) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'avez pas le droit de modifier cette adresse",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'avez pas le droit de modifier cette adresse" });
         }
 
         // Mettre à jour l'adresse
@@ -194,17 +163,13 @@ export const profileRouter = router({
             state: input.data.state,
             postalCode: input.data.postalCode,
             country: input.data.country,
-            isDefault: input.data.isDefault,
-          },
-        });
+            isDefault: input.data.isDefault}});
 
         return updatedAddress;
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur lors de la modification d'une adresse:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la modification d'une adresse",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la modification d'une adresse" });
       }
     }),
 
@@ -213,11 +178,9 @@ export const profileRouter = router({
    */
   deleteClientAddress: protectedProcedure
     .input(
-      z.object({
-        addressId: z.string(),
-      }),
+      z.object({ addressId: z.string() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
       return profileService.deleteAddress(input.addressId, userId);
     }),
@@ -227,70 +190,55 @@ export const profileRouter = router({
    */
   setDefaultAddress: protectedProcedure
     .input(
-      z.object({
-        addressId: z.string(),
-      }),
+      z.object({ addressId: z.string() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
 
       if (role !== "CLIENT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent définir une adresse par défaut",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les clients peuvent définir une adresse par défaut" });
       }
 
       try {
         // Récupérer le client
         const client = await ctx.db.client.findUnique({
           where: { userId },
-          select: { id: true },
-        });
+          select: { id }});
 
         if (!client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Client non trouvé" });
         }
 
         // Vérifier que l'adresse appartient bien au client
         const address = await ctx.db.address.findUnique({
           where: { id: input.addressId },
-          select: { clientId: true },
-        });
+          select: { clientId }});
 
         if (!address || address.clientId !== client.id) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'avez pas le droit de modifier cette adresse",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'avez pas le droit de modifier cette adresse" });
         }
 
         // Réinitialiser toutes les adresses par défaut
         await ctx.db.address.updateMany({
           where: { clientId: client.id },
-          data: { isDefault: false },
-        });
+          data: { isDefault }});
 
         // Définir la nouvelle adresse par défaut
         await ctx.db.address.update({
           where: { id: input.addressId },
-          data: { isDefault: true },
-        });
+          data: { isDefault }});
 
-        return { success: true };
-      } catch (_error) {
+        return { success };
+      } catch (error) {
         console.error(
           "Erreur lors de la définition de l'adresse par défaut:",
           error,
         );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la définition de l'adresse par défaut",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la définition de l'adresse par défaut" });
       }
-    }),
-});
+    })});

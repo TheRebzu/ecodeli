@@ -7,8 +7,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Suspense } from "react";
@@ -19,8 +18,7 @@ import {
   Clock,
   RefreshCw,
   X,
-  CheckCircle,
-} from "lucide-react";
+  CheckCircle} from "lucide-react";
 import Link from "next/link";
 import { formatDate, formatTime } from "@/lib/i18n/formatters";
 import { getServerSession } from "next-auth";
@@ -32,8 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("manage.title"),
-    description: t("manage.description"),
-  };
+    description: t("manage.description")};
 }
 
 export default async function ClientBookingsPage() {
@@ -69,13 +66,11 @@ export default async function ClientBookingsPage() {
       CONFIRMED: { label: t("status.CONFIRMED"), variant: "default" },
       COMPLETED: { label: t("status.COMPLETED"), variant: "outline" },
       CANCELLED: { label: t("status.CANCELLED"), variant: "destructive" },
-      RESCHEDULED: { label: t("status.RESCHEDULED"), variant: "secondary" },
-    };
+      RESCHEDULED: { label: t("status.RESCHEDULED"), variant: "secondary" }};
 
     const statusInfo = statusMap[status] || {
       label: status,
-      variant: "outline",
-    };
+      variant: "outline"};
 
     return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
@@ -193,10 +188,10 @@ export default async function ClientBookingsPage() {
         <Tabs defaultValue="upcoming" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="upcoming">
-              {t("manage.upcoming")} ({upcomingBookings.length})
+              {t("manage.upcoming")} ({ upcomingBookings.length })
             </TabsTrigger>
             <TabsTrigger value="past">
-              {t("manage.past")} ({pastBookings.length})
+              {t("manage.past")} ({ pastBookings.length })
             </TabsTrigger>
           </TabsList>
 

@@ -12,13 +12,11 @@ export enum DeliveryStatus {
   EN_ROUTE_TO_PICKUP = "EN_ROUTE_TO_PICKUP",
   AT_PICKUP = "AT_PICKUP",
   EN_ROUTE_TO_DROPOFF = "EN_ROUTE_TO_DROPOFF",
-  AT_DROPOFF = "AT_DROPOFF",
-}
+  AT_DROPOFF = "AT_DROPOFF"}
 
 // Export explicite pour assurer la compatibilité
 export const DeliveryStatusEnum = {
-  ...DeliveryStatus,
-} as const;
+  ...DeliveryStatus} as const;
 
 // Type pour les filtres de livraison
 export interface DeliveryFilters {

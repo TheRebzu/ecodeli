@@ -18,8 +18,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  Cell,
-} from "recharts";
+  Cell} from "recharts";
 import { formatDate, formatCurrency } from "@/utils/document-utils";
 import {
   ChevronDown,
@@ -27,8 +26,7 @@ import {
   Eye,
   Calendar,
   Clock,
-  Users,
-} from "lucide-react";
+  Users} from "lucide-react";
 
 interface AnalyticsData {
   views?: {
@@ -59,8 +57,7 @@ interface AnnouncementAnalyticsProps {
 
 export function AnnouncementAnalytics({
   data,
-  isLoading = false,
-}: AnnouncementAnalyticsProps) {
+  isLoading = false}: AnnouncementAnalyticsProps) {
   const t = useTranslations("announcements.analytics");
   const [activeTab, setActiveTab] = useState("views");
 
@@ -70,8 +67,7 @@ export function AnnouncementAnalytics({
     "#FFBB28",
     "#FF8042",
     "#A569BD",
-    "#5DADE2",
-  ];
+    "#5DADE2"];
 
   if (isLoading) {
     return (
@@ -260,7 +256,7 @@ export function AnnouncementAnalytics({
                         fill="#8884d8"
                         dataKey="count"
                         nameKey="status"
-                        label={({ name, percent }) =>
+                        label={({ name, percent  }) =>
                           `${name}: ${(percent * 100).toFixed(0)}%`
                         }
                       >
@@ -276,8 +272,7 @@ export function AnnouncementAnalytics({
                       <Tooltip
                         formatter={(value: any, name: any) => [
                           value,
-                          t(`status.${name.toLowerCase()}`),
-                        ]}
+                          t(`status.${name.toLowerCase()}`)]}
                       />
                       <Legend
                         formatter={(value) =>

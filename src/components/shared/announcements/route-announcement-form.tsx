@@ -12,15 +12,13 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,8 +30,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   AlertCircle,
   Calendar,
@@ -45,16 +42,14 @@ import {
   Save,
   Loader2,
   Plus,
-  X,
-} from "lucide-react";
+  X} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { AddressMapPicker } from "./address-map-picker";
 
 // Schéma pour le formulaire d'annonce de trajet
-const routeAnnouncementSchema = z.object({
-  title: z.string().min(5, "Le titre doit contenir au moins 5 caractères"),
+const routeAnnouncementSchema = z.object({ title: z.string().min(5, "Le titre doit contenir au moins 5 caractères"),
   description: z.string().optional(),
 
   // Trajets
@@ -73,7 +68,7 @@ const routeAnnouncementSchema = z.object({
         latitude: z.number().optional(),
         longitude: z.number().optional(),
         radius: z.number().min(1).max(50).default(5), // Rayon en km
-      }),
+       }),
     )
     .default([]),
 
@@ -112,8 +107,7 @@ const routeAnnouncementSchema = z.object({
 
   // Préférences
   preferredClientTypes: z.array(z.string()).default([]),
-  specialInstructions: z.string().optional(),
-});
+  specialInstructions: z.string().optional()});
 
 type RouteAnnouncementFormData = z.infer<typeof routeAnnouncementSchema>;
 
@@ -133,24 +127,20 @@ const DAYS_OF_WEEK = [
   { value: 4, label: "Jeudi" },
   { value: 5, label: "Vendredi" },
   { value: 6, label: "Samedi" },
-  { value: 0, label: "Dimanche" },
-];
+  { value: 0, label: "Dimanche" }];
 
 const CLIENT_TYPES = [
   { value: "INDIVIDUAL", label: "Particuliers" },
   { value: "MERCHANT", label: "Commerçants" },
   { value: "COMPANY", label: "Entreprises" },
-  { value: "VERIFIED_ONLY", label: "Comptes vérifiés uniquement" },
-];
+  { value: "VERIFIED_ONLY", label: "Comptes vérifiés uniquement" }];
 
-export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
-  defaultValues,
+export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({ defaultValues,
   onSubmit,
   onCancel,
   isSubmitting = false,
   error,
-  mode = "create",
-}) => {
+  mode = "create" }) => {
   const t = useTranslations("routes");
   const [activeTab, setActiveTab] = useState("route");
 
@@ -177,9 +167,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
       preferredClientTypes: [],
       isRecurring: false,
       recurringDays: [],
-      ...defaultValues,
-    },
-  });
+      ...defaultValues}});
 
   const isRecurring = form.watch("isRecurring");
   const enableNotifications = form.watch("enableNotifications");
@@ -193,8 +181,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
     const currentPoints = form.getValues("intermediatePoints");
     form.setValue("intermediatePoints", [
       ...currentPoints,
-      { address: "", latitude: undefined, longitude: undefined, radius: 5 },
-    ]);
+      { address: "", latitude: undefined, longitude: undefined, radius: 5 }]);
   };
 
   const removeIntermediatePoint = (index: number) => {
@@ -255,7 +242,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                   <Controller
                     control={form.control}
                     name="title"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("routeTitle")}</FormLabel>
                         <FormControl>
@@ -275,7 +262,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                   <Controller
                     control={form.control}
                     name="description"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("routeDescription")}</FormLabel>
                         <FormControl>
@@ -301,7 +288,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="departureAddress"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("departureAddress")}</FormLabel>
                           <FormControl>
@@ -326,7 +313,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="arrivalAddress"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("arrivalAddress")}</FormLabel>
                           <FormControl>
@@ -375,7 +362,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                           <Controller
                             control={form.control}
                             name={`intermediatePoints.${index}.address`}
-                            render={({ field }) => (
+                            render={({ field  }) => (
                               <FormItem>
                                 <FormLabel>{t("pointAddress")}</FormLabel>
                                 <FormControl>
@@ -393,7 +380,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                           <Controller
                             control={form.control}
                             name={`intermediatePoints.${index}.radius`}
-                            render={({ field }) => (
+                            render={({ field  }) => (
                               <FormItem>
                                 <FormLabel>{t("radius")} (km)</FormLabel>
                                 <FormControl>
@@ -438,7 +425,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                   <Controller
                     control={form.control}
                     name="isRecurring"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">
@@ -463,7 +450,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                       <Controller
                         control={form.control}
                         name="recurringDays"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem>
                             <FormLabel>{t("recurringDays")}</FormLabel>
                             <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
@@ -499,7 +486,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                       <Controller
                         control={form.control}
                         name="recurringEndDate"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem>
                             <FormLabel>{t("recurringEndDate")}</FormLabel>
                             <FormControl>
@@ -526,7 +513,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="departureDate"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("departureDate")}</FormLabel>
                           <FormControl>
@@ -544,7 +531,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="arrivalDate"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("arrivalDate")}</FormLabel>
                           <FormControl>
@@ -573,7 +560,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="maxWeight"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("maxWeight")} (kg)</FormLabel>
                           <FormControl>
@@ -595,7 +582,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="maxVolume"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("maxVolume")} (L)</FormLabel>
                           <FormControl>
@@ -621,7 +608,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="availableSeats"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("availableSeats")}</FormLabel>
                           <FormControl>
@@ -654,7 +641,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="acceptsFragile"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
                             <Checkbox
@@ -675,7 +662,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="acceptsCooling"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
                             <Checkbox
@@ -696,7 +683,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="acceptsLiveAnimals"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
                             <Checkbox
@@ -717,7 +704,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="acceptsOversized"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
                             <Checkbox
@@ -744,7 +731,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                   <Controller
                     control={form.control}
                     name="enableNotifications"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">
@@ -768,7 +755,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="autoMatch"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
                             <FormLabel className="text-base">
@@ -800,7 +787,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="minMatchDistance"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("minMatchDistance")} (km)</FormLabel>
                           <FormControl>
@@ -825,7 +812,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="maxDetour"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("maxDetour")} (%)</FormLabel>
                           <FormControl>
@@ -857,7 +844,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="pricePerKm"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("pricePerKm")} (€/km)</FormLabel>
                           <FormControl>
@@ -880,7 +867,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     <Controller
                       control={form.control}
                       name="fixedPrice"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>{t("fixedPrice")} (€)</FormLabel>
                           <FormControl>
@@ -910,7 +897,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                   <Controller
                     control={form.control}
                     name="isNegotiable"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                         <FormControl>
                           <Checkbox
@@ -938,7 +925,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                   <Controller
                     control={form.control}
                     name="preferredClientTypes"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("preferredClientTypes")}</FormLabel>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -977,7 +964,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                   <Controller
                     control={form.control}
                     name="specialInstructions"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("specialInstructions")}</FormLabel>
                         <FormControl>

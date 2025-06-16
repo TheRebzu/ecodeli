@@ -5,8 +5,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,14 +13,12 @@ import {
   ChevronRight,
   Eye,
   Filter,
-  MoreHorizontal,
-} from "lucide-react";
+  MoreHorizontal} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
@@ -62,8 +59,7 @@ export function AuditLogTable({
   currentPage,
   pageSize,
   isLoading = false,
-  onPageChange,
-}: AuditLogTableProps) {
+  onPageChange}: AuditLogTableProps) {
   const t = useTranslations("admin.audit");
   const router = useRouter();
   const [selectedLog, setSelectedLog] = useState<AuditLogData | null>(null);
@@ -82,13 +78,11 @@ export function AuditLogTable({
       case "APPLICATION_ADDED":
         return {
           label: t("actions.applicationAdded"),
-          variant: "info" as const,
-        };
+          variant: "info" as const};
       case "APPLICATION_STATUS_UPDATED":
         return {
           label: t("actions.applicationStatusUpdated"),
-          variant: "warning" as const,
-        };
+          variant: "warning" as const};
       default:
         return { label: action, variant: "default" as const };
     }
@@ -131,7 +125,6 @@ export function AuditLogTable({
     setSelectedLog(null);
   };
 
-  // Afficher un placeholder pendant le chargement
   if (isLoading) {
     return (
       <Card>
@@ -140,7 +133,7 @@ export function AuditLogTable({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 5  }).map((_, i) => (
               <div key={i} className="flex items-center space-x-4">
                 <Skeleton className="h-12 w-12 rounded-full" />
                 <div className="space-y-2">
@@ -222,9 +215,7 @@ export function AuditLogTable({
                           </div>
                         </TableCell>
                         <TableCell>
-                          {format(new Date(log.timestamp), "PPp", {
-                            locale: fr,
-                          })}
+                          {format(new Date(log.timestamp), "PPp", { locale })}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -273,8 +264,7 @@ export function AuditLogTable({
               <div className="text-sm">
                 {t("pagination", {
                   current: currentPage,
-                  total: totalPages,
-                })}
+                  total: totalPages})}
               </div>
               <Button
                 variant="outline"

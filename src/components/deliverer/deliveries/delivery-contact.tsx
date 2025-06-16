@@ -11,8 +11,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -20,8 +19,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
@@ -32,31 +30,25 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   AlertCircle,
   CheckCircle2,
   Phone,
   MessageSquare,
   Send,
-  ChevronRight,
-} from "lucide-react";
+  ChevronRight} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 
 // Schéma de validation
-const contactSchema = z.object({
-  subject: z.string({
-    required_error: "Veuillez sélectionner un sujet",
-  }),
+const contactSchema = z.object({ subject: z.string({
+    requirederror: "Veuillez sélectionner un sujet" }),
   message: z
     .string()
     .min(5, { message: "Le message doit contenir au moins 5 caractères" })
     .max(500, { message: "Le message ne doit pas dépasser 500 caractères" }),
   preferredContact: z.enum(["app", "phone", "either"], {
-    required_error: "Veuillez sélectionner une méthode de contact préférée",
-  }),
-});
+    requirederror: "Veuillez sélectionner une méthode de contact préférée"})});
 
 type ContactFormValues = z.infer<typeof contactSchema>;
 
@@ -73,8 +65,7 @@ export default function DeliveryContact({
   delivererName,
   delivererPhone,
   onClose,
-  className = "",
-}: DeliveryContactProps) {
+  className = ""}: DeliveryContactProps) {
   const t = useTranslations("deliveries.contact");
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -123,9 +114,7 @@ export default function DeliveryContact({
     defaultValues: {
       subject: "",
       message: "",
-      preferredContact: "app",
-    },
-  });
+      preferredContact: "app"}});
 
   // Sujets prédéfinis pour aider les utilisateurs
   const subjectOptions = [
@@ -133,24 +122,20 @@ export default function DeliveryContact({
     { value: "address", label: t("subjects.address") },
     { value: "delay", label: t("subjects.delay") },
     { value: "issue", label: t("subjects.issue") },
-    { value: "other", label: t("subjects.other") },
-  ];
+    { value: "other", label: t("subjects.other") }];
 
   // Contact préféré options
   const contactOptions = [
     { value: "app", label: t("contactMethods.app") },
     { value: "phone", label: t("contactMethods.phone") },
-    { value: "either", label: t("contactMethods.either") },
-  ];
+    { value: "either", label: t("contactMethods.either") }];
 
   // Traitement du formulaire
   const onSubmit = async (data: ContactFormValues) => {
     try {
-      await sendMessage({
-        subject: data.subject,
+      await sendMessage({ subject: data.subject,
         message: data.message,
-        preferredContact: data.preferredContact,
-      });
+        preferredContact: data.preferredContact });
 
       setShowSuccess(true);
     } catch (error) {
@@ -176,8 +161,7 @@ export default function DeliveryContact({
     { id: "eta", message: t("quickMessages.eta") },
     { id: "doorCode", message: t("quickMessages.doorCode") },
     { id: "parking", message: t("quickMessages.parking") },
-    { id: "wait", message: t("quickMessages.wait") },
-  ];
+    { id: "wait", message: t("quickMessages.wait") }];
 
   // Ajouter un message prédéfini
   const addQuickMessage = (message: string) => {
@@ -230,7 +214,7 @@ export default function DeliveryContact({
         </CardTitle>
         <CardDescription>
           {delivererName
-            ? t("descriptionWithName", { name: delivererName })
+            ? t("descriptionWithName", { name })
             : t("description")}
         </CardDescription>
       </CardHeader>
@@ -248,7 +232,7 @@ export default function DeliveryContact({
             <FormField
               control={form.control}
               name="subject"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("subjectLabel")}</FormLabel>
                   <Select
@@ -298,7 +282,7 @@ export default function DeliveryContact({
             <FormField
               control={form.control}
               name="message"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("messageLabel")}</FormLabel>
                   <FormControl>
@@ -318,7 +302,7 @@ export default function DeliveryContact({
             <FormField
               control={form.control}
               name="preferredContact"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("preferredContactLabel")}</FormLabel>
                   <Select

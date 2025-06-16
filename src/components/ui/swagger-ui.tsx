@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import SwaggerUI from "swagger-ui-react";
-import "swagger-ui-react/swagger-ui.css";
 
 interface SwaggerUIComponentProps {
   url?: string;
@@ -158,10 +157,10 @@ export default function SwaggerUIComponent({
         background-color: hsl(var(--muted) / 0.5);
         border-radius: var(--radius);
       }
-      .swagger-ui .parameter__name {
+      .swagger-ui .parametername {
         font-weight: 600;
       }
-      .swagger-ui .parameter__type {
+      .swagger-ui .parametertype {
         color: hsl(var(--muted-foreground));
         font-size: 0.875rem;
       }

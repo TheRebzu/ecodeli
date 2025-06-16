@@ -9,9 +9,7 @@ export { api as trpc };
 // Helper hook for compatibility with components that use useTrpc
 export function useTrpc() {
   return useMemo(
-    () => ({
-      client: api,
-    }),
+    () => ({ client  }),
     [],
   );
 }

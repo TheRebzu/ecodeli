@@ -15,8 +15,7 @@ import {
   User,
   Shield,
   Download,
-  ExternalLink,
-} from "lucide-react";
+  ExternalLink} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,8 +23,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,8 +35,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
@@ -50,8 +47,7 @@ interface VerificationDetailProps {
 }
 
 export function VerificationDetail({
-  verificationId,
-}: VerificationDetailProps) {
+  verificationId}: VerificationDetailProps) {
   const t = useTranslations("admin.verification");
   const router = useRouter();
   const { toast } = useToast();
@@ -63,70 +59,51 @@ export function VerificationDetail({
   const {
     data: verification,
     isLoading,
-    error,
-  } = api.admin.getVerificationDetail.useQuery({
-    verificationId,
-  });
+    error} = api.admin.getVerificationDetail.useQuery({ verificationId });
 
-  const approveVerification = api.admin.approveVerification.useMutation({
-    onSuccess: () => {
+  const approveVerification = api.admin.approveVerification.useMutation({ onSuccess: () => {
       toast({
         title: t("detail.approval.success.title"),
         description: t("detail.approval.success.description"),
-        variant: "default",
-      });
+        variant: "default" });
       setIsApproveDialogOpen(false);
       router.refresh();
     },
     onError: (error) => {
-      toast({
-        title: t("detail.approval.error.title"),
+      toast({ title: t("detail.approval.error.title"),
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
-  const rejectVerification = api.admin.rejectVerification.useMutation({
-    onSuccess: () => {
+  const rejectVerification = api.admin.rejectVerification.useMutation({ onSuccess: () => {
       toast({
         title: t("detail.rejection.success.title"),
         description: t("detail.rejection.success.description"),
-        variant: "default",
-      });
+        variant: "default" });
       setIsRejectDialogOpen(false);
       router.refresh();
     },
     onError: (error) => {
-      toast({
-        title: t("detail.rejection.error.title"),
+      toast({ title: t("detail.rejection.error.title"),
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const handleApprove = () => {
-    approveVerification.mutate({
-      verificationId,
-      notes: approvalNotes,
-    });
+    approveVerification.mutate({ verificationId,
+      notes: approvalNotes });
   };
 
   const handleReject = () => {
     if (!rejectionReason.trim()) {
-      toast({
-        title: t("detail.rejection.validation.title"),
+      toast({ title: t("detail.rejection.validation.title"),
         description: t("detail.rejection.validation.description"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
-    rejectVerification.mutate({
-      verificationId,
-      reason: rejectionReason,
-    });
+    rejectVerification.mutate({ verificationId,
+      reason: rejectionReason });
   };
 
   const goBack = () => {
@@ -219,7 +196,7 @@ export function VerificationDetail({
                     <Button asChild>
                       <a
                         href={documentUrl}
-                        target="_blank"
+                        target="blank"
                         rel="noopener noreferrer"
                       >
                         <ExternalLink className="mr-2 h-4 w-4" />
@@ -236,9 +213,8 @@ export function VerificationDetail({
                   date: format(
                     new Date(verification.document.uploadedAt),
                     "PPP",
-                    { locale: fr },
-                  ),
-                })}
+                    { locale },
+                  )})}
               </div>
               <Button size="sm" variant="outline" asChild>
                 <a href={documentUrl} download>
@@ -274,12 +250,11 @@ export function VerificationDetail({
                         date: format(
                           new Date(verification.requestedAt),
                           "PPP p",
-                          { locale: fr },
+                          { locale },
                         ),
                         user:
                           verification.submitter.name ||
-                          verification.submitter.email,
-                      })}
+                          verification.submitter.email})}
                     </p>
                   </div>
                 </div>
@@ -316,13 +291,10 @@ export function VerificationDetail({
                             date: format(
                               new Date(verification.verifiedAt || new Date()),
                               "PPP p",
-                              {
-                                locale: fr,
-                              },
+                              { locale },
                             ),
                             user:
-                              verification.verifier?.name || "Administrator",
-                          },
+                              verification.verifier?.name || "Administrator"},
                         )}
                       </p>
                       {(verification.notes || verification.rejectionReason) && (
@@ -378,9 +350,7 @@ export function VerificationDetail({
                     {t("detail.user.accountCreated")}
                   </span>
                   <span className="text-sm">
-                    {format(new Date(verification.submitter.createdAt), "PPP", {
-                      locale: fr,
-                    })}
+                    {format(new Date(verification.submitter.createdAt), "PPP", { locale })}
                   </span>
                 </div>
                 {verification.submitter.phoneNumber && (
@@ -442,9 +412,7 @@ export function VerificationDetail({
                     {t("detail.documentInfo.uploadedAt")}
                   </span>
                   <span className="text-sm">
-                    {format(new Date(verification.document.uploadedAt), "PPP", {
-                      locale: fr,
-                    })}
+                    {format(new Date(verification.document.uploadedAt), "PPP", { locale })}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -689,7 +657,7 @@ function VerificationDetailSkeleton() {
                 </div>
                 <Separator />
                 <div className="space-y-3">
-                  {Array.from({ length: 4 }).map((_, i) => (
+                  {Array.from({ length: 4  }).map((_, i) => (
                     <div key={i} className="flex justify-between">
                       <Skeleton className="h-4 w-20" />
                       <Skeleton className="h-4 w-24" />
@@ -707,7 +675,7 @@ function VerificationDetailSkeleton() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
+                {Array.from({ length: 4  }).map((_, i) => (
                   <div key={i} className="flex justify-between">
                     <Skeleton className="h-4 w-28" />
                     <Skeleton className="h-4 w-32" />

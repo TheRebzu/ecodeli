@@ -8,8 +8,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,13 +23,11 @@ import {
   MailIcon,
   UserIcon,
   CalendarIcon,
-  MessageSquareIcon,
-} from "lucide-react";
+  MessageSquareIcon} from "lucide-react";
 import {
   formatPrice,
   formatDuration,
-  formatDateLocalized,
-} from "@/lib/i18n/formatters";
+  formatDateLocalized} from "@/lib/i18n/formatters";
 import { BookingForm } from "@/components/client/services/service-booking-form";
 import { useServiceBooking } from "@/hooks/features/use-service-booking";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,8 +35,7 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  AccordionTrigger} from "@/components/ui/accordion";
 
 interface ServiceDetailProps {
   service: {
@@ -90,11 +86,8 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
     selectedDate,
     handleDateChange,
     isLoadingTimeSlots,
-    availableTimeSlots,
-  } = useServiceBooking({
-    serviceId: service.id,
-    providerId: service.provider.id,
-  });
+    availableTimeSlots} = useServiceBooking({ serviceId: service.id,
+    providerId: service.provider.id });
 
   // Génération des étoiles pour la notation
   const renderRating = (rating: number) => {
@@ -113,7 +106,7 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
     return (
       <div className="flex items-center space-x-1">
         <div className="flex">{stars}</div>
-        <span className="text-sm text-gray-600">({rating.toFixed(1)})</span>
+        <span className="text-sm text-gray-600">({ rating.toFixed(1) })</span>
       </div>
     );
   };

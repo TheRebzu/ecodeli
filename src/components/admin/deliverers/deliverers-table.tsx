@@ -8,8 +8,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,16 +18,14 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -37,8 +34,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   CheckCircle,
   XCircle,
@@ -51,8 +47,7 @@ import {
   Ban,
   UserCheck,
   MapPin,
-  Star,
-} from "lucide-react";
+  Star} from "lucide-react";
 import { api } from "@/trpc/react";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,8 +96,7 @@ export function DeliverersTable({
   totalPages,
   currentPage,
   onPageChange,
-  onRefresh,
-}: DeliverersTableProps) {
+  onRefresh}: DeliverersTableProps) {
   const t = useTranslations("Admin");
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -133,42 +127,34 @@ export function DeliverersTable({
   const [messageSubject, setMessageSubject] = useState("");
 
   // Mutations pour les actions admin
-  const updateStatusMutation = api.admin.deliverers.updateStatus.useMutation({
-    onSuccess: () => {
+  const updateStatusMutation = api.admin.deliverers.updateStatus.useMutation({ onSuccess: () => {
       toast({
-        title: "Statut du livreur mis à jour",
-      });
+        title: "Statut du livreur mis à jour" });
       setIsStatusDialogOpen(false);
       onRefresh?.();
     },
     onError: (error) => {
       toast({
         title: `Erreur: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive"});
+    }});
 
   const verifyDelivererMutation =
-    api.admin.deliverers.verifyDeliverer.useMutation({
-      onSuccess: () => {
+    api.admin.deliverers.verifyDeliverer.useMutation({ onSuccess: () => {
         toast({
-          title: "Livreur vérifié avec succès",
-        });
+          title: "Livreur vérifié avec succès" });
         setIsVerificationDialogOpen(false);
         onRefresh?.();
       },
       onError: (error) => {
         toast({
           title: `Erreur: ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive"});
+      }});
 
   // Handlers pour les actions
   const handleSendMessage = (delivererId: string, name: string) => {
-    setMessageAction({ delivererId, name });
+    setMessageAction({ delivererId, name  });
     setMessageSubject("");
     setMessageContent("");
     setIsMessageDialogOpen(true);
@@ -179,38 +165,32 @@ export function DeliverersTable({
     name: string,
     newStatus: DelivererStatus,
   ) => {
-    setStatusAction({ delivererId, name, newStatus });
+    setStatusAction({ delivererId, name, newStatus  });
     setIsStatusDialogOpen(true);
   };
 
   const handleVerifyDeliverer = (delivererId: string, name: string) => {
-    setVerificationAction({ delivererId, name });
+    setVerificationAction({ delivererId, name  });
     setIsVerificationDialogOpen(true);
   };
 
   const handleConfirmStatusChange = () => {
     if (statusAction) {
-      updateStatusMutation.mutate({
-        userId: statusAction.delivererId,
-        status: statusAction.newStatus,
-      });
+      updateStatusMutation.mutate({ userId: statusAction.delivererId,
+        status: statusAction.newStatus });
     }
   };
 
   const handleConfirmVerification = () => {
     if (verificationAction) {
-      verifyDelivererMutation.mutate({
-        userId: verificationAction.delivererId,
-      });
+      verifyDelivererMutation.mutate({ userId: verificationAction.delivererId });
     }
   };
 
   const handleConfirmMessage = () => {
     if (messageAction && messageContent && messageSubject) {
       // Ici on pourrait implémenter l'envoi de message
-      toast({
-        title: "Message envoyé",
-      });
+      toast({ title: "Message envoyé" });
       setIsMessageDialogOpen(false);
     }
   };
@@ -308,8 +288,7 @@ export function DeliverersTable({
   const formatEarnings = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const formatDate = (date: Date | string | null | undefined) => {
@@ -326,8 +305,7 @@ export function DeliverersTable({
       return new Intl.DateTimeFormat("fr-FR", {
         day: "2-digit",
         month: "2-digit",
-        year: "numeric",
-      }).format(dateObj);
+        year: "numeric"}).format(dateObj);
     } catch (error) {
       console.warn("Erreur lors du formatage de la date:", date, error);
       return "-";
@@ -734,7 +712,7 @@ function LoadingState() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 5  }).map((_, i) => (
               <TableRow key={i}>
                 <TableCell>
                   <div className="flex items-center space-x-3">

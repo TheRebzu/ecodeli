@@ -74,7 +74,7 @@ export function generateBackupCodes(count = 10): string[] {
  * @returns true si le code est valide, false sinon
  */
 export function verifyTOTP(token: string, secret: string): boolean {
-  return authenticator.verify({ token, secret });
+  return authenticator.verify({ token, secret  });
 }
 
 /**
@@ -116,7 +116,7 @@ export function encryptData(text: string, encryptionKey: string): string {
   // Créer le chiffreur
   const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
   // Chiffrer les données
-  let encrypted = cipher.update(text, "utf8", "hex");
+  const encrypted = cipher.update(text, "utf8", "hex");
   encrypted += cipher.final("hex");
   // Retourner le iv et les données chiffrées ensemble
   return `${iv.toString("hex")}:${encrypted}`;
@@ -145,7 +145,7 @@ export function decryptData(
   // Créer le déchiffreur
   const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
   // Déchiffrer les données
-  let decrypted = decipher.update(encrypted, "hex", "utf8");
+  const decrypted = decipher.update(encrypted, "hex", "utf8");
   decrypted += decipher.final("utf8");
   return decrypted;
 }

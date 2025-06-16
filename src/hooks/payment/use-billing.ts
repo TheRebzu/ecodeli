@@ -36,8 +36,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
     pageSize = 10,
     status,
     refreshInterval = 0,
-    initialFetch = true,
-  } = options;
+    initialFetch = true} = options;
 
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -48,9 +47,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
     startDate?: Date;
     endDate?: Date;
     search?: string;
-  }>({
-    status,
-  });
+  }>({ status });
 
   // Requête pour récupérer les factures
   const { data, isLoading, error, refetch } = api.billing.getInvoices.useQuery(
@@ -60,12 +57,10 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
       status: filters.status as any,
       startDate: filters.startDate,
       endDate: filters.endDate,
-      search: filters.search,
-    },
+      search: filters.search},
     {
       enabled: initialFetch,
-      refetchInterval: refreshInterval > 0 ? refreshInterval : undefined,
-    },
+      refetchInterval: refreshInterval > 0 ? refreshInterval : undefined},
   );
 
   // Mutation pour télécharger une facture
@@ -87,8 +82,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
     },
     onError: (error) => {
       toast.error(`Erreur lors du téléchargement: ${error.message}`);
-    },
-  });
+    }});
 
   // Mutation pour payer une facture
   const payInvoiceMutation = api.billing.payInvoice.useMutation({
@@ -104,8 +98,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
     },
     onError: (error) => {
       toast.error(`Erreur lors du paiement: ${error.message}`);
-    },
-  });
+    }});
 
   // Mutation pour exporter les factures
   const exportInvoicesMutation = api.billing.exportInvoices.useMutation({
@@ -129,15 +122,14 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
     onError: (error) => {
       setIsExporting(false);
       toast.error(`Erreur lors de l'export: ${error.message}`);
-    },
-  });
+    }});
 
   /**
    * Télécharge une facture au format PDF
    */
   const downloadInvoice = useCallback(
     (invoiceId: string) => {
-      downloadInvoiceMutation.mutate({ invoiceId });
+      downloadInvoiceMutation.mutate({ invoiceId  });
     },
     [downloadInvoiceMutation],
   );
@@ -147,10 +139,8 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
    */
   const payInvoice = useCallback(
     (invoiceId: string, redirectAfterPayment?: string) => {
-      payInvoiceMutation.mutate({
-        invoiceId,
-        redirectUrl: redirectAfterPayment,
-      });
+      payInvoiceMutation.mutate({ invoiceId,
+        redirectUrl: redirectAfterPayment });
     },
     [payInvoiceMutation],
   );
@@ -180,7 +170,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
       endDate?: Date;
       search?: string;
     }) => {
-      setFilters((prev) => ({ ...prev, ...newFilters }));
+      setFilters((prev) => ({ ...prev, ...newFilters  }));
       setCurrentPage(1); // Retour à la première page lors du filtrage
     },
     [],
@@ -192,7 +182,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
   const exportInvoices = useCallback(
     (invoiceIds: string[], format: "PDF" | "CSV" = "PDF") => {
       setIsExporting(true);
-      exportInvoicesMutation.mutate({ invoiceIds, format });
+      exportInvoicesMutation.mutate({ invoiceIds, format  });
     },
     [exportInvoicesMutation],
   );
@@ -222,8 +212,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
       total: 0,
       page: currentPage,
       limit: currentLimit,
-      totalPages: 0,
-    },
+      totalPages: 0},
     totalAmount: data?.totalAmount,
     paidAmount: data?.paidAmount,
     overdueAmount: data?.overdueAmount,
@@ -239,8 +228,7 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
     setPageSize,
     filterInvoices,
     exportInvoices,
-    refreshInvoices,
-  };
+    refreshInvoices};
 }
 
 /**
@@ -252,8 +240,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
   const {
     refreshInterval = 0,
     initialFetch = true,
-    onSubscriptionChange,
-  } = options;
+    onSubscriptionChange} = options;
 
   const router = useRouter();
   const [isChangingPlan, setIsChangingPlan] = useState(false);
@@ -264,22 +251,18 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
     data: subscription,
     isLoading,
     error,
-    refetch,
-  } = api.billing.getActiveSubscription.useQuery(undefined, {
+    refetch} = api.billing.getActiveSubscription.useQuery(undefined, {
     enabled: initialFetch,
     refetchInterval: refreshInterval > 0 ? refreshInterval : undefined,
     onSuccess: (data) => {
       if (onSubscriptionChange && data) {
         onSubscriptionChange(data);
       }
-    },
-  });
+    }});
 
   // Récupérer les forfaits disponibles
   const { data: availablePlans, isLoading: isLoadingPlans } =
-    api.billing.getAvailablePlans.useQuery(undefined, {
-      enabled: initialFetch,
-    });
+    api.billing.getAvailablePlans.useQuery(undefined, { enabled });
 
   // Mutation pour changer de forfait
   const changePlanMutation = api.billing.changePlan.useMutation({
@@ -297,8 +280,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
     onError: (error) => {
       setIsChangingPlan(false);
       toast.error(`Erreur lors du changement de forfait: ${error.message}`);
-    },
-  });
+    }});
 
   // Mutation pour annuler l'abonnement
   const cancelSubscriptionMutation = api.billing.cancelSubscription.useMutation(
@@ -313,8 +295,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
       onError: (error) => {
         setIsCancel(false);
         toast.error(`Erreur lors de l'annulation: ${error.message}`);
-      },
-    },
+      }},
   );
 
   // Mutation pour réactiver un abonnement annulé
@@ -326,8 +307,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
       },
       onError: (error) => {
         toast.error(`Erreur lors de la réactivation: ${error.message}`);
-      },
-    });
+      }});
 
   /**
    * Change de forfait
@@ -335,7 +315,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
   const changePlan = useCallback(
     (planId: string, couponCode?: string) => {
       setIsChangingPlan(true);
-      changePlanMutation.mutate({ planId, couponCode });
+      changePlanMutation.mutate({ planId, couponCode  });
     },
     [changePlanMutation],
   );
@@ -346,7 +326,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
   const cancelSubscription = useCallback(
     (reason?: string) => {
       setIsCancel(true);
-      cancelSubscriptionMutation.mutate({ reason });
+      cancelSubscriptionMutation.mutate({ reason  });
     },
     [cancelSubscriptionMutation],
   );
@@ -400,9 +380,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
   const formatPeriodEnd = useCallback(() => {
     if (!subscription?.currentPeriodEnd) return "";
 
-    return format(new Date(subscription.currentPeriodEnd), "dd MMMM yyyy", {
-      locale: fr,
-    });
+    return format(new Date(subscription.currentPeriodEnd), "dd MMMM yyyy", { locale });
   }, [subscription]);
 
   return {
@@ -421,8 +399,7 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
     formatPeriodEnd,
     hasActiveSubscription:
       !!subscription?.status && subscription.status === "ACTIVE",
-    isCancelled: !!subscription?.cancelAtPeriodEnd,
-  };
+    isCancelled: !!subscription?.cancelAtPeriodEnd};
 }
 
 /**
@@ -442,8 +419,7 @@ export const useBilling = () => {
     },
     onError: (error) => {
       toast.error(`Erreur lors de la facturation mensuelle: ${error.message}`);
-    },
-  });
+    }});
 
   const scheduleMonthlyCyclesMutation =
     api.billing.scheduleMonthlyCycles.useMutation({
@@ -453,8 +429,7 @@ export const useBilling = () => {
       },
       onError: (error) => {
         toast.error(`Erreur lors de la planification: ${error.message}`);
-      },
-    });
+      }});
 
   const executeScheduledCyclesMutation =
     api.billing.executeScheduledCycles.useMutation({
@@ -464,8 +439,7 @@ export const useBilling = () => {
       },
       onError: (error) => {
         toast.error(`Erreur lors de l'exécution des cycles: ${error.message}`);
-      },
-    });
+      }});
 
   const retryCycleMutation = api.billing.retryCycle.useMutation({
     onSuccess: () => {
@@ -474,8 +448,7 @@ export const useBilling = () => {
     },
     onError: (error) => {
       toast.error(`Erreur lors de la réexécution: ${error.message}`);
-    },
-  });
+    }});
 
   const sendPaymentRemindersMutation =
     api.billing.sendPaymentReminders.useMutation({
@@ -484,8 +457,7 @@ export const useBilling = () => {
       },
       onError: (error) => {
         toast.error(`Erreur lors de l'envoi des rappels: ${error.message}`);
-      },
-    });
+      }});
 
   const processAutomaticPayoutsMutation =
     api.billing.processAutomaticPayouts.useMutation({
@@ -496,8 +468,7 @@ export const useBilling = () => {
         toast.error(
           `Erreur lors du traitement des virements: ${error.message}`,
         );
-      },
-    });
+      }});
 
   const generateProviderInvoiceMutation =
     api.billing.generateProviderInvoice.useMutation({
@@ -509,8 +480,7 @@ export const useBilling = () => {
         toast.error(
           `Erreur lors de la génération de la facture: ${error.message}`,
         );
-      },
-    });
+      }});
 
   const generateMerchantInvoiceMutation =
     api.billing.generateMerchantInvoice.useMutation({
@@ -522,15 +492,13 @@ export const useBilling = () => {
         toast.error(
           `Erreur lors de la génération de la facture: ${error.message}`,
         );
-      },
-    });
+      }});
 
   // Requête pour les statistiques
   const {
     data: billingStats,
     isLoading: isLoadingStats,
-    refetch: refetchStats,
-  } = api.billing.getBillingStats.useQuery(
+    refetch: refetchStats} = api.billing.getBillingStats.useQuery(
     { period: "MONTH" },
     { refetchInterval: 60000 * 15 }, // Rafraîchir toutes les 15 minutes
   );
@@ -555,9 +523,7 @@ export const useBilling = () => {
   const scheduleMonthlyCycles = async (scheduledDate?: Date) => {
     setIsLoading(true);
     try {
-      await scheduleMonthlyCyclesMutation.mutateAsync({
-        scheduledDate: scheduledDate || new Date(),
-      });
+      await scheduleMonthlyCyclesMutation.mutateAsync({ scheduledDate: scheduledDate || new Date() });
     } finally {
       setIsLoading(false);
     }
@@ -581,7 +547,7 @@ export const useBilling = () => {
   const retryCycle = async (billingCycleId: string) => {
     setIsLoading(true);
     try {
-      await retryCycleMutation.mutateAsync({ billingCycleId });
+      await retryCycleMutation.mutateAsync({ billingCycleId  });
     } finally {
       setIsLoading(false);
     }
@@ -621,11 +587,9 @@ export const useBilling = () => {
   ) => {
     setIsLoading(true);
     try {
-      await generateProviderInvoiceMutation.mutateAsync({
-        providerId,
+      await generateProviderInvoiceMutation.mutateAsync({ providerId,
         month,
-        year,
-      });
+        year });
     } finally {
       setIsLoading(false);
     }
@@ -641,11 +605,9 @@ export const useBilling = () => {
   ) => {
     setIsLoading(true);
     try {
-      await generateMerchantInvoiceMutation.mutateAsync({
-        merchantId,
+      await generateMerchantInvoiceMutation.mutateAsync({ merchantId,
         month,
-        year,
-      });
+        year });
     } finally {
       setIsLoading(false);
     }
@@ -655,7 +617,7 @@ export const useBilling = () => {
    * Formatage de la période de facturation pour affichage
    */
   const formatBillingPeriod = (startDate: Date, endDate: Date) => {
-    return `${format(startDate, "dd MMMM yyyy", { locale: fr })} - ${format(endDate, "dd MMMM yyyy", { locale: fr })}`;
+    return `${format(startDate, "dd MMMM yyyy", { locale })} - ${format(endDate, "dd MMMM yyyy", { locale })}`;
   };
 
   return {
@@ -676,8 +638,7 @@ export const useBilling = () => {
     refetchStats,
 
     // Formatage
-    formatBillingPeriod,
-  };
+    formatBillingPeriod};
 };
 
 export default useBilling;

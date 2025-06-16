@@ -13,39 +13,32 @@ const PROVIDER_TUTORIAL_STEPS = [
     id: "welcome",
     title: "steps.welcome.title",
     description: "steps.welcome.description",
-    image: "/images/onboarding/provider/welcome.png",
-  },
+    image: "/images/onboarding/provider/welcome.png"},
   {
     id: "dashboard",
     title: "steps.dashboard.title",
     description: "steps.dashboard.description",
-    image: "/images/onboarding/provider/dashboard.png",
-  },
+    image: "/images/onboarding/provider/dashboard.png"},
   {
     id: "services",
     title: "steps.services.title",
     description: "steps.services.description",
-    image: "/images/onboarding/provider/services.png",
-  },
+    image: "/images/onboarding/provider/services.png"},
   {
     id: "appointments",
     title: "steps.appointments.title",
     description: "steps.appointments.description",
-    image: "/images/onboarding/provider/appointments.png",
-  },
+    image: "/images/onboarding/provider/appointments.png"},
   {
     id: "schedule",
     title: "steps.schedule.title",
     description: "steps.schedule.description",
-    image: "/images/onboarding/provider/schedule.png",
-  },
+    image: "/images/onboarding/provider/schedule.png"},
   {
     id: "ratings",
     title: "steps.ratings.title",
     description: "steps.ratings.description",
-    image: "/images/onboarding/provider/ratings.png",
-  },
-];
+    image: "/images/onboarding/provider/ratings.png"}];
 
 type ProviderTutorialProps = {
   options?: {
@@ -60,8 +53,7 @@ export function ProviderTutorial({ options }: ProviderTutorialProps) {
     goToNextStep,
     goToPreviousStep,
     completeOnboarding,
-    skipOnboarding,
-  } = useOnboarding();
+    skipOnboarding} = useOnboarding();
 
   const t = useTranslations("Provider.Onboarding");
 

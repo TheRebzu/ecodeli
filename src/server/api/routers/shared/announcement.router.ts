@@ -2,8 +2,7 @@ import { z } from "zod";
 import {
   router,
   protectedProcedure,
-  verifiedDelivererProcedure,
-} from "@/server/api/trpc";
+  verifiedDelivererProcedure} from "@/server/api/trpc";
 import { AnnouncementService } from "@/server/services/shared/announcement.service";
 import {
   createAnnouncementSchema,
@@ -14,108 +13,91 @@ import {
   searchAnnouncementSchema,
   assignDelivererSchema,
   announcementStatsSchema,
-  getAnnouncementDetailSchema,
-} from "@/schemas/delivery/announcement.schema";
+  getAnnouncementDetailSchema} from "@/schemas/delivery/announcement.schema";
 import { TRPCError } from "@trpc/server";
 import { AnnouncementStatus } from "@/types/announcements/announcement";
 import { UserRole } from "@prisma/client";
 
-export const announcementRouter = router({
-  // Récupération de toutes les annonces avec filtres
+export const announcementRouter = router({ // Récupération de toutes les annonces avec filtres
   getAll: publicProcedure
-    .input(announcementFilterSchema.optional().default({}))
-    .query(async ({ input: _input }) => {
+    .input(announcementFilterSchema.optional().default({ }))
+    .query(async ({ input  }) => {
       try {
         return await AnnouncementService.getAll(input);
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error instanceof Error ? error.message : "Une erreur est survenue",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
   // Récupération des annonces d'un client spécifique
   getMyAnnouncements: protectedProcedure
     .input(
-      z.object({
-        status: z.nativeEnum(AnnouncementStatus).optional(),
+      z.object({ status: z.nativeEnum(AnnouncementStatus).optional(),
         limit: z.number().min(1).max(100).default(10),
-        offset: z.number().min(0).default(0),
-      }),
+        offset: z.number().min(0).default(0) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const filters = {
           clientId: ctx.session.user.id,
           status: input.status,
           limit: input.limit,
-          offset: input.offset,
-        };
+          offset: input.offset};
 
         return await AnnouncementService.getAll(filters);
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error instanceof Error ? error.message : "Une erreur est survenue",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
   // Récupération d'une annonce par ID
   getById: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input: _input }) => {
+    .input(z.object({ id: z.string()  }))
+    .query(async ({ input  }) => {
       try {
         return await AnnouncementService.getById(input.id);
-      } catch (_error) {
+      } catch (error) {
         if (error instanceof Error && error.message === "Annonce non trouvée") {
-          throw new TRPCError({
-            code: "NOT_FOUND",
+          throw new TRPCError({ code: "NOT_FOUND",
             message: "Annonce non trouvée",
-            cause: error,
-          });
+            cause: error });
         }
 
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error instanceof Error ? error.message : "Une erreur est survenue",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
   // Création d'une annonce
   create: protectedProcedure
     .input(createAnnouncementSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       // Vérification du rôle utilisateur
       if (
-        _ctx.session.user.role !== UserRole.CLIENT &&
-        _ctx.session.user.role !== UserRole.MERCHANT &&
-        _ctx.session.user.role !== UserRole.ADMIN
+        ctx.session.user.role !== UserRole.CLIENT &&
+        ctx.session.user.role !== UserRole.MERCHANT &&
+        ctx.session.user.role !== UserRole.ADMIN
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'avez pas les permissions pour créer une annonce",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'avez pas les permissions pour créer une annonce" });
       }
 
       // Pour être sûr que l'utilisateur connecté est celui qui crée l'annonce
       if (
-        input.clientId !== _ctx.session.user.id &&
-        _ctx.session.user.role !== UserRole.ADMIN
+        input.clientId !== ctx.session.user.id &&
+        ctx.session.user.role !== UserRole.ADMIN
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Vous ne pouvez pas créer une annonce pour un autre utilisateur",
-        });
+            "Vous ne pouvez pas créer une annonce pour un autre utilisateur" });
       }
 
       try {
@@ -154,35 +136,28 @@ export const announcementRouter = router({
             specialInstructions: input.specialInstructions,
             requiresSignature: input.requiresSignature,
             requiresId: input.requiresId,
-            clientId: input.clientId,
-          },
-        });
+            clientId: input.clientId}});
 
         return announcement;
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur lors de la création de l'annonce:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Une erreur est survenue lors de la création de l'annonce",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Une erreur est survenue lors de la création de l'annonce" });
       }
     }),
 
   // Mise à jour d'une annonce
   update: protectedProcedure
     .input(updateAnnouncementSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que l'annonce existe
         const announcement = await ctx.db.announcement.findUnique({
-          where: { id: input.id },
-        });
+          where: { id: input.id }});
 
         if (!announcement) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Annonce non trouvée" });
         }
 
         // Vérification des autorisations
@@ -190,10 +165,8 @@ export const announcementRouter = router({
         const isAdmin = ctx.session.user.role === UserRole.ADMIN;
 
         if (!isAuthor && !isAdmin) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'avez pas les droits pour modifier cette annonce",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'avez pas les droits pour modifier cette annonce" });
         }
 
         // Vérifier si l'annonce peut être modifiée en fonction de son statut
@@ -202,19 +175,16 @@ export const announcementRouter = router({
           "DELIVERED",
           "COMPLETED",
           "PAID",
-          "CANCELLED",
-        ];
+          "CANCELLED"];
 
         if (nonModifiableStatuses.includes(announcement.status) && !isAdmin) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new TRPCError({ code: "FORBIDDEN",
             message:
-              "Cette annonce ne peut plus être modifiée dans son état actuel",
-          });
+              "Cette annonce ne peut plus être modifiée dans son état actuel" });
         }
 
         // Supprimer l'id de input avant de l'utiliser pour la mise à jour
-        const { id: _id, ...updateData } = input;
+        const { id: id, ...updateData } = input;
 
         // Convertir les dates si nécessaires
         const finalUpdateData = { ...updateData };
@@ -222,36 +192,30 @@ export const announcementRouter = router({
         // Mise à jour
         const updatedAnnouncement = await ctx.db.announcement.update({
           where: { id },
-          data: finalUpdateData,
-        });
+          data: finalUpdateData});
 
         return updatedAnnouncement;
-      } catch (_error) {
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
 
         console.error("Erreur lors de la mise à jour de l'annonce:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
-            "Une erreur est survenue lors de la mise à jour de l'annonce",
-        });
+            "Une erreur est survenue lors de la mise à jour de l'annonce" });
       }
     }),
 
   // Suppression d'une annonce
   delete: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ _ctx, input: _input }) => {
+    .input(z.object({ id: z.string()  }))
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const announcement = await ctx.db.announcement.findUnique({
-          where: { id: input.id },
-        });
+          where: { id: input.id }});
 
         if (!announcement) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Annonce non trouvée" });
         }
 
         // Vérifier les autorisations
@@ -259,10 +223,8 @@ export const announcementRouter = router({
         const isAdmin = ctx.session.user.role === UserRole.ADMIN;
 
         if (!isAuthor && !isAdmin) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'avez pas les droits pour supprimer cette annonce",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'avez pas les droits pour supprimer cette annonce" });
         }
 
         // Vérifier que l'annonce peut être supprimée
@@ -270,14 +232,11 @@ export const announcementRouter = router({
           "IN_PROGRESS",
           "DELIVERED",
           "COMPLETED",
-          "PAID",
-        ];
+          "PAID"];
         if (nonDeletableStatuses.includes(announcement.status) && !isAdmin) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new TRPCError({ code: "FORBIDDEN",
             message:
-              "Cette annonce ne peut pas être supprimée dans son état actuel",
-          });
+              "Cette annonce ne peut pas être supprimée dans son état actuel" });
         }
 
         // Marquer comme annulée plutôt que de supprimer
@@ -286,117 +245,96 @@ export const announcementRouter = router({
           data: {
             status: "CANCELLED",
             cancelReason: "Supprimée par l'utilisateur",
-            updatedAt: new Date(),
-          },
-        });
+            updatedAt: new Date()}});
 
         return deletedAnnouncement;
-      } catch (_error) {
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
 
         console.error("Erreur lors de la suppression de l'annonce:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
-            "Une erreur est survenue lors de la suppression de l'annonce",
-        });
+            "Une erreur est survenue lors de la suppression de l'annonce" });
       }
     }),
 
   // Postuler à une annonce (pour les livreurs vérifiés uniquement)
   applyForAnnouncement: verifiedDelivererProcedure
     .input(createAnnouncementApplicationSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const {
-          announcementId: _announcementId,
-          proposedPrice: _proposedPrice,
-          message: _message,
-        } = input;
+          announcementId: announcementId,
+          proposedPrice: proposedPrice,
+          message: message} = input;
 
         return await AnnouncementService.applyForAnnouncement(
           announcementId,
-          _ctx.session.user.id,
+          ctx.session.user.id,
           {
             proposedPrice,
-            message,
-          },
+            message},
         );
-      } catch (_error) {
+      } catch (error) {
         if (error instanceof Error && error.message.includes("livreurs")) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new TRPCError({ code: "FORBIDDEN",
             message: error.message,
-            cause: error,
-          });
+            cause: error });
         }
 
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error instanceof Error ? error.message : "Une erreur est survenue",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
   // Mettre à jour le statut d'une candidature
   updateApplicationStatus: protectedProcedure
     .input(
-      z.object({
-        applicationId: z.string(),
-        status: z.string(),
-      }),
+      z.object({ applicationId: z.string(),
+        status: z.string() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que l'utilisateur est authentifié
-        if (!_ctx.session?.user?.id) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Vous devez être connecté pour gérer une candidature",
-          });
+        if (!ctx.session?.user?.id) {
+          throw new TRPCError({ code: "UNAUTHORIZED",
+            message: "Vous devez être connecté pour gérer une candidature" });
         }
 
-        const { applicationId: _applicationId, status: _status } = input;
+        const { applicationId: applicationId, status: status } = input;
 
         return await AnnouncementService.updateApplicationStatus(
           applicationId,
           status,
-          _ctx.session.user.id,
+          ctx.session.user.id,
         );
-      } catch (_error) {
+      } catch (error) {
         if (error instanceof Error && error.message.includes("autorisé")) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new TRPCError({ code: "FORBIDDEN",
             message: error.message,
-            cause: error,
-          });
+            cause: error });
         }
 
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error instanceof Error ? error.message : "Une erreur est survenue",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
   // Publier une annonce
   publish: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ _ctx, input: _input }) => {
+    .input(z.object({ id: z.string()  }))
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const announcement = await ctx.db.announcement.findUnique({
-          where: { id: input.id },
-        });
+          where: { id: input.id }});
 
         if (!announcement) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Annonce non trouvée" });
         }
 
         // Vérifier les autorisations
@@ -404,18 +342,14 @@ export const announcementRouter = router({
         const isAdmin = ctx.session.user.role === UserRole.ADMIN;
 
         if (!isAuthor && !isAdmin) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'avez pas les droits pour publier cette annonce",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'avez pas les droits pour publier cette annonce" });
         }
 
         // Vérifier que l'annonce est en brouillon
         if (announcement.status !== "DRAFT") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Seules les annonces en brouillon peuvent être publiées",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Seules les annonces en brouillon peuvent être publiées" });
         }
 
         // Publier l'annonce
@@ -423,73 +357,60 @@ export const announcementRouter = router({
           where: { id: input.id },
           data: {
             status: "PUBLISHED",
-            updatedAt: new Date(),
-          },
-        });
+            updatedAt: new Date()}});
 
         return publishedAnnouncement;
-      } catch (_error) {
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
 
         console.error("Erreur lors de la publication de l'annonce:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
-            "Une erreur est survenue lors de la publication de l'annonce",
-        });
+            "Une erreur est survenue lors de la publication de l'annonce" });
       }
     }),
 
   // Marquer une annonce comme complétée
   complete: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ _ctx, input: _input }) => {
+    .input(z.object({ id: z.string()  }))
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que l'utilisateur est authentifié
-        if (!_ctx.session?.user?.id) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Vous devez être connecté pour compléter une annonce",
-          });
+        if (!ctx.session?.user?.id) {
+          throw new TRPCError({ code: "UNAUTHORIZED",
+            message: "Vous devez être connecté pour compléter une annonce" });
         }
 
         return await AnnouncementService.completeAnnouncement(
           input.id,
-          _ctx.session.user.id,
+          ctx.session.user.id,
         );
-      } catch (_error) {
+      } catch (error) {
         if (error instanceof Error && error.message.includes("autorisé")) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new TRPCError({ code: "FORBIDDEN",
             message: error.message,
-            cause: error,
-          });
+            cause: error });
         }
 
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error instanceof Error ? error.message : "Une erreur est survenue",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
   // Changer le statut d'une annonce
   updateStatus: protectedProcedure
     .input(updateAnnouncementStatusSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que l'annonce existe
         const announcement = await ctx.db.announcement.findUnique({
-          where: { id: input.id },
-        });
+          where: { id: input.id }});
 
         if (!announcement) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Annonce non trouvée" });
         }
 
         // Vérification des autorisations et règles métier selon les statuts
@@ -549,19 +470,15 @@ export const announcementRouter = router({
         };
 
         if (!allowed()) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new TRPCError({ code: "FORBIDDEN",
             message:
-              "Vous n'avez pas les droits pour modifier le statut de cette annonce",
-          });
+              "Vous n'avez pas les droits pour modifier le statut de cette annonce" });
         }
 
         // Vérifier la raison d'annulation si nécessaire
         if (input.status === "CANCELLED" && !input.cancelReason) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Une raison d'annulation est requise",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Une raison d'annulation est requise" });
         }
 
         // Mise à jour du statut
@@ -571,30 +488,26 @@ export const announcementRouter = router({
             status: input.status,
             cancelReason: input.cancelReason,
             notes: input.notes,
-            updatedAt: new Date(),
-          },
-        });
+            updatedAt: new Date()}});
 
         return updatedAnnouncement;
-      } catch (_error) {
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
 
         console.error(
           "Erreur lors du changement de statut de l'annonce:",
           error,
         );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
-            "Une erreur est survenue lors du changement de statut de l'annonce",
-        });
+            "Une erreur est survenue lors du changement de statut de l'annonce" });
       }
     }),
 
   // Rechercher et filtrer les annonces
   search: publicProcedure
     .input(searchAnnouncementSchema)
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const skip = (input.page - 1) * input.limit;
 
@@ -606,7 +519,7 @@ export const announcementRouter = router({
           where.status = input.status;
         } else {
           // Par défaut, ne montrer que les annonces publiées aux utilisateurs non connectés
-          if (!_ctx.session?.user) {
+          if (!ctx.session?.user) {
             where.status = "PUBLISHED";
           }
         }
@@ -625,14 +538,12 @@ export const announcementRouter = router({
         if (input.minPrice !== undefined) {
           where.suggestedPrice = {
             ...where.suggestedPrice,
-            gte: input.minPrice,
-          };
+            gte: input.minPrice};
         }
         if (input.maxPrice !== undefined) {
           where.suggestedPrice = {
             ...where.suggestedPrice,
-            lte: input.maxPrice,
-          };
+            lte: input.maxPrice};
         }
 
         // Filtrer par caractéristiques
@@ -655,46 +566,40 @@ export const announcementRouter = router({
         // Filtrer par tags
         if (input.tags && input.tags.length > 0) {
           where.tags = {
-            hasEvery: input.tags,
-          };
+            hasEvery: input.tags};
         }
 
         // Filtrer par plage de dates
         if (input.fromDate) {
           where.pickupDate = {
             ...where.pickupDate,
-            gte: new Date(input.fromDate),
-          };
+            gte: new Date(input.fromDate)};
         }
 
         if (input.toDate) {
           where.pickupDate = {
             ...where.pickupDate,
-            lte: new Date(input.toDate),
-          };
+            lte: new Date(input.toDate)};
         }
 
         // Recherche textuelle
         if (input.query) {
           where.OR = [
             { title: { contains: input.query, mode: "insensitive" } },
-            { description: { contains: input.query, mode: "insensitive" } },
-          ];
+            { description: { contains: input.query, mode: "insensitive" } }];
         }
 
         // Recherche par adresse
         if (input.pickupAddressSearch) {
           where.pickupAddress = {
             contains: input.pickupAddressSearch,
-            mode: "insensitive",
-          };
+            mode: "insensitive"};
         }
 
         if (input.deliveryAddressSearch) {
           where.deliveryAddress = {
             contains: input.deliveryAddressSearch,
-            mode: "insensitive",
-          };
+            mode: "insensitive"};
         }
 
         // Déterminer le tri
@@ -708,7 +613,7 @@ export const announcementRouter = router({
 
         // Exécuter la requête
         const [announcements, totalCount] = await Promise.all([
-          _ctx.db.announcement.findMany({
+          ctx.db.announcement.findMany({
             where,
             orderBy,
             skip,
@@ -718,56 +623,41 @@ export const announcementRouter = router({
                 select: {
                   id: true,
                   name: true,
-                  image: true,
-                },
-              },
-              _count: {
+                  image: true}},
+              count: {
                 select: {
                   applications: true,
-                  favorites: true,
-                },
-              },
-            },
-          }),
-          ctx.db.announcement.count({ where }),
-        ]);
+                  favorites: true}}}}),
+          ctx.db.announcement.count({ where  })]);
 
         return {
           announcements,
           totalCount,
           page: input.page,
           limit: input.limit,
-          totalPages: Math.ceil(totalCount / input.limit),
-        };
-      } catch (_error) {
+          totalPages: Math.ceil(totalCount / input.limit)};
+      } catch (error) {
         console.error("Erreur lors de la recherche d'annonces:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Une erreur est survenue lors de la recherche d'annonces",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Une erreur est survenue lors de la recherche d'annonces" });
       }
     }),
 
   // Attribuer une annonce à un livreur
   assignDeliverer: protectedProcedure
     .input(assignDelivererSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que l'annonce existe
         const announcement = await ctx.db.announcement.findUnique({
           where: { id: input.announcementId },
           include: {
             applications: {
-              where: { delivererId: input.delivererId },
-            },
-          },
-        });
+              where: { delivererId: input.delivererId }}}});
 
         if (!announcement) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Annonce non trouvée" });
         }
 
         // Vérifier que l'utilisateur est l'auteur de l'annonce ou un admin
@@ -775,10 +665,8 @@ export const announcementRouter = router({
         const isAdmin = ctx.session.user.role === UserRole.ADMIN;
 
         if (!isAuthor && !isAdmin) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'avez pas les droits pour attribuer cette annonce",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'avez pas les droits pour attribuer cette annonce" });
         }
 
         // Vérifier que l'annonce est dans un état permettant l'attribution
@@ -786,19 +674,15 @@ export const announcementRouter = router({
           announcement.status !== "PUBLISHED" &&
           announcement.status !== "IN_APPLICATION"
         ) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
+          throw new TRPCError({ code: "BAD_REQUEST",
             message:
-              "Cette annonce ne peut pas être attribuée dans son état actuel",
-          });
+              "Cette annonce ne peut pas être attribuée dans son état actuel" });
         }
 
         // Vérifier que le livreur a bien postulé (sauf pour les admins)
         if (announcement.applications.length === 0 && !isAdmin) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Ce livreur n'a pas postulé à cette annonce",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Ce livreur n'a pas postulé à cette annonce" });
         }
 
         // Mettre à jour l'annonce avec le livreur sélectionné
@@ -808,49 +692,39 @@ export const announcementRouter = router({
             delivererId: input.delivererId,
             finalPrice: input.finalPrice,
             status: "ASSIGNED",
-            notes: input.notes,
-          },
-        });
+            notes: input.notes}});
 
         // Mettre à jour le statut de la candidature du livreur
         if (announcement.applications.length > 0) {
           await ctx.db.deliveryApplication.update({
             where: {
-              id: announcement.applications[0].id,
-            },
+              id: announcement.applications[0].id},
             data: {
-              status: "ACCEPTED",
-            },
-          });
+              status: "ACCEPTED"}});
 
           // Rejeter les autres candidatures
           await ctx.db.deliveryApplication.updateMany({
             where: {
               announcementId: input.announcementId,
-              delivererId: { not: input.delivererId },
-            },
+              delivererId: { not: input.delivererId }},
             data: {
-              status: "REJECTED",
-            },
-          });
+              status: "REJECTED"}});
         }
 
         return updatedAnnouncement;
-      } catch (_error) {
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
 
         console.error("Erreur lors de l'attribution de l'annonce:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Une erreur est survenue lors de l'attribution de l'annonce",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Une erreur est survenue lors de l'attribution de l'annonce" });
       }
     }),
 
   // Obtenir des statistiques sur les annonces
   getStats: protectedProcedure
     .input(announcementStatsSchema.optional().default({}))
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que l'utilisateur est un admin, sinon limiter aux statistiques personnelles
         const isAdmin = ctx.session.user.role === UserRole.ADMIN;
@@ -863,15 +737,13 @@ export const announcementRouter = router({
         if (input.startDate) {
           where.createdAt = {
             ...where.createdAt,
-            gte: new Date(input.startDate),
-          };
+            gte: new Date(input.startDate)};
         }
 
         if (input.endDate) {
           where.createdAt = {
             ...where.createdAt,
-            lte: new Date(input.endDate),
-          };
+            lte: new Date(input.endDate)};
         }
 
         // Filtrer par type d'annonce
@@ -885,11 +757,11 @@ export const announcementRouter = router({
         } else if (!isAdmin) {
           // Si non admin, limiter aux annonces de l'utilisateur
           if (
-            _ctx.session.user.role === UserRole.CLIENT ||
-            _ctx.session.user.role === UserRole.MERCHANT
+            ctx.session.user.role === UserRole.CLIENT ||
+            ctx.session.user.role === UserRole.MERCHANT
           ) {
             where.clientId = userId;
-          } else if (_ctx.session.user.role === UserRole.DELIVERER) {
+          } else if (ctx.session.user.role === UserRole.DELIVERER) {
             where.delivererId = userId;
           }
         }
@@ -906,46 +778,35 @@ export const announcementRouter = router({
           completedCount,
           cancelledCount,
           averagePrice,
-          totalRevenue,
-        ] = await Promise.all([
-          _ctx.db.announcement.count({ where }),
+          totalRevenue] = await Promise.all([
+          ctx.db.announcement.count({ where  }),
           ctx.db.announcement.count({
-            where: { ...where, status: "PUBLISHED" },
-          }),
+            where: { ...where, status: "PUBLISHED" }}),
           ctx.db.announcement.count({
-            where: { ...where, status: "ASSIGNED" },
-          }),
+            where: { ...where, status: "ASSIGNED" }}),
           ctx.db.announcement.count({
-            where: { ...where, status: "COMPLETED" },
-          }),
+            where: { ...where, status: "COMPLETED" }}),
           ctx.db.announcement.count({
-            where: { ...where, status: "CANCELLED" },
-          }),
+            where: { ...where, status: "CANCELLED" }}),
           ctx.db.announcement.aggregate({
-            where: { ...where, suggestedPrice: { not: null } },
-            _avg: { suggestedPrice: true },
-          }),
+            where: { ...where, suggestedPrice: { not } },
+            avg: { suggestedPrice }}),
           ctx.db.announcement.aggregate({
             where: {
               ...where,
               status: "COMPLETED",
-              suggestedPrice: { not: null },
-            },
-            _sum: { suggestedPrice: true },
-          }),
-        ]);
+              suggestedPrice: { not }},
+            sum: { suggestedPrice }})]);
 
         // Obtenir la distribution par type si admin
         const typeDistribution = {};
         if (isAdmin) {
-          const typeCounts = await ctx.db.announcement.groupBy({
-            by: ["type"],
+          const typeCounts = await ctx.db.announcement.groupBy({ by: ["type"],
             where,
-            _count: true,
-          });
+            count: true });
 
           typeDistribution = typeCounts.reduce((acc, curr) => {
-            return { ...acc, [curr.type]: curr._count };
+            return { ...acc, [curr.type]: curr.count };
           }, {});
         }
 
@@ -955,34 +816,29 @@ export const announcementRouter = router({
           assignedCount,
           completedCount,
           cancelledCount,
-          averagePrice: averagePrice._avg.suggestedPrice || 0,
-          totalRevenue: totalRevenue._sum.suggestedPrice || 0,
-          typeDistribution: isAdmin ? typeDistribution : undefined,
-        };
-      } catch (_error) {
+          averagePrice: averagePrice.avg.suggestedPrice || 0,
+          totalRevenue: totalRevenue.sum.suggestedPrice || 0,
+          typeDistribution: isAdmin ? typeDistribution : undefined};
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des statistiques:",
           error,
         );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
-            "Une erreur est survenue lors de la récupération des statistiques",
-        });
+            "Une erreur est survenue lors de la récupération des statistiques" });
       }
     }),
 
   // Récupérer les annonces d'un utilisateur
   getByUserId: protectedProcedure
     .input(
-      z.object({
-        userId: z.string().cuid(),
+      z.object({ userId: z.string().cuid(),
         status: z.nativeEnum(AnnouncementStatus).optional(),
         page: z.number().int().positive().default(1),
-        limit: z.number().int().min(1).max(100).default(20),
-      }),
+        limit: z.number().int().min(1).max(100).default(20) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const skip = (input.page - 1) * input.limit;
 
@@ -993,16 +849,12 @@ export const announcementRouter = router({
         const isAdmin = ctx.session.user.role === UserRole.ADMIN;
 
         if (!isRequestingOwnData && !isAdmin) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'avez pas accès aux annonces de cet utilisateur",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'avez pas accès aux annonces de cet utilisateur" });
         }
 
         // Construire les filtres
-        const where: any = {
-          clientId: requestedUserId,
-        };
+        const where: any = { clientId };
 
         if (input.status) {
           where.status = input.status;
@@ -1010,55 +862,44 @@ export const announcementRouter = router({
 
         // Exécuter la requête
         const [announcements, totalCount] = await Promise.all([
-          _ctx.db.announcement.findMany({
+          ctx.db.announcement.findMany({
             where,
             orderBy: { createdAt: "desc" },
             skip,
             take: input.limit,
             include: {
-              _count: {
-                select: {
-                  applications: true,
-                },
-              },
-            },
-          }),
-          ctx.db.announcement.count({ where }),
-        ]);
+              count: {
+                select: { applications }}}}),
+          ctx.db.announcement.count({ where  })]);
 
         return {
           announcements,
           totalCount,
           page: input.page,
           limit: input.limit,
-          totalPages: Math.ceil(totalCount / input.limit),
-        };
-      } catch (_error) {
+          totalPages: Math.ceil(totalCount / input.limit)};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
 
         console.error(
           "Erreur lors de la récupération des annonces de l'utilisateur:",
           error,
         );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
-            "Une erreur est survenue lors de la récupération des annonces",
-        });
+            "Une erreur est survenue lors de la récupération des annonces" });
       }
     }),
 
   // Récupérer les annonces assignées à un livreur
   getAssignedToDeliverer: protectedProcedure
     .input(
-      z.object({
-        delivererId: z.string().cuid().optional(),
+      z.object({ delivererId: z.string().cuid().optional(),
         status: z.nativeEnum(AnnouncementStatus).optional(),
         page: z.number().int().positive().default(1),
-        limit: z.number().int().min(1).max(100).default(20),
-      }),
+        limit: z.number().int().min(1).max(100).default(20) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const skip = (input.page - 1) * input.limit;
 
@@ -1070,16 +911,13 @@ export const announcementRouter = router({
         const isAdmin = ctx.session.user.role === UserRole.ADMIN;
 
         if (!isRequestingOwnData && !isAdmin) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'avez pas accès aux annonces de ce livreur",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'avez pas accès aux annonces de ce livreur" });
         }
 
         // Construire les filtres
         const where: any = {
-          delivererId,
-        };
+          delivererId};
 
         if (input.status) {
           where.status = input.status;
@@ -1087,7 +925,7 @@ export const announcementRouter = router({
 
         // Exécuter la requête
         const [announcements, totalCount] = await Promise.all([
-          _ctx.db.announcement.findMany({
+          ctx.db.announcement.findMany({
             where,
             orderBy: { createdAt: "desc" },
             skip,
@@ -1097,33 +935,24 @@ export const announcementRouter = router({
                 select: {
                   id: true,
                   name: true,
-                  image: true,
-                },
-              },
-            },
-          }),
-          ctx.db.announcement.count({ where }),
-        ]);
+                  image: true}}}}),
+          ctx.db.announcement.count({ where  })]);
 
         return {
           announcements,
           totalCount,
           page: input.page,
           limit: input.limit,
-          totalPages: Math.ceil(totalCount / input.limit),
-        };
-      } catch (_error) {
+          totalPages: Math.ceil(totalCount / input.limit)};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
 
         console.error(
           "Erreur lors de la récupération des annonces du livreur:",
           error,
         );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
-            "Une erreur est survenue lors de la récupération des annonces",
-        });
+            "Une erreur est survenue lors de la récupération des annonces" });
       }
-    }),
-});
+    })});

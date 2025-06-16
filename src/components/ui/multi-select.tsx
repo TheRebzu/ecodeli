@@ -24,8 +24,7 @@ export function MultiSelect({
   selected,
   onChange,
   placeholder = "Sélectionner...",
-  className,
-}: MultiSelectProps) {
+  className}: MultiSelectProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");

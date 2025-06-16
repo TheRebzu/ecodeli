@@ -4,8 +4,7 @@ import { useEffect } from "react";
 
 export default function GlobalError({
   error,
-  reset,
-}: {
+  reset}: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
@@ -23,8 +22,7 @@ export default function GlobalError({
             maxWidth: "600px",
             margin: "0 auto",
             textAlign: "center",
-            fontFamily: "system-ui, sans-serif",
-          }}
+            fontFamily: "system-ui, sans-serif"}}
         >
           <h1 style={{ color: "#e11d48" }}>Une erreur est survenue</h1>
           <p>Nous sommes désolés, quelque chose s&apos;est mal passé.</p>
@@ -37,8 +35,7 @@ export default function GlobalError({
               padding: "0.5rem 1rem",
               borderRadius: "0.25rem",
               cursor: "pointer",
-              marginTop: "1rem",
-            }}
+              marginTop: "1rem"}}
           >
             Réessayer
           </button>

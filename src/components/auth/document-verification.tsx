@@ -10,8 +10,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -19,8 +18,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -33,8 +31,7 @@ import {
   FileImage,
   Loader2,
   X,
-  CheckCircle2,
-} from "lucide-react";
+  CheckCircle2} from "lucide-react";
 import { api } from "@/hooks/system/use-trpc";
 import Image from "next/image";
 
@@ -51,10 +48,9 @@ export function DocumentVerification() {
     clearFiles,
     isUploading,
     progress,
-    error,
-  } = useDocumentUpload();
+    error} = useDocumentUpload();
   const [documentType, setDocumentType] = useState<DocumentType>(
-    DocumentType.ID_CARD,
+    DocumentType.IDCARD,
   );
 
   // Récupérer les documents de l'utilisateur
@@ -91,15 +87,13 @@ export function DocumentVerification() {
           DocumentType.ID_CARD,
           DocumentType.DRIVER_LICENSE,
           DocumentType.VEHICLE_REGISTRATION,
-          DocumentType.INSURANCE,
-        ];
+          DocumentType.INSURANCE];
       case "PROVIDER":
         return [
           DocumentType.ID_CARD,
           DocumentType.QUALIFICATION_CERTIFICATE,
           DocumentType.INSURANCE,
-          DocumentType.PROOF_OF_ADDRESS,
-        ];
+          DocumentType.PROOF_OF_ADDRESS];
       default:
         return [DocumentType.ID_CARD];
     }

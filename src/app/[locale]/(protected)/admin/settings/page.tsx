@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,8 +20,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Settings,
   Save,
@@ -35,8 +33,7 @@ import {
   Truck,
   MapPin,
   Clock,
-  AlertTriangle,
-} from "lucide-react";
+  AlertTriangle} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface SystemSettings {
@@ -101,8 +98,7 @@ export default function AdminSettingsPage() {
   const {
     data: settingsData,
     isLoading,
-    refetch,
-  } = api.admin.settings.getAll.useQuery();
+    refetch} = api.admin.settings.getAll.useQuery();
 
   // État local pour les modifications
   const [settings, setSettings] = useState<SystemSettings>(
@@ -113,8 +109,7 @@ export default function AdminSettingsPage() {
         contactEmail: "contact@ecodeli.me",
         supportPhone: "+33 1 23 45 67 89",
         maintenanceMode: false,
-        debugMode: false,
-      },
+        debugMode: false},
       email: {
         smtpHost: "smtp.gmail.com",
         smtpPort: 587,
@@ -122,16 +117,14 @@ export default function AdminSettingsPage() {
         smtpPassword: "••••••••",
         smtpSecure: true,
         fromEmail: "noreply@ecodeli.me",
-        fromName: "EcoDeli",
-      },
+        fromName: "EcoDeli"},
       security: {
         sessionTimeout: 30,
         maxLoginAttempts: 5,
         passwordMinLength: 8,
         requireTwoFactor: false,
         allowedIpAddresses: "",
-        rateLimitRequests: 100,
-      },
+        rateLimitRequests: 100},
       payments: {
         stripePublicKey: "pk_test_••••••••",
         stripeSecretKey: "sk_test_••••••••",
@@ -139,25 +132,21 @@ export default function AdminSettingsPage() {
         paypalSecret: "••••••••",
         defaultCurrency: "EUR",
         taxRate: 20,
-        commissionRate: 5,
-      },
+        commissionRate: 5},
       delivery: {
         defaultRadius: 10,
         maxDeliveryDistance: 50,
         baseDeliveryPrice: 5.99,
         pricePerKm: 0.5,
         estimatedDeliveryTime: 30,
-        enableRealTimeTracking: true,
-      },
+        enableRealTimeTracking: true},
       notifications: {
         enableEmailNotifications: true,
         enableSmsNotifications: false,
         enablePushNotifications: true,
         adminEmailAlerts: true,
         userWelcomeEmail: true,
-        orderConfirmationEmail: true,
-      },
-    },
+        orderConfirmationEmail: true}},
   );
 
   // Mettre à jour l'état local quand les données arrivent
@@ -176,36 +165,27 @@ export default function AdminSettingsPage() {
       ...prev,
       [section]: {
         ...prev[section],
-        [key]: value,
-      },
-    }));
+        [key]: value}}));
     setUnsavedChanges(true);
   };
 
   const saveSettingsMutation =
-    api.admin.settings.updateSystemSettings.useMutation({
-      onSuccess: () => {
+    api.admin.settings.updateSystemSettings.useMutation({ onSuccess: () => {
         toast({
           title: "Paramètres sauvegardés",
-          description: "Les paramètres système ont été mis à jour avec succès.",
-        });
+          description: "Les paramètres système ont été mis à jour avec succès." });
         setUnsavedChanges(false);
       },
       onError: (error) => {
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description:
             error.message || "Erreur lors de la sauvegarde des paramètres.",
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   const saveSettings = async () => {
     try {
-      await saveSettingsMutation.mutateAsync({
-        settings,
-      });
+      await saveSettingsMutation.mutateAsync({ settings });
     } catch (error) {
       console.error("Erreur sauvegarde paramètres:", error);
     }

@@ -18,13 +18,9 @@ const badgeVariants = cva(
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         success:
-          "border-transparent bg-green-600 text-white [a&]:hover:bg-green-700",
-      },
-    },
+          "border-transparent bg-green-600 text-white [a&]:hover:bg-green-700"}},
     defaultVariants: {
-      variant: "default",
-    },
-  },
+      variant: "default"}},
 );
 
 function Badge({
@@ -39,7 +35,7 @@ function Badge({
   return (
     <Comp
       data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(badgeVariants({ variant  }), className)}
       {...props}
     />
   );
@@ -55,8 +51,7 @@ interface AnnouncementStatusBadgeProps {
 
 export function AnnouncementStatusBadge({
   status,
-  className,
-}: AnnouncementStatusBadgeProps) {
+  className}: AnnouncementStatusBadgeProps) {
   const getVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case "active":

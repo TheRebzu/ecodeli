@@ -15,8 +15,7 @@ import {
   FileIcon,
   HomeIcon,
   SettingsIcon,
-  ShieldIcon,
-} from "lucide-react";
+  ShieldIcon} from "lucide-react";
 import { UserRole } from "@prisma/client";
 import { cn } from "@/lib/utils/common";
 
@@ -26,16 +25,14 @@ const getRoleBadge = (role: UserRole) => {
     DELIVERER: "bg-green-100 text-green-800 border-green-300",
     MERCHANT: "bg-purple-100 text-purple-800 border-purple-300",
     PROVIDER: "bg-orange-100 text-orange-800 border-orange-300",
-    ADMIN: "bg-red-100 text-red-800 border-red-300",
-  };
+    ADMIN: "bg-red-100 text-red-800 border-red-300"};
 
   const roleLabels = {
     CLIENT: "Client",
     DELIVERER: "Livreur",
     MERCHANT: "Commerçant",
     PROVIDER: "Prestataire",
-    ADMIN: "Administrateur",
-  };
+    ADMIN: "Administrateur"};
 
   return (
     <Badge className={cn("ml-2", roleColors[role])}>{roleLabels[role]}</Badge>
@@ -48,8 +45,7 @@ export function ProfileHeader() {
     profileView,
     setProfileView,
     getAvailableSections,
-    setIsEditingProfile,
-  } = useProfileStore();
+    setIsEditingProfile} = useProfileStore();
 
   const handleEdit = () => {
     setIsEditingProfile(true);
@@ -62,16 +58,14 @@ export function ProfileHeader() {
     documents: <FileIcon className="h-4 w-4 mr-2" />,
     addresses: <HomeIcon className="h-4 w-4 mr-2" />,
     preferences: <SettingsIcon className="h-4 w-4 mr-2" />,
-    security: <ShieldIcon className="h-4 w-4 mr-2" />,
-  };
+    security: <ShieldIcon className="h-4 w-4 mr-2" />};
 
   const tabLabels = {
     info: "Informations",
     documents: "Documents",
     addresses: "Adresses",
     preferences: "Préférences",
-    security: "Sécurité",
-  };
+    security: "Sécurité"};
 
   if (isLoadingProfile) {
     return (

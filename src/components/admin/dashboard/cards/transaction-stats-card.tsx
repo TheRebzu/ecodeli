@@ -5,8 +5,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AreaChart, BarChart, PieChart } from "@/components/ui/charts";
 import {
@@ -16,15 +15,13 @@ import {
   TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
-  Info,
-} from "lucide-react";
+  Info} from "lucide-react";
 import { formatCurrency, generateChartColors } from "@/utils/document-utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 
 interface TransactionData {
   period: string;
@@ -72,8 +69,7 @@ export function TransactionStatsCard({
   revenueGrowth,
   commissionRate,
   averageTransactionValue,
-  className = "",
-}: TransactionStatsCardProps) {
+  className = ""}: TransactionStatsCardProps) {
   // Calculs automatiques si les valeurs ne sont pas fournies
   const calculatedTotalRevenue =
     totalRevenue ?? data.reduce((sum, item) => sum + item.revenue, 0);
@@ -113,14 +109,12 @@ export function TransactionStatsCard({
       : 0);
 
   // Préparation des données pour les graphiques
-  const chartData = data.map((item) => ({
-    period: item.period,
+  const chartData = data.map((item) => ({ period: item.period,
     revenue: item.revenue,
     commissions: item.commissions,
     transactions: item.transactions,
     netRevenue: item.revenue - item.commissions,
-    fees: item.fees || 0,
-  }));
+    fees: item.fees || 0 }));
 
   const getChartCategories = () => {
     switch (type) {
@@ -322,8 +316,7 @@ export function TransactionStatsCard({
                       : "bg-red-500"
                 }`}
                 style={{
-                  width: `${Math.min(100, Math.max(0, calculatedRevenueGrowth + 50))}%`,
-                }}
+                  width: `${Math.min(100, Math.max(0, calculatedRevenueGrowth + 50))}%`}}
               />
             </div>
           </div>

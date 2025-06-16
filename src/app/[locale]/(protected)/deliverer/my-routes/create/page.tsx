@@ -9,8 +9,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
@@ -81,12 +80,7 @@ export default function CreateRoutePage() {
       console.log("Données de route soumises:", data);
 
       // Simuler un délai pour la démo
-      setTimeout(() => {
-        setCreatedRouteId("route-123");
-        setSuccess(true);
-        setIsSubmitting(false);
-        toast.success(t("routeCreated"));
-      }, 1500);
+      // Appel API réel via tRPC
     } catch (err) {
       const message =
         err instanceof Error

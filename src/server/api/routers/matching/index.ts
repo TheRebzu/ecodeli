@@ -1,9 +1,10 @@
 /**
- * Index automatiquement généré pour C:\Users\Amine\WebstormProjects\ecodeli\src\server\api\routers\matching
- * Généré le: 06/06/2025 13:30:10
+ * Index pour les services de matching et livraison
+ * Services pour la correspondance d'annonces, livraisons partielles et optimisation de routes
  */
 
-// Exports des fichiers locaux
-export * from "./matching-notification.router";
+// Services de matching principaux
 export * from "./matching.router";
+export * from "./matching-notification.router";
 export * from "./route-matching.router";
+export * from "./partial-delivery.router";

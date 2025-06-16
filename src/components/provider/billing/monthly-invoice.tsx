@@ -23,8 +23,7 @@ import {
   Users,
   CheckCircle,
   AlertCircle,
-  XCircle,
-} from "lucide-react";
+  XCircle} from "lucide-react";
 
 // Types
 interface MonthlyInvoice {
@@ -71,8 +70,7 @@ interface MonthlyInvoiceProps {
 export function MonthlyInvoice({
   invoice,
   onDownload,
-  onView,
-}: MonthlyInvoiceProps) {
+  onView}: MonthlyInvoiceProps) {
   const t = useTranslations("providerBilling");
 
   const getStatusColor = (status: string) => {
@@ -106,7 +104,7 @@ export function MonthlyInvoice({
   };
 
   const formatPeriod = (startDate: Date, endDate: Date) => {
-    return `${format(startDate, "d MMM", { locale: fr })} - ${format(endDate, "d MMM yyyy", { locale: fr })}`;
+    return `${format(startDate, "d MMM", { locale })} - ${format(endDate, "d MMM yyyy", { locale })}`;
   };
 
   return (
@@ -228,7 +226,7 @@ export function MonthlyInvoice({
               <div>
                 <p className="text-muted-foreground">{t("issuedAt")}</p>
                 <p className="font-medium">
-                  {format(invoice.issuedAt, "d MMM yyyy", { locale: fr })}
+                  {format(invoice.issuedAt, "d MMM yyyy", { locale })}
                 </p>
               </div>
             </div>
@@ -240,7 +238,7 @@ export function MonthlyInvoice({
               <div>
                 <p className="text-muted-foreground">{t("dueDate")}</p>
                 <p className="font-medium">
-                  {format(invoice.dueDate, "d MMM yyyy", { locale: fr })}
+                  {format(invoice.dueDate, "d MMM yyyy", { locale })}
                 </p>
               </div>
             </div>
@@ -252,7 +250,7 @@ export function MonthlyInvoice({
               <div>
                 <p className="text-muted-foreground">{t("paidAt")}</p>
                 <p className="font-medium">
-                  {format(invoice.paidAt, "d MMM yyyy", { locale: fr })}
+                  {format(invoice.paidAt, "d MMM yyyy", { locale })}
                 </p>
               </div>
             </div>

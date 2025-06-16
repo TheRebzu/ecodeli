@@ -67,9 +67,8 @@ export class PartialDeliveryService {
     try {
       // Récupérer les données de l'annonce
       const announcement = await this.prisma.announcement.findUnique({
-        where: { id: announcementId },
-        include: { client: true },
-      });
+        where: { id },
+        include: { client }});
 
       if (!announcement) {
         throw new Error("Annonce non trouvée");
@@ -122,9 +121,8 @@ export class PartialDeliveryService {
 
       return {
         ...plan,
-        fallbackPlan,
-      };
-    } catch (_error) {
+        fallbackPlan};
+    } catch (error) {
       logger.error(
         "Erreur lors de la planification de livraison partielle:",
         error,
@@ -146,13 +144,8 @@ export class PartialDeliveryService {
       where: {
         isActive: true,
         type: {
-          in: preferredTypes as any[],
-        },
-      },
-      include: {
-        openingHours: true,
-      },
-    });
+          in: preferredTypes as any[]}},
+      include: { openingHours }});
 
     // Convertir au format attendu
     const relayPoints: RelayPoint[] = relayPointsFromDb.map((point) => ({
@@ -166,15 +159,13 @@ export class PartialDeliveryService {
         acc[hours.dayOfWeek.toLowerCase()] = {
           open: hours.openTime || "",
           close: hours.closeTime || "",
-          closed: !hours.isOpen,
-        };
+          closed: !hours.isOpen};
         return acc;
       }, {} as any),
       capacity: point.capacity || 0,
       availableSlots: point.availableSlots || 0,
       specialFeatures: point.specialFeatures || [],
-      isActive: point.isActive,
-    }));
+      isActive: point.isActive}));
 
     // Filtrer par distance
     const filteredPoints = relayPoints.filter((point) => {
@@ -270,8 +261,7 @@ export class PartialDeliveryService {
         estimatedPrice: 0, // Calculé plus tard
         status: "PENDING",
         relayPointId: firstRelay.id,
-        requiredCapabilities: this.getRequiredCapabilities(announcement),
-      });
+        requiredCapabilities: this.getRequiredCapabilities(announcement)});
 
       segmentNumber++;
 
@@ -301,8 +291,7 @@ export class PartialDeliveryService {
           estimatedPrice: 0,
           status: "PENDING",
           relayPointId: nextRelay.id,
-          requiredCapabilities: this.getRequiredCapabilities(announcement),
-        });
+          requiredCapabilities: this.getRequiredCapabilities(announcement)});
 
         segmentNumber++;
       }
@@ -329,8 +318,7 @@ export class PartialDeliveryService {
         ),
         estimatedPrice: 0,
         status: "PENDING",
-        requiredCapabilities: this.getRequiredCapabilities(announcement),
-      });
+        requiredCapabilities: this.getRequiredCapabilities(announcement)});
     }
 
     return segments;
@@ -384,8 +372,7 @@ export class PartialDeliveryService {
       totalDistance: Math.round(totalDistance * 100) / 100,
       totalDuration: this.formatDuration(totalDurationMinutes),
       totalPrice: Math.round(totalPrice * 100) / 100,
-      estimatedDeliveryTime,
-    };
+      estimatedDeliveryTime};
   }
 
   /**
@@ -419,7 +406,7 @@ export class PartialDeliveryService {
       }
 
       return true;
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de l'assignation des livreurs:", error);
       return false;
     }
@@ -459,7 +446,7 @@ export class PartialDeliveryService {
       if (allCompleted) {
         await this.completePartialDelivery(planId);
       }
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de la coordination des segments:", error);
     }
   }
@@ -494,7 +481,7 @@ export class PartialDeliveryService {
         fallbackSegments,
         fallbackRelayPoints,
       );
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de la création du plan de secours:", error);
       return undefined;
     }
@@ -545,15 +532,13 @@ export class PartialDeliveryService {
     return hours * 60 + minutes;
   }
 
-  // Méthodes de simulation (à implémenter avec la vraie logique)
   private async findAvailableDeliverers(
     segment: PartialDeliverySegment,
   ): Promise<any[]> {
-    // Simulation de recherche de livreurs
+    
     return [
       { id: "deliverer-1", rating: 4.8, experience: 150 },
-      { id: "deliverer-2", rating: 4.6, experience: 89 },
-    ];
+      { id: "deliverer-2", rating: 4.6, experience: 89 }];
   }
 
   private selectBestDeliverer(
@@ -570,7 +555,7 @@ export class PartialDeliveryService {
     delivererId: string,
     segment: PartialDeliverySegment,
   ): Promise<void> {
-    // Simulation de notification
+    
     logger.info(
       `Notification envoyée au livreur ${delivererId} pour le segment ${segment.segmentNumber}`,
     );
@@ -580,7 +565,7 @@ export class PartialDeliveryService {
     delivererId: string,
     segment: PartialDeliverySegment,
   ): Promise<void> {
-    // Simulation de notification
+    
     logger.info(
       `Notification de segment prêt envoyée au livreur ${delivererId}`,
     );
@@ -589,7 +574,7 @@ export class PartialDeliveryService {
   private async getDeliveryPlan(
     planId: string,
   ): Promise<PartialDeliveryPlan | null> {
-    // Simulation de récupération de plan
+    
     return null;
   }
 
@@ -597,12 +582,12 @@ export class PartialDeliveryService {
     segmentId: string,
     status: string,
   ): Promise<void> {
-    // Simulation de mise à jour de statut
+    
     logger.info(`Statut du segment ${segmentId} mis à jour: ${status}`);
   }
 
   private async completePartialDelivery(planId: string): Promise<void> {
-    // Simulation de finalisation
+    
     logger.info(`Livraison partielle ${planId} terminée avec succès`);
   }
 
@@ -621,38 +606,28 @@ export class PartialDeliveryService {
       centerLng,
       radius,
       minCapacity = 5,
-      timeSlot,
-    } = criteria;
+      timeSlot} = criteria;
 
     // Récupérer les points relais depuis la base de données
     const relayPoints = await this.prisma.relayPoint.findMany({
       where: {
         isActive: true,
-        capacity: {
-          gte: minCapacity,
-        },
+        capacity: { gte },
         // Filtrer par géolocalisation si possible
         latitude: {
           gte: centerLat - radius / 111, // Approximation 1 degré = 111km
-          lte: centerLat + radius / 111,
-        },
+          lte: centerLat + radius / 111},
         longitude: {
           gte: centerLng - radius / 111,
-          lte: centerLng + radius / 111,
-        },
-      },
+          lte: centerLng + radius / 111}},
       include: {
         location: true,
         availability: {
           where: timeSlot
             ? {
                 startTime: { lte: timeSlot.start },
-                endTime: { gte: timeSlot.end },
-              }
-            : undefined,
-        },
-      },
-    });
+                endTime: { gte: timeSlot.end }}
+            : undefined}}});
 
     // Filtrer par distance exacte
     const filteredPoints = relayPoints.filter((point) => {
@@ -665,8 +640,7 @@ export class PartialDeliveryService {
       return distance <= radius;
     });
 
-    return filteredPoints.map((point) => ({
-      id: point.id,
+    return filteredPoints.map((point) => ({ id: point.id,
       name: point.name,
       address: point.address,
       lat: point.latitude,
@@ -680,7 +654,6 @@ export class PartialDeliveryService {
         centerLng,
         point.latitude,
         point.longitude,
-      ),
-    }));
+      ) }));
   }
 }

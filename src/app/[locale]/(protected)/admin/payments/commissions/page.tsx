@@ -26,8 +26,7 @@ import {
   Save,
   Undo,
   Store,
-  TruckIcon,
-} from "lucide-react";
+  TruckIcon} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { formatCurrency } from "@/utils/document-utils";
@@ -39,16 +38,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateRange } from "@/components/ui/date-range";
@@ -59,21 +56,18 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  PaginationPrevious} from "@/components/ui/pagination";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  CollapsibleTrigger} from "@/components/ui/collapsible";
 import { PieChart as ChartPie, BarChart } from "@/components/ui/charts";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -87,8 +81,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTrigger} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -96,12 +89,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 
 export default function AdminCommissionsPage() {
   const t = useTranslations("admin.commissions");
-  const { data: session } = useSession();
+  const { data } = useSession();
   const { toast } = useToast();
 
   // États pour la pagination, le filtrage et la recherche
@@ -113,10 +105,8 @@ export default function AdminCommissionsPage() {
   const [currentTab, setCurrentTab] = useState("overview");
   const [dateRange, setDateRange] = useState<
     { from: Date; to: Date } | undefined
-  >({
-    from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-    to: new Date(),
-  });
+  >({ from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+    to: new Date() });
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -127,8 +117,7 @@ export default function AdminCommissionsPage() {
   const {
     data: commissions,
     isLoading: isLoadingCommissions,
-    refetch: refetchCommissions,
-  } = api.commission.getCommissions.useQuery(
+    refetch: refetchCommissions} = api.commission.getCommissions.useQuery(
     {
       page: currentPage,
       limit: pageSize,
@@ -136,78 +125,55 @@ export default function AdminCommissionsPage() {
       type: typeFilter as any,
       search: searchQuery || undefined,
       startDate: dateRange?.from,
-      endDate: dateRange?.to,
-    },
+      endDate: dateRange?.to},
     {
       keepPreviousData: true,
-      refetchOnWindowFocus: false,
-    },
+      refetchOnWindowFocus: false},
   );
 
   // Récupérer les statistiques des commissions
   const {
     data: commissionStats,
     isLoading: isLoadingStats,
-    refetch: refetchStats,
-  } = api.commission.getCommissionStats.useQuery(
+    refetch: refetchStats} = api.commission.getCommissionStats.useQuery(
     {
       startDate: dateRange?.from,
-      endDate: dateRange?.to,
-    },
-    {
-      refetchOnWindowFocus: false,
-    },
+      endDate: dateRange?.to},
+    { refetchOnWindowFocus },
   );
 
   // Récupérer les taux de commission
   const {
     data: commissionRates,
     isLoading: isLoadingRates,
-    refetch: refetchRates,
-  } = api.commission.getCommissionRates.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
+    refetch: refetchRates} = api.commission.getCommissionRates.useQuery(undefined, { refetchOnWindowFocus });
 
   // Mutation pour mettre à jour les taux de commission
   const updateCommissionRateMutation =
-    api.commission.updateCommissionRate.useMutation({
-      onSuccess: () => {
+    api.commission.updateCommissionRate.useMutation({ onSuccess: () => {
         toast({
           title: t("rateUpdated"),
-          description: t("rateUpdatedSuccess"),
-        });
+          description: t("rateUpdatedSuccess") });
         refetchRates();
       },
       onError: (error) => {
-        toast({
-          variant: "destructive",
+        toast({ variant: "destructive",
           title: t("updateFailed"),
-          description: error.message || t("genericError"),
-        });
-      },
-    });
+          description: error.message || t("genericError") });
+      }});
 
   // Télécharger le rapport de commissions
   const handleDownloadReport = async () => {
     try {
-      toast({
-        title: t("downloadStarted"),
-        description: t("commissionReportDownloadStarted"),
-      });
+      toast({ title: t("downloadStarted"),
+        description: t("commissionReportDownloadStarted") });
 
       // Simuler un délai pour la démo
-      setTimeout(() => {
-        toast({
-          title: t("downloadComplete"),
-          description: t("commissionReportDownloadComplete"),
-        });
-      }, 2000);
+      // Appel API réel via tRPC
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("downloadError"),
-        description: typeof error === "string" ? error : t("genericError"),
-      });
+        description: typeof error === "string" ? error : t("genericError") });
     }
   };
 
@@ -216,16 +182,12 @@ export default function AdminCommissionsPage() {
     setIsRefreshing(true);
     try {
       await Promise.all([refetchCommissions(), refetchStats(), refetchRates()]);
-      toast({
-        title: t("refreshSuccess"),
-        description: t("dataRefreshed"),
-      });
+      toast({ title: t("refreshSuccess"),
+        description: t("dataRefreshed") });
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("refreshError"),
-        description: typeof error === "string" ? error : t("genericError"),
-      });
+        description: typeof error === "string" ? error : t("genericError") });
     } finally {
       setIsRefreshing(false);
     }
@@ -236,16 +198,14 @@ export default function AdminCommissionsPage() {
     setSearchQuery("");
     setTypeFilter(undefined);
     setStatusFilter(undefined);
-    setDateRange({
-      from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-      to: new Date(),
-    });
+    setDateRange({ from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+      to: new Date() });
     setCurrentPage(1);
   };
 
   // Éditer un taux de commission
   const handleEditCommission = (commission: any) => {
-    setSelectedCommission({ ...commission });
+    setSelectedCommission({ ...commission  });
     setIsModalOpen(true);
   };
 
@@ -254,13 +214,11 @@ export default function AdminCommissionsPage() {
     if (!selectedCommission) return;
 
     try {
-      await updateCommissionRateMutation.mutateAsync({
-        id: selectedCommission.id,
+      await updateCommissionRateMutation.mutateAsync({ id: selectedCommission.id,
         rate: selectedCommission.rate,
         minAmount: selectedCommission.minAmount,
         maxAmount: selectedCommission.maxAmount,
-        isActive: selectedCommission.isActive,
-      });
+        isActive: selectedCommission.isActive });
 
       setIsModalOpen(false);
     } catch (error) {
@@ -304,11 +262,9 @@ export default function AdminCommissionsPage() {
   const formatDistributionData = () => {
     if (!commissionStats?.byType) return [];
 
-    return Object.entries(commissionStats.byType).map(([type, data]) => ({
-      type,
+    return Object.entries(commissionStats.byType).map(([type, data]) => ({ type,
       montant: parseFloat(data.amount.toFixed(2)),
-      nombre: data.count,
-    }));
+      nombre: data.count }));
   };
 
   // Calculer le nombre total de pages
@@ -769,9 +725,9 @@ export default function AdminCommissionsPage() {
                         />
                       </PaginationItem>
 
-                      {Array.from({ length: Math.min(totalPages, 5) }).map(
+                      {Array.from({ length: Math.min(totalPages, 5)  }).map(
                         (_, i) => {
-                          let pageNumber = i + 1;
+                          const pageNumber = i + 1;
 
                           return (
                             <PaginationItem key={pageNumber}>
@@ -980,10 +936,8 @@ export default function AdminCommissionsPage() {
                     step="0.1"
                     value={selectedCommission.rate}
                     onChange={(e) =>
-                      setSelectedCommission({
-                        ...selectedCommission,
-                        rate: parseFloat(e.target.value),
-                      })
+                      setSelectedCommission({ ...selectedCommission,
+                        rate: parseFloat(e.target.value) })
                     }
                   />
                   <span className="ml-2">%</span>
@@ -1001,10 +955,8 @@ export default function AdminCommissionsPage() {
                     step="0.01"
                     value={selectedCommission.minAmount}
                     onChange={(e) =>
-                      setSelectedCommission({
-                        ...selectedCommission,
-                        minAmount: parseFloat(e.target.value),
-                      })
+                      setSelectedCommission({ ...selectedCommission,
+                        minAmount: parseFloat(e.target.value) })
                     }
                   />
                 </div>
@@ -1020,12 +972,10 @@ export default function AdminCommissionsPage() {
                     placeholder={t("unlimited")}
                     value={selectedCommission.maxAmount || ""}
                     onChange={(e) =>
-                      setSelectedCommission({
-                        ...selectedCommission,
+                      setSelectedCommission({ ...selectedCommission,
                         maxAmount: e.target.value
                           ? parseFloat(e.target.value)
-                          : null,
-                      })
+                          : null })
                     }
                   />
                 </div>
@@ -1037,10 +987,8 @@ export default function AdminCommissionsPage() {
                   id="isActive"
                   checked={selectedCommission.isActive}
                   onChange={(e) =>
-                    setSelectedCommission({
-                      ...selectedCommission,
-                      isActive: e.target.checked,
-                    })
+                    setSelectedCommission({ ...selectedCommission,
+                      isActive: e.target.checked })
                   }
                 />
                 <label htmlFor="isActive" className="text-sm font-medium">

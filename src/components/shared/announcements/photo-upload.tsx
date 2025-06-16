@@ -18,8 +18,7 @@ interface PhotoUploadProps {
 export function PhotoUpload({
   initialPhotos = [],
   onChange,
-  maxPhotos = 5,
-}: PhotoUploadProps) {
+  maxPhotos = 5}: PhotoUploadProps) {
   const t = useTranslations("announcements");
   const [photos, setPhotos] = useState<string[]>(initialPhotos);
   const [uploading, setUploading] = useState(false);
@@ -36,8 +35,7 @@ export function PhotoUpload({
       // Envoyer au point d'API d'upload
       const response = await fetch("/api/upload", {
         method: "POST",
-        body: formData,
-      });
+        body: formData});
 
       if (!response.ok) {
         throw new Error(t("uploadError"));
@@ -58,7 +56,7 @@ export function PhotoUpload({
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (photos.length + acceptedFiles.length > maxPhotos) {
-        toast.error(t("maxPhotosError", { max: maxPhotos }));
+        toast.error(t("maxPhotosError", { max }));
         return;
       }
 
@@ -87,11 +85,9 @@ export function PhotoUpload({
     accept: {
       "image/jpeg": [".jpg", ".jpeg"],
       "image/png": [".png"],
-      "image/webp": [".webp"],
-    },
+      "image/webp": [".webp"]},
     maxSize: 5 * 1024 * 1024, // 5 MB
-    multiple: true,
-  });
+    multiple: true});
 
   // Supprimer une photo
   const removePhoto = (index: number) => {

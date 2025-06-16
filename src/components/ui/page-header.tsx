@@ -12,8 +12,7 @@ export function PageHeader({
   heading,
   description,
   children,
-  className,
-}: PageHeaderProps) {
+  className}: PageHeaderProps) {
   return (
     <div className={cn("flex flex-col gap-1 pb-5", className)}>
       <div className="flex justify-between items-start">

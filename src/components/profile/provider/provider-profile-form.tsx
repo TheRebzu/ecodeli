@@ -6,8 +6,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,15 +15,13 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { SaveIcon, XIcon } from "lucide-react";
 import { useProfile } from "@/hooks/shared/use-profile";
 import { useProfileStore } from "@/store/use-profile-store";
 import {
   updateProviderProfileSchema,
-  type UpdateProviderProfile,
-} from "@/schemas/user/profile.schema";
+  type UpdateProviderProfile} from "@/schemas/user/profile.schema";
 
 export function ProviderProfileForm() {
   const { profile, roleSpecificProfile, updateProfile, isUpdatingProfile } =
@@ -36,9 +33,7 @@ export function ProviderProfileForm() {
     defaultValues: {
       companyName: roleSpecificProfile?.companyName || "",
       serviceType: roleSpecificProfile?.serviceType || "",
-      serviceRadius: roleSpecificProfile?.serviceRadius || 0,
-    },
-  });
+      serviceRadius: roleSpecificProfile?.serviceRadius || 0}});
 
   const onSubmit = (data: UpdateProviderProfile) => {
     updateProfile(data);
@@ -60,7 +55,7 @@ export function ProviderProfileForm() {
             <FormField
               control={form.control}
               name="companyName"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>Nom de l'entreprise</FormLabel>
                   <FormControl>
@@ -74,7 +69,7 @@ export function ProviderProfileForm() {
             <FormField
               control={form.control}
               name="serviceType"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>Type de service</FormLabel>
                   <FormControl>
@@ -88,7 +83,7 @@ export function ProviderProfileForm() {
             <FormField
               control={form.control}
               name="serviceRadius"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>Rayon de service (km)</FormLabel>
                   <FormControl>

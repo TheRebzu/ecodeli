@@ -13,8 +13,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Calendar, Clock, MapPin, Package2, Truck } from "lucide-react";
 import { DeliveryStatus } from "@prisma/client";
 import { formatDate, formatTime } from "@/utils/document-utils";
@@ -31,11 +30,9 @@ type DeliveryFilters = {
 export default function DelivererDeliveriesPage() {
   const t = useTranslations("deliveries");
   const router = useRouter();
-  const [filters, setFilters] = useState<DeliveryFilters>({
-    status: "all",
+  const [filters, setFilters] = useState<DeliveryFilters>({ status: "all",
     sortBy: "dateAsc",
-    search: "",
-  });
+    search: "" });
   const [userLocation, setUserLocation] = useLocalStorage<{
     lat: number;
     lng: number;
@@ -45,24 +42,20 @@ export default function DelivererDeliveriesPage() {
   React.useEffect(() => {
     if (navigator.geolocation && !userLocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
+        setUserLocation({ lat: position.coords.latitude,
+          lng: position.coords.longitude });
       });
     }
   }, [userLocation, setUserLocation]);
 
   // Récupérer les livraisons avec tRPC
   const { data: deliveries, isLoading } =
-    api.deliveries.getDelivererDeliveries.useQuery({
-      status:
+    api.deliveries.getDelivererDeliveries.useQuery({ status:
         filters.status === "all"
           ? undefined
           : (filters.status as DeliveryStatus),
       coordinates: userLocation,
-      sortBy: filters.sortBy,
-    });
+      sortBy: filters.sortBy });
 
   // Filtrer par recherche côté client
   const filteredDeliveries = React.useMemo(() => {
@@ -85,12 +78,10 @@ export default function DelivererDeliveriesPage() {
 
   const statusColorMap: Record<DeliveryStatus, string> = {
     PENDING: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    ACCEPTED: "bg-blue-100 text-blue-800 border-blue-300",
-    IN_TRANSIT: "bg-purple-100 text-purple-800 border-purple-300",
+    ACCEPTED: "bg-blue-100 text-blue-800 border-blue-300", IN_TRANSIT: "bg-purple-100 text-purple-800 border-purple-300",
     DELIVERED: "bg-green-100 text-green-800 border-green-300",
     FAILED: "bg-red-100 text-red-800 border-red-300",
-    CANCELLED: "bg-gray-100 text-gray-800 border-gray-300",
-  };
+    CANCELLED: "bg-gray-100 text-gray-800 border-gray-300"};
 
   // Fonction pour naviguer vers les détails d'une livraison
   const handleDeliveryClick = (id: string) => {
@@ -116,7 +107,7 @@ export default function DelivererDeliveriesPage() {
                 placeholder={t("filters.searchPlaceholder")}
                 value={filters.search}
                 onChange={(e) =>
-                  setFilters({ ...filters, search: e.target.value })
+                  setFilters({ ...filters, search: e.target.value  })
                 }
                 className="w-full"
               />
@@ -125,7 +116,7 @@ export default function DelivererDeliveriesPage() {
               <Select
                 value={filters.status}
                 onValueChange={(value) =>
-                  setFilters({ ...filters, status: value })
+                  setFilters({ ...filters, status: value  })
                 }
               >
                 <SelectTrigger className="w-full">
@@ -150,7 +141,7 @@ export default function DelivererDeliveriesPage() {
               <Select
                 value={filters.sortBy}
                 onValueChange={(value) =>
-                  setFilters({ ...filters, sortBy: value as any })
+                  setFilters({ ...filters, sortBy: value as any  })
                 }
               >
                 <SelectTrigger className="w-full">
@@ -187,7 +178,7 @@ export default function DelivererDeliveriesPage() {
           <TabsContent key={tab} value={tab} className="space-y-4 mt-4">
             {isLoading ? (
               // Skeleton loader
-              Array.from({ length: 5 }).map((_, i) => (
+              Array.from({ length: 5  }).map((_, i) => (
                 <Card key={i} className="overflow-hidden mb-3">
                   <CardContent className="p-0">
                     <div className="p-4">

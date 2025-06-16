@@ -1,8 +1,7 @@
 export enum DocumentStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-}
+  REJECTED = "REJECTED"}
 
 export enum DocumentType {
   ID_CARD = "ID_CARD",
@@ -12,8 +11,7 @@ export enum DocumentType {
   CRIMINAL_RECORD = "CRIMINAL_RECORD",
   PROFESSIONAL_CERTIFICATION = "PROFESSIONAL_CERTIFICATION",
   SELFIE = "SELFIE",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 export interface Document {
   id: string;

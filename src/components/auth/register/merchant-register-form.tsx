@@ -5,8 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import {
   merchantRegisterSchema,
-  MerchantRegisterSchemaType,
-} from "@/schemas/merchant/merchant-register.schema";
+  MerchantRegisterSchemaType} from "@/schemas/merchant/merchant-register.schema";
 import { UserRole } from "@/schemas/auth/register.schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +14,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
@@ -28,22 +26,17 @@ export default function MerchantRegisterForm() {
   const t = useTranslations("auth.register");
   const { toast } = useToast();
 
-  const registerMutation = api.auth.register.useMutation({
-    onSuccess: () => {
+  const registerMutation = api.auth.register.useMutation({ onSuccess: () => {
       toast({
         title: t("success.title"),
-        description: t("success.merchant"),
-      });
+        description: t("success.merchant") });
       router.push("/login?registered=true&role=merchant");
     },
     onError: (error) => {
-      toast({
-        title: t("error.title"),
+      toast({ title: t("error.title"),
         description: error.message || t("error.description"),
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const form = useForm<MerchantRegisterSchemaType>({
     resolver: zodResolver(merchantRegisterSchema),
@@ -62,21 +55,17 @@ export default function MerchantRegisterForm() {
       siret: "",
       businessType: "",
       description: "",
-      role: UserRole.MERCHANT,
-    },
-  });
+      role: UserRole.MERCHANT}});
 
   async function onSubmit(data: MerchantRegisterSchemaType) {
     try {
-      await registerMutation.mutateAsync({
-        email: data.email,
+      await registerMutation.mutateAsync({ email: data.email,
         password: data.password,
         name: data.name,
         role: "MERCHANT",
         phone: data.phoneNumber,
         companyName: data.companyName,
-        address: data.address,
-      });
+        address: data.address });
     } catch (error) {
       // L'erreur est déjà gérée par onError
     }
@@ -91,7 +80,7 @@ export default function MerchantRegisterForm() {
           <FormField
             control={form.control as any}
             name="name"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.name")}</FormLabel>
                 <FormControl>
@@ -105,7 +94,7 @@ export default function MerchantRegisterForm() {
           <FormField
             control={form.control as any}
             name="email"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.email")}</FormLabel>
                 <FormControl>
@@ -123,7 +112,7 @@ export default function MerchantRegisterForm() {
           <FormField
             control={form.control as any}
             name="phoneNumber"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.phone")}</FormLabel>
                 <FormControl>
@@ -142,7 +131,7 @@ export default function MerchantRegisterForm() {
             <FormField
               control={form.control as any}
               name="password"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("fields.password")}</FormLabel>
                   <FormControl>
@@ -160,7 +149,7 @@ export default function MerchantRegisterForm() {
             <FormField
               control={form.control as any}
               name="confirmPassword"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("fields.confirmPassword")}</FormLabel>
                   <FormControl>
@@ -183,7 +172,7 @@ export default function MerchantRegisterForm() {
           <FormField
             control={form.control as any}
             name="companyName"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.companyName")}</FormLabel>
                 <FormControl>
@@ -200,7 +189,7 @@ export default function MerchantRegisterForm() {
           <FormField
             control={form.control as any}
             name="companyEmail"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.companyEmail")}</FormLabel>
                 <FormControl>
@@ -218,7 +207,7 @@ export default function MerchantRegisterForm() {
           <FormField
             control={form.control as any}
             name="companyPhone"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.companyPhone")}</FormLabel>
                 <FormControl>
@@ -242,7 +231,7 @@ export default function MerchantRegisterForm() {
           <FormField
             control={form.control as any}
             name="address"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.address")}</FormLabel>
                 <FormControl>
@@ -257,7 +246,7 @@ export default function MerchantRegisterForm() {
             <FormField
               control={form.control as any}
               name="city"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("fields.city")}</FormLabel>
                   <FormControl>
@@ -271,7 +260,7 @@ export default function MerchantRegisterForm() {
             <FormField
               control={form.control as any}
               name="postalCode"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("fields.postalCode")}</FormLabel>
                   <FormControl>
@@ -290,7 +279,7 @@ export default function MerchantRegisterForm() {
             <FormField
               control={form.control as any}
               name="siret"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("fields.siret")}</FormLabel>
                   <FormControl>
@@ -304,7 +293,7 @@ export default function MerchantRegisterForm() {
             <FormField
               control={form.control as any}
               name="businessType"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("fields.businessType")}</FormLabel>
                   <FormControl>
@@ -326,7 +315,7 @@ export default function MerchantRegisterForm() {
           <FormField
             control={form.control as any}
             name="description"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.description")}</FormLabel>
                 <FormControl>

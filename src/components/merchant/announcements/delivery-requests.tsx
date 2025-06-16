@@ -13,8 +13,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import { api } from "@/trpc/react";
 import { formatDate, formatCurrency } from "@/utils/document-utils";
 import {
@@ -25,8 +24,7 @@ import {
   User,
   MapPin,
   Calendar,
-  FileText,
-} from "lucide-react";
+  FileText} from "lucide-react";
 import { toast } from "sonner";
 
 interface DeliveryRequest {
@@ -56,8 +54,7 @@ interface DeliveryRequestsProps {
 export function DeliveryRequests({
   announcementId,
   requests = [],
-  isLoading = false,
-}: DeliveryRequestsProps) {
+  isLoading = false}: DeliveryRequestsProps) {
   const t = useTranslations("announcements");
   const [selectedRequest, setSelectedRequest] =
     useState<DeliveryRequest | null>(null);
@@ -71,8 +68,7 @@ export function DeliveryRequests({
     },
     onError: (error) => {
       toast.error(error.message);
-    },
-  });
+    }});
 
   // Mutation pour refuser une candidature
   const rejectApplicationMutation =
@@ -83,15 +79,12 @@ export function DeliveryRequests({
       },
       onError: (error) => {
         toast.error(error.message);
-      },
-    });
+      }});
 
   const handleAccept = async (applicationId: string) => {
     try {
-      await assignDelivererMutation.mutateAsync({
-        announcementId,
-        applicationId,
-      });
+      await assignDelivererMutation.mutateAsync({ announcementId,
+        applicationId });
     } catch (err) {
       // Error is handled in onError
     }
@@ -99,10 +92,8 @@ export function DeliveryRequests({
 
   const handleReject = async (applicationId: string) => {
     try {
-      await rejectApplicationMutation.mutateAsync({
-        applicationId,
-        status: "REJECTED",
-      });
+      await rejectApplicationMutation.mutateAsync({ applicationId,
+        status: "REJECTED" });
     } catch (err) {
       // Error is handled in onError
     }

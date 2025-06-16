@@ -13,39 +13,32 @@ const MERCHANT_TUTORIAL_STEPS = [
     id: "welcome",
     title: "steps.welcome.title",
     description: "steps.welcome.description",
-    image: "/images/onboarding/merchant/welcome.png",
-  },
+    image: "/images/onboarding/merchant/welcome.png"},
   {
     id: "dashboard",
     title: "steps.dashboard.title",
     description: "steps.dashboard.description",
-    image: "/images/onboarding/merchant/dashboard.png",
-  },
+    image: "/images/onboarding/merchant/dashboard.png"},
   {
     id: "contract",
     title: "steps.contract.title",
     description: "steps.contract.description",
-    image: "/images/onboarding/merchant/contract.png",
-  },
+    image: "/images/onboarding/merchant/contract.png"},
   {
     id: "announcements",
     title: "steps.announcements.title",
     description: "steps.announcements.description",
-    image: "/images/onboarding/merchant/announcements.png",
-  },
+    image: "/images/onboarding/merchant/announcements.png"},
   {
     id: "deliveries",
     title: "steps.deliveries.title",
     description: "steps.deliveries.description",
-    image: "/images/onboarding/merchant/deliveries.png",
-  },
+    image: "/images/onboarding/merchant/deliveries.png"},
   {
     id: "invoices",
     title: "steps.invoices.title",
     description: "steps.invoices.description",
-    image: "/images/onboarding/merchant/invoices.png",
-  },
-];
+    image: "/images/onboarding/merchant/invoices.png"}];
 
 type MerchantTutorialProps = {
   options?: {
@@ -62,8 +55,7 @@ export function MerchantTutorial({ options }: MerchantTutorialProps) {
     completeOnboarding,
     skipOnboarding,
     isCompleting = false,
-    setStepsConfiguration,
-  } = useOnboarding();
+    setStepsConfiguration} = useOnboarding();
 
   const t = useTranslations("Merchant.Onboarding");
 

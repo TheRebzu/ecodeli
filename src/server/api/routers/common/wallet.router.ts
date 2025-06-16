@@ -8,15 +8,13 @@ import {
   getWalletBalance,
   listWalletTransactions,
   createWalletTransaction,
-  calculateEarnings,
-} from "@/server/services/shared/wallet.service";
+  calculateEarnings} from "@/server/services/shared/wallet.service";
 import { TransactionType } from "@prisma/client";
 import { isRoleAllowed } from "@/lib/auth/auth-helpers";
 import { db } from "@/server/db";
 import {
   WalletConfigSchema,
-  requestWithdrawalSchema,
-} from "@/schemas/payment/wallet.schema";
+  requestWithdrawalSchema} from "@/schemas/payment/wallet.schema";
 import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 /**
@@ -24,11 +22,10 @@ import { startOfMonth, endOfMonth, subMonths } from "date-fns";
  * Fournit des endpoints pour consulter les soldes, l'historique des transactions,
  * et gérer la configuration des portefeuilles
  */
-export const walletRouter = router({
-  /**
+export const walletRouter = router({ /**
    * Récupère le portefeuille de l'utilisateur connecté
    */
-  getMyWallet: protectedProcedure.query(async ({ _ctx }) => {
+  getMyWallet: protectedProcedure.query(async ({ ctx  }) => {
     try {
       const userId = ctx.session.user.id;
       const wallet = await getOrCreateWallet(userId);
@@ -46,26 +43,21 @@ export const walletRouter = router({
       const pendingWithdrawals = await ctx.db.withdrawalRequest.findMany({
         where: {
           walletId: wallet.id,
-          status: "PENDING",
-        },
+          status: "PENDING"},
         select: {
           id: true,
           amount: true,
           requestedAt: true,
-          estimatedArrival: true,
-        },
-      });
+          estimatedArrival: true}});
 
       // Calculer les gains de ce mois et du mois précédent
       const earningsThisMonth = await calculateEarnings(wallet.id, {
         startDate: firstDayOfMonth,
-        endDate: lastDayOfMonth,
-      });
+        endDate: lastDayOfMonth});
 
       const earningsPreviousMonth = await calculateEarnings(wallet.id, {
         startDate: firstDayPreviousMonth,
-        endDate: lastDayPreviousMonth,
-      });
+        endDate: lastDayPreviousMonth});
 
       return {
         wallet,
@@ -74,16 +66,12 @@ export const walletRouter = router({
           earningsThisMonth,
           earningsPreviousMonth,
           totalEarned: wallet.totalEarned || 0,
-          totalWithdrawn: wallet.totalWithdrawn || 0,
-        },
-      };
+          totalWithdrawn: wallet.totalWithdrawn || 0}};
     } catch (error: any) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message:
           error.message || "Erreur lors de la récupération du portefeuille",
-        cause: error,
-      });
+        cause: error });
     }
   }),
 
@@ -91,7 +79,7 @@ export const walletRouter = router({
    * Récupère un résumé du portefeuille client pour la page payments
    * Utilisé spécifiquement par la page payments du client
    */
-  getClientWalletSummary: protectedProcedure.query(async ({ _ctx }) => {
+  getClientWalletSummary: protectedProcedure.query(async ({ ctx  }) => {
     try {
       const userId = ctx.session.user.id;
       const wallet = await getOrCreateWallet(userId);
@@ -108,9 +96,7 @@ export const walletRouter = router({
           status: "COMPLETED",
           createdAt: {
             gte: firstDayOfMonth,
-            lte: lastDayOfMonth,
-          },
-        },
+            lte: lastDayOfMonth}},
         orderBy: { createdAt: "desc" },
         take: 5, // Dernières 5 transactions pour l'activité récente
       });
@@ -130,54 +116,43 @@ export const walletRouter = router({
       const pendingWithdrawals = await ctx.db.withdrawalRequest.aggregate({
         where: {
           walletId: wallet.id,
-          status: "PENDING",
-        },
-        _sum: {
-          amount: true,
-        },
-      });
+          status: "PENDING"},
+        sum: { amount }});
 
       // Activité récente pour le graphique
-      const recentActivity = monthlyTransactions.map((tx) => ({
-        date: tx.createdAt,
+      const recentActivity = monthlyTransactions.map((tx) => ({ date: tx.createdAt,
         amount: Number(tx.amount),
         type:
-          Number(tx.amount) > 0 ? ("INCOMING" as const) : ("OUTGOING" as const),
-      }));
+          Number(tx.amount) > 0 ? ("INCOMING" as const) : ("OUTGOING" as const) }));
 
       return {
         balance: Number(wallet.balance),
-        pendingBalance: Number(pendingWithdrawals._sum.amount || 0),
+        pendingBalance: Number(pendingWithdrawals.sum.amount || 0),
         currency: wallet.currency,
         monthlyIncoming,
         monthlyOutgoing,
-        recentActivity,
-      };
+        recentActivity};
     } catch (error: any) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message:
           error.message ||
           "Erreur lors de la récupération du résumé du portefeuille",
-        cause: error,
-      });
+        cause: error });
     }
   }),
 
   /**
    * Récupère le solde du portefeuille de l'utilisateur
    */
-  getBalance: protectedProcedure.query(async ({ _ctx }) => {
+  getBalance: protectedProcedure.query(async ({ ctx  }) => {
     try {
       const userId = ctx.session.user.id;
       const walletBalance = await getWalletBalance(userId);
       return walletBalance;
     } catch (error: any) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: error.message || "Erreur lors de la récupération du solde",
-        cause: error,
-      });
+        cause: error });
     }
   }),
 
@@ -186,8 +161,7 @@ export const walletRouter = router({
    */
   getTransactionHistory: protectedProcedure
     .input(
-      z.object({
-        page: z.number().int().positive().default(1),
+      z.object({ page: z.number().int().positive().default(1),
         limit: z.number().int().positive().max(100).default(10),
         type: z
           .enum([
@@ -196,15 +170,13 @@ export const walletRouter = router({
             "WITHDRAWAL",
             "PLATFORM_FEE",
             "COMMISSION",
-            "ADJUSTMENT",
-          ])
+            "ADJUSTMENT"])
           .optional(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
-        sortOrder: z.enum(["asc", "desc"]).default("desc"),
-      }),
+        sortOrder: z.enum(["asc", "desc"]).default("desc") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const userId = ctx.session.user.id;
 
@@ -223,18 +195,15 @@ export const walletRouter = router({
           type: transactionType,
           startDate: input.startDate,
           endDate: input.endDate,
-          sortDirection: input.sortOrder,
-        });
+          sortDirection: input.sortOrder});
 
         return transactions;
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message ||
             "Erreur lors de la récupération de l'historique des transactions",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -243,15 +212,13 @@ export const walletRouter = router({
    */
   getWalletStats: protectedProcedure
     .input(
-      z.object({
-        period: z
+      z.object({ period: z
           .enum(["daily", "weekly", "monthly", "yearly"])
           .default("monthly"),
         startDate: z.date().optional(),
-        endDate: z.date().optional(),
-      }),
+        endDate: z.date().optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const userId = ctx.session.user.id;
         const wallet = await getOrCreateWallet(userId);
@@ -261,56 +228,41 @@ export const walletRouter = router({
           await Promise.all([
             calculateEarnings(wallet.id, {
               startDate: input.startDate,
-              endDate: input.endDate,
-            }),
+              endDate: input.endDate}),
             ctx.db.walletTransaction.aggregate({
               where: {
                 walletId: wallet.id,
                 type: "WITHDRAWAL",
                 createdAt: {
                   gte: input.startDate,
-                  lte: input.endDate,
-                },
-              },
-              _sum: {
-                amount: true,
-              },
-            }),
+                  lte: input.endDate}},
+              sum: { amount }}),
             ctx.db.withdrawalRequest.aggregate({
               where: {
                 walletId: wallet.id,
-                status: "PENDING",
-              },
-              _sum: {
-                amount: true,
-              },
-              _count: true,
-            }),
-          ]);
+                status: "PENDING"},
+              sum: { amount },
+              count: true})]);
 
         // Calculer les statistiques par période
         const periodStats = await calculateEarnings(wallet.id, {
           startDate: input.startDate,
           endDate: input.endDate,
-          groupBy: input.period,
-        });
+          groupBy: input.period});
 
         return {
           totalEarnings,
-          totalWithdrawals: Math.abs(Number(totalWithdrawals._sum.amount || 0)),
-          pendingAmount: Number(pendingWithdrawals._sum.amount || 0),
-          pendingCount: pendingWithdrawals._count,
+          totalWithdrawals: Math.abs(Number(totalWithdrawals.sum.amount || 0)),
+          pendingAmount: Number(pendingWithdrawals.sum.amount || 0),
+          pendingCount: pendingWithdrawals.count,
           periodStats,
           currentBalance: Number(wallet.balance),
-          currency: wallet.currency,
-        };
+          currency: wallet.currency};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message || "Erreur lors de la récupération des statistiques",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -319,7 +271,7 @@ export const walletRouter = router({
    */
   updateWalletConfig: protectedProcedure
     .input(WalletConfigSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const userId = ctx.session.user.id;
         const wallet = await getOrCreateWallet(userId);
@@ -331,9 +283,7 @@ export const walletRouter = router({
             minimumWithdrawalAmount: input.minimumWithdrawalAmount,
             automaticWithdrawal: input.automaticWithdrawal,
             withdrawalThreshold: input.withdrawalThreshold || 100,
-            withdrawalDay: input.withdrawalDay,
-          },
-        });
+            withdrawalDay: input.withdrawalDay}});
 
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
@@ -348,20 +298,15 @@ export const walletRouter = router({
               withdrawalThreshold: (
                 input.withdrawalThreshold || 100
               ).toString(),
-              withdrawalDay: input.withdrawalDay?.toString() || "null",
-            },
-          },
-        });
+              withdrawalDay: input.withdrawalDay?.toString() || "null"}}});
 
         return updatedWallet;
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message ||
             "Erreur lors de la mise à jour de la configuration",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -370,17 +315,15 @@ export const walletRouter = router({
    */
   updateBankInformation: protectedProcedure
     .input(
-      z.object({
-        iban: z.string().min(15).max(34),
+      z.object({ iban: z.string().min(15).max(34),
         bic: z.string().min(8).max(11),
         bankName: z.string().min(2).max(100),
         accountHolder: z.string().min(2).max(100),
         accountHolderType: z
           .enum(["individual", "company"])
-          .default("individual"),
-      }),
+          .default("individual") }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const userId = ctx.session.user.id;
         const wallet = await getOrCreateWallet(userId);
@@ -395,8 +338,7 @@ export const walletRouter = router({
             accountHolder: input.accountHolder,
             accountHolderType: input.accountHolderType,
             accountVerified: false, // Vérification obligatoire en production
-          },
-        });
+          }});
 
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
@@ -410,25 +352,19 @@ export const walletRouter = router({
               bic: input.bic,
               bankName: input.bankName,
               accountHolder: input.accountHolder,
-              accountHolderType: input.accountHolderType,
-            },
-          },
-        });
+              accountHolderType: input.accountHolderType}}});
 
         return {
           success: true,
           wallet: updatedWallet,
           message: "Informations bancaires mises à jour avec succès",
-          requiresVerification: true,
-        };
+          requiresVerification: true};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message ||
             "Erreur lors de la mise à jour des informations bancaires",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -437,11 +373,9 @@ export const walletRouter = router({
    */
   getUserWallet: adminProcedure
     .input(
-      z.object({
-        userId: z.string(),
-      }),
+      z.object({ userId: z.string() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const wallet = await getOrCreateWallet(input.userId);
 
@@ -449,15 +383,12 @@ export const walletRouter = router({
         const pendingWithdrawals = await ctx.db.withdrawalRequest.findMany({
           where: {
             walletId: wallet.id,
-            status: "PENDING",
-          },
+            status: "PENDING"},
           select: {
             id: true,
             amount: true,
             requestedAt: true,
-            estimatedArrival: true,
-          },
-        });
+            estimatedArrival: true}});
 
         // Récupérer les informations de l'utilisateur
         const user = await ctx.db.user.findUnique({
@@ -466,29 +397,22 @@ export const walletRouter = router({
             id: true,
             name: true,
             email: true,
-            role: true,
-          },
-        });
+            role: true}});
 
         if (!user) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Utilisateur non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Utilisateur non trouvé" });
         }
 
         return {
           wallet,
           user,
-          pendingWithdrawals,
-        };
+          pendingWithdrawals};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message || "Erreur lors de la récupération du portefeuille",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -497,14 +421,12 @@ export const walletRouter = router({
    */
   createAdjustment: adminProcedure
     .input(
-      z.object({
-        userId: z.string(),
+      z.object({ userId: z.string(),
         amount: z.number(),
         description: z.string().min(5).max(200),
-        reason: z.string().min(5).max(200),
-      }),
+        reason: z.string().min(5).max(200) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const adminId = ctx.session.user.id;
         const wallet = await getOrCreateWallet(input.userId);
@@ -518,9 +440,7 @@ export const walletRouter = router({
           metadata: {
             reason: input.reason,
             adjustedBy: adminId,
-            adjustedAt: new Date().toISOString(),
-          },
-        });
+            adjustedAt: new Date().toISOString()}});
 
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
@@ -533,25 +453,18 @@ export const walletRouter = router({
               userId: input.userId,
               amount: input.amount.toString(),
               description: input.description,
-              reason: input.reason,
-            },
-          },
-        });
+              reason: input.reason}}});
 
         return {
           success: true,
           transaction,
-          message: `Ajustement de ${input.amount} ${wallet.currency} effectué avec succès`,
-        };
+          message: `Ajustement de ${input.amount} ${wallet.currency} effectué avec succès`};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message || "Erreur lors de la création de l'ajustement",
-          cause: error,
-        });
+          cause: error });
       }
-    }),
-});
+    })});
 
 export default walletRouter;

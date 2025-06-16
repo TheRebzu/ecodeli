@@ -15,8 +15,7 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
-  Eye,
-} from "lucide-react";
+  Eye} from "lucide-react";
 import DocumentUploadForm from "@/components/shared/documents/document-upload-form";
 import { DocumentPreview } from "@/components/shared/documents/document-preview";
 
@@ -25,8 +24,7 @@ const REQUIRED_DOCUMENTS = [
   { type: "DRIVING_LICENSE", label: "Permis de conduire", required: true },
   { type: "INSURANCE", label: "Assurance véhicule", required: false },
   { type: "VEHICLE_REGISTRATION", label: "Carte grise", required: false },
-  { type: "BACKGROUND_CHECK", label: "Casier judiciaire", required: true },
-];
+  { type: "BACKGROUND_CHECK", label: "Casier judiciaire", required: true }];
 
 interface DocumentStatus {
   type: string;
@@ -49,24 +47,19 @@ export default function DelivererDocumentManager() {
     api.deliverer.documents.getAll.useQuery();
 
   // Upload d'un document
-  const uploadMutation = api.deliverer.documents.upload.useMutation({
-    onSuccess: () => {
+  const uploadMutation = api.deliverer.documents.upload.useMutation({ onSuccess: () => {
       toast({
         title: "Document uploadé",
         description: "Votre document a été envoyé pour vérification",
-        variant: "success",
-      });
+        variant: "success" });
       setUploadModalOpen(null);
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur d'upload",
+      toast({ title: "Erreur d'upload",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const getDocumentStatus = (documentType: string): DocumentStatus | null => {
     if (!verificationStatus?.documents) return null;
@@ -135,17 +128,14 @@ export default function DelivererDocumentManager() {
       uploadedAt: new Date(),
       documentUrl: "", // URL sera mise à jour après l'upload réel
       size: data.file.size,
-      mimeType: data.file.type,
-    };
+      mimeType: data.file.type};
 
-    await uploadMutation.mutateAsync({
-      documentType,
+    await uploadMutation.mutateAsync({ documentType,
       documentUrl: newDocument.documentUrl,
       mimeType: data.file.type,
       fileSize: data.file.size,
       expiryDate: data.expiryDate,
-      notes: data.notes,
-    });
+      notes: data.notes });
   };
 
   return (
@@ -355,7 +345,7 @@ export default function DelivererDocumentManager() {
           onClose={() => setSelectedDocument(null)}
           onDownload={() => {
             if (selectedDocument.documentUrl) {
-              window.open(selectedDocument.documentUrl, "_blank");
+              window.open(selectedDocument.documentUrl, "blank");
             }
           }}
           onReplace={() => {

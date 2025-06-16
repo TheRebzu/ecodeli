@@ -18,11 +18,10 @@ export function buildCursorPagination(
   return {
     take,
     ...(cursor && {
-      cursor: { id: cursor },
+      cursor: { id },
       skip: 1, // Skip l'élément du cursor
     }),
-    orderBy,
-  };
+    orderBy};
 }
 
 /**
@@ -35,8 +34,7 @@ export const optimizedSelects = {
     name: true,
     email: true,
     image: true,
-    role: true,
-  } as const,
+    role: true} as const,
 
   // Sélection pour les annonces en liste
   announcementList: {
@@ -50,8 +48,7 @@ export const optimizedSelects = {
     deliveryCity: true,
     suggestedPrice: true,
     createdAt: true,
-    updatedAt: true,
-  } as const,
+    updatedAt: true} as const,
 
   // Sélection pour les livreurs en liste
   delivererList: {
@@ -63,10 +60,7 @@ export const optimizedSelects = {
         averageRating: true,
         totalDeliveries: true,
         isActive: true,
-        vehicleType: true,
-      },
-    },
-  } as const,
+        vehicleType: true}}} as const,
 
   // Sélection pour les warehouses
   warehouseBasic: {
@@ -77,9 +71,7 @@ export const optimizedSelects = {
     latitude: true,
     longitude: true,
     isActive: true,
-    isMainHub: true,
-  } as const,
-};
+    isMainHub: true} as const};
 
 /**
  * Conditions de filtrage courantes
@@ -88,24 +80,19 @@ export const commonFilters = {
   // Filtres pour les annonces actives
   activeAnnouncements: {
     status: { in: ["PUBLISHED", "MATCHED"] },
-    isActive: true,
-  } as const,
+    isActive: true} as const,
 
   // Filtres pour les livreurs actifs
   activeDeliverers: {
     isActive: true,
     deliverer: {
       isActive: true,
-      verificationStatus: "VERIFIED",
-    },
-  } as const,
+      verificationStatus: "VERIFIED"}} as const,
 
   // Filtres pour les entrepôts disponibles
   availableWarehouses: {
     isActive: true,
-    hasAvailableSpace: true,
-  } as const,
-};
+    hasAvailableSpace: true} as const};
 
 /**
  * Construit des conditions WHERE dynamiques
@@ -120,8 +107,7 @@ export function buildDynamicWhere(filters: Record<string, any>): any {
     if (typeof value === "string" && key.includes("search")) {
       where.OR = [
         { title: { contains: value, mode: "insensitive" } },
-        { description: { contains: value, mode: "insensitive" } },
-      ];
+        { description: { contains: value, mode: "insensitive" } }];
       return;
     }
 
@@ -129,14 +115,13 @@ export function buildDynamicWhere(filters: Record<string, any>): any {
     if (key.includes("Date") && Array.isArray(value) && value.length === 2) {
       where[key.replace("Date", "")] = {
         gte: value[0],
-        lte: value[1],
-      };
+        lte: value[1]};
       return;
     }
 
     // Gestion des tableaux (IN)
     if (Array.isArray(value)) {
-      where[key] = { in: value };
+      where[key] = { in };
       return;
     }
 
@@ -153,18 +138,13 @@ export function buildDynamicWhere(filters: Record<string, any>): any {
 export function buildOptimizedInclude(includes: string[]): any {
   const includeMap: Record<string, any> = {
     client: {
-      select: optimizedSelects.userBasic,
-    },
+      select: optimizedSelects.userBasic},
     deliverer: {
-      select: optimizedSelects.delivererList,
-    },
+      select: optimizedSelects.delivererList},
     announcement: {
-      select: optimizedSelects.announcementList,
-    },
+      select: optimizedSelects.announcementList},
     warehouse: {
-      select: optimizedSelects.warehouseBasic,
-    },
-  };
+      select: optimizedSelects.warehouseBasic}};
 
   const result: any = {};
 
@@ -250,35 +230,31 @@ export function buildAggregations(metrics: string[]) {
   const aggregations: any = {};
 
   if (metrics.includes("count")) {
-    aggregations._count = true;
+    aggregations.count = true;
   }
 
   if (metrics.includes("sum")) {
-    aggregations._sum = {
+    aggregations.sum = {
       amount: true,
-      price: true,
-    };
+      price: true};
   }
 
   if (metrics.includes("avg")) {
-    aggregations._avg = {
+    aggregations.avg = {
       rating: true,
-      price: true,
-    };
+      price: true};
   }
 
   if (metrics.includes("max")) {
-    aggregations._max = {
+    aggregations.max = {
       createdAt: true,
-      price: true,
-    };
+      price: true};
   }
 
   if (metrics.includes("min")) {
-    aggregations._min = {
+    aggregations.min = {
       createdAt: true,
-      price: true,
-    };
+      price: true};
   }
 
   return aggregations;
@@ -300,11 +276,8 @@ export function buildTextSearch(
       terms.map((term) => ({
         [field]: {
           contains: term,
-          mode: "insensitive" as const,
-        },
-      })),
-    ),
-  };
+          mode: "insensitive" as const}})),
+    )};
 }
 
 /**
@@ -323,13 +296,10 @@ export function buildGeoQuery(
   return {
     latitude: {
       gte: latitude - latRange,
-      lte: latitude + latRange,
-    },
+      lte: latitude + latRange},
     longitude: {
       gte: longitude - lngRange,
-      lte: longitude + lngRange,
-    },
-  };
+      lte: longitude + lngRange}};
 }
 
 /**
@@ -356,8 +326,7 @@ export function buildOrderBy(
     "title",
     "price",
     "rating",
-    "distance",
-  ];
+    "distance"];
 
   if (!allowedSortFields.includes(sortBy)) {
     sortBy = "createdAt";

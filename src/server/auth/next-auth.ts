@@ -13,7 +13,7 @@ import { getServerSession } from "next-auth/next";
 const getAuthSecret = () => {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) {
-    throw new Error("NEXTAUTH_SECRET is not set in environment variables");
+    throw new Error("NEXTAUTHSECRET is not set in environment variables");
   }
   return secret;
 };
@@ -33,16 +33,14 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
     error: "/login",
     verifyRequest: "/verify-email",
-    newUser: "/welcome",
-  },
+    newUser: "/welcome"},
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Mot de passe", type: "password" },
-        totp: { label: "Code d'authentification", type: "text" },
-      },
+        totp: { label: "Code d'authentification", type: "text" }},
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email et mot de passe requis");
@@ -62,13 +60,11 @@ export const authOptions: NextAuthOptions = {
             image: true,
             twoFactorEnabled: true,
             twoFactorSecret: true,
-            client: { select: { id: true } },
+            client: { select: { id } },
             deliverer: { select: { id: true, isVerified: true } },
             merchant: { select: { id: true, isVerified: true } },
             provider: { select: { id: true, isVerified: true } },
-            admin: { select: { id: true } },
-          },
-        });
+            admin: { select: { id } }}});
 
         if (!user) {
           throw new Error("Utilisateur non trouvé");
@@ -86,7 +82,7 @@ export const authOptions: NextAuthOptions = {
         if (
           user.status !== UserStatus.ACTIVE &&
           !(
-            user.status === UserStatus.PENDING_VERIFICATION &&
+            user.status === UserStatus.PENDINGVERIFICATION &&
             user.role === UserRole.DELIVERER
           )
         ) {
@@ -109,10 +105,8 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Vérification du code TOTP avec otplib
-          const isValidTotp = authenticator.verify({
-            token: credentials.totp,
-            secret: user.twoFactorSecret || "",
-          });
+          const isValidTotp = authenticator.verify({ token: credentials.totp,
+            secret: user.twoFactorSecret || "" });
 
           if (!isValidTotp) {
             throw new Error("Code d'authentification incorrect");
@@ -153,8 +147,7 @@ export const authOptions: NextAuthOptions = {
         // Mise à jour de la date de dernière connexion
         await db.user.update({
           where: { id: user.id },
-          data: { lastLoginAt: new Date() },
-        });
+          data: { lastLoginAt: new Date() }});
 
         return {
           id: user.id,
@@ -164,10 +157,8 @@ export const authOptions: NextAuthOptions = {
           image: user.image,
           profileId,
           isVerified,
-          status,
-        };
-      },
-    }),
+          status};
+      }}),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
@@ -180,13 +171,10 @@ export const authOptions: NextAuthOptions = {
           image: profile.picture,
           role: UserRole.CLIENT,
           status: UserStatus.ACTIVE,
-          isVerified: true,
-        };
-      },
-    }),
-  ],
+          isVerified: true};
+      }})],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger, session  }) {
       // Quand l'utilisateur se connecte, fusionner ses données avec le token
       if (user) {
         token.id = user.id;
@@ -216,9 +204,7 @@ export const authOptions: NextAuthOptions = {
             include: {
               deliverer: token.role === "DELIVERER" ? true : undefined,
               provider: token.role === "PROVIDER" ? true : undefined,
-              merchant: token.role === "MERCHANT" ? true : undefined,
-            },
-          });
+              merchant: token.role === "MERCHANT" ? true : undefined}});
 
           if (currentUser) {
             // Mettre à jour le token avec les informations actuelles
@@ -238,7 +224,7 @@ export const authOptions: NextAuthOptions = {
               `Session mise à jour pour ${currentUser.email}: status=${token.status}, isVerified=${token.isVerified}`,
             );
           }
-        } catch (_error) {
+        } catch (error) {
           console.error(
             "Erreur lors de la mise à jour dynamique de la session:",
             error,
@@ -250,7 +236,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    async session({ session, token }) {
+    async session({ session, token  }) {
       if (token) {
         session.user.id = token.id as string;
         session.user.name = token.name as string;
@@ -261,21 +247,19 @@ export const authOptions: NextAuthOptions = {
         session.user.isVerified = token.isVerified as boolean | undefined;
       }
       return session;
-    },
-  },
-};
+    }}};
 
 /**
  * Fonction pour obtenir la session côté serveur
  * Compatible avec les deux approches (Pages Router et App Router)
  */
-export const getServerAuthSession = (_ctx?: {
+export const getServerAuthSession = (ctx?: {
   req: GetServerSidePropsContext["req"];
   res: GetServerSidePropsContext["res"];
 }) => {
-  if (_ctx?.req && _ctx?.res) {
+  if (ctx?.req && ctx?.res) {
     // Pages Router: utilisation des objets req et res
-    return getServerSession(_ctx.req, _ctx.res, authOptions);
+    return getServerSession(ctx.req, ctx.res, authOptions);
   }
   // App Router: utilisation sans contexte spécifique
   return getServerSession(authOptions);

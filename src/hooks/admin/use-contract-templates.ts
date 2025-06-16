@@ -31,20 +31,16 @@ export const useContractTemplates = () => {
   const {
     data: templates,
     isLoading: templatesLoading,
-    refetch: refetchTemplates,
-  } = api.admin.contracts.getTemplates.useQuery();
+    refetch: refetchTemplates} = api.admin.contracts.getTemplates.useQuery();
 
   const { data: activeTemplates, isLoading: activeTemplatesLoading } =
     api.admin.contracts.getActiveTemplates.useQuery();
 
   // Mutations
-  const createTemplateMutation = api.admin.contracts.createTemplate.useMutation(
-    {
-      onSuccess: () => {
+  const createTemplateMutation = api.admin.contracts.createTemplate.useMutation({ onSuccess: () => {
         toast({
           title: "Template créé",
-          description: "Le template de contrat a été créé avec succès.",
-        });
+          description: "Le template de contrat a été créé avec succès." });
         refetchTemplates();
         setIsCreateModalOpen(false);
       },
@@ -52,85 +48,65 @@ export const useContractTemplates = () => {
         toast({
           title: "Erreur",
           description: `Erreur lors de la création : ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    },
+          variant: "destructive"});
+      }},
   );
 
-  const updateTemplateMutation = api.admin.contracts.updateTemplate.useMutation(
-    {
-      onSuccess: () => {
+  const updateTemplateMutation = api.admin.contracts.updateTemplate.useMutation({ onSuccess: () => {
         toast({
           title: "Template mis à jour",
-          description: "Le template de contrat a été mis à jour avec succès.",
-        });
+          description: "Le template de contrat a été mis à jour avec succès." });
         refetchTemplates();
       },
       onError: (error) => {
         toast({
           title: "Erreur",
           description: `Erreur lors de la mise à jour : ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    },
+          variant: "destructive"});
+      }},
   );
 
-  const deleteTemplateMutation = api.admin.contracts.deleteTemplate.useMutation(
-    {
-      onSuccess: () => {
+  const deleteTemplateMutation = api.admin.contracts.deleteTemplate.useMutation({ onSuccess: () => {
         toast({
           title: "Template supprimé",
-          description: "Le template de contrat a été supprimé avec succès.",
-        });
+          description: "Le template de contrat a été supprimé avec succès." });
         refetchTemplates();
       },
       onError: (error) => {
         toast({
           title: "Erreur",
           description: `Erreur lors de la suppression : ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    },
+          variant: "destructive"});
+      }},
   );
 
   const activateTemplateMutation =
-    api.admin.contracts.activateTemplate.useMutation({
-      onSuccess: () => {
+    api.admin.contracts.activateTemplate.useMutation({ onSuccess: () => {
         toast({
           title: "Template activé",
-          description: "Le template de contrat a été activé avec succès.",
-        });
+          description: "Le template de contrat a été activé avec succès." });
         refetchTemplates();
       },
       onError: (error) => {
         toast({
           title: "Erreur",
           description: `Erreur lors de l'activation : ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive"});
+      }});
 
   const deactivateTemplateMutation =
-    api.admin.contracts.deactivateTemplate.useMutation({
-      onSuccess: () => {
+    api.admin.contracts.deactivateTemplate.useMutation({ onSuccess: () => {
         toast({
           title: "Template désactivé",
-          description: "Le template de contrat a été désactivé avec succès.",
-        });
+          description: "Le template de contrat a été désactivé avec succès." });
         refetchTemplates();
       },
       onError: (error) => {
         toast({
           title: "Erreur",
           description: `Erreur lors de la désactivation : ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive"});
+      }});
 
   // Actions
   const createTemplate = (data: TemplateFormData) => {
@@ -138,19 +114,19 @@ export const useContractTemplates = () => {
   };
 
   const updateTemplate = (id: string, data: Partial<TemplateFormData>) => {
-    updateTemplateMutation.mutate({ id, ...data });
+    updateTemplateMutation.mutate({ id, ...data  });
   };
 
   const deleteTemplate = (id: string) => {
-    deleteTemplateMutation.mutate({ id });
+    deleteTemplateMutation.mutate({ id  });
   };
 
   const activateTemplate = (id: string) => {
-    activateTemplateMutation.mutate({ id });
+    activateTemplateMutation.mutate({ id  });
   };
 
   const deactivateTemplate = (id: string) => {
-    deactivateTemplateMutation.mutate({ id });
+    deactivateTemplateMutation.mutate({ id  });
   };
 
   const openCreateModal = () => setIsCreateModalOpen(true);
@@ -182,6 +158,5 @@ export const useContractTemplates = () => {
     deactivateTemplate,
     openCreateModal,
     closeCreateModal,
-    refetch: refetchTemplates,
-  };
+    refetch: refetchTemplates};
 };

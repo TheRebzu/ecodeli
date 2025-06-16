@@ -116,8 +116,8 @@ export function getClosestPoint(
 ): { point: GeoPoint; distance: number } | null {
   if (points.length === 0) return null;
 
-  let closestPoint = points[0];
-  let minDistance = getDistance(reference, closestPoint);
+  const closestPoint = points[0];
+  const minDistance = getDistance(reference, closestPoint);
 
   for (let i = 1; i < points.length; i++) {
     const distance = getDistance(reference, points[i]);
@@ -207,7 +207,7 @@ export function calculatePolygonArea(points: GeoPoint[]): number {
   if (points.length < 3) return 0;
 
   const R = 6371; // Rayon de la Terre en km
-  let area = 0;
+  const area = 0;
 
   for (let i = 0; i < points.length; i++) {
     const j = (i + 1) % points.length;
@@ -238,9 +238,9 @@ export function findClosestIntersection(
 } | null {
   if (route1.length === 0 || route2.length === 0) return null;
 
-  let minDistance = Infinity;
-  let closestPoint1 = route1[0];
-  let closestPoint2 = route2[0];
+  const minDistance = Infinity;
+  const closestPoint1 = route1[0];
+  const closestPoint2 = route2[0];
 
   for (const point1 of route1) {
     for (const point2 of route2) {

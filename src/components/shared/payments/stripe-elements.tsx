@@ -30,7 +30,6 @@ interface CheckoutFormProps {
   currency?: string;
   onSuccess?: (paymentIntentId: string) => void;
   onCancel?: () => void;
-  isDemoMode?: boolean;
 }
 
 // Formulaire de paiement Stripe
@@ -40,7 +39,6 @@ function CheckoutForm({
   currency = 'EUR',
   onSuccess,
   onCancel,
-  isDemoMode = false,
 }: CheckoutFormProps) {
   const t = useTranslations('payment');
   const stripe = useStripe();
@@ -94,38 +92,6 @@ function CheckoutForm({
     }
   };
 
-  // Simuler un paiement réussi (pour le mode démo)
-  const handleDemoSuccess = () => {
-    if (!isDemoMode) return;
-
-    setIsProcessing(true);
-    setPaymentStatus('processing');
-
-    // Simuler un délai de traitement
-    setTimeout(() => {
-      setPaymentStatus('success');
-      setIsProcessing(false);
-      if (onSuccess) {
-        onSuccess('demo_pi_' + Math.random().toString(36).substring(2, 15));
-      }
-    }, 1500);
-  };
-
-  // Simuler un paiement échoué (pour le mode démo)
-  const handleDemoFailure = () => {
-    if (!isDemoMode) return;
-
-    setIsProcessing(true);
-    setPaymentStatus('processing');
-
-    // Simuler un délai de traitement
-    setTimeout(() => {
-      setPaymentStatus('error');
-      setErrorMessage(t('demoPaymentFailure'));
-      setIsProcessing(false);
-    }, 1500);
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {paymentStatus === 'success' && (
@@ -141,14 +107,6 @@ function CheckoutForm({
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>{t('error')}</AlertTitle>
           <AlertDescription>{errorMessage || t('paymentFailed')}</AlertDescription>
-        </Alert>
-      )}
-
-      {isDemoMode && paymentStatus === 'idle' && (
-        <Alert className="mb-4 bg-blue-50 text-blue-800 border-blue-200">
-          <Info className="h-4 w-4" />
-          <AlertTitle>{t('demoPayment')}</AlertTitle>
-          <AlertDescription>{t('demoStripeDescription')}</AlertDescription>
         </Alert>
       )}
 
@@ -188,7 +146,7 @@ function CheckoutForm({
         </Button>
         <Button
           type="submit"
-          disabled={(!stripe && !isDemoMode) || isProcessing || paymentStatus === 'success'}
+          disabled={(!stripe) || isProcessing || paymentStatus === 'success'}
           className="flex-1"
           aria-live="polite"
         >
@@ -219,7 +177,7 @@ interface StripeElementsProps {
   metadata?: Record<string, any>;
 }
 
-rconst StripeElementsComponent: React.FC<StripeElementsProps> = ({
+const StripeElementsComponent: React.FC<StripeElementsProps> = ({
   amount,
   currency = 'EUR',
   onSuccess,
@@ -288,7 +246,6 @@ rconst StripeElementsComponent: React.FC<StripeElementsProps> = ({
             currency={currency}
             onSuccess={onSuccess}
             onCancel={onCancel}
-            isDemoMode={isInDemoMode}
           />
         </Elements>
       </CardContent>
@@ -311,19 +268,13 @@ interface PaymentMethod {
 export function StripePaymentMethodSelector({
   selectedPaymentMethodId,
   onPaymentMethodSelected,
-  demo = false,
 }: {
   selectedPaymentMethodId?: string;
   onPaymentMethodSelected: (paymentMethodId: string) => void;
-  demo?: boolean;
 }) {
   const t = useTranslations('payment');
   const [isLoading, setIsLoading] = useState(true);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const { isDemoMode } = usePaymentConfirmation();
-
-  // Utiliser uniquement les vraies méthodes de paiement
-  const isInDemoMode = false;
 
   // Récupérer les méthodes de paiement sauvegardées via l'API tRPC
   const paymentMethodsQuery = api.payment.getPaymentMethods.useQuery();

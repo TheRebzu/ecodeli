@@ -8,8 +8,7 @@ import { logger } from "@/lib/utils/logger";
 import {
   getDistance,
   getBearing,
-  getDestinationPoint,
-} from "@/server/utils/distance-calculator.util";
+  getDestinationPoint} from "@/server/utils/distance-calculator.util";
 
 export interface MatchingCriteria {
   routeId: string;
@@ -110,7 +109,7 @@ export class AnnouncementMatchingService {
       return matches.sort(
         (a, b) => b.compatibilityScore - a.compatibilityScore,
       );
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors du matching:", error);
       throw new Error("Erreur lors de la recherche de correspondances");
     }
@@ -195,16 +194,12 @@ export class AnnouncementMatchingService {
           pickup: {
             latitude: announcement.pickupLatitude,
             longitude: announcement.pickupLongitude,
-            address: announcement.pickupAddress,
-          },
+            address: announcement.pickupAddress},
           delivery: {
             latitude: announcement.deliveryLatitude,
             longitude: announcement.deliveryLongitude,
-            address: announcement.deliveryAddress,
-          },
-        },
-      };
-    } catch (_error) {
+            address: announcement.deliveryAddress}}};
+    } catch (error) {
       logger.error("Erreur lors de l'évaluation du match:", error);
       return null;
     }
@@ -254,7 +249,7 @@ export class AnnouncementMatchingService {
       }
     }
 
-    return bestMatch || { isCompatible: false };
+    return bestMatch || { isCompatible };
   }
 
   /**
@@ -308,8 +303,7 @@ export class AnnouncementMatchingService {
       isCompatible: true,
       totalDistance: distancePickupToDelivery,
       detourPercentage: Math.max(0, detourPercentage),
-      matchType: "DIRECT_ROUTE",
-    };
+      matchType: "DIRECT_ROUTE"};
   }
 
   /**
@@ -351,8 +345,7 @@ export class AnnouncementMatchingService {
       totalDistance: distancePickupToDelivery,
       detourPercentage,
       matchType: "INTERMEDIATE_POINT",
-      intermediatePoint: intermediatePoint.address,
-    };
+      intermediatePoint: intermediatePoint.address};
   }
 
   /**
@@ -373,8 +366,7 @@ export class AnnouncementMatchingService {
 
       return {
         isCompatible,
-        flexibility: isCompatible ? "RECURRING_MATCH" : "RECURRING_NO_MATCH",
-      };
+        flexibility: isCompatible ? "RECURRING_MATCH" : "RECURRING_NO_MATCH"};
     }
 
     // Si des dates spécifiques sont définies
@@ -390,8 +382,7 @@ export class AnnouncementMatchingService {
       return {
         isCompatible,
         flexibility: isCompatible ? "TIME_FLEXIBLE" : "TIME_INCOMPATIBLE",
-        hoursDifference: hoursDiff,
-      };
+        hoursDifference: hoursDiff};
     }
 
     // Si flexible ou pas de contrainte temporelle spécifique
@@ -534,8 +525,7 @@ export class AnnouncementMatchingService {
     return {
       totalDistance: geographicMatch.totalDistance,
       detourPercentage: geographicMatch.detourPercentage,
-      matchType: geographicMatch.matchType,
-    };
+      matchType: geographicMatch.matchType};
   }
 
   /**
@@ -652,13 +642,11 @@ export class AnnouncementMatchingService {
         // Récupérer les données du livreur et du client
         const route = await this.prisma.delivererRoute.findUnique({
           where: { id: match.routeId },
-          include: { deliverer: { include: { user: true } } },
-        });
+          include: { deliverer: { include: { user } } }});
 
         const announcement = await this.prisma.announcement.findUnique({
           where: { id: match.announcementId },
-          include: { client: { include: { user: true } } },
-        });
+          include: { client: { include: { user } } }});
 
         if (route && announcement) {
           // Notifier le livreur
@@ -670,7 +658,7 @@ export class AnnouncementMatchingService {
           }
         }
       }
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de l'envoi des notifications:", error);
     }
   }
@@ -695,11 +683,8 @@ export class AnnouncementMatchingService {
           announcementId: match.announcementId,
           routeId: match.routeId,
           compatibilityScore: match.compatibilityScore,
-          priceEstimate: match.priceEstimate,
-        },
-        isRead: false,
-      },
-    });
+          priceEstimate: match.priceEstimate},
+        isRead: false}});
 
     // Envoyer une notification push (via OneSignal)
     // Cette partie serait implémentée avec le service OneSignal
@@ -728,11 +713,8 @@ export class AnnouncementMatchingService {
           announcementId: match.announcementId,
           routeId: match.routeId,
           compatibilityScore: match.compatibilityScore,
-          estimatedDuration: match.estimatedDuration,
-        },
-        isRead: false,
-      },
-    });
+          estimatedDuration: match.estimatedDuration},
+        isRead: false}});
 
     logger.info(
       `Notification de matching envoyée au client ${announcement.clientId}`,

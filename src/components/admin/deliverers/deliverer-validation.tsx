@@ -35,8 +35,7 @@ type Verification = {
 };
 
 export function DelivererVerificationList({
-  initialVerifications = [],
-}: {
+  initialVerifications = []}: {
   initialVerifications?: Verification[];
 }) {
   const [activeTab, setActiveTab] = useState("pending");
@@ -44,13 +43,11 @@ export function DelivererVerificationList({
   const {
     data: pendingVerifications,
     isLoading,
-    refetch,
-  } = trpc.verification.getPendingVerifications.useQuery(
+    refetch} = trpc.verification.getPendingVerifications.useQuery(
     { userRole: "DELIVERER" as UserRole },
     {
       initialData: activeTab === "pending" ? initialVerifications : undefined,
-      enabled: activeTab === "pending",
-    },
+      enabled: activeTab === "pending"},
   );
 
   const handleVerificationComplete = async () => {
@@ -83,8 +80,7 @@ export function DelivererVerificationList({
         key={verification.id}
         document={{
           ...verification.document,
-          submitter: verification.submitter,
-        }}
+          submitter: verification.submitter}}
         onVerify={handleVerificationComplete}
       />
     ));

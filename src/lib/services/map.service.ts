@@ -11,8 +11,7 @@ export const mapService = {
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
-    }).addTo(map);
+      maxZoom: 19}).addTo(map);
 
     return map;
   },
@@ -21,17 +20,14 @@ export const mapService = {
   createDelivererMarker(map, position, options = {}) {
     const L = window.L;
 
-    const delivererIcon = L.icon({
-      iconUrl: "/images/deliverer-marker.png",
+    const delivererIcon = L.icon({ iconUrl: "/images/deliverer-marker.png",
       iconSize: [32, 32],
       iconAnchor: [16, 32],
-      popupAnchor: [0, -32],
-    });
+      popupAnchor: [0, -32] });
 
     const marker = L.marker(position, {
       icon: delivererIcon,
-      ...options,
-    }).addTo(map);
+      ...options}).addTo(map);
 
     return marker;
   },
@@ -54,8 +50,7 @@ export const mapService = {
       return {
         route: routeLine,
         distance: route.distance,
-        duration: route.duration,
-      };
+        duration: route.duration};
     }
 
     return null;
@@ -65,5 +60,4 @@ export const mapService = {
   calculateETA(currentPosition, destination, averageSpeed = 30) {
     const distance = calculateDistance(currentPosition, destination);
     return calculateETA(distance, averageSpeed);
-  },
-};
+  }};

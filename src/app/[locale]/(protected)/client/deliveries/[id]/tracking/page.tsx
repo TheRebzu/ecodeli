@@ -11,8 +11,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
@@ -25,8 +24,7 @@ import {
   Truck,
   AlertCircle,
   MessageSquare,
-  Locate,
-} from "lucide-react";
+  Locate} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import DeliveryTrackingMap from "@/components/shared/maps/delivery-tracking-map";
 import DeliveryContact from "@/components/deliverer/deliveries/delivery-contact";
@@ -83,10 +81,9 @@ export default function LiveTrackingPage() {
   const handleRefresh = async () => {
     setRefreshing(true);
     await refreshData();
-    toast({
-      title: t("dataRefreshed"),
+    toast({ title: t("dataRefreshed"),
       duration: 2000,
-    });
+     });
     setTimeout(() => setRefreshing(false), 500);
   };
 
@@ -135,8 +132,7 @@ export default function LiveTrackingPage() {
           isActive,
           showRoute: true,
           showControls: true,
-          fullScreen: fullscreen,
-        }
+          fullScreen: fullscreen}
       : undefined;
 
   return (

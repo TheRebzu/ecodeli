@@ -9,21 +9,18 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import {
   Search,
   Calendar as CalendarIcon,
   X,
   Filter,
-  RotateCcw,
-} from "lucide-react";
+  RotateCcw} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { DeliveryStatus } from "@prisma/client";
@@ -45,8 +42,7 @@ interface DeliveryFiltersProps {
 
 export function DeliveryFilters({
   filters,
-  onFilterChange,
-}: DeliveryFiltersProps) {
+  onFilterChange}: DeliveryFiltersProps) {
   const t = useTranslations("admin.deliveries");
   const [searchInputValue, setSearchInputValue] = useState(filters.searchTerm);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
@@ -61,28 +57,28 @@ export function DeliveryFilters({
     name: keyof FiltersState,
     value: string | number,
   ) => {
-    onFilterChange({ [name]: value });
+    onFilterChange({ [name]: value  });
   };
 
   const handleSearch = () => {
-    onFilterChange({ searchTerm: searchInputValue });
+    onFilterChange({ searchTerm  });
   };
 
   const handleFromDateChange = (date: Date | undefined) => {
     setFromDate(date);
     if (date) {
-      onFilterChange({ startDate: date.toISOString() });
+      onFilterChange({ startDate: date.toISOString()  });
     } else {
-      onFilterChange({ startDate: "" });
+      onFilterChange({ startDate: ""  });
     }
   };
 
   const handleToDateChange = (date: Date | undefined) => {
     setToDate(date);
     if (date) {
-      onFilterChange({ endDate: date.toISOString() });
+      onFilterChange({ endDate: date.toISOString()  });
     } else {
-      onFilterChange({ endDate: "" });
+      onFilterChange({ endDate: ""  });
     }
   };
 
@@ -90,13 +86,11 @@ export function DeliveryFilters({
     setSearchInputValue("");
     setFromDate(undefined);
     setToDate(undefined);
-    onFilterChange({
-      status: "",
+    onFilterChange({ status: "",
       searchTerm: "",
       startDate: "",
       endDate: "",
-      page: 1,
-    });
+      page: 1 });
   };
 
   const hasActiveFilters =
@@ -200,7 +194,7 @@ export function DeliveryFilters({
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {fromDate ? (
-                    format(fromDate, "PPP", { locale: fr })
+                    format(fromDate, "PPP", { locale })
                   ) : (
                     <span>{t("filters.pickDate")}</span>
                   )}
@@ -230,7 +224,7 @@ export function DeliveryFilters({
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {toDate ? (
-                    format(toDate, "PPP", { locale: fr })
+                    format(toDate, "PPP", { locale })
                   ) : (
                     <span>{t("filters.pickDate")}</span>
                   )}

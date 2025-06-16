@@ -20,6 +20,11 @@ model Client {
   notificationPrefs Json?
   avatarUrl         String?
   
+  // Tutorial Mission 1 tracking
+  tutorialMission1Completed   Boolean?   @default(false)
+  tutorialMission1Progress    Int?       @default(0)
+  tutorialMission1CompletedAt DateTime?
+  
   // Relations
   deliveryAddresses Address[]
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)

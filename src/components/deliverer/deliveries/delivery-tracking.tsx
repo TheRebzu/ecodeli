@@ -8,11 +8,9 @@ import {
   Marker,
   Popup,
   useMap,
-  Polyline,
-} from "react-leaflet";
+  Polyline} from "react-leaflet";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "leaflet-routing-machine";
+
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -26,8 +24,7 @@ import {
   Map,
   LocateFixed,
   MapPin,
-  Truck,
-} from "lucide-react";
+  Truck} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 
 // Déclaration pour étendre l'interface Leaflet avec Routing Machine
@@ -85,8 +82,7 @@ interface DeliveryTrackingMapProps {
 // Composant pour mettre à jour la vue de la carte
 function SetViewOnChange({
   center,
-  zoom,
-}: {
+  zoom}: {
   center: L.LatLngExpression;
   zoom: number;
 }) {
@@ -100,8 +96,7 @@ function SetViewOnChange({
 // Composant pour tracer l'itinéraire
 function RoutingControl({
   origin,
-  destination,
-}: {
+  destination}: {
   origin: L.LatLngExpression;
   destination: L.LatLngExpression;
 }) {
@@ -123,14 +118,12 @@ function RoutingControl({
       lineOptions: {
         styles: [{ color: "#6366F1", weight: 4 }],
         extendToWaypoints: true,
-        missingRouteTolerance: 0,
-      },
+        missingRouteTolerance: 0},
       show: false,
       addWaypoints: false,
       routeWhileDragging: false,
       fitSelectedRoutes: false,
-      showAlternatives: false,
-    }).addTo(map);
+      showAlternatives: false}).addTo(map);
 
     routingControlRef.current = control;
 
@@ -146,8 +139,7 @@ function RoutingControl({
 
 // Composant de géolocalisation de l'utilisateur
 function UserLocation({
-  onLocationUpdate,
-}: {
+  onLocationUpdate}: {
   onLocationUpdate?: (location: Coordinates) => void;
 }) {
   const map = useMap();
@@ -156,24 +148,22 @@ function UserLocation({
 
   const handleLocate = () => {
     setIsLocating(true);
-    map.locate({
-      setView: true,
+    map.locate({ setView: true,
       maxZoom: 16,
       enableHighAccuracy: true,
       watch: true,
-      timeout: 10000,
-    });
+      timeout: 10000 });
   };
 
   useEffect(() => {
     // Fonction pour gérer la détection de la position
     const onLocationFound = (e: L.LocationEvent) => {
       const { lat, lng } = e.latlng;
-      setUserPosition({ lat, lng });
+      setUserPosition({ lat, lng  });
       setIsLocating(false);
 
       if (onLocationUpdate) {
-        onLocationUpdate({ lat, lng });
+        onLocationUpdate({ lat, lng  });
       }
     };
 
@@ -202,8 +192,7 @@ function UserLocation({
   return userPosition ? (
     <Marker
       position={[userPosition.lat, userPosition.lng]}
-      icon={L.divIcon({
-        className: "custom-div-icon",
+      icon={L.divIcon({ className: "custom-div-icon",
         html: `
           <div class="relative">
             <div class="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-blue-500 border-2 border-white shadow-lg flex items-center justify-center">
@@ -213,8 +202,7 @@ function UserLocation({
           </div>
         `,
         iconSize: [24, 24],
-        iconAnchor: [12, 12],
-      })}
+        iconAnchor: [12, 12] })}
     >
       <Popup>Votre position actuelle</Popup>
     </Marker>
@@ -227,8 +215,7 @@ const createMapIcon = (iconUrl: string, className?: string) => {
     className: cn("custom-div-icon", className),
     html: `<div class="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md">${iconUrl}</div>`,
     iconSize: [40, 40],
-    iconAnchor: [20, 20],
-  });
+    iconAnchor: [20, 20]});
 };
 
 // Icônes pour les différents points
@@ -252,8 +239,7 @@ export default function DeliveryTrackingMap({
   showControls = true,
   interactive = true,
   className,
-  onLocationUpdate,
-}: DeliveryTrackingMapProps) {
+  onLocationUpdate}: DeliveryTrackingMapProps) {
   const t = useTranslations("deliveries.tracking");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -387,8 +373,7 @@ export default function DeliveryTrackingMap({
           <Polyline
             positions={[
               [currentLocation.lat, currentLocation.lng],
-              [destination.lat, destination.lng],
-            ]}
+              [destination.lat, destination.lng]]}
             color="#6366F1"
             weight={4}
           />
@@ -428,7 +413,7 @@ export default function DeliveryTrackingMap({
               onClick={() => {
                 if (destination) {
                   const url = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`;
-                  window.open(url, "_blank");
+                  window.open(url, "blank");
                 }
               }}
             >

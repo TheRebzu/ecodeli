@@ -28,8 +28,7 @@ export function useSearchServices() {
   const searchQuery = api.service.searchServices.useQuery(
     searchParams || {
       page: 1,
-      limit: 10,
-    },
+      limit: 10},
   );
 
   // Fonction pour effectuer une recherche avec les valeurs du formulaire
@@ -44,12 +43,10 @@ export function useSearchServices() {
       location: values.location
         ? {
             lat: values.location.lat,
-            lng: values.location.lng,
-          }
+            lng: values.location.lng}
         : undefined,
       maxDistance: values.location?.radius,
-      date: values.dateRange?.from,
-    };
+      date: values.dateRange?.from};
 
     setSearchParams(filteredValues);
   };
@@ -67,9 +64,9 @@ export function useSearchServices() {
   // Fonction pour gérer la pagination
   const handlePageChange = (page: number) => {
     if (searchParams) {
-      setSearchParams({ ...searchParams, page });
+      setSearchParams({ ...searchParams, page  });
     } else {
-      setSearchParams({ page, limit: 10 });
+      setSearchParams({ page, limit: 10  });
     }
   };
 
@@ -87,27 +84,23 @@ export function useSearchServices() {
   // Fonction pour gérer le changement de tri (ajoutée pour éviter l'erreur)
   const handleSortChange = (sortBy: string) => {
     if (searchParams) {
-      setSearchParams({
-        ...searchParams,
-        page: 1,
-      });
+      setSearchParams({ ...searchParams,
+        page: 1 });
     }
   };
 
   // Fonction pour mettre à jour les filtres (ajoutée pour éviter l'erreur)
   const updateFilters = (filters: Partial<SearchServicesInput>) => {
     if (searchParams) {
-      setSearchParams({
-        ...searchParams,
+      setSearchParams({ ...searchParams,
         ...filters,
         page: 1, // Reset page to 1 when changing filters
-      });
+       });
     } else {
       setSearchParams({
         ...filters,
         page: 1,
-        limit: 10,
-      } as SearchServicesInput);
+        limit: 10} as SearchServicesInput);
     }
   };
 
@@ -124,8 +117,7 @@ export function useSearchServices() {
           (searchQuery.data.pagination?.total || 0) /
             (searchParams?.limit || 10),
         ),
-        totalCount: searchQuery.data.pagination?.total || 0,
-      }
+        totalCount: searchQuery.data.pagination?.total || 0}
     : null;
 
   return {
@@ -146,6 +138,5 @@ export function useSearchServices() {
     handlePageChange,
     handleSortChange,
     filterByCategory,
-    updateFilters,
-  };
+    updateFilters};
 }

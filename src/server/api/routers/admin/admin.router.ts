@@ -23,8 +23,7 @@ import { adminSystemRouter } from "./admin-system.router";
  * Router admin principal
  * Regroupe tous les sous-routers administratifs
  */
-export const adminRouter = router({
-  deliverers: adminDeliverersRouter,
+export const adminRouter = router({ deliverers: adminDeliverersRouter,
   dashboard: adminDashboardRouter,
   users: adminUserRouter,
   services: adminServicesRouter,
@@ -42,5 +41,4 @@ export const adminRouter = router({
   audit: auditRouter,
   commission: adminCommissionRouter,
   analytics: adminAnalyticsRouter,
-  system: adminSystemRouter,
-});
+  system: adminSystemRouter });

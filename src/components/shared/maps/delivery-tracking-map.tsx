@@ -21,8 +21,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Target,
-  Navigation2,
-} from "lucide-react";
+  Navigation2} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 
 interface DeliveryLocation {
@@ -60,8 +59,7 @@ const MapContainer = ({
   currentPosition,
   onLocationClick,
   height = "100%",
-  autoCenter = false,
-}: {
+  autoCenter = false}: {
   locations: DeliveryLocation[];
   currentPosition?: DeliveryPosition;
   onLocationClick?: (location: DeliveryLocation) => void;
@@ -70,7 +68,6 @@ const MapContainer = ({
 }) => {
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Simulation du mouvement pour la démo
   useEffect(() => {
     if (currentPosition && !isSimulating) {
       setIsSimulating(true);
@@ -202,8 +199,7 @@ export default function DeliveryTrackingMap({
   showControls = true,
   showEta = true,
   autoCenter = true,
-  className,
-}: DeliveryTrackingMapProps) {
+  className}: DeliveryTrackingMapProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedLocation, setSelectedLocation] =
     useState<DeliveryLocation | null>(null);
@@ -216,7 +212,7 @@ export default function DeliveryTrackingMap({
     data: delivery,
     isLoading,
     refetch,
-  } = api.delivery.getTrackingInfo.useQuery(
+  } = api.deliveryTracking.getTrackingInfo.useQuery(
     { deliveryId },
     {
       refetchInterval: 30000, // Actualisation toutes les 30 secondes
@@ -291,23 +287,19 @@ export default function DeliveryTrackingMap({
       lat: delivery.pickupLatitude || 0,
       lng: delivery.pickupLongitude || 0,
       type: "pickup",
-      address: delivery.pickupAddress,
-    },
+      address: delivery.pickupAddress},
     {
       lat: delivery.deliveryLatitude || 0,
       lng: delivery.deliveryLongitude || 0,
       type: "delivery",
-      address: delivery.deliveryAddress,
-    },
-  ];
+      address: delivery.deliveryAddress}];
 
   if (currentPosition) {
-    locations.push({
-      lat: currentPosition.position.lat,
+    locations.push({ lat: currentPosition.position.lat,
       lng: currentPosition.position.lng,
       type: "current",
       timestamp: currentPosition.timestamp,
-    });
+     });
   }
 
   const getStatusColor = (status: string) => {

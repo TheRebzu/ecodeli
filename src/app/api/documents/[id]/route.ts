@@ -14,7 +14,7 @@ import { readFile } from "fs/promises";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id }> },
 ) {
   try {
     const resolvedParams = await params;
@@ -36,13 +36,12 @@ export async function GET(
       req: request as any,
       res: {} as any,
       info: {} as any,
-      auth: { session },
-    });
+      auth: { session }});
     const caller = appRouter.createCaller(ctx);
 
     try {
       // Appeler la procédure tRPC
-      const document = await caller.document.getDocumentById({ documentId });
+      const document = await caller.document.getDocumentById({ documentId  });
 
       if (!document) {
         return new NextResponse("Document non trouvé", { status: 404 });
@@ -68,8 +67,7 @@ export async function GET(
 
         return new NextResponse(fileBuffer, {
           status: 200,
-          headers,
-        });
+          headers});
       } catch (error) {
         console.error("Erreur lors de la lecture du fichier:", error);
         return new NextResponse("Fichier introuvable", { status: 404 });
@@ -95,7 +93,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id }> },
 ) {
   try {
     const resolvedParams = await params;
@@ -113,14 +111,13 @@ export async function DELETE(
       req: request as any,
       res: {} as any,
       info: {} as any,
-      auth: { session },
-    });
+      auth: { session }});
     const caller = appRouter.createCaller(ctx);
 
     try {
       // Appeler la procédure tRPC
-      await caller.document.deleteDocument({ documentId });
-      return NextResponse.json({ success: true });
+      await caller.document.deleteDocument({ documentId  });
+      return NextResponse.json({ success  });
     } catch (error) {
       if (error instanceof TRPCError) {
         if (error.code === "NOT_FOUND") {

@@ -5,14 +5,11 @@ import { UserRole } from "@prisma/client";
 // Vérification spécifique pour les livreurs vérifiés
 export const isVerifiedDeliverer = async (userId: string) => {
   const deliverer = await db.deliverer.findFirst({
-    where: { userId, isVerified: true },
-  });
+    where: { userId, isVerified: true }});
 
   if (!deliverer) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Cette action nécessite un compte livreur vérifié.",
-    });
+    throw new TRPCError({ code: "FORBIDDEN",
+      message: "Cette action nécessite un compte livreur vérifié." });
   }
 
   return deliverer;
@@ -21,14 +18,11 @@ export const isVerifiedDeliverer = async (userId: string) => {
 // Vérification spécifique pour les prestataires vérifiés
 export const isVerifiedProvider = async (userId: string) => {
   const provider = await db.provider.findFirst({
-    where: { userId, isVerified: true },
-  });
+    where: { userId, isVerified: true }});
 
   if (!provider) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Cette action nécessite un compte prestataire vérifié.",
-    });
+    throw new TRPCError({ code: "FORBIDDEN",
+      message: "Cette action nécessite un compte prestataire vérifié." });
   }
 
   return provider;
@@ -45,9 +39,8 @@ export const ownsResource = async (
   switch (resourceType) {
     case "announcement":
       resource = await db.announcement.findUnique({
-        where: { id: resourceId },
-        select: { clientId: true, merchantId: true, delivererId: true },
-      });
+        where: { id },
+        select: { clientId: true, merchantId: true, delivererId: true }});
       break;
     case "delivery":
       // Vérification pour livraison
@@ -56,10 +49,8 @@ export const ownsResource = async (
   }
 
   if (!resource) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Ressource non trouvée",
-    });
+    throw new TRPCError({ code: "NOT_FOUND",
+      message: "Ressource non trouvée" });
   }
 
   // Vérification de la propriété selon le type de ressource

@@ -25,6 +25,7 @@ import {
   RotateCcw,
   XCircle,
   Info,
+  Check,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/utils/document-utils";
 import { useTranslations } from "next-intl";
@@ -56,11 +57,14 @@ export interface PaymentSummaryProps {
   invoiceId?: string;
   onDownloadReceipt?: () => void;
   onViewInvoice?: () => void;
-  isDemo?: boolean;
+  
   onSimulateSuccess?: () => void;
   onSimulateFailure?: () => void;
   onSimulateRefund?: () => void;
   onSimulateDispute?: () => void;
+  fees?: number;
+  taxes?: number;
+  className?: string;
 }
 
 export function PaymentSummary({
@@ -79,11 +83,14 @@ export function PaymentSummary({
   invoiceId,
   onDownloadReceipt,
   onViewInvoice,
-  isDemo = false,
+  
   onSimulateSuccess,
   onSimulateFailure,
   onSimulateRefund,
   onSimulateDispute,
+  fees = 0,
+  taxes = 0,
+  className,
 }: PaymentSummaryProps) {
   const t = useTranslations("payment");
 
@@ -159,7 +166,7 @@ export function PaymentSummary({
 
   // Gérer les simulations en mode démo
   const handleSimulateSuccess = async () => {
-    if (isDemo || isDemoMode) {
+    if (isDemoMode) {
       try {
         await simulateSuccess(paymentId);
         if (onSimulateSuccess) onSimulateSuccess();
@@ -170,7 +177,7 @@ export function PaymentSummary({
   };
 
   const handleSimulateFailure = async () => {
-    if (isDemo || isDemoMode) {
+    if (isDemoMode) {
       try {
         await simulateFailure(paymentId);
         if (onSimulateFailure) onSimulateFailure();
@@ -181,7 +188,7 @@ export function PaymentSummary({
   };
 
   const handleSimulateRefund = async () => {
-    if (isDemo || isDemoMode) {
+    if (isDemoMode) {
       try {
         await simulateRefund(paymentId);
         if (onSimulateRefund) onSimulateRefund();
@@ -192,7 +199,7 @@ export function PaymentSummary({
   };
 
   const handleSimulateDispute = async () => {
-    if (isDemo || isDemoMode) {
+    if (isDemoMode) {
       try {
         await simulateDispute(paymentId);
         if (onSimulateDispute) onSimulateDispute();
@@ -202,21 +209,24 @@ export function PaymentSummary({
     }
   };
 
+  const subtotal = amount - fees - taxes;
+  const total = amount;
+
   return (
-    <Card className="w-full">
+    <Card className={`w-full ${className || ''}`}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{t("paymentSummary")}</CardTitle>
           <div className="flex items-center gap-2">
+            {statusInfo.icon}
             <Badge
               variant={statusInfo.variant}
               className="flex items-center gap-1"
             >
-              {statusInfo.icon}
               {statusInfo.label}
             </Badge>
 
-            {(isDemo || isDemoMode) && (
+            {(isDemoMode) && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -379,6 +389,36 @@ export function PaymentSummary({
             </div>
           </div>
         )}
+
+        <Separator />
+
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-sm">{t("subtotal")}</span>
+            <span className="text-sm">{formatCurrency(subtotal, currency)}</span>
+          </div>
+          
+          {fees > 0 && (
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">{t("fees")}</span>
+              <span className="text-sm">{formatCurrency(fees, currency)}</span>
+            </div>
+          )}
+          
+          {taxes > 0 && (
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">{t("taxes")}</span>
+              <span className="text-sm">{formatCurrency(taxes, currency)}</span>
+            </div>
+          )}
+          
+          <Separator />
+          
+          <div className="flex justify-between font-semibold">
+            <span>{t("total")}</span>
+            <span>{formatCurrency(total, currency)}</span>
+          </div>
+        </div>
       </CardContent>
 
       {/* Actions */}
@@ -397,8 +437,8 @@ export function PaymentSummary({
           </Button>
         )}
 
-        {/* Boutons de simulation pour le mode démo */}
-        {(isDemo || isDemoMode) && status === "PENDING" && (
+        {}
+        {(isDemoMode) && status === "PENDING" && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -419,7 +459,7 @@ export function PaymentSummary({
           </TooltipProvider>
         )}
 
-        {(isDemo || isDemoMode) && status === "PENDING" && (
+        {(isDemoMode) && status === "PENDING" && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -440,7 +480,7 @@ export function PaymentSummary({
           </TooltipProvider>
         )}
 
-        {(isDemo || isDemoMode) && status === "COMPLETED" && (
+        {(isDemoMode) && status === "COMPLETED" && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -461,7 +501,7 @@ export function PaymentSummary({
           </TooltipProvider>
         )}
 
-        {(isDemo || isDemoMode) && status === "COMPLETED" && (
+        {(isDemoMode) && status === "COMPLETED" && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

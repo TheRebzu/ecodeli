@@ -57,8 +57,7 @@ export function LineChart({
   showXAxis = true,
   showYAxis = true,
   startEndOnly = false,
-  className = "",
-}: LineChartProps) {
+  className = ""}: LineChartProps) {
   return (
     <div className={className}>
       {title && (
@@ -101,8 +100,7 @@ export function BarChart({
   showLegend = true,
   showGridLines = true,
   layout = "horizontal",
-  className = "",
-}: BarChartProps) {
+  className = ""}: BarChartProps) {
   return (
     <div className={className}>
       {title && (
@@ -143,8 +141,7 @@ export function AreaChart({
   showXAxis = true,
   showYAxis = true,
   startEndOnly = false,
-  className = "",
-}: BaseChartProps) {
+  className = ""}: BaseChartProps) {
   return (
     <div className={className}>
       {title && (
@@ -183,8 +180,7 @@ export function PieChart({
   index,
   colors,
   valueFormatter = (value) => `${value}`,
-  className = "",
-}: PieChartProps) {
+  className = ""}: PieChartProps) {
   // TODO: Implémenter avec recharts ou autre, car @tremor/react n'a pas de PieChart
   return (
     <div className={className}>
@@ -209,8 +205,7 @@ export function PieChart({
 export function ChartCard({
   title,
   description,
-  children,
-}: {
+  children}: {
   title: string;
   description?: string;
   children: React.ReactNode;

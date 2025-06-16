@@ -12,8 +12,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DownloadIcon, RefreshCw, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -25,52 +24,46 @@ export function DeliveryDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("all");
   const [mapView, setMapView] = useState(false);
-  const [filters, setFilters] = useState({
-    status: "",
+  const [filters, setFilters] = useState({ status: "",
     search: "",
     startDate: "",
     endDate: "",
     page: 1,
-    limit: 10,
-  });
+    limit: 10 });
 
-  const deliveriesQuery = api.delivery.getAll.useQuery({
-    status: filters.status ? (filters.status as DeliveryStatus) : undefined,
+  const deliveriesQuery = api.delivery.getAll.useQuery({ status: filters.status ? (filters.status as DeliveryStatus) : undefined,
     search: filters.search || undefined,
     startDate: filters.startDate ? new Date(filters.startDate) : undefined,
     endDate: filters.endDate ? new Date(filters.endDate) : undefined,
     page: filters.page,
-    limit: filters.limit,
-  });
+    limit: filters.limit });
 
-  const statsQuery = api.delivery.getStats.useQuery({
-    ...(filters.startDate && { startDate: new Date(filters.startDate) }),
-    ...(filters.endDate && { endDate: new Date(filters.endDate) }),
-  });
+  const statsQuery = api.delivery.getStats.useQuery({ ...(filters.startDate && { startDate: new Date(filters.startDate)  }),
+    ...(filters.endDate && { endDate: new Date(filters.endDate) })});
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
 
     // Mettre à jour les filtres en fonction de l'onglet sélectionné
     if (value === "all") {
-      setFilters((prev) => ({ ...prev, status: "" }));
+      setFilters((prev) => ({ ...prev, status: ""  }));
     } else if (value === "pending") {
-      setFilters((prev) => ({ ...prev, status: "PENDING" }));
+      setFilters((prev) => ({ ...prev, status: "PENDING"  }));
     } else if (value === "in_transit") {
-      setFilters((prev) => ({ ...prev, status: "IN_TRANSIT" }));
+      setFilters((prev) => ({ ...prev, status: "IN_TRANSIT"  }));
     } else if (value === "completed") {
-      setFilters((prev) => ({ ...prev, status: "DELIVERED" }));
+      setFilters((prev) => ({ ...prev, status: "DELIVERED"  }));
     } else if (value === "problems") {
-      setFilters((prev) => ({ ...prev, status: "PROBLEM" }));
+      setFilters((prev) => ({ ...prev, status: "PROBLEM"  }));
     }
   };
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({ ...prev, ...newFilters, page: 1  }));
   };
 
   const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setFilters((prev) => ({ ...prev, page  }));
   };
 
   const handleRefresh = () => {

@@ -8,8 +8,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +24,7 @@ import {
   Route,
   ArrowUpRight,
   Truck,
-  Phone,
-} from "lucide-react";
+  Phone} from "lucide-react";
 import { useDeliveryArrival } from "@/hooks/features/use-delivery-validation";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -48,8 +46,7 @@ export default function DeliveryArrivalNotice({
   onDismiss,
   notificationsEnabled = true,
   onToggleNotifications,
-  className = "",
-}: DeliveryArrivalNoticeProps) {
+  className = ""}: DeliveryArrivalNoticeProps) {
   const t = useTranslations("deliveries.arrival");
   const [dismissed, setDismissed] = useState(false);
   const [showAlert, setShowAlert] = useState(true);
@@ -89,11 +86,11 @@ export default function DeliveryArrivalNotice({
         return t("arrivalImminent");
       case "urgent":
         return minutesRemaining
-          ? t("arrivalSoon", { minutes: minutesRemaining })
+          ? t("arrivalSoon", { minutes })
           : t("approaching");
       default:
         return minutesRemaining
-          ? t("arrivalInMinutes", { minutes: minutesRemaining })
+          ? t("arrivalInMinutes", { minutes })
           : t("onTheWay");
     }
   };
@@ -101,7 +98,7 @@ export default function DeliveryArrivalNotice({
   // Formater l'heure d'arrivée estimée
   const formatETA = (date: Date | string | null) => {
     if (!date) return t("unknown");
-    return format(new Date(date), "HH:mm", { locale: fr });
+    return format(new Date(date), "HH:mm", { locale });
   };
 
   // Gérer le clic sur le bouton Dismiss
@@ -239,7 +236,7 @@ export default function DeliveryArrivalNotice({
         </CardTitle>
         <CardDescription>
           {distanceRemaining
-            ? t("distanceRemaining", { distance: distanceRemaining })
+            ? t("distanceRemaining", { distance })
             : t("preparingForArrival")}
         </CardDescription>
       </CardHeader>

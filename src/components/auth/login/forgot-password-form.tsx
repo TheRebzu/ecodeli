@@ -5,8 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   forgotPasswordSchema,
-  ForgotPasswordSchemaType,
-} from "@/schemas/auth/login.schema";
+  ForgotPasswordSchemaType} from "@/schemas/auth/login.schema";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +15,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
@@ -35,13 +33,10 @@ export function ForgotPasswordForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<ForgotPasswordSchemaType>({
+    formState: { errors }} = useForm<ForgotPasswordSchemaType>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
-      email: "",
-    },
-  });
+      email: ""}});
 
   const onSubmit = async (data: ForgotPasswordSchemaType) => {
     setIsSubmitting(true);

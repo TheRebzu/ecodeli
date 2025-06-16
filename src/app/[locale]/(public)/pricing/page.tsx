@@ -6,8 +6,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils/common";
 import { ArrowRight, BadgeCheck, CheckCircle, XCircle } from "lucide-react";
@@ -52,19 +51,16 @@ export default function PricingPage() {
                       "Messagerie avec les utilisateurs",
                       "Possibilité de devenir livreur",
                       "Assurance de base",
-                      "Support par email",
-                    ],
+                      "Support par email"],
                     notIncluded: [
                       "Annonces prioritaires",
                       "Code de livraison illimité",
                       "Support client prioritaire",
-                      "Système d'évaluation avancé",
-                    ],
+                      "Système d'évaluation avancé"],
                     cta: "Commencer gratuitement",
                     href: "/register",
                     popular: false,
-                    color: "",
-                  },
+                    color: ""},
                   {
                     name: "Starter",
                     price: "4,99€",
@@ -77,17 +73,14 @@ export default function PricingPage() {
                       "Codes de livraison (10 par mois)",
                       "Support client prioritaire",
                       "Système d'évaluation avancé",
-                      "Annonces prioritaires",
-                    ],
+                      "Annonces prioritaires"],
                     notIncluded: [
                       "Codes de livraison illimités",
-                      "Assistance dédiée",
-                    ],
+                      "Assistance dédiée"],
                     cta: "S'abonner",
                     href: "/register?plan=starter",
                     popular: true,
-                    color: "border-primary",
-                  },
+                    color: "border-primary"},
                   {
                     name: "Premium",
                     price: "9,99€",
@@ -101,15 +94,12 @@ export default function PricingPage() {
                       "Support téléphonique",
                       "Assistance dédiée",
                       "Statistiques avancées",
-                      "Système d'évaluation complet",
-                    ],
+                      "Système d'évaluation complet"],
                     notIncluded: [],
                     cta: "S'abonner",
                     href: "/register?plan=premium",
                     popular: false,
-                    color: "",
-                  },
-                ].map((plan, index) => (
+                    color: ""}].map((plan, index) => (
                   <PricingCard key={index} plan={plan} />
                 ))}
               </div>
@@ -219,35 +209,28 @@ export default function PricingPage() {
               {
                 question: "Puis-je changer de formule à tout moment ?",
                 answer:
-                  "Oui, vous pouvez changer de formule à tout moment depuis votre espace personnel. Le changement prendra effet à la prochaine période de facturation.",
-              },
+                  "Oui, vous pouvez changer de formule à tout moment depuis votre espace personnel. Le changement prendra effet à la prochaine période de facturation."},
               {
                 question: "Comment fonctionne la formule gratuite ?",
                 answer:
-                  "La formule gratuite vous permet de publier jusqu'à 5 annonces par mois et d'accéder aux services de base d'EcoDeli sans aucun engagement ni frais cachés.",
-              },
+                  "La formule gratuite vous permet de publier jusqu'à 5 annonces par mois et d'accéder aux services de base d'EcoDeli sans aucun engagement ni frais cachés."},
               {
                 question: "Qu'est-ce qu'un code de livraison ?",
                 answer:
-                  "Les codes de livraison sont utilisés pour valider la réception d'un colis ou l'achèvement d'un service. Le destinataire doit confirmer en saisissant ce code, déclenchant ainsi le paiement du livreur.",
-              },
+                  "Les codes de livraison sont utilisés pour valider la réception d'un colis ou l'achèvement d'un service. Le destinataire doit confirmer en saisissant ce code, déclenchant ainsi le paiement du livreur."},
               {
                 question:
                   "Les formules incluent-elles tous les types de services ?",
                 answer:
-                  "Oui, toutes les formules donnent accès à l'ensemble des services proposés sur EcoDeli : transport de colis, transport de personnes, services de courses et services écologiques.",
-              },
+                  "Oui, toutes les formules donnent accès à l'ensemble des services proposés sur EcoDeli : transport de colis, transport de personnes, services de courses et services écologiques."},
               {
                 question: "Comment fonctionne l'assurance ?",
                 answer:
-                  "Chaque formule inclut une assurance qui couvre les colis ou services en cas de problème. Le niveau de couverture varie selon la formule choisie, avec une protection plus complète pour les formules supérieures.",
-              },
+                  "Chaque formule inclut une assurance qui couvre les colis ou services en cas de problème. Le niveau de couverture varie selon la formule choisie, avec une protection plus complète pour les formules supérieures."},
               {
                 question: "Y a-t-il un engagement minimum ?",
                 answer:
-                  "Non, il n'y a aucun engagement minimum. Vous pouvez résilier votre abonnement à tout moment, la résiliation prendra effet à la fin de la période de facturation en cours.",
-              },
-            ].map((faq, index) => (
+                  "Non, il n'y a aucun engagement minimum. Vous pouvez résilier votre abonnement à tout moment, la résiliation prendra effet à la fin de la période de facturation en cours."}].map((faq, index) => (
               <div key={index} className="p-6 rounded-xl border">
                 <h3 className="font-bold text-lg mb-2">{faq.question}</h3>
                 <p className="text-muted-foreground">{faq.answer}</p>
@@ -288,7 +271,7 @@ export default function PricingPage() {
   );
 }
 
-function PricingCard({ plan }: { plan: any }) {
+function PricingCard({ plan }: { plan }) {
   return (
     <Card
       className={cn(
@@ -356,8 +339,7 @@ function PricingCard({ plan }: { plan: any }) {
 
 function FeatureRow({
   feature,
-  values,
-}: {
+  values}: {
   feature: string;
   values: (string | boolean | number)[];
 }) {

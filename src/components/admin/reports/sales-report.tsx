@@ -17,14 +17,12 @@ import {
   Pie,
   Cell,
   Area,
-  AreaChart,
-} from "recharts";
+  AreaChart} from "recharts";
 import {
   DollarSign,
   TrendingUp,
   PackageIcon,
-  ShoppingCart,
-} from "lucide-react";
+  ShoppingCart} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -67,8 +65,7 @@ export function SalesReport({
   data,
   isLoading,
   isError,
-  dateRange,
-}: SalesReportProps) {
+  dateRange}: SalesReportProps) {
   const t = useTranslations("admin.reports");
 
   // Format monétaire pour l'affichage des valeurs
@@ -76,8 +73,7 @@ export function SalesReport({
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: "EUR",
-      minimumFractionDigits: 2,
-    }).format(value);
+      minimumFractionDigits: 2}).format(value);
   };
 
   // Format de pourcentage pour l'affichage des changements
@@ -90,7 +86,7 @@ export function SalesReport({
       <div className="space-y-6">
         {/* Placeholders de chargement pour les KPIs */}
         <div className="grid gap-4 md:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
+          {Array.from({ length: 4  }).map((_, index) => (
             <Card key={index}>
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <Skeleton className="h-4 w-32" />
@@ -116,7 +112,7 @@ export function SalesReport({
 
         {/* Placeholders pour les graphiques secondaires */}
         <div className="grid gap-4 md:grid-cols-2">
-          {Array.from({ length: 2 }).map((_, index) => (
+          {Array.from({ length: 2  }).map((_, index) => (
             <Card key={index}>
               <CardHeader className="pb-2">
                 <Skeleton className="h-6 w-48" />
@@ -163,8 +159,7 @@ export function SalesReport({
     "#ffc658",
     "#ff8042",
     "#0088FE",
-    "#00C49F",
-  ];
+    "#00C49F"];
 
   return (
     <div className="space-y-6">
@@ -282,8 +277,7 @@ export function SalesReport({
                     <Tooltip
                       formatter={(value) => [
                         `${formatCurrency(value as number)}`,
-                        t("sales.revenue"),
-                      ]}
+                        t("sales.revenue")]}
                       labelFormatter={(label) => `${label}`}
                     />
                     <Legend />
@@ -319,7 +313,7 @@ export function SalesReport({
                         fill="#8884d8"
                         dataKey="value"
                         nameKey="name"
-                        label={({ name, percent }) =>
+                        label={({ name, percent  }) =>
                           `${name}: ${(percent * 100).toFixed(0)}%`
                         }
                       >
@@ -333,8 +327,7 @@ export function SalesReport({
                       <Tooltip
                         formatter={(value) => [
                           formatCurrency(value as number),
-                          t("sales.value"),
-                        ]}
+                          t("sales.value")]}
                       />
                       <Legend />
                     </PieChart>
@@ -360,8 +353,7 @@ export function SalesReport({
                       <Tooltip
                         formatter={(value) => [
                           formatCurrency(value as number),
-                          t("sales.revenue"),
-                        ]}
+                          t("sales.revenue")]}
                       />
                       <Bar dataKey="value" name={t("sales.revenue")}>
                         {data.salesByDeliveryType.map((entry, index) => (
@@ -405,8 +397,7 @@ export function SalesReport({
                     <Tooltip
                       formatter={(value) => [
                         `${formatCurrency(value as number)}`,
-                        "",
-                      ]}
+                        ""]}
                       labelFormatter={(label) => `${label}`}
                     />
                     <Legend />

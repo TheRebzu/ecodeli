@@ -10,8 +10,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -30,8 +29,7 @@ import {
   AlertCircle,
   InfoIcon,
   ClipboardList,
-  QrCode,
-} from "lucide-react";
+  QrCode} from "lucide-react";
 import { formatDate, formatTime, formatCurrency } from "@/utils/document-utils";
 import { DeliveryStatusBadge } from "@/components/shared/deliveries/delivery-status-badge";
 import { DeliveryMap } from "@/components/merchant/deliveries/delivery-map";
@@ -55,10 +53,8 @@ export default function DeliveryDetailPage() {
   React.useEffect(() => {
     if (navigator.geolocation && !userLocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
+        setUserLocation({ lat: position.coords.latitude,
+          lng: position.coords.longitude });
       });
     }
   }, [userLocation, setUserLocation]);
@@ -68,17 +64,14 @@ export default function DeliveryDetailPage() {
     data: delivery,
     isLoading,
     isError,
-    error,
-  } = trpc.deliveries.getDeliveryById.useQuery({ id });
+    error} = trpc.deliveries.getDeliveryById.useQuery({ id  });
 
   // Mettre à jour le statut de la livraison
   const updateDeliveryStatusMutation =
-    trpc.deliveries.updateDeliveryStatus.useMutation({
-      onSuccess: () => {
+    trpc.deliveries.updateDeliveryStatus.useMutation({ onSuccess: () => {
         // Invalider le cache pour recharger les données
-        utils.deliveries.getDeliveryById.invalidate({ id });
-      },
-    });
+        utils.deliveries.getDeliveryById.invalidate({ id  });
+      }});
 
   const utils = trpc.useContext();
 
@@ -148,10 +141,8 @@ export default function DeliveryDetailPage() {
 
   // Fonction pour démarrer la livraison
   const handleStartDelivery = () => {
-    updateDeliveryStatusMutation.mutate({
-      id: delivery.id,
-      status: "IN_TRANSIT",
-    });
+    updateDeliveryStatusMutation.mutate({ id: delivery.id,
+      status: "IN_TRANSIT" });
     // Rediriger vers la page de livraison active
     router.push(`/deliverer/deliveries/active?id=${delivery.id}`);
   };
@@ -173,7 +164,7 @@ export default function DeliveryDetailPage() {
     if (delivery.recipient.coordinates) {
       // Ouvrir Google Maps avec les coordonnées
       const url = `https://www.google.com/maps/dir/?api=1&destination=${delivery.recipient.coordinates.lat},${delivery.recipient.coordinates.lng}`;
-      window.open(url, "_blank");
+      window.open(url, "blank");
     }
   };
 

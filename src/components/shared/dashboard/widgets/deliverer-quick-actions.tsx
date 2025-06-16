@@ -15,8 +15,7 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
-  Navigation,
-} from "lucide-react";
+  Navigation} from "lucide-react";
 
 type ButtonVariant =
   | "default"
@@ -35,8 +34,7 @@ type DelivererQuickActionsProps = {
 export function DelivererQuickActions({
   isAvailable = false,
   hasActiveDeliveries = false,
-  pendingNotifications = 0,
-}: DelivererQuickActionsProps) {
+  pendingNotifications = 0}: DelivererQuickActionsProps) {
   const t = useTranslations("dashboard.deliverer");
   const router = useRouter();
 
@@ -58,8 +56,7 @@ export function DelivererQuickActions({
       priority: "high",
       className: isAvailable
         ? "border-green-300 bg-green-50 hover:bg-green-100"
-        : "",
-    },
+        : ""},
     {
       id: "active-deliveries",
       label: t("actions.activeDeliveries"),
@@ -67,9 +64,7 @@ export function DelivererQuickActions({
       onClick: () => router.push("/deliverer/deliveries/active"),
       variant: hasActiveDeliveries ? "default" : ("outline" as ButtonVariant),
       priority: "high",
-      badge: hasActiveDeliveries ? "!" : undefined,
-    },
-  ];
+      badge: hasActiveDeliveries ? "!" : undefined}];
 
   // Actions secondaires
   const secondaryActions = [
@@ -79,40 +74,35 @@ export function DelivererQuickActions({
       icon: <Navigation className="h-4 w-4 mr-2" />,
       onClick: () => router.push("/deliverer/announcements"),
       variant: "outline" as ButtonVariant,
-      priority: "medium",
-    },
+      priority: "medium"},
     {
       id: "create-route",
       label: t("actions.createRoute"),
       icon: <Route className="h-4 w-4 mr-2" />,
       onClick: () => router.push("/deliverer/my-routes/create"),
       variant: "outline" as ButtonVariant,
-      priority: "medium",
-    },
+      priority: "medium"},
     {
       id: "manage-schedule",
       label: t("actions.manageSchedule"),
       icon: <Calendar className="h-4 w-4 mr-2" />,
       onClick: () => router.push("/deliverer/schedule"),
       variant: "outline" as ButtonVariant,
-      priority: "medium",
-    },
+      priority: "medium"},
     {
       id: "view-map",
       label: t("actions.viewMap"),
       icon: <Map className="h-4 w-4 mr-2" />,
       onClick: () => router.push("/deliverer/map"),
       variant: "outline" as ButtonVariant,
-      priority: "medium",
-    },
+      priority: "medium"},
     {
       id: "wallet",
       label: t("actions.viewWallet"),
       icon: <Wallet className="h-4 w-4 mr-2" />,
       onClick: () => router.push("/deliverer/wallet"),
       variant: "outline" as ButtonVariant,
-      priority: "low",
-    },
+      priority: "low"},
     {
       id: "notifications",
       label: t("actions.notifications"),
@@ -126,17 +116,14 @@ export function DelivererQuickActions({
       variant: "outline" as ButtonVariant,
       priority: "low",
       badge:
-        pendingNotifications > 0 ? pendingNotifications.toString() : undefined,
-    },
+        pendingNotifications > 0 ? pendingNotifications.toString() : undefined},
     {
       id: "profile-settings",
       label: t("actions.profileSettings"),
       icon: <Settings className="h-4 w-4 mr-2" />,
       onClick: () => router.push("/deliverer/profile"),
       variant: "outline" as ButtonVariant,
-      priority: "low",
-    },
-  ];
+      priority: "low"}];
 
   const allActions = [...primaryActions, ...secondaryActions];
 

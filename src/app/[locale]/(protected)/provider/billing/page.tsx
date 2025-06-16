@@ -13,8 +13,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 
 // Icons
 import { Euro, FileText, TrendingUp, Download, Settings } from "lucide-react";
@@ -45,27 +44,20 @@ export default function BillingPage() {
     error,
     refetch,
     downloadInvoice,
-    viewInvoice,
-  } = useProviderMonthlyBilling({
-    year: yearFilter,
-    status: statusFilter !== "all" ? statusFilter : undefined,
-  });
+    viewInvoice} = useProviderMonthlyBilling({ year: yearFilter,
+    status: statusFilter !== "all" ? statusFilter : undefined });
 
   // Actions
   const handleDownloadInvoice = async (id: string) => {
     try {
       await downloadInvoice(id);
-      toast({
-        title: t("downloadSuccess"),
-        description: t("downloadSuccessDesc"),
-      });
+      toast({ title: t("downloadSuccess"),
+        description: t("downloadSuccessDesc") });
     } catch (error) {
-      toast({
-        title: t("downloadError"),
+      toast({ title: t("downloadError"),
         description:
           error instanceof Error ? error.message : t("downloadErrorDesc"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
@@ -160,7 +152,7 @@ export default function BillingPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  {t("monthlyInvoices")} ({invoices.length})
+                  {t("monthlyInvoices")} ({ invoices.length })
                 </CardTitle>
                 <Button variant="outline" size="sm" onClick={() => {}}>
                   <Download className="h-4 w-4 mr-2" />

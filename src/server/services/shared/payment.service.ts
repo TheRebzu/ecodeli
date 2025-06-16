@@ -9,8 +9,7 @@ import { randomUUID } from "crypto";
 import {
   CreatePaymentInput,
   ProcessPaymentInput,
-  RefundPaymentInput,
-} from "@/schemas/payment/payment.schema";
+  RefundPaymentInput} from "@/schemas/payment/payment.schema";
 import { createInvoice } from "@/server/services/shared/invoice.service";
 import { addWalletTransaction } from "@/server/services/shared/wallet.service";
 import { logger } from "@/lib/utils/logger";
@@ -48,8 +47,7 @@ export const paymentService = {
       invoiceId,
       isEscrow = false,
       paymentMethodId,
-      metadata = {},
-    } = data;
+      metadata = {}} = data;
 
     // Créer l'enregistrement de paiement en statut PENDING
     const payment = await db.payment.create({
@@ -66,9 +64,7 @@ export const paymentService = {
         paymentMethodId,
         paymentMethodType: paymentMethodId ? "CARD" : "WALLET",
         source: "STRIPE",
-        metadata,
-      },
-    });
+        metadata}});
 
     // Créer une intention de paiement Stripe
     const paymentMetadata = {
@@ -78,8 +74,7 @@ export const paymentService = {
       deliveryId: deliveryId || "",
       invoiceId: invoiceId || "",
       description,
-      isEscrow: isEscrow ? "true" : "false",
-    };
+      isEscrow: isEscrow ? "true" : "false"};
 
     try {
       const intent = await stripeService.createPaymentIntent(
@@ -93,31 +88,24 @@ export const paymentService = {
         where: { id: payment.id },
         data: {
           stripePaymentId: intent.id,
-          paymentIntentId: intent.id,
-        },
-      });
+          paymentIntentId: intent.id}});
 
       return {
         payment,
         clientSecret: intent.client_secret,
-        redirectUrl: null,
-      };
-    } catch (_error) {
+        redirectUrl: null};
+    } catch (error) {
       // En cas d'erreur, marquer le paiement comme échoué
       await db.payment.update({
         where: { id: payment.id },
         data: {
           status: PaymentStatus.FAILED,
           errorMessage:
-            error instanceof Error ? error.message : "Erreur inconnue",
-        },
-      });
+            error instanceof Error ? error.message : "Erreur inconnue"}});
 
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec de l'initialisation du paiement",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -130,19 +118,15 @@ export const paymentService = {
     metadata: Record<string, any> = {},
   ) {
     const payment = await db.payment.findUnique({
-      where: { id: paymentId },
+      where: { id },
       include: {
         delivery: true,
         service: true,
-        invoice: true,
-      },
-    });
+        invoice: true}});
 
     if (!payment) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Paiement non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Paiement non trouvé" });
     }
 
     if (payment.status === PaymentStatus.COMPLETED) {
@@ -154,42 +138,37 @@ export const paymentService = {
       return await db.$transaction(async (tx) => {
         // Mettre à jour le statut du paiement
         const updatedPayment = await tx.payment.update({
-          where: { id: paymentId },
+          where: { id },
           data: {
             status: PaymentStatus.COMPLETED,
             capturedAt: new Date(),
             metadata: {
               ...payment.metadata,
-              ...metadata,
-            },
-          },
-        });
+              ...metadata}}});
 
         // Traiter les différents types de paiements
         if (payment.deliveryId) {
-          await this._processDeliveryPayment(tx, payment, metadata);
+          await this.processDeliveryPayment(tx, payment, metadata);
         } else if (payment.serviceId) {
-          await this._processServicePayment(tx, payment, metadata);
+          await this.processServicePayment(tx, payment, metadata);
         } else if (payment.invoiceId) {
-          await this._processInvoicePayment(tx, payment, metadata);
+          await this.processInvoicePayment(tx, payment, metadata);
         } else if (payment.subscriptionId) {
-          await this._processSubscriptionPayment(tx, payment, metadata);
+          await this.processSubscriptionPayment(tx, payment, metadata);
         }
 
         return updatedPayment;
       });
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors du traitement du paiement réussi:", error);
 
       // Marquer le paiement comme problématique
       await db.payment.update({
-        where: { id: paymentId },
+        where: { id },
         data: {
           status: PaymentStatus.FAILED,
           errorMessage:
-            error instanceof Error ? error.message : "Erreur inconnue",
-        },
-      });
+            error instanceof Error ? error.message : "Erreur inconnue"}});
 
       throw error;
     }
@@ -200,23 +179,18 @@ export const paymentService = {
    */
   async processFailedPayment(paymentId: string, reason: string) {
     const payment = await db.payment.findUnique({
-      where: { id: paymentId },
-    });
+      where: { id }});
 
     if (!payment) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Paiement non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Paiement non trouvé" });
     }
 
     return await db.payment.update({
-      where: { id: paymentId },
+      where: { id },
       data: {
         status: PaymentStatus.FAILED,
-        errorMessage: reason,
-      },
-    });
+        errorMessage: reason}});
   },
 
   /**
@@ -224,23 +198,18 @@ export const paymentService = {
    */
   async processInvoicePayment(invoiceId: string, paymentId: string) {
     const invoice = await db.invoice.findUnique({
-      where: { id: invoiceId },
-    });
+      where: { id }});
 
     if (!invoice) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Facture non trouvée",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Facture non trouvée" });
     }
 
     return await db.invoice.update({
-      where: { id: invoiceId },
+      where: { id },
       data: {
         status: "PAID",
-        paidDate: new Date(),
-      },
-    });
+        paidDate: new Date()}});
   },
 
   /**
@@ -255,12 +224,10 @@ export const paymentService = {
     // par le fournisseur de paiement (Stripe ou autre)
 
     return await db.walletTransaction.update({
-      where: { id: payoutId },
+      where: { id },
       data: {
         status: "COMPLETED",
-        completedAt: new Date(),
-      },
-    });
+        completedAt: new Date()}});
   },
 
   /**
@@ -272,49 +239,39 @@ export const paymentService = {
     metadata: Record<string, any> = {},
   ) {
     const subscription = await db.subscription.findUnique({
-      where: { id: subscriptionId },
-    });
+      where: { id }});
 
     if (!subscription) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Abonnement non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Abonnement non trouvé" });
     }
 
     switch (eventType) {
       case "subscription.created":
         return await db.subscription.update({
-          where: { id: subscriptionId },
+          where: { id },
           data: {
             status: "ACTIVE",
-            metadata: { ...subscription.metadata, ...metadata },
-          },
-        });
+            metadata: { ...subscription.metadata, ...metadata }}});
 
       case "subscription.updated":
         return await db.subscription.update({
-          where: { id: subscriptionId },
+          where: { id },
           data: {
-            metadata: { ...subscription.metadata, ...metadata },
-          },
-        });
+            metadata: { ...subscription.metadata, ...metadata }}});
 
       case "subscription.deleted":
         return await db.subscription.update({
-          where: { id: subscriptionId },
+          where: { id },
           data: {
             status: "CANCELLED",
             cancelledAt: new Date(),
-            metadata: { ...subscription.metadata, ...metadata },
-          },
-        });
+            metadata: { ...subscription.metadata, ...metadata }}});
 
       default:
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `Type d'événement non pris en charge: ${eventType}`,
-        });
+          message: `Type d'événement non pris en charge: ${eventType}`});
     }
   },
 
@@ -323,24 +280,17 @@ export const paymentService = {
    */
   async refundPayment(paymentId: string, amount?: number, reason?: string) {
     const payment = await db.payment.findUnique({
-      where: { id: paymentId },
-      include: {
-        user: true,
-      },
-    });
+      where: { id },
+      include: { user }});
 
     if (!payment) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Paiement non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Paiement non trouvé" });
     }
 
     if (payment.status !== PaymentStatus.COMPLETED) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Seuls les paiements complétés peuvent être remboursés",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Seuls les paiements complétés peuvent être remboursés" });
     }
 
     // Montant à rembourser (total ou partiel)
@@ -348,26 +298,22 @@ export const paymentService = {
 
     // Vérifier que le montant à rembourser ne dépasse pas le montant initial
     if (refundAmount.gt(payment.amount)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new TRPCError({ code: "BAD_REQUEST",
         message:
-          "Le montant du remboursement ne peut pas dépasser le montant initial",
-      });
+          "Le montant du remboursement ne peut pas dépasser le montant initial" });
     }
 
     try {
       return await db.$transaction(async (tx) => {
         // Mettre à jour le paiement original
         const updatedPayment = await tx.payment.update({
-          where: { id: paymentId },
+          where: { id },
           data: {
             status: refundAmount.eq(payment.amount)
               ? PaymentStatus.REFUNDED
               : PaymentStatus.COMPLETED,
             refundedAmount: refundAmount,
-            refundedAt: new Date(),
-          },
-        });
+            refundedAt: new Date()}});
 
         // Créer un paiement de remboursement
         const refundPayment = await tx.payment.create({
@@ -382,10 +328,7 @@ export const paymentService = {
             metadata: {
               originalPaymentId: paymentId,
               reason: reason || "Remboursement demandé",
-              isRefund: true,
-            },
-          },
-        });
+              isRefund: true}}});
 
         // Rembourser sur le portefeuille du client
         const wallet = await walletService.getOrCreateWallet(payment.userId);
@@ -398,22 +341,17 @@ export const paymentService = {
           metadata: {
             originalPaymentId: paymentId,
             refundPaymentId: refundPayment.id,
-            reason: reason || "Remboursement demandé",
-          },
-        });
+            reason: reason || "Remboursement demandé"}});
 
         return {
           originalPayment: updatedPayment,
-          refundPayment,
-        };
+          refundPayment};
       });
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors du remboursement:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec du remboursement",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -424,7 +362,7 @@ export const paymentService = {
   /**
    * Traite le paiement d'une livraison
    */
-  async _processDeliveryPayment(
+  async processDeliveryPayment(
     tx: any,
     payment: any,
     metadata: Record<string, any> = {},
@@ -440,9 +378,7 @@ export const paymentService = {
       data: {
         paymentStatus: "PAID",
         paidAt: new Date(),
-        currentStatus: "PAYMENT_CONFIRMED",
-      },
-    });
+        currentStatus: "PAYMENT_CONFIRMED"}});
 
     // Calculer la commission
     const commissionRate = 0.15; // 15% par défaut
@@ -460,17 +396,13 @@ export const paymentService = {
         metadata: {
           ...metadata,
           commissionRate,
-          originalAmount: payment.amount,
-        },
-      });
+          originalAmount: payment.amount}});
 
       // Créer l'entrée de commission
-      await commissionService.createCommission({
-        paymentId: payment.id,
+      await commissionService.createCommission({ paymentId: payment.id,
         serviceType: "DELIVERY",
         amount: commissionAmount,
-        rate: commissionRate,
-      });
+        rate: commissionRate });
     }
 
     // Créer la facture associée
@@ -481,24 +413,20 @@ export const paymentService = {
           description: `Livraison ${delivery.trackingNumber}`,
           quantity: 1,
           unitPrice: payment.amount,
-          deliveryId: delivery.id,
-        },
-      ],
+          deliveryId: delivery.id}],
       deliveryId: delivery.id,
       dueDate: addDays(new Date(), 30),
       metadata: {
         deliveryId: delivery.id,
         delivererEarnings: delivererEarnings.toString(),
-        commissionAmount: commissionAmount.toString(),
-      },
-    });
+        commissionAmount: commissionAmount.toString()}});
   },
 
   /**
    * Traite le paiement d'un service
    * @private
    */
-  async _processServicePayment(
+  async processServicePayment(
     tx: any,
     payment: any,
     metadata: Record<string, any> = {},
@@ -512,13 +440,10 @@ export const paymentService = {
       where: {
         serviceId: payment.serviceId,
         paymentId: null,
-        status: "PENDING",
-      },
+        status: "PENDING"},
       data: {
         paymentId: payment.id,
-        status: "CONFIRMED",
-      },
-    });
+        status: "CONFIRMED"}});
 
     // Calculer la commission pour le prestataire
     const commissionRate = 0.2; // 20% de commission
@@ -532,23 +457,18 @@ export const paymentService = {
         serviceType: "SERVICE",
         isActive: true,
         applicableRoles: ["PROVIDER"],
-        description: `Commission sur service #${payment.serviceId}`,
-      },
-    });
+        description: `Commission sur service #${payment.serviceId}`}});
 
     // Mise à jour du paiement avec la commission
     await tx.payment.update({
       where: { id: payment.id },
       data: {
         commissionAmount,
-        commissionId: commission.id,
-      },
-    });
+        commissionId: commission.id}});
 
     // Ajouter les fonds au portefeuille du prestataire
     const service = await tx.service.findUnique({
-      where: { id: payment.serviceId },
-    });
+      where: { id: payment.serviceId }});
 
     if (service?.providerId) {
       const providerWallet = await walletService.getOrCreateWallet(
@@ -564,9 +484,7 @@ export const paymentService = {
         metadata: {
           commissionId: commission.id,
           commissionAmount,
-          commissionRate,
-        },
-      });
+          commissionRate}});
     }
   },
 
@@ -574,7 +492,7 @@ export const paymentService = {
    * Traite le paiement d'une facture
    * @private
    */
-  async _processInvoicePayment(
+  async processInvoicePayment(
     tx: any,
     payment: any,
     metadata: Record<string, any> = {},
@@ -588,16 +506,14 @@ export const paymentService = {
       where: { id: payment.invoiceId },
       data: {
         status: "PAID",
-        paidDate: new Date(),
-      },
-    });
+        paidDate: new Date()}});
   },
 
   /**
    * Traite le paiement d'un abonnement
    * @private
    */
-  async _processSubscriptionPayment(
+  async processSubscriptionPayment(
     tx: any,
     payment: any,
     metadata: Record<string, any> = {},
@@ -614,10 +530,8 @@ export const paymentService = {
         // Définir la période en cours
         currentPeriodStart: new Date(),
         currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 jours
-      },
-    });
-  },
-};
+      }});
+  }};
 
 /**
  * Crée un paiement simulé en mode démonstration
@@ -634,41 +548,31 @@ export async function createPayment(
     serviceType,
     deliveryId,
     serviceId,
-    subscriptionId,
-  } = input;
+    subscriptionId} = input;
 
   // Vérifier l'existence de l'utilisateur
   const user = await db.user.findUnique({
-    where: { id: userId },
-  });
+    where: { id }});
 
   if (!user) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Utilisateur non trouvé",
-    });
+    throw new TRPCError({ code: "NOT_FOUND",
+      message: "Utilisateur non trouvé" });
   }
 
   // Vérifier les références selon le type de service
   if (serviceType === "DELIVERY" && !deliveryId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "ID de livraison requis pour un paiement de type DELIVERY",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "ID de livraison requis pour un paiement de type DELIVERY" });
   }
 
   if (serviceType === "SERVICE" && !serviceId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "ID de service requis pour un paiement de type SERVICE",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "ID de service requis pour un paiement de type SERVICE" });
   }
 
   if (serviceType === "SUBSCRIPTION" && !subscriptionId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "ID d'abonnement requis pour un paiement de type SUBSCRIPTION",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "ID d'abonnement requis pour un paiement de type SUBSCRIPTION" });
   }
 
   // Créer un vrai PaymentIntent avec Stripe
@@ -681,10 +585,7 @@ export async function createPayment(
       deliveryId: deliveryId || "",
       serviceId: serviceId || "",
       subscriptionId: subscriptionId || "",
-      ...input.metadata,
-    },
-    capture_method: isEscrow ? "manual" : "automatic",
-  });
+      ...input.metadata}, capture_method: isEscrow ? "manual" : "automatic"});
 
   // Créer le paiement dans la base de données
   const payment = await db.payment.create({
@@ -704,9 +605,7 @@ export async function createPayment(
       capturedAt: null,
       source: input.source || "STRIPE",
       notes: input.notes,
-      metadata: input.metadata || {},
-    },
-  });
+      metadata: input.metadata || {}}});
 
   // Si c'est un paiement de livraison et qu'il est mis en séquestre, générer un code de libération
   if (isEscrow && deliveryId) {
@@ -719,8 +618,7 @@ export async function createPayment(
       data: {
         escrowReleaseCode,
         escrowReleaseDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +7 jours par défaut
-      },
-    });
+      }});
   }
 
   // Les commissions et factures seront créées lors de la confirmation du paiement via webhook
@@ -740,111 +638,89 @@ export async function processPaymentIntent(input: {
   paymentIntentId: string;
   status: string;
 }> {
-  const { paymentId: _paymentId, action: _action, amount: _amount } = input;
+  const { paymentId: paymentId, action: action, amount: amount } = input;
 
   // Récupérer le paiement
   const payment = await db.payment.findUnique({
-    where: { id: paymentId },
-  });
+    where: { id }});
 
   if (!payment) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Paiement non trouvé",
-    });
+    throw new TRPCError({ code: "NOT_FOUND",
+      message: "Paiement non trouvé" });
   }
 
   // Traiter selon l'action demandée
   switch (action) {
     case "capture":
       if (payment.status !== PaymentStatus.PENDING) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Ce paiement ne peut pas être capturé",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Ce paiement ne peut pas être capturé" });
       }
 
       // Capturer le paiement via Stripe
       await stripe.paymentIntents.capture(payment.paymentIntentId!);
 
       await db.payment.update({
-        where: { id: paymentId },
+        where: { id },
         data: {
           status: PaymentStatus.COMPLETED,
-          capturedAt: new Date(),
-        },
-      });
+          capturedAt: new Date()}});
       break;
 
     case "cancel":
       if (payment.status !== PaymentStatus.PENDING) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Ce paiement ne peut pas être annulé",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Ce paiement ne peut pas être annulé" });
       }
 
       // Annuler le paiement via Stripe
       await stripe.paymentIntents.cancel(payment.paymentIntentId!);
 
       await db.payment.update({
-        where: { id: paymentId },
+        where: { id },
         data: {
-          status: PaymentStatus.CANCELLED,
-        },
-      });
+          status: PaymentStatus.CANCELLED}});
       break;
 
     case "refund":
       if (payment.status !== PaymentStatus.COMPLETED) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Ce paiement ne peut pas être remboursé",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Ce paiement ne peut pas être remboursé" });
       }
 
       const refundAmount = amount || payment.amount;
 
       await db.payment.update({
-        where: { id: paymentId },
+        where: { id },
         data: {
           status:
             refundAmount >= payment.amount
               ? PaymentStatus.REFUNDED
               : PaymentStatus.COMPLETED,
           refundedAmount: refundAmount,
-          refundedAt: new Date(),
-        },
-      });
+          refundedAt: new Date()}});
       break;
 
     case "dispute":
       if (payment.status !== PaymentStatus.COMPLETED) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Ce paiement ne peut pas être contesté",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Ce paiement ne peut pas être contesté" });
       }
 
       await db.payment.update({
-        where: { id: paymentId },
+        where: { id },
         data: {
-          disputeStatus: "UNDER_REVIEW",
-        },
-      });
+          disputeStatus: "UNDER_REVIEW"}});
       break;
 
     default:
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Action non reconnue",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Action non reconnue" });
   }
 
   // Récupérer le paiement mis à jour
   const updatedPayment = await db.payment.findUnique({
-    where: { id: paymentId },
-  });
+    where: { id }});
 
   // Générer une réponse simulée pour l'intention de paiement
   // Récupérer le PaymentIntent mis à jour depuis Stripe
@@ -855,8 +731,7 @@ export async function processPaymentIntent(input: {
   return {
     clientSecret: paymentIntent.client_secret!,
     paymentIntentId: paymentIntent.id,
-    status: updatedPayment?.status || "unknown",
-  };
+    status: updatedPayment?.status || "unknown"};
 }
 
 /**
@@ -865,31 +740,24 @@ export async function processPaymentIntent(input: {
 export async function confirmPayment(paymentId: string): Promise<Payment> {
   // Récupérer le paiement
   const payment = await db.payment.findUnique({
-    where: { id: paymentId },
-  });
+    where: { id }});
 
   if (!payment) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Paiement non trouvé",
-    });
+    throw new TRPCError({ code: "NOT_FOUND",
+      message: "Paiement non trouvé" });
   }
 
   if (payment.status !== PaymentStatus.PENDING) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Ce paiement ne peut pas être confirmé",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Ce paiement ne peut pas être confirmé" });
   }
 
   // Mettre à jour le statut du paiement
   const updatedPayment = await db.payment.update({
-    where: { id: paymentId },
+    where: { id },
     data: {
       status: PaymentStatus.COMPLETED,
-      capturedAt: new Date(),
-    },
-  });
+      capturedAt: new Date()}});
 
   // Si c'est un paiement pour une livraison, mettre à jour le status de la livraison
   if (payment.deliveryId) {
@@ -898,9 +766,8 @@ export async function confirmPayment(paymentId: string): Promise<Payment> {
         where: { id: payment.deliveryId },
         data: {
           status: "PENDING_PICKUP", // Statut à adapter selon votre modèle
-        },
-      });
-    } catch (_error) {
+        }});
+    } catch (error) {
       logger.error(
         "Erreur lors de la mise à jour du statut de livraison",
         error,
@@ -919,25 +786,20 @@ export async function refundPayment(input: {
   amount?: number;
   reason?: string;
 }): Promise<any> {
-  const { paymentId: _paymentId, amount: _amount, reason: _reason } = input;
+  const { paymentId: paymentId, amount: amount, reason: reason } = input;
 
   // Récupérer le paiement
   const payment = await db.payment.findUnique({
-    where: { id: paymentId },
-  });
+    where: { id }});
 
   if (!payment) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Paiement non trouvé",
-    });
+    throw new TRPCError({ code: "NOT_FOUND",
+      message: "Paiement non trouvé" });
   }
 
   if (payment.status !== PaymentStatus.COMPLETED) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Ce paiement ne peut pas être remboursé",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Ce paiement ne peut pas être remboursé" });
   }
 
   const refundAmount = amount || payment.amount;
@@ -946,15 +808,13 @@ export async function refundPayment(input: {
   // TODO: Implémenter le remboursement réel via Stripe
   // Vérifier que le paiement peut être remboursé
   if (payment.status === PaymentStatus.REFUNDED) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Ce paiement a déjà été remboursé",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Ce paiement a déjà été remboursé" });
   }
 
   // Mettre à jour le paiement avec les informations de remboursement
   const updatedPayment = await db.payment.update({
-    where: { id: paymentId },
+    where: { id },
     data: {
       status:
         refundAmount >= payment.amount
@@ -965,9 +825,7 @@ export async function refundPayment(input: {
       refundId,
       notes: payment.notes
         ? `${payment.notes}\nRemboursement: ${reason}`
-        : `Remboursement: ${reason}`,
-    },
-  });
+        : `Remboursement: ${reason}`}});
 
   // Créer une transaction de remboursement dans le portefeuille si nécessaire
   if (payment.userId) {
@@ -978,9 +836,8 @@ export async function refundPayment(input: {
         type: TransactionType.REFUND,
         description: `Remboursement: ${reason || "Remboursement demandé"}`,
         reference: refundId,
-        paymentId: payment.id,
-      });
-    } catch (_error) {
+        paymentId: payment.id});
+    } catch (error) {
       logger.error(
         "Erreur lors de la création de la transaction de remboursement",
         error,
@@ -1008,11 +865,10 @@ export async function getPaymentHistory(
   const {
     limit = 10,
     page = 1,
-    status: _status,
-    startDate: _startDate,
-    endDate: _endDate,
-    type: _type,
-  } = options;
+    status: status,
+    startDate: startDate,
+    endDate: endDate,
+    type: type} = options;
   const skip = (page - 1) * limit;
 
   // Construire les filtres
@@ -1030,16 +886,16 @@ export async function getPaymentHistory(
 
   if (type) {
     if (type === "DELIVERY") {
-      where.deliveryId = { not: null };
+      where.deliveryId = { not };
     } else if (type === "SERVICE") {
-      where.serviceId = { not: null };
+      where.serviceId = { not };
     } else if (type === "SUBSCRIPTION") {
-      where.subscriptionId = { not: null };
+      where.subscriptionId = { not };
     }
   }
 
   // Compter le nombre total de paiements
-  const total = await db.payment.count({ where });
+  const total = await db.payment.count({ where  });
   const pages = Math.ceil(total / limit);
 
   // Récupérer les paiements
@@ -1047,8 +903,7 @@ export async function getPaymentHistory(
     where,
     skip,
     take: limit,
-    orderBy: { createdAt: "desc" },
-  });
+    orderBy: { createdAt: "desc" }});
 
   return { payments, total, pages };
 }
@@ -1068,36 +923,28 @@ export async function holdPaymentForDelivery(
 
   // Récupérer le paiement
   const payment = await db.payment.findUnique({
-    where: { id: paymentId },
-  });
+    where: { id }});
 
   if (!payment) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Paiement non trouvé",
-    });
+    throw new TRPCError({ code: "NOT_FOUND",
+      message: "Paiement non trouvé" });
   }
 
   if (
     payment.status !== PaymentStatus.PENDING &&
     payment.status !== PaymentStatus.COMPLETED
   ) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Ce paiement ne peut pas être mis en séquestre",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Ce paiement ne peut pas être mis en séquestre" });
   }
 
   // Vérifier que la livraison existe
   const delivery = await db.delivery.findUnique({
-    where: { id: deliveryId },
-  });
+    where: { id }});
 
   if (!delivery) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Livraison non trouvée",
-    });
+    throw new TRPCError({ code: "NOT_FOUND",
+      message: "Livraison non trouvée" });
   }
 
   // Générer un code de libération si demandé
@@ -1111,15 +958,13 @@ export async function holdPaymentForDelivery(
 
   // Mettre à jour le paiement
   const updatedPayment = await db.payment.update({
-    where: { id: paymentId },
+    where: { id },
     data: {
       isEscrow: true,
       status: PaymentStatus.PENDING,
       deliveryId,
       escrowReleaseCode,
-      escrowReleaseDate,
-    },
-  });
+      escrowReleaseDate}});
 
   return updatedPayment;
 }
@@ -1136,47 +981,35 @@ export async function releasePaymentToDeliverer(
   } = {},
 ): Promise<Payment> {
   const {
-    releaseCode: _releaseCode,
+    releaseCode: releaseCode,
     releaseByAdmin = false,
-    adminId: _adminId,
-  } = options;
+    adminId: adminId} = options;
 
   // Récupérer le paiement
   const payment = await db.payment.findUnique({
-    where: { id: paymentId },
-    include: {
-      delivery: true,
-    },
-  });
+    where: { id },
+    include: { delivery }});
 
   if (!payment) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Paiement non trouvé",
-    });
+    throw new TRPCError({ code: "NOT_FOUND",
+      message: "Paiement non trouvé" });
   }
 
   if (!payment.isEscrow || payment.status !== PaymentStatus.PENDING) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Ce paiement ne peut pas être libéré",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Ce paiement ne peut pas être libéré" });
   }
 
   // Vérifier la livraison associée
   if (!payment.delivery || !payment.deliveryId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Ce paiement n'est pas associé à une livraison",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Ce paiement n'est pas associé à une livraison" });
   }
 
   // Vérifier le livreur associé
   if (!payment.delivery.delivererId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Cette livraison n'a pas de livreur assigné",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST",
+      message: "Cette livraison n'a pas de livreur assigné" });
   }
 
   // Vérifier le code de libération si nécessaire
@@ -1185,32 +1018,26 @@ export async function releasePaymentToDeliverer(
     payment.escrowReleaseCode &&
     payment.escrowReleaseCode !== releaseCode
   ) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Code de libération invalide",
-    });
+    throw new TRPCError({ code: "FORBIDDEN",
+      message: "Code de libération invalide" });
   }
 
   // Vérifier l'autorisation d'admin si nécessaire
   if (releaseByAdmin && !adminId) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "ID d'administrateur requis pour la libération administrative",
-    });
+    throw new TRPCError({ code: "FORBIDDEN",
+      message: "ID d'administrateur requis pour la libération administrative" });
   }
 
   // Mettre à jour le paiement
   const updatedPayment = await db.payment.update({
-    where: { id: paymentId },
+    where: { id },
     data: {
       status: PaymentStatus.COMPLETED,
       escrowReleasedAt: new Date(),
       capturedAt: new Date(),
       notes: payment.notes
         ? `${payment.notes}\nPaiement libéré ${releaseByAdmin ? "par admin" : ""}`
-        : `Paiement libéré ${releaseByAdmin ? "par admin" : ""}`,
-    },
-  });
+        : `Paiement libéré ${releaseByAdmin ? "par admin" : ""}`}});
 
   // Ajouter les fonds au portefeuille du livreur
   try {
@@ -1226,18 +1053,15 @@ export async function releasePaymentToDeliverer(
       amount: delivererAmount,
       type: TransactionType.EARNING,
       description: `Paiement pour livraison #${payment.deliveryId}`,
-      paymentId: payment.id,
-    });
+      paymentId: payment.id});
 
     // Enregistrer la commission perçue
-    await createCommission({
-      paymentId: payment.id,
+    await createCommission({ paymentId: payment.id,
       serviceType: "DELIVERY",
       amount: payment.amount,
       recipientId: delivererId,
-      commissionAmount,
-    });
-  } catch (_error) {
+      commissionAmount });
+  } catch (error) {
     logger.error(
       "Erreur lors de l'ajout des fonds au portefeuille du livreur",
       error,

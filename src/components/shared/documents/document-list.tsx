@@ -6,16 +6,14 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+  CardContent} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCwIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DocumentCard } from "@/components/shared/documents/document-card";
 import {
   DocumentListProps,
-  BaseDocument,
-} from "@/components/shared/documents/document-types";
+  BaseDocument} from "@/components/shared/documents/document-types";
 import { DocumentPreview } from "@/components/shared/documents/document-preview";
 
 /**
@@ -32,8 +30,7 @@ export function DocumentList({
   onDownload,
   onApprove,
   onReject,
-  emptyMessage = "Aucun document disponible.",
-}: DocumentListProps) {
+  emptyMessage = "Aucun document disponible."}: DocumentListProps) {
   const [selectedDocument, setSelectedDocument] = useState<BaseDocument | null>(
     null,
   );
@@ -159,8 +156,7 @@ interface ProfileDocumentsListProps {
 
 export function ProfileDocumentsList({
   documents,
-  onUpload,
-}: ProfileDocumentsListProps) {
+  onUpload}: ProfileDocumentsListProps) {
   return (
     <Card>
       <CardHeader>

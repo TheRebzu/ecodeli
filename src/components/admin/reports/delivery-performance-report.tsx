@@ -19,8 +19,7 @@ import {
   ComposedChart,
   Scatter,
   Area,
-  AreaChart,
-} from "recharts";
+  AreaChart} from "recharts";
 import { Clock, TrendingUp, Map, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -74,8 +73,7 @@ export function DeliveryPerformanceReport({
   data,
   isLoading,
   isError,
-  dateRange,
-}: DeliveryPerformanceReportProps) {
+  dateRange}: DeliveryPerformanceReportProps) {
   const t = useTranslations("admin.reports");
 
   // Format pourcentage
@@ -98,7 +96,7 @@ export function DeliveryPerformanceReport({
       <div className="space-y-6">
         {/* Placeholders de chargement pour les KPIs */}
         <div className="grid gap-4 md:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
+          {Array.from({ length: 4  }).map((_, index) => (
             <Card key={index}>
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <Skeleton className="h-4 w-32" />
@@ -124,7 +122,7 @@ export function DeliveryPerformanceReport({
 
         {/* Placeholders pour les graphiques secondaires */}
         <div className="grid gap-4 md:grid-cols-2">
-          {Array.from({ length: 2 }).map((_, index) => (
+          {Array.from({ length: 2  }).map((_, index) => (
             <Card key={index}>
               <CardHeader className="pb-2">
                 <Skeleton className="h-6 w-48" />
@@ -159,8 +157,7 @@ export function DeliveryPerformanceReport({
     "#ffc658",
     "#ff8042",
     "#0088FE",
-    "#00C49F",
-  ];
+    "#00C49F"];
 
   // Changement de la ponctualité
   const onTimeChange = data.performanceSummary.percentChange;
@@ -277,8 +274,7 @@ export function DeliveryPerformanceReport({
                     <Tooltip
                       formatter={(value) => [
                         `${value}%`,
-                        t("delivery.onTimeRate"),
-                      ]}
+                        t("delivery.onTimeRate")]}
                     />
                     <Legend />
                     <Line
@@ -345,8 +341,7 @@ export function DeliveryPerformanceReport({
                     <Tooltip
                       formatter={(value) => [
                         formatTime(value as number),
-                        t("delivery.avgTime"),
-                      ]}
+                        t("delivery.avgTime")]}
                       labelFormatter={(hour) => `${hour}h00 - ${hour}h59`}
                     />
                     <Legend />
@@ -384,7 +379,7 @@ export function DeliveryPerformanceReport({
                         fill="#8884d8"
                         dataKey="count"
                         nameKey="issueType"
-                        label={({ issueType, percentage }) =>
+                        label={({ issueType, percentage  }) =>
                           `${issueType}: ${percentage.toFixed(1)}%`
                         }
                       >
@@ -398,8 +393,7 @@ export function DeliveryPerformanceReport({
                       <Tooltip
                         formatter={(value, name, props) => [
                           `${value} (${props.payload.percentage.toFixed(1)}%)`,
-                          t("delivery.issues"),
-                        ]}
+                          t("delivery.issues")]}
                       />
                       <Legend />
                     </PieChart>
@@ -467,14 +461,12 @@ export function DeliveryPerformanceReport({
                         value: t("delivery.avgDeliveryTime"),
                         angle: -90,
                         position: "insideLeft",
-                        style: { textAnchor: "middle" },
-                      }}
+                        style: { textAnchor: "middle" }}}
                     />
                     <Tooltip
                       formatter={(value) => [
                         formatTime(value as number),
-                        t("delivery.avgTime"),
-                      ]}
+                        t("delivery.avgTime")]}
                     />
                     <Legend />
                     <Bar

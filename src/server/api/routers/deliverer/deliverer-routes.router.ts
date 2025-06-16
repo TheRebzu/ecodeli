@@ -9,8 +9,7 @@ import { PlannedRouteStatus, VehicleType } from "@prisma/client";
  */
 
 // Schémas de validation
-const createPlannedRouteSchema = z.object({
-  title: z.string().min(3).max(100),
+const createPlannedRouteSchema = z.object({ title: z.string().min(3).max(100),
   description: z.string().optional(),
   departureAddress: z.string().min(5),
   departureCity: z.string().min(2),
@@ -47,25 +46,19 @@ const createPlannedRouteSchema = z.object({
         timeWindow: z
           .object({
             start: z.date(),
-            end: z.date(),
-          })
-          .optional(),
-      }),
+            end: z.date() })
+          .optional()}),
     )
     .optional(),
 
   availableSeats: z.number().min(0).optional(),
   isPublic: z.boolean().default(true),
   notifyOnMatch: z.boolean().default(true),
-  autoAcceptMatch: z.boolean().default(false),
-});
+  autoAcceptMatch: z.boolean().default(false)});
 
-const updatePlannedRouteSchema = createPlannedRouteSchema.partial().extend({
-  id: z.string().cuid(),
-});
+const updatePlannedRouteSchema = createPlannedRouteSchema.partial().extend({ id: z.string().cuid() });
 
-const routeFiltersSchema = z.object({
-  status: z.array(z.nativeEnum(PlannedRouteStatus)).optional(),
+const routeFiltersSchema = z.object({ status: z.array(z.nativeEnum(PlannedRouteStatus)).optional(),
   departureCity: z.string().optional(),
   arrivalCity: z.string().optional(),
   dateFrom: z.date().optional(),
@@ -73,23 +66,19 @@ const routeFiltersSchema = z.object({
   isRecurring: z.boolean().optional(),
   hasAvailableCapacity: z.boolean().optional(),
   limit: z.number().min(1).max(50).default(20),
-  offset: z.number().min(0).default(0),
-});
+  offset: z.number().min(0).default(0) });
 
-export const delivererRoutesRouter = router({
-  /**
+export const delivererRoutesRouter = router({ /**
    * Récupérer toutes les routes planifiées du livreur
    */
   getAll: protectedProcedure
     .input(routeFiltersSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent accéder à leurs routes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent accéder à leurs routes" });
       }
 
       try {
@@ -99,21 +88,15 @@ export const delivererRoutesRouter = router({
           ...(input.departureCity && {
             departureCity: {
               contains: input.departureCity,
-              mode: "insensitive",
-            },
-          }),
+              mode: "insensitive"}}),
           ...(input.arrivalCity && {
-            arrivalCity: { contains: input.arrivalCity, mode: "insensitive" },
-          }),
+            arrivalCity: { contains: input.arrivalCity, mode: "insensitive" }}),
           ...(input.dateFrom &&
             input.dateTo && {
-              departureTime: { gte: input.dateFrom, lte: input.dateTo },
-            }),
+              departureTime: { gte: input.dateFrom, lte: input.dateTo }}),
           ...(input.isRecurring !== undefined && {
-            isRecurring: input.isRecurring,
-          }),
-          ...(input.hasAvailableCapacity && { availableCapacity: { gt: 0 } }),
-        };
+            isRecurring: input.isRecurring}),
+          ...(input.hasAvailableCapacity && { availableCapacity: { gt: 0 } })};
 
         const routes = await ctx.db.delivererPlannedRoute.findMany({
           where,
@@ -127,23 +110,16 @@ export const delivererRoutesRouter = router({
                     pickupAddress: true,
                     deliveryAddress: true,
                     suggestedPrice: true,
-                    status: true,
-                  },
-                },
-              },
-            },
+                    status: true}}}},
             routeAnnouncements: true,
             performanceHistory: {
               orderBy: { executionDate: "desc" },
-              take: 5,
-            },
-          },
+              take: 5}},
           orderBy: { departureTime: "asc" },
           skip: input.offset,
-          take: input.limit,
-        });
+          take: input.limit});
 
-        const totalCount = await ctx.db.delivererPlannedRoute.count({ where });
+        const totalCount = await ctx.db.delivererPlannedRoute.count({ where  });
 
         return {
           success: true,
@@ -152,14 +128,10 @@ export const delivererRoutesRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount,
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des routes",
-        });
+            hasMore: input.offset + input.limit < totalCount}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des routes" });
       }
     }),
 
@@ -168,30 +140,24 @@ export const delivererRoutesRouter = router({
    */
   create: protectedProcedure
     .input(createPlannedRouteSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent créer des routes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent créer des routes" });
       }
 
       // Validation
       if (input.departureTime >= input.arrivalTime) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "L'heure d'arrivée doit être après l'heure de départ",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "L'heure d'arrivée doit être après l'heure de départ" });
       }
 
       if (input.isRecurring && !input.recurringDays?.length) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
+        throw new TRPCError({ code: "BAD_REQUEST",
           message:
-            "Les jours de récurrence sont requis pour une route récurrente",
-        });
+            "Les jours de récurrence sont requis pour une route récurrente" });
       }
 
       try {
@@ -238,18 +204,13 @@ export const delivererRoutesRouter = router({
             notifyOnMatch: input.notifyOnMatch,
             autoAcceptMatch: input.autoAcceptMatch,
             status: "DRAFT",
-            publishedAt: input.isPublic ? new Date() : null,
-          },
+            publishedAt: input.isPublic ? new Date() : null},
           include: {
             deliverer: {
               select: {
                 id: true,
                 name: true,
-                email: true,
-              },
-            },
-          },
-        });
+                email: true}}}});
 
         // Déclencher le matching si public
         if (input.isPublic) {
@@ -260,13 +221,10 @@ export const delivererRoutesRouter = router({
         return {
           success: true,
           data: route,
-          message: "Route créée avec succès",
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création de la route",
-        });
+          message: "Route créée avec succès"};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de la route" });
       }
     }),
 
@@ -275,28 +233,23 @@ export const delivererRoutesRouter = router({
    */
   update: protectedProcedure
     .input(updatePlannedRouteSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
-      const { id: _id, ...updateData } = input;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
+      const { id: id, ...updateData } = input;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent modifier leurs routes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent modifier leurs routes" });
       }
 
       try {
         // Vérifier propriété
         const existingRoute = await ctx.db.delivererPlannedRoute.findFirst({
-          where: { id, delivererId: user.id },
-        });
+          where: { id, delivererId: user.id }});
 
         if (!existingRoute) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Route non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Route non trouvée" });
         }
 
         // Validation
@@ -305,10 +258,8 @@ export const delivererRoutesRouter = router({
           updateData.arrivalTime &&
           updateData.departureTime >= updateData.arrivalTime
         ) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "L'heure d'arrivée doit être après l'heure de départ",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "L'heure d'arrivée doit être après l'heure de départ" });
         }
 
         const updatedRoute = await ctx.db.delivererPlannedRoute.update({
@@ -319,14 +270,10 @@ export const delivererRoutesRouter = router({
             ...(updateData.isPublic &&
               !existingRoute.publishedAt && {
                 publishedAt: new Date(),
-                status: "PUBLISHED",
-              }),
-          },
+                status: "PUBLISHED"})},
           include: {
             matchedAnnouncements: true,
-            routeAnnouncements: true,
-          },
-        });
+            routeAnnouncements: true}});
 
         // Si passage en public, déclencher matching
         if (updateData.isPublic && !existingRoute.isPublic) {
@@ -336,14 +283,11 @@ export const delivererRoutesRouter = router({
         return {
           success: true,
           data: updatedRoute,
-          message: "Route mise à jour avec succès",
-        };
-      } catch (_error) {
+          message: "Route mise à jour avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la mise à jour",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour" });
       }
     }),
 
@@ -351,61 +295,46 @@ export const delivererRoutesRouter = router({
    * Supprimer une route
    */
   delete: protectedProcedure
-    .input(z.object({ id: z.string().cuid() }))
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .input(z.object({ id: z.string().cuid()  }))
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent supprimer leurs routes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent supprimer leurs routes" });
       }
 
       try {
         const route = await ctx.db.delivererPlannedRoute.findFirst({
           where: { id: input.id, delivererId: user.id },
-          include: {
-            matchedAnnouncements: true,
-          },
-        });
+          include: { matchedAnnouncements }});
 
         if (!route) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Route non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Route non trouvée" });
         }
 
         if (route.status === "IN_PROGRESS") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Impossible de supprimer une route en cours",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Impossible de supprimer une route en cours" });
         }
 
         if (route.matchedAnnouncements.length > 0) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
+          throw new TRPCError({ code: "BAD_REQUEST",
             message:
-              "Impossible de supprimer une route avec des annonces matchées",
-          });
+              "Impossible de supprimer une route avec des annonces matchées" });
         }
 
         await ctx.db.delivererPlannedRoute.delete({
-          where: { id: input.id },
-        });
+          where: { id: input.id }});
 
         return {
           success: true,
-          message: "Route supprimée avec succès",
-        };
-      } catch (_error) {
+          message: "Route supprimée avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la suppression",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la suppression" });
       }
     }),
 
@@ -414,31 +343,24 @@ export const delivererRoutesRouter = router({
    */
   togglePublish: protectedProcedure
     .input(
-      z.object({
-        id: z.string().cuid(),
-        isPublic: z.boolean(),
-      }),
+      z.object({ id: z.string().cuid(),
+        isPublic: z.boolean() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent publier leurs routes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent publier leurs routes" });
       }
 
       try {
         const route = await ctx.db.delivererPlannedRoute.findFirst({
-          where: { id: input.id, delivererId: user.id },
-        });
+          where: { id: input.id, delivererId: user.id }});
 
         if (!route) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Route non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Route non trouvée" });
         }
 
         const updatedRoute = await ctx.db.delivererPlannedRoute.update({
@@ -448,9 +370,7 @@ export const delivererRoutesRouter = router({
             status: input.isPublic ? "PUBLISHED" : "DRAFT",
             publishedAt: input.isPublic
               ? route.publishedAt || new Date()
-              : null,
-          },
-        });
+              : null}});
 
         if (input.isPublic) {
           await triggerRouteMatching(updatedRoute);
@@ -459,14 +379,11 @@ export const delivererRoutesRouter = router({
         return {
           success: true,
           data: updatedRoute,
-          message: input.isPublic ? "Route publiée" : "Route dépubliée",
-        };
-      } catch (_error) {
+          message: input.isPublic ? "Route publiée" : "Route dépubliée"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la publication",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la publication" });
       }
     }),
 
@@ -474,25 +391,22 @@ export const delivererRoutesRouter = router({
    * Obtenir une route par ID
    */
   getById: protectedProcedure
-    .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .input(z.object({ id: z.string().cuid()  }))
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       try {
         const route = await ctx.db.delivererPlannedRoute.findFirst({
           where: {
             id: input.id,
-            OR: [{ delivererId: user.id }, { isPublic: true }],
-          },
+            OR: [{ delivererId: user.id }, { isPublic }]},
           include: {
             deliverer: {
               select: {
                 id: true,
                 name: true,
                 email: true,
-                image: true,
-              },
-            },
+                image: true}},
             matchedAnnouncements: {
               include: {
                 announcement: {
@@ -501,38 +415,24 @@ export const delivererRoutesRouter = router({
                       select: {
                         id: true,
                         name: true,
-                        email: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
+                        email: true}}}}}},
             routeAnnouncements: true,
             performanceHistory: {
               orderBy: { date: "desc" },
-              take: 10,
-            },
-          },
-        });
+              take: 10}}});
 
         if (!route) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Route non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Route non trouvée" });
         }
 
         return {
           success: true,
-          data: route,
-        };
-      } catch (_error) {
+          data: route};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération" });
       }
     }),
 
@@ -541,17 +441,15 @@ export const delivererRoutesRouter = router({
    */
   searchPublicRoutes: publicProcedure
     .input(
-      z.object({
-        departureLatitude: z.number(),
+      z.object({ departureLatitude: z.number(),
         departureLongitude: z.number(),
         deliveryLatitude: z.number(),
         deliveryLongitude: z.number(),
         departureTime: z.date(),
         maxDetourKm: z.number().default(15),
-        limit: z.number().min(1).max(20).default(10),
-      }),
+        limit: z.number().min(1).max(20).default(10) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         // TODO: Implémenter recherche géospatiale avec PostGIS
         const routes = await ctx.db.delivererPlannedRoute.findMany({
@@ -562,8 +460,7 @@ export const delivererRoutesRouter = router({
               gte: new Date(input.departureTime.getTime() - 2 * 60 * 60 * 1000), // -2h
               lte: new Date(input.departureTime.getTime() + 4 * 60 * 60 * 1000), // +4h
             },
-            availableCapacity: { gt: 0 },
-          },
+            availableCapacity: { gt: 0 }},
           include: {
             deliverer: {
               select: {
@@ -573,25 +470,16 @@ export const delivererRoutesRouter = router({
                 deliverer: {
                   select: {
                     averageRating: true,
-                    totalDeliveries: true,
-                  },
-                },
-              },
-            },
-          },
+                    totalDeliveries: true}}}}},
           take: input.limit,
-          orderBy: { departureTime: "asc" },
-        });
+          orderBy: { departureTime: "asc" }});
 
         return {
           success: true,
-          data: routes,
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la recherche",
-        });
+          data: routes};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la recherche" });
       }
     }),
 
@@ -600,20 +488,16 @@ export const delivererRoutesRouter = router({
    */
   acceptMatchedAnnouncement: protectedProcedure
     .input(
-      z.object({
-        routeId: z.string().cuid(),
+      z.object({ routeId: z.string().cuid(),
         announcementId: z.string().cuid(),
-        proposedPrice: z.number().min(0),
-      }),
+        proposedPrice: z.number().min(0) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent accepter des annonces",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent accepter des annonces" });
       }
 
       try {
@@ -622,30 +506,22 @@ export const delivererRoutesRouter = router({
           where: {
             id: input.routeId,
             delivererId: user.id,
-            status: { in: ["PUBLISHED", "IN_PROGRESS"] },
-          },
-        });
+            status: { in: ["PUBLISHED", "IN_PROGRESS"] }}});
 
         if (!route) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Route non trouvée ou non active",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Route non trouvée ou non active" });
         }
 
         // Vérifier l'annonce
         const announcement = await ctx.db.announcement.findFirst({
           where: {
             id: input.announcementId,
-            status: "PUBLISHED",
-          },
-        });
+            status: "PUBLISHED"}});
 
         if (!announcement) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée ou non disponible",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Annonce non trouvée ou non disponible" });
         }
 
         // Créer ou mettre à jour le match
@@ -653,22 +529,17 @@ export const delivererRoutesRouter = router({
           where: {
             routeId_announcementId: {
               routeId: input.routeId,
-              announcementId: input.announcementId,
-            },
-          },
+              announcementId: input.announcementId}},
           update: {
             status: "ACCEPTED",
             priceOffered: input.proposedPrice,
-            acceptedAt: new Date(),
-          },
+            acceptedAt: new Date()},
           create: {
             routeId: input.routeId,
             announcementId: input.announcementId,
             status: "ACCEPTED",
             priceOffered: input.proposedPrice,
-            acceptedAt: new Date(),
-          },
-        });
+            acceptedAt: new Date()}});
 
         // Mettre à jour la capacité disponible
         await ctx.db.delivererPlannedRoute.update({
@@ -676,21 +547,16 @@ export const delivererRoutesRouter = router({
           data: {
             availableCapacity: {
               decrement: 10, // TODO: Calculer selon le volume réel
-            },
-          },
-        });
+            }}});
 
         return {
           success: true,
           data: match,
-          message: "Annonce acceptée avec succès",
-        };
-      } catch (_error) {
+          message: "Annonce acceptée avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'acceptation",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'acceptation" });
       }
     }),
 
@@ -699,19 +565,15 @@ export const delivererRoutesRouter = router({
    */
   getPerformanceStats: protectedProcedure
     .input(
-      z.object({
-        routeId: z.string().cuid().optional(),
-        period: z.enum(["week", "month", "year"]).default("month"),
-      }),
+      z.object({ routeId: z.string().cuid().optional(),
+        period: z.enum(["week", "month", "year"]).default("month") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent voir leurs statistiques",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent voir leurs statistiques" });
       }
 
       try {
@@ -732,29 +594,25 @@ export const delivererRoutesRouter = router({
             break;
         }
 
-        where.date = { gte: startDate };
+        where.date = { gte };
 
         const performances = await ctx.db.delivererRoutePerformance.findMany({
           where,
-          orderBy: { date: "desc" },
-        });
+          orderBy: { date: "desc" }});
 
         // Calculer les statistiques agrégées
         const stats = performances.reduce(
-          (acc, perf) => ({
-            totalDeliveries: acc.totalDeliveries + perf.completedDeliveries,
+          (acc, perf) => ({ totalDeliveries: acc.totalDeliveries + perf.completedDeliveries,
             totalRevenue: acc.totalRevenue + perf.totalRevenue.toNumber(),
             totalDistance: acc.totalDistance + (perf.totalDistance || 0),
             avgDeliveryTime: acc.avgDeliveryTime + (perf.avgDeliveryTime || 0),
-            count: acc.count + 1,
-          }),
+            count: acc.count + 1 }),
           {
             totalDeliveries: 0,
             totalRevenue: 0,
             totalDistance: 0,
             avgDeliveryTime: 0,
-            count: 0,
-          },
+            count: 0},
         );
 
         if (stats.count > 0) {
@@ -770,18 +628,12 @@ export const delivererRoutesRouter = router({
               totalRevenue: stats.totalRevenue,
               totalDistance: Math.round(stats.totalDistance),
               avgDeliveryTime: Math.round(stats.avgDeliveryTime),
-              period: input.period,
-            },
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des statistiques",
-        });
+              period: input.period}}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques" });
       }
-    }),
-});
+    })});
 
 // Helper functions
 async function triggerRouteMatching(route: any) {

@@ -27,8 +27,7 @@ export const adminAnalyticsRouter = router({
     return {
       activityChart: activityData,
       alerts,
-      recentActivity,
-    };
+      recentActivity};
   }),
 
   /**
@@ -37,19 +36,13 @@ export const adminAnalyticsRouter = router({
   getDeliveryStats: adminProcedure.query(async () => {
     const deliveryStats = await prisma.delivery.groupBy({
       by: ["status"],
-      _count: {
-        id: true,
-      },
-    });
+      count: { id }});
 
-    const statusDistribution = deliveryStats.map((stat) => ({
-      status: stat.status,
-      count: stat._count.id,
-    }));
+    const statusDistribution = deliveryStats.map((stat) => ({ status: stat.status,
+      count: stat.count.id }));
 
     return {
-      statusDistribution,
-    };
+      statusDistribution};
   }),
 
   /**
@@ -69,52 +62,39 @@ export const adminAnalyticsRouter = router({
           where: {
             createdAt: {
               gte: startDate,
-              lte: endDate,
-            },
-          },
-        });
+              lte: endDate}}});
 
         return {
           date: format(date, "MM/dd"),
-          signups: count,
-        };
+          signups: count};
       }),
     );
 
     // Répartition par rôle
     const usersByRole = await prisma.user.groupBy({
       by: ["role"],
-      _count: {
-        id: true,
-      },
-    });
+      count: { id }});
 
     const totalUsers = await prisma.user.count();
 
     // Vérifications
     const pendingVerifications = await prisma.verification.count({
-      where: { status: "PENDING" },
-    });
+      where: { status: "PENDING" }});
 
     const approvedVerifications = await prisma.verification.count({
-      where: { status: "APPROVED" },
-    });
+      where: { status: "APPROVED" }});
 
     const rejectedVerifications = await prisma.verification.count({
-      where: { status: "REJECTED" },
-    });
+      where: { status: "REJECTED" }});
 
     return {
       signupTrend,
-      usersByRole: usersByRole.map((role) => ({
-        role: role.role,
-        count: role._count.id,
-      })),
+      usersByRole: usersByRole.map((role) => ({ role: role.role,
+        count: role.count.id })),
       totalUsers,
       pendingVerifications,
       approvedVerifications,
-      rejectedVerifications,
-    };
+      rejectedVerifications};
   }),
 
   /**
@@ -135,32 +115,21 @@ export const adminAnalyticsRouter = router({
             status: "COMPLETED",
             createdAt: {
               gte: startDate,
-              lte: endDate,
-            },
-          },
-          _sum: {
-            amount: true,
-          },
-        });
+              lte: endDate}},
+          sum: { amount }});
 
         const commissions = await prisma.commission.aggregate({
           where: {
             status: "PAID",
             paidAt: {
               gte: startDate,
-              lte: endDate,
-            },
-          },
-          _sum: {
-            amount: true,
-          },
-        });
+              lte: endDate}},
+          sum: { amount }});
 
         return {
           date: format(date, "MM/dd"),
-          revenue: payments._sum.amount || 0,
-          commissions: commissions._sum.amount || 0,
-        };
+          revenue: payments.sum.amount || 0,
+          commissions: commissions.sum.amount || 0};
       }),
     );
 
@@ -169,25 +138,15 @@ export const adminAnalyticsRouter = router({
       where: {
         status: "COMPLETED",
         createdAt: {
-          gte: subDays(new Date(), 30),
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
+          gte: subDays(new Date(), 30)}},
+      sum: { amount }});
 
     const monthlyCommissions = await prisma.commission.aggregate({
       where: {
         status: "PAID",
         paidAt: {
-          gte: subDays(new Date(), 30),
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
+          gte: subDays(new Date(), 30)}},
+      sum: { amount }});
 
     // Calcul de la croissance
     const previousMonthRevenue = await prisma.payment.aggregate({
@@ -195,27 +154,21 @@ export const adminAnalyticsRouter = router({
         status: "COMPLETED",
         createdAt: {
           gte: subDays(new Date(), 60),
-          lte: subDays(new Date(), 30),
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
+          lte: subDays(new Date(), 30)}},
+      sum: { amount }});
 
-    const revenueGrowth = previousMonthRevenue._sum.amount
-      ? (((monthlyRevenue._sum.amount || 0) -
-          previousMonthRevenue._sum.amount) /
-          previousMonthRevenue._sum.amount) *
+    const revenueGrowth = previousMonthRevenue.sum.amount
+      ? (((monthlyRevenue.sum.amount || 0) -
+          previousMonthRevenue.sum.amount) /
+          previousMonthRevenue.sum.amount) *
         100
       : 0;
 
     return {
       revenueChart,
-      monthlyRevenue: monthlyRevenue._sum.amount || 0,
-      monthlyCommissions: monthlyCommissions._sum.amount || 0,
-      revenueGrowth,
-    };
+      monthlyRevenue: monthlyRevenue.sum.amount || 0,
+      monthlyCommissions: monthlyCommissions.sum.amount || 0,
+      revenueGrowth};
   }),
 
   /**
@@ -233,21 +186,16 @@ export const adminAnalyticsRouter = router({
           where: {
             createdAt: {
               gte: startDate,
-              lte: endDate,
-            },
-          },
-        });
+              lte: endDate}}});
 
         return {
           date: format(date, "MM/dd"),
-          created: count,
-        };
+          created: count};
       }),
     );
 
     return {
-      creationTrend,
-    };
+      creationTrend};
   }),
 
   /**
@@ -256,8 +204,7 @@ export const adminAnalyticsRouter = router({
   getRecentActivity: adminProcedure.query(async () => {
     const recentActivity = await getRecentActivity();
     return { recentActivity };
-  }),
-});
+  })});
 
 // Fonctions utilitaires
 async function getActivityForDate(date: Date) {
@@ -269,34 +216,23 @@ async function getActivityForDate(date: Date) {
       where: {
         createdAt: {
           gte: startDate,
-          lte: endDate,
-        },
-      },
-    }),
+          lte: endDate}}}),
     prisma.delivery.count({
       where: {
         createdAt: {
           gte: startDate,
-          lte: endDate,
-        },
-      },
-    }),
+          lte: endDate}}}),
     prisma.announcement.count({
       where: {
         createdAt: {
           gte: startDate,
-          lte: endDate,
-        },
-      },
-    }),
-  ]);
+          lte: endDate}}})]);
 
   return {
     date: format(date, "MM/dd"),
     users,
     deliveries,
-    announcements,
-  };
+    announcements};
 }
 
 async function getSystemAlerts() {
@@ -304,8 +240,7 @@ async function getSystemAlerts() {
 
   // Vérifications en attente
   const pendingVerifications = await prisma.verification.count({
-    where: { status: "PENDING" },
-  });
+    where: { status: "PENDING" }});
 
   if (pendingVerifications > 5) {
     alerts.push({
@@ -315,8 +250,7 @@ async function getSystemAlerts() {
       title: "Vérifications en attente",
       description: `${pendingVerifications} vérifications nécessitent votre attention`,
       timestamp: new Date().toISOString(),
-      isResolved: false,
-    });
+      isResolved: false});
   }
 
   // Livraisons en retard
@@ -324,10 +258,7 @@ async function getSystemAlerts() {
     where: {
       status: "IN_PROGRESS",
       estimatedDeliveryTime: {
-        lt: new Date(),
-      },
-    },
-  });
+        lt: new Date()}}});
 
   if (delayedDeliveries > 0) {
     alerts.push({
@@ -337,8 +268,7 @@ async function getSystemAlerts() {
       title: "Livraisons en retard",
       description: `${delayedDeliveries} livraisons ont dépassé leur heure estimée`,
       timestamp: new Date().toISOString(),
-      isResolved: false,
-    });
+      isResolved: false});
   }
 
   return alerts;
@@ -355,17 +285,14 @@ async function getRecentActivity() {
       id: true,
       email: true,
       role: true,
-      createdAt: true,
-    },
-  });
+      createdAt: true}});
 
   recentUsers.forEach((user) => {
     activities.push({
       id: `user-${user.id}`,
       action: `Nouvelle inscription: ${user.email}`,
       type: user.role,
-      timestamp: format(user.createdAt, "HH:mm"),
-    });
+      timestamp: format(user.createdAt, "HH:mm")});
   });
 
   // Dernières livraisons
@@ -375,17 +302,14 @@ async function getRecentActivity() {
     select: {
       id: true,
       status: true,
-      createdAt: true,
-    },
-  });
+      createdAt: true}});
 
   recentDeliveries.forEach((delivery) => {
     activities.push({
       id: `delivery-${delivery.id}`,
       action: `Livraison ${delivery.status}`,
       type: "delivery",
-      timestamp: format(delivery.createdAt, "HH:mm"),
-    });
+      timestamp: format(delivery.createdAt, "HH:mm")});
   });
 
   // Trier par timestamp

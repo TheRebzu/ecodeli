@@ -15,8 +15,7 @@ function SparkLine({
   data,
   height = 60,
   width = "100%",
-  className = "",
-}: {
+  className = ""}: {
   data: DataPoint[];
   height?: number;
   width?: string | number;
@@ -84,8 +83,7 @@ type FinancialSummaryProps = {
 
 export function FinancialSummary({
   financials,
-  isLoading = false,
-}: FinancialSummaryProps) {
+  isLoading = false}: FinancialSummaryProps) {
   const t = useTranslations("dashboard.client");
 
   if (isLoading) {
@@ -117,7 +115,7 @@ export function FinancialSummary({
   const previousExpenses = financials?.previousMonthExpenses || 0;
   const currentExpenses = financials?.currentMonthExpenses || 0;
 
-  let trend = 0;
+  const trend = 0;
   if (previousExpenses > 0) {
     trend = ((currentExpenses - previousExpenses) / previousExpenses) * 100;
   }

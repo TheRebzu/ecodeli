@@ -10,8 +10,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,13 +37,10 @@ export default function DelivererAnnouncementsPage() {
     error,
     fetchAvailableAnnouncements,
     fetchMyApplications,
-    filterByProximity,
-  } = useDelivererAnnouncements({
+    filterByProximity} = useDelivererAnnouncements({
     initialFilter: {
       limit: 20,
-      page: 1,
-    },
-  });
+      page: 1}});
 
   // Charger les annonces selon l'onglet actif
   useEffect(() => {
@@ -188,9 +184,9 @@ export default function DelivererAnnouncementsPage() {
 
         <TabsContent value="available" className="space-y-4">
           {isLoading ? (
-            // Placeholder de chargement
+            
             <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
+              {Array.from({ length: 3  }).map((_, i) => (
                 <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
               ))}
             </div>
@@ -226,9 +222,9 @@ export default function DelivererAnnouncementsPage() {
 
         <TabsContent value="applications" className="space-y-4">
           {isLoadingApplications ? (
-            // Placeholder de chargement
+            
             <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
+              {Array.from({ length: 3  }).map((_, i) => (
                 <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
               ))}
             </div>

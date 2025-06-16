@@ -7,16 +7,14 @@ import { LoginSchemaType } from "@/schemas/auth/login.schema";
 import { PrismaClient } from "@prisma/client";
 import {
   sendVerificationEmail,
-  sendPasswordResetEmail,
-} from "@/lib/services/email.service";
+  sendPasswordResetEmail} from "@/lib/services/email.service";
 import { EmailService } from "@/server/services/common/email.service";
 import { TokenService } from "@/server/services/auth/token.service";
 import {
   ClientRegisterSchemaType,
   DelivererRegisterSchemaType,
   MerchantRegisterSchemaType,
-  ProviderRegisterSchemaType,
-} from "@/schemas/validation";
+  ProviderRegisterSchemaType} from "@/schemas/validation";
 import { VerificationStatus } from "@prisma/client";
 import { DocumentService } from "@/server/services/common/document.service";
 import { NotificationService } from "@/lib/services/notification.service";
@@ -57,8 +55,7 @@ export class AuthService {
    */
   async userExists(email: string): Promise<boolean> {
     const user = await this.db.user.findUnique({
-      where: { email },
-    });
+      where: { email }});
     return !!user;
   }
 
@@ -67,8 +64,7 @@ export class AuthService {
    */
   async getUserByEmail(email: string) {
     return this.db.user.findUnique({
-      where: { email },
-    });
+      where: { email }});
   }
 
   /**
@@ -77,10 +73,8 @@ export class AuthService {
   private async createBaseUser(data: RegisterBaseParams, roleValue: string) {
     const userExists = await this.userExists(data.email);
     if (userExists) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Un utilisateur avec cet email existe déjà",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Un utilisateur avec cet email existe déjà" });
     }
 
     const hashedPassword = await hash(data.password, 12);
@@ -92,9 +86,7 @@ export class AuthService {
         password: hashedPassword,
         name: data.name,
         role: roleValue,
-        status: UserStatus.PENDING_VERIFICATION,
-      },
-    });
+        status: UserStatus.PENDING_VERIFICATION}});
 
     // Création et envoi du token de vérification
     const verificationToken =
@@ -115,14 +107,11 @@ export class AuthService {
   async registerClient(data: ClientRegisterSchemaType) {
     // Vérifier si l'email est déjà utilisé
     const existingUser = await this.db.user.findUnique({
-      where: { email: data.email },
-    });
+      where: { email: data.email }});
 
     if (existingUser) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: "Un utilisateur avec cet email existe déjà",
-      });
+      throw new TRPCError({ code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà" });
     }
 
     // Hasher le mot de passe
@@ -139,11 +128,7 @@ export class AuthService {
         client: {
           create: {
             address: data.address,
-            phone: data.phone,
-          },
-        },
-      },
-    });
+            phone: data.phone}}}});
 
     // Créer un token de vérification d'email
     const token = await this.tokenService.createEmailVerificationToken(user.id);
@@ -154,8 +139,7 @@ export class AuthService {
     return {
       success: true,
       message: "Compte client créé. Veuillez vérifier votre email.",
-      userId: user.id,
-    };
+      userId: user.id};
   }
 
   /**
@@ -164,14 +148,11 @@ export class AuthService {
   async registerDeliverer(data: DelivererRegisterSchemaType) {
     // Vérifier si l'email est déjà utilisé
     const existingUser = await this.db.user.findUnique({
-      where: { email: data.email },
-    });
+      where: { email: data.email }});
 
     if (existingUser) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: "Un utilisateur avec cet email existe déjà",
-      });
+      throw new TRPCError({ code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà" });
     }
 
     // Hasher le mot de passe
@@ -192,11 +173,7 @@ export class AuthService {
             vehicleType: data.vehicleType,
             licensePlate: data.licensePlate,
             isActive: false,
-            isVerified: false,
-          },
-        },
-      },
-    });
+            isVerified: false}}}});
 
     // Créer un token de vérification d'email
     const token = await this.tokenService.createEmailVerificationToken(user.id);
@@ -208,8 +185,7 @@ export class AuthService {
       success: true,
       message:
         "Compte livreur créé. Veuillez vérifier votre email pour passer à l'étape suivante.",
-      userId: user.id,
-    };
+      userId: user.id};
   }
 
   /**
@@ -218,14 +194,11 @@ export class AuthService {
   async registerMerchant(data: MerchantRegisterSchemaType) {
     // Vérifier si l'email est déjà utilisé
     const existingUser = await this.db.user.findUnique({
-      where: { email: data.email },
-    });
+      where: { email: data.email }});
 
     if (existingUser) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: "Un utilisateur avec cet email existe déjà",
-      });
+      throw new TRPCError({ code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà" });
     }
 
     // Hasher le mot de passe
@@ -246,11 +219,7 @@ export class AuthService {
             phone: data.phone,
             businessType: data.businessType,
             vatNumber: data.vatNumber,
-            isVerified: false,
-          },
-        },
-      },
-    });
+            isVerified: false}}}});
 
     // Créer un token de vérification d'email
     const token = await this.tokenService.createEmailVerificationToken(user.id);
@@ -261,8 +230,7 @@ export class AuthService {
     return {
       success: true,
       message: "Compte commerçant créé. Veuillez vérifier votre email.",
-      userId: user.id,
-    };
+      userId: user.id};
   }
 
   /**
@@ -271,14 +239,11 @@ export class AuthService {
   async registerProvider(data: ProviderRegisterSchemaType) {
     // Vérifier si l'email est déjà utilisé
     const existingUser = await this.db.user.findUnique({
-      where: { email: data.email },
-    });
+      where: { email: data.email }});
 
     if (existingUser) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: "Un utilisateur avec cet email existe déjà",
-      });
+      throw new TRPCError({ code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà" });
     }
 
     // Hasher le mot de passe
@@ -310,11 +275,7 @@ export class AuthService {
             description: data.description,
             availability: data.availability
               ? JSON.stringify(data.availability)
-              : null,
-          },
-        },
-      },
-    });
+              : null}}}});
 
     // Créer un token de vérification d'email
     const token = await this.tokenService.createEmailVerificationToken(user.id);
@@ -325,8 +286,7 @@ export class AuthService {
     return {
       success: true,
       message: "Compte prestataire créé. Veuillez vérifier votre email.",
-      userId: user.id,
-    };
+      userId: user.id};
   }
 
   /**
@@ -339,34 +299,27 @@ export class AuthService {
 
       // Trouver l'utilisateur correspondant
       const user = await this.db.user.findUnique({
-        where: { id: userId },
-      });
+        where: { id }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Utilisateur non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Utilisateur non trouvé" });
       }
 
       // Mettre à jour l'utilisateur
       await this.db.user.update({
         where: { id: user.id },
         data: {
-          emailVerified: new Date(),
-        },
-      });
+          emailVerified: new Date()}});
 
       // Supprimer le token utilisé
       await this.tokenService.deleteToken(token);
 
       return true;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la vérification du token:", error);
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Token de vérification invalide ou expiré",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Token de vérification invalide ou expiré" });
     }
   }
 
@@ -375,8 +328,7 @@ export class AuthService {
    */
   async forgotPassword(email: string): Promise<boolean> {
     const user = await this.db.user.findUnique({
-      where: { email },
-    });
+      where: { email }});
 
     if (!user) {
       // Pour des raisons de sécurité, on ne révèle pas si l'email existe ou non
@@ -404,24 +356,18 @@ export class AuthService {
     const userId = await this.tokenService.verifyToken(token);
 
     const user = await this.db.user.findUnique({
-      where: { id: userId },
-    });
+      where: { id }});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Utilisateur non trouvé" });
     }
 
     // Mise à jour du mot de passe
     const hashedPassword = await hash(newPassword, 12);
     await this.db.user.update({
       where: { id: user.id },
-      data: {
-        password: hashedPassword,
-      },
-    });
+      data: { password }});
 
     // Suppression du token de réinitialisation
     await this.tokenService.deleteToken(token);
@@ -433,7 +379,7 @@ export class AuthService {
    * Vérifie les identifiants de connexion
    */
   async verifyCredentials(data: LoginSchemaType): Promise<UserResult> {
-    const { email: _email, password: _password } = data;
+    const { email: email, password: password } = data;
 
     // Recherche de l'utilisateur
     const user = await this.db.user.findUnique({
@@ -443,50 +389,38 @@ export class AuthService {
         deliverer: true,
         merchant: true,
         provider: true,
-        admin: true,
-      },
-    });
+        admin: true}});
 
     if (!user || !user.password) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Identifiants invalides",
-      });
+      throw new TRPCError({ code: "UNAUTHORIZED",
+        message: "Identifiants invalides" });
     }
 
     // Vérification du mot de passe
     const isValidPassword = await compare(password, user.password);
 
     if (!isValidPassword) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Identifiants invalides",
-      });
+      throw new TRPCError({ code: "UNAUTHORIZED",
+        message: "Identifiants invalides" });
     }
 
     // Vérification du statut du compte
     if (user.status === "INACTIVE" || user.status === "SUSPENDED") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Ce compte a été désactivé ou suspendu",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Ce compte a été désactivé ou suspendu" });
     }
 
     // Vérification de l'email pour les rôles autres qu'admin
     if (user.role !== "ADMIN" && user.status === "PENDING_VERIFICATION") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Veuillez vérifier votre email pour activer votre compte",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Veuillez vérifier votre email pour activer votre compte" });
     }
 
     // Vérification de la 2FA si activée
     if (user.twoFactorEnabled && !data.totp) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
+      throw new TRPCError({ code: "UNAUTHORIZED",
         message: "Authentification à deux facteurs requise",
-        cause: "REQUIRES_2FA",
-      });
+        cause: "REQUIRES_2FA" });
     }
 
     // Logique de vérification du code TOTP si présent
@@ -494,18 +428,15 @@ export class AuthService {
       const isValidTotp = await this.verifyTOTP(user.id, data.totp);
 
       if (!isValidTotp) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Code d'authentification à deux facteurs invalide",
-        });
+        throw new TRPCError({ code: "UNAUTHORIZED",
+          message: "Code d'authentification à deux facteurs invalide" });
       }
     }
 
     // Mise à jour de la date de dernière connexion
     await this.db.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+      data: { lastLoginAt: new Date() }});
 
     // Convert role from string to UserRole enum
     let userRole: UserRole;
@@ -539,8 +470,7 @@ export class AuthService {
         user.deliverer?.id ||
         user.merchant?.id ||
         user.provider?.id ||
-        user.admin?.id,
-    };
+        user.admin?.id};
   }
 
   /**
@@ -549,18 +479,14 @@ export class AuthService {
   async verifyTOTP(userId: string, totp: string): Promise<boolean> {
     // Implémentation temporaire - à remplacer par une vraie logique TOTP
     const user = await this.db.user.findUnique({
-      where: { id: userId },
+      where: { id },
       select: {
         twoFactorSecret: true,
-        twoFactorEnabled: true,
-      },
-    });
+        twoFactorEnabled: true}});
 
     if (!user?.twoFactorEnabled || !user?.twoFactorSecret) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "La configuration 2FA n'est pas activée",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "La configuration 2FA n'est pas activée" });
     }
 
     // Vérification simple pour le développement
@@ -576,12 +502,10 @@ export class AuthService {
 
     // Enregistrer le secret dans la base de données
     await this.db.user.update({
-      where: { id: userId },
+      where: { id },
       data: {
         twoFactorEnabled: true,
-        twoFactorSecret: secret,
-      },
-    });
+        twoFactorSecret: secret}});
 
     return { secret };
   }
@@ -591,14 +515,12 @@ export class AuthService {
    */
   async disableTwoFactor(userId: string) {
     await this.db.user.update({
-      where: { id: userId },
+      where: { id },
       data: {
         twoFactorEnabled: false,
-        twoFactorSecret: null,
-      },
-    });
+        twoFactorSecret: null}});
 
-    return { success: true };
+    return { success };
   }
 
   /**
@@ -606,14 +528,11 @@ export class AuthService {
    */
   async setupTwoFactor(userId: string): Promise<string> {
     const user = await this.db.user.findUnique({
-      where: { id: userId },
-    });
+      where: { id }});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Utilisateur non trouvé" });
     }
 
     // Générer un secret temporaire
@@ -621,9 +540,8 @@ export class AuthService {
 
     // Update user with secret
     await this.db.user.update({
-      where: { id: userId },
-      data: { twoFactorSecret: secret },
-    });
+      where: { id },
+      data: { twoFactorSecret }});
 
     return secret;
   }
@@ -633,15 +551,12 @@ export class AuthService {
    */
   async verifyTwoFactor(userId: string, token: string): Promise<boolean> {
     const user = await this.db.user.findUnique({
-      where: { id: userId },
-      select: { twoFactorSecret: true },
-    });
+      where: { id },
+      select: { twoFactorSecret }});
 
     if (!user?.twoFactorSecret) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "La configuration 2FA n'est pas activée",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "La configuration 2FA n'est pas activée" });
     }
 
     // Vérification simple pour le développement
@@ -649,9 +564,8 @@ export class AuthService {
 
     if (isValid) {
       await this.db.user.update({
-        where: { id: userId },
-        data: { twoFactorEnabled: true },
-      });
+        where: { id },
+        data: { twoFactorEnabled }});
     }
 
     return isValid;
@@ -668,38 +582,30 @@ export class AuthService {
   ) {
     // Vérifier que l'administrateur existe
     const admin = await this.db.user.findUnique({
-      where: { id: adminId, role: UserRole.ADMIN },
-    });
+      where: { id: adminId, role: UserRole.ADMIN }});
 
     if (!admin) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Seul un administrateur peut effectuer cette action",
-      });
+      throw new TRPCError({ code: "UNAUTHORIZED",
+        message: "Seul un administrateur peut effectuer cette action" });
     }
 
     // Trouver le livreur
     const deliverer = await this.db.deliverer.findUnique({
-      where: { id: delivererId },
-      include: { user: true },
-    });
+      where: { id },
+      include: { user }});
 
     if (!deliverer) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Livreur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Livreur non trouvé" });
     }
 
     if (approved) {
       // Approuver le compte livreur
       await this.db.deliverer.update({
-        where: { id: delivererId },
+        where: { id },
         data: {
           isVerified: true,
-          verificationDate: new Date(),
-        },
-      });
+          verificationDate: new Date()}});
 
       // Envoyer un email d'approbation
       await this.emailService.sendAccountApprovalNotification(
@@ -708,11 +614,8 @@ export class AuthService {
     } else {
       // Rejeter avec un message
       await this.db.deliverer.update({
-        where: { id: delivererId },
-        data: {
-          isVerified: false,
-        },
-      });
+        where: { id },
+        data: { isVerified }});
 
       // Envoyer un email de rejet avec les notes
       await this.emailService.sendAccountRejectionNotification(
@@ -723,8 +626,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: approved ? "Compte livreur approuvé" : "Compte livreur rejeté",
-    };
+      message: approved ? "Compte livreur approuvé" : "Compte livreur rejeté"};
   }
 
   /**
@@ -738,38 +640,30 @@ export class AuthService {
   ) {
     // Vérifier que l'administrateur existe
     const admin = await this.db.user.findUnique({
-      where: { id: adminId, role: UserRole.ADMIN },
-    });
+      where: { id: adminId, role: UserRole.ADMIN }});
 
     if (!admin) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Seul un administrateur peut effectuer cette action",
-      });
+      throw new TRPCError({ code: "UNAUTHORIZED",
+        message: "Seul un administrateur peut effectuer cette action" });
     }
 
     // Trouver le commerçant
     const merchant = await this.db.merchant.findUnique({
-      where: { id: merchantId },
-      include: { user: true },
-    });
+      where: { id },
+      include: { user }});
 
     if (!merchant) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Commerçant non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Commerçant non trouvé" });
     }
 
     if (approved) {
       // Approuver le compte commerçant
       await this.db.merchant.update({
-        where: { id: merchantId },
+        where: { id },
         data: {
           isVerified: true,
-          verificationDate: new Date(),
-        },
-      });
+          verificationDate: new Date()}});
 
       // Envoyer un email d'approbation
       await this.emailService.sendAccountApprovalNotification(
@@ -778,11 +672,8 @@ export class AuthService {
     } else {
       // Rejeter avec un message
       await this.db.merchant.update({
-        where: { id: merchantId },
-        data: {
-          isVerified: false,
-        },
-      });
+        where: { id },
+        data: { isVerified }});
 
       // Envoyer un email de rejet avec les notes
       await this.emailService.sendAccountRejectionNotification(
@@ -795,8 +686,7 @@ export class AuthService {
       success: true,
       message: approved
         ? "Compte commerçant approuvé"
-        : "Compte commerçant rejeté",
-    };
+        : "Compte commerçant rejeté"};
   }
 
   /**
@@ -810,38 +700,30 @@ export class AuthService {
   ) {
     // Vérifier que l'administrateur existe
     const admin = await this.db.user.findUnique({
-      where: { id: adminId, role: UserRole.ADMIN },
-    });
+      where: { id: adminId, role: UserRole.ADMIN }});
 
     if (!admin) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Seul un administrateur peut effectuer cette action",
-      });
+      throw new TRPCError({ code: "UNAUTHORIZED",
+        message: "Seul un administrateur peut effectuer cette action" });
     }
 
     // Trouver le prestataire
     const provider = await this.db.provider.findUnique({
-      where: { id: providerId },
-      include: { user: true },
-    });
+      where: { id },
+      include: { user }});
 
     if (!provider) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Prestataire non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Prestataire non trouvé" });
     }
 
     if (approved) {
       // Approuver le compte prestataire
       await this.db.provider.update({
-        where: { id: providerId },
+        where: { id },
         data: {
           isVerified: true,
-          verificationDate: new Date(),
-        },
-      });
+          verificationDate: new Date()}});
 
       // Envoyer un email d'approbation
       await this.emailService.sendAccountApprovalNotification(
@@ -850,11 +732,8 @@ export class AuthService {
     } else {
       // Rejeter avec un message
       await this.db.provider.update({
-        where: { id: providerId },
-        data: {
-          isVerified: false,
-        },
-      });
+        where: { id },
+        data: { isVerified }});
 
       // Envoyer un email de rejet avec les notes
       await this.emailService.sendAccountRejectionNotification(
@@ -867,8 +746,7 @@ export class AuthService {
       success: true,
       message: approved
         ? "Compte prestataire approuvé"
-        : "Compte prestataire rejeté",
-    };
+        : "Compte prestataire rejeté"};
   }
 
   /**
@@ -887,26 +765,20 @@ export class AuthService {
     // Vérifier que le super-admin existe
     const superAdmin = await this.db.user.findUnique({
       where: { id: superAdminId, role: UserRole.ADMIN },
-      include: { admin: true },
-    });
+      include: { admin }});
 
     if (!superAdmin || !superAdmin.admin?.permissions.includes("SUPER_ADMIN")) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Seul un super-administrateur peut effectuer cette action",
-      });
+      throw new TRPCError({ code: "UNAUTHORIZED",
+        message: "Seul un super-administrateur peut effectuer cette action" });
     }
 
     // Vérifier si l'email est déjà utilisé
     const existingUser = await this.db.user.findUnique({
-      where: { email: data.email },
-    });
+      where: { email: data.email }});
 
     if (existingUser) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: "Un utilisateur avec cet email existe déjà",
-      });
+      throw new TRPCError({ code: "CONFLICT",
+        message: "Un utilisateur avec cet email existe déjà" });
     }
 
     // Hasher le mot de passe
@@ -926,10 +798,7 @@ export class AuthService {
             permissions: data.permissions,
             department: data.department,
             twoFactorEnabled: true, // Active 2FA par défaut pour les admins
-          },
-        },
-      },
-    });
+          }}}});
 
     // Générer un token temporaire pour la configuration initiale
     const tempToken = await this.tokenService.createPasswordResetToken(user.id);
@@ -940,8 +809,7 @@ export class AuthService {
     return {
       success: true,
       message: "Compte administrateur créé.",
-      userId: user.id,
-    };
+      userId: user.id};
   }
 
   // Inscription d'un nouvel utilisateur
@@ -953,12 +821,11 @@ export class AuthService {
     locale: SupportedLanguage;
   }) {
     const {
-      name: _name,
-      email: _email,
-      password: _password,
-      role: _role,
-      locale: _locale,
-    } = data;
+      name: name,
+      email: email,
+      password: password,
+      role: role,
+      locale: locale} = data;
 
     const hashedPassword = await hash(password, 12);
 
@@ -971,8 +838,7 @@ export class AuthService {
         role,
         emailVerified: null,
         isVerified: role === UserRole.CLIENT, // Les clients sont vérifiés par défaut
-      },
-    });
+      }});
 
     // Créer le profil spécifique selon le rôle
     await this.createRoleSpecificProfile(user.id, role);
@@ -998,32 +864,24 @@ export class AuthService {
         await this.db.deliverer.create({
           data: {
             userId,
-            isVerified: false,
-          },
-        });
+            isVerified: false}});
         break;
       case UserRole.MERCHANT:
         await this.db.merchant.create({
           data: {
             userId,
-            isVerified: false,
-          },
-        });
+            isVerified: false}});
         break;
       case UserRole.PROVIDER:
         await this.db.provider.create({
           data: {
             userId,
-            isVerified: false,
-          },
-        });
+            isVerified: false}});
         break;
       case UserRole.CLIENT:
         await this.db.client.create({
           data: {
-            userId,
-          },
-        });
+            userId}});
         break;
       default:
         break;
@@ -1033,8 +891,7 @@ export class AuthService {
   // Demande de réinitialisation de mot de passe
   async requestPasswordReset(email: string, locale: SupportedLanguage) {
     const user = await this.db.user.findUnique({
-      where: { email },
-    });
+      where: { email }});
 
     if (!user) {
       // Ne pas indiquer si l'utilisateur existe pour des raisons de sécurité
@@ -1053,9 +910,7 @@ export class AuthService {
       where: { id: user.id },
       data: {
         resetToken,
-        resetTokenExpires: expires,
-      },
-    });
+        resetTokenExpires: expires}});
 
     // Envoyer l'email de réinitialisation
     await this.emailService.sendPasswordResetEmail(
@@ -1074,16 +929,11 @@ export class AuthService {
       where: {
         resetToken: token,
         resetTokenExpires: {
-          gt: new Date(),
-        },
-      },
-    });
+          gt: new Date()}}});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Token de réinitialisation invalide ou expiré",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Token de réinitialisation invalide ou expiré" });
     }
 
     // Crypter le nouveau mot de passe
@@ -1095,9 +945,7 @@ export class AuthService {
       data: {
         password: hashedPassword,
         resetToken: null,
-        resetTokenExpires: null,
-      },
-    });
+        resetTokenExpires: null}});
 
     return true;
   }
@@ -1105,14 +953,11 @@ export class AuthService {
   // Vérifier le statut de vérification de l'utilisateur
   async checkVerificationStatus(userId: string) {
     const user = await this.db.user.findUnique({
-      where: { id: userId },
-    });
+      where: { id }});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Utilisateur non trouvé" });
     }
 
     // Vérifier si l'utilisateur est un client (pas besoin de vérification)
@@ -1126,8 +971,7 @@ export class AuthService {
 
     // Récupérer les documents approuvés de l'utilisateur
     const approvedDocuments = await this.db.document.findMany({
-      where: { userId, isVerified: true },
-    });
+      where: { userId, isVerified: true }});
 
     // Déterminer quels documents sont manquants
     const approvedDocumentTypes = approvedDocuments.map((doc) => doc.type);
@@ -1142,8 +986,7 @@ export class AuthService {
       isVerified,
       requiredDocuments,
       approvedDocuments,
-      missingDocuments,
-    };
+      missingDocuments};
   }
 
   /**
@@ -1156,29 +999,23 @@ export class AuthService {
     locale: SupportedLanguage,
   ) {
     const user = await this.db.user.findUnique({
-      where: { id: userId },
+      where: { id },
       include: {
         client: true,
         deliverer: true,
         merchant: true,
-        provider: true,
-      },
-    });
+        provider: true}});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Utilisateur non trouvé" });
     }
 
     // Mettre à jour le statut
     await this.db.user.update({
-      where: { id: userId },
+      where: { id },
       data: {
-        status: status === "APPROVED" ? "ACTIVE" : "REJECTED",
-      },
-    });
+        status: status === "APPROVED" ? "ACTIVE" : "REJECTED"}});
 
     // Mettre à jour le profil spécifique au rôle
     switch (user.role) {
@@ -1188,9 +1025,7 @@ export class AuthService {
             where: { id: user.deliverer.id },
             data: {
               isVerified: status === "APPROVED",
-              verificationNotes: notes,
-            },
-          });
+              verificationNotes: notes}});
         }
         break;
       case UserRole.MERCHANT:
@@ -1199,9 +1034,7 @@ export class AuthService {
             where: { id: user.merchant.id },
             data: {
               isVerified: status === "APPROVED",
-              verificationNotes: notes,
-            },
-          });
+              verificationNotes: notes}});
         }
         break;
       case UserRole.PROVIDER:
@@ -1210,22 +1043,18 @@ export class AuthService {
             where: { id: user.provider.id },
             data: {
               isVerified: status === "APPROVED",
-              verificationNotes: notes,
-            },
-          });
+              verificationNotes: notes}});
         }
         break;
     }
 
     // Envoyer notification à l'utilisateur
     if (status === "APPROVED") {
-      await NotificationService.sendNotification({
-        userId,
+      await NotificationService.sendNotification({ userId,
         title: "Compte vérifié",
         content:
           "Votre compte a été approuvé. Vous pouvez maintenant utiliser toutes les fonctionnalités.",
-        type: "ACCOUNT",
-      });
+        type: "ACCOUNT" });
       await this.emailService.sendAccountVerifiedEmail(
         user.email,
         user.name || "",
@@ -1236,8 +1065,7 @@ export class AuthService {
         userId,
         title: "Vérification du compte",
         content: `Votre compte a été refusé${notes ? ": " + notes : "."}`,
-        type: "ACCOUNT",
-      });
+        type: "ACCOUNT"});
       await this.emailService.sendAccountRejectedEmail(
         user.email,
         user.name || "",
@@ -1248,8 +1076,7 @@ export class AuthService {
 
     return {
       success: true,
-      status,
-    };
+      status};
   }
 
   /**
@@ -1257,7 +1084,7 @@ export class AuthService {
    */
   async getSession(userId: string) {
     const user = await this.db.user.findUnique({
-      where: { id: userId },
+      where: { id },
       select: {
         id: true,
         email: true,
@@ -1267,38 +1094,25 @@ export class AuthService {
         image: true,
         status: true,
         client: {
-          select: {
-            id: true,
-          },
-        },
+          select: { id }},
         deliverer: {
           select: {
             id: true,
-            isVerified: true,
-          },
-        },
+            isVerified: true}},
         merchant: {
           select: {
             id: true,
             isVerified: true,
-            companyName: true,
-          },
-        },
+            companyName: true}},
         provider: {
           select: {
             id: true,
             isVerified: true,
-            companyName: true,
-          },
-        },
-      },
-    });
+            companyName: true}}}});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Utilisateur non trouvé" });
     }
 
     // Déterminer le profileId en fonction du rôle
@@ -1312,22 +1126,19 @@ export class AuthService {
       case UserRole.DELIVERER:
         profileId = user.deliverer?.id || null;
         additionalInfo = {
-          isVerified: user.deliverer?.isVerified || false,
-        };
+          isVerified: user.deliverer?.isVerified || false};
         break;
       case UserRole.MERCHANT:
         profileId = user.merchant?.id || null;
         additionalInfo = {
           isVerified: user.merchant?.isVerified || false,
-          companyName: user.merchant?.companyName || "",
-        };
+          companyName: user.merchant?.companyName || ""};
         break;
       case UserRole.PROVIDER:
         profileId = user.provider?.id || null;
         additionalInfo = {
           isVerified: user.provider?.isVerified || false,
-          serviceName: user.provider?.companyName || "",
-        };
+          serviceName: user.provider?.companyName || ""};
         break;
     }
 
@@ -1340,8 +1151,7 @@ export class AuthService {
       image: user.image,
       status: user.status,
       profileId,
-      ...additionalInfo,
-    };
+      ...additionalInfo};
   }
 
   // Renvoyer l'email de vérification
@@ -1351,21 +1161,16 @@ export class AuthService {
   ): Promise<boolean> {
     // Trouver l'utilisateur
     const user = await this.db.user.findUnique({
-      where: { email },
-    });
+      where: { email }});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Utilisateur non trouvé" });
     }
 
     if (user.emailVerified) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cet email est déjà vérifié",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Cet email est déjà vérifié" });
     }
 
     // Générer un nouveau token de vérification

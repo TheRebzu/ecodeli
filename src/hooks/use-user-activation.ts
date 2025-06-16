@@ -22,20 +22,17 @@ export function useUserActivation() {
         toast({
           title: "Succès",
           description: `Utilisateur ${action} avec succès`,
-          variant: "default",
-        });
+          variant: "default"});
       },
       onError: (error) => {
         toast({
           title: "Erreur",
           description: `Erreur lors de la modification de l'activation : ${error.message}`,
-          variant: "destructive",
-        });
+          variant: "destructive"});
       },
       onSettled: () => {
         setIsLoading(false);
-      },
-    });
+      }});
 
   /**
    * Active ou désactive un utilisateur
@@ -45,8 +42,7 @@ export function useUserActivation() {
   const toggleUserActivation = (userId: string, isActive: boolean) => {
     const input: ToggleUserActivationInput = {
       userId,
-      isActive,
-    };
+      isActive};
 
     toggleUserActivationMutation.mutate(input);
   };
@@ -56,6 +52,5 @@ export function useUserActivation() {
     isPending: toggleUserActivationMutation.isPending || isLoading,
     isError: toggleUserActivationMutation.isError,
     error: toggleUserActivationMutation.error,
-    isSuccess: toggleUserActivationMutation.isSuccess,
-  };
+    isSuccess: toggleUserActivationMutation.isSuccess};
 }

@@ -8,8 +8,8 @@ const distanceCache = new Map<string, number>();
 const CACHE_MAX_SIZE = 10000;
 
 // Statistiques de cache pour le calcul du hit rate
-let cacheHits = 0;
-let cacheMisses = 0;
+const cacheHits = 0;
+const cacheMisses = 0;
 
 /**
  * Calcule la distance entre deux points géographiques en utilisant la formule de Haversine
@@ -102,7 +102,7 @@ export function calculateRouteDistance(
 ): number {
   if (points.length < 2) return 0;
 
-  let totalDistance = 0;
+  const totalDistance = 0;
   for (let i = 0; i < points.length - 1; i++) {
     totalDistance += calculateDistance(
       points[i].latitude,
@@ -125,8 +125,8 @@ export function findNearestPoint(
 ): { point: any; distance: number } | null {
   if (points.length === 0) return null;
 
-  let nearestPoint = points[0];
-  let minDistance = calculateDistance(
+  const nearestPoint = points[0];
+  const minDistance = calculateDistance(
     targetLat,
     targetLng,
     nearestPoint.latitude,
@@ -204,7 +204,7 @@ function createCacheKey(
  */
 function cacheDistance(key: string, distance: number): void {
   // Limiter la taille du cache pour éviter une fuite mémoire
-  if (distanceCache.size >= CACHE_MAX_SIZE) {
+  if (distanceCache.size >= CACHE_MAXSIZE) {
     // Supprimer les entrées les plus anciennes (stratégie FIFO simple)
     const firstKey = distanceCache.keys().next().value;
     if (firstKey) {
@@ -245,8 +245,7 @@ export function getCacheStats(): {
     maxSize: CACHE_MAX_SIZE,
     hitRate: calculateHitRate(),
     totalHits: cacheHits,
-    totalMisses: cacheMisses,
-  };
+    totalMisses: cacheMisses};
 }
 
 /**

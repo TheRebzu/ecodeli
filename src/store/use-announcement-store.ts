@@ -5,15 +5,13 @@ import { api } from "@/trpc/react";
 import type {
   Announcement,
   AnnouncementStatus,
-  DelivererApplication,
-} from "@prisma/client";
+  DelivererApplication} from "@prisma/client";
 import { toast } from "sonner";
 import {
   CreateAnnouncementInput,
   UpdateAnnouncementInput,
   AnnouncementFilterInput,
-  CreateAnnouncementApplicationInput,
-} from "@/schemas/delivery/announcement.schema";
+  CreateAnnouncementApplicationInput} from "@/schemas/delivery/announcement.schema";
 
 // Types pour le store
 export type AnnouncementWithDetails = Announcement & {
@@ -179,7 +177,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
             if (
               !reset &&
               currentState.lastFetched &&
-              now - currentState.lastFetched < CACHE_DURATION &&
+              now - currentState.lastFetched < CACHEDURATION &&
               JSON.stringify(currentState.filters) ===
                 JSON.stringify(filters) &&
               currentState.announcements.length > 0
@@ -187,18 +185,16 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               return;
             }
 
-            set({ isLoading: true, error: null });
+            set({ isLoading: true, error: null  });
 
             const newPage = reset ? 1 : currentState.page;
             const mergedFilters = reset
               ? { ...filters }
               : { ...currentState.filters, ...filters };
 
-            const result = await api.announcement.getAnnouncements.query({
-              ...mergedFilters,
+            const result = await api.announcement.getAnnouncements.query({ ...mergedFilters,
               page: newPage,
-              limit: currentState.limit,
-            });
+              limit: currentState.limit });
 
             set((state) => {
               state.isLoading = false;
@@ -212,29 +208,24 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               state.lastFetched = now;
 
               // Marquer les favoris
-              state.announcements = state.announcements.map((ann) => ({
-                ...ann,
-                isFavorite: state.favorites.includes(ann.id),
-              }));
+              state.announcements = state.announcements.map((ann) => ({ ...ann,
+                isFavorite: state.favorites.includes(ann.id) }));
             });
-          } catch (_error) {
-            set({
-              isLoading: false,
+          } catch (error) {
+            set({ isLoading: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors du chargement des annonces",
-            });
+                  : "Erreur lors du chargement des annonces" });
             toast.error("Impossible de charger les annonces");
           }
         },
 
         fetchMoreAnnouncements: async () => {
           const {
-            isLoading: _isLoading,
-            hasMore: _hasMore,
-            page: _page,
-          } = get();
+            isLoading: isLoading,
+            hasMore: hasMore,
+            page: page} = get();
           if (isLoading || !hasMore) return;
 
           set((state) => {
@@ -254,39 +245,34 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
             // Si l'annonce est déjà chargée et les données sont récentes, utiliser le cache
             if (
               currentState.currentAnnouncement?.id === id &&
-              now - lastUpdated < CACHE_DURATION
+              now - lastUpdated < CACHEDURATION
             ) {
               return;
             }
 
-            set({ isLoadingDetails: true, error: null });
+            set({ isLoadingDetails: true, error: null  });
 
-            const result = await api.announcement.getAnnouncementById.query({
-              id,
-            });
+            const result = await api.announcement.getAnnouncementById.query({ id });
 
             set((state) => {
               state.isLoadingDetails = false;
               state.currentAnnouncement = {
                 ...result,
-                isFavorite: state.favorites.includes(id),
-              };
+                isFavorite: state.favorites.includes(id)};
               state.lastDetailsUpdated[id] = now;
             });
-          } catch (_error) {
-            set({
-              isLoadingDetails: false,
+          } catch (error) {
+            set({ isLoadingDetails: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors du chargement de l'annonce",
-            });
+                  : "Erreur lors du chargement de l'annonce" });
             toast.error("Impossible de charger les détails de l'annonce");
           }
         },
 
         refreshCurrentAnnouncement: async () => {
-          const { _currentAnnouncement: __currentAnnouncement } = get();
+          const { currentAnnouncement } = get();
           if (currentAnnouncement) {
             await get().fetchAnnouncementById(currentAnnouncement.id);
           }
@@ -295,7 +281,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
         // Actions de gestion des annonces
         createAnnouncement: async (data) => {
           try {
-            set({ isCreating: true, error: null });
+            set({ isCreating: true, error: null  });
 
             const result =
               await api.announcement.createAnnouncement.mutate(data);
@@ -310,14 +296,12 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Annonce créée avec succès");
             return result.id;
-          } catch (_error) {
-            set({
-              isCreating: false,
+          } catch (error) {
+            set({ isCreating: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors de la création de l'annonce",
-            });
+                  : "Erreur lors de la création de l'annonce" });
             toast.error("Impossible de créer l'annonce");
             return null;
           }
@@ -325,12 +309,10 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
         updateAnnouncement: async (id, data) => {
           try {
-            set({ isUpdating: true, error: null });
+            set({ isUpdating: true, error: null  });
 
-            const result = await api.announcement.updateAnnouncement.mutate({
-              id,
-              ...data,
-            });
+            const result = await api.announcement.updateAnnouncement.mutate({ id,
+              ...data });
 
             set((state) => {
               state.isUpdating = false;
@@ -344,22 +326,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               if (state.currentAnnouncement?.id === id) {
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
-                  ...result,
-                };
+                  ...result};
                 state.lastDetailsUpdated[id] = Date.now();
               }
             });
 
             toast.success("Annonce mise à jour avec succès");
             return true;
-          } catch (_error) {
-            set({
-              isUpdating: false,
+          } catch (error) {
+            set({ isUpdating: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors de la mise à jour de l'annonce",
-            });
+                  : "Erreur lors de la mise à jour de l'annonce" });
             toast.error("Impossible de mettre à jour l'annonce");
             return false;
           }
@@ -367,9 +346,9 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
         deleteAnnouncement: async (id) => {
           try {
-            set({ isDeleting: true, error: null });
+            set({ isDeleting: true, error: null  });
 
-            await api.announcement.deleteAnnouncement.mutate({ id });
+            await api.announcement.deleteAnnouncement.mutate({ id  });
 
             set((state) => {
               state.isDeleting = false;
@@ -390,14 +369,12 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
             toast.success("Annonce supprimée avec succès");
             return true;
-          } catch (_error) {
-            set({
-              isDeleting: false,
+          } catch (error) {
+            set({ isDeleting: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors de la suppression de l'annonce",
-            });
+                  : "Erreur lors de la suppression de l'annonce" });
             toast.error("Impossible de supprimer l'annonce");
             return false;
           }
@@ -406,12 +383,10 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
         // Actions de statut
         cancelAnnouncement: async (id, reason) => {
           try {
-            set({ isUpdating: true, error: null });
+            set({ isUpdating: true, error: null  });
 
-            const result = await api.announcement.cancelAnnouncement.mutate({
-              id,
-              reason,
-            });
+            const result = await api.announcement.cancelAnnouncement.mutate({ id,
+              reason });
 
             set((state) => {
               state.isUpdating = false;
@@ -428,22 +403,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
                   status: "CANCELLED",
-                  cancelReason: reason,
-                };
+                  cancelReason: reason};
                 state.lastDetailsUpdated[id] = Date.now();
               }
             });
 
             toast.success("Annonce annulée avec succès");
             return true;
-          } catch (_error) {
-            set({
-              isUpdating: false,
+          } catch (error) {
+            set({ isUpdating: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors de l'annulation de l'annonce",
-            });
+                  : "Erreur lors de l'annulation de l'annonce" });
             toast.error("Impossible d'annuler l'annonce");
             return false;
           }
@@ -451,11 +423,9 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
         publishAnnouncement: async (id) => {
           try {
-            set({ isUpdating: true, error: null });
+            set({ isUpdating: true, error: null  });
 
-            const result = await api.announcement.publishAnnouncement.mutate({
-              id,
-            });
+            const result = await api.announcement.publishAnnouncement.mutate({ id });
 
             set((state) => {
               state.isUpdating = false;
@@ -469,22 +439,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               if (state.currentAnnouncement?.id === id) {
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
-                  status: "PUBLISHED",
-                };
+                  status: "PUBLISHED"};
                 state.lastDetailsUpdated[id] = Date.now();
               }
             });
 
             toast.success("Annonce publiée avec succès");
             return true;
-          } catch (_error) {
-            set({
-              isUpdating: false,
+          } catch (error) {
+            set({ isUpdating: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors de la publication de l'annonce",
-            });
+                  : "Erreur lors de la publication de l'annonce" });
             toast.error("Impossible de publier l'annonce");
             return false;
           }
@@ -492,12 +459,10 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
         assignDeliverer: async (announcementId, applicationId) => {
           try {
-            set({ isUpdating: true, error: null });
+            set({ isUpdating: true, error: null  });
 
-            const result = await api.announcement.assignDeliverer.mutate({
-              announcementId,
-              applicationId,
-            });
+            const result = await api.announcement.assignDeliverer.mutate({ announcementId,
+              applicationId });
 
             set((state) => {
               state.isUpdating = false;
@@ -514,8 +479,7 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
                   ? {
                       ...ann,
                       status: "ASSIGNED",
-                      delivererId: selectedApplication?.delivererId,
-                    }
+                      delivererId: selectedApplication?.delivererId}
                   : ann,
               );
 
@@ -527,27 +491,22 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
                   delivererId: selectedApplication?.delivererId,
                   // Mettre à jour les applications pour montrer celle qui a été acceptée
                   applications: state.currentAnnouncement.applications?.map(
-                    (app) => ({
-                      ...app,
+                    (app) => ({ ...app,
                       status:
-                        app.id === applicationId ? "ACCEPTED" : "REJECTED",
-                    }),
-                  ),
-                };
+                        app.id === applicationId ? "ACCEPTED" : "REJECTED" }),
+                  )};
                 state.lastDetailsUpdated[announcementId] = Date.now();
               }
             });
 
             toast.success("Livreur assigné avec succès");
             return true;
-          } catch (_error) {
-            set({
-              isUpdating: false,
+          } catch (error) {
+            set({ isUpdating: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors de l'assignation du livreur",
-            });
+                  : "Erreur lors de l'assignation du livreur" });
             toast.error("Impossible d'assigner le livreur");
             return false;
           }
@@ -555,13 +514,11 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
         confirmDelivery: async (announcementId, rating, feedback) => {
           try {
-            set({ isUpdating: true, error: null });
+            set({ isUpdating: true, error: null  });
 
-            await api.deliveryTracking.confirmDelivery.mutate({
-              announcementId,
+            await api.deliveryTracking.confirmDelivery.mutate({ announcementId,
               rating,
-              feedback,
-            });
+              feedback });
 
             set((state) => {
               state.isUpdating = false;
@@ -578,22 +535,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
                   status: "COMPLETED",
-                  completedAt: new Date(),
-                };
+                  completedAt: new Date()};
                 state.lastDetailsUpdated[announcementId] = Date.now();
               }
             });
 
             toast.success("Livraison confirmée avec succès");
             return true;
-          } catch (_error) {
-            set({
-              isUpdating: false,
+          } catch (error) {
+            set({ isUpdating: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors de la confirmation de livraison",
-            });
+                  : "Erreur lors de la confirmation de livraison" });
             toast.error("Impossible de confirmer la livraison");
             return false;
           }
@@ -601,13 +555,11 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
         reportProblem: async (announcementId, problemType, description) => {
           try {
-            set({ isUpdating: true, error: null });
+            set({ isUpdating: true, error: null  });
 
-            await api.deliveryTracking.reportDeliveryProblem.mutate({
-              announcementId,
+            await api.deliveryTracking.reportDeliveryProblem.mutate({ announcementId,
               problemType,
-              description,
-            });
+              description });
 
             set((state) => {
               state.isUpdating = false;
@@ -621,22 +573,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
               if (state.currentAnnouncement?.id === announcementId) {
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
-                  status: "PROBLEM",
-                };
+                  status: "PROBLEM"};
                 state.lastDetailsUpdated[announcementId] = Date.now();
               }
             });
 
             toast.success("Problème signalé avec succès");
             return true;
-          } catch (_error) {
-            set({
-              isUpdating: false,
+          } catch (error) {
+            set({ isUpdating: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors du signalement de problème",
-            });
+                  : "Erreur lors du signalement de problème" });
             toast.error("Impossible de signaler le problème");
             return false;
           }
@@ -645,13 +594,11 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
         // Actions pour les livreurs
         applyForAnnouncement: async (announcementId, data) => {
           try {
-            set({ isApplying: true, error: null });
+            set({ isApplying: true, error: null  });
 
             const application =
-              await api.announcement.applyForAnnouncement.mutate({
-                announcementId,
-                ...data,
-              });
+              await api.announcement.applyForAnnouncement.mutate({ announcementId,
+                ...data });
 
             set((state) => {
               state.isApplying = false;
@@ -662,22 +609,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
                   state.currentAnnouncement.applications || [];
                 state.currentAnnouncement = {
                   ...state.currentAnnouncement,
-                  applications: [...applications, application],
-                };
+                  applications: [...applications, application]};
                 state.lastDetailsUpdated[announcementId] = Date.now();
               }
             });
 
             toast.success("Candidature envoyée avec succès");
             return true;
-          } catch (_error) {
-            set({
-              isApplying: false,
+          } catch (error) {
+            set({ isApplying: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors de la candidature",
-            });
+                  : "Erreur lors de la candidature" });
             toast.error("Impossible d'envoyer la candidature");
             return false;
           }
@@ -685,12 +629,10 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
         withdrawApplication: async (announcementId, applicationId) => {
           try {
-            set({ isUpdating: true, error: null });
+            set({ isUpdating: true, error: null  });
 
-            await api.announcement.withdrawApplication.mutate({
-              announcementId,
-              applicationId,
-            });
+            await api.announcement.withdrawApplication.mutate({ announcementId,
+              applicationId });
 
             set((state) => {
               state.isUpdating = false;
@@ -701,22 +643,19 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
                   ...state.currentAnnouncement,
                   applications: state.currentAnnouncement.applications?.filter(
                     (app) => app.id !== applicationId,
-                  ),
-                };
+                  )};
                 state.lastDetailsUpdated[announcementId] = Date.now();
               }
             });
 
             toast.success("Candidature retirée avec succès");
             return true;
-          } catch (_error) {
-            set({
-              isUpdating: false,
+          } catch (error) {
+            set({ isUpdating: false,
               error:
                 error instanceof Error
                   ? error.message
-                  : "Erreur lors du retrait de candidature",
-            });
+                  : "Erreur lors du retrait de candidature" });
             toast.error("Impossible de retirer la candidature");
             return false;
           }
@@ -748,15 +687,14 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
             if (state.currentAnnouncement?.id === announcementId) {
               state.currentAnnouncement = {
                 ...state.currentAnnouncement,
-                isFavorite: !isFavorite,
-              };
+                isFavorite: !isFavorite};
             }
           });
 
           // Sauvegarder l'état des favoris sur le serveur
           try {
-            api.user.toggleFavoriteAnnouncement.mutate({ announcementId });
-          } catch (_error) {
+            api.user.toggleFavoriteAnnouncement.mutate({ announcementId  });
+          } catch (error) {
             console.error("Erreur lors de la sauvegarde des favoris:", error);
             // Ne pas afficher d'erreur à l'utilisateur pour ne pas perturber l'expérience
           }
@@ -777,18 +715,16 @@ const useAnnouncementStore = create<AnnouncementState & AnnouncementActions>()(
 
         // Utilitaires
         resetError: () => {
-          set({ error: null });
+          set({ error  });
         },
 
         clearCurrentAnnouncement: () => {
-          set({ currentAnnouncement: null });
-        },
-      })),
+          set({ currentAnnouncement  });
+        }})),
       {
         name: "announcement-store",
         // Ne persister que les favoris pour éviter les problèmes de données stales
-        partialize: (state) => ({ favorites: state.favorites }),
-      },
+        partialize: (state) => ({ favorites: state.favorites  })},
     ),
   ),
 );
@@ -797,8 +733,7 @@ export default useAnnouncementStore;
 
 // Sélecteurs optimisés pour éviter les re-rendus inutiles
 export const useAnnouncementList = () =>
-  useAnnouncementStore((state) => ({
-    announcements: state.announcements,
+  useAnnouncementStore((state) => ({ announcements: state.announcements,
     isLoading: state.isLoading,
     error: state.error,
     filters: state.filters,
@@ -807,23 +742,19 @@ export const useAnnouncementList = () =>
     fetchAnnouncements: state.fetchAnnouncements,
     fetchMoreAnnouncements: state.fetchMoreAnnouncements,
     setFilters: state.setFilters,
-    resetFilters: state.resetFilters,
-  }));
+    resetFilters: state.resetFilters }));
 
 export const useAnnouncementDetails = (id?: string) =>
-  useAnnouncementStore((state) => ({
-    announcement: state.currentAnnouncement,
+  useAnnouncementStore((state) => ({ announcement: state.currentAnnouncement,
     isLoading: state.isLoadingDetails,
     isUpdating: state.isUpdating,
     error: state.error,
     fetchAnnouncement: state.fetchAnnouncementById,
     refresh: state.refreshCurrentAnnouncement,
-    toggleFavorite: state.toggleFavorite,
-  }));
+    toggleFavorite: state.toggleFavorite }));
 
 export const useAnnouncementActions = () =>
-  useAnnouncementStore((state) => ({
-    create: state.createAnnouncement,
+  useAnnouncementStore((state) => ({ create: state.createAnnouncement,
     update: state.updateAnnouncement,
     delete: state.deleteAnnouncement,
     cancel: state.cancelAnnouncement,
@@ -835,15 +766,12 @@ export const useAnnouncementActions = () =>
     isUpdating: state.isUpdating,
     isDeleting: state.isDeleting,
     error: state.error,
-    resetError: state.resetError,
-  }));
+    resetError: state.resetError }));
 
 export const useDelivererActions = () =>
-  useAnnouncementStore((state) => ({
-    apply: state.applyForAnnouncement,
+  useAnnouncementStore((state) => ({ apply: state.applyForAnnouncement,
     withdraw: state.withdrawApplication,
     isApplying: state.isApplying,
     isUpdating: state.isUpdating,
     error: state.error,
-    resetError: state.resetError,
-  }));
+    resetError: state.resetError }));

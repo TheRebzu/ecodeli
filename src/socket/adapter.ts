@@ -19,9 +19,9 @@ export async function getClientSocket() {
 
   try {
     // Import dynamique côté client uniquement
-    const { _getSocket: __getSocket } = await import("./socket-client-browser");
+    const { getSocket } = await import("./socket-client-browser");
     return getSocket();
-  } catch (_error) {
+  } catch (error) {
     console.error("Erreur lors de l'import du client socket:", error);
     return null;
   }
@@ -40,11 +40,11 @@ export async function initializeClientSocket(token: string) {
 
   try {
     // Import dynamique côté client uniquement
-    const { _initializeSocket: __initializeSocket } = await import(
+    const { initializeSocket } = await import(
       "./socket-client-browser"
     );
     return initializeSocket(token);
-  } catch (_error) {
+  } catch (error) {
     console.error("Erreur lors de l'initialisation du socket:", error);
     return null;
   }
@@ -61,11 +61,11 @@ export async function closeClientSocket() {
 
   try {
     // Import dynamique côté client uniquement
-    const { _closeSocket: __closeSocket } = await import(
+    const { closeSocket } = await import(
       "./socket-client-browser"
     );
     closeSocket();
-  } catch (_error) {
+  } catch (error) {
     console.error("Erreur lors de la fermeture du socket:", error);
   }
 }
@@ -93,7 +93,7 @@ export async function getSocketServer() {
     // Si la fonction n'est pas disponible
     console.warn("Fonction getSocketServer non trouvée dans le module serveur");
     return null;
-  } catch (_error) {
+  } catch (error) {
     console.error("Erreur lors de l'import du serveur socket:", error);
     return null;
   }

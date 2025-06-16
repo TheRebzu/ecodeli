@@ -5,8 +5,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -17,8 +16,7 @@ import {
   Users,
   DollarSign,
   Activity,
-  Calendar,
-} from "lucide-react";
+  Calendar} from "lucide-react";
 
 interface ServicesStatsProps {
   stats?: {
@@ -50,7 +48,7 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 8  }).map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <Skeleton className="h-4 w-24" />
@@ -83,8 +81,7 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const getStatusColor = (count: number, total: number) => {
@@ -226,8 +223,7 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
                     <div
                       className="bg-primary h-2 rounded-full"
                       style={{
-                        width: `${(category.revenue / stats.totalRevenue) * 100}%`,
-                      }}
+                        width: `${(category.revenue / stats.totalRevenue) * 100}%`}}
                     />
                   </div>
                   <span className="text-xs font-medium min-w-0">

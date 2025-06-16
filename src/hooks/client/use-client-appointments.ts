@@ -67,27 +67,23 @@ export function useClientAppointments(
         options.status && options.status !== "all" ? options.status : undefined,
       type: options.type && options.type !== "all" ? options.type : undefined,
       startDate: options.startDate,
-      endDate: options.endDate,
-    },
+      endDate: options.endDate},
     {
       refetchOnWindowFocus: false,
-      retry: 2,
-    },
+      retry: 2},
   );
 
   const cancelAppointmentMutation =
     api.client.appointments.cancelAppointment.useMutation({
       onSuccess: () => {
         appointmentsQuery.refetch();
-      },
-    });
+      }});
 
   const rescheduleAppointmentMutation =
     api.client.appointments.rescheduleAppointment.useMutation({
       onSuccess: () => {
         appointmentsQuery.refetch();
-      },
-    });
+      }});
 
   useEffect(() => {
     setIsLoading(appointmentsQuery.isLoading);
@@ -96,12 +92,11 @@ export function useClientAppointments(
   }, [
     appointmentsQuery.isLoading,
     appointmentsQuery.error,
-    appointmentsQuery.data,
-  ]);
+    appointmentsQuery.data]);
 
   const cancelAppointment = async (id: string) => {
     try {
-      await cancelAppointmentMutation.mutateAsync({ id });
+      await cancelAppointmentMutation.mutateAsync({ id  });
     } catch (err) {
       throw new Error(
         err instanceof Error ? err.message : "Erreur lors de l'annulation",
@@ -111,7 +106,7 @@ export function useClientAppointments(
 
   const rescheduleAppointment = async (id: string, newDate: Date) => {
     try {
-      await rescheduleAppointmentMutation.mutateAsync({ id, newDate });
+      await rescheduleAppointmentMutation.mutateAsync({ id, newDate  });
     } catch (err) {
       throw new Error(
         err instanceof Error
@@ -131,6 +126,5 @@ export function useClientAppointments(
     error,
     refetch,
     cancelAppointment,
-    rescheduleAppointment,
-  };
+    rescheduleAppointment};
 }

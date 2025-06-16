@@ -10,8 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { useTranslations } from "next-intl";
 
 export interface DatePickerProps {
@@ -31,8 +30,7 @@ export function DatePicker({
   selected,
   onSelect,
   placeholder,
-  disabled,
-}: DatePickerProps) {
+  disabled}: DatePickerProps) {
   const t = useTranslations("datePickerLocale");
   const [date, setDate] = React.useState<Date | undefined>(selected);
 
@@ -62,7 +60,7 @@ export function DatePicker({
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {date
-            ? format(date, "P", { locale: fr })
+            ? format(date, "P", { locale })
             : placeholder || t("selectDate")}
         </Button>
       </PopoverTrigger>

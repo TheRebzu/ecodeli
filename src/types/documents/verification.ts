@@ -10,8 +10,7 @@ import { UserRole } from "@prisma/client";
 export enum DocumentStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-}
+  REJECTED = "REJECTED"}
 
 /**
  * Document types enum
@@ -26,8 +25,7 @@ export enum DocumentType {
   BUSINESS_REGISTRATION = "BUSINESS_REGISTRATION",
   PROOF_OF_ADDRESS = "PROOF_OF_ADDRESS",
   SELFIE = "SELFIE",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 /**
  * Document interface
@@ -84,8 +82,7 @@ export enum VerificationStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
-  NOT_SUBMITTED = "NOT_SUBMITTED",
-}
+  NOT_SUBMITTED = "NOT_SUBMITTED"}
 
 /**
  * Document verification update input

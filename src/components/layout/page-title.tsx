@@ -25,8 +25,7 @@ export function PageTitle({
   breadcrumbs,
   actions,
   className,
-  iconComponent,
-}: PageTitleProps) {
+  iconComponent}: PageTitleProps) {
   return (
     <div className={cn("pb-4", className)}>
       {/* Fil d'Ariane */}

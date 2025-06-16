@@ -48,26 +48,20 @@ export function useVerification() {
       }, 200);
 
       // Envoi de la demande de vérification
-      const result = await submitVerificationMutation.mutateAsync({
-        type,
+      const result = await submitVerificationMutation.mutateAsync({ type,
         userId,
-        documents,
-      });
+        documents });
 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      toast({
-        title: "Demande envoyée",
-        variant: "success",
-      });
+      toast({ title: "Demande envoyée",
+        variant: "success" });
 
       return result;
     } catch (error) {
-      toast({
-        title: "Erreur",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur",
+        variant: "destructive" });
       console.error("Erreur de vérification:", error);
       return null;
     } finally {
@@ -87,31 +81,24 @@ export function useVerification() {
     userRoleArg?: string,
   ) => {
     try {
-      const result = await api.document.uploadDocument.mutateAsync({
-        file,
+      const result = await api.document.uploadDocument.mutateAsync({ file,
         type: documentType as any, // Accept string or enum
         userId,
-        userRole: userRoleArg || userRole,
-      });
+        userRole: userRoleArg || userRole });
 
       if (result) {
-        toast({
-          title: "Document téléchargé",
-          variant: "success",
-        });
+        toast({ title: "Document téléchargé",
+          variant: "success" });
 
         return {
           documentUrl: result.fileUrl,
-          documentId: result.id,
-        };
+          documentId: result.id};
       }
 
       throw new Error("Échec du téléchargement");
     } catch (error) {
-      toast({
-        title: "Erreur",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur",
+        variant: "destructive" });
       console.error("Erreur de téléchargement:", error);
       return null;
     }
@@ -122,19 +109,15 @@ export function useVerification() {
    */
   const deleteDocument = async (documentId: string) => {
     try {
-      await deleteDocumentMutation.mutateAsync({ documentId });
+      await deleteDocumentMutation.mutateAsync({ documentId  });
 
-      toast({
-        title: "Document supprimé",
-        variant: "success",
-      });
+      toast({ title: "Document supprimé",
+        variant: "success" });
 
       return true;
     } catch (error) {
-      toast({
-        title: "Erreur",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur",
+        variant: "destructive" });
       console.error("Erreur de suppression:", error);
       return false;
     }
@@ -147,6 +130,5 @@ export function useVerification() {
     uploadDocument,
     deleteDocument,
     getVerificationStatus,
-    getDocuments,
-  };
+    getDocuments};
 }

@@ -19,8 +19,7 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRightLeft,
-  RefreshCw,
-} from "lucide-react";
+  RefreshCw} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils/common";
@@ -33,16 +32,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -54,27 +51,23 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  PaginationPrevious} from "@/components/ui/pagination";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  CollapsibleTrigger} from "@/components/ui/collapsible";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 
 // Type d'une transaction
@@ -136,8 +129,7 @@ export default function PaymentsPage() {
   const {
     data: transactions,
     isLoading: isLoadingTransactions,
-    refetch: refetchTransactions,
-  } = api.payment.getClientTransactions.useQuery(
+    refetch: refetchTransactions} = api.payment.getClientTransactions.useQuery(
     {
       page: currentPage,
       limit: pageSize,
@@ -145,39 +137,29 @@ export default function PaymentsPage() {
       status: statusFilter as any,
       search: searchQuery || undefined,
       startDate: startDate?.toISOString(),
-      endDate: endDate?.toISOString(),
-    },
-    {
-      keepPreviousData: true,
-    },
+      endDate: endDate?.toISOString()},
+    { keepPreviousData },
   );
 
   // Requête pour récupérer le résumé du portefeuille
   const {
     data: walletSummary,
     isLoading: isLoadingWallet,
-    refetch: refetchWallet,
-  } = api.wallet.getClientWalletSummary.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
+    refetch: refetchWallet} = api.wallet.getClientWalletSummary.useQuery(undefined, { refetchOnWindowFocus });
 
   // Télécharger le relevé de transactions
   const handleDownloadStatement = async () => {
     try {
-      toast({
-        variant: "default",
+      toast({ variant: "default",
         title: t("downloadStarted"),
-        description: t("statementDownloadStarted"),
-      });
+        description: t("statementDownloadStarted") });
 
       // Dans une implémentation réelle, on appellerait une API pour générer
       // et télécharger le relevé de transactions
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("downloadError"),
-        description: typeof error === "string" ? error : t("genericError"),
-      });
+        description: typeof error === "string" ? error : t("genericError") });
     }
   };
 
@@ -309,8 +291,7 @@ export default function PaymentsPage() {
                           amount: formatCurrency(
                             walletSummary.pendingBalance,
                             walletSummary.currency,
-                          ),
-                        })}
+                          )})}
                       </div>
                     )}
                   </div>
@@ -369,9 +350,7 @@ export default function PaymentsPage() {
                                     <ArrowUpIcon className="h-3.5 w-3.5 text-red-500" />
                                   )}
                                   <span>
-                                    {format(new Date(activity.date), "dd MMM", {
-                                      locale: fr,
-                                    })}
+                                    {format(new Date(activity.date), "dd MMM", { locale })}
                                   </span>
                                 </div>
                                 <span
@@ -762,10 +741,10 @@ export default function PaymentsPage() {
                         />
                       </PaginationItem>
 
-                      {Array.from({ length: Math.min(totalPages, 5) }).map(
+                      {Array.from({ length: Math.min(totalPages, 5)  }).map(
                         (_, i) => {
                           // Afficher les 2 premières pages, la page courante, et les 2 dernières pages
-                          let pageNumber = i + 1;
+                          const pageNumber = i + 1;
                           if (totalPages > 5) {
                             if (currentPage > 3 && i === 1) {
                               return (

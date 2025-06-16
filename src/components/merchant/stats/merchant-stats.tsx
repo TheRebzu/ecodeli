@@ -8,8 +8,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,8 +17,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   BarChart,
   Bar,
@@ -34,8 +32,7 @@ import {
   Pie,
   Cell,
   Area,
-  AreaChart,
-} from "recharts";
+  AreaChart} from "recharts";
 import {
   TrendingUp,
   TrendingDown,
@@ -48,8 +45,7 @@ import {
   RefreshCw,
   AlertCircle,
   Star,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
@@ -103,18 +99,14 @@ export function MerchantStats() {
     data: statsData,
     isLoading,
     error,
-    refetch,
-  } = api.merchant.getStats.useQuery({
-    period: parseInt(period),
-  });
+    refetch} = api.merchant.getStats.useQuery({ period: parseInt(period) });
 
   const stats = statsData as StatsData | undefined;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const formatPercentage = (value: number) => {
@@ -137,10 +129,8 @@ export function MerchantStats() {
   };
 
   const handleExportStats = () => {
-    toast({
-      title: "Export en cours",
-      description: "Le rapport va être téléchargé...",
-    });
+    toast({ title: "Export en cours",
+      description: "Le rapport va être téléchargé..." });
   };
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1'];
@@ -308,14 +298,13 @@ export function MerchantStats() {
                   }
                 />
                 <Tooltip 
-                  labelFormatter={(value) => format(new Date(value), "dd MMMM yyyy", { locale: fr })}
+                  labelFormatter={(value) => format(new Date(value), "dd MMMM yyyy", { locale })}
                   formatter={[
                     chartType === "revenue" 
                       ? (value: number) => [formatCurrency(value), "Chiffre d'affaires"]
                       : chartType === "orders"
                       ? (value: number) => [value, "Commandes"]
-                      : (value: number) => [value, "Clients"],
-                  ]}
+                      : (value: number) => [value, "Clients"]]}
                 />
                 <Area 
                   type="monotone" 

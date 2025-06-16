@@ -11,8 +11,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,30 +20,26 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
 import {
   CalendarIcon,
   Upload,
   X,
   AlertTriangle,
-  CheckCircle,
-} from "lucide-react";
+  CheckCircle} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils/common";
@@ -54,30 +49,19 @@ import { useTranslations } from "next-intl";
 import { useDocuments } from "@/hooks/shared/use-documents";
 
 // Schéma de validation pour le formulaire
-const documentUploadSchema = z.object({
-  type: z.nativeEnum(DocumentType, {
-    required_error: "Veuillez sélectionner un type de document",
-  }),
+const documentUploadSchema = z.object({ type: z.nativeEnum(DocumentType, {
+    requirederror: "Veuillez sélectionner un type de document" }),
   file: z.instanceof(File, {
-    message: "Veuillez sélectionner un fichier",
-  }),
-  expiryDate: z.date().optional(),
-});
+    message: "Veuillez sélectionner un fichier"}),
+  expiryDate: z.date().optional()});
 
 type DocumentUploadFormValues = z.infer<typeof documentUploadSchema>;
 
 // Mapping des types de documents pour l'affichage
-const documentTypeLabels: Record<DocumentType, string> = {
-  ID_CARD: "Carte d'identité",
-  DRIVING_LICENSE: "Permis de conduire",
-  VEHICLE_REGISTRATION: "Carte grise",
-  INSURANCE: "Attestation d'assurance",
-  QUALIFICATION_CERTIFICATE: "Certificat de qualification",
-  PROOF_OF_ADDRESS: "Justificatif de domicile",
-  BUSINESS_REGISTRATION: "Extrait K-bis",
+const documentTypeLabels: Record<DocumentType, string> = { ID_CARD: "Carte d'identité", DRIVING_LICENSE: "Permis de conduire", VEHICLE_REGISTRATION: "Carte grise",
+  INSURANCE: "Attestation d'assurance", QUALIFICATION_CERTIFICATE: "Certificat de qualification", PROOF_OF_ADDRESS: "Justificatif de domicile", BUSINESS_REGISTRATION: "Extrait K-bis",
   SELFIE: "Photo de profil",
-  OTHER: "Autre document",
-};
+  OTHER: "Autre document"};
 
 // Import de la fonction centralisée pour les documents requis par rôle
 import { getRequiredDocumentTypesByRole } from "@/utils/document-utils";
@@ -98,16 +82,14 @@ const getAvailableDocumentTypesByRole = (role: string): DocumentType[] => {
 const documentTypesByRole: Record<string, DocumentType[]> = {
   DELIVERER: getAvailableDocumentTypesByRole("DELIVERER"),
   MERCHANT: getAvailableDocumentTypesByRole("MERCHANT"),
-  PROVIDER: getAvailableDocumentTypesByRole("PROVIDER"),
-};
+  PROVIDER: getAvailableDocumentTypesByRole("PROVIDER")};
 
 interface DocumentUploadProps {
   userRole?: string;
 }
 
 export function DocumentUpload({
-  userRole = "DELIVERER",
-}: DocumentUploadProps) {
+  userRole = "DELIVERER"}: DocumentUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -120,29 +102,22 @@ export function DocumentUpload({
     resolver: zodResolver(documentUploadSchema),
     defaultValues: {
       type: undefined,
-      expiryDate: undefined,
-    },
-  });
+      expiryDate: undefined}});
 
-  const uploadDocument = api.auth.uploadDocument.useMutation({
-    onSuccess: () => {
+  const uploadDocument = api.auth.uploadDocument.useMutation({ onSuccess: () => {
       setUploadSuccess(true);
       toast({
         title: t("upload.success.title"),
-        description: t("upload.success.description"),
-      });
+        description: t("upload.success.description") });
     },
     onError: (error) => {
-      toast({
-        title: t("upload.error.title"),
+      toast({ title: t("upload.error.title"),
         description: error.message,
-        variant: "destructive",
-      });
+        variant: "destructive" });
     },
     onSettled: () => {
       setIsSubmitting(false);
-    },
-  });
+    }});
 
   const onSubmit = async (data: DocumentUploadFormValues) => {
     setIsSubmitting(true);
@@ -158,11 +133,9 @@ export function DocumentUpload({
       // Vérifier la taille du fichier
       if (file.size > 10 * 1024 * 1024) {
         // 10 MB maximum
-        toast({
-          title: t("upload.error.title"),
-          description: t("upload.error.fileTooLarge", { maxSize: "10MB" }),
-          variant: "destructive",
-        });
+        toast({ title: t("upload.error.title"),
+          description: t("upload.error.fileTooLarge", { maxSize: "10MB"  }),
+          variant: "destructive"});
         setIsSubmitting(false);
         return;
       }
@@ -172,32 +145,25 @@ export function DocumentUpload({
         "image/jpeg",
         "image/png",
         "image/webp",
-        "application/pdf",
-      ];
+        "application/pdf"];
       if (!acceptedTypes.includes(file.type)) {
-        toast({
-          title: t("upload.error.title"),
+        toast({ title: t("upload.error.title"),
           description: t("upload.error.invalidFileType"),
-          variant: "destructive",
-        });
+          variant: "destructive" });
         setIsSubmitting(false);
         return;
       }
 
-      toast({
-        title: t("upload.processing.title"),
-        description: t("upload.processing.description"),
-      });
+      toast({ title: t("upload.processing.title"),
+        description: t("upload.processing.description") });
 
       // Convertir le fichier en Base64
       const reader = new FileReader();
       reader.onload = async (event) => {
         if (!event.target?.result) {
-          toast({
-            title: t("upload.error.title"),
+          toast({ title: t("upload.error.title"),
             description: t("upload.error.fileRead"),
-            variant: "destructive",
-          });
+            variant: "destructive" });
           setIsSubmitting(false);
           return;
         }
@@ -206,10 +172,8 @@ export function DocumentUpload({
 
         try {
           // Afficher un toast de chargement
-          toast({
-            title: t("upload.uploading.title"),
-            description: t("upload.uploading.description"),
-          });
+          toast({ title: t("upload.uploading.title"),
+            description: t("upload.uploading.description") });
 
           // Appel API pour uploader le document avec tous les champs requis
           const result = await uploadDocument.mutateAsync({
@@ -218,8 +182,7 @@ export function DocumentUpload({
             fileName: file.name,
             mimeType: file.type,
             expiryDate: data.expiryDate,
-            description: `Document ${documentTypeLabels[data.type]} soumis le ${new Date().toLocaleDateString()}`,
-          });
+            description: `Document ${documentTypeLabels[data.type]} soumis le ${new Date().toLocaleDateString()}`});
 
           console.log("Document uploadé avec succès:", result);
 
@@ -234,20 +197,16 @@ export function DocumentUpload({
           setUploadSuccess(true);
 
           // Redirection après un court délai pour laisser le temps aux données de se rafraîchir
-          setTimeout(() => {
-            router.refresh();
-          }, 1500);
+          // Appel API réel via tRPC
         } catch (error) {
           console.error("Erreur lors de l'upload:", error);
 
           // Afficher un message d'erreur spécifique
           const errorMessage =
             error instanceof Error ? error.message : t("upload.error.unknown");
-          toast({
-            title: t("upload.error.title"),
+          toast({ title: t("upload.error.title"),
             description: errorMessage,
-            variant: "destructive",
-          });
+            variant: "destructive" });
 
           setIsSubmitting(false);
         }
@@ -255,11 +214,9 @@ export function DocumentUpload({
 
       reader.onerror = (event) => {
         console.error("Erreur de lecture du fichier:", event);
-        toast({
-          title: t("upload.error.title"),
+        toast({ title: t("upload.error.title"),
           description: t("upload.error.fileRead"),
-          variant: "destructive",
-        });
+          variant: "destructive" });
         setIsSubmitting(false);
       };
 
@@ -269,12 +226,10 @@ export function DocumentUpload({
       console.error("Error uploading document:", error);
 
       // Message d'erreur générique
-      toast({
-        title: t("upload.error.title"),
+      toast({ title: t("upload.error.title"),
         description:
           error instanceof Error ? error.message : t("upload.error.unknown"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
 
       setIsSubmitting(false);
     }
@@ -338,7 +293,7 @@ export function DocumentUpload({
               <FormField
                 control={form.control}
                 name="type"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("upload.form.type.label")}</FormLabel>
                     <Select
@@ -439,7 +394,7 @@ export function DocumentUpload({
               <FormField
                 control={form.control}
                 name="expiryDate"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("upload.form.expiryDate.label")}</FormLabel>
                     <Popover>
@@ -454,7 +409,7 @@ export function DocumentUpload({
                             disabled={isSubmitting}
                           >
                             {field.value ? (
-                              format(field.value, "PPP", { locale: fr })
+                              format(field.value, "PPP", { locale })
                             ) : (
                               <span>
                                 {t("upload.form.expiryDate.placeholder")}

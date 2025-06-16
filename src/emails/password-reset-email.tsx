@@ -7,8 +7,7 @@ interface PasswordResetEmailProps {
 
 export const PasswordResetEmail = ({
   username,
-  resetUrl,
-}: PasswordResetEmailProps) => {
+  resetUrl}: PasswordResetEmailProps) => {
   return (
     <div>
       <h1>Réinitialisation de mot de passe</h1>

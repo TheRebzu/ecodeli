@@ -7,15 +7,13 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,8 +22,7 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  RefreshCw,
-} from "lucide-react";
+  RefreshCw} from "lucide-react";
 import { format, isToday, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import useBilling from "@/hooks/payment/use-billing";
@@ -48,8 +45,7 @@ export default function BillingDashboard() {
     executeScheduledCycles,
     sendPaymentReminders,
     processAutomaticPayouts,
-    formatBillingPeriod,
-  } = useBilling();
+    formatBillingPeriod} = useBilling();
 
   // Calculer les périodes de facturation
   const currentMonthStart = startOfMonth(new Date());
@@ -72,7 +68,7 @@ export default function BillingDashboard() {
               <Button variant="outline" onClick={() => setShowCalendar(true)}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 Planifier pour{" "}
-                {format(selectedDate, "dd MMMM yyyy", { locale: fr })}
+                {format(selectedDate, "dd MMMM yyyy", { locale })}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -136,8 +132,7 @@ export default function BillingDashboard() {
                     <p className="text-2xl font-bold">
                       {new Intl.NumberFormat("fr-FR", {
                         style: "currency",
-                        currency: "EUR",
-                      }).format(billingStats?.totalBilled || 0)}
+                        currency: "EUR"}).format(billingStats?.totalBilled || 0)}
                     </p>
                   </div>
                 </div>

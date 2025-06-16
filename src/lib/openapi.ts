@@ -47,35 +47,26 @@ const options: swaggerJsdoc.Options = {
         "API documentation for EcoDeli platform - A comprehensive delivery and services platform",
       contact: {
         name: "EcoDeli API Support",
-        email: "support@ecodeli.com",
-      },
+        email: "support@ecodeli.com"},
       license: {
-        name: "Private License",
-      },
-    },
+        name: "Private License"}},
     servers: [
       {
         url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-        description: "Development server",
-      },
+        description: "Development server"},
       {
         url: "https://api.ecodeli.com",
-        description: "Production server",
-      },
-    ],
+        description: "Production server"}],
     components: {
       securitySchemes: {
         bearerAuth: {
           type: "http",
           scheme: "bearer",
-          bearerFormat: "JWT",
-        },
+          bearerFormat: "JWT"},
         sessionAuth: {
           type: "apiKey",
           in: "cookie",
-          name: "next-auth.session-token",
-        },
-      },
+          name: "next-auth.session-token"}},
       schemas: {
         Error: {
           type: "object",
@@ -85,11 +76,7 @@ const options: swaggerJsdoc.Options = {
               properties: {
                 message: { type: "string" },
                 code: { type: "string" },
-                data: { type: "object" },
-              },
-            },
-          },
-        },
+                data: { type: "object" }}}}},
         User: {
           type: "object",
           properties: {
@@ -98,17 +85,13 @@ const options: swaggerJsdoc.Options = {
             name: { type: "string" },
             role: {
               type: "string",
-              enum: ["CLIENT", "MERCHANT", "DELIVERER", "PROVIDER", "ADMIN"],
-            },
+              enum: ["CLIENT", "MERCHANT", "DELIVERER", "PROVIDER", "ADMIN"]},
             isVerified: { type: "boolean" },
             status: {
               type: "string",
-              enum: ["ACTIVE", "INACTIVE", "SUSPENDED"],
-            },
+              enum: ["ACTIVE", "INACTIVE", "SUSPENDED"]},
             createdAt: { type: "string", format: "date-time" },
-            updatedAt: { type: "string", format: "date-time" },
-          },
-        },
+            updatedAt: { type: "string", format: "date-time" }}},
         Announcement: {
           type: "object",
           properties: {
@@ -117,8 +100,7 @@ const options: swaggerJsdoc.Options = {
             description: { type: "string" },
             type: {
               type: "string",
-              enum: ["DELIVERY", "SERVICE", "STORAGE"],
-            },
+              enum: ["DELIVERY", "SERVICE", "STORAGE"]},
             status: {
               type: "string",
               enum: [
@@ -127,29 +109,21 @@ const options: swaggerJsdoc.Options = {
                 "ASSIGNED",
                 "IN_PROGRESS",
                 "COMPLETED",
-                "CANCELLED",
-              ],
-            },
+                "CANCELLED"]},
             pricing: {
               type: "object",
               properties: {
                 amount: { type: "number" },
-                currency: { type: "string", default: "EUR" },
-              },
-            },
+                currency: { type: "string", default: "EUR" }}},
             location: {
               type: "object",
               properties: {
                 address: { type: "string" },
                 latitude: { type: "number" },
-                longitude: { type: "number" },
-              },
-            },
+                longitude: { type: "number" }}},
             clientId: { type: "string" },
             createdAt: { type: "string", format: "date-time" },
-            updatedAt: { type: "string", format: "date-time" },
-          },
-        },
+            updatedAt: { type: "string", format: "date-time" }}},
         Delivery: {
           type: "object",
           properties: {
@@ -163,31 +137,23 @@ const options: swaggerJsdoc.Options = {
                 "ACCEPTED",
                 "IN_PROGRESS",
                 "DELIVERED",
-                "CANCELLED",
-              ],
-            },
+                "CANCELLED"]},
             pickupLocation: {
               type: "object",
               properties: {
                 address: { type: "string" },
                 latitude: { type: "number" },
-                longitude: { type: "number" },
-              },
-            },
+                longitude: { type: "number" }}},
             deliveryLocation: {
               type: "object",
               properties: {
                 address: { type: "string" },
                 latitude: { type: "number" },
-                longitude: { type: "number" },
-              },
-            },
+                longitude: { type: "number" }}},
             estimatedDeliveryTime: { type: "string", format: "date-time" },
             actualDeliveryTime: { type: "string", format: "date-time" },
             createdAt: { type: "string", format: "date-time" },
-            updatedAt: { type: "string", format: "date-time" },
-          },
-        },
+            updatedAt: { type: "string", format: "date-time" }}},
         Service: {
           type: "object",
           properties: {
@@ -201,9 +167,7 @@ const options: swaggerJsdoc.Options = {
               properties: {
                 basePrice: { type: "number" },
                 currency: { type: "string", default: "EUR" },
-                unit: { type: "string" },
-              },
-            },
+                unit: { type: "string" }}},
             availability: {
               type: "object",
               properties: {
@@ -214,17 +178,10 @@ const options: swaggerJsdoc.Options = {
                     properties: {
                       dayOfWeek: { type: "integer", minimum: 0, maximum: 6 },
                       startTime: { type: "string", format: "time" },
-                      endTime: { type: "string", format: "time" },
-                    },
-                  },
-                },
-              },
-            },
+                      endTime: { type: "string", format: "time" }}}}}},
             isActive: { type: "boolean" },
             createdAt: { type: "string", format: "date-time" },
-            updatedAt: { type: "string", format: "date-time" },
-          },
-        },
+            updatedAt: { type: "string", format: "date-time" }}},
         PaginationMeta: {
           type: "object",
           properties: {
@@ -233,10 +190,7 @@ const options: swaggerJsdoc.Options = {
             total: { type: "integer", minimum: 0 },
             totalPages: { type: "integer", minimum: 0 },
             hasNext: { type: "boolean" },
-            hasPrev: { type: "boolean" },
-          },
-        },
-      },
+            hasPrev: { type: "boolean" }}}},
       responses: {
         UnauthorizedError: {
           description: "Authentication required",
@@ -247,12 +201,7 @@ const options: swaggerJsdoc.Options = {
                 error: {
                   message:
                     "Vous devez être connecté pour accéder à cette ressource",
-                  code: "UNAUTHORIZED",
-                },
-              },
-            },
-          },
-        },
+                  code: "UNAUTHORIZED"}}}}},
         ForbiddenError: {
           description: "Insufficient permissions",
           content: {
@@ -261,12 +210,7 @@ const options: swaggerJsdoc.Options = {
               example: {
                 error: {
                   message: "Accès interdit",
-                  code: "FORBIDDEN",
-                },
-              },
-            },
-          },
-        },
+                  code: "FORBIDDEN"}}}}},
         NotFoundError: {
           description: "Resource not found",
           content: {
@@ -275,12 +219,7 @@ const options: swaggerJsdoc.Options = {
               example: {
                 error: {
                   message: "Ressource non trouvée",
-                  code: "NOT_FOUND",
-                },
-              },
-            },
-          },
-        },
+                  code: "NOT_FOUND"}}}}},
         ValidationError: {
           description: "Validation error",
           content: {
@@ -293,15 +232,7 @@ const options: swaggerJsdoc.Options = {
                   data: {
                     zodError: {
                       fieldErrors: {},
-                      formErrors: [],
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+                      formErrors: []}}}}}}}},
       parameters: {
         pageParam: {
           name: "page",
@@ -310,9 +241,7 @@ const options: swaggerJsdoc.Options = {
           schema: {
             type: "integer",
             minimum: 1,
-            default: 1,
-          },
-        },
+            default: 1}},
         limitParam: {
           name: "limit",
           in: "query",
@@ -321,72 +250,51 @@ const options: swaggerJsdoc.Options = {
             type: "integer",
             minimum: 1,
             maximum: 100,
-            default: 10,
-          },
-        },
+            default: 10}},
         searchParam: {
           name: "search",
           in: "query",
           description: "Search query",
           schema: {
-            type: "string",
-          },
-        },
-      },
-    },
+            type: "string"}}}},
     tags: [
       {
         name: "Authentication",
-        description: "User authentication and session management",
-      },
+        description: "User authentication and session management"},
       {
         name: "Users",
-        description: "User management operations",
-      },
+        description: "User management operations"},
       {
         name: "Announcements",
-        description: "Client announcements for deliveries and services",
-      },
+        description: "Client announcements for deliveries and services"},
       {
         name: "Deliveries",
-        description: "Delivery management and tracking",
-      },
+        description: "Delivery management and tracking"},
       {
         name: "Services",
-        description: "Service provider offerings and bookings",
-      },
+        description: "Service provider offerings and bookings"},
       {
         name: "Payments",
-        description: "Payment processing and wallet management",
-      },
+        description: "Payment processing and wallet management"},
       {
         name: "Storage",
-        description: "Storage box reservations and management",
-      },
+        description: "Storage box reservations and management"},
       {
         name: "Admin",
-        description: "Administrative functions",
-      },
+        description: "Administrative functions"},
       {
         name: "Real-time",
-        description: "Live tracking and notifications",
-      },
-    ],
+        description: "Live tracking and notifications"}],
     security: [
       {
-        sessionAuth: [],
-      },
+        sessionAuth: []},
       {
-        bearerAuth: [],
-      },
-    ],
-  },
+        bearerAuth: []}]},
   apis: [
     path.join(process.cwd(), "src/server/api/routers/**/*.ts"),
     path.join(process.cwd(), "src/app/api/**/*.ts"),
-    __filename, // Include this file for inline documentation
-  ],
-};
+    filename, // Include this file for inline documentation
+  ]};
 
 export const specs = swaggerJsdoc(options);
 

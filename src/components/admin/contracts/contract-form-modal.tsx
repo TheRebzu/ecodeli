@@ -9,8 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -18,15 +17,13 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,16 +32,14 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Loader2, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ContractFormData } from "@/hooks/admin/use-admin-contracts";
 
-const contractFormSchema = z.object({
-  merchantId: z.string().min(1, "Commerçant requis"),
+const contractFormSchema = z.object({ merchantId: z.string().min(1, "Commerçant requis"),
   templateId: z.string().optional(),
   title: z.string().min(1, "Titre requis").max(100, "Titre trop long"),
   content: z
@@ -58,8 +53,7 @@ const contractFormSchema = z.object({
     "SUSPENDED",
     "TERMINATED",
     "EXPIRED",
-    "CANCELLED",
-  ]),
+    "CANCELLED"]),
   type: z.enum(["STANDARD", "PREMIUM", "PARTNER", "TRIAL", "CUSTOM"]),
   monthlyFee: z.number().min(0).optional(),
   commissionRate: z.number().min(0).max(1).optional(),
@@ -74,8 +68,7 @@ const contractFormSchema = z.object({
   insuranceRequired: z.boolean().default(false),
   insuranceAmount: z.number().min(0).optional(),
   securityDeposit: z.number().min(0).optional(),
-  notes: z.string().optional(),
-});
+  notes: z.string().optional() });
 
 type ContractFormSchema = z.infer<typeof contractFormSchema>;
 
@@ -103,16 +96,14 @@ const CONTRACT_STATUSES = [
   { value: "SUSPENDED", label: "Suspendu" },
   { value: "TERMINATED", label: "Résilié" },
   { value: "EXPIRED", label: "Expiré" },
-  { value: "CANCELLED", label: "Annulé" },
-];
+  { value: "CANCELLED", label: "Annulé" }];
 
 const CONTRACT_TYPES = [
   { value: "STANDARD", label: "Standard" },
   { value: "PREMIUM", label: "Premium" },
   { value: "PARTNER", label: "Partenaire" },
   { value: "TRIAL", label: "Essai" },
-  { value: "CUSTOM", label: "Personnalisé" },
-];
+  { value: "CUSTOM", label: "Personnalisé" }];
 
 const MERCHANT_CATEGORIES = [
   { value: "RESTAURANT", label: "Restaurant" },
@@ -123,8 +114,7 @@ const MERCHANT_CATEGORIES = [
   { value: "BOOKS", label: "Librairie" },
   { value: "BEAUTY", label: "Beauté" },
   { value: "SPORTS", label: "Sport" },
-  { value: "OTHER", label: "Autre" },
-];
+  { value: "OTHER", label: "Autre" }];
 
 export function ContractFormModal({
   isOpen,
@@ -132,8 +122,7 @@ export function ContractFormModal({
   onSubmit,
   contract,
   merchants,
-  isLoading,
-}: ContractFormModalProps) {
+  isLoading}: ContractFormModalProps) {
   const [selectedMerchant, setSelectedMerchant] = useState<string>("");
 
   const form = useForm<ContractFormSchema>({
@@ -156,15 +145,12 @@ export function ContractFormModal({
       insuranceRequired: false,
       insuranceAmount: 0,
       securityDeposit: 0,
-      notes: "",
-    },
-  });
+      notes: ""}});
 
   // Pré-remplir le formulaire si on édite un contrat existant
   useEffect(() => {
     if (contract && isOpen) {
-      form.reset({
-        merchantId: contract.merchant?.id || "",
+      form.reset({ merchantId: contract.merchant?.id || "",
         templateId: contract.template?.id || "",
         title: contract.title || "",
         content: contract.content || "",
@@ -187,8 +173,7 @@ export function ContractFormModal({
         insuranceRequired: contract.insuranceRequired || false,
         insuranceAmount: contract.insuranceAmount || 0,
         securityDeposit: contract.securityDeposit || 0,
-        notes: contract.notes || "",
-      });
+        notes: contract.notes || "" });
       setSelectedMerchant(contract.merchant?.id || "");
     } else if (!contract && isOpen) {
       // Reset pour nouveau contrat
@@ -231,7 +216,7 @@ export function ContractFormModal({
               <FormField
                 control={form.control}
                 name="merchantId"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Commerçant *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -261,7 +246,7 @@ export function ContractFormModal({
               <FormField
                 control={form.control}
                 name="title"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Titre du contrat *</FormLabel>
                     <FormControl>
@@ -278,7 +263,7 @@ export function ContractFormModal({
               <FormField
                 control={form.control}
                 name="type"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Type de contrat</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -303,7 +288,7 @@ export function ContractFormModal({
               <FormField
                 control={form.control}
                 name="status"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Statut</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -333,7 +318,7 @@ export function ContractFormModal({
                 <FormField
                   control={form.control}
                   name="monthlyFee"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <FormLabel>Frais mensuels (€)</FormLabel>
                       <FormControl>
@@ -354,7 +339,7 @@ export function ContractFormModal({
                 <FormField
                   control={form.control}
                   name="commissionRate"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <FormLabel>Taux de commission (%)</FormLabel>
                       <FormControl>
@@ -384,7 +369,7 @@ export function ContractFormModal({
                 <FormField
                   control={form.control}
                   name="securityDeposit"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <FormLabel>Dépôt de garantie (€)</FormLabel>
                       <FormControl>
@@ -411,7 +396,7 @@ export function ContractFormModal({
                 <FormField
                   control={form.control}
                   name="effectiveDate"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Date d'entrée en vigueur</FormLabel>
                       <Popover>
@@ -422,7 +407,7 @@ export function ContractFormModal({
                               className="w-full pl-3 text-left font-normal"
                             >
                               {field.value ? (
-                                format(field.value, "PPP", { locale: fr })
+                                format(field.value, "PPP", { locale })
                               ) : (
                                 <span>Sélectionner une date</span>
                               )}
@@ -448,7 +433,7 @@ export function ContractFormModal({
                 <FormField
                   control={form.control}
                   name="expiresAt"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Date d'expiration</FormLabel>
                       <Popover>
@@ -459,7 +444,7 @@ export function ContractFormModal({
                               className="w-full pl-3 text-left font-normal"
                             >
                               {field.value ? (
-                                format(field.value, "PPP", { locale: fr })
+                                format(field.value, "PPP", { locale })
                               ) : (
                                 <span>Sélectionner une date</span>
                               )}
@@ -487,7 +472,7 @@ export function ContractFormModal({
                 <FormField
                   control={form.control}
                   name="autoRenewal"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">
@@ -512,7 +497,7 @@ export function ContractFormModal({
                   <FormField
                     control={form.control}
                     name="renewalNotice"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>Préavis de renouvellement (jours)</FormLabel>
                         <FormControl>
@@ -540,7 +525,7 @@ export function ContractFormModal({
             <FormField
               control={form.control}
               name="content"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>Contenu du contrat *</FormLabel>
                   <FormControl>
@@ -563,7 +548,7 @@ export function ContractFormModal({
             <FormField
               control={form.control}
               name="notes"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>Notes internes</FormLabel>
                   <FormControl>

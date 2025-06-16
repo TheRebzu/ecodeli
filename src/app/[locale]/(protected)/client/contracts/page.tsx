@@ -36,12 +36,9 @@ export default function ContractsPage() {
     error,
     refetch,
     downloadContract,
-    renewContract,
-  } = useClientContracts({
-    status: statusFilter !== "all" ? statusFilter : undefined,
+    renewContract} = useClientContracts({ status: statusFilter !== "all" ? statusFilter : undefined,
     type: typeFilter !== "all" ? typeFilter : undefined,
-    search: searchQuery || undefined,
-  });
+    search: searchQuery || undefined });
 
   // Actions
   const handleViewContract = (id: string) => {
@@ -51,35 +48,27 @@ export default function ContractsPage() {
   const handleDownloadContract = async (id: string) => {
     try {
       await downloadContract(id);
-      toast({
-        title: t("downloadSuccess"),
-        description: t("downloadSuccessDesc"),
-      });
+      toast({ title: t("downloadSuccess"),
+        description: t("downloadSuccessDesc") });
     } catch (error) {
-      toast({
-        title: t("downloadError"),
+      toast({ title: t("downloadError"),
         description:
           error instanceof Error ? error.message : t("downloadErrorDesc"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
   const handleRenewContract = async (id: string) => {
     try {
       await renewContract(id);
-      toast({
-        title: t("renewSuccess"),
-        description: t("renewSuccessDesc"),
-      });
+      toast({ title: t("renewSuccess"),
+        description: t("renewSuccessDesc") });
       refetch();
     } catch (error) {
-      toast({
-        title: t("renewError"),
+      toast({ title: t("renewError"),
         description:
           error instanceof Error ? error.message : t("renewErrorDesc"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 

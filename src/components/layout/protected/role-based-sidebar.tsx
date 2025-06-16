@@ -23,8 +23,7 @@ interface RoleBasedSidebarProps {
 export function RoleBasedSidebar({
   locale,
   userRole,
-  user,
-}: RoleBasedSidebarProps) {
+  user}: RoleBasedSidebarProps) {
   switch (userRole) {
     case UserRole.ADMIN:
       return <AdminSidebar locale={locale} />;

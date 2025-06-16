@@ -27,12 +27,10 @@ export function useFileUpload() {
         setUploadProgress(0);
 
         // 1. Préparer l'upload avec tRPC
-        const uploadInfo = await prepareUploadMutation.mutateAsync({
-          fileName: file.name,
+        const uploadInfo = await prepareUploadMutation.mutateAsync({ fileName: file.name,
           fileType: file.type,
           fileSize: file.size,
-          documentType: options?.documentType,
-        });
+          documentType: options?.documentType });
 
         // 2. Créer le FormData pour l'upload
         const formData = new FormData();
@@ -83,10 +81,8 @@ export function useFileUpload() {
         const fileUrl = await uploadPromise;
 
         // Succès
-        toast({
-          title: "Succès",
-          description: "Fichier uploadé avec succès",
-        });
+        toast({ title: "Succès",
+          description: "Fichier uploadé avec succès" });
 
         options?.onSuccess?.(fileUrl);
         return fileUrl;
@@ -98,11 +94,9 @@ export function useFileUpload() {
             ? error.message
             : "Erreur lors de l'upload du fichier";
 
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description: errorMessage,
-          variant: "destructive",
-        });
+          variant: "destructive" });
 
         options?.onError?.(error as Error);
         throw error;
@@ -117,8 +111,7 @@ export function useFileUpload() {
   return {
     uploadFile,
     isUploading,
-    uploadProgress,
-  };
+    uploadProgress};
 }
 
 /**
@@ -136,10 +129,8 @@ export function useFileDownload() {
         setIsDownloading(true);
 
         // Obtenir l'URL signée via tRPC
-        const { data } = await getDownloadUrlQuery({
-          fileUrl,
-          forceDownload,
-        });
+        const { data } = await getDownloadUrlQuery({ fileUrl,
+          forceDownload });
 
         if (!data) {
           throw new Error("Impossible d'obtenir l'URL de téléchargement");
@@ -155,18 +146,14 @@ export function useFileDownload() {
         link.click();
         document.body.removeChild(link);
 
-        toast({
-          title: "Téléchargement démarré",
-          description: "Le fichier est en cours de téléchargement",
-        });
+        toast({ title: "Téléchargement démarré",
+          description: "Le fichier est en cours de téléchargement" });
       } catch (error) {
         console.error("Erreur lors du téléchargement:", error);
 
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description: "Impossible de télécharger le fichier",
-          variant: "destructive",
-        });
+          variant: "destructive" });
 
         throw error;
       } finally {
@@ -178,8 +165,7 @@ export function useFileDownload() {
 
   return {
     downloadFile,
-    isDownloading,
-  };
+    isDownloading};
 }
 
 /**
@@ -192,22 +178,18 @@ export function useFileDelete() {
   const deleteFile = useCallback(
     async (fileUrl: string) => {
       try {
-        const result = await deleteFileMutation.mutateAsync({ fileUrl });
+        const result = await deleteFileMutation.mutateAsync({ fileUrl  });
 
-        toast({
-          title: "Succès",
-          description: "Fichier supprimé avec succès",
-        });
+        toast({ title: "Succès",
+          description: "Fichier supprimé avec succès" });
 
         return result;
       } catch (error) {
         console.error("Erreur lors de la suppression:", error);
 
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description: "Impossible de supprimer le fichier",
-          variant: "destructive",
-        });
+          variant: "destructive" });
 
         throw error;
       }
@@ -217,6 +199,5 @@ export function useFileDelete() {
 
   return {
     deleteFile,
-    isDeleting: deleteFileMutation.isPending,
-  };
+    isDeleting: deleteFileMutation.isPending};
 }

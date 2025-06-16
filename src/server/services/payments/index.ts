@@ -10,5 +10,4 @@ export type {
   EscrowReleaseRule,
   EscrowConfig,
   EscrowStatus,
-  PaymentMethod,
-} from "./escrow-payment.service";
+  PaymentMethod} from "./escrow-payment.service";

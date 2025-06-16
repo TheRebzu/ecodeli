@@ -7,8 +7,7 @@ import {
   financialTaskFiltersSchema,
   toggleFinancialTaskSchema,
   deleteFinancialTaskSchema,
-  financialTaskListOptionsSchema,
-} from "@/schemas/payment/financial-task.schema";
+  financialTaskListOptionsSchema} from "@/schemas/payment/financial-task.schema";
 
 // Type pour une tâche financière complète
 export interface FinancialTask {
@@ -57,21 +56,18 @@ export interface PaginatedFinancialTasks {
 export const priorityLabels: Record<FinancialTaskPriority, string> = {
   LOW: "Faible",
   MEDIUM: "Moyenne",
-  HIGH: "Élevée",
-};
+  HIGH: "Élevée"};
 
 // Mappage pour les catégories en français
 export const categoryLabels: Record<FinancialTaskCategory, string> = {
   PAYMENT: "Paiement",
   INVOICE: "Facture",
   WITHDRAWAL: "Retrait",
-  OTHER: "Autre",
-};
+  OTHER: "Autre"};
 
 // Mappage des icônes par catégorie
 export const categoryIcons: Record<FinancialTaskCategory, string> = {
   PAYMENT: "dollar-sign",
   INVOICE: "calendar-clock",
   WITHDRAWAL: "check-circle-2",
-  OTHER: "circle",
-};
+  OTHER: "circle"};

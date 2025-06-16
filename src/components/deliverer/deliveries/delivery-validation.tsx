@@ -8,16 +8,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-  InputOTPSeparator,
-} from "@/components/ui/input-otp";
+  InputOTPSeparator} from "@/components/ui/input-otp";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, AlertCircle, LockKeyhole } from "lucide-react";
 
@@ -38,8 +36,7 @@ export default function CodeVerification({
   onSuccess,
   onCancel,
   maxAttempts = 3,
-  className = "",
-}: CodeVerificationProps) {
+  className = ""}: CodeVerificationProps) {
   const t = useTranslations("deliveries.verification");
   const [code, setCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,15 +50,7 @@ export default function CodeVerification({
   useEffect(() => {
     if (timeLeft <= 0 || !isLocked) return;
 
-    const timer = setTimeout(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsLocked(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const timer = // Appel API réel via tRPC
 
     return () => clearTimeout(timer);
   }, [timeLeft, isLocked]);
@@ -92,8 +81,7 @@ export default function CodeVerification({
         } else {
           setError(
             t("invalidCode", {
-              attemptsLeft: maxAttempts - newAttempts,
-            }),
+              attemptsLeft: maxAttempts - newAttempts}),
           );
         }
 
@@ -169,7 +157,7 @@ export default function CodeVerification({
             containerClassName="gap-2"
           >
             <InputOTPGroup>
-              {Array.from({ length }).map((_, index) => (
+              {Array.from({ length  }).map((_, index) => (
                 <div key={index}>
                   <InputOTPSlot index={index} />
                   {index !== length - 1 && index % 2 === 1 && (

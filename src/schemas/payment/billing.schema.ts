@@ -9,49 +9,37 @@ export const BillingCycleStatusEnum = z.enum([
 ]);
 
 // Schéma de base pour les cycles de facturation
-export const billingCycleBaseSchema = z.object({
-  merchantId: z.string().cuid().optional(),
+export const billingCycleBaseSchema = z.object({ merchantId: z.string().cuid().optional(),
   providerId: z.string().cuid().optional(),
   periodStart: z.date(),
   periodEnd: z.date(),
-  status: BillingCycleStatusEnum.default("PENDING"),
-});
+  status: BillingCycleStatusEnum.default("PENDING") });
 
 // Schéma pour la création d'un cycle de facturation
 export const createBillingCycleSchema = billingCycleBaseSchema
-  .extend({
-    scheduledRunDate: z.date().default(() => new Date()),
-  })
+  .extend({ scheduledRunDate: z.date().default(() => new Date()) })
   .refine((data) => data.merchantId || data.providerId, {
     message: "Un ID de marchand ou de prestataire est requis",
-    path: ["merchantId"],
-  })
+    path: ["merchantId"]})
   .refine((data) => data.periodEnd > data.periodStart, {
     message: "La date de fin doit être postérieure à la date de début",
-    path: ["periodEnd"],
-  })
+    path: ["periodEnd"]})
   .refine((data) => data.scheduledRunDate >= data.periodEnd, {
     message:
       "La date d'exécution prévue doit être postérieure ou égale à la période de facturation",
-    path: ["scheduledRunDate"],
-  });
+    path: ["scheduledRunDate"]});
 
 // Schéma pour la mise à jour d'un cycle de facturation
-export const updateBillingCycleSchema = z.object({
-  billingCycleId: z.string().cuid(),
+export const updateBillingCycleSchema = z.object({ billingCycleId: z.string().cuid(),
   status: BillingCycleStatusEnum.optional(),
   scheduledRunDate: z.date().optional(),
-  errorMessage: z.string().optional().nullable(),
-});
+  errorMessage: z.string().optional().nullable() });
 
 // Schéma pour la réexécution d'un cycle de facturation
-export const retryBillingCycleSchema = z.object({
-  billingCycleId: z.string().cuid(),
-});
+export const retryBillingCycleSchema = z.object({ billingCycleId: z.string().cuid() });
 
 // Schéma pour la recherche de cycles de facturation
-export const searchBillingCyclesSchema = z.object({
-  status: BillingCycleStatusEnum.optional(),
+export const searchBillingCyclesSchema = z.object({ status: BillingCycleStatusEnum.optional(),
   merchantId: z.string().cuid().optional(),
   providerId: z.string().cuid().optional(),
   periodStartFrom: z.date().optional(),
@@ -61,23 +49,18 @@ export const searchBillingCyclesSchema = z.object({
   scheduledRunDateFrom: z.date().optional(),
   scheduledRunDateTo: z.date().optional(),
   page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
-});
+  limit: z.number().int().min(1).max(100).default(10) });
 
 // Schéma pour obtenir les statistiques de facturation
-export const billingStatsSchema = z.object({
-  period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR", "ALL"]).default("MONTH"),
-});
+export const billingStatsSchema = z.object({ period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR", "ALL"]).default("MONTH") });
 
 // Schéma pour les rapports de facturation
-export const billingReportSchema = z.object({
-  startDate: z.date(),
+export const billingReportSchema = z.object({ startDate: z.date(),
   endDate: z.date(),
   groupBy: z
     .enum(["DAY", "WEEK", "MONTH", "MERCHANT_TYPE", "PROVIDER_TYPE"])
     .default("MONTH"),
-  format: z.enum(["PDF", "CSV", "JSON"]).default("PDF"),
-});
+  format: z.enum(["PDF", "CSV", "JSON"]).default("PDF") });
 
 // Schéma pour les paramètres de facturation
 export const billingSettingsSchema = z.object({
@@ -118,12 +101,10 @@ export const billingSettingsSchema = z.object({
   secondaryColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Couleur hexadécimale invalide")
-    .optional(),
-});
+    .optional()});
 
 // Schéma pour les taux de commission
-export const commissionRateSchema = z.object({
-  serviceType: z.enum(["DELIVERY", "SERVICE", "STORAGE", "CUSTOM"]),
+export const commissionRateSchema = z.object({ serviceType: z.enum(["DELIVERY", "SERVICE", "STORAGE", "CUSTOM"]),
   rate: z.number().min(0).max(100),
   calculationType: z
     .enum(["PERCENTAGE", "FLAT_FEE", "TIERED"])
@@ -137,8 +118,7 @@ export const commissionRateSchema = z.object({
     .array(
       z.object({
         threshold: z.number().nonnegative(),
-        rate: z.number().min(0).max(100),
-      }),
+        rate: z.number().min(0).max(100) }),
     )
     .optional(),
 
@@ -152,12 +132,10 @@ export const commissionRateSchema = z.object({
     .array(z.enum(["DELIVERER", "PROVIDER", "MERCHANT"]))
     .min(1, "Au moins un rôle applicable est requis"),
   countryCode: z.string().length(2).optional(),
-  description: z.string().optional(),
-});
+  description: z.string().optional()});
 
 // Schéma pour les paramètres de taxes
-export const taxSettingsSchema = z.object({
-  name: z.string().min(1, "Le nom de la taxe est requis"),
+export const taxSettingsSchema = z.object({ name: z.string().min(1, "Le nom de la taxe est requis"),
   rate: z.number().min(0).max(100),
   type: z.enum(["VAT", "GST", "SALES_TAX", "OTHER"]).default("VAT"),
   countryCode: z.string().length(2),
@@ -171,12 +149,10 @@ export const taxSettingsSchema = z.object({
   exemptCategories: z.array(z.string()).optional(),
 
   // Validation pour certains pays
-  euVatValidation: z.boolean().default(false),
-});
+  euVatValidation: z.boolean().default(false) });
 
 // Schéma pour les cycles de facturation
-export const billingCycleSchema = z.object({
-  merchantId: z.string().cuid("ID commerçant invalide").optional(),
+export const billingCycleSchema = z.object({ merchantId: z.string().cuid("ID commerçant invalide").optional(),
   providerId: z.string().cuid("ID prestataire invalide").optional(),
   periodStart: z.date(),
   periodEnd: z.date(),
@@ -189,12 +165,10 @@ export const billingCycleSchema = z.object({
   lastRunAt: z.date().optional(),
   errorMessage: z.string().optional(),
   retryCount: z.number().int().nonnegative().default(0),
-  serviceSummary: z.record(z.any()).optional(),
-});
+  serviceSummary: z.record(z.any()).optional() });
 
 // Schéma pour la configuration de facturation par rôle
-export const roleBillingConfigSchema = z.object({
-  role: z.enum(["DELIVERER", "PROVIDER", "MERCHANT"]),
+export const roleBillingConfigSchema = z.object({ role: z.enum(["DELIVERER", "PROVIDER", "MERCHANT"]),
   billingCycle: z
     .enum(["DAILY", "WEEKLY", "BIWEEKLY", "MONTHLY"])
     .default("MONTHLY"),
@@ -213,12 +187,10 @@ export const roleBillingConfigSchema = z.object({
 
   // Paramètres de traitement de paiement
   processingFeesPaidBy: z.enum(["PLATFORM", "RECIPIENT"]).default("PLATFORM"),
-  processingFeeRate: z.number().min(0).max(10).default(1.5),
-});
+  processingFeeRate: z.number().min(0).max(10).default(1.5) });
 
 // Schéma pour les métadonnées financières des utilisateurs
-export const userFinancialProfileSchema = z.object({
-  userId: z.string().cuid("ID utilisateur invalide"),
+export const userFinancialProfileSchema = z.object({ userId: z.string().cuid("ID utilisateur invalide"),
   taxIdentifier: z.string().optional(),
   taxResidenceCountry: z.string().length(2).optional(),
   legalEntityType: z
@@ -233,8 +205,7 @@ export const userFinancialProfileSchema = z.object({
 
   // Information fiscale spécifique par pays
   w9Submitted: z.boolean().optional(),
-  w8BenSubmitted: z.boolean().optional(),
-});
+  w8BenSubmitted: z.boolean().optional() });
 
 // Export des types pour TypeScript
 export type BillingCycleStatus = z.infer<typeof BillingCycleStatusEnum>;

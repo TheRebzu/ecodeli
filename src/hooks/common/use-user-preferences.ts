@@ -10,7 +10,7 @@ import { useSession } from "next-auth/react";
 export function useUserPreferences() {
   const locale = useLocale();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data } = useSession();
   const isAuthenticated = !!session?.user;
 
   // Requête pour obtenir les préférences
@@ -27,15 +27,14 @@ export function useUserPreferences() {
     api.userPreferences.updateUserPreferences.useMutation({
       onSuccess: () => {
         preferencesQuery.refetch();
-      },
-    });
+      }});
 
   // Fonction pour changer la langue
   const changeLocale = useCallback(
     (newLocale: string) => {
       // Si l'utilisateur est connecté, sauvegarder la préférence
       if (isAuthenticated) {
-        updatePreferencesMutation.mutate({ locale: newLocale });
+        updatePreferencesMutation.mutate({ locale  });
       }
 
       // Extraire le chemin actuel et le rediriger vers la même page dans la nouvelle langue
@@ -69,6 +68,5 @@ export function useUserPreferences() {
     isLoading: preferencesQuery.isLoading,
     changeLocale,
     updatePreferences,
-    isUpdating: updatePreferencesMutation.isLoading,
-  };
+    isUpdating: updatePreferencesMutation.isLoading};
 }

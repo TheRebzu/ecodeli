@@ -13,16 +13,14 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   AlertCircleIcon,
   DownloadIcon,
   PlusIcon,
-  UsersIcon,
-} from "lucide-react";
+  UsersIcon} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AdminUsersPage() {
@@ -36,15 +34,12 @@ export default function AdminUsersPage() {
     data: null,
     isLoading: false,
     isError: false,
-    error: null,
-  };
+    error: null};
 
   // Récupération des utilisateurs avec filtres - ISOLÉE
-  const usersQuery = api.adminUser.getUsers.useQuery({
-    page: 1,
+  const usersQuery = api.adminUser.getUsers.useQuery({ page: 1,
     limit: 10,
-    ...filters,
-  });
+    ...filters });
 
   // Debugging léger pour monitoring
   useEffect(() => {
@@ -239,8 +234,7 @@ export default function AdminUsersPage() {
               breakdownByCountry: true,
               includeRetentionRate: true,
               includeChurnRate: true,
-              includeGrowthRate: true,
-            }}
+              includeGrowthRate: true}}
           />
         </TabsContent>
       </Tabs>

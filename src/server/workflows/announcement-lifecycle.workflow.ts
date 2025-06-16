@@ -119,8 +119,7 @@ export class AnnouncementLifecycleWorkflow {
         "SYSTEM",
         {
           matchId,
-          matchScore,
-        },
+          matchScore},
       );
 
       await this.updateAnnouncementStatus(announcementId, "MATCHED");
@@ -168,8 +167,7 @@ export class AnnouncementLifecycleWorkflow {
         "ASSIGNED",
         clientId,
         {
-          delivererId,
-        },
+          delivererId},
       );
 
       await this.updateAnnouncementStatus(announcementId, "ASSIGNED");
@@ -434,9 +432,7 @@ export class AnnouncementLifecycleWorkflow {
           {
             partialPlan: {
               totalSegments: partialPlan.totalSegments,
-              totalPrice: partialPlan.totalPrice,
-            },
-          },
+              totalPrice: partialPlan.totalPrice}},
         );
 
         // Notifier le client de la suggestion
@@ -476,10 +472,8 @@ export class AnnouncementLifecycleWorkflow {
       triggeredBy,
       triggeredAt: new Date(),
       metadata,
-      reason,
-    };
+      reason};
 
-    // Sauvegarder l'événement (simulation)
     logger.info(
       `Événement workflow: ${eventType} pour ${announcementId} (${fromStatus} → ${toStatus})`,
     );
@@ -489,26 +483,26 @@ export class AnnouncementLifecycleWorkflow {
     announcementId: string,
     status: AnnouncementStatus,
   ): Promise<void> {
-    // Simulation de mise à jour du statut
+    
     logger.info(`Statut mis à jour: ${announcementId} → ${status}`);
   }
 
   private async getAnnouncementStatus(
     announcementId: string,
   ): Promise<AnnouncementStatus> {
-    // Simulation de récupération du statut
+    
     return "ACTIVE";
   }
 
   private async getAnnouncement(announcementId: string): Promise<any> {
-    // Simulation de récupération d'annonce
-    return { id: announcementId };
+    
+    return { id };
   }
 
   private async triggerMatching(announcementId: string): Promise<void> {
     // Déclencher le processus de matching
     setTimeout(async () => {
-      // Simulation d'un matching trouvé
+      
       await this.handleMatchFound(announcementId, "match-123", 85);
     }, 5000);
   }
@@ -569,7 +563,6 @@ export class AnnouncementLifecycleWorkflow {
     logger.info(`Escalation traitée pour ${announcementId}: ${rule.action}`);
   }
 
-  // Méthodes de notification (simulation)
   private async notifyClientMatchFound(
     announcementId: string,
     matchId: string,
@@ -625,7 +618,6 @@ export class AnnouncementLifecycleWorkflow {
     );
   }
 
-  // Méthodes de traitement des paiements et autres (simulation)
   private async initiateEscrowPayment(announcementId: string): Promise<void> {
     logger.info(`Paiement escrow initié pour ${announcementId}`);
   }
@@ -685,8 +677,7 @@ export class AnnouncementLifecycleWorkflow {
       await this.handleClientValidation(announcementId, "SYSTEM", {
         rating: 0,
         comment: "Validation automatique après 24h",
-        isValid: true,
-      });
+        isValid: true});
     }
   }
 

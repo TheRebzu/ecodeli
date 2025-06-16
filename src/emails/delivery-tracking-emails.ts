@@ -536,7 +536,7 @@ export const renderTemplate = (
   }
 
   // Remplacer les variables {{var}} dans le template
-  let renderedTemplate = template;
+  const renderedTemplate = template;
   for (const [key, value] of Object.entries(data)) {
     if (value !== undefined) {
       const regex = new RegExp(`{{${key}}}`, "g");

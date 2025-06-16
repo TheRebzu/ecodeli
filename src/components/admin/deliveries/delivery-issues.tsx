@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,8 +17,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertTriangle,
@@ -29,16 +27,14 @@ import {
   MoreHorizontal,
   Phone,
   Search,
-  User,
-} from "lucide-react";
+  User} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { api } from "@/trpc/react";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -78,43 +74,35 @@ export function DeliveryIssues() {
   const {
     data: issues,
     isLoading,
-    error,
-  } = api.deliveryIssue.getAll.useQuery(
+    error} = api.deliveryIssue.getAll.useQuery(
     {
       status:
         activeTab === "pending"
           ? "PENDING"
           : activeTab === "in-progress"
             ? "IN_PROGRESS"
-            : "RESOLVED",
-    },
+            : "RESOLVED"},
     {
       onError: (err) => {
         toast({
           title: "Erreur",
           description: `Impossible de charger les incidents: ${err.message}`,
-          variant: "destructive",
-        });
-      },
-    },
+          variant: "destructive"});
+      }},
   );
 
   // Utilisation de la mutation pour mettre à jour le statut d'un incident
-  const updateIssueMutation = api.deliveryIssue.updateStatus.useMutation({
-    onSuccess: () => {
+  const updateIssueMutation = api.deliveryIssue.updateStatus.useMutation({ onSuccess: () => {
       toast({
         title: "Succès",
-        description: "Le statut de l'incident a été mis à jour",
-      });
+        description: "Le statut de l'incident a été mis à jour" });
     },
     onError: (err) => {
       toast({
         title: "Erreur",
         description: `Impossible de mettre à jour l'incident: ${err.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive"});
+    }});
 
   // Filtrer les incidents
   const filteredIssues =
@@ -223,7 +211,7 @@ export function DeliveryIssues() {
     issueId: string,
     newStatus: "PENDING" | "IN_PROGRESS" | "RESOLVED",
   ) => {
-    updateIssueMutation.mutate({ id: issueId, status: newStatus });
+    updateIssueMutation.mutate({ id: issueId, status: newStatus  });
   };
 
   return (
@@ -365,8 +353,7 @@ function IssuesTable({
   renderStatusBadge,
   renderTypeBadge,
   onStatusChange,
-  isUpdating,
-}: IssuesTableProps) {
+  isUpdating}: IssuesTableProps) {
   if (issues.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center">
@@ -517,7 +504,7 @@ function LoadingState() {
   );
 }
 
-function ErrorState({ message }: { message: string }) {
+function ErrorState({ message }: { message }) {
   return (
     <div className="border border-destructive/50 bg-destructive/10 rounded-md p-4 text-center">
       <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />

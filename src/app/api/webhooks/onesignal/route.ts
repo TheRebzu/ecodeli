@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import _getServerSession from "next-auth/next";
+import getServerSession from "next-auth/next";
 import { PrismaClient } from "@prisma/client";
-import { authOptions as _authOptions } from "@/server/auth/next-auth";
+import { authOptions as authOptions } from "@/server/auth/next-auth";
 
 const prisma = new PrismaClient();
 
@@ -16,10 +16,9 @@ export async function POST(request: NextRequest) {
       authHeader !== `Basic ${process.env.ONESIGNAL_REST_API_KEY}`
     ) {
       return new NextResponse(
-        JSON.stringify({ success: false, error: "Unauthorized" }),
+        JSON.stringify({ success: false, error: "Unauthorized"  }),
         {
-          status: 401,
-        },
+          status: 401},
       );
     }
 
@@ -34,20 +33,17 @@ export async function POST(request: NextRequest) {
             userId,
             type,
             action: "CLICKED",
-            timestamp: new Date(),
-          },
-        });
+            timestamp: new Date()}});
       }
     }
 
-    return new NextResponse(JSON.stringify({ success: true }), { status: 200 });
+    return new NextResponse(JSON.stringify({ success  }), { status: 200 });
   } catch (error) {
     console.error("Error in OneSignal webhook:", error);
     return new NextResponse(
-      JSON.stringify({ success: false, error: "Internal server error" }),
+      JSON.stringify({ success: false, error: "Internal server error"  }),
       {
-        status: 500,
-      },
+        status: 500},
     );
   }
 }

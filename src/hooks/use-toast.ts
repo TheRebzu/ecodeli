@@ -11,7 +11,7 @@ interface ToastProps {
 
 interface ToastContextType {
   toast: (props: ToastProps) => void;
-  toasts: (ToastProps & { id: string })[];
+  toasts: (ToastProps & { id })[];
   dismissToast: (id: string) => void;
 }
 
@@ -20,7 +20,7 @@ const ToastContext = React.createContext<ToastContextType | undefined>(
 );
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = React.useState<(ToastProps & { id: string })[]>(
+  const [toasts, setToasts] = React.useState<(ToastProps & { id })[]>(
     [],
   );
 
@@ -41,11 +41,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = React.useMemo(
-    () => ({
-      toast,
+    () => ({ toast,
       toasts,
-      dismissToast,
-    }),
+      dismissToast }),
     [toast, toasts, dismissToast],
   );
 

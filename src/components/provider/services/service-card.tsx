@@ -16,8 +16,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 
 // Icons
 import {
@@ -35,8 +34,7 @@ import {
   TrendingUp,
   Pause,
   Play,
-  Settings,
-} from "lucide-react";
+  Settings} from "lucide-react";
 
 // Types
 interface Service {
@@ -81,8 +79,7 @@ export function ServiceCard({
   onDelete,
   onDuplicate,
   onToggleStatus,
-  onViewAnalytics,
-}: ServiceCardProps) {
+  onViewAnalytics}: ServiceCardProps) {
   const t = useTranslations("providerServices");
   const router = useRouter();
 
@@ -303,7 +300,7 @@ export function ServiceCard({
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-yellow-400 fill-current" />
               <span>
-                {service.rating.toFixed(1)} ({service.totalReviews})
+                {service.rating.toFixed(1)} ({ service.totalReviews })
               </span>
             </div>
 
@@ -328,11 +325,11 @@ export function ServiceCard({
           <div className="flex justify-between items-center text-xs text-muted-foreground">
             <span>
               {t("created")}{" "}
-              {format(service.createdAt, "d MMM yyyy", { locale: fr })}
+              {format(service.createdAt, "d MMM yyyy", { locale })}
             </span>
             <span>
               {t("updated")}{" "}
-              {format(service.updatedAt, "d MMM yyyy", { locale: fr })}
+              {format(service.updatedAt, "d MMM yyyy", { locale })}
             </span>
           </div>
         </div>

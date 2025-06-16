@@ -14,8 +14,7 @@ import {
   Phone,
   Shield,
   Calendar,
-  Truck,
-} from "lucide-react";
+  Truck} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
@@ -24,8 +23,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,8 +35,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -46,8 +43,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -58,8 +54,7 @@ type DelivererStatus =
   | "PENDING_VERIFICATION";
 
 // Schema de validation pour l'édition d'un livreur
-const editDelivererSchema = z.object({
-  firstName: z
+const editDelivererSchema = z.object({ firstName: z
     .string()
     .min(1, "Le prénom est requis")
     .max(50, "Le prénom est trop long"),
@@ -73,8 +68,7 @@ const editDelivererSchema = z.object({
   hasVehicle: z.boolean(),
   vehicleType: z.string().optional(),
   preferredZones: z.array(z.string()).optional(),
-  notes: z.string().optional(),
-});
+  notes: z.string().optional() });
 
 type EditDelivererFormData = z.infer<typeof editDelivererSchema>;
 
@@ -89,30 +83,22 @@ export default function DelivererEditPage() {
   const {
     data: delivererData,
     isLoading,
-    error,
-  } = api.admin.deliverers.getById.useQuery({
-    id: delivererId,
-  });
+    error} = api.admin.deliverers.getById.useQuery({ id  });
 
   const deliverer = delivererData;
 
-  const updateDelivererMutation = api.admin.deliverers.update.useMutation({
-    onSuccess: () => {
+  const updateDelivererMutation = api.admin.deliverers.update.useMutation({ onSuccess: () => {
       toast({
         title: "Livreur mis à jour",
         description:
-          "Les informations du livreur ont été mises à jour avec succès.",
-      });
+          "Les informations du livreur ont été mises à jour avec succès." });
       router.push(`/admin/deliverers/${delivererId}`);
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Erreur lors de la mise à jour: " + error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const form = useForm<EditDelivererFormData>({
     resolver: zodResolver(editDelivererSchema),
@@ -125,14 +111,11 @@ export default function DelivererEditPage() {
       hasVehicle: deliverer?.hasVehicle || false,
       vehicleType: deliverer?.vehicleType || "",
       preferredZones: deliverer?.preferredZones || [],
-      notes: "",
-    },
-  });
+      notes: ""}});
 
   // Update form when deliverer data loads
   if (deliverer && !form.getValues().firstName) {
-    form.reset({
-      firstName: deliverer.firstName,
+    form.reset({ firstName: deliverer.firstName,
       lastName: deliverer.lastName,
       email: deliverer.email,
       phone: deliverer.phone || "",
@@ -140,16 +123,13 @@ export default function DelivererEditPage() {
       hasVehicle: deliverer.hasVehicle || false,
       vehicleType: deliverer.vehicleType || "",
       preferredZones: deliverer.preferredZones || [],
-      notes: "",
-    });
+      notes: "" });
   }
 
   const onSubmit = async (data: EditDelivererFormData) => {
     try {
-      await updateDelivererMutation.mutateAsync({
-        id: delivererId,
-        ...data,
-      });
+      await updateDelivererMutation.mutateAsync({ id: delivererId,
+        ...data });
     } catch (error) {
       console.error("Error updating deliverer:", error);
     }
@@ -283,7 +263,7 @@ export default function DelivererEditPage() {
                     <FormField
                       control={form.control}
                       name="firstName"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Prénom</FormLabel>
                           <FormControl>
@@ -297,7 +277,7 @@ export default function DelivererEditPage() {
                     <FormField
                       control={form.control}
                       name="lastName"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Nom de famille</FormLabel>
                           <FormControl>
@@ -311,7 +291,7 @@ export default function DelivererEditPage() {
                     <FormField
                       control={form.control}
                       name="email"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
@@ -325,7 +305,7 @@ export default function DelivererEditPage() {
                     <FormField
                       control={form.control}
                       name="phone"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Numéro de téléphone</FormLabel>
                           <FormControl>
@@ -339,7 +319,7 @@ export default function DelivererEditPage() {
                     <FormField
                       control={form.control}
                       name="status"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Statut</FormLabel>
                           <Select
@@ -371,7 +351,7 @@ export default function DelivererEditPage() {
                   <FormField
                     control={form.control}
                     name="notes"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>Notes administratives</FormLabel>
                         <FormControl>
@@ -431,7 +411,7 @@ export default function DelivererEditPage() {
                       <FormField
                         control={form.control}
                         name="hasVehicle"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                             <FormControl>
                               <Checkbox
@@ -454,7 +434,7 @@ export default function DelivererEditPage() {
                         <FormField
                           control={form.control}
                           name="vehicleType"
-                          render={({ field }) => (
+                          render={({ field  }) => (
                             <FormItem>
                               <FormLabel>Type de véhicule</FormLabel>
                               <Select

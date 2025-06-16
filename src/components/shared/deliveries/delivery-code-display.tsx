@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -18,8 +17,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import {
   QrCode,
   Copy,
@@ -32,8 +30,7 @@ import {
   Clock,
   Package,
   MessageCircle,
-  Phone,
-} from "lucide-react";
+  Phone} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 import { toast } from "sonner";
 import QRCode from "qrcode";
@@ -57,8 +54,7 @@ interface DeliveryCodeDisplayProps {
   className?: string;
 }
 
-export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
-  deliveryId,
+export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({ deliveryId,
   code,
   qrCodeData,
   expiresAt,
@@ -66,8 +62,7 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
   delivererInfo,
   onRefreshCode,
   onContactDeliverer,
-  className,
-}) => {
+  className }) => {
   const t = useTranslations("delivery");
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [codeVisible, setCodeVisible] = useState(false);
@@ -80,20 +75,16 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
       try {
         const dataToEncode =
           qrCodeData ||
-          JSON.stringify({
-            deliveryId,
+          JSON.stringify({ deliveryId,
             code,
-            timestamp: new Date().toISOString(),
-          });
+            timestamp: new Date().toISOString() });
 
         const url = await QRCode.toDataURL(dataToEncode, {
           width: 256,
           margin: 2,
           color: {
             dark: "#000000",
-            light: "#FFFFFF",
-          },
-        });
+            light: "#FFFFFF"}});
 
         setQrCodeUrl(url);
       } catch (error) {
@@ -316,7 +307,7 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
               <AlertTitle>{t("expiresIn")}</AlertTitle>
               <AlertDescription>
                 {timeToExpiry
-                  ? t("codeExpiresIn", { time: timeToExpiry })
+                  ? t("codeExpiresIn", { time })
                   : t("codeExpired")}
               </AlertDescription>
             </Alert>

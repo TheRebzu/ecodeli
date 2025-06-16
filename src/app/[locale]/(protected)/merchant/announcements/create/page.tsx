@@ -20,8 +20,7 @@ export default function CreateAnnouncementPage() {
   const t = useTranslations("merchant.announcements.create");
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("details");
-  const [formState, setFormState] = useState<Partial<AnnouncementFormData>>({
-    title: "",
+  const [formState, setFormState] = useState<Partial<AnnouncementFormData>>({ title: "",
     description: "",
     category: "",
     type: "STANDARD",
@@ -38,8 +37,7 @@ export default function CreateAnnouncementPage() {
     status: "DRAFT",
     images: [],
     tags: [],
-    termsAccepted: false,
-  });
+    termsAccepted: false });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mutation pour créer une annonce
@@ -53,11 +51,10 @@ export default function CreateAnnouncementPage() {
       onError: (error) => {
         toast.error(t("createError", { error: error.message }));
         setIsSubmitting(false);
-      },
-    });
+      }});
 
   const handleUpdateForm = (data: Partial<AnnouncementFormData>) => {
-    setFormState((prev) => ({ ...prev, ...data }));
+    setFormState((prev) => ({ ...prev, ...data  }));
   };
 
   const handleTabChange = (value: string) => {
@@ -77,8 +74,7 @@ export default function CreateAnnouncementPage() {
     setIsSubmitting(true);
     createAnnouncementMutation.mutate({
       ...formState,
-      status: "DRAFT",
-    } as AnnouncementFormData);
+      status: "DRAFT"} as AnnouncementFormData);
   };
 
   const handlePublish = () => {
@@ -113,8 +109,7 @@ export default function CreateAnnouncementPage() {
     setIsSubmitting(true);
     createAnnouncementMutation.mutate({
       ...formState,
-      status: "ACTIVE",
-    } as AnnouncementFormData);
+      status: "ACTIVE"} as AnnouncementFormData);
   };
 
   return (

@@ -29,14 +29,13 @@ export default function PrestationsPage() {
     isCreating,
     isUpdating,
     isUpdatingStatus,
-    isDeleting,
-  } = useAdminServices();
+    isDeleting} = useAdminServices();
 
   // Hook pour les catégories
   const { categories } = useServiceCategories();
 
   const handlePageChange = (page: number) => {
-    updateFilters({ page });
+    updateFilters({ page  });
   };
 
   const handleEditService = (service: any) => {

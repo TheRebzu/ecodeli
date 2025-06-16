@@ -4,8 +4,7 @@ import {
   FileTextIcon,
   FileIcon as FilePdfIcon,
   FileIcon as FileSpreadsheetIcon,
-  FileType,
-} from "lucide-react";
+  FileType} from "lucide-react";
 
 /**
  * Formate la taille d'un fichier en unité lisible (KB, MB, GB)
@@ -94,15 +93,13 @@ export function validateFile(
   file: File,
   {
     maxSizeInMB = 5,
-    allowedTypes = ["image/jpeg", "image/png", "application/pdf"],
-  }: { maxSizeInMB?: number; allowedTypes?: string[] } = {},
+    allowedTypes = ["image/jpeg", "image/png", "application/pdf"]}: { maxSizeInMB?: number; allowedTypes?: string[] } = {},
 ): { valid: boolean; error?: string } {
   // Vérifier la taille
   if (file.size > maxSizeInMB * 1024 * 1024) {
     return {
       valid: false,
-      error: `La taille du fichier dépasse la limite de ${maxSizeInMB} MB`,
-    };
+      error: `La taille du fichier dépasse la limite de ${maxSizeInMB} MB`};
   }
 
   // Vérifier le type
@@ -111,9 +108,8 @@ export function validateFile(
       valid: false,
       error: `Type de fichier non autorisé. Types acceptés: ${allowedTypes
         .map(getMimeTypeDescription)
-        .join(", ")}`,
-    };
+        .join(", ")}`};
   }
 
-  return { valid: true };
+  return { valid };
 }

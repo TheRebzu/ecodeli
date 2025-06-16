@@ -8,8 +8,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,8 +29,7 @@ import {
   User,
   Mail,
   Phone,
-  ArrowLeft,
-} from "lucide-react";
+  ArrowLeft} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { api } from "@/trpc/react";
@@ -61,14 +59,12 @@ interface UserWithDocuments {
 // Import des utilities pour les documents
 import {
   getDocumentTypeName,
-  getRequiredDocumentTypesByRole,
-} from "@/utils/document-utils";
+  getRequiredDocumentTypesByRole} from "@/utils/document-utils";
 import { DocumentType } from "@prisma/client";
 
 export function UserDocumentVerification({
   user,
-  documents,
-}: {
+  documents}: {
   user: UserWithDocuments;
   documents: Document[];
 }) {
@@ -127,10 +123,8 @@ export function UserDocumentVerification({
   // Fonction pour télécharger un document correctement
   const downloadDocument = async (doc: Document) => {
     try {
-      toast({
-        title: "Téléchargement en cours",
-        children: "Préparation du document...",
-      });
+      toast({ title: "Téléchargement en cours",
+        children: "Préparation du document..." });
 
       // Construire l'URL complète pour le téléchargement
       const downloadUrl = getFullDocumentUrl(doc.fileUrl);
@@ -150,21 +144,15 @@ export function UserDocumentVerification({
       link.click();
 
       // Nettoyer
-      setTimeout(() => {
-        document.body.removeChild(link);
-      }, 100);
+      // Appel API réel via tRPC
 
-      toast({
-        title: "Téléchargement lancé",
-        children: "Le document est en cours de téléchargement.",
-      });
+      toast({ title: "Téléchargement lancé",
+        children: "Le document est en cours de téléchargement." });
     } catch (error) {
       console.error("Erreur lors du téléchargement:", error);
-      toast({
-        title: "Erreur de téléchargement",
+      toast({ title: "Erreur de téléchargement",
         variant: "destructive",
-        children: "Impossible de télécharger le document. Veuillez réessayer.",
-      });
+        children: "Impossible de télécharger le document. Veuillez réessayer." });
     }
   };
 
@@ -175,30 +163,24 @@ export function UserDocumentVerification({
   });
 
   // Utiliser la mutation pour approuver un document
-  const approveDocument = api.verification.approveDocument.useMutation({
-    onSuccess: () => {
+  const approveDocument = api.verification.approveDocument.useMutation({ onSuccess: () => {
       toast({
         title: "Document approuvé",
-        children: "Le document a été approuvé avec succès.",
-      });
+        children: "Le document a été approuvé avec succès." });
       router.refresh();
     },
     onError: (error: any) => {
       toast({
         title: "Erreur",
         children: `Impossible d'approuver le document: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive"});
+    }});
 
   // Utiliser la mutation pour rejeter un document
-  const rejectDocument = api.verification.rejectDocument.useMutation({
-    onSuccess: () => {
+  const rejectDocument = api.verification.rejectDocument.useMutation({ onSuccess: () => {
       toast({
         title: "Document rejeté",
-        children: "Le document a été rejeté avec succès.",
-      });
+        children: "Le document a été rejeté avec succès." });
       setRejectionReason("");
       router.refresh();
     },
@@ -206,10 +188,8 @@ export function UserDocumentVerification({
       toast({
         title: "Erreur",
         children: `Impossible de rejeter le document: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive"});
+    }});
   // Utiliser la fonction centralisée pour déterminer les documents requis
   const requiredDocuments = getRequiredDocumentTypesByRole(user.role).map(
     (type) => type.toString(),
@@ -217,24 +197,20 @@ export function UserDocumentVerification({
 
   // Handler pour approuver un document
   const handleApprove = (documentId: string) => {
-    approveDocument.mutate({ documentId });
+    approveDocument.mutate({ documentId  });
   };
 
   // Handler pour rejeter un document
   const handleReject = (documentId: string) => {
     if (!rejectionReason.trim()) {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         children: "Veuillez fournir une raison pour le rejet du document.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
-    rejectDocument.mutate({
-      documentId,
-      reason: rejectionReason,
-    });
+    rejectDocument.mutate({ documentId,
+      reason: rejectionReason });
   };
 
   // Déterminer si tous les documents requis sont approuvés
@@ -371,9 +347,7 @@ export function UserDocumentVerification({
                 {document && (
                   <CardDescription>
                     Soumis le{" "}
-                    {format(new Date(document.uploadedAt), "PPP", {
-                      locale: fr,
-                    })}
+                    {format(new Date(document.uploadedAt), "PPP", { locale })}
                   </CardDescription>
                 )}
               </CardHeader>

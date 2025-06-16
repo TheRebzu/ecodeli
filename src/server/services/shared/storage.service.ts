@@ -7,8 +7,7 @@ import {
   BoxUsageHistoryInput,
   ExtendReservationInput,
   BoxAccessInput,
-  BoxDetailsInput,
-} from "@/schemas/storage/storage.schema";
+  BoxDetailsInput} from "@/schemas/storage/storage.schema";
 import { TRPCError } from "@trpc/server";
 import { Prisma, PaymentStatus } from "@prisma/client";
 import { generateRandomCode } from "@/lib/utils/common";
@@ -21,8 +20,7 @@ export enum BoxType {
   SECURE = "SECURE",
   EXTRA_LARGE = "EXTRA_LARGE",
   REFRIGERATED = "REFRIGERATED",
-  FRAGILE = "FRAGILE",
-}
+  FRAGILE = "FRAGILE"}
 
 export enum BoxStatus {
   AVAILABLE = "AVAILABLE",
@@ -30,8 +28,7 @@ export enum BoxStatus {
   OCCUPIED = "OCCUPIED",
   MAINTENANCE = "MAINTENANCE",
   DAMAGED = "DAMAGED",
-  INACTIVE = "INACTIVE",
-}
+  INACTIVE = "INACTIVE"}
 
 export enum ReservationStatus {
   PENDING = "PENDING",
@@ -39,8 +36,7 @@ export enum ReservationStatus {
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
   EXTENDED = "EXTENDED",
-  EXPIRED = "EXPIRED",
-}
+  EXPIRED = "EXPIRED"}
 
 export enum BoxActionType {
   RESERVATION_CREATED = "RESERVATION_CREATED",
@@ -50,8 +46,7 @@ export enum BoxActionType {
   BOX_CLOSED = "BOX_CLOSED",
   PAYMENT_PROCESSED = "PAYMENT_PROCESSED",
   EXTENDED_RENTAL = "EXTENDED_RENTAL",
-  INSPECTION_COMPLETED = "INSPECTION_COMPLETED",
-}
+  INSPECTION_COMPLETED = "INSPECTION_COMPLETED"}
 
 // Interface pour les champs additionnels du schema Prisma
 interface PrismaBoxExtension {
@@ -113,8 +108,7 @@ class StorageService {
       maxSize,
       maxPrice,
       boxType,
-      features,
-    } = input;
+      features} = input;
 
     // Construction des critères de recherche
     const whereClause: Prisma.BoxWhereInput & PrismaBoxExtension = {
@@ -122,11 +116,11 @@ class StorageService {
       ...(warehouseId && { warehouseId }),
 
       // Critères de taille
-      ...(minSize && { size: { gte: minSize } }),
-      ...(maxSize && { size: { lte: maxSize } }),
+      ...(minSize && { size: { gte } }),
+      ...(maxSize && { size: { lte } }),
 
       // Critère de prix
-      ...(maxPrice && { pricePerDay: { lte: maxPrice } }),
+      ...(maxPrice && { pricePerDay: { lte } }),
 
       // Statut disponible uniquement
       isOccupied: false,
@@ -139,29 +133,18 @@ class StorageService {
               {
                 OR: [
                   {
-                    startDate: { lte: endDate },
-                    endDate: { gte: startDate },
-                  },
-                ],
-              },
+                    startDate: { lte },
+                    endDate: { gte }}]},
               {
                 status: {
-                  in: ["PENDING", "ACTIVE", "EXTENDED"],
-                },
-              },
-            ],
-          },
-        },
-      },
+                  in: ["PENDING", "ACTIVE", "EXTENDED"]}}]}}},
       // Cast sécurisé du boxType
-      ...(boxType && { boxType: boxType as unknown as BoxType }),
-    };
+      ...(boxType && { boxType: boxType as unknown as BoxType })};
 
     // Ajout des critères de fonctionnalités si spécifiés
     if (features && features.length > 0) {
       whereClause.AND = features.map((feature) => ({
-        features: { has: feature },
-      })) as unknown as Prisma.BoxWhereInput[];
+        features: { has }})) as unknown as Prisma.BoxWhereInput[];
     }
 
     // Recherche des box disponibles avec leurs informations d'entrepôt
@@ -177,11 +160,8 @@ class StorageService {
             description: true,
             // Nous assumons que ces champs existent dans le modèle Warehouse
             // S'ils sont manquants, ils seront undefined
-          },
-        },
-      },
-      orderBy: [{ pricePerDay: "asc" }, { size: "asc" }],
-    });
+          }}},
+      orderBy: [{ pricePerDay: "asc" }, { size: "asc" }]});
 
     return availableBoxes;
   }
@@ -192,22 +172,18 @@ class StorageService {
     clientId: string,
   ) {
     const {
-      boxId: _boxId,
-      startDate: _startDate,
-      endDate: _endDate,
-      notes: _notes,
-    } = input;
+      boxId: boxId,
+      startDate: startDate,
+      endDate: endDate,
+      notes: notes} = input;
 
     // Récupération des informations de la box
     const box = await db.box.findUnique({
-      where: { id: boxId },
-    });
+      where: { id }});
 
     if (!box) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Box introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Box introuvable" });
     }
 
     // Vérification que la box est disponible
@@ -218,10 +194,8 @@ class StorageService {
     );
 
     if (!isBoxAvailable) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cette box n'est pas disponible pour les dates sélectionnées",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Cette box n'est pas disponible pour les dates sélectionnées" });
     }
 
     // Calcul du nombre de jours
@@ -245,20 +219,14 @@ class StorageService {
       totalPrice,
       notes: notes || null,
       accessCode,
-      paymentStatus: PaymentStatus.PENDING,
-    };
+      paymentStatus: PaymentStatus.PENDING};
 
-    const reservation = await db.reservation.create({
-      data: reservationData,
-    });
+    const reservation = await db.reservation.create({ data  });
 
     // Mise à jour du statut de la box
     await db.box.update({
-      where: { id: boxId },
-      data: {
-        isOccupied: true,
-      },
-    });
+      where: { id },
+      data: { isOccupied }});
 
     // Enregistrement de l'action dans l'historique
     await this.logBoxUsage(
@@ -266,8 +234,7 @@ class StorageService {
         boxId,
         reservationId: reservation.id,
         actionType: BoxActionType.RESERVATION_CREATED,
-        details: `Réservation créée du ${startDate.toLocaleDateString()} au ${endDate.toLocaleDateString()}`,
-      },
+        details: `Réservation créée du ${startDate.toLocaleDateString()} au ${endDate.toLocaleDateString()}`},
       clientId,
     );
 
@@ -284,16 +251,11 @@ class StorageService {
       where: {
         boxId,
         status: {
-          in: ["PENDING", "ACTIVE", "EXTENDED"],
-        },
+          in: ["PENDING", "ACTIVE", "EXTENDED"]},
         OR: [
           {
-            startDate: { lte: endDate },
-            endDate: { gte: startDate },
-          },
-        ],
-      },
-    });
+            startDate: { lte },
+            endDate: { gte }}]}});
 
     return existingReservations.length === 0;
   }
@@ -304,31 +266,25 @@ class StorageService {
     clientId: string,
   ) {
     const {
-      id: _id,
-      endDate: _endDate,
-      notes: _notes,
-      status: _status,
-    } = input;
+      id: id,
+      endDate: endDate,
+      notes: notes,
+      status: status} = input;
 
     // Récupération de la réservation
     const reservation = await db.reservation.findUnique({
       where: { id },
-      include: { box: true },
-    });
+      include: { box }});
 
     if (!reservation) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Réservation introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Réservation introuvable" });
     }
 
     // Vérification des droits d'accès
     if (reservation.clientId !== clientId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à modifier cette réservation",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à modifier cette réservation" });
     }
 
     // Calcul du nouveau prix si la date de fin change
@@ -344,10 +300,8 @@ class StorageService {
         );
 
         if (!isAvailable) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "La box n'est pas disponible pour la nouvelle période",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "La box n'est pas disponible pour la nouvelle période" });
         }
       }
 
@@ -375,14 +329,12 @@ class StorageService {
           ? reservation.endDate
           : undefined,
       extendedCount:
-        endDate && endDate > reservation.endDate ? { increment: 1 } : undefined,
-    };
+        endDate && endDate > reservation.endDate ? { increment: 1 } : undefined};
 
     // Mise à jour de la réservation
     const updatedReservation = await db.reservation.update({
       where: { id },
-      data: updateData,
-    });
+      data: updateData});
 
     // Enregistrement de l'action dans l'historique
     await this.logBoxUsage(
@@ -390,8 +342,7 @@ class StorageService {
         boxId: reservation.boxId,
         reservationId: reservation.id,
         actionType: BoxActionType.RESERVATION_UPDATED,
-        details: `Réservation mise à jour${endDate ? ` avec nouvelle fin le ${endDate.toLocaleDateString()}` : ""}`,
-      },
+        details: `Réservation mise à jour${endDate ? ` avec nouvelle fin le ${endDate.toLocaleDateString()}` : ""}`},
       clientId,
     );
 
@@ -400,11 +351,9 @@ class StorageService {
 
   // Récupération des réservations d'un client
   async getClientBoxReservations(clientId: string, status?: ReservationStatus) {
-    return db.reservation.findMany({
-      where: {
+    return db.reservation.findMany({ where: {
         clientId,
-        ...(status && { status: status as unknown as string }),
-      },
+        ...(status && { status: status as unknown as string  })},
       include: {
         box: {
           include: {
@@ -412,14 +361,8 @@ class StorageService {
               select: {
                 id: true,
                 name: true,
-                address: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { startDate: "desc" },
-    });
+                address: true}}}}},
+      orderBy: { startDate: "desc" }});
   }
 
   // Récupération de l'historique d'utilisation d'une box
@@ -428,16 +371,12 @@ class StorageService {
     const hasAccess = await db.reservation.findFirst({
       where: {
         boxId,
-        clientId,
-      },
-    });
+        clientId}});
 
     if (!hasAccess) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
+      throw new TRPCError({ code: "FORBIDDEN",
         message:
-          "Vous n'êtes pas autorisé à consulter l'historique de cette box",
-      });
+          "Vous n'êtes pas autorisé à consulter l'historique de cette box" });
     }
 
     // Requête à la table BoxUsageHistory via Prisma
@@ -466,29 +405,24 @@ class StorageService {
       minSize,
       maxPrice,
       boxType,
-      notificationPreferences,
-    } = input;
+      notificationPreferences} = input;
 
     // Vérification qu'au moins un critère est spécifié
     if (!boxId && !warehouseId && !boxType && !minSize) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Au moins un critère de recherche doit être spécifié",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Au moins un critère de recherche doit être spécifié" });
     }
 
     // Vérification que les dates sont cohérentes
     if (startDate && endDate && startDate >= endDate) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "La date de fin doit être postérieure à la date de début",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "La date de fin doit être postérieure à la date de début" });
     }
 
     // Création de l'abonnement - utilisation d'un type spécifique pour le résultat
     const result = await db.$executeRaw`
       INSERT INTO box_availability_subscriptions (
-        id, box_id, client_id, warehouse_id, start_date, end_date, 
+        id, boxid, client_id, warehouse_id, start_date, end_date, 
         min_size, max_price, box_type, is_active, notification_preferences,
         created_at, updated_at
       )
@@ -539,17 +473,13 @@ class StorageService {
       : [];
 
     if (subscriptions.length === 0) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Abonnement introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Abonnement introuvable" });
     }
 
     if (subscriptions[0].clientId !== clientId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à désactiver cet abonnement",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à désactiver cet abonnement" });
     }
 
     // Désactivation de l'abonnement
@@ -559,7 +489,7 @@ class StorageService {
       WHERE id = ${subscriptionId}
     `;
 
-    return { success: true };
+    return { success };
   }
 
   // Vérification de la disponibilité et envoi de notifications
@@ -590,8 +520,7 @@ class StorageService {
         isOccupied: false,
         ...(sub.boxType && { boxType: sub.boxType as unknown as BoxType }),
         ...(sub.minSize && { size: { gte: sub.minSize } }),
-        ...(sub.maxPrice && { pricePerDay: { lte: sub.maxPrice } }),
-      };
+        ...(sub.maxPrice && { pricePerDay: { lte: sub.maxPrice } })};
 
       // Si des dates sont spécifiées, vérifier la disponibilité pour cette période
       if (sub.startDate && sub.endDate) {
@@ -603,27 +532,17 @@ class StorageService {
                   OR: [
                     {
                       startDate: { lte: sub.endDate },
-                      endDate: { gte: sub.startDate },
-                    },
-                  ],
-                },
+                      endDate: { gte: sub.startDate }}]},
                 {
                   status: {
-                    in: ["PENDING", "ACTIVE", "EXTENDED"],
-                  },
-                },
-              ],
-            },
-          },
-        };
+                    in: ["PENDING", "ACTIVE", "EXTENDED"]}}]}}};
       }
 
       // Recherche des box disponibles
       const availableBoxes = await db.box.findMany({
         where: whereClause as Prisma.BoxWhereInput,
-        include: { warehouse: true },
-        take: 10,
-      });
+        include: { warehouse },
+        take: 10});
 
       // Si des box sont disponibles, envoyer une notification
       if (availableBoxes.length > 0) {
@@ -640,8 +559,7 @@ class StorageService {
           // Création d'une notification avec données structurées
           const notificationData: NotificationData = {
             boxIds: availableBoxes.map((box) => box.id),
-            subscriptionId: subscription.id,
-          };
+            subscriptionId: subscription.id};
 
           // Sérialiser les données en JSON
           const serializedData = JSON.stringify(notificationData);
@@ -651,8 +569,7 @@ class StorageService {
             title: "Box disponibles",
             message: `${availableBoxes.length} box ${availableBoxes.length > 1 ? "sont" : "est"} maintenant disponible${availableBoxes.length > 1 ? "s" : ""} selon vos critères`,
             type: "SYSTEM",
-            data: serializedData,
-          });
+            data: serializedData});
 
           // Mise à jour de la date de dernière notification
           await db.$executeRaw`
@@ -669,36 +586,29 @@ class StorageService {
 
   // Extension d'une réservation
   async extendReservation(input: ExtendReservationInput, clientId: string) {
-    const { reservationId: _reservationId, newEndDate: _newEndDate } = input;
+    const { reservationId: reservationId, newEndDate: newEndDate } = input;
 
     // Récupération de la réservation
     const reservation = await db.reservation.findUnique({
-      where: { id: reservationId },
-      include: { box: true },
-    });
+      where: { id },
+      include: { box }});
 
     if (!reservation) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Réservation introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Réservation introuvable" });
     }
 
     // Vérification des droits d'accès
     if (reservation.clientId !== clientId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à modifier cette réservation",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à modifier cette réservation" });
     }
 
     // Vérification que la nouvelle date est postérieure à l'ancienne
     if (newEndDate <= reservation.endDate) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new TRPCError({ code: "BAD_REQUEST",
         message:
-          "La nouvelle date de fin doit être postérieure à la date actuelle",
-      });
+          "La nouvelle date de fin doit être postérieure à la date actuelle" });
     }
 
     // Vérification que la box est disponible pour la période d'extension
@@ -709,10 +619,8 @@ class StorageService {
     );
 
     if (!isAvailable) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "La box n'est pas disponible pour la période d'extension",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "La box n'est pas disponible pour la période d'extension" });
     }
 
     // Calcul du prix supplémentaire
@@ -742,14 +650,12 @@ class StorageService {
       originalEndDate: !reservationWithExtension.originalEndDate
         ? reservation.endDate
         : undefined,
-      extendedCount: { increment: 1 },
-    };
+      extendedCount: { increment: 1 }};
 
     // Mise à jour de la réservation
     await db.reservation.update({
-      where: { id: reservationId },
-      data: updateData,
-    });
+      where: { id },
+      data: updateData});
 
     // Enregistrement de l'action dans l'historique
     await this.logBoxUsage(
@@ -757,8 +663,7 @@ class StorageService {
         boxId: reservation.boxId,
         reservationId: reservation.id,
         actionType: BoxActionType.EXTENDED_RENTAL,
-        details: `Réservation prolongée jusqu'au ${newEndDate.toLocaleDateString()}`,
-      },
+        details: `Réservation prolongée jusqu'au ${newEndDate.toLocaleDateString()}`},
       clientId,
     );
 
@@ -767,33 +672,27 @@ class StorageService {
       additionalDays,
       additionalPrice,
       newTotalPrice,
-      newEndDate,
-    };
+      newEndDate};
   }
 
   // Accès à une box (vérification du code d'accès)
   async accessBox(input: BoxAccessInput, clientId: string) {
-    const { reservationId: _reservationId, accessCode: _accessCode } = input;
+    const { reservationId: reservationId, accessCode: accessCode } = input;
 
     // Récupération de la réservation
     const reservation = await db.reservation.findUnique({
-      where: { id: reservationId },
-      include: { box: true },
-    });
+      where: { id },
+      include: { box }});
 
     if (!reservation) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Réservation introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Réservation introuvable" });
     }
 
     // Vérification des droits d'accès
     if (reservation.clientId !== clientId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à accéder à cette box",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à accéder à cette box" });
     }
 
     // Récupération du code d'accès depuis la base de données
@@ -810,10 +709,8 @@ class StorageService {
 
     // Vérification du code d'accès
     if (accessCodes.length === 0 || accessCodes[0].accessCode !== accessCode) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Code d'accès incorrect",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Code d'accès incorrect" });
     }
 
     // Mise à jour de la date de dernier accès
@@ -829,12 +726,11 @@ class StorageService {
         boxId: reservation.boxId,
         reservationId: reservation.id,
         actionType: BoxActionType.BOX_ACCESSED,
-        details: `Accès à la box le ${new Date().toLocaleString()}`,
-      },
+        details: `Accès à la box le ${new Date().toLocaleString()}`},
       clientId,
     );
 
-    return { success: true };
+    return { success };
   }
 
   // Enregistrement d'une action dans l'historique
@@ -842,7 +738,7 @@ class StorageService {
     // Insertion dans la table d'historique via SQL brut
     await db.$executeRaw`
       INSERT INTO box_usage_history (
-        id, box_id, reservation_id, client_id, action_type,
+        id, boxid, reservation_id, client_id, action_type,
         action_time, details, ip_address, device_info
       )
       VALUES (
@@ -852,7 +748,7 @@ class StorageService {
       )
     `;
 
-    return { success: true };
+    return { success };
   }
 
   // Création ou mise à jour d'une box (admin only)
@@ -860,27 +756,20 @@ class StorageService {
     const isAdmin = await db.user.findFirst({
       where: {
         id: adminId,
-        role: "ADMIN",
-      },
-    });
+        role: "ADMIN"}});
 
     if (!isAdmin) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Action réservée aux administrateurs",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Action réservée aux administrateurs" });
     }
 
     // Vérification que l'entrepôt existe
     const warehouse = await db.warehouse.findUnique({
-      where: { id: input.warehouseId },
-    });
+      where: { id: input.warehouseId }});
 
     if (!warehouse) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Entrepôt introuvable",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Entrepôt introuvable" });
     }
 
     // Informations de base pour la box
@@ -897,22 +786,18 @@ class StorageService {
       maxWeight: input.maxWeight,
       dimensions: input.dimensions,
       features: input.features || [],
-      status: input.status as unknown as string,
-    };
+      status: input.status as unknown as string};
 
     // Mise à jour ou création de la box
     if (input.id) {
       // Mise à jour
       const box = await db.box.update({
         where: { id: input.id },
-        data: boxData,
-      });
+        data: boxData});
       return box;
     } else {
       // Création
-      const box = await db.box.create({
-        data: boxData,
-      });
+      const box = await db.box.create({ data  });
       return box;
     }
   }
@@ -921,16 +806,14 @@ class StorageService {
   async getWarehouseBoxes(warehouseId: string) {
     return db.box.findMany({
       where: { warehouseId },
-      orderBy: [{ name: "asc" }],
-    });
+      orderBy: [{ name: "asc" }]});
   }
 
   // Récupération des entrepôts actifs
   async getActiveWarehouses() {
     return db.warehouse.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-    });
+      where: { isActive },
+      orderBy: { name: "asc" }});
   }
 
   // Récupération des recommandations de box pour un client basées sur son historique
@@ -948,18 +831,12 @@ class StorageService {
       const clientHistory = await db.reservation.findMany({
         where: {
           clientId,
-          status: { in: ["COMPLETED", "ACTIVE"] },
-        },
+          status: { in: ["COMPLETED", "ACTIVE"] }},
         include: {
           box: {
-            include: {
-              warehouse: true,
-            },
-          },
-        },
+            include: { warehouse }}},
         orderBy: { createdAt: "desc" },
-        take: 10,
-      });
+        take: 10});
 
       // Analyser les préférences du client
       const preferences = this.analyzeClientPreferences(clientHistory);
@@ -973,16 +850,11 @@ class StorageService {
         // Recommandations basées sur l'historique
         ...(preferences.preferredBoxTypes.length > 0 && {
           boxType: {
-            in: preferences.preferredBoxTypes as unknown as BoxType[],
-          },
-        }),
+            in: preferences.preferredBoxTypes as unknown as BoxType[]}}),
         ...(preferences.preferredSizeRange && {
           size: {
             gte: preferences.preferredSizeRange.min,
-            lte: preferences.preferredSizeRange.max,
-          },
-        }),
-      };
+            lte: preferences.preferredSizeRange.max}})};
 
       // Si des dates sont spécifiées, vérifier la disponibilité
       if (filters?.startDate && filters?.endDate) {
@@ -994,17 +866,9 @@ class StorageService {
                   OR: [
                     {
                       startDate: { lte: filters.endDate },
-                      endDate: { gte: filters.startDate },
-                    },
-                  ],
-                },
+                      endDate: { gte: filters.startDate }}]},
                 {
-                  status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
-                },
-              ],
-            },
-          },
-        };
+                  status: { in: ["PENDING", "ACTIVE", "EXTENDED"] }}]}}};
       }
 
       // Récupérer les box recommandées
@@ -1017,28 +881,21 @@ class StorageService {
               name: true,
               location: true,
               address: true,
-              description: true,
-            },
-          },
-        },
+              description: true}}},
         orderBy: [{ pricePerDay: "asc" }, { size: "asc" }],
-        take: 20,
-      });
+        take: 20});
 
       return {
         recommendations: recommendedBoxes,
         preferences,
-        total: recommendedBoxes.length,
-      };
-    } catch (_error) {
+        total: recommendedBoxes.length};
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des recommandations:",
         error,
       );
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des recommandations",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des recommandations" });
     }
   }
 
@@ -1050,8 +907,7 @@ class StorageService {
         preferredSizeRange: null,
         preferredPriceRange: null,
         favoriteWarehouses: [],
-        averageReservationDuration: 7,
-      };
+        averageReservationDuration: 7};
     }
 
     // Analyser les types de box préférés
@@ -1099,16 +955,14 @@ class StorageService {
       sizesUsed.length > 0
         ? {
             min: Math.min(...sizesUsed) * 0.8,
-            max: Math.max(...sizesUsed) * 1.2,
-          }
+            max: Math.max(...sizesUsed) * 1.2}
         : null;
 
     const preferredPriceRange =
       pricesUsed.length > 0
         ? {
             min: Math.min(...pricesUsed),
-            max: Math.max(...pricesUsed) * 1.1,
-          }
+            max: Math.max(...pricesUsed) * 1.1}
         : null;
 
     const favoriteWarehouses = Object.entries(warehouseCounts)
@@ -1128,8 +982,7 @@ class StorageService {
       preferredSizeRange,
       preferredPriceRange,
       favoriteWarehouses,
-      averageReservationDuration,
-    };
+      averageReservationDuration};
   }
 
   // Récupérer les statistiques d'un client
@@ -1142,22 +995,16 @@ class StorageService {
           db.reservation.count({
             where: {
               clientId,
-              status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
-            },
-          }),
+              status: { in: ["PENDING", "ACTIVE", "EXTENDED"] }}}),
           db.reservation.count({
             where: {
               clientId,
-              status: "COMPLETED",
-            },
-          }),
-        ]);
+              status: "COMPLETED"}})]);
 
       // Calcul des dépenses totales
       const reservations = await db.reservation.findMany({
         where: { clientId },
-        select: { totalPrice: true, startDate: true, endDate: true },
-      });
+        select: { totalPrice: true, startDate: true, endDate: true }});
 
       const totalSpent = reservations.reduce((sum, r) => sum + r.totalPrice, 0);
       const totalDaysUsed = reservations.reduce((sum, r) => {
@@ -1172,21 +1019,18 @@ class StorageService {
       const boxUsage = await db.reservation.groupBy({
         by: ["boxId"],
         where: { clientId },
-        _count: { boxId: true },
-        orderBy: { _count: { boxId: "desc" } },
-        take: 5,
-      });
+        count: { boxId },
+        orderBy: { count: { boxId: "desc" } },
+        take: 5});
 
       const favoriteBoxes = await Promise.all(
         boxUsage.map(async (usage) => {
           const box = await db.box.findUnique({
             where: { id: usage.boxId },
-            include: { warehouse: true },
-          });
+            include: { warehouse }});
           return {
             box,
-            usageCount: usage._count.boxId,
-          };
+            usageCount: usage.count.boxId};
         }),
       );
 
@@ -1209,18 +1053,14 @@ class StorageService {
           sustainabilityScore: Math.min(
             100,
             Math.round((totalDaysUsed / 365) * 100),
-          ),
-        },
-      };
-    } catch (_error) {
+          )}};
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des statistiques client:",
         error,
       );
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des statistiques",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des statistiques" });
     }
   }
 
@@ -1229,27 +1069,23 @@ class StorageService {
     try {
       // Récupérer la box originale pour connaître ses caractéristiques
       const originalBox = await db.box.findUnique({
-        where: { id: boxId },
-        include: { warehouse: true },
-      });
+        where: { id },
+        include: { warehouse }});
 
       if (!originalBox) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Box non trouvée",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Box non trouvée" });
       }
 
       // Chercher des alternatives similaires
       const alternatives = await db.box.findMany({
         where: {
-          id: { not: boxId },
+          id: { not },
           warehouseId: originalBox.warehouseId, // Même entrepôt en priorité
           isOccupied: false,
           size: {
             gte: originalBox.size * 0.8, // Taille similaire (±20%)
-            lte: originalBox.size * 1.2,
-          },
+            lte: originalBox.size * 1.2},
           pricePerDay: {
             lte: originalBox.pricePerDay * 1.3, // Prix similaire ou inférieur (+30% max)
           },
@@ -1260,42 +1096,28 @@ class StorageService {
                   {
                     OR: [
                       {
-                        startDate: { lte: endDate },
-                        endDate: { gte: startDate },
-                      },
-                    ],
-                  },
+                        startDate: { lte },
+                        endDate: { gte }}]},
                   {
-                    status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
-                  },
-                ],
-              },
-            },
-          },
-        },
-        include: {
-          warehouse: true,
-        },
+                    status: { in: ["PENDING", "ACTIVE", "EXTENDED"] }}]}}}},
+        include: { warehouse },
         orderBy: [{ pricePerDay: "asc" }, { size: "asc" }],
-        take: 10,
-      });
+        take: 10});
 
       // Si pas d'alternatives dans le même entrepôt, chercher dans d'autres entrepôts
       let alternativesOtherWarehouses: any[] = [];
       if (alternatives.length < 3) {
         alternativesOtherWarehouses = await db.box.findMany({
           where: {
-            id: { not: boxId },
+            id: { not },
             warehouseId: { not: originalBox.warehouseId },
             isOccupied: false,
             boxType: originalBox.boxType,
             size: {
               gte: originalBox.size * 0.7,
-              lte: originalBox.size * 1.5,
-            },
+              lte: originalBox.size * 1.5},
             pricePerDay: {
-              lte: originalBox.pricePerDay * 1.5,
-            },
+              lte: originalBox.pricePerDay * 1.5},
             NOT: {
               reservations: {
                 some: {
@@ -1303,25 +1125,13 @@ class StorageService {
                     {
                       OR: [
                         {
-                          startDate: { lte: endDate },
-                          endDate: { gte: startDate },
-                        },
-                      ],
-                    },
+                          startDate: { lte },
+                          endDate: { gte }}]},
                     {
-                      status: { in: ["PENDING", "ACTIVE", "EXTENDED"] },
-                    },
-                  ],
-                },
-              },
-            },
-          },
-          include: {
-            warehouse: true,
-          },
+                      status: { in: ["PENDING", "ACTIVE", "EXTENDED"] }}]}}}},
+          include: { warehouse },
           orderBy: [{ pricePerDay: "asc" }],
-          take: 5,
-        });
+          take: 5});
       }
 
       const allAlternatives = [...alternatives, ...alternativesOtherWarehouses];
@@ -1353,22 +1163,18 @@ class StorageService {
 
         return {
           ...box,
-          compatibilityScore: Math.max(0, Math.round(compatibilityScore)),
-        };
+          compatibilityScore: Math.max(0, Math.round(compatibilityScore))};
       });
 
       return {
         originalBox,
         alternatives: scoredAlternatives
           .sort((a, b) => b.compatibilityScore - a.compatibilityScore)
-          .slice(0, 8),
-      };
-    } catch (_error) {
+          .slice(0, 8)};
+    } catch (error) {
       console.error("Erreur lors de la recherche d'alternatives:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la recherche d'alternatives",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la recherche d'alternatives" });
     }
   }
 
@@ -1381,27 +1187,22 @@ class StorageService {
   }) {
     try {
       const {
-        boxId: _boxId,
-        startDate: _startDate,
-        endDate: _endDate,
-        clientId: _clientId,
-      } = input;
+        boxId: boxId,
+        startDate: startDate,
+        endDate: endDate,
+        clientId: clientId} = input;
 
       // Récupérer la box et l'historique client
       const [box, clientHistory] = await Promise.all([
-        db.box.findUnique({ where: { id: boxId } }),
+        db.box.findUnique({ where: { id } }),
         db.reservation.findMany({
           where: { clientId, status: "COMPLETED" },
           orderBy: { createdAt: "desc" },
-          take: 10,
-        }),
-      ]);
+          take: 10})]);
 
       if (!box) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Box non trouvée",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Box non trouvée" });
       }
 
       // Calcul de base
@@ -1423,8 +1224,7 @@ class StorageService {
         discounts.push({
           type: "LOYALTY",
           amount: discountAmount,
-          description: `Remise fidélité ${Math.round(loyaltyDiscount * 100)}% (${clientHistory.length} réservations)`,
-        });
+          description: `Remise fidélité ${Math.round(loyaltyDiscount * 100)}% (${clientHistory.length} réservations)`});
         finalPrice -= discountAmount;
       }
 
@@ -1435,8 +1235,7 @@ class StorageService {
         discounts.push({
           type: "LONG_TERM",
           amount: discountAmount,
-          description: `Remise longue durée 10% (${days} jours)`,
-        });
+          description: `Remise longue durée 10% (${days} jours)`});
         finalPrice -= discountAmount;
       } else if (days >= 14) {
         const mediumTermDiscount = 0.05; // 5% pour 14 jours ou plus
@@ -1444,8 +1243,7 @@ class StorageService {
         discounts.push({
           type: "MEDIUM_TERM",
           amount: discountAmount,
-          description: `Remise moyenne durée 5% (${days} jours)`,
-        });
+          description: `Remise moyenne durée 5% (${days} jours)`});
         finalPrice -= discountAmount;
       }
 
@@ -1459,8 +1257,7 @@ class StorageService {
         discounts.push({
           type: "EARLY_BIRD",
           amount: discountAmount,
-          description: `Remise réservation anticipée 5% (${daysInAdvance} jours à l'avance)`,
-        });
+          description: `Remise réservation anticipée 5% (${daysInAdvance} jours à l'avance)`});
         finalPrice -= discountAmount;
       }
 
@@ -1482,15 +1279,11 @@ class StorageService {
           basePrice,
           discountedPrice: finalPrice,
           vat: vatAmount,
-          total: totalWithVat,
-        },
-      };
-    } catch (_error) {
+          total: totalWithVat}};
+    } catch (error) {
       console.error("Erreur lors du calcul du prix optimal:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors du calcul du prix",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du calcul du prix" });
     }
   }
 }

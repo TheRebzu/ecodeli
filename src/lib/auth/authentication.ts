@@ -73,8 +73,7 @@ export async function checkPaymentAccessRights(
   if (payment.deliveryId) {
     const delivery = await db.delivery.findUnique({
       where: { id: payment.deliveryId },
-      select: { delivererId: true },
-    });
+      select: { delivererId }});
 
     if (delivery && delivery.delivererId === userId) return;
   }
@@ -83,8 +82,7 @@ export async function checkPaymentAccessRights(
   if (payment.serviceId) {
     const service = await db.service.findUnique({
       where: { id: payment.serviceId },
-      select: { providerId: true },
-    });
+      select: { providerId }});
 
     if (service && service.providerId === userId) return;
   }
@@ -95,9 +93,8 @@ export async function checkPaymentAccessRights(
   // Pour les modérateurs, donner accès aux paiements de leur zone
   if (userRole === "MODERATOR") {
     const moderatorZones = await db.moderatorZone.findMany({
-      where: { moderatorId: userId },
-      select: { zoneId: true },
-    });
+      where: { moderatorId },
+      select: { zoneId }});
 
     const zoneIds = moderatorZones.map((mz: any) => mz.zoneId);
 
@@ -105,18 +102,15 @@ export async function checkPaymentAccessRights(
     if (payment.deliveryId) {
       const delivery = await db.delivery.findUnique({
         where: { id: payment.deliveryId },
-        select: { zoneId: true },
-      });
+        select: { zoneId }});
 
       if (delivery && zoneIds.includes(delivery.zoneId)) return;
     }
   }
 
   // Si aucune condition n'est remplie, l'accès est refusé
-  throw new TRPCError({
-    code: "FORBIDDEN",
-    message: "Vous n'êtes pas autorisé à accéder à ce paiement",
-  });
+  throw new TRPCError({ code: "FORBIDDEN",
+    message: "Vous n'êtes pas autorisé à accéder à ce paiement" });
 }
 
 /**

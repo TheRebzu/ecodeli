@@ -12,8 +12,7 @@ export enum AppointmentStatus {
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
   NO_SHOW = "NO_SHOW",
-  PROVIDER_ABSENT = "PROVIDER_ABSENT",
-}
+  PROVIDER_ABSENT = "PROVIDER_ABSENT"}
 
 export enum RescheduleReason {
   CLIENT_REQUEST = "CLIENT_REQUEST",
@@ -25,8 +24,7 @@ export enum RescheduleReason {
   TRAFFIC_DELAY = "TRAFFIC_DELAY",
   DOUBLE_BOOKING = "DOUBLE_BOOKING",
   LOCATION_ISSUE = "LOCATION_ISSUE",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 export enum CancellationReason {
   CLIENT_CANCELLED = "CLIENT_CANCELLED",
@@ -40,8 +38,7 @@ export enum CancellationReason {
   ILLNESS = "ILLNESS",
   MUTUAL_AGREEMENT = "MUTUAL_AGREEMENT",
   POLICY_VIOLATION = "POLICY_VIOLATION",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 export enum AppointmentNotificationType {
   REMINDER_24H = "REMINDER_24H",
@@ -52,8 +49,7 @@ export enum AppointmentNotificationType {
   CANCELLATION = "CANCELLATION",
   PROVIDER_EN_ROUTE = "PROVIDER_EN_ROUTE",
   ARRIVAL = "ARRIVAL",
-  COMPLETION = "COMPLETION",
-}
+  COMPLETION = "COMPLETION"}
 
 export enum ExceptionType {
   VACATION = "VACATION",
@@ -62,8 +58,7 @@ export enum ExceptionType {
   MAINTENANCE = "MAINTENANCE",
   EMERGENCY = "EMERGENCY",
   PERSONAL = "PERSONAL",
-  CLOSED = "CLOSED",
-}
+  CLOSED = "CLOSED"}
 
 // ===== TYPES DE BASE =====
 

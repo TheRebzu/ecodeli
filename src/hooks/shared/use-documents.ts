@@ -22,11 +22,8 @@ export function useDocuments(
   const {
     data: fetchedDocuments,
     isLoading,
-    refetch: refreshDocuments,
-  } = api.document.getUserDocuments.useQuery({
-    status: filter !== "ALL" ? filter : undefined,
-    userId: userId,
-  });
+    refetch: refreshDocuments} = api.document.getUserDocuments.useQuery({ status: filter !== "ALL" ? filter : undefined,
+    userId: userId });
 
   useEffect(() => {
     if (fetchedDocuments) {
@@ -35,53 +32,44 @@ export function useDocuments(
   }, [fetchedDocuments]);
 
   // Supprimer un document
-  const deleteMutation = api.document.deleteDocument.useMutation({
-    onSuccess: () => {
+  const deleteMutation = api.document.deleteDocument.useMutation({ onSuccess: () => {
       refreshDocuments();
       // Ajout d'une notification de succès pour la suppression
       toast({
         title: t("delete.success.title"),
         description: t("delete.success.description"),
-        variant: "default",
-      });
+        variant: "default" });
     },
     onError: (error) => {
       console.error("Error deleting document:", error);
       toast({
         title: t("delete.error.title"),
         description: `${error.message || t("delete.error.description")}`,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive"});
+    }});
 
   // Télécharger un document
-  const uploadMutation = api.document.uploadDocument.useMutation({
-    onSuccess: (data) => {
+  const uploadMutation = api.document.uploadDocument.useMutation({ onSuccess: (data) => {
       refreshDocuments();
 
       // Ajout d'une notification de succès pour l'upload
       toast({
         title: t("upload.success.title"),
         description: t("upload.success.description"),
-        variant: "default",
-      });
+        variant: "default" });
     },
     onError: (error) => {
       console.error("Error uploading document:", error);
       toast({
         title: t("upload.error.title"),
         description: `${error.message || t("upload.error.description")}`,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive"});
+    }});
 
   // Récupérer les types de documents requis pour l'utilisateur
   const { data: requiredDocuments, isLoading: isLoadingRequired } =
-    api.document.getRequiredDocumentTypes.useQuery({
-      userRole: "DELIVERER", // Spécifique aux livreurs
-    });
+    api.document.getRequiredDocumentTypes.useQuery({ userRole: "DELIVERER", // Spécifique aux livreurs
+     });
 
   // Fonction pour convertir un fichier en base64
   const fileToBase64 = (file: File): Promise<string> => {
@@ -114,11 +102,9 @@ export function useDocuments(
       );
 
       // Utiliser la mutation pour télécharger le document
-      await uploadMutation.mutateAsync({
-        file: base64File, // Envoyer la chaîne base64 au lieu de l'objet File
+      await uploadMutation.mutateAsync({ file: base64File, // Envoyer la chaîne base64 au lieu de l'objet File
         type: type as DocumentType,
-        notes,
-      });
+        notes });
 
       return true;
     } catch (error) {
@@ -130,7 +116,7 @@ export function useDocuments(
   // Fonction pour supprimer un document
   const deleteDocument = async (documentId: string) => {
     try {
-      await deleteMutation.mutateAsync({ documentId });
+      await deleteMutation.mutateAsync({ documentId  });
       return true;
     } catch (error) {
       console.error("Delete error details:", error);
@@ -147,6 +133,5 @@ export function useDocuments(
     refreshDocuments,
     filter,
     setFilter,
-    requiredDocuments: requiredDocuments || [],
-  };
+    requiredDocuments: requiredDocuments || []};
 }

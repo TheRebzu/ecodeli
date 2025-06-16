@@ -5,13 +5,12 @@ import { ProviderSidebar } from "@/components/layout/sidebars/provider-sidebar";
 
 interface ProviderLayoutProps {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
 }
 
 export default async function ProviderLayout({
   children,
-  params,
-}: ProviderLayoutProps) {
+  params}: ProviderLayoutProps) {
   const { locale } = await params;
 
   return (

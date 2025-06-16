@@ -14,29 +14,25 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Search, Filter, MapPin, Euro, Clock } from "lucide-react";
 import { cn } from "@/lib/utils/common";
 
 // Schéma de validation pour la recherche
-const searchSchema = z.object({
-  query: z.string().optional(),
+const searchSchema = z.object({ query: z.string().optional(),
   category: z.string().optional(),
   location: z.string().optional(),
   minPrice: z.string().optional(),
   maxPrice: z.string().optional(),
   availability: z.string().optional(),
-  rating: z.string().optional(),
-});
+  rating: z.string().optional() });
 
 type SearchFormValues = z.infer<typeof searchSchema>;
 
@@ -55,8 +51,7 @@ const SERVICE_CATEGORIES = [
   { value: "painting", label: "Peinture" },
   { value: "maintenance", label: "Maintenance" },
   { value: "beauty", label: "Beauté" },
-  { value: "wellness", label: "Bien-être" },
-];
+  { value: "wellness", label: "Bien-être" }];
 
 // Options de disponibilité
 const AVAILABILITY_OPTIONS = [
@@ -64,8 +59,7 @@ const AVAILABILITY_OPTIONS = [
   { value: "tomorrow", label: "Demain" },
   { value: "this_week", label: "Cette semaine" },
   { value: "next_week", label: "Semaine prochaine" },
-  { value: "flexible", label: "Flexible" },
-];
+  { value: "flexible", label: "Flexible" }];
 
 /**
  * Formulaire de recherche de services
@@ -73,8 +67,7 @@ const AVAILABILITY_OPTIONS = [
 export function ServiceSearchForm({
   onSearch,
   className,
-  defaultValues,
-}: ServiceSearchFormProps) {
+  defaultValues}: ServiceSearchFormProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const t = useTranslations("services.search");
 
@@ -88,24 +81,20 @@ export function ServiceSearchForm({
       maxPrice: "",
       availability: "",
       rating: "",
-      ...defaultValues,
-    },
-  });
+      ...defaultValues}});
 
   const handleSubmit = (values: SearchFormValues) => {
     onSearch(values);
   };
 
   const handleReset = () => {
-    form.reset({
-      query: "",
+    form.reset({ query: "",
       category: "",
       location: "",
       minPrice: "",
       maxPrice: "",
       availability: "",
-      rating: "",
-    });
+      rating: "" });
     onSearch({});
   };
 
@@ -135,7 +124,7 @@ export function ServiceSearchForm({
             <FormField
               control={form.control}
               name="query"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("query")}</FormLabel>
                   <FormControl>
@@ -157,7 +146,7 @@ export function ServiceSearchForm({
             <FormField
               control={form.control}
               name="location"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("location")}</FormLabel>
                   <FormControl>
@@ -181,7 +170,7 @@ export function ServiceSearchForm({
               <FormField
                 control={form.control}
                 name="category"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("category")}</FormLabel>
                     <Select
@@ -215,7 +204,7 @@ export function ServiceSearchForm({
                 <FormField
                   control={form.control}
                   name="minPrice"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <FormLabel>{t("minPrice")}</FormLabel>
                       <FormControl>
@@ -237,7 +226,7 @@ export function ServiceSearchForm({
                 <FormField
                   control={form.control}
                   name="maxPrice"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <FormLabel>{t("maxPrice")}</FormLabel>
                       <FormControl>
@@ -261,7 +250,7 @@ export function ServiceSearchForm({
               <FormField
                 control={form.control}
                 name="availability"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("availability")}</FormLabel>
                     <Select
@@ -293,7 +282,7 @@ export function ServiceSearchForm({
               <FormField
                 control={form.control}
                 name="rating"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("minRating")}</FormLabel>
                     <Select

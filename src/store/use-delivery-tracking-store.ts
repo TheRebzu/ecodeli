@@ -9,8 +9,7 @@ import {
   DeliveryPosition,
   DeliveryTrackingEvent,
   socket,
-  GeoPoint,
-} from "@/socket";
+  GeoPoint} from "@/socket";
 import { debounce, throttle } from "lodash";
 
 // Types pour le store
@@ -179,8 +178,7 @@ const initialMetrics: DeliveryMetrics = {
   remainingTime: 0,
   averageSpeed: 0,
   estimatedTimeOfArrival: null,
-  completionPercentage: 0,
-};
+  completionPercentage: 0};
 
 // Durée de vie du cache en minutes
 const CACHE_EXPIRY_TIME = 60;
@@ -280,7 +278,7 @@ export const useDeliveryTrackingStore = create<
               },
             );
           });
-        } catch (_error) {
+        } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Erreur inconnue";
           set((state) => {
@@ -318,8 +316,7 @@ export const useDeliveryTrackingStore = create<
           if (get().isOffline) {
             const newPosition: DeliveryPosition = {
               ...position,
-              timestamp: new Date(),
-            };
+              timestamp: new Date()};
 
             set((state) => {
               state.currentPosition = newPosition;
@@ -340,14 +337,13 @@ export const useDeliveryTrackingStore = create<
               "update_position",
               {
                 deliveryId,
-                ...position,
-              },
+                ...position},
               (response: { success: boolean; error?: string }) => {
                 resolve(response.success);
               },
             );
           });
-        } catch (_error) {
+        } catch (error) {
           console.error("Erreur lors de la mise à jour de la position:", error);
           return false;
         }
@@ -481,8 +477,7 @@ export const useDeliveryTrackingStore = create<
             description,
             timestamp: new Date(),
             resolved: false,
-            resolutionNotes: null,
-          };
+            resolutionNotes: null};
 
           set((state) => {
             state.reportedIssues.push(newIssue);
@@ -494,14 +489,12 @@ export const useDeliveryTrackingStore = create<
 
         // Signaler le problème via l'API réelle
         try {
-          const response = await api.deliverer.tracking.reportIssue.mutate({
-            deliveryId: get().currentDeliveryId!,
+          const response = await api.deliverer.tracking.reportIssue.mutate({ deliveryId: get().currentDeliveryId!,
             type,
             severity,
-            description,
-          });
+            description });
           return response.success;
-        } catch (_error) {
+        } catch (error) {
           console.error("Erreur lors du signalement du problème:", error);
           return false;
         }
@@ -527,12 +520,10 @@ export const useDeliveryTrackingStore = create<
 
         // Résoudre le problème via l'API réelle
         try {
-          const response = await api.deliverer.tracking.resolveIssue.mutate({
-            issueId,
-            resolutionNotes,
-          });
+          const response = await api.deliverer.tracking.resolveIssue.mutate({ issueId,
+            resolutionNotes });
           return response.success;
-        } catch (_error) {
+        } catch (error) {
           console.error("Erreur lors de la résolution du problème:", error);
           return false;
         }
@@ -559,13 +550,11 @@ export const useDeliveryTrackingStore = create<
           state.lastUpdateTime = null;
           state.isOffline = false;
         });
-      },
-    })),
+      }})),
     {
       name: "delivery-tracking-store",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        // Ne pas persister ces valeurs
+      partialize: (state) => ({ // Ne pas persister ces valeurs
         currentDeliveryId: state.currentDeliveryId,
         deliveryInfo: state.deliveryInfo,
         positionHistory: state.positionHistory.slice(-50), // Limiter le nombre d'entrées
@@ -577,8 +566,7 @@ export const useDeliveryTrackingStore = create<
         reportedIssues: state.reportedIssues,
         metrics: state.metrics,
         lastUpdateTime: state.lastUpdateTime,
-        isOffline: state.isOffline,
-      }),
+        isOffline: state.isOffline }),
       // Vérifier l'expiration du cache
       onRehydrateStorage: () => (state) => {
         if (!state) return;
@@ -593,19 +581,17 @@ export const useDeliveryTrackingStore = create<
           // Le cache a expiré, réinitialiser l'état
           state.reset();
         }
-      },
-    },
+      }},
   ),
 );
 
 // Fonction pour calculer les métriques à partir de l'état
 function calculateMetrics(state: DeliveryTrackingState): DeliveryMetrics {
   const {
-    positionHistory: _positionHistory,
-    currentPosition: _currentPosition,
-    lastEta: _lastEta,
-    deliveryInfo: _deliveryInfo,
-  } = state;
+    positionHistory: positionHistory,
+    currentPosition: currentPosition,
+    lastEta: lastEta,
+    deliveryInfo: deliveryInfo} = state;
 
   // Valeurs par défaut
   const distanceTraveled = 0;
@@ -673,8 +659,7 @@ function calculateMetrics(state: DeliveryTrackingState): DeliveryMetrics {
     remainingTime,
     averageSpeed,
     estimatedTimeOfArrival,
-    completionPercentage,
-  };
+    completionPercentage};
 }
 
 // Configurer les écouteurs d'événements pour le socket
@@ -788,12 +773,10 @@ function handleStatusUpdate(event: any) {
     }
 
     // Ajouter à l'historique des statuts
-    state.statusHistory.push({
-      status: event.status,
+    state.statusHistory.push({ status: event.status,
       previousStatus: event.previousStatus,
       timestamp: new Date(),
-      notes: event.notes || null,
-    });
+      notes: event.notes || null });
 
     state.lastUpdateTime = new Date();
   });
@@ -807,8 +790,7 @@ function handleEtaUpdate(event: any) {
     const etaInfo: EtaInfo = {
       eta: event.eta,
       distance: event.distance,
-      timestamp: new Date(),
-    };
+      timestamp: new Date()};
 
     // Mettre à jour le dernier ETA
     state.lastEta = etaInfo;
@@ -834,8 +816,7 @@ function handleCheckpointReached(event: any) {
       latitude: event.location.coordinates[1], // [long, lat] -> lat
       longitude: event.location.coordinates[0], // [long, lat] -> long
       timestamp: new Date(),
-      notes: null,
-    };
+      notes: null};
 
     // Ajouter le point de passage
     state.checkpoints.push(checkpoint);
@@ -856,8 +837,7 @@ function handleIssueReported(event: any) {
       description: event.description,
       timestamp: new Date(),
       resolved: false,
-      resolutionNotes: null,
-    };
+      resolutionNotes: null};
 
     // Ajouter le problème
     state.reportedIssues.push(issue);
@@ -894,10 +874,8 @@ function handleConnectError(error: Error) {
 // Hook pour obtenir uniquement la position actuelle
 export function useCurrentPosition() {
   return useDeliveryTrackingStore(
-    (state) => ({
-      position: state.currentPosition,
-      lastUpdateTime: state.lastUpdateTime,
-    }),
+    (state) => ({ position: state.currentPosition,
+      lastUpdateTime: state.lastUpdateTime }),
     shallow,
   );
 }
@@ -911,13 +889,11 @@ export function useDeliveryMetrics() {
 // Hook pour obtenir l'état de la connexion
 export function useConnectionState() {
   return useDeliveryTrackingStore(
-    (state) => ({
-      connectionState: state.connectionState,
+    (state) => ({ connectionState: state.connectionState,
       connectionError: state.connectionError,
       isOffline: state.isOffline,
       toggleOfflineMode: state.toggleOfflineMode,
-      reconnect: state.reconnect,
-    }),
+      reconnect: state.reconnect }),
     shallow,
   );
 }
@@ -935,13 +911,11 @@ export function useDeliveryInfo() {
 // Hook pour contrôler le suivi
 export function useDeliveryTracking() {
   return useDeliveryTrackingStore(
-    (state) => ({
-      currentDeliveryId: state.currentDeliveryId,
+    (state) => ({ currentDeliveryId: state.currentDeliveryId,
       startTracking: state.startTracking,
       stopTracking: state.stopTracking,
       refreshDeliveryState: state.refreshDeliveryState,
-      reset: state.reset,
-    }),
+      reset: state.reset }),
     shallow,
   );
 }

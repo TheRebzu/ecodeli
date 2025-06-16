@@ -1,43 +1,35 @@
 import { z } from "zod";
 
 // Schéma de base pour les utilisateurs
-export const baseUserProfileSchema = z.object({
-  name: z
+export const baseUserProfileSchema = z.object({ name: z
     .string()
-    .min(2, { message: "Le nom doit comporter au moins 2 caractères" }),
-  email: z.string().email({ message: "Adresse email invalide" }),
+    .min(2, { message: "Le nom doit comporter au moins 2 caractères"  }),
+  email: z.string().email({ message: "Adresse email invalide"  }),
   phoneNumber: z.string().optional(),
-  image: z.string().optional(),
-});
+  image: z.string().optional()});
 
 // Schéma d'adresse
-export const addressSchema = z.object({
-  id: z.string().optional(),
-  label: z.string().min(1, { message: "Le libellé est requis" }),
+export const addressSchema = z.object({ id: z.string().optional(),
+  label: z.string().min(1, { message: "Le libellé est requis"  }),
   street: z.string().min(1, { message: "La rue est requise" }),
   city: z.string().min(1, { message: "La ville est requise" }),
   state: z.string().optional(),
   postalCode: z.string().min(1, { message: "Le code postal est requis" }),
   country: z.string().min(1, { message: "Le pays est requis" }),
-  isDefault: z.boolean().default(false),
-});
+  isDefault: z.boolean().default(false)});
 
 // Schéma de préférences utilisateur
-export const userPreferencesSchema = z.object({
-  theme: z.enum(["light", "dark", "system"]).optional(),
+export const userPreferencesSchema = z.object({ theme: z.enum(["light", "dark", "system"]).optional(),
   notifications: z
     .object({
       email: z.boolean().default(true),
       push: z.boolean().default(true),
-      sms: z.boolean().default(false),
-    })
+      sms: z.boolean().default(false) })
     .optional(),
-  language: z.string().optional(),
-});
+  language: z.string().optional()});
 
 // Schéma du profil client
-export const clientProfileSchema = baseUserProfileSchema.extend({
-  address: z.string().optional(),
+export const clientProfileSchema = baseUserProfileSchema.extend({ address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
   postalCode: z.string().optional(),
@@ -46,16 +38,14 @@ export const clientProfileSchema = baseUserProfileSchema.extend({
   preferredLanguage: z.string().optional(),
   newsletterOptIn: z.boolean().optional(),
   avatarUrl: z.string().optional(),
-  notificationPrefs: z.record(z.any()).optional(),
-});
+  notificationPrefs: z.record(z.any()).optional() });
 
 // Mise à jour du profil client
 export const updateClientProfileSchema = clientProfileSchema.partial();
 
 // Schéma du profil livreur
-export const delivererProfileSchema = baseUserProfileSchema.extend({
-  address: z.string().optional(),
-  phone: z.string().min(1, { message: "Le numéro de téléphone est requis" }),
+export const delivererProfileSchema = baseUserProfileSchema.extend({ address: z.string().optional(),
+  phone: z.string().min(1, { message: "Le numéro de téléphone est requis"  }),
   vehicleType: z.string().optional(),
   licensePlate: z.string().optional(),
   maxCapacity: z.number().positive().optional(),
@@ -67,17 +57,15 @@ export const delivererProfileSchema = baseUserProfileSchema.extend({
   taxIdentifier: z.string().optional(),
   deliveryPreferences: z.record(z.any()).optional(),
   serviceZones: z.record(z.any()).optional(),
-  availableHours: z.record(z.any()).optional(),
-});
+  availableHours: z.record(z.any()).optional()});
 
 // Mise à jour du profil livreur
 export const updateDelivererProfileSchema = delivererProfileSchema.partial();
 
 // Schéma du profil commerçant
-export const merchantProfileSchema = baseUserProfileSchema.extend({
-  companyName: z
+export const merchantProfileSchema = baseUserProfileSchema.extend({ companyName: z
     .string()
-    .min(1, { message: "Le nom de l'entreprise est requis" }),
+    .min(1, { message: "Le nom de l'entreprise est requis"  }),
   address: z.string().min(1, { message: "L'adresse est requise" }),
   phone: z.string().min(1, { message: "Le numéro de téléphone est requis" }),
   businessType: z.string().optional(),
@@ -104,16 +92,14 @@ export const merchantProfileSchema = baseUserProfileSchema.extend({
     .min(1900)
     .max(new Date().getFullYear())
     .optional(),
-  employeeCount: z.number().int().min(1).optional(),
-});
+  employeeCount: z.number().int().min(1).optional()});
 
 // Mise à jour du profil commerçant
 export const updateMerchantProfileSchema = merchantProfileSchema.partial();
 
 // Schéma du profil prestataire
-export const providerProfileSchema = baseUserProfileSchema.extend({
-  companyName: z.string().optional(),
-  address: z.string().min(1, { message: "L'adresse est requise" }),
+export const providerProfileSchema = baseUserProfileSchema.extend({ companyName: z.string().optional(),
+  address: z.string().min(1, { message: "L'adresse est requise"  }),
   phone: z.string().min(1, { message: "Le numéro de téléphone est requis" }),
   services: z.array(z.string()).optional(),
   serviceType: z.string().optional(),
@@ -128,8 +114,7 @@ export const providerProfileSchema = baseUserProfileSchema.extend({
   workSchedule: z.record(z.any()).optional(),
   serviceFees: z.record(z.any()).optional(),
   cancellationPolicy: z.string().optional(),
-  languages: z.array(z.string()).optional(),
-});
+  languages: z.array(z.string()).optional()});
 
 // Mise à jour du profil prestataire
 export const updateProviderProfileSchema = providerProfileSchema.partial();
@@ -139,8 +124,7 @@ export const profileSchemaMap = {
   CLIENT: updateClientProfileSchema,
   DELIVERER: updateDelivererProfileSchema,
   MERCHANT: updateMerchantProfileSchema,
-  PROVIDER: updateProviderProfileSchema,
-};
+  PROVIDER: updateProviderProfileSchema};
 
 // Types pour TypeScript
 export type BaseUserProfile = z.infer<typeof baseUserProfileSchema>;

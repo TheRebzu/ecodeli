@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -26,8 +25,7 @@ import {
   Home,
   CheckCircle,
   Clock,
-  Shield,
-} from "lucide-react";
+  Shield} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 
 // Types de livraison selon le cahier des charges
@@ -52,12 +50,10 @@ const DELIVERY_TYPES: DeliveryType[] = [
     features: [
       "Prise en charge complète",
       "Suivi en temps réel",
-      "Assurance incluse",
-    ],
+      "Assurance incluse"],
     estimatedTime: "1-2 jours",
     priceRange: "5-25€",
-    popular: true,
-  },
+    popular: true},
   {
     id: "PARTIAL_DELIVERY",
     label: "Livraison partielle",
@@ -65,8 +61,7 @@ const DELIVERY_TYPES: DeliveryType[] = [
     icon: GitBranch,
     features: ["Optimisation des trajets", "Prix réduit", "Écologique"],
     estimatedTime: "2-3 jours",
-    priceRange: "3-15€",
-  },
+    priceRange: "3-15€"},
   {
     id: "FINAL_DISTRIBUTION",
     label: "Distribution finale",
@@ -75,8 +70,7 @@ const DELIVERY_TYPES: DeliveryType[] = [
     features: ["Dernier kilomètre", "Flexible", "Express possible"],
     estimatedTime: "Même jour",
     priceRange: "2-10€",
-    recommended: true,
-  },
+    recommended: true},
   {
     id: "CART_DROP",
     label: "Lâcher de chariot",
@@ -85,11 +79,9 @@ const DELIVERY_TYPES: DeliveryType[] = [
     features: [
       "Directement du magasin",
       "Fraîcheur garantie",
-      "Créneaux horaires",
-    ],
+      "Créneaux horaires"],
     estimatedTime: "2-4h",
-    priceRange: "3-12€",
-  },
+    priceRange: "3-12€"},
   {
     id: "GROCERY_SHOPPING",
     label: "Courses alimentaires",
@@ -97,8 +89,7 @@ const DELIVERY_TYPES: DeliveryType[] = [
     icon: ShoppingBag,
     features: ["Liste personnalisée", "Produits frais", "Choix du livreur"],
     estimatedTime: "3-6h",
-    priceRange: "8-20€",
-  },
+    priceRange: "8-20€"},
   {
     id: "PERSON_TRANSPORT",
     label: "Transport de personnes",
@@ -106,8 +97,7 @@ const DELIVERY_TYPES: DeliveryType[] = [
     icon: Users,
     features: ["Véhicule assuré", "Conducteur vérifié", "Prix fixe"],
     estimatedTime: "Immédiat",
-    priceRange: "10-50€",
-  },
+    priceRange: "10-50€"},
   {
     id: "AIRPORT_TRANSFER",
     label: "Transfert aéroport",
@@ -115,8 +105,7 @@ const DELIVERY_TYPES: DeliveryType[] = [
     icon: Plane,
     features: ["Ponctualité garantie", "Suivi de vol", "Bagages inclus"],
     estimatedTime: "1-2h",
-    priceRange: "20-80€",
-  },
+    priceRange: "20-80€"},
   {
     id: "FOREIGN_PURCHASE",
     label: "Achat à l'étranger",
@@ -124,8 +113,7 @@ const DELIVERY_TYPES: DeliveryType[] = [
     icon: Globe,
     features: ["Produits exclusifs", "Douanes incluses", "Authentification"],
     estimatedTime: "5-15 jours",
-    priceRange: "15-100€",
-  },
+    priceRange: "15-100€"},
   {
     id: "PET_CARE",
     label: "Transport d'animaux",
@@ -134,11 +122,9 @@ const DELIVERY_TYPES: DeliveryType[] = [
     features: [
       "Transporteur qualifié",
       "Bien-être animal",
-      "Assurance spéciale",
-    ],
+      "Assurance spéciale"],
     estimatedTime: "1-3h",
-    priceRange: "15-60€",
-  },
+    priceRange: "15-60€"},
   {
     id: "HOME_SERVICES",
     label: "Services à domicile",
@@ -146,9 +132,7 @@ const DELIVERY_TYPES: DeliveryType[] = [
     icon: Home,
     features: ["Prestataire vérifié", "Devis gratuit", "Garantie qualité"],
     estimatedTime: "1-4h",
-    priceRange: "20-200€",
-  },
-];
+    priceRange: "20-200€"}];
 
 interface DeliveryTypeSelectorProps {
   selectedType?: string;
@@ -158,13 +142,11 @@ interface DeliveryTypeSelectorProps {
   compact?: boolean;
 }
 
-export const DeliveryTypeSelector: React.FC<DeliveryTypeSelectorProps> = ({
-  selectedType,
+export const DeliveryTypeSelector: React.FC<DeliveryTypeSelectorProps> = ({ selectedType,
   onTypeSelect,
   className,
   showPricing = true,
-  compact = false,
-}) => {
+  compact = false }) => {
   const t = useTranslations("announcements");
 
   const handleTypeSelect = (typeId: string) => {

@@ -55,8 +55,7 @@ export const calculateETA = (
 export const geoPointToCoordinates = (geoPoint: GeoPoint): Coordinates => {
   return {
     latitude: geoPoint.coordinates[1],
-    longitude: geoPoint.coordinates[0],
-  };
+    longitude: geoPoint.coordinates[0]};
 };
 
 /**
@@ -65,8 +64,7 @@ export const geoPointToCoordinates = (geoPoint: GeoPoint): Coordinates => {
 export const coordinatesToGeoPoint = (coordinates: Coordinates): GeoPoint => {
   return {
     type: "Point",
-    coordinates: [coordinates.longitude, coordinates.latitude],
-  };
+    coordinates: [coordinates.longitude, coordinates.latitude]};
 };
 
 /**
@@ -96,13 +94,10 @@ export const calculateBounds = (
   return {
     southWest: {
       latitude: center.latitude - latDelta,
-      longitude: center.longitude - lngDelta,
-    },
+      longitude: center.longitude - lngDelta},
     northEast: {
       latitude: center.latitude + latDelta,
-      longitude: center.longitude + lngDelta,
-    },
-  };
+      longitude: center.longitude + lngDelta}};
 };
 
 /**
@@ -167,8 +162,8 @@ export const calculateAverageSpeed = (
     return 30; // Valeur par défaut en km/h
   }
 
-  let totalDistance = 0;
-  let totalTimeInSeconds = 0;
+  const totalDistance = 0;
+  const totalTimeInSeconds = 0;
 
   for (let i = 1; i < positions.length; i++) {
     const prevPos = positions[i - 1];

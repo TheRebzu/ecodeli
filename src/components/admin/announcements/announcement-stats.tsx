@@ -6,8 +6,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+  CardFooter} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,16 +22,14 @@ import {
   Legend,
   LineChart,
   Line,
-  CartesianGrid,
-} from "recharts";
+  CartesianGrid} from "recharts";
 import {
   Package,
   Check,
   AlertTriangle,
   X,
   DollarSign,
-  TrendingUp,
-} from "lucide-react";
+  TrendingUp} from "lucide-react";
 
 interface StatsData {
   totalCount: number;
@@ -53,30 +50,9 @@ export function AnnouncementStats({ data }: AnnouncementStatsProps) {
   const t = useTranslations("admin.announcements");
 
   const typeDistributionData = data.typeDistribution
-    ? Object.entries(data.typeDistribution).map(([key, value]) => ({
-        name: formatAnnouncementType(key, t),
-        value,
-      }))
+    ? Object.entries(data.typeDistribution).map(([key, value]) => ({ name: formatAnnouncementType(key, t),
+        value }))
     : [];
-
-  const statusDistributionData = [
-    {
-      name: t("status.published"),
-      value: data.publishedCount,
-      color: "#6366F1",
-    },
-    { name: t("status.assigned"), value: data.assignedCount, color: "#8B5CF6" },
-    {
-      name: t("status.completed"),
-      value: data.completedCount,
-      color: "#10B981",
-    },
-    {
-      name: t("status.cancelled"),
-      value: data.cancelledCount,
-      color: "#EF4444",
-    },
-  ];
 
   const COLORS = [
     "#6366F1",
@@ -85,8 +61,7 @@ export function AnnouncementStats({ data }: AnnouncementStatsProps) {
     "#10B981",
     "#F59E0B",
     "#EF4444",
-    "#3B82F6",
-  ];
+    "#3B82F6"];
 
   function formatAnnouncementType(type: string, t: any) {
     switch (type) {
@@ -188,8 +163,7 @@ export function AnnouncementStats({ data }: AnnouncementStatsProps) {
                   top: 20,
                   right: 30,
                   left: 20,
-                  bottom: 30,
-                }}
+                  bottom: 30}}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -225,7 +199,7 @@ export function AnnouncementStats({ data }: AnnouncementStatsProps) {
                     fill="#8884d8"
                     dataKey="value"
                     nameKey="name"
-                    label={({ name, percent }) =>
+                    label={({ name, percent  }) =>
                       `${name}: ${(percent * 100).toFixed(0)}%`
                     }
                   >

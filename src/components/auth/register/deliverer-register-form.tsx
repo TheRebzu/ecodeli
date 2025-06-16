@@ -5,8 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import {
   delivererRegisterSchema,
-  DelivererRegisterSchemaType,
-} from "@/schemas/deliverer/deliverer-register.schema";
+  DelivererRegisterSchemaType} from "@/schemas/deliverer/deliverer-register.schema";
 import { UserRole } from "@/schemas/auth/register.schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +14,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
@@ -25,8 +23,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { api } from "@/trpc/react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -35,28 +32,22 @@ type DelivererRegisterFormProps = {
 };
 
 export default function DelivererRegisterForm({
-  locale = "fr",
-}: DelivererRegisterFormProps = {}) {
+  locale = "fr"}: DelivererRegisterFormProps = {}) {
   const router = useRouter();
   const t = useTranslations("auth.register");
   const { toast } = useToast();
 
-  const registerMutation = api.auth.register.useMutation({
-    onSuccess: () => {
+  const registerMutation = api.auth.register.useMutation({ onSuccess: () => {
       toast({
         title: t("success.title"),
-        description: t("success.deliverer"),
-      });
+        description: t("success.deliverer") });
       router.push("/login?registered=true&role=deliverer");
     },
     onError: (error) => {
-      toast({
-        title: t("error.title"),
+      toast({ title: t("error.title"),
         description: error.message || t("error.description"),
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const form = useForm<DelivererRegisterSchemaType>({
     resolver: zodResolver(delivererRegisterSchema) as any,
@@ -76,20 +67,16 @@ export default function DelivererRegisterForm({
       licensePlate: "",
       availableWeekends: false,
       availableNights: false,
-      role: UserRole.DELIVERER,
-    },
-  });
+      role: UserRole.DELIVERER}});
 
   async function onSubmit(data: DelivererRegisterSchemaType) {
     try {
-      await registerMutation.mutateAsync({
-        email: data.email,
+      await registerMutation.mutateAsync({ email: data.email,
         password: data.password,
         name: data.name,
         role: "DELIVERER",
         phone: data.phoneNumber,
-        address: data.address,
-      });
+        address: data.address });
     } catch (error) {
       // L'erreur est déjà gérée par onError
     }
@@ -101,7 +88,7 @@ export default function DelivererRegisterForm({
         <FormField
           control={form.control as any}
           name="name"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.name")}</FormLabel>
               <FormControl>
@@ -115,7 +102,7 @@ export default function DelivererRegisterForm({
         <FormField
           control={form.control as any}
           name="email"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.email")}</FormLabel>
               <FormControl>
@@ -133,7 +120,7 @@ export default function DelivererRegisterForm({
         <FormField
           control={form.control as any}
           name="phone"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.phone")}</FormLabel>
               <FormControl>
@@ -151,7 +138,7 @@ export default function DelivererRegisterForm({
         <FormField
           control={form.control as any}
           name="address"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.address")}</FormLabel>
               <FormControl>
@@ -166,7 +153,7 @@ export default function DelivererRegisterForm({
           <FormField
             control={form.control as any}
             name="city"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.city")}</FormLabel>
                 <FormControl>
@@ -180,7 +167,7 @@ export default function DelivererRegisterForm({
           <FormField
             control={form.control as any}
             name="postalCode"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.postalCode")}</FormLabel>
                 <FormControl>
@@ -199,7 +186,7 @@ export default function DelivererRegisterForm({
           <FormField
             control={form.control as any}
             name="state"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.state")}</FormLabel>
                 <FormControl>
@@ -213,7 +200,7 @@ export default function DelivererRegisterForm({
           <FormField
             control={form.control as any}
             name="country"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.country")}</FormLabel>
                 <FormControl>
@@ -228,7 +215,7 @@ export default function DelivererRegisterForm({
         <FormField
           control={form.control as any}
           name="vehicleType"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.vehicleType")}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -259,7 +246,7 @@ export default function DelivererRegisterForm({
         <FormField
           control={form.control as any}
           name="licensePlate"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.licensePlate")}</FormLabel>
               <FormControl>
@@ -276,7 +263,7 @@ export default function DelivererRegisterForm({
         <FormField
           control={form.control as any}
           name="password"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.password")}</FormLabel>
               <FormControl>
@@ -294,7 +281,7 @@ export default function DelivererRegisterForm({
         <FormField
           control={form.control as any}
           name="confirmPassword"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.confirmPassword")}</FormLabel>
               <FormControl>
@@ -313,7 +300,7 @@ export default function DelivererRegisterForm({
           <FormField
             control={form.control as any}
             name="availableWeekends"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox
@@ -331,7 +318,7 @@ export default function DelivererRegisterForm({
           <FormField
             control={form.control as any}
             name="availableNights"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox

@@ -5,8 +5,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Users,
@@ -17,8 +16,7 @@ import {
   TrendingDown,
   Star,
   Truck,
-  MapPin,
-} from "lucide-react";
+  MapPin} from "lucide-react";
 
 interface DeliverersStatsProps {
   data?: {
@@ -47,8 +45,7 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const getGrowthIcon = (rate: number | undefined) => {
@@ -81,8 +78,7 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
     vehicledDeliverers: 0,
     topPerformers: [],
     growthRate: 0,
-    activeZones: 0,
-  };
+    activeZones: 0};
 
   // Extraire les données de la bonne propriété
   let actualData: any = data;
@@ -103,8 +99,7 @@ export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
   // Protection supplémentaire : s'assurer que toutes les propriétés existent
   const safeStatsData = {
     ...defaultData,
-    ...statsData,
-  };
+    ...statsData};
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

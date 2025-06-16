@@ -77,8 +77,7 @@ export function ReviewList({
   onDelete,
   onReport,
   onVote,
-  onCreateNew,
-}: ReviewListProps) {
+  onCreateNew}: ReviewListProps) {
   const t = useTranslations("reviews");
 
   if (isLoading) {

@@ -8,8 +8,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -17,8 +16,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
@@ -33,8 +31,7 @@ import { useTranslations } from "next-intl";
  * Composant pour afficher la liste des utilisateurs avec des documents à vérifier
  */
 export function PendingUserVerifications({
-  userRole = "DELIVERER",
-}: {
+  userRole = "DELIVERER"}: {
   userRole?: string;
 }) {
   const router = useRouter();
@@ -44,10 +41,8 @@ export function PendingUserVerifications({
   const PAGE_SIZE = 10;
 
   // 🔧 FIX: Utiliser l'API adminUser qui fonctionne au lieu de l'API verification défaillante
-  const { data: usersData, isLoading } = api.adminUser.getUsers.useQuery({
-    page: 1,
-    limit: 100,
-  });
+  const { data: usersData, isLoading } = api.adminUser.getUsers.useQuery({ page: 1,
+    limit: 100 });
 
   // Filtrer les utilisateurs par rôle et simuler des documents en attente
   const allUsers = usersData?.json?.users || [];
@@ -56,7 +51,7 @@ export function PendingUserVerifications({
   // Pour cette démo, on simule que certains utilisateurs ont des documents en attente
   const usersWithPendingDocs = roleUsers
     .filter((user: any) => !user.isVerified) // Utilisateurs non vérifiés
-    .slice(0, PAGE_SIZE); // Limiter à PAGE_SIZE résultats
+    .slice(0, PAGESIZE); // Limiter à PAGE_SIZE résultats
 
   // Simuler la structure de données attendue
   const pendingVerificationsData = {
@@ -69,13 +64,9 @@ export function PendingUserVerifications({
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
-      },
-    })),
+        role: user.role}})),
     meta: {
-      pages: 1,
-    },
-  };
+      pages: 1}};
 
   // Grouper les documents par utilisateur
   const usersWithDocuments =
@@ -84,8 +75,7 @@ export function PendingUserVerifications({
         if (!acc[doc.userId]) {
           acc[doc.userId] = {
             user: doc.user,
-            documents: [],
-          };
+            documents: []};
         }
         acc[doc.userId].documents.push(doc);
         return acc;
@@ -211,9 +201,7 @@ export function PendingUserVerifications({
                   </div>
                 </TableCell>
                 <TableCell>
-                  {format(new Date(item.documents[0].uploadedAt), "PPP", {
-                    locale: fr,
-                  })}
+                  {format(new Date(item.documents[0].uploadedAt), "PPP", { locale })}
                 </TableCell>
                 <TableCell>
                   <Button

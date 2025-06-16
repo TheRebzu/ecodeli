@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -21,8 +20,7 @@ import {
   TrendingDown,
   Gift,
   Info,
-  Check,
-} from "lucide-react";
+  Check} from "lucide-react";
 import { api } from "@/trpc/react";
 
 type OptimalPricingCalculatorProps = {
@@ -38,25 +36,21 @@ export function OptimalPricingCalculator({
   startDate,
   endDate,
   onPriceCalculated,
-  className = "",
-}: OptimalPricingCalculatorProps) {
-  const { data: session } = useSession();
+  className = ""}: OptimalPricingCalculatorProps) {
+  const { data } = useSession();
 
   // Calcul du prix optimal
   const {
     data: pricing,
     isLoading,
-    error,
-  } = api.storage.calculateOptimalPricing.useQuery(
+    error} = api.storage.calculateOptimalPricing.useQuery(
     {
       boxId,
       startDate,
-      endDate,
-    },
+      endDate},
     {
       enabled: !!session?.user?.id && !!boxId && !!startDate && !!endDate,
-      refetchOnWindowFocus: false,
-    },
+      refetchOnWindowFocus: false},
   );
 
   useEffect(() => {

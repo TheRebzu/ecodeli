@@ -7,8 +7,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -51,27 +50,21 @@ export function ProviderSchedule() {
     data: scheduleData,
     isLoading,
     error,
-    refetch,
-  } = api.provider.getSchedule.useQuery();
+    refetch} = api.provider.getSchedule.useQuery();
 
   // Mutation pour sauvegarder le planning
-  const updateScheduleMutation = api.provider.updateSchedule.useMutation({
-    onSuccess: () => {
+  const updateScheduleMutation = api.provider.updateSchedule.useMutation({ onSuccess: () => {
       toast({
         title: "Planning sauvegardé",
-        description: "Vos disponibilités ont été mises à jour avec succès",
-      });
+        description: "Vos disponibilités ont été mises à jour avec succès" });
       setHasChanges(false);
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message || "Impossible de sauvegarder le planning",
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   // États locaux initialisés à partir des données API
   const [weeklySchedule, setWeeklySchedule] = useState<TimeSlot[]>([
@@ -89,13 +82,11 @@ export function ProviderSchedule() {
   // Mise à jour des états quand les données arrivent
   useEffect(() => {
     if (scheduleData?.availability && scheduleData.availability.length > 0) {
-      const apiSchedule = scheduleData.availability.map((slot: any) => ({
-        day: slot.dayOfWeek,
+      const apiSchedule = scheduleData.availability.map((slot: any) => ({ day: slot.dayOfWeek,
         startTime: slot.startTime,
         endTime: slot.endTime,
         isAvailable: slot.isAvailable,
-        zones: scheduleData.zones || [],
-      }));
+        zones: scheduleData.zones || [] }));
       
       // Merger avec les jours manquants
       const allDays = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
@@ -181,16 +172,13 @@ export function ProviderSchedule() {
       setHasChanges(true);
       toast({
         title: "Modèle appliqué",
-        description: `Le modèle "${preset.name}" a été appliqué à votre planning`,
-      });
+        description: `Le modèle "${preset.name}" a été appliqué à votre planning`});
     }
   };
 
   const handleSave = async () => {
     try {
-      await updateScheduleMutation.mutateAsync({
-        schedule: weeklySchedule,
-      });
+      await updateScheduleMutation.mutateAsync({ schedule  });
     } catch (error) {
       // L'erreur est gérée dans onError
     }
@@ -297,7 +285,7 @@ export function ProviderSchedule() {
                         <Select 
                           value={slot.startTime} 
                           onValueChange={(value) => 
-                            updateTimeSlot(slot.day, { startTime: value })
+                            updateTimeSlot(slot.day, { startTime })
                           }
                         >
                           <SelectTrigger className="w-[100px]">
@@ -318,7 +306,7 @@ export function ProviderSchedule() {
                         <Select 
                           value={slot.endTime} 
                           onValueChange={(value) => 
-                            updateTimeSlot(slot.day, { endTime: value })
+                            updateTimeSlot(slot.day, { endTime })
                           }
                         >
                           <SelectTrigger className="w-[100px]">

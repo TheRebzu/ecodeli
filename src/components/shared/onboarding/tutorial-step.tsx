@@ -7,8 +7,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { cn } from "@/lib/utils/common";
 import Image from "next/image";
 
@@ -27,8 +26,7 @@ export function TutorialStep({
   image,
   children,
   footer,
-  className,
-}: TutorialStepProps) {
+  className}: TutorialStepProps) {
   return (
     <Card className={cn("w-full", className)}>
       <CardHeader>

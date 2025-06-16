@@ -61,7 +61,7 @@ export const PdfService = {
     return new Promise((resolve, reject) => {
       try {
         // Initialiser le document PDF
-        const doc = new PDFDocument({ margin: 50 });
+        const doc = new PDFDocument({ margin: 50  });
 
         // Récupérer les données
         const {
@@ -75,8 +75,7 @@ export const PdfService = {
           tax,
           total,
           currency,
-          notes,
-        } = data;
+          notes} = data;
 
         // Convertir le stream en buffer
         const buffers: Buffer[] = [];
@@ -93,8 +92,7 @@ export const PdfService = {
           date,
           dueDate,
           customerName,
-          customerEmail,
-        });
+          customerEmail});
         this.generateInvoiceTable(doc, items, subtotal, tax, total, currency);
 
         // Notes
@@ -109,7 +107,7 @@ export const PdfService = {
 
         // Finaliser le PDF
         doc.end();
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur lors de la génération du PDF:", error);
         reject(error);
       }
@@ -267,8 +265,7 @@ export const PdfService = {
         700,
         {
           align: "center",
-          width: 500,
-        },
+          width: 500},
       );
   },
 
@@ -338,7 +335,7 @@ export const PdfService = {
     return new Promise((resolve, reject) => {
       try {
         // Initialiser le document PDF
-        const doc = new PDFDocument({ margin: 50 });
+        const doc = new PDFDocument({ margin: 50  });
 
         // Récupérer les données
         const { title, subtitle, dateRange, summary, tables, charts, notes } =
@@ -379,7 +376,7 @@ export const PdfService = {
 
         // Finaliser le PDF
         doc.end();
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur lors de la génération du rapport PDF:", error);
         reject(error);
       }
@@ -520,8 +517,7 @@ export const PdfService = {
         const x = 50 + cellIndex * columnWidth;
         doc.text(cell.toString(), x, tableY, {
           width: columnWidth - 10,
-          align: "left",
-        });
+          align: "left"});
       });
 
       tableY += 20;
@@ -562,8 +558,7 @@ export const PdfService = {
       subtitle: "Analyse des revenus et transactions",
       dateRange: {
         startDate: new Date(filters.startDate),
-        endDate: new Date(filters.endDate),
-      },
+        endDate: new Date(filters.endDate)},
       summary: [
         {
           label: "Revenus totaux",
@@ -571,20 +566,16 @@ export const PdfService = {
             salesData.totals?.totalRevenue || 0,
             "EUR",
           ),
-          change: salesData.revenueGrowth,
-        },
+          change: salesData.revenueGrowth},
         {
           label: "Transactions",
-          value: salesData.totals?.totalTransactions || 0,
-        },
+          value: salesData.totals?.totalTransactions || 0},
         {
           label: "Valeur moyenne",
           value: this.formatCurrency(
             salesData.totals?.avgOrderValue || 0,
             "EUR",
-          ),
-        },
-      ],
+          )}],
       tables: [
         {
           title: "Revenus par période",
@@ -593,9 +584,7 @@ export const PdfService = {
             salesData.timeSeriesData?.map((item: any) => [
               item.period,
               this.formatCurrency(item.revenue, "EUR"),
-              item.transactions,
-            ]) || [],
-        },
+              item.transactions]) || []},
         {
           title: "Revenus par catégorie",
           headers: ["Catégorie", "Revenus", "Transactions"],
@@ -603,15 +592,11 @@ export const PdfService = {
             salesData.categoryBreakdown?.map((item: any) => [
               item.category,
               this.formatCurrency(item.revenue, "EUR"),
-              item.transactions,
-            ]) || [],
-        },
-      ],
+              item.transactions]) || []}],
       notes: `Rapport généré avec les filtres suivants: 
 Période: ${this.formatDate(new Date(filters.startDate))} - ${this.formatDate(new Date(filters.endDate))}
 Granularité: ${filters.granularity || "jour"}
-${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ""}`,
-    };
+${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ""}`};
 
     return this.generateReportPdf(reportData);
   },
@@ -628,23 +613,18 @@ ${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ""}`,
       subtitle: "Analyse des temps de livraison et taux de réussite",
       dateRange: {
         startDate: new Date(filters.startDate),
-        endDate: new Date(filters.endDate),
-      },
+        endDate: new Date(filters.endDate)},
       summary: [
         {
           label: "Livraisons totales",
-          value: deliveryData.summary?.totalDeliveries || 0,
-        },
+          value: deliveryData.summary?.totalDeliveries || 0},
         {
           label: "Taux de ponctualité",
           value: `${deliveryData.summary?.onTimePercentage?.toFixed(1) || 0}%`,
-          change: deliveryData.summary?.performanceChange,
-        },
+          change: deliveryData.summary?.performanceChange},
         {
           label: "Temps moyen",
-          value: `${Math.round(deliveryData.summary?.avgDeliveryTime || 0)} min`,
-        },
-      ],
+          value: `${Math.round(deliveryData.summary?.avgDeliveryTime || 0)} min`}],
       tables: [
         {
           title: "Performance par période",
@@ -653,35 +633,27 @@ ${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ""}`,
             "Total",
             "À temps",
             "Taux (%)",
-            "Temps moyen (min)",
-          ],
+            "Temps moyen (min)"],
           rows:
             deliveryData.timeSeriesData?.map((item: any) => [
               item.period,
               item.totalDeliveries,
               item.onTimeDeliveries,
               ((item.onTimeDeliveries / item.totalDeliveries) * 100).toFixed(1),
-              Math.round(item.avgDeliveryTime || 0),
-            ]) || [],
-        },
+              Math.round(item.avgDeliveryTime || 0)]) || []},
         {
           title: "Performance par zone",
           headers: [
             "Zone",
             "Livraisons",
             "Taux à temps (%)",
-            "Temps moyen (min)",
-          ],
+            "Temps moyen (min)"],
           rows:
             deliveryData.zonePerformance?.map((item: any) => [
               item.zone,
               item.deliveryCount,
               ((item.onTimeCount / item.deliveryCount) * 100).toFixed(1),
-              Math.round(item.avgTime || 0),
-            ]) || [],
-        },
-      ],
-    };
+              Math.round(item.avgTime || 0)]) || []}]};
 
     return this.generateReportPdf(reportData);
   },
@@ -698,23 +670,18 @@ ${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ""}`,
       subtitle: "Analyse des inscriptions et engagement",
       dateRange: {
         startDate: new Date(filters.startDate),
-        endDate: new Date(filters.endDate),
-      },
+        endDate: new Date(filters.endDate)},
       summary: [
         {
           label: "Nouveaux utilisateurs",
           value: userData.summary?.totalSignups || 0,
-          change: userData.summary?.signupsGrowth,
-        },
+          change: userData.summary?.signupsGrowth},
         {
           label: "Utilisateurs actifs",
-          value: userData.summary?.activeUsers || 0,
-        },
+          value: userData.summary?.activeUsers || 0},
         {
           label: "Taux de rétention",
-          value: `${userData.summary?.retentionRate?.toFixed(1) || 0}%`,
-        },
-      ],
+          value: `${userData.summary?.retentionRate?.toFixed(1) || 0}%`}],
       tables: [
         {
           title: "Inscriptions par période",
@@ -723,17 +690,14 @@ ${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ""}`,
             "Nouveaux utilisateurs",
             "Clients",
             "Livreurs",
-            "Marchands",
-          ],
+            "Marchands"],
           rows:
             userData.signupsTimeSeriesData?.map((item: any) => [
               item.period,
               item.signups,
               item.clients || 0,
               item.deliverers || 0,
-              item.merchants || 0,
-            ]) || [],
-        },
+              item.merchants || 0]) || []},
         {
           title: "Répartition par rôle",
           headers: ["Rôle", "Nombre d'utilisateurs", "Pourcentage"],
@@ -746,13 +710,8 @@ ${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ""}`,
               return [
                 item.role,
                 item.count,
-                `${((item.count / total) * 100).toFixed(1)}%`,
-              ];
-            }) || [],
-        },
-      ],
-    };
+                `${((item.count / total) * 100).toFixed(1)}%`];
+            }) || []}]};
 
     return this.generateReportPdf(reportData);
-  },
-};
+  }};

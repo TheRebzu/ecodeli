@@ -17,8 +17,7 @@ interface UseServiceBookingProps {
  */
 export function useServiceBooking({
   serviceId,
-  providerId,
-}: UseServiceBookingProps = {}) {
+  providerId}: UseServiceBookingProps = {}) {
   const router = useRouter();
   const utils = api.useUtils();
   const t = useTranslations("service.booking");
@@ -40,11 +39,9 @@ export function useServiceBooking({
     {
       serviceId: serviceId || "",
       providerId: providerId || "",
-      date: selectedDate ? formatDateForApi(selectedDate) : "",
-    },
+      date: selectedDate ? formatDateForApi(selectedDate) : ""},
     {
-      enabled: Boolean(serviceId && providerId && selectedDate),
-    },
+      enabled: Boolean(serviceId && providerId && selectedDate)},
   );
 
   // Détails du service
@@ -64,8 +61,7 @@ export function useServiceBooking({
       toast.error(
         error.message || "Erreur lors de la création de la réservation",
       );
-    },
-  });
+    }});
 
   const updateBookingStatusMutation =
     api.service.updateBookingStatus.useMutation({
@@ -79,8 +75,7 @@ export function useServiceBooking({
         toast.error(
           error.message || "Erreur lors de la mise à jour de la réservation",
         );
-      },
-    });
+      }});
 
   const rescheduleBookingMutation = api.service.rescheduleBooking.useMutation({
     onSuccess: () => {
@@ -93,8 +88,7 @@ export function useServiceBooking({
       toast.error(
         error.message || "Erreur lors de la reprogrammation de la réservation",
       );
-    },
-  });
+    }});
 
   const createReviewMutation = api.service.createReview.useMutation({
     onSuccess: () => {
@@ -108,8 +102,7 @@ export function useServiceBooking({
       toast.error(
         error.message || "Erreur lors de la création de l'évaluation",
       );
-    },
-  });
+    }});
 
   // Fonctions
   const handleDateChange = (date: Date | null) => {
@@ -131,21 +124,17 @@ export function useServiceBooking({
       return;
     }
 
-    createBookingMutation.mutate({
-      serviceId,
+    createBookingMutation.mutate({ serviceId,
       providerId,
       date: formatDateForApi(selectedDate),
       startTime: selectedTimeSlot,
-      notes: notes || undefined,
-    });
+      notes: notes || undefined });
   };
 
   const cancelBooking = (bookingId: string) => {
     if (confirm("Êtes-vous sûr de vouloir annuler cette réservation ?")) {
-      updateBookingStatusMutation.mutate({
-        id: bookingId,
-        status: "CANCELLED",
-      });
+      updateBookingStatusMutation.mutate({ id: bookingId,
+        status: "CANCELLED" });
     }
   };
 
@@ -154,11 +143,9 @@ export function useServiceBooking({
     date: Date,
     timeSlot: string,
   ) => {
-    rescheduleBookingMutation.mutate({
-      id: bookingId,
+    rescheduleBookingMutation.mutate({ id: bookingId,
       date: formatDateForApi(date),
-      startTime: timeSlot,
-    });
+      startTime: timeSlot });
   };
 
   const createReview = (
@@ -166,11 +153,9 @@ export function useServiceBooking({
     rating: number,
     comment?: string,
   ) => {
-    createReviewMutation.mutate({
-      bookingId,
+    createReviewMutation.mutate({ bookingId,
       rating,
-      comment,
-    });
+      comment });
   };
 
   // Fonctions utilitaires
@@ -225,6 +210,5 @@ export function useServiceBooking({
     // Utilitaires
     getStatusLabel,
     getStatusColor,
-    formatLocalizedDate,
-  };
+    formatLocalizedDate};
 }

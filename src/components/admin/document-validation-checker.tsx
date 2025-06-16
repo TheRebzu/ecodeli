@@ -6,8 +6,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+  CardDescription} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -17,8 +16,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle } from "lucide-react";
@@ -32,8 +30,7 @@ import {
   RefreshCw,
   Search,
   FileText,
-  User,
-} from "lucide-react";
+  User} from "lucide-react";
 
 export default function DocumentValidationChecker() {
   const [userId, setUserId] = useState("");
@@ -63,8 +60,7 @@ export default function DocumentValidationChecker() {
       onSuccess: () => {
         checkStatusQuery.refetch();
         compareLogicQuery.refetch();
-      },
-    });
+      }});
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -86,9 +82,7 @@ export default function DocumentValidationChecker() {
       APPROVED: "default",
       REJECTED: "destructive",
       EXPIRED: "secondary",
-      PENDING: "outline",
-      NOT_SUBMITTED: "outline",
-    } as const;
+      PENDING: "outline", NOT_SUBMITTED: "outline"} as const;
 
     return (
       <Badge variant={variants[status as keyof typeof variants] || "outline"}>
@@ -229,7 +223,7 @@ export default function DocumentValidationChecker() {
 
                     <Button
                       onClick={() =>
-                        forceUpdateMutation.mutate({ userId, userRole })
+                        forceUpdateMutation.mutate({ userId, userRole  })
                       }
                       disabled={forceUpdateMutation.isPending}
                       className="w-full"

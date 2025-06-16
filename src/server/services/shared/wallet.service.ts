@@ -24,8 +24,7 @@ import {
   startOfDay,
   startOfMonth,
   endOfMonth,
-  subMonths,
-} from "date-fns";
+  subMonths} from "date-fns";
 
 /**
  * Service de gestion des portefeuilles virtuels
@@ -36,8 +35,7 @@ export const walletService = {
    */
   async getOrCreateWallet(userId: string) {
     const wallet = await db.wallet.findUnique({
-      where: { userId },
-    });
+      where: { userId }});
 
     if (!wallet) {
       wallet = await db.wallet.create({
@@ -49,9 +47,7 @@ export const walletService = {
           minimumWithdrawalAmount: new Decimal(10),
           totalEarned: new Decimal(0),
           totalWithdrawn: new Decimal(0),
-          earningsThisMonth: new Decimal(0),
-        },
-      });
+          earningsThisMonth: new Decimal(0)}});
     }
 
     return wallet;
@@ -62,14 +58,11 @@ export const walletService = {
    */
   async getWallet(userId: string) {
     const wallet = await db.wallet.findUnique({
-      where: { userId },
-    });
+      where: { userId }});
 
     if (!wallet) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Portefeuille non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Portefeuille non trouvé" });
     }
 
     return wallet;
@@ -80,26 +73,19 @@ export const walletService = {
    */
   async getWalletBalance(walletId: string) {
     const wallet = await db.wallet.findUnique({
-      where: { id: walletId },
-    });
+      where: { id }});
 
     if (!wallet) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Portefeuille non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Portefeuille non trouvé" });
     }
 
     // Calculer le solde en attente (retraits en cours)
     const pendingWithdrawals = await db.withdrawalRequest.aggregate({
       where: {
         walletId,
-        status: "PENDING",
-      },
-      _sum: {
-        amount: true,
-      },
-    });
+        status: "PENDING"},
+      sum: { amount }});
 
     // Calcul des transactions du mois en cours
     const currentMonth = new Date();
@@ -113,16 +99,11 @@ export const walletService = {
         status: "COMPLETED",
         createdAt: {
           gte: firstDayOfMonth,
-          lte: lastDayOfMonth,
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
+          lte: lastDayOfMonth}},
+      sum: { amount }});
 
     // Obtenir le solde disponible (hors retraits en attente)
-    const pendingAmount = pendingWithdrawals._sum.amount ?? new Decimal(0);
+    const pendingAmount = pendingWithdrawals.sum.amount ?? new Decimal(0);
     const availableBalance = wallet.balance.sub(pendingAmount);
 
     return {
@@ -130,12 +111,11 @@ export const walletService = {
       available: availableBalance,
       pending: pendingAmount,
       currency: wallet.currency,
-      earningsThisMonth: thisMonthEarnings._sum.amount ?? new Decimal(0),
+      earningsThisMonth: thisMonthEarnings.sum.amount ?? new Decimal(0),
       totalEarned: wallet.totalEarned,
       totalWithdrawn: wallet.totalWithdrawn,
       lastUpdated: wallet.lastTransactionAt || wallet.updatedAt,
-      minimumWithdrawalAmount: wallet.minimumWithdrawalAmount,
-    };
+      minimumWithdrawalAmount: wallet.minimumWithdrawalAmount};
   },
 
   /**
@@ -158,8 +138,7 @@ export const walletService = {
       type,
       startDate,
       endDate,
-      status = "COMPLETED",
-    } = options;
+      status = "COMPLETED"} = options;
 
     const skip = (page - 1) * limit;
 
@@ -187,7 +166,7 @@ export const walletService = {
     }
 
     // Compter le nombre total de transactions
-    const totalCount = await db.walletTransaction.count({ where });
+    const totalCount = await db.walletTransaction.count({ where  });
 
     // Récupérer les transactions
     const transactions = await db.walletTransaction.findMany({
@@ -200,25 +179,17 @@ export const walletService = {
           select: {
             id: true,
             trackingNumber: true,
-            currentStatus: true,
-          },
-        },
+            currentStatus: true}},
         service: {
           select: {
             id: true,
             name: true,
-            type: true,
-          },
-        },
+            type: true}},
         payment: {
           select: {
             id: true,
             status: true,
-            description: true,
-          },
-        },
-      },
-    });
+            description: true}}}});
 
     return {
       transactions,
@@ -226,9 +197,7 @@ export const walletService = {
         total: totalCount,
         pages: Math.ceil(totalCount / limit),
         page,
-        limit,
-      },
-    };
+        limit}};
   },
 
   /**
@@ -250,22 +219,17 @@ export const walletService = {
     const decimalAmount = new Decimal(data.amount);
 
     const wallet = await db.wallet.findUnique({
-      where: { id: walletId },
-    });
+      where: { id }});
 
     if (!wallet) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Portefeuille non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Portefeuille non trouvé" });
     }
 
     // Vérifier si le solde serait négatif après une opération de débit
     if (decimalAmount.lt(0) && wallet.balance.add(decimalAmount).lt(0)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Solde insuffisant pour cette opération",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Solde insuffisant pour cette opération" });
     }
 
     // Calculer le nouveau solde
@@ -302,20 +266,16 @@ export const walletService = {
           currency: wallet.currency,
           deliveryId: data.deliveryId,
           serviceId: data.serviceId,
-          paymentId: data.paymentId,
-        },
-      });
+          paymentId: data.paymentId}});
 
       await tx.wallet.update({
-        where: { id: walletId },
+        where: { id },
         data: {
           balance: newBalance,
           lastTransactionAt: new Date(),
           earningsThisMonth,
           totalEarned,
-          totalWithdrawn,
-        },
-      });
+          totalWithdrawn}});
 
       // Enregistrer dans les logs d'audit
       await tx.auditLog.create({
@@ -328,10 +288,7 @@ export const walletService = {
             amount: decimalAmount.toString(),
             previousBalance: previousBalance.toString(),
             newBalance: newBalance.toString(),
-            description: data.description,
-          },
-        },
-      });
+            description: data.description}}});
 
       return transaction;
     });
@@ -354,8 +311,7 @@ export const walletService = {
       method = "BANK_TRANSFER",
       accountDetails = {},
       expedited = false,
-      notes = "",
-    } = options;
+      notes = ""} = options;
 
     const wallet = await this.getWallet(userId);
 
@@ -363,24 +319,19 @@ export const walletService = {
 
     // Vérifications
     if (withdrawalAmount.lte(0)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Le montant du retrait doit être positif",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Le montant du retrait doit être positif" });
     }
 
     if (withdrawalAmount.lt(wallet.minimumWithdrawalAmount)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: `Le montant minimum de retrait est de ${wallet.minimumWithdrawalAmount} ${wallet.currency}`,
-      });
+        message: `Le montant minimum de retrait est de ${wallet.minimumWithdrawalAmount} ${wallet.currency}`});
     }
 
     if (withdrawalAmount.gt(wallet.balance)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Solde insuffisant pour ce retrait",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Solde insuffisant pour ce retrait" });
     }
 
     // Calculer la date estimée d'arrivée selon si c'est accéléré ou non
@@ -404,9 +355,7 @@ export const walletService = {
           reference,
           estimatedArrival,
           accountDetails: accountDetails,
-          notes,
-        },
-      });
+          notes}});
 
       // Enregistrer dans les logs d'audit
       await tx.auditLog.create({
@@ -419,10 +368,7 @@ export const walletService = {
             amount: withdrawalAmount.toString(),
             method,
             status: "PENDING",
-            expedited: expedited.toString(),
-          },
-        },
-      });
+            expedited: expedited.toString()}}});
 
       return withdrawalRequest;
     });
@@ -441,29 +387,23 @@ export const walletService = {
     },
   ) {
     const {
-      adminId: _adminId,
-      comments: _comments,
-      transferReference: _transferReference,
-    } = options;
+      adminId: adminId,
+      comments: comments,
+      transferReference: transferReference} = options;
     const approved = action === "approve";
 
     const withdrawal = await db.withdrawalRequest.findUnique({
-      where: { id: withdrawalId },
-      include: { wallet: true },
-    });
+      where: { id },
+      include: { wallet }});
 
     if (!withdrawal) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Demande de retrait non trouvée",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Demande de retrait non trouvée" });
     }
 
     if (withdrawal.status !== "PENDING") {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cette demande a déjà été traitée",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Cette demande a déjà été traitée" });
     }
 
     if (approved) {
@@ -475,9 +415,7 @@ export const walletService = {
         metadata: {
           withdrawalId,
           processorId: adminId,
-          comments,
-        },
-      });
+          comments}});
 
       // Créer un transfert bancaire réel
       await db.bankTransfer.create({
@@ -492,31 +430,25 @@ export const walletService = {
           transferMethod: withdrawal.preferredMethod || "SEPA",
           transferReference:
             transferReference ||
-            `TRANSFER-${Math.random().toString(36).substring(2, 10)}`,
-        },
-      });
+            `TRANSFER-${Math.random().toString(36).substring(2, 10)}`}});
 
       // Mettre à jour le statut de la demande
       return await db.withdrawalRequest.update({
-        where: { id: withdrawalId },
+        where: { id },
         data: {
           status: "COMPLETED",
           processedAt: new Date(),
           processorId: adminId,
-          processorComments: comments,
-        },
-      });
+          processorComments: comments}});
     } else {
       // Refuser la demande
       return await db.withdrawalRequest.update({
-        where: { id: withdrawalId },
+        where: { id },
         data: {
           status: "REJECTED",
           processedAt: new Date(),
           processorId: adminId,
-          processorComments: comments || "Demande rejetée par administrateur",
-        },
-      });
+          processorComments: comments || "Demande rejetée par administrateur"}});
     }
   },
 
@@ -538,8 +470,7 @@ export const walletService = {
       startDate = subMonths(new Date(), 3), // Par défaut: 3 derniers mois
       endDate = new Date(),
       groupBy = "month",
-      includeDetails = false,
-    } = options;
+      includeDetails = false} = options;
 
     // Bornes de dates
     const start = startOfDay(startDate);
@@ -553,16 +484,11 @@ export const walletService = {
         status: "COMPLETED",
         createdAt: {
           gte: start,
-          lte: end,
-        },
+          lte: end},
         amount: {
           gt: 0, // Uniquement les gains positifs
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
+        }},
+      sum: { amount }});
 
     // Requête pour les retraits
     const withdrawals = await db.walletTransaction.aggregate({
@@ -572,13 +498,8 @@ export const walletService = {
         type: "WITHDRAWAL",
         createdAt: {
           gte: start,
-          lte: end,
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
+          lte: end}},
+      sum: { amount }});
 
     // Obtenir les transactions détaillées si demandé
     const detailedTransactions = [];
@@ -589,41 +510,31 @@ export const walletService = {
           status: "COMPLETED",
           createdAt: {
             gte: start,
-            lte: end,
-          },
-        },
+            lte: end}},
         orderBy: { createdAt: "desc" },
         include: {
           delivery: {
             select: {
               id: true,
               trackingNumber: true,
-              currentStatus: true,
-            },
-          },
+              currentStatus: true}},
           service: {
             select: {
               id: true,
               name: true,
-              type: true,
-            },
-          },
-        },
-      });
+              type: true}}}});
     }
 
     // Transformations
-    const earnings = earningsByType.map((group: any) => ({
-      type: group.type,
-      amount: Number(group._sum.amount) || 0,
-    }));
+    const earnings = earningsByType.map((group: any) => ({ type: group.type,
+      amount: Number(group.sum.amount) || 0 }));
 
     // Calcul du total des gains
     const totalEarnings = earnings.reduce(
       (sum: number, item: any) => sum + item.amount,
       0,
     );
-    const totalWithdrawals = Math.abs(Number(withdrawals._sum.amount) || 0);
+    const totalWithdrawals = Math.abs(Number(withdrawals.sum.amount) || 0);
 
     // Construire la réponse
     const result = {
@@ -633,25 +544,21 @@ export const walletService = {
       period: {
         start,
         end,
-        groupBy,
-      },
+        groupBy},
       summary: {
         totalEarnings,
         totalWithdrawals,
         netIncome: totalEarnings - totalWithdrawals,
-        currentBalance: Number(wallet.balance),
-      },
-      earnings,
-    };
+        currentBalance: Number(wallet.balance)},
+      earnings};
 
     // Ajouter les détails si demandés
     if (includeDetails) {
-      Object.assign(result, { transactions: detailedTransactions });
+      Object.assign(result, { transactions });
     }
 
     return result;
-  },
-};
+  }};
 
 // Fonctions exportées séparément pour faciliter l'utilisation et les tests
 export const {
@@ -662,8 +569,7 @@ export const {
   createWalletTransaction,
   createWithdrawalRequest,
   processWithdrawalRequest,
-  calculateEarnings,
-} = walletService;
+  calculateEarnings} = walletService;
 
 // Type pour les transactions (pour compatibilité avec payment.service.ts)
 export type Transaction = {
@@ -689,13 +595,12 @@ export async function addWalletTransaction(data: {
   paymentId?: string;
 }): Promise<Transaction> {
   const {
-    userId: _userId,
-    amount: _amount,
-    type: _type,
-    description: _description,
-    reference: _reference,
-    paymentId: _paymentId,
-  } = data;
+    userId: userId,
+    amount: amount,
+    type: type,
+    description: description,
+    reference: reference,
+    paymentId: paymentId} = data;
 
   // Récupérer le portefeuille
   const wallet = await getOrCreateWallet(userId);
@@ -706,6 +611,5 @@ export async function addWalletTransaction(data: {
     type,
     description,
     reference,
-    paymentId,
-  });
+    paymentId});
 }

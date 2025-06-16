@@ -16,18 +16,15 @@ export const userService = {
    */
   async toggleUserActivation(userId: string, isActive: boolean) {
     return db.user.update({
-      where: { id: userId },
+      where: { id },
       data: {
-        status: isActive ? "ACTIVE" : "INACTIVE",
-      },
+        status: isActive ? "ACTIVE" : "INACTIVE"},
       select: {
         id: true,
         email: true,
         name: true,
         status: true,
-        role: true,
-      },
-    });
+        role: true}});
   },
 
   /**
@@ -36,7 +33,7 @@ export const userService = {
    */
   async getUserById(userId: string) {
     return db.user.findUnique({
-      where: { id: userId },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -46,9 +43,7 @@ export const userService = {
         isActive: true,
         createdAt: true,
         lastLoginAt: true,
-        image: true,
-      },
-    });
+        image: true}});
   },
 
   /**
@@ -66,22 +61,17 @@ export const userService = {
   ) {
     if (action === UserBanAction.BAN) {
       return db.user.update({
-        where: { id: userId },
+        where: { id },
         data: {
           status: "SUSPENDED",
           notes: reason
             ? `BANNI par ${adminId} le ${new Date().toISOString()}: ${reason}`
-            : "BANNI: Raison non spécifiée",
-        },
-      });
+            : "BANNI: Raison non spécifiée"}});
     } else {
       return db.user.update({
-        where: { id: userId },
+        where: { id },
         data: {
           status: "ACTIVE",
-          notes: null,
-        },
-      });
+          notes: null}});
     }
-  },
-};
+  }};

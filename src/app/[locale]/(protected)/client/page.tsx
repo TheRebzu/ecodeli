@@ -9,23 +9,22 @@ import { getTranslations } from "next-intl/server";
 import { Metadata } from "next";
 
 interface Props {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "dashboard.client" });
+  const t = await getTranslations({ locale, namespace: "dashboard.client"  });
 
   return {
     title: t("pageTitle"),
-    description: t("pageDescription"),
-  };
+    description: t("pageDescription")};
 }
 
 export default async function ClientDashboardPage({ params }: Props) {
   const { locale } = await params;
   const session = await getServerSession(authOptions);
-  const t = await getTranslations({ locale, namespace: "dashboard.client" });
+  const t = await getTranslations({ locale, namespace: "dashboard.client"  });
 
   // Vérifications de sécurité
   if (!session || !session.user) {
@@ -37,7 +36,7 @@ export default async function ClientDashboardPage({ params }: Props) {
   }
 
   // Vérification du statut du compte
-  if (session.user.status === UserStatus.PENDING_VERIFICATION) {
+  if (session.user.status === UserStatus.PENDINGVERIFICATION) {
     redirect(`/${locale}/client/profile?verification_required=true`);
   }
 

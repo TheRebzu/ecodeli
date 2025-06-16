@@ -132,15 +132,12 @@ const defaultPreferences: NotificationPreferences = {
     enabled: false,
     startTime: "22:00",
     endTime: "08:00",
-    timezone: "Europe/Paris",
-  },
+    timezone: "Europe/Paris"},
   frequency: {
     immediate: true,
     hourly: false,
     daily: false,
-    weekly: false,
-  },
-};
+    weekly: false}};
 
 export const useNotificationStore = create<NotificationState>()(
   persist(
@@ -174,8 +171,7 @@ export const useNotificationStore = create<NotificationState>()(
           return {
             notifications: newNotifications,
             unreadCount: state.unreadCount + (notification.read ? 0 : 1),
-            totalCount: newNotifications.length,
-          };
+            totalCount: newNotifications.length};
         }),
 
       addNotifications: (notifications) =>
@@ -198,8 +194,7 @@ export const useNotificationStore = create<NotificationState>()(
           return {
             notifications: allNotifications,
             unreadCount,
-            totalCount: allNotifications.length,
-          };
+            totalCount: allNotifications.length};
         }),
 
       markAsRead: (id) =>
@@ -207,30 +202,25 @@ export const useNotificationStore = create<NotificationState>()(
           notifications: state.notifications.map((n) =>
             n.id === id ? { ...n, read: true } : n,
           ),
-          unreadCount: Math.max(0, state.unreadCount - 1),
-        })),
+          unreadCount: Math.max(0, state.unreadCount - 1)})),
 
       markAsUnread: (id) =>
         set((state) => ({
           notifications: state.notifications.map((n) =>
             n.id === id ? { ...n, read: false } : n,
           ),
-          unreadCount: state.unreadCount + 1,
-        })),
+          unreadCount: state.unreadCount + 1})),
 
       markAllAsRead: () =>
-        set((state) => ({
-          notifications: state.notifications.map((n) => ({ ...n, read: true })),
-          unreadCount: 0,
-        })),
+        set((state) => ({ notifications: state.notifications.map((n) => ({ ...n, read: true  })),
+          unreadCount: 0})),
 
       confirmNotification: (id) =>
         set((state) => ({
           notifications: state.notifications.map((n) =>
             n.id === id ? { ...n, confirmed: true, read: true } : n,
           ),
-          unreadCount: Math.max(0, state.unreadCount - 1),
-        })),
+          unreadCount: Math.max(0, state.unreadCount - 1)})),
 
       deleteNotification: (id) =>
         set((state) => {
@@ -242,16 +232,13 @@ export const useNotificationStore = create<NotificationState>()(
             unreadCount: wasUnread
               ? Math.max(0, state.unreadCount - 1)
               : state.unreadCount,
-            totalCount: state.totalCount - 1,
-          };
+            totalCount: state.totalCount - 1};
         }),
 
       clearAll: () =>
-        set({
-          notifications: [],
+        set({ notifications: [],
           unreadCount: 0,
-          totalCount: 0,
-        }),
+          totalCount: 0 }),
 
       clearExpired: () =>
         set((state) => {
@@ -265,15 +252,13 @@ export const useNotificationStore = create<NotificationState>()(
           return {
             notifications: validNotifications,
             unreadCount,
-            totalCount: validNotifications.length,
-          };
+            totalCount: validNotifications.length};
         }),
 
       // Actions pour les préférences
       updatePreferences: (prefs) =>
         set((state) => ({
-          preferences: { ...state.preferences, ...prefs },
-        })),
+          preferences: { ...state.preferences, ...prefs }})),
 
       snoozeNotifications: (duration, reason) =>
         set((state) => {
@@ -284,31 +269,24 @@ export const useNotificationStore = create<NotificationState>()(
               snoozed: {
                 enabled: true,
                 until: until.toISOString(),
-                reason: reason || "Notifications en pause",
-              },
-            },
-          };
+                reason: reason || "Notifications en pause"}}};
         }),
 
       unsnoozeNotifications: () =>
         set((state) => ({
           preferences: {
             ...state.preferences,
-            snoozed: {
-              enabled: false,
-            },
-          },
-        })),
+            snoozed: { enabled }}})),
 
       // Actions pour l'interface
-      setLoading: (loading) => set({ isLoading: loading }),
+      setLoading: (loading) => set({ isLoading  }),
 
-      setShowOnlyUnread: (showOnly) => set({ showOnlyUnread: showOnly }),
+      setShowOnlyUnread: (showOnly) => set({ showOnlyUnread  }),
 
-      setSelectedCategory: (category) => set({ selectedCategory: category }),
+      setSelectedCategory: (category) => set({ selectedCategory  }),
 
       // Actions pour les statistiques
-      setStats: (stats) => set({ stats }),
+      setStats: (stats) => set({ stats  }),
 
       // Getters calculés
       getNotificationsByCategory: (category) => {
@@ -334,7 +312,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       isInQuietHours: () => {
         const state = get();
-        const { _quietHours: __quietHours } = state.preferences;
+        const { quietHours } = state.preferences;
 
         if (!quietHours.enabled) return false;
 
@@ -354,7 +332,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       canReceiveNotification: (type, priority = "MEDIUM") => {
         const state = get();
-        const { _preferences: __preferences } = state;
+        const { preferences } = state;
 
         // Notifications en pause
         if (preferences.snoozed?.enabled) {
@@ -388,15 +366,11 @@ export const useNotificationStore = create<NotificationState>()(
           default:
             return true;
         }
-      },
-    }),
+      }}),
     {
       name: "notification-store",
-      partialize: (state) => ({
-        preferences: state.preferences,
+      partialize: (state) => ({ preferences: state.preferences,
         showOnlyUnread: state.showOnlyUnread,
-        selectedCategory: state.selectedCategory,
-      }),
-    },
+        selectedCategory: state.selectedCategory })},
   ),
 );

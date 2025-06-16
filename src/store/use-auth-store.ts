@@ -50,8 +50,7 @@ interface AuthState {
  */
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
-      // État initial
+    (set, get) => ({ // État initial
       session: null,
       user: null,
       role: null,
@@ -65,42 +64,37 @@ export const useAuthStore = create<AuthState>()(
           session,
           isAuthenticated: !!session,
           user: (session?.user as ExtendedUser) || null,
-          role: (session?.user?.role as UserRole) || null,
-        });
+          role: (session?.user?.role as UserRole) || null });
       },
 
       // Définir l'utilisateur
       setUser: (user) => {
-        set({
-          user,
-          role: (user?.role as UserRole) || null,
-        });
+        set({ user,
+          role: (user?.role as UserRole) || null });
       },
 
       // Définir l'état d'authentification
       setIsAuthenticated: (isAuthenticated) => {
-        set({ isAuthenticated });
+        set({ isAuthenticated  });
       },
 
       // Définir l'état de chargement
       setIsLoading: (isLoading) => {
-        set({ isLoading });
+        set({ isLoading  });
       },
 
       // Définir l'erreur
       setError: (error) => {
-        set({ error });
+        set({ error  });
       },
 
       // Déconnexion
       logout: () => {
-        set({
-          session: null,
+        set({ session: null,
           user: null,
           role: null,
           isAuthenticated: false,
-          error: null,
-        });
+          error: null });
       },
 
       // Récupérer l'utilisateur actuel
@@ -118,8 +112,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         return roles === userRole;
-      },
-    }),
+      }}),
     {
       name: "ecodeli-auth-storage",
       partialize: (state) => ({
@@ -130,12 +123,9 @@ export const useAuthStore = create<AuthState>()(
               email: state.user.email,
               name: state.user.name,
               role: state.user.role,
-              image: state.user.image,
-            }
+              image: state.user.image}
           : null,
         role: state.role,
-        isAuthenticated: state.isAuthenticated,
-      }),
-    },
+        isAuthenticated: state.isAuthenticated})},
   ),
 );

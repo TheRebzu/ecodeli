@@ -8,18 +8,15 @@ import { UserRole } from "@prisma/client";
  * Router pour la gestion des tarifs prestataires
  * Gestion complète des tarifs, services et grilles tarifaires
  */
-export const providerRatesRouter = router({
-  // Récupérer les tarifs du prestataire
-  getRates: protectedProcedure.query(async ({ _ctx }) => {
+export const providerRatesRouter = router({ // Récupérer les tarifs du prestataire
+  getRates: protectedProcedure.query(async ({ ctx  }) => {
     try {
-      const { _user: __user } = ctx.session;
+      const { user } = ctx.session;
 
       // Vérifier que l'utilisateur est un prestataire
       if (user.role !== UserRole.PROVIDER) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès réservé aux prestataires",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès réservé aux prestataires" });
       }
 
       // Récupérer le profil prestataire
@@ -29,87 +26,64 @@ export const providerRatesRouter = router({
           provider: {
             include: {
               serviceRates: {
-                include: {
-                  serviceCategory: true,
-                },
-                orderBy: { createdAt: "desc" },
-              },
-            },
-          },
-        },
-      });
+                include: { serviceCategory },
+                orderBy: { createdAt: "desc" }}}}}});
 
       if (!provider?.provider) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Profil prestataire non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Profil prestataire non trouvé" });
       }
 
       return {
         success: true,
         data: {
           rates: provider.provider.serviceRates,
-          totalRates: provider.provider.serviceRates.length,
-        },
-      };
-    } catch (_error) {
+          totalRates: provider.provider.serviceRates.length}};
+    } catch (error) {
       if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des tarifs",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des tarifs" });
     }
   }),
 
   // Créer ou mettre à jour un tarif
   upsertRate: protectedProcedure
     .input(
-      z.object({
-        serviceCategoryId: z.string(),
+      z.object({ serviceCategoryId: z.string(),
         baseRate: z.number().min(0),
         hourlyRate: z.number().min(0).optional(),
         minimumCharge: z.number().min(0).optional(),
         description: z.string().optional(),
         isActive: z.boolean().default(true),
         travelCostIncluded: z.boolean().default(false),
-        maxDistanceKm: z.number().min(0).optional(),
-      }),
+        maxDistanceKm: z.number().min(0).optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
-        const { _user: __user } = ctx.session;
+        const { user } = ctx.session;
 
         if (user.role !== UserRole.PROVIDER) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Accès réservé aux prestataires",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Accès réservé aux prestataires" });
         }
 
         // Vérifier que le prestataire existe
         const provider = await db.user.findUnique({
           where: { id: user.id },
-          include: { provider: true },
-        });
+          include: { provider }});
 
         if (!provider?.provider) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil prestataire non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil prestataire non trouvé" });
         }
 
         // Vérifier que la catégorie de service existe
         const serviceCategory = await db.serviceCategory.findUnique({
-          where: { id: input.serviceCategoryId },
-        });
+          where: { id: input.serviceCategoryId }});
 
         if (!serviceCategory) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Catégorie de service non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Catégorie de service non trouvée" });
         }
 
         // Créer ou mettre à jour le tarif
@@ -117,9 +91,7 @@ export const providerRatesRouter = router({
           where: {
             providerId_serviceCategoryId: {
               providerId: provider.provider.id,
-              serviceCategoryId: input.serviceCategoryId,
-            },
-          },
+              serviceCategoryId: input.serviceCategoryId}},
           create: {
             providerId: provider.provider.id,
             serviceCategoryId: input.serviceCategoryId,
@@ -129,8 +101,7 @@ export const providerRatesRouter = router({
             description: input.description,
             isActive: input.isActive,
             travelCostIncluded: input.travelCostIncluded,
-            maxDistanceKm: input.maxDistanceKm,
-          },
+            maxDistanceKm: input.maxDistanceKm},
           update: {
             baseRate: input.baseRate,
             hourlyRate: input.hourlyRate,
@@ -139,108 +110,81 @@ export const providerRatesRouter = router({
             isActive: input.isActive,
             travelCostIncluded: input.travelCostIncluded,
             maxDistanceKm: input.maxDistanceKm,
-            updatedAt: new Date(),
-          },
-          include: {
-            serviceCategory: true,
-          },
-        });
+            updatedAt: new Date()},
+          include: { serviceCategory }});
 
         return {
           success: true,
-          data: rate,
-        };
-      } catch (_error) {
+          data: rate};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la sauvegarde du tarif",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la sauvegarde du tarif" });
       }
     }),
 
   // Supprimer un tarif
   deleteRate: protectedProcedure
     .input(
-      z.object({
-        serviceCategoryId: z.string(),
-      }),
+      z.object({ serviceCategoryId: z.string() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
-        const { _user: __user } = ctx.session;
+        const { user } = ctx.session;
 
         if (user.role !== UserRole.PROVIDER) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Accès réservé aux prestataires",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Accès réservé aux prestataires" });
         }
 
         const provider = await db.user.findUnique({
           where: { id: user.id },
-          include: { provider: true },
-        });
+          include: { provider }});
 
         if (!provider?.provider) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil prestataire non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil prestataire non trouvé" });
         }
 
         await db.serviceRate.delete({
           where: {
             providerId_serviceCategoryId: {
               providerId: provider.provider.id,
-              serviceCategoryId: input.serviceCategoryId,
-            },
-          },
-        });
+              serviceCategoryId: input.serviceCategoryId}}});
 
         return {
           success: true,
-          message: "Tarif supprimé avec succès",
-        };
-      } catch (_error) {
+          message: "Tarif supprimé avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la suppression du tarif",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la suppression du tarif" });
       }
     }),
 
   // Calculer le coût d'un service
   calculateServiceCost: protectedProcedure
     .input(
-      z.object({
-        serviceCategoryId: z.string(),
+      z.object({ serviceCategoryId: z.string(),
         estimatedHours: z.number().min(0).optional(),
-        distanceKm: z.number().min(0).optional(),
-      }),
+        distanceKm: z.number().min(0).optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
-        const { _user: __user } = ctx.session;
+        const { user } = ctx.session;
 
         if (user.role !== UserRole.PROVIDER) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Accès réservé aux prestataires",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Accès réservé aux prestataires" });
         }
 
         const provider = await db.user.findUnique({
           where: { id: user.id },
-          include: { provider: true },
-        });
+          include: { provider }});
 
         if (!provider?.provider) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil prestataire non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil prestataire non trouvé" });
         }
 
         // Récupérer le tarif pour cette catégorie
@@ -248,19 +192,12 @@ export const providerRatesRouter = router({
           where: {
             providerId_serviceCategoryId: {
               providerId: provider.provider.id,
-              serviceCategoryId: input.serviceCategoryId,
-            },
-          },
-          include: {
-            serviceCategory: true,
-          },
-        });
+              serviceCategoryId: input.serviceCategoryId}},
+          include: { serviceCategory }});
 
         if (!rate) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Tarif non défini pour cette catégorie",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Tarif non défini pour cette catégorie" });
         }
 
         // Calculer le coût
@@ -295,8 +232,7 @@ export const providerRatesRouter = router({
               baseRate: rate.baseRate,
               hourlyRate: rate.hourlyRate,
               minimumCharge: rate.minimumCharge,
-              travelCostIncluded: rate.travelCostIncluded,
-            },
+              travelCostIncluded: rate.travelCostIncluded},
             calculation: {
               baseRate: rate.baseRate,
               hourlyCharge:
@@ -305,36 +241,26 @@ export const providerRatesRouter = router({
                   : 0,
               travelCharge: travelCost,
               minimumApplied:
-                rate.minimumCharge && totalCost < rate.minimumCharge,
-            },
-          },
-        };
-      } catch (_error) {
+                rate.minimumCharge && totalCost < rate.minimumCharge}}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du calcul du coût",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du calcul du coût" });
       }
     }),
 
   // Obtenir les catégories de services disponibles
-  getAvailableServiceCategories: protectedProcedure.query(async ({ _ctx }) => {
+  getAvailableServiceCategories: protectedProcedure.query(async ({ ctx  }) => {
     try {
       const categories = await db.serviceCategory.findMany({
-        where: { isActive: true },
-        orderBy: { name: "asc" },
-      });
+        where: { isActive },
+        orderBy: { name: "asc" }});
 
       return {
         success: true,
-        data: categories,
-      };
-    } catch (_error) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des catégories",
-      });
+        data: categories};
+    } catch (error) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des catégories" });
     }
-  }),
-});
+  })});

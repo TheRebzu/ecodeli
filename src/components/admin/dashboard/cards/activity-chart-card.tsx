@@ -5,8 +5,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AreaChart, BarChart, LineChart } from "@/components/ui/charts";
 import { Activity, TrendingUp, TrendingDown } from "lucide-react";
@@ -47,8 +46,7 @@ export function ActivityChartCard({
   showTrend = true,
   totalValue,
   percentChange,
-  className = "",
-}: ActivityChartCardProps) {
+  className = ""}: ActivityChartCardProps) {
   // Calcul automatique du pourcentage de changement si pas fourni
   const calculatedPercentChange =
     percentChange ??
@@ -73,8 +71,7 @@ export function ActivityChartCard({
       valueFormatter,
       showLegend: showComparison,
       showGridLines: false,
-      startEndOnly: true,
-    };
+      startEndOnly: true};
 
     switch (type) {
       case "area":

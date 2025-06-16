@@ -14,8 +14,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -23,8 +22,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   ClockIcon,
@@ -32,8 +30,7 @@ import {
   CheckCircleIcon,
   Calendar,
   User,
-  MapPin,
-} from "lucide-react";
+  MapPin} from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/i18n/formatters";
 import { useServiceBooking } from "@/hooks/features/use-service-booking";
 import { TimeslotPicker } from "@/components/schedule/timeslot-picker";
@@ -66,8 +63,7 @@ export function BookingForm({
   service,
   selectedDate,
   onCancel,
-  showAdvancedOptions = true,
-}: BookingFormProps) {
+  showAdvancedOptions = true}: BookingFormProps) {
   const t = useTranslations("services.booking");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showServiceDetails, setShowServiceDetails] = useState(false);
@@ -79,11 +75,8 @@ export function BookingForm({
     availableTimeSlots,
     handleNotesChange,
     createBooking,
-    notes,
-  } = useServiceBooking({
-    serviceId: service.id,
-    providerId: service.provider.id,
-  });
+    notes} = useServiceBooking({ serviceId: service.id,
+    providerId: service.provider.id });
 
   // Données du formulaire
   const form = useForm({
@@ -94,9 +87,7 @@ export function BookingForm({
       date: selectedDate ? formatDate(selectedDate) : "",
       startTime: selectedTimeSlot || "",
       notes: notes,
-      paymentMethod: "card",
-    },
-  });
+      paymentMethod: "card"}});
 
   // Soumission du formulaire
   const onSubmit = async (data: any) => {
@@ -200,7 +191,7 @@ export function BookingForm({
             <FormField
               control={form.control}
               name="date"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("form.date")}</FormLabel>
                   <FormControl>
@@ -218,7 +209,7 @@ export function BookingForm({
             <FormField
               control={form.control}
               name="startTime"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("form.time")}</FormLabel>
                   <FormControl>
@@ -258,7 +249,7 @@ export function BookingForm({
               <FormField
                 control={form.control}
                 name="participantCount"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("form.participantCount")}</FormLabel>
                     <FormControl>
@@ -306,7 +297,7 @@ export function BookingForm({
           <FormField
             control={form.control}
             name="notes"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("form.notes")}</FormLabel>
                 <FormControl>
@@ -331,7 +322,7 @@ export function BookingForm({
           <FormField
             control={form.control}
             name="paymentMethod"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="space-y-3">
                 <FormLabel>{t("form.paymentMethod")}</FormLabel>
                 <FormControl>
@@ -420,7 +411,7 @@ export function BookingForm({
           <FormField
             control={form.control}
             name="termsAccepted"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <div className="flex items-center h-5 mt-0.5">
@@ -441,8 +432,7 @@ export function BookingForm({
                       >
                         {chunks}
                       </Link>
-                    ),
-                  })}
+                    )})}
                 </div>
               </FormItem>
             )}
@@ -475,7 +465,7 @@ export function BookingForm({
                   <CheckCircleIcon className="w-4 h-4 mr-2" />
                   {t("form.confirmBooking")}
                   {showAdvancedOptions && participantCount > 1 && (
-                    <span className="ml-1">({participantCount})</span>
+                    <span className="ml-1">({ participantCount })</span>
                   )}
                 </span>
               )}

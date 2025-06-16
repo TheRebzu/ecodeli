@@ -24,4 +24,4 @@ export { default as WalletBalance } from "./wallet-balance";
 export * from "./wallet-balance";
 
 // Exports des sous-dossiers
-export * from "./demo";
+export * from ".";

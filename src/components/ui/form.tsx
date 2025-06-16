@@ -9,8 +9,7 @@ import {
   FieldPath,
   FieldValues,
   FormProvider,
-  useFormContext,
-} from "react-hook-form";
+  useFormContext} from "react-hook-form";
 
 import { cn } from "@/lib/utils/common";
 import { Label } from "@/components/ui/label";
@@ -60,8 +59,7 @@ const useFormField = () => {
     formItemId: `${id}-form-item`,
     formDescriptionId: `${id}-form-item-description`,
     formMessageId: `${id}-form-item-message`,
-    ...fieldState,
-  };
+    ...fieldState};
 };
 
 type FormItemContextValue = {
@@ -175,8 +173,7 @@ export {
   FormControl,
   FormDescription,
   FormMessage,
-  FormField,
-};
+  FormField};
 
 // Composant AnnouncementForm pour les formulaires d'annonces
 export function AnnouncementForm({

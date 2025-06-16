@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -22,8 +21,7 @@ import {
   MapPin,
   TrendingUp,
   Star,
-  Lightbulb,
-} from "lucide-react";
+  Lightbulb} from "lucide-react";
 import { api } from "@/trpc/react";
 
 type RecommendationFilters = {
@@ -44,20 +42,17 @@ export function BoxRecommendations({
   filters = {},
   onBoxSelect,
   className = "",
-  maxRecommendations = 6,
-}: BoxRecommendationsProps) {
-  const { data: session } = useSession();
+  maxRecommendations = 6}: BoxRecommendationsProps) {
+  const { data } = useSession();
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Récupération des recommandations
   const {
     data: recommendationsData,
     isLoading,
-    error,
-  } = api.storage.getBoxRecommendations.useQuery(filters, {
+    error} = api.storage.getBoxRecommendations.useQuery(filters, {
     enabled: !!session?.user?.id,
-    refetchOnWindowFocus: false,
-  });
+    refetchOnWindowFocus: false});
 
   if (!session?.user?.id) {
     return (

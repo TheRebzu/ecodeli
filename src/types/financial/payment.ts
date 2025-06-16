@@ -10,23 +10,20 @@ export enum TransactionType {
   SUBSCRIPTION_FEE = "SUBSCRIPTION_FEE",
   PLATFORM_FEE = "PLATFORM_FEE",
   ADJUSTMENT = "ADJUSTMENT",
-  BONUS = "BONUS",
-}
+  BONUS = "BONUS"}
 
 export enum TransactionStatus {
   PENDING = "PENDING",
   COMPLETED = "COMPLETED",
   FAILED = "FAILED",
-  CANCELLED = "CANCELLED",
-}
+  CANCELLED = "CANCELLED"}
 
 export enum WithdrawalStatus {
   PENDING = "PENDING",
   PROCESSING = "PROCESSING",
   COMPLETED = "COMPLETED",
   FAILED = "FAILED",
-  CANCELLED = "CANCELLED",
-}
+  CANCELLED = "CANCELLED"}
 
 // Interface pour les transactions
 export interface Transaction {

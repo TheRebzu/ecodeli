@@ -6,8 +6,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Suspense } from "react";
@@ -18,8 +17,7 @@ import {
   CheckCircle,
   XCircle,
   CalendarDays,
-  CircleDashed,
-} from "lucide-react";
+  CircleDashed} from "lucide-react";
 import Link from "next/link";
 import { formatDate, formatTime } from "@/lib/i18n/formatters";
 import { getServerSession } from "next-auth";
@@ -31,8 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("appointments.title"),
-    description: t("appointments.description"),
-  };
+    description: t("appointments.description")};
 }
 
 export default async function ProviderAppointmentsPage() {
@@ -87,30 +84,23 @@ export default async function ProviderAppointmentsPage() {
     > = {
       PENDING: {
         label: t("appointments.status.pending"),
-        variant: "secondary",
-      },
+        variant: "secondary"},
       CONFIRMED: {
         label: t("appointments.status.confirmed"),
-        variant: "default",
-      },
+        variant: "default"},
       COMPLETED: {
         label: t("appointments.status.completed"),
-        variant: "outline",
-      },
+        variant: "outline"},
       CANCELLED: {
         label: t("appointments.status.cancelled"),
-        variant: "destructive",
-      },
+        variant: "destructive"},
       RESCHEDULED: {
         label: t("appointments.status.rescheduled"),
-        variant: "secondary",
-      },
-    };
+        variant: "secondary"}};
 
     const statusInfo = statusMap[status] || {
       label: status,
-      variant: "outline",
-    };
+      variant: "outline"};
 
     return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
@@ -241,18 +231,18 @@ export default async function ProviderAppointmentsPage() {
         <Tabs defaultValue="upcoming" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="upcoming">
-              {t("appointments.upcoming")} ({upcomingAppointments.length})
+              {t("appointments.upcoming")} ({ upcomingAppointments.length })
             </TabsTrigger>
             <TabsTrigger value="pending">
               <div className="flex items-center">
-                {t("appointments.pending")} ({pendingAppointments.length})
+                {t("appointments.pending")} ({ pendingAppointments.length })
                 {pendingAppointments.length > 0 && (
                   <CircleDashed className="h-3 w-3 ml-1 animate-spin" />
                 )}
               </div>
             </TabsTrigger>
             <TabsTrigger value="past">
-              {t("appointments.past")} ({pastAppointments.length})
+              {t("appointments.past")} ({ pastAppointments.length })
             </TabsTrigger>
           </TabsList>
 

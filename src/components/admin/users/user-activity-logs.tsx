@@ -11,8 +11,7 @@ import {
   Download,
   ExternalLink,
   Shield,
-  Check,
-} from "lucide-react";
+  Check} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,23 +19,20 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Pagination } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -44,8 +40,7 @@ import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { DatePicker } from "@/components/ui/date-picker";
 import { ActivityType, UserActivityLogItem } from "@/types/actors/admin";
 import {
@@ -56,8 +51,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -69,109 +63,87 @@ const activityTypeLabels: Record<
   [ActivityType.LOGIN]: {
     label: "Connexion",
     color: "bg-green-500",
-    icon: <Shield className="h-4 w-4" />,
-  },
+    icon: <Shield className="h-4 w-4" />},
   [ActivityType.LOGOUT]: {
     label: "Déconnexion",
     color: "bg-blue-500",
-    icon: <ExternalLink className="h-4 w-4" />,
-  },
+    icon: <ExternalLink className="h-4 w-4" />},
   [ActivityType.PROFILE_UPDATE]: {
     label: "Mise à jour du profil",
     color: "bg-orange-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.PASSWORD_CHANGE]: {
     label: "Changement de mot de passe",
     color: "bg-amber-500",
-    icon: <Shield className="h-4 w-4" />,
-  },
+    icon: <Shield className="h-4 w-4" />},
   [ActivityType.STATUS_CHANGE]: {
     label: "Changement de statut",
     color: "bg-purple-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.ROLE_CHANGE]: {
     label: "Changement de rôle",
     color: "bg-indigo-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.VERIFICATION_SUBMIT]: {
     label: "Soumission de vérification",
     color: "bg-lime-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.VERIFICATION_REVIEW]: {
     label: "Revue de vérification",
     color: "bg-cyan-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.DOCUMENT_UPLOAD]: {
     label: "Téléchargement de document",
     color: "bg-emerald-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.ACCOUNT_CREATION]: {
     label: "Création de compte",
     color: "bg-sky-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.EMAIL_VERIFIED]: {
     label: "Email vérifié",
     color: "bg-green-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.PHONE_VERIFIED]: {
     label: "Téléphone vérifié",
     color: "bg-green-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.PASSWORD_RESET]: {
     label: "Réinitialisation de mot de passe",
     color: "bg-amber-500",
-    icon: <Shield className="h-4 w-4" />,
-  },
+    icon: <Shield className="h-4 w-4" />},
   [ActivityType.PASSWORD_RESET_REQUEST]: {
     label: "Demande de réinitialisation",
     color: "bg-amber-500",
-    icon: <Shield className="h-4 w-4" />,
-  },
+    icon: <Shield className="h-4 w-4" />},
   [ActivityType.ACCOUNT_LOCKED]: {
     label: "Compte verrouillé",
     color: "bg-red-500",
-    icon: <Shield className="h-4 w-4" />,
-  },
+    icon: <Shield className="h-4 w-4" />},
   [ActivityType.ACCOUNT_UNLOCKED]: {
     label: "Compte déverrouillé",
     color: "bg-green-500",
-    icon: <Shield className="h-4 w-4" />,
-  },
+    icon: <Shield className="h-4 w-4" />},
   [ActivityType.FAILED_LOGIN_ATTEMPT]: {
     label: "Tentative échouée",
     color: "bg-red-500",
-    icon: <Shield className="h-4 w-4" />,
-  },
+    icon: <Shield className="h-4 w-4" />},
   [ActivityType.PERMISSION_CHANGE]: {
     label: "Changement de permissions",
     color: "bg-indigo-500",
-    icon: <Shield className="h-4 w-4" />,
-  },
+    icon: <Shield className="h-4 w-4" />},
   [ActivityType.SUBSCRIPTION_CHANGE]: {
     label: "Changement d'abonnement",
     color: "bg-emerald-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.PAYMENT_METHOD_ADDED]: {
     label: "Méthode de paiement ajoutée",
     color: "bg-emerald-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
+    icon: <Activity className="h-4 w-4" />},
   [ActivityType.OTHER]: {
     label: "Autre",
     color: "bg-gray-500",
-    icon: <Activity className="h-4 w-4" />,
-  },
-};
+    icon: <Activity className="h-4 w-4" />}};
 
 interface UserActivityLogsProps {
   userId: string;
@@ -203,17 +175,14 @@ export function UserActivityLogs({
   onFilterChange,
   onRefresh,
   onExport,
-  onAddLog,
-}: UserActivityLogsProps) {
+  onAddLog}: UserActivityLogsProps) {
   const [activeFilters, setActiveFilters] = useState<{
     types?: ActivityType[];
     searchTerm?: string;
     dateFrom?: Date;
     dateTo?: Date;
     sortDirection?: "asc" | "desc";
-  }>({
-    sortDirection: "desc",
-  });
+  }>({ sortDirection: "desc" });
 
   const [selectedActivityTypes, setSelectedActivityTypes] = useState<
     ActivityType[]
@@ -231,7 +200,7 @@ export function UserActivityLogs({
 
   const clearFilter = (filterKey: string) => {
     const newFilters = { ...activeFilters };
-    // @ts-ignore
+    // @ts-ignore - Suppression temporaire pour compatibilité
     delete newFilters[filterKey];
     setActiveFilters(newFilters);
     onFilterChange(newFilters);
@@ -239,10 +208,8 @@ export function UserActivityLogs({
 
   const handleAddActivityLog = () => {
     if (onAddLog) {
-      onAddLog({
-        activityType: newLogType,
-        details: newLogDetails,
-      });
+      onAddLog({ activityType: newLogType,
+        details: newLogDetails });
       setNewLogDetails("");
       setNewLogType(ActivityType.OTHER);
     }
@@ -257,10 +224,8 @@ export function UserActivityLogs({
   };
 
   const applyTypeFilter = () => {
-    handleFilterChange({
-      types:
-        selectedActivityTypes.length > 0 ? selectedActivityTypes : undefined,
-    });
+    handleFilterChange({ types:
+        selectedActivityTypes.length > 0 ? selectedActivityTypes : undefined });
   };
 
   const getActivityBadge = (type: ActivityType) => {
@@ -371,7 +336,7 @@ export function UserActivityLogs({
               className="pl-8 w-[250px]"
               value={activeFilters.searchTerm || ""}
               onChange={(e) =>
-                handleFilterChange({ searchTerm: e.target.value })
+                handleFilterChange({ searchTerm: e.target.value  })
               }
             />
           </div>
@@ -454,7 +419,7 @@ export function UserActivityLogs({
                       <DatePicker
                         value={activeFilters.dateFrom}
                         onChange={(date) =>
-                          handleFilterChange({ dateFrom: date })
+                          handleFilterChange({ dateFrom  })
                         }
                       />
                     </div>
@@ -465,7 +430,7 @@ export function UserActivityLogs({
                       <DatePicker
                         value={activeFilters.dateTo}
                         onChange={(date) =>
-                          handleFilterChange({ dateTo: date })
+                          handleFilterChange({ dateTo  })
                         }
                       />
                     </div>
@@ -490,7 +455,7 @@ export function UserActivityLogs({
           <Select
             value={activeFilters.sortDirection || "desc"}
             onValueChange={(value) =>
-              handleFilterChange({ sortDirection: value })
+              handleFilterChange({ sortDirection  })
             }
           >
             <SelectTrigger className="w-[150px]">
@@ -510,7 +475,7 @@ export function UserActivityLogs({
             <div className="flex flex-wrap gap-2 mt-2 ml-1">
               {activeFilters.types && activeFilters.types.length > 0 && (
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  Types d'activité ({activeFilters.types.length})
+                  Types d'activité ({ activeFilters.types.length })
                   <Button
                     variant="ghost"
                     size="icon"
@@ -555,12 +520,8 @@ export function UserActivityLogs({
                 size="sm"
                 className="text-xs"
                 onClick={() => {
-                  setActiveFilters({
-                    sortDirection: activeFilters.sortDirection,
-                  });
-                  onFilterChange({
-                    sortDirection: activeFilters.sortDirection,
-                  });
+                  setActiveFilters({ sortDirection: activeFilters.sortDirection });
+                  onFilterChange({ sortDirection: activeFilters.sortDirection });
                 }}
               >
                 Effacer tous les filtres

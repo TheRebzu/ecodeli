@@ -6,8 +6,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   MapPin,
   CalendarClock,
@@ -16,8 +15,7 @@ import {
   Clock,
   Phone,
   MapPinned,
-  ChevronRight,
-} from "lucide-react";
+  ChevronRight} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import DeliveryStatusIndicator from "@/components/shared/deliveries/delivery-status";
@@ -37,14 +35,12 @@ interface DeliveryDetailCardProps {
   isInteractive?: boolean;
 }
 
-const DeliveryDetailCard: React.FC<DeliveryDetailCardProps> = ({
-  deliveryId,
+const DeliveryDetailCard: React.FC<DeliveryDetailCardProps> = ({ deliveryId,
   className,
   showActions = true,
   showMap = false,
   showTimeline = false,
-  isInteractive = true,
-}) => {
+  isInteractive = true }) => {
   // Récupérer les données de livraison
   const { deliveryInfo, isLoading, error } =
     useDeliveryLiveTracking(deliveryId);
@@ -52,7 +48,7 @@ const DeliveryDetailCard: React.FC<DeliveryDetailCardProps> = ({
   // Formatter les dates
   const formatDate = (date: Date | string | undefined) => {
     if (!date) return "Non définie";
-    return format(new Date(date), "PPp", { locale: fr });
+    return format(new Date(date), "PPp", { locale });
   };
 
   // État de chargement

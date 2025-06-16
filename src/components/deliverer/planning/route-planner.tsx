@@ -11,8 +11,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,8 +21,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,8 +30,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -50,8 +47,7 @@ import {
   Car,
   Fuel,
   BarChart3,
-  Target,
-} from "lucide-react";
+  Target} from "lucide-react";
 import { formatTime, formatDate } from "@/lib/i18n/formatters";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
@@ -106,37 +102,28 @@ export default function DelivererPlanning() {
   const [calendarView, setCalendarView] = useState<
     "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listWeek"
   >("timeGridWeek");
-  const [availabilityForm, setAvailabilityForm] = useState<AvailabilitySlot>({
-    dayOfWeek: 1,
+  const [availabilityForm, setAvailabilityForm] = useState<AvailabilitySlot>({ dayOfWeek: 1,
     startTime: "08:00",
     endTime: "18:00",
     zones: [],
-    isActive: true,
-  });
+    isActive: true });
 
   // Queries
   const { data: delivererSchedule, refetch: refetchSchedule } =
-    api.deliverer.schedule.getWeeklySchedule.useQuery({
-      startDate: startOfWeek(selectedDate),
-      endDate: endOfWeek(selectedDate),
-    });
+    api.deliverer.schedule.getWeeklySchedule.useQuery({ startDate: startOfWeek(selectedDate),
+      endDate: endOfWeek(selectedDate) });
 
-  const { data: availabilitySlots } =
+  const { data } =
     api.deliverer.schedule.getAvailabilitySlots.useQuery();
-  const { data: deliveryZones } = api.deliverer.zones.getMyZones.useQuery();
-  const { data: routeOptimizations } =
-    api.deliverer.routes.getOptimizations.useQuery({
-      date: format(selectedDate, "yyyy-MM-dd"),
-    });
-  const { data: scheduleStats } = api.deliverer.schedule.getStats.useQuery({
-    period: "week",
-    date: format(selectedDate, "yyyy-MM-dd"),
-  });
+  const { data } = api.deliverer.zones.getMyZones.useQuery();
+  const { data } =
+    api.deliverer.routes.getOptimizations.useQuery({ date: format(selectedDate, "yyyy-MM-dd") });
+  const { data } = api.deliverer.schedule.getStats.useQuery({ period: "week",
+    date: format(selectedDate, "yyyy-MM-dd") });
 
   // Mutations
   const createAvailabilityMutation =
-    api.deliverer.schedule.createAvailability.useMutation({
-      onSuccess: () => {
+    api.deliverer.schedule.createAvailability.useMutation({ onSuccess: () => {
         toast.success("Créneaux de disponibilité créés avec succès");
         setShowAvailabilityDialog(false);
         setAvailabilityForm({
@@ -144,14 +131,12 @@ export default function DelivererPlanning() {
           startTime: "08:00",
           endTime: "18:00",
           zones: [],
-          isActive: true,
-        });
+          isActive: true });
         refetchSchedule();
       },
       onError: (error) => {
         toast.error(error.message || "Erreur lors de la création des créneaux");
-      },
-    });
+      }});
 
   const updateAvailabilityMutation =
     api.deliverer.schedule.updateAvailability.useMutation({
@@ -161,8 +146,7 @@ export default function DelivererPlanning() {
       },
       onError: (error) => {
         toast.error(error.message || "Erreur lors de la mise à jour");
-      },
-    });
+      }});
 
   const createExceptionMutation =
     api.deliverer.schedule.createException.useMutation({
@@ -174,8 +158,7 @@ export default function DelivererPlanning() {
         toast.error(
           error.message || "Erreur lors de la création de l'exception",
         );
-      },
-    });
+      }});
 
   const optimizeRouteMutation =
     api.deliverer.routes.optimizeForDate.useMutation({
@@ -185,8 +168,7 @@ export default function DelivererPlanning() {
       },
       onError: (error) => {
         toast.error(error.message || "Erreur lors de l'optimisation");
-      },
-    });
+      }});
 
   // Convert data to FullCalendar events
   const calendarEvents = useMemo(() => {
@@ -221,9 +203,7 @@ export default function DelivererPlanning() {
               extendedProps: {
                 type: "availability",
                 zone: slot.zones?.join(", "),
-                notes: slot.notes,
-              },
-            });
+                notes: slot.notes}});
           }
         }
       });
@@ -233,11 +213,9 @@ export default function DelivererPlanning() {
     if (delivererSchedule?.deliveries) {
       delivererSchedule.deliveries.forEach((delivery) => {
         const statusColors = {
-          SCHEDULED: { bg: "#dbeafe", border: "#3b82f6", text: "#1e40af" },
-          IN_PROGRESS: { bg: "#fef3c7", border: "#f59e0b", text: "#92400e" },
+          SCHEDULED: { bg: "#dbeafe", border: "#3b82f6", text: "#1e40af" }, IN_PROGRESS: { bg: "#fef3c7", border: "#f59e0b", text: "#92400e" },
           COMPLETED: { bg: "#d1fae5", border: "#10b981", text: "#065f46" },
-          CANCELLED: { bg: "#fee2e2", border: "#ef4444", text: "#991b1b" },
-        };
+          CANCELLED: { bg: "#fee2e2", border: "#ef4444", text: "#991b1b" }};
 
         const colors =
           statusColors[delivery.status as keyof typeof statusColors] ||
@@ -254,9 +232,7 @@ export default function DelivererPlanning() {
           extendedProps: {
             type: "delivery",
             status: delivery.status,
-            estimatedEarnings: delivery.price,
-          },
-        });
+            estimatedEarnings: delivery.price}});
       });
     }
 
@@ -284,9 +260,7 @@ export default function DelivererPlanning() {
               type: "route",
               optimizationScore: optimization.score,
               estimatedEarnings: optimization.estimatedEarnings,
-              zone: optimization.zones.join(", "),
-            },
-          });
+              zone: optimization.zones.join(", ")}});
         });
       });
     }
@@ -304,8 +278,7 @@ export default function DelivererPlanning() {
       backgroundColor: event.backgroundColor,
       borderColor: event.borderColor,
       textColor: event.textColor,
-      extendedProps: event.extendedProps,
-    };
+      extendedProps: event.extendedProps};
 
     setSelectedEvent(calendarEvent);
     setShowEventDialog(true);
@@ -316,12 +289,10 @@ export default function DelivererPlanning() {
       const start = new Date(selectInfo.start);
       const end = new Date(selectInfo.end);
 
-      setAvailabilityForm({
-        ...availabilityForm,
+      setAvailabilityForm({ ...availabilityForm,
         dayOfWeek: start.getDay(),
         startTime: format(start, "HH:mm"),
-        endTime: format(end, "HH:mm"),
-      });
+        endTime: format(end, "HH:mm") });
       setShowAvailabilityDialog(true);
     },
     [availabilityForm],
@@ -341,7 +312,7 @@ export default function DelivererPlanning() {
   };
 
   const handleOptimizeRoute = (date: string) => {
-    optimizeRouteMutation.mutate({ date });
+    optimizeRouteMutation.mutate({ date  });
   };
 
   const weekdays = [
@@ -351,8 +322,7 @@ export default function DelivererPlanning() {
     "Mercredi",
     "Jeudi",
     "Vendredi",
-    "Samedi",
-  ];
+    "Samedi"];
 
   return (
     <div className="space-y-6">
@@ -480,13 +450,11 @@ export default function DelivererPlanning() {
                 dayGridPlugin,
                 timeGridPlugin,
                 interactionPlugin,
-                listPlugin,
-              ]}
+                listPlugin]}
               headerToolbar={{
                 left: "prev,next today",
                 center: "title",
-                right: "",
-              }}
+                right: ""}}
               initialView={calendarView}
               editable={false}
               selectable={true}
@@ -506,13 +474,11 @@ export default function DelivererPlanning() {
               eventTimeFormat={{
                 hour: "2-digit",
                 minute: "2-digit",
-                hour12: false,
-              }}
+                hour12: false}}
               slotLabelFormat={{
                 hour: "2-digit",
                 minute: "2-digit",
-                hour12: false,
-              }}
+                hour12: false}}
             />
           </div>
         </CardContent>
@@ -634,10 +600,8 @@ export default function DelivererPlanning() {
               <Select
                 value={availabilityForm.dayOfWeek.toString()}
                 onValueChange={(value) =>
-                  setAvailabilityForm({
-                    ...availabilityForm,
-                    dayOfWeek: parseInt(value),
-                  })
+                  setAvailabilityForm({ ...availabilityForm,
+                    dayOfWeek: parseInt(value) })
                 }
               >
                 <SelectTrigger>
@@ -661,10 +625,8 @@ export default function DelivererPlanning() {
                   type="time"
                   value={availabilityForm.startTime}
                   onChange={(e) =>
-                    setAvailabilityForm({
-                      ...availabilityForm,
-                      startTime: e.target.value,
-                    })
+                    setAvailabilityForm({ ...availabilityForm,
+                      startTime: e.target.value })
                   }
                 />
               </div>
@@ -675,10 +637,8 @@ export default function DelivererPlanning() {
                   type="time"
                   value={availabilityForm.endTime}
                   onChange={(e) =>
-                    setAvailabilityForm({
-                      ...availabilityForm,
-                      endTime: e.target.value,
-                    })
+                    setAvailabilityForm({ ...availabilityForm,
+                      endTime: e.target.value })
                   }
                 />
               </div>
@@ -694,17 +654,13 @@ export default function DelivererPlanning() {
                       checked={availabilityForm.zones.includes(zone.id)}
                       onCheckedChange={(checked) => {
                         if (checked) {
-                          setAvailabilityForm({
-                            ...availabilityForm,
-                            zones: [...availabilityForm.zones, zone.id],
-                          });
+                          setAvailabilityForm({ ...availabilityForm,
+                            zones: [...availabilityForm.zones, zone.id] });
                         } else {
-                          setAvailabilityForm({
-                            ...availabilityForm,
+                          setAvailabilityForm({ ...availabilityForm,
                             zones: availabilityForm.zones.filter(
                               (id) => id !== zone.id,
-                            ),
-                          });
+                            ) });
                         }
                       }}
                     />
@@ -723,10 +679,8 @@ export default function DelivererPlanning() {
                 placeholder="Commentaires sur cette disponibilité..."
                 value={availabilityForm.notes || ""}
                 onChange={(e) =>
-                  setAvailabilityForm({
-                    ...availabilityForm,
-                    notes: e.target.value,
-                  })
+                  setAvailabilityForm({ ...availabilityForm,
+                    notes: e.target.value })
                 }
               />
             </div>
@@ -736,10 +690,8 @@ export default function DelivererPlanning() {
                 id="isActive"
                 checked={availabilityForm.isActive}
                 onCheckedChange={(checked) =>
-                  setAvailabilityForm({
-                    ...availabilityForm,
-                    isActive: checked,
-                  })
+                  setAvailabilityForm({ ...availabilityForm,
+                    isActive: checked })
                 }
               />
               <Label htmlFor="isActive">Activer cette disponibilité</Label>

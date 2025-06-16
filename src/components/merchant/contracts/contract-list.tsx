@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { api } from "@/app/api/api";
 
 // Types adaptés pour merchants (réutilisation du composant admin)
 type BadgeVariant = "default" | "destructive" | "outline" | "secondary";
@@ -48,32 +49,15 @@ export function MerchantContractList() {
   const t = useTranslations("merchant.contracts");
   const [activeTab, setActiveTab] = useState<ContractStatus | "ALL">("ALL");
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading] = useState(false);
 
-  // Simulation de données - à remplacer par appel tRPC
-  // const { data: contracts, isLoading } = api.merchant.contracts.getMerchantContracts.useQuery();
-  const contracts: MerchantContract[] = [
-    {
-      id: "1",
-      title: "Contrat standard marchand",
-      status: ContractStatus.ACTIVE,
-      createdAt: new Date("2023-11-15"),
-      expiresAt: new Date("2024-11-15"),
-      signedAt: new Date("2023-11-15"),
-      monthlyFee: 49.9,
-      commissionRate: 0.12,
-    },
-    {
-      id: "2",
-      title: "Contrat premium marchand",
-      status: ContractStatus.PENDING_SIGNATURE,
-      createdAt: new Date("2023-12-01"),
-      expiresAt: null,
-      signedAt: null,
-      monthlyFee: 99.9,
-      commissionRate: 0.08,
-    },
-  ];
+  // Appels tRPC réels pour récupérer les contrats
+  const { 
+    data: contracts = [], 
+    isLoading: loading, 
+    refetch 
+  } = api.merchant.contracts.getMerchantContracts.useQuery({ status: activeTab !== "ALL" ? activeTab : undefined,
+    search: searchTerm || undefined,
+   });
 
   // Filtrer les contrats selon l'onglet actif et le terme de recherche
   const filteredContracts = contracts
@@ -131,14 +115,23 @@ export function MerchantContractList() {
   };
 
   const handleDownloadPdf = async (contractId: string) => {
-    // Appel tRPC pour générer le PDF
-    // const pdfUrl = await api.merchant.contracts.generatePdf.mutate({ contractId });
-    console.log(`Téléchargement PDF du contrat ${contractId}`);
+    try {
+      const result = await api.merchant.contracts.generatePdf.mutate({ contractId  });
+      if (result.downloadUrl) {
+        window.open(result.downloadUrl, 'blank');
+      }
+    } catch (error) {
+      console.error("Erreur lors du téléchargement:", error);
+    }
   };
 
   const handleSignContract = (contractId: string) => {
     // Redirection vers la page de signature
     window.location.href = `/merchant/contracts/${contractId}/sign`;
+  };
+
+  const handleRefresh = () => {
+    refetch();
   };
 
   return (

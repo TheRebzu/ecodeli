@@ -121,7 +121,7 @@ interface CommissionDashboardProps {
   onDateRangeChange: (startDate: Date, endDate: Date) => void;
   onExportCSV?: () => void;
   onRefresh?: () => void;
-  isDemo?: boolean;
+  
   userId?: string;
   error?: string;
 }
@@ -132,7 +132,7 @@ export function CommissionDashboard({
   onDateRangeChange,
   onExportCSV,
   onRefresh,
-  isDemo = false,
+  
   userId,
   error,
 }: CommissionDashboardProps) {
@@ -149,119 +149,8 @@ export function CommissionDashboard({
   const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  // Générer des données de démonstration si nécessaire
-  const generateDemoData = (): CommissionReport => {
-    const demoDetails: CommissionDetail[] = [];
-    const today = new Date();
-
-    // Génération de détails pour les 30 derniers jours
-    for (let i = 0; i < 30; i++) {
-      const date = new Date();
-      date.setDate(today.getDate() - i);
-
-      // Livraisons
-      if (i % 2 === 0) {
-        demoDetails.push({
-          id: `del_${i}`,
-          date,
-          type: "DELIVERY",
-          amount: 25 + Math.random() * 75,
-          commission: 5 + Math.random() * 15,
-          rate: 0.15,
-          status: Math.random() > 0.1 ? "COMPLETED" : "PENDING",
-          reference: `REF-D-${i}`,
-        });
-      }
-
-      // Services
-      if (i % 3 === 0) {
-        demoDetails.push({
-          id: `ser_${i}`,
-          date,
-          type: "SERVICE",
-          amount: 50 + Math.random() * 100,
-          commission: 10 + Math.random() * 20,
-          rate: 0.2,
-          status: Math.random() > 0.1 ? "COMPLETED" : "PENDING",
-          reference: `REF-S-${i}`,
-        });
-      }
-
-      // Abonnements (moins fréquents)
-      if (i % 7 === 0) {
-        demoDetails.push({
-          id: `sub_${i}`,
-          date,
-          type: "SUBSCRIPTION",
-          amount: 99 + Math.random() * 50,
-          commission: 0,
-          rate: 0,
-          status: "COMPLETED",
-          reference: `REF-A-${i}`,
-        });
-      }
-    }
-
-    // Filtrer les détails en fonction de la plage de dates
-    const filteredDetails = demoDetails.filter(
-      (detail) =>
-        (isAfter(detail.date, startDate) || isEqual(detail.date, startDate)) &&
-        (isBefore(detail.date, endDate) || isEqual(detail.date, endDate)),
-    );
-
-    // Calculer les totaux
-    const deliveryDetails = filteredDetails.filter(
-      (d) => d.type === "DELIVERY",
-    );
-    const serviceDetails = filteredDetails.filter((d) => d.type === "SERVICE");
-    const subscriptionDetails = filteredDetails.filter(
-      (d) => d.type === "SUBSCRIPTION",
-    );
-
-    const totalDeliveryCommission = deliveryDetails.reduce(
-      (sum, d) => sum + d.commission,
-      0,
-    );
-    const totalServiceCommission = serviceDetails.reduce(
-      (sum, d) => sum + d.commission,
-      0,
-    );
-    const totalSubscriptionCommission = subscriptionDetails.reduce(
-      (sum, d) => sum + d.commission,
-      0,
-    );
-
-    return {
-      period: {
-        startDate,
-        endDate,
-      },
-      totalPayments: filteredDetails.length,
-      totalAmount: filteredDetails.reduce((sum, d) => sum + d.amount, 0),
-      totalCommission:
-        totalDeliveryCommission +
-        totalServiceCommission +
-        totalSubscriptionCommission,
-      breakdown: {
-        delivery: {
-          count: deliveryDetails.length,
-          commission: totalDeliveryCommission,
-        },
-        service: {
-          count: serviceDetails.length,
-          commission: totalServiceCommission,
-        },
-        subscription: {
-          count: subscriptionDetails.length,
-          commission: totalSubscriptionCommission,
-        },
-      },
-      details: filteredDetails,
-    };
-  };
-
-  // Utiliser les données démo si nécessaire
-  const displayData = isDemo ? generateDemoData() : report;
+  // Utiliser les données de l'API uniquement
+  const displayData = report;
 
   // Gérer le changement de plage de dates
   const handleDateRangeChange = (range: "current" | "last" | "custom") => {
@@ -403,24 +292,6 @@ export function CommissionDashboard({
             <h2 className="text-2xl font-bold tracking-tight">
               {t("dashboardTitle")}
             </h2>
-            {isDemo && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge
-                      variant="outline"
-                      className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
-                    >
-                      <Zap className="h-3 w-3" />
-                      {t("demoMode")}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("demoModeDescription")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
           </div>
           <p className="text-muted-foreground">{t("dashboardDescription")}</p>
         </div>
@@ -732,7 +603,7 @@ export function CommissionDashboard({
                           {formatCurrency(
                             displayData.breakdown.delivery.commission,
                           )}{" "}
-                          ({formatPercent(calculateDeliveryPercentage() / 100)})
+                          ({ formatPercent(calculateDeliveryPercentage() / 100) })
                         </span>
                       </div>
                       <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -752,7 +623,7 @@ export function CommissionDashboard({
                           {formatCurrency(
                             displayData.breakdown.service.commission,
                           )}{" "}
-                          ({formatPercent(calculateServicePercentage() / 100)})
+                          ({ formatPercent(calculateServicePercentage() / 100) })
                         </span>
                       </div>
                       <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -772,11 +643,9 @@ export function CommissionDashboard({
                           {formatCurrency(
                             displayData.breakdown.subscription.commission,
                           )}{" "}
-                          (
-                          {formatPercent(
+                          ({ formatPercent(
                             calculateSubscriptionPercentage() / 100,
-                          )}
-                          )
+                          ) })
                         </span>
                       </div>
                       <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -798,7 +667,7 @@ export function CommissionDashboard({
               <CardFooter className="border-t pt-4">
                 <p className="text-xs text-muted-foreground">
                   {t("lastUpdated")}:{" "}
-                  {format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr })}
+                  {format(new Date(), "dd/MM/yyyy HH:mm", { locale })}
                 </p>
               </CardFooter>
             </Card>

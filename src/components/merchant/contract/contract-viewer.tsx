@@ -10,8 +10,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/trpc/react";
@@ -25,8 +24,7 @@ import {
   XCircle,
   AlertTriangle,
   Search,
-  Filter,
-} from "lucide-react";
+  Filter} from "lucide-react";
 import { ContractStatus, ContractType } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -40,52 +38,42 @@ const CONTRACT_STATUS_CONFIG = {
   [ContractStatus.DRAFT]: {
     label: "Brouillon",
     variant: "secondary" as const,
-    icon: Edit,
-  },
+    icon: Edit},
   [ContractStatus.PENDING_SIGNATURE]: {
     label: "En attente de signature",
     variant: "default" as const,
-    icon: Clock,
-  },
+    icon: Clock},
   [ContractStatus.ACTIVE]: {
     label: "Actif",
     variant: "default" as const,
-    icon: CheckCircle,
-  },
+    icon: CheckCircle},
   [ContractStatus.SUSPENDED]: {
     label: "Suspendu",
     variant: "destructive" as const,
-    icon: AlertTriangle,
-  },
+    icon: AlertTriangle},
   [ContractStatus.TERMINATED]: {
     label: "Résilié",
     variant: "destructive" as const,
-    icon: XCircle,
-  },
+    icon: XCircle},
   [ContractStatus.EXPIRED]: {
     label: "Expiré",
     variant: "outline" as const,
-    icon: Clock,
-  },
+    icon: Clock},
   [ContractStatus.CANCELLED]: {
     label: "Annulé",
     variant: "outline" as const,
-    icon: XCircle,
-  },
-};
+    icon: XCircle}};
 
 const CONTRACT_TYPE_LABELS = {
   [ContractType.STANDARD]: "Standard",
   [ContractType.PREMIUM]: "Premium",
   [ContractType.PARTNER]: "Partenaire",
   [ContractType.TRIAL]: "Essai",
-  [ContractType.CUSTOM]: "Personnalisé",
-};
+  [ContractType.CUSTOM]: "Personnalisé"};
 
 export default function ContractList({
   userRole = "MERCHANT",
-  merchantId,
-}: ContractListProps) {
+  merchantId}: ContractListProps) {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "ALL">(
@@ -96,68 +84,54 @@ export default function ContractList({
   // Query appropriée selon le rôle
   const contractsQuery =
     userRole === "MERCHANT"
-      ? api.merchant.contracts.getMerchantContracts.useQuery({
+      ? api.merchant.contracts.getMerchantContracts.useQuery({ status: statusFilter !== "ALL" ? statusFilter : undefined,
+          page: currentPage,
+          limit: 10 })
+      : api.contract.listAllContracts.useQuery({ merchantId,
           status: statusFilter !== "ALL" ? statusFilter : undefined,
           page: currentPage,
-          limit: 10,
-        })
-      : api.contract.listAllContracts.useQuery({
-          merchantId,
-          status: statusFilter !== "ALL" ? statusFilter : undefined,
-          page: currentPage,
-          limit: 10,
-        });
+          limit: 10 });
 
   const { data: contractsData, isLoading, refetch } = contractsQuery;
 
   // Mutations
-  const signContractMutation = api.merchant.contracts.signContract.useMutation({
-    onSuccess: () => {
+  const signContractMutation = api.merchant.contracts.signContract.useMutation({ onSuccess: () => {
       toast({
         title: "Contrat signé",
         description: "Votre signature a été enregistrée avec succès",
-        variant: "default",
-      });
+        variant: "default" });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const generatePdfMutation = api.merchant.contracts.generatePdf.useMutation({
     onSuccess: (data) => {
       // Ouvrir le PDF dans un nouvel onglet
-      window.open(data.pdfUrl, "_blank");
+      window.open(data.pdfUrl, "blank");
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const handleSignContract = (contractId: string) => {
     // En production, ouvrir un dialog de signature électronique
     const signature = `signature_${Date.now()}`;
-    signContractMutation.mutate({
-      contractId,
-      merchantSignature: signature,
-    });
+    signContractMutation.mutate({ contractId,
+      merchantSignature: signature });
   };
 
   const handleDownloadPdf = (contractId: string) => {
-    generatePdfMutation.mutate({ contractId });
+    generatePdfMutation.mutate({ contractId  });
   };
 
   const handleViewDetails = (contractId: string) => {
-    window.open(`/contracts/${contractId}`, "_blank");
+    window.open(`/contracts/${contractId}`, "blank");
   };
 
   const filteredContracts =
@@ -184,8 +158,7 @@ export default function ContractList({
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   return (
@@ -233,7 +206,7 @@ export default function ContractList({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Tous les statuts</SelectItem>
-                  {Object.entries(CONTRACT_STATUS_CONFIG).map(
+                  {Object.entries(CONTRACT_STATUSCONFIG).map(
                     ([status, config]) => (
                       <SelectItem key={status} value={status}>
                         {config.label}
@@ -298,8 +271,7 @@ export default function ContractList({
                         Créé{" "}
                         {formatDistanceToNow(new Date(contract.createdAt), {
                           addSuffix: true,
-                          locale: fr,
-                        })}
+                          locale: fr})}
                       </span>
                     </div>
                   </div>

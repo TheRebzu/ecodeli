@@ -11,8 +11,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -40,8 +39,7 @@ export function ReviewFilters({
   onTypeChange,
   onVerifiedChange,
   onSearchChange,
-  onReset,
-}: ReviewFiltersProps) {
+  onReset}: ReviewFiltersProps) {
   const t = useTranslations("reviews");
 
   return (

@@ -10,8 +10,7 @@ export enum DeliveryTrackingEventType {
   ETA_UPDATE = "ETA_UPDATE",
   CHECKPOINT_REACHED = "CHECKPOINT_REACHED",
   ISSUE_REPORTED = "ISSUE_REPORTED",
-  ISSUE_RESOLVED = "ISSUE_RESOLVED",
-}
+  ISSUE_RESOLVED = "ISSUE_RESOLVED"}
 
 // Types pour les positions
 export interface DeliveryPosition {
@@ -78,7 +77,7 @@ export class DeliveryTracker {
       this.socket.emit(
         "untrack_delivery",
         deliveryId,
-        (response: { success: boolean }) => {
+        (response: { success }) => {
           if (response.success) {
             this.trackingSubscriptions.delete(deliveryId);
           }
@@ -151,8 +150,7 @@ export class DeliveryTracker {
         "update_position",
         {
           deliveryId,
-          ...position,
-        },
+          ...position},
         (response: { success: boolean; error?: string }) => {
           if (response.success) {
             resolve(true);
@@ -183,8 +181,7 @@ export class DeliveryTracker {
         {
           deliveryId,
           status,
-          notes,
-        },
+          notes},
         (response: { success: boolean; error?: string }) => {
           if (response.success) {
             resolve(true);

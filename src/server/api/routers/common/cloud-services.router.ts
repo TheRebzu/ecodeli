@@ -8,55 +8,45 @@ import { TRPCError } from "@trpc/server";
  */
 
 // Schémas de validation
-const fileUploadSchema = z.object({
-  fileName: z.string().min(1).max(255),
+const fileUploadSchema = z.object({ fileName: z.string().min(1).max(255),
   fileType: z.string(),
   fileSize: z.number().positive(),
   folder: z.string().optional(),
   isPublic: z.boolean().default(false),
-  metadata: z.record(z.string()).optional(),
-});
+  metadata: z.record(z.string()).optional() });
 
-const backupRequestSchema = z.object({
-  entityType: z.enum(["DATABASE", "FILES", "LOGS", "FULL"]),
+const backupRequestSchema = z.object({ entityType: z.enum(["DATABASE", "FILES", "LOGS", "FULL"]),
   description: z.string().max(500).optional(),
   includeUserData: z.boolean().default(true),
   compression: z.boolean().default(true),
-  encryption: z.boolean().default(true),
-});
+  encryption: z.boolean().default(true) });
 
-const monitoringAlertSchema = z.object({
-  service: z.string().min(1),
+const monitoringAlertSchema = z.object({ service: z.string().min(1),
   metric: z.string().min(1),
   threshold: z.number(),
   condition: z.enum(["ABOVE", "BELOW", "EQUALS"]),
   recipients: z.array(z.string().email()),
-  isActive: z.boolean().default(true),
-});
+  isActive: z.boolean().default(true) });
 
-export const cloudServicesRouter = router({
-  /**
+export const cloudServicesRouter = router({ /**
    * Obtenir les métriques de santé des services cloud
    */
-  getServiceHealth: protectedProcedure.query(async ({ _ctx }) => {
-    const { _user: __user } = ctx.session;
+  getServiceHealth: protectedProcedure.query(async ({ ctx  }) => {
+    const { user } = ctx.session;
 
     if (user.role !== "ADMIN") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Seuls les administrateurs peuvent voir la santé des services",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Seuls les administrateurs peuvent voir la santé des services" });
     }
 
     try {
       // Simuler des métriques de santé des services
       const services = await Promise.all([
-        checkDatabaseHealth(_ctx.db),
+        checkDatabaseHealth(ctx.db),
         checkFileStorageHealth(),
         checkEmailServiceHealth(),
         checkPaymentServiceHealth(),
-        checkNotificationServiceHealth(),
-      ]);
+        checkNotificationServiceHealth()]);
 
       const overallHealth = services.every((s) => s.status === "HEALTHY")
         ? "HEALTHY"
@@ -71,14 +61,10 @@ export const cloudServicesRouter = router({
           services,
           lastCheck: new Date(),
           uptime: calculateUptime(),
-          responseTime: await calculateAverageResponseTime(_ctx.db),
-        },
-      };
-    } catch (_error) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la vérification de la santé des services",
-      });
+          responseTime: await calculateAverageResponseTime(ctx.db)}};
+    } catch (error) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la vérification de la santé des services" });
     }
   }),
 
@@ -87,19 +73,17 @@ export const cloudServicesRouter = router({
    */
   uploadFile: protectedProcedure
     .input(fileUploadSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
-        const { _user: __user } = ctx.session;
+        const { user } = ctx.session;
 
         // Vérifier les limites de stockage
-        const userStorageUsed = await calculateUserStorage(_ctx.db, user.id);
+        const userStorageUsed = await calculateUserStorage(ctx.db, user.id);
         const storageLimit = getStorageLimitForRole(user.role);
 
         if (userStorageUsed + input.fileSize > storageLimit) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Limite de stockage dépassée",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Limite de stockage dépassée" });
         }
 
         // Générer un chemin de fichier sécurisé
@@ -119,9 +103,7 @@ export const cloudServicesRouter = router({
             isPublic: input.isPublic,
             metadata: input.metadata || {},
             uploaderId: user.id,
-            status: "UPLOADING",
-          },
-        });
+            status: "UPLOADING"}});
 
         // Générer une URL de upload sécurisée (présignée)
         const uploadUrl = await generatePresignedUploadUrl(
@@ -136,14 +118,11 @@ export const cloudServicesRouter = router({
             uploadUrl,
             filePath,
             expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
-          },
-        };
-      } catch (_error) {
+          }};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'upload du fichier",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'upload du fichier" });
       }
     }),
 
@@ -152,30 +131,23 @@ export const cloudServicesRouter = router({
    */
   confirmUpload: protectedProcedure
     .input(
-      z.object({
-        documentId: z.string().cuid(),
-        checksum: z.string().optional(),
-      }),
+      z.object({ documentId: z.string().cuid(),
+        checksum: z.string().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const document = await ctx.db.document.findUnique({
-          where: { id: input.documentId },
-        });
+          where: { id: input.documentId }});
 
         if (!document) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Document non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Document non trouvé" });
         }
 
         // Vérifier que l'utilisateur est le propriétaire
-        if (document.uploaderId !== _ctx.session.user.id) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Accès non autorisé",
-          });
+        if (document.uploaderId !== ctx.session.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Accès non autorisé" });
         }
 
         // Mettre à jour le statut
@@ -184,9 +156,7 @@ export const cloudServicesRouter = router({
           data: {
             status: "COMPLETED",
             uploadedAt: new Date(),
-            checksum: input.checksum,
-          },
-        });
+            checksum: input.checksum}});
 
         // Générer l'URL d'accès
         const accessUrl = await generateFileAccessUrl(
@@ -198,15 +168,11 @@ export const cloudServicesRouter = router({
           success: true,
           data: {
             document: updatedDocument,
-            accessUrl,
-          },
-        };
-      } catch (_error) {
+            accessUrl}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la confirmation d'upload",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la confirmation d'upload" });
       }
     }),
 
@@ -215,14 +181,12 @@ export const cloudServicesRouter = router({
    */
   createBackup: protectedProcedure
     .input(backupRequestSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent créer des sauvegardes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent créer des sauvegardes" });
       }
 
       try {
@@ -236,9 +200,7 @@ export const cloudServicesRouter = router({
             encryption: input.encryption,
             initiatedById: user.id,
             status: "PENDING",
-            estimatedSize: await estimateBackupSize(_ctx.db, input),
-          },
-        });
+            estimatedSize: await estimateBackupSize(ctx.db, input)}});
 
         // Lancer le processus de backup en arrière-plan
         await triggerBackupProcess(backup.id, input);
@@ -246,13 +208,10 @@ export const cloudServicesRouter = router({
         return {
           success: true,
           data: backup,
-          message: "Sauvegarde initiée avec succès",
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création de la sauvegarde",
-        });
+          message: "Sauvegarde initiée avec succès"};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de la sauvegarde" });
       }
     }),
 
@@ -261,43 +220,30 @@ export const cloudServicesRouter = router({
    */
   listBackups: protectedProcedure
     .input(
-      z.object({
-        limit: z.number().default(20),
+      z.object({ limit: z.number().default(20),
         offset: z.number().default(0),
-        entityType: z.enum(["DATABASE", "FILES", "LOGS", "FULL"]).optional(),
-      }),
+        entityType: z.enum(["DATABASE", "FILES", "LOGS", "FULL"]).optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
         const [backups, total] = await Promise.all([
-          _ctx.db.systemBackup.findMany({
-            where: {
-              ...(input.entityType && { entityType: input.entityType }),
-            },
+          ctx.db.systemBackup.findMany({ where: {
+              ...(input.entityType && { entityType: input.entityType  })},
             include: {
               initiatedBy: {
-                select: { name: true, email: true },
-              },
-            },
+                select: { name: true, email: true }}},
             orderBy: { createdAt: "desc" },
             skip: input.offset,
-            take: input.limit,
-          }),
-          ctx.db.systemBackup.count({
-            where: {
-              ...(input.entityType && { entityType: input.entityType }),
-            },
-          }),
-        ]);
+            take: input.limit}),
+          ctx.db.systemBackup.count({ where: {
+              ...(input.entityType && { entityType: input.entityType  })}})]);
 
         return {
           success: true,
@@ -307,15 +253,10 @@ export const cloudServicesRouter = router({
               total,
               offset: input.offset,
               limit: input.limit,
-              hasMore: input.offset + input.limit < total,
-            },
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des sauvegardes",
-        });
+              hasMore: input.offset + input.limit < total}}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des sauvegardes" });
       }
     }),
 
@@ -324,109 +265,89 @@ export const cloudServicesRouter = router({
    */
   createMonitoringAlert: protectedProcedure
     .input(monitoringAlertSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent configurer les alertes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent configurer les alertes" });
       }
 
       try {
         const alert = await ctx.db.monitoringAlert.create({
           data: {
             ...input,
-            createdById: user.id,
-          },
-        });
+            createdById: user.id}});
 
         return {
           success: true,
           data: alert,
-          message: "Alerte créée avec succès",
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création de l'alerte",
-        });
+          message: "Alerte créée avec succès"};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de l'alerte" });
       }
     }),
 
   /**
    * Obtenir les métriques de stockage
    */
-  getStorageMetrics: protectedProcedure.query(async ({ _ctx }) => {
-    const { _user: __user } = ctx.session;
+  getStorageMetrics: protectedProcedure.query(async ({ ctx  }) => {
+    const { user } = ctx.session;
 
     try {
       if (user.role === "ADMIN") {
         // Métriques globales pour les admins
         const [totalStorage, userStorage, fileTypes] = await Promise.all([
-          _ctx.db.document.aggregate({
-            _sum: { fileSize: true },
-            _count: true,
-          }),
+          ctx.db.document.aggregate({
+            sum: { fileSize },
+            count: true}),
           ctx.db.document.groupBy({
             by: ["uploaderId"],
-            _sum: { fileSize: true },
-            _count: true,
-            orderBy: { _sum: { fileSize: "desc" } },
-            take: 10,
-          }),
+            sum: { fileSize },
+            count: true,
+            orderBy: { sum: { fileSize: "desc" } },
+            take: 10}),
           ctx.db.document.groupBy({
             by: ["fileType"],
-            _sum: { fileSize: true },
-            _count: true,
-          }),
-        ]);
+            sum: { fileSize },
+            count: true})]);
 
         return {
           success: true,
           data: {
             total: {
-              size: totalStorage._sum.fileSize || 0,
-              count: totalStorage._count,
-            },
+              size: totalStorage.sum.fileSize || 0,
+              count: totalStorage.count},
             topUsers: userStorage,
             byFileType: fileTypes,
             storageLimit: getGlobalStorageLimit(),
             usagePercentage:
-              ((totalStorage._sum.fileSize || 0) / getGlobalStorageLimit()) *
-              100,
-          },
-        };
+              ((totalStorage.sum.fileSize || 0) / getGlobalStorageLimit()) *
+              100}};
       } else {
         // Métriques personnelles pour les utilisateurs
         const userFiles = await ctx.db.document.aggregate({
           where: { uploaderId: user.id },
-          _sum: { fileSize: true },
-          _count: true,
-        });
+          sum: { fileSize },
+          count: true});
 
         const storageLimit = getStorageLimitForRole(user.role);
 
         return {
           success: true,
           data: {
-            used: userFiles._sum.fileSize || 0,
-            count: userFiles._count,
+            used: userFiles.sum.fileSize || 0,
+            count: userFiles.count,
             limit: storageLimit,
             usagePercentage:
-              ((userFiles._sum.fileSize || 0) / storageLimit) * 100,
-          },
-        };
+              ((userFiles.sum.fileSize || 0) / storageLimit) * 100}};
       }
-    } catch (_error) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des métriques de stockage",
-      });
+    } catch (error) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des métriques de stockage" });
     }
-  }),
-});
+  })});
 
 // Helper functions
 
@@ -440,15 +361,13 @@ async function checkDatabaseHealth(db: any) {
       name: "Database",
       status: responseTime < 1000 ? "HEALTHY" : "DEGRADED",
       responseTime,
-      lastCheck: new Date(),
-    };
-  } catch (_error) {
+      lastCheck: new Date()};
+  } catch (error) {
     return {
       name: "Database",
       status: "CRITICAL",
       error: "Connection failed",
-      lastCheck: new Date(),
-    };
+      lastCheck: new Date()};
   }
 }
 
@@ -458,8 +377,7 @@ async function checkFileStorageHealth() {
     name: "File Storage",
     status: "HEALTHY",
     responseTime: 150,
-    lastCheck: new Date(),
-  };
+    lastCheck: new Date()};
 }
 
 async function checkEmailServiceHealth() {
@@ -468,8 +386,7 @@ async function checkEmailServiceHealth() {
     name: "Email Service",
     status: "HEALTHY",
     responseTime: 200,
-    lastCheck: new Date(),
-  };
+    lastCheck: new Date()};
 }
 
 async function checkPaymentServiceHealth() {
@@ -478,8 +395,7 @@ async function checkPaymentServiceHealth() {
     name: "Payment Service",
     status: "HEALTHY",
     responseTime: 300,
-    lastCheck: new Date(),
-  };
+    lastCheck: new Date()};
 }
 
 async function checkNotificationServiceHealth() {
@@ -488,8 +404,7 @@ async function checkNotificationServiceHealth() {
     name: "Notification Service",
     status: "HEALTHY",
     responseTime: 180,
-    lastCheck: new Date(),
-  };
+    lastCheck: new Date()};
 }
 
 function calculateUptime(): number {
@@ -504,10 +419,9 @@ async function calculateAverageResponseTime(db: any): Promise<number> {
 
 async function calculateUserStorage(db: any, userId: string): Promise<number> {
   const result = await db.document.aggregate({
-    where: { uploaderId: userId },
-    _sum: { fileSize: true },
-  });
-  return result._sum.fileSize || 0;
+    where: { uploaderId },
+    sum: { fileSize }});
+  return result.sum.fileSize || 0;
 }
 
 function getStorageLimitForRole(role: string): number {
@@ -565,9 +479,8 @@ async function estimateBackupSize(db: any, config: any): Promise<number> {
 
   if (config.entityType === "FILES" || config.entityType === "FULL") {
     const filesSize = await db.document.aggregate({
-      _sum: { fileSize: true },
-    });
-    estimatedSize += filesSize._sum.fileSize || 0;
+      sum: { fileSize }});
+    estimatedSize += filesSize.sum.fileSize || 0;
   }
 
   return estimatedSize;

@@ -8,8 +8,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,8 +16,7 @@ import {
   AlertCircle,
   ArrowRight,
   CheckCircle,
-  Loader2,
-} from "lucide-react";
+  Loader2} from "lucide-react";
 import { useAnnouncement } from "@/hooks/delivery/use-announcement";
 import AnnouncementForm from "@/components/ui/form";
 import { UpdateAnnouncementInput } from "@/schemas/delivery/announcement.schema";
@@ -31,7 +29,7 @@ import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 export default function EditAnnouncementPage() {
   useRoleProtection(["CLIENT"]);
   const t = useTranslations("announcements");
-  const params = useParams<{ id: string }>();
+  const params = useParams<{ id }>();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,8 +40,7 @@ export default function EditAnnouncementPage() {
     updateAnnouncement,
     currentAnnouncement,
     isLoading,
-    error: fetchError,
-  } = useAnnouncement();
+    error: fetchError} = useAnnouncement();
 
   // Récupérer les détails de l'annonce pour l'édition
   useEffect(() => {
@@ -67,17 +64,14 @@ export default function EditAnnouncementPage() {
 
         // Notification de succès
         toast.success(t("updateSuccess"), {
-          description: t("announcementUpdated"),
-        });
+          description: t("announcementUpdated")});
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setError(message);
 
       // Notification d'erreur
-      toast.error(t("updateError"), {
-        description: message,
-      });
+      toast.error(t("updateError"), { description });
     } finally {
       setIsSubmitting(false);
     }
@@ -105,11 +99,11 @@ export default function EditAnnouncementPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
+                {Array.from({ length: 3  }).map((_, i) => (
                   <Skeleton key={i} className="h-12 w-full" />
                 ))}
                 <Skeleton className="h-32 w-full" />
-                {Array.from({ length: 4 }).map((_, i) => (
+                {Array.from({ length: 4  }).map((_, i) => (
                   <Skeleton key={i + 3} className="h-12 w-full" />
                 ))}
               </div>

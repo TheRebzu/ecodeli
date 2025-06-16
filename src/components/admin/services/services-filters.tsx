@@ -10,8 +10,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X, Search, Filter, RotateCcw } from "lucide-react";
 
@@ -49,51 +48,47 @@ const statusOptions = [
   {
     value: "DRAFT",
     label: "Brouillon",
-    color: "bg-yellow-100 text-yellow-800",
-  },
-  { value: "SUSPENDED", label: "Suspendu", color: "bg-red-100 text-red-800" },
-] as const;
+    color: "bg-yellow-100 text-yellow-800"},
+  { value: "SUSPENDED", label: "Suspendu", color: "bg-red-100 text-red-800" }] as const;
 
 const categoryOptions = [
   { value: "DELIVERY", label: "Livraison" },
   { value: "CLEANING", label: "Nettoyage" },
   { value: "MAINTENANCE", label: "Maintenance" },
   { value: "REPAIR", label: "Réparation" },
-  { value: "OTHER", label: "Autre" },
-] as const;
+  { value: "OTHER", label: "Autre" }] as const;
 
 export function ServicesFilters({
   filters,
   onFiltersChange,
   onReset,
   categories,
-  isLoading,
-}: ServicesFiltersProps) {
+  isLoading}: ServicesFiltersProps) {
   const [localSearch, setLocalSearch] = useState(filters.search || "");
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onFiltersChange({ search: localSearch, page: 1 });
+    onFiltersChange({ search: localSearch, page: 1  });
   };
 
   const handleStatusChange = (status: string) => {
     if (status === "all") {
-      onFiltersChange({ status: undefined, page: 1 });
+      onFiltersChange({ status: undefined, page: 1  });
     } else {
-      onFiltersChange({ status: status as ServiceStatus, page: 1 });
+      onFiltersChange({ status: status as ServiceStatus, page: 1  });
     }
   };
 
   const handleCategoryChange = (category: string) => {
     if (category === "all") {
-      onFiltersChange({ category: undefined, page: 1 });
+      onFiltersChange({ category: undefined, page: 1  });
     } else {
-      onFiltersChange({ category: category as ServiceCategory, page: 1 });
+      onFiltersChange({ category: category as ServiceCategory, page: 1  });
     }
   };
 
   const getActiveFiltersCount = () => {
-    let count = 0;
+    const count = 0;
     if (filters.search) count++;
     if (filters.status) count++;
     if (filters.category) count++;
@@ -224,7 +219,7 @@ export function ServicesFilters({
                     className="h-4 w-4 p-0 hover:bg-transparent"
                     onClick={() => {
                       setLocalSearch("");
-                      onFiltersChange({ search: undefined, page: 1 });
+                      onFiltersChange({ search: undefined, page: 1  });
                     }}
                   >
                     <X className="h-3 w-3" />
@@ -240,7 +235,7 @@ export function ServicesFilters({
                     size="sm"
                     className="h-4 w-4 p-0 hover:bg-transparent"
                     onClick={() =>
-                      onFiltersChange({ status: undefined, page: 1 })
+                      onFiltersChange({ status: undefined, page: 1  })
                     }
                   >
                     <X className="h-3 w-3" />
@@ -256,7 +251,7 @@ export function ServicesFilters({
                     size="sm"
                     className="h-4 w-4 p-0 hover:bg-transparent"
                     onClick={() =>
-                      onFiltersChange({ category: undefined, page: 1 })
+                      onFiltersChange({ category: undefined, page: 1  })
                     }
                   >
                     <X className="h-3 w-3" />

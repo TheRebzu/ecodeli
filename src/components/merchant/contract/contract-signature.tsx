@@ -11,8 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/trpc/react";
 import {
@@ -22,8 +21,7 @@ import {
   AlertTriangle,
   Download,
   Eye,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 import { ContractStatus } from "@prisma/client";
 
 interface ContractSignatureProps {
@@ -35,8 +33,7 @@ interface ContractSignatureProps {
 export default function ContractSignature({
   contractId,
   userRole = "MERCHANT",
-  onSignatureComplete,
-}: ContractSignatureProps) {
+  onSignatureComplete}: ContractSignatureProps) {
   const { toast } = useToast();
   const [isSignatureDialogOpen, setIsSignatureDialogOpen] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -47,78 +44,60 @@ export default function ContractSignature({
   const {
     data: contract,
     isLoading,
-    refetch,
-  } = api.merchant.contracts.getContractById.useQuery({
-    contractId,
-  });
+    refetch} = api.merchant.contracts.getContractById.useQuery({ contractId });
 
   // Mutations
-  const signContractMutation = api.merchant.contracts.signContract.useMutation({
-    onSuccess: () => {
+  const signContractMutation = api.merchant.contracts.signContract.useMutation({ onSuccess: () => {
       toast({
         title: "Contrat signé avec succès",
         description:
           "Votre signature a été enregistrée et le contrat a été transmis pour validation",
-        variant: "default",
-      });
+        variant: "default" });
       setIsSignatureDialogOpen(false);
       refetch();
       onSignatureComplete?.();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur lors de la signature",
+      toast({ title: "Erreur lors de la signature",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const adminSignMutation =
     userRole === "ADMIN"
-      ? api.contract.signAndValidateContract.useMutation({
-          onSuccess: () => {
+      ? api.contract.signAndValidateContract.useMutation({ onSuccess: () => {
             toast({
               title: "Contrat validé",
               description:
                 "Le contrat a été signé et validé par l'administration",
-              variant: "default",
-            });
+              variant: "default" });
             setIsSignatureDialogOpen(false);
             refetch();
             onSignatureComplete?.();
           },
           onError: (error) => {
-            toast({
-              title: "Erreur lors de la validation",
+            toast({ title: "Erreur lors de la validation",
               description: error.message,
-              variant: "destructive",
-            });
-          },
-        })
+              variant: "destructive" });
+          }})
       : null;
 
   const generatePdfMutation = api.merchant.contracts.generatePdf.useMutation({
     onSuccess: (data) => {
-      window.open(data.pdfUrl, "_blank");
+      window.open(data.pdfUrl, "blank");
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const handleSignature = () => {
     if (!acceptedTerms) {
-      toast({
-        title: "Acceptation requise",
+      toast({ title: "Acceptation requise",
         description:
           "Vous devez accepter les termes et conditions pour signer le contrat",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
@@ -126,16 +105,13 @@ export default function ContractSignature({
     const signature = `${userRole.toLowerCase()}_signature_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     if (userRole === "MERCHANT") {
-      signContractMutation.mutate({
-        contractId,
-        merchantSignature: signature,
-      });
+      signContractMutation.mutate({ contractId,
+        merchantSignature: signature });
     } else if (userRole === "ADMIN" && adminSignMutation) {
-      adminSignMutation.mutate({
-        contractId,
+      adminSignMutation.mutate({ contractId,
         merchantSignature: contract?.merchantSignature || "",
         signedById: undefined, // sera défini côté serveur
-      });
+       });
     }
   };
 
@@ -143,12 +119,12 @@ export default function ContractSignature({
     if (userRole === "MERCHANT") {
       return (
         contract?.status === ContractStatus.DRAFT ||
-        contract?.status === ContractStatus.PENDING_SIGNATURE
+        contract?.status === ContractStatus.PENDINGSIGNATURE
       );
     }
     if (userRole === "ADMIN") {
       return (
-        contract?.status === ContractStatus.PENDING_SIGNATURE &&
+        contract?.status === ContractStatus.PENDINGSIGNATURE &&
         contract?.merchantSignature
       );
     }
@@ -169,27 +145,24 @@ export default function ContractSignature({
       return {
         type: "success" as const,
         icon: CheckCircle,
-        message: "Contrat entièrement signé et actif",
-      };
+        message: "Contrat entièrement signé et actif"};
     }
 
     if (
-      contract.status === ContractStatus.PENDING_SIGNATURE &&
+      contract.status === ContractStatus.PENDINGSIGNATURE &&
       isMerchantSigned
     ) {
       return {
         type: "warning" as const,
         icon: Clock,
-        message: "En attente de validation administrateur",
-      };
+        message: "En attente de validation administrateur"};
     }
 
     if (contract.status === ContractStatus.DRAFT || !isMerchantSigned) {
       return {
         type: "info" as const,
         icon: PenTool,
-        message: "En attente de signature du commerçant",
-      };
+        message: "En attente de signature du commerçant"};
     }
 
     return null;
@@ -296,7 +269,7 @@ export default function ContractSignature({
             </label>
             <div
               className="mt-2 p-4 border rounded-lg bg-muted/30 max-h-60 overflow-y-auto prose prose-sm"
-              dangerouslySetInnerHTML={{ __html: contract.content }}
+              dangerouslySetInnerHTML={{ html: contract.content }}
             />
           </div>
 
@@ -343,7 +316,7 @@ export default function ContractSignature({
             {contract.fileUrl && (
               <Button
                 variant="outline"
-                onClick={() => generatePdfMutation.mutate({ contractId })}
+                onClick={() => generatePdfMutation.mutate({ contractId  })}
                 disabled={generatePdfMutation.isPending}
               >
                 <Download className="h-4 w-4 mr-2" />

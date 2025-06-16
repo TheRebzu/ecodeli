@@ -34,102 +34,77 @@ export interface Service {
 
 export function useAdminServices() {
   const { toast } = useToast();
-  const [filters, setFilters] = useState<ServiceFilters>({
-    page: 1,
-    limit: 10,
-  });
+  const [filters, setFilters] = useState<ServiceFilters>({ page: 1,
+    limit: 10 });
 
   // Query pour récupérer les services
   const {
     data: servicesData,
     isLoading,
     error,
-    refetch,
-  } = api.adminServices.getAll.useQuery(filters, {
-    keepPreviousData: true,
-  });
+    refetch} = api.adminServices.getAll.useQuery(filters, { keepPreviousData });
 
   // Query pour récupérer les statistiques
-  const { data: statsData } = api.adminServices.getStats.useQuery(undefined, {
+  const { data } = api.adminServices.getStats.useQuery(undefined, {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Mutations
-  const createServiceMutation = api.adminServices.create.useMutation({
-    onSuccess: () => {
+  const createServiceMutation = api.adminServices.create.useMutation({ onSuccess: () => {
       toast({
         title: "Service créé",
-        description: "Le service a été créé avec succès.",
-      });
+        description: "Le service a été créé avec succès." });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
-  const updateServiceMutation = api.adminServices.update.useMutation({
-    onSuccess: () => {
+  const updateServiceMutation = api.adminServices.update.useMutation({ onSuccess: () => {
       toast({
         title: "Service mis à jour",
-        description: "Le service a été mis à jour avec succès.",
-      });
+        description: "Le service a été mis à jour avec succès." });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
-  const updateStatusMutation = api.adminServices.updateStatus.useMutation({
-    onSuccess: () => {
+  const updateStatusMutation = api.adminServices.updateStatus.useMutation({ onSuccess: () => {
       toast({
         title: "Statut mis à jour",
-        description: "Le statut du service a été mis à jour.",
-      });
+        description: "Le statut du service a été mis à jour." });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
-  const deleteServiceMutation = api.adminServices.delete.useMutation({
-    onSuccess: () => {
+  const deleteServiceMutation = api.adminServices.delete.useMutation({ onSuccess: () => {
       toast({
         title: "Service supprimé",
-        description: "Le service a été supprimé avec succès.",
-      });
+        description: "Le service a été supprimé avec succès." });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   // Fonctions utilitaires
   const updateFilters = (newFilters: Partial<ServiceFilters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters  }));
   };
 
   const resetFilters = () => {
-    setFilters({ page: 1, limit: 10 });
+    setFilters({ page: 1, limit: 10  });
   };
 
   const createService = (data: {
@@ -142,15 +117,15 @@ export function useAdminServices() {
   };
 
   const updateService = (id: string, data: Partial<Service>) => {
-    updateServiceMutation.mutate({ id, ...data });
+    updateServiceMutation.mutate({ id, ...data  });
   };
 
   const updateServiceStatus = (id: string, status: ServiceStatus) => {
-    updateStatusMutation.mutate({ id, status });
+    updateStatusMutation.mutate({ id, status  });
   };
 
   const deleteService = (id: string) => {
-    deleteServiceMutation.mutate({ id });
+    deleteServiceMutation.mutate({ id  });
   };
 
   return {
@@ -179,6 +154,5 @@ export function useAdminServices() {
     isCreating: createServiceMutation.isPending,
     isUpdating: updateServiceMutation.isPending,
     isUpdatingStatus: updateStatusMutation.isPending,
-    isDeleting: deleteServiceMutation.isPending,
-  };
+    isDeleting: deleteServiceMutation.isPending};
 }

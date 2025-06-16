@@ -14,8 +14,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle, Copy, Shield } from "lucide-react";
 import Image from "next/image";
@@ -31,65 +30,51 @@ export default function TwoFactorSetup() {
     data: setupData,
     isLoading: isSetupLoading,
     isError: isSetupError,
-    refetch: refetchSetup,
-  } = api.auth.setupTwoFactor.useQuery(undefined, {
+    refetch: refetchSetup} = api.auth.setupTwoFactor.useQuery(undefined, {
     enabled: true, // Auto-run the query
-    refetchOnWindowFocus: false,
-  });
+    refetchOnWindowFocus: false});
 
   // Verify 2FA code
-  const verifyTwoFactor = api.auth.verifyTwoFactor.useMutation({
-    onSuccess: (data) => {
+  const verifyTwoFactor = api.auth.verifyTwoFactor.useMutation({ onSuccess: (data) => {
       toast({
         title: t("setup.success.title"),
         description: t("setup.success.description"),
-        variant: "default",
-      });
+        variant: "default" });
       // Show backup codes after successful verification
       setShowBackupCodes(true);
     },
     onError: (error) => {
-      toast({
-        title: t("setup.error.title"),
+      toast({ title: t("setup.error.title"),
         description: error.message || t("setup.error.description"),
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   // Disable 2FA
-  const disableTwoFactor = api.auth.disableTwoFactor.useMutation({
-    onSuccess: () => {
+  const disableTwoFactor = api.auth.disableTwoFactor.useMutation({ onSuccess: () => {
       toast({
         title: t("disable.success.title"),
         description: t("disable.success.description"),
-        variant: "default",
-      });
+        variant: "default" });
       // Refetch setup data to show setup form again
       refetchSetup();
       setShowBackupCodes(false);
     },
     onError: (error) => {
-      toast({
-        title: t("disable.error.title"),
+      toast({ title: t("disable.error.title"),
         description: error.message || t("disable.error.description"),
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const handleVerifyCode = async () => {
     if (!verificationCode || verificationCode.length !== 6) {
-      toast({
-        title: t("setup.codeError.title"),
+      toast({ title: t("setup.codeError.title"),
         description: t("setup.codeError.description"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
     try {
-      await verifyTwoFactor.mutateAsync({ token: verificationCode });
+      await verifyTwoFactor.mutateAsync({ token  });
       setVerificationCode("");
     } catch (error) {
       // Error is handled in onError callback
@@ -106,10 +91,8 @@ export default function TwoFactorSetup() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({
-      title: t("backupCodes.copied"),
-      variant: "default",
-    });
+    toast({ title: t("backupCodes.copied"),
+      variant: "default" });
   };
 
   // Render loading state

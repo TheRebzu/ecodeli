@@ -8,8 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("title") || "Mes Contrats | EcoDeli Prestataire",
-    description: t("description") || "Gérez vos contrats de prestation de services",
-  };
+    description: t("description") || "Gérez vos contrats de prestation de services"};
 }
 
 export default async function ProviderContractsPage() {

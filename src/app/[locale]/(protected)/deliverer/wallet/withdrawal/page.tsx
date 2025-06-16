@@ -12,8 +12,7 @@ import {
   AlertCircle,
   Clock,
   CheckCircle,
-  Loader2,
-} from "lucide-react";
+  Loader2} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { useToast } from "@/components/ui/use-toast";
@@ -25,8 +24,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,8 +39,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -53,71 +50,56 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 
 // Schéma de validation du formulaire
-const withdrawalFormSchema = z.object({
-  amount: z.coerce
+const withdrawalFormSchema = z.object({ amount: z.coerce
     .number()
-    .min(10, { message: "Le montant minimum de retrait est de 10€" })
+    .min(10, { message: "Le montant minimum de retrait est de 10€"  })
     .refine((val) => val > 0, {
-      message: "Le montant doit être supérieur à 0",
-    }),
+      message: "Le montant doit être supérieur à 0"}),
   method: z.enum(["BANK_TRANSFER", "STRIPE_CONNECT"]),
   expedited: z.boolean().default(false),
   notes: z.string().optional(),
   acceptTerms: z.boolean().refine((val) => val === true, {
-    message: "Vous devez accepter les conditions",
-  }),
-});
+    message: "Vous devez accepter les conditions"})});
 
 type WithdrawalFormValues = z.infer<typeof withdrawalFormSchema>;
 
 export default function WithdrawalPage() {
   const t = useTranslations("wallet");
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data } = useSession();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [withdrawalSuccess, setWithdrawalSuccess] = useState(false);
 
   // Récupérer les données du portefeuille
   const { data: walletData, isLoading: isLoadingWallet } =
-    api.wallet.getMyWallet.useQuery(undefined, {
-      refetchOnWindowFocus: false,
-    });
+    api.wallet.getMyWallet.useQuery(undefined, { refetchOnWindowFocus });
 
   // Récupérer les demandes de retrait en attente
   const { data: withdrawals, isLoading: isLoadingWithdrawals } =
     api.withdrawal.getMyWithdrawals.useQuery(
       {
         limit: 3,
-        status: "PENDING",
-      },
-      {
-        refetchOnWindowFocus: false,
-      },
+        status: "PENDING"},
+      { refetchOnWindowFocus },
     );
 
   // Mutation pour demander un retrait
-  const withdrawalMutation = api.withdrawal.requestWithdrawal.useMutation({
-    onSuccess: () => {
+  const withdrawalMutation = api.withdrawal.requestWithdrawal.useMutation({ onSuccess: () => {
       setWithdrawalSuccess(true);
       toast({
         title: t("withdrawalRequestSuccess"),
-        description: t("withdrawalRequestProcessing"),
-      });
+        description: t("withdrawalRequestProcessing") });
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("withdrawalRequestFailed"),
-        description: error.message || t("genericError"),
-      });
+        description: error.message || t("genericError") });
       setIsSubmitting(false);
-    },
-  });
+    }});
 
   // Configurer le formulaire
   const form = useForm<WithdrawalFormValues>({
@@ -127,29 +109,23 @@ export default function WithdrawalPage() {
       method: "BANK_TRANSFER",
       expedited: false,
       notes: "",
-      acceptTerms: false,
-    },
-  });
+      acceptTerms: false}});
 
   // Gérer la soumission du formulaire
   const onSubmit = async (data: WithdrawalFormValues) => {
     if (!walletData || data.amount > walletData.wallet.balance) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("insufficientFunds"),
-        description: t("insufficientFundsDescription"),
-      });
+        description: t("insufficientFundsDescription") });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await withdrawalMutation.mutateAsync({
-        amount: data.amount,
+      await withdrawalMutation.mutateAsync({ amount: data.amount,
         method: data.method,
         expedited: data.expedited,
-        notes: data.notes,
-      });
+        notes: data.notes });
     } catch (error) {
       // L'erreur est déjà gérée dans onError
     }
@@ -176,8 +152,7 @@ export default function WithdrawalPage() {
     return {
       fees: roundedFees,
       netAmount,
-      processingTime,
-    };
+      processingTime};
   };
 
   // Obtenir les détails du retrait en fonction des valeurs actuelles du formulaire
@@ -364,7 +339,7 @@ export default function WithdrawalPage() {
                   <FormField
                     control={form.control}
                     name="amount"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("withdrawalAmount")}</FormLabel>
                         <FormControl>
@@ -397,7 +372,7 @@ export default function WithdrawalPage() {
                   <FormField
                     control={form.control}
                     name="method"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("withdrawalMethod")}</FormLabel>
                         <FormControl>
@@ -432,7 +407,7 @@ export default function WithdrawalPage() {
                   <FormField
                     control={form.control}
                     name="expedited"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                         <FormControl>
                           <Checkbox
@@ -455,7 +430,7 @@ export default function WithdrawalPage() {
                   <FormField
                     control={form.control}
                     name="notes"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("notes")}</FormLabel>
                         <FormControl>
@@ -524,7 +499,7 @@ export default function WithdrawalPage() {
                   <FormField
                     control={form.control}
                     name="acceptTerms"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
                           <Checkbox

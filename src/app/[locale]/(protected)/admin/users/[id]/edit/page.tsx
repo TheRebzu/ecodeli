@@ -14,8 +14,7 @@ import {
   Mail,
   Phone,
   Shield,
-  Calendar,
-} from "lucide-react";
+  Calendar} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
@@ -24,8 +23,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,8 +35,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -46,20 +43,17 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 // import { UserPermissionsForm } from '@/components/admin/users/user-permissions-form';
 import { useToast } from "@/components/ui/use-toast";
 
 // Schema de validation pour l'édition d'utilisateur
-const editUserSchema = z.object({
-  name: z.string().min(1, "Le nom est requis").max(100, "Le nom est trop long"),
+const editUserSchema = z.object({ name: z.string().min(1, "Le nom est requis").max(100, "Le nom est trop long"),
   email: z.string().email("Email invalide"),
   phoneNumber: z.string().optional(),
   role: z.nativeEnum(UserRole),
   status: z.nativeEnum(UserStatus),
-  notes: z.string().optional(),
-});
+  notes: z.string().optional() });
 
 type EditUserFormData = z.infer<typeof editUserSchema>;
 
@@ -74,9 +68,7 @@ export default function UserEditPage() {
   const {
     data: user,
     isLoading,
-    error,
-  } = api.admin.users.getUserDetail.useQuery({
-    userId,
+    error} = api.admin.users.getUserDetail.useQuery({ userId,
     includeDocuments: true,
     includeVerificationHistory: true,
     includeActivityLogs: false,
@@ -85,50 +77,38 @@ export default function UserEditPage() {
     includePermissions: false,
     includeSubscriptions: false,
     includePaymentMethods: false,
-    includeNotificationSettings: false,
-  });
+    includeNotificationSettings: false });
 
   // Debug: Afficher l'erreur dans la console
   if (error) {
     console.error("❌ Erreur getUserDetail:", error);
   }
 
-  const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation(
-    {
-      onSuccess: () => {
+  const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation({ onSuccess: () => {
         toast({
           title: "Statut mis à jour",
           description:
-            "Le statut de l'utilisateur a été mis à jour avec succès.",
-        });
+            "Le statut de l'utilisateur a été mis à jour avec succès." });
       },
       onError: (error) => {
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description:
             "Erreur lors de la mise à jour du statut: " + error.message,
-          variant: "destructive",
-        });
-      },
-    },
+          variant: "destructive" });
+      }},
   );
 
-  const updateUserRoleMutation = api.admin.users.updateUserRole.useMutation({
-    onSuccess: () => {
+  const updateUserRoleMutation = api.admin.users.updateUserRole.useMutation({ onSuccess: () => {
       toast({
         title: "Rôle mis à jour",
-        description: "Le rôle de l'utilisateur a été mis à jour avec succès.",
-      });
+        description: "Le rôle de l'utilisateur a été mis à jour avec succès." });
       router.refresh();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Erreur lors de la mise à jour du rôle: " + error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const form = useForm<EditUserFormData>({
     resolver: zodResolver(editUserSchema),
@@ -138,56 +118,44 @@ export default function UserEditPage() {
       phoneNumber: user?.phoneNumber || "",
       role: user?.role || UserRole.CLIENT,
       status: user?.status || UserStatus.PENDING_VERIFICATION,
-      notes: "",
-    },
-  });
+      notes: ""}});
 
   // Update form when user data loads
   if (user && !form.getValues().name) {
-    form.reset({
-      name: user.name,
+    form.reset({ name: user.name,
       email: user.email,
       phoneNumber: user.phoneNumber || "",
       role: user.role,
       status: user.status,
-      notes: "",
-    });
+      notes: "" });
   }
 
   const onSubmit = async (data: EditUserFormData) => {
     try {
       // Update status if changed
       if (data.status !== user?.status) {
-        await updateUserStatusMutation.mutateAsync({
-          userId,
+        await updateUserStatusMutation.mutateAsync({ userId,
           status: data.status,
-          reason: data.notes || "Status updated by admin",
-        });
+          reason: data.notes || "Status updated by admin" });
       }
 
       // Update role if changed
       if (data.role !== user?.role) {
-        await updateUserRoleMutation.mutateAsync({
-          userId,
+        await updateUserRoleMutation.mutateAsync({ userId,
           role: data.role,
-          reason: data.notes || "Role updated by admin",
-        });
+          reason: data.notes || "Role updated by admin" });
       }
 
-      toast({
-        title: "Utilisateur mis à jour",
+      toast({ title: "Utilisateur mis à jour",
         description:
-          "Les informations de l'utilisateur ont été mises à jour avec succès.",
-      });
+          "Les informations de l'utilisateur ont été mises à jour avec succès." });
 
       router.push(`/admin/users/${userId}`);
     } catch (error) {
       console.error("Error updating user:", error);
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Une erreur est survenue lors de la mise à jour.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
@@ -365,7 +333,7 @@ export default function UserEditPage() {
                     <FormField
                       control={form.control}
                       name="name"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Nom complet</FormLabel>
                           <FormControl>
@@ -379,7 +347,7 @@ export default function UserEditPage() {
                     <FormField
                       control={form.control}
                       name="email"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
@@ -393,7 +361,7 @@ export default function UserEditPage() {
                     <FormField
                       control={form.control}
                       name="phoneNumber"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Numéro de téléphone</FormLabel>
                           <FormControl>
@@ -407,7 +375,7 @@ export default function UserEditPage() {
                     <FormField
                       control={form.control}
                       name="role"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Rôle</FormLabel>
                           <Select
@@ -435,7 +403,7 @@ export default function UserEditPage() {
                     <FormField
                       control={form.control}
                       name="status"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Statut</FormLabel>
                           <Select
@@ -464,7 +432,7 @@ export default function UserEditPage() {
                   <FormField
                     control={form.control}
                     name="notes"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>Notes administratives</FormLabel>
                         <FormControl>

@@ -40,10 +40,8 @@ const getSocket = (): Socket | null => {
 
   if (!socketInstance) {
     socketInstance = io(
-      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001",
-      {
-        autoConnect: false,
-      },
+      process.env.NEXT_PUBLIC_SOCKETURL || "http://localhost:3001",
+      { autoConnect },
     );
   }
   return socketInstance;
@@ -81,8 +79,7 @@ export const socket = isClient
           socketClient.disconnect();
         }
       },
-      connected: socketInstance?.connected || false,
-    }
+      connected: socketInstance?.connected || false}
   : null;
 
 // Fonctions de connexion réelles
@@ -109,11 +106,11 @@ export const emitDeliveryTrackingEvent = (event: DeliveryTrackingEvent) => {
 };
 
 // Export par défaut
-export default {
+const defaultExport = {
   socket,
   connectSocket,
   disconnectSocket,
   emitDeliveryTrackingEvent,
   isServer,
-  isClient,
-};
+  isClient};
+export default defaultExport;

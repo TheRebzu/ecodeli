@@ -14,16 +14,14 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import {
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertTriangle, KeyRound, MailIcon } from "lucide-react";
 import AppLink from "@/components/shared/app-link";
@@ -43,9 +41,8 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
     login,
     error: authError,
     isLoading: authLoading,
-    resendEmailVerification,
-  } = useAuth();
-  const { toast: _toast } = useToast();
+    resendEmailVerification} = useAuth();
+  const { toast } = useToast();
   const tAuth = useTranslations("auth");
 
   // Vérifier si l'erreur est liée à un email non vérifié
@@ -62,7 +59,7 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
     );
   };
 
-  // @ts-ignore: Le cast en 'any' est nécessaire en raison d'incompatibilités
+  // @ts-ignore - Suppression temporaire pour compatibilité: Le cast en 'any' est nécessaire en raison d'incompatibilités
   // de types entre Zod, react-hook-form et les props attendues.
   // Voir: https://github.com/react-hook-form/resolvers/issues/271
   const form = useForm<LoginSchemaType>({
@@ -71,9 +68,7 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
       email: "",
       password: "",
       totp: "",
-      remember: false,
-    },
-  });
+      remember: false}});
 
   // Surveiller le champ email pour afficher/masquer les options de renvoi d'email
   const watchEmail = form.watch("email");
@@ -101,10 +96,8 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
           authError?.includes("facteur")
         ) {
           setShowTwoFactor(true);
-          _toast({
-            title: tAuth("notifications.twoFactorRequired"),
-            variant: "default",
-          });
+          toast({ title: tAuth("notifications.twoFactorRequired"),
+            variant: "default" });
           return;
         }
 
@@ -124,16 +117,12 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
     setIsResendingEmail(true);
     try {
       await resendEmailVerification(emailToVerify);
-      _toast({
-        title: tAuth("login.verificationEmailSent"),
-        variant: "default",
-      });
+      toast({ title: tAuth("login.verificationEmailSent"),
+        variant: "default" });
     } catch (error) {
       console.error("Erreur lors du renvoi de l'email de vérification:", error);
-      _toast({
-        title: tAuth("login.verificationEmailError"),
-        variant: "destructive",
-      });
+      toast({ title: tAuth("login.verificationEmailError"),
+        variant: "destructive" });
     } finally {
       setIsResendingEmail(false);
     }
@@ -180,7 +169,7 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
                 <FormField
                   control={form.control}
                   name="email"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <FormLabel>{tAuth("login.email")}</FormLabel>
                       <FormControl>
@@ -199,7 +188,7 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
                 <FormField
                   control={form.control}
                   name="password"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <FormLabel>{tAuth("login.password")}</FormLabel>
                       <FormControl>
@@ -219,7 +208,7 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
                   <FormField
                     control={form.control}
                     name="remember"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
                           <Checkbox
@@ -247,7 +236,7 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
               <FormField
                 control={form.control}
                 name="totp"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{tAuth("login.2fa.codeLabel")}</FormLabel>
                     <FormControl>

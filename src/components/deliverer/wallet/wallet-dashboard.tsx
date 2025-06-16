@@ -22,8 +22,7 @@ import {
   FileText,
   CreditCard,
   PieChart,
-  BarChart3,
-} from "lucide-react";
+  BarChart3} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { api } from "@/trpc/react";
@@ -66,21 +65,15 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
 
   // Récupérer les données du portefeuille
   const { data: walletData, isLoading: loadingWallet } =
-    api.deliverer.wallet.getStats.useQuery({
-      period: selectedPeriod,
-    });
+    api.deliverer.wallet.getStats.useQuery({ period  });
 
   // Récupérer les transactions
   const { data: transactions, isLoading: loadingTransactions } =
-    api.deliverer.wallet.getTransactions.useQuery({
-      filter: transactionFilter,
-      limit: 50,
-    });
+    api.deliverer.wallet.getTransactions.useQuery({ filter: transactionFilter,
+      limit: 50 });
 
   // Récupérer les retraits en attente
-  const { data: withdrawals } = api.deliverer.wallet.getWithdrawals.useQuery({
-    status: "PENDING",
-  });
+  const { data } = api.deliverer.wallet.getWithdrawals.useQuery({ status: "PENDING" });
 
   const stats = walletData;
   const transactionList = transactions?.transactions || [];
@@ -135,8 +128,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
   const formatCurrency = (amount: number, currency: string = "EUR") => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency,
-    }).format(amount);
+      currency}).format(amount);
   };
 
   const calculateGrowth = () => {
@@ -156,9 +148,8 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
         "Date,Type,Description,Montant,Statut",
         ...transactionList.map(
           (t) =>
-            `${format(t.createdAt, "dd/MM/yyyy", { locale: fr })},${getTransactionLabel(t.type)},${t.description},${t.amount},${t.status}`,
-        ),
-      ].join("\n");
+            `${format(t.createdAt, "dd/MM/yyyy", { locale })},${getTransactionLabel(t.type)},${t.description},${t.amount},${t.status}`,
+        )].join("\n");
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
@@ -321,8 +312,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
               {[
                 { value: "all", label: "Tout" },
                 { value: "earnings", label: "Gains" },
-                { value: "withdrawals", label: "Retraits" },
-              ].map((filter) => (
+                { value: "withdrawals", label: "Retraits" }].map((filter) => (
                 <Button
                   key={filter.value}
                   variant={
@@ -368,7 +358,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
                             {format(
                               transaction.createdAt,
                               "dd MMM yyyy à HH:mm",
-                              { locale: fr },
+                              { locale },
                             )}
                           </div>
                         </div>
@@ -414,8 +404,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
               {[
                 { value: "week", label: "Semaine" },
                 { value: "month", label: "Mois" },
-                { value: "year", label: "Année" },
-              ].map((period) => (
+                { value: "year", label: "Année" }].map((period) => (
                 <Button
                   key={period.value}
                   variant={

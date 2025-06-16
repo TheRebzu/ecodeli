@@ -6,8 +6,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -18,8 +17,7 @@ import {
   PieChart,
   TrendingUp,
   Truck,
-  Users,
-} from "lucide-react";
+  Users} from "lucide-react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { api } from "@/trpc/server";
 import { formatDate, getCurrentDateRange } from "@/utils/document-utils";
@@ -29,8 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("metadata.title"),
-    description: t("metadata.description"),
-  };
+    description: t("metadata.description")};
 }
 
 export default async function AdminReportsPage() {
@@ -40,27 +37,21 @@ export default async function AdminReportsPage() {
   const { startDate, endDate } = getCurrentDateRange(30);
 
   // Récupérer les rapports depuis l'API
-  const salesReport = await api.adminDashboard.getSalesReport.query({
-    startDate,
+  const salesReport = await api.adminDashboard.getSalesReport.query({ startDate,
     endDate,
     granularity: "day",
-    comparison: true,
-  });
+    comparison: true });
 
   const deliveryPerformance =
-    await api.adminDashboard.getDeliveryPerformanceReport.query({
-      startDate,
+    await api.adminDashboard.getDeliveryPerformanceReport.query({ startDate,
       endDate,
       granularity: "day",
-      comparison: true,
-    });
+      comparison: true });
 
-  const userActivity = await api.adminDashboard.getUserActivityReport.query({
-    startDate,
+  const userActivity = await api.adminDashboard.getUserActivityReport.query({ startDate,
     endDate,
     granularity: "day",
-    comparison: true,
-  });
+    comparison: true });
 
   return (
     <div className="space-y-6">
@@ -114,8 +105,7 @@ export default async function AdminReportsPage() {
           <DateRangePicker
             defaultDateRange={{
               from: startDate,
-              to: endDate,
-            }}
+              to: endDate}}
           />
         </div>
       </div>
@@ -145,8 +135,7 @@ export default async function AdminReportsPage() {
               <div
                 className="bg-primary h-1"
                 style={{
-                  width: `${Math.min(100, (deliveryPerformance.performanceSummary.totalDeliveries / 2000) * 100)}%`,
-                }}
+                  width: `${Math.min(100, (deliveryPerformance.performanceSummary.totalDeliveries / 2000) * 100)}%`}}
               />
             </div>
             <div className="flex justify-between text-xs text-muted-foreground mt-1">

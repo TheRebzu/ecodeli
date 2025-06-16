@@ -9,20 +9,17 @@ interface VerificationDetailPageProps {
 }
 
 export async function generateMetadata({
-  params,
-}: VerificationDetailPageProps): Promise<Metadata> {
+  params}: VerificationDetailPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const t = await getTranslations("admin.verification");
 
   return {
     title: t("detail.metadata.title"),
-    description: t("detail.metadata.description"),
-  };
+    description: t("detail.metadata.description")};
 }
 
 export default async function VerificationDetailPage({
-  params,
-}: VerificationDetailPageProps) {
+  params}: VerificationDetailPageProps) {
   const resolvedParams = await params;
   const { id } = resolvedParams;
 

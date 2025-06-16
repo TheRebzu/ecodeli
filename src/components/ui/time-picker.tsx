@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface TimePickerProps {
@@ -38,8 +37,7 @@ export function TimePicker({
   onChange,
   className,
   disabled,
-  placeholder = "Select time",
-}: TimePickerProps) {
+  placeholder = "Select time"}: TimePickerProps) {
   const timeOptions = React.useMemo(() => generateTimeOptions(), []);
 
   const formatDisplayTime = (timeString: string | undefined) => {

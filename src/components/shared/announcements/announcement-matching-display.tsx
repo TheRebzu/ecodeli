@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -18,16 +17,14 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import {
   MapPin,
   Clock,
@@ -48,8 +45,7 @@ import {
   Users,
   Heart,
   CheckCircle,
-  X,
-} from "lucide-react";
+  X} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 import { formatDistance } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -131,20 +127,17 @@ const COMPATIBILITY_THRESHOLDS = {
   excellent: 90,
   good: 75,
   fair: 60,
-  poor: 40,
-};
+  poor: 40};
 
 const COMPATIBILITY_COLORS = {
   excellent: "bg-green-500",
   good: "bg-blue-500",
   fair: "bg-yellow-500",
-  poor: "bg-red-500",
-};
+  poor: "bg-red-500"};
 
 export const AnnouncementMatchingDisplay: React.FC<
   AnnouncementMatchingDisplayProps
-> = ({
-  matches,
+> = ({ matches,
   userRole,
   isLoading = false,
   onApply,
@@ -154,8 +147,7 @@ export const AnnouncementMatchingDisplay: React.FC<
   onMarkAsRead,
   enableNotifications = true,
   onNotificationToggle,
-  className,
-}) => {
+  className }) => {
   const t = useTranslations("matching");
   const [selectedMatch, setSelectedMatch] = useState<AnnouncementMatch | null>(
     null,
@@ -190,15 +182,13 @@ export const AnnouncementMatchingDisplay: React.FC<
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(price);
+      currency: "EUR"}).format(price);
   };
 
   const formatRelativeDate = (date: Date) => {
     return formatDistance(date, new Date(), {
       addSuffix: true,
-      locale: fr,
-    });
+      locale: fr});
   };
 
   const handleMatchClick = (match: AnnouncementMatch) => {
@@ -219,7 +209,7 @@ export const AnnouncementMatchingDisplay: React.FC<
   if (isLoading) {
     return (
       <div className={cn("space-y-4", className)}>
-        {Array.from({ length: 3 }).map((_, i) => (
+        {Array.from({ length: 3  }).map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
               <div className="space-y-4">
@@ -379,8 +369,7 @@ export const AnnouncementMatchingDisplay: React.FC<
                           style={
                             {
                               "--progress-background":
-                                getCompatibilityColor(compatibility),
-                            } as React.CSSProperties
+                                getCompatibilityColor(compatibility)} as React.CSSProperties
                           }
                         />
                       </div>
@@ -440,11 +429,9 @@ export const AnnouncementMatchingDisplay: React.FC<
                         {userRole === "DELIVERER"
                           ? t("completedOrders", {
                               count:
-                                match.announcement.client.completedDeliveries,
-                            })
+                                match.announcement.client.completedDeliveries})
                           : t("completedDeliveries", {
-                              count: match.route.deliverer.completedDeliveries,
-                            })}
+                              count: match.route.deliverer.completedDeliveries})}
                       </div>
                     </div>
                   </div>

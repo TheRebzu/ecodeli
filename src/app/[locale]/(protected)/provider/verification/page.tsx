@@ -9,24 +9,21 @@ import { VerificationStatusBanner } from "@/components/admin/verification/verifi
 import { db } from "@/server/db";
 
 export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
   const { locale } = resolvedParams;
-  const t = await getTranslations({ locale, namespace: "verification" });
+  const t = await getTranslations({ locale, namespace: "verification"  });
 
   return {
     title: t("provider.title"),
-    description: t("provider.description"),
-  };
+    description: t("provider.description")};
 }
 
 export default async function ProviderVerificationPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }) {
   // Vérifier si l'utilisateur est connecté et est un provider
   const session = await getServerSession(authOptions);
@@ -47,18 +44,14 @@ export default async function ProviderVerificationPage({
   const providerVerification = await db.providerVerification.findFirst({
     where: {
       provider: {
-        userId,
-      },
-    },
+        userId}},
     orderBy: {
-      createdAt: "desc",
-    },
-  });
+      createdAt: "desc"}});
 
   const verificationStatus = providerVerification?.status || null;
 
   // Traduire les textes
-  const t = await getTranslations({ locale, namespace: "verification" });
+  const t = await getTranslations({ locale, namespace: "verification"  });
 
   return (
     <div className="container max-w-4xl py-8">

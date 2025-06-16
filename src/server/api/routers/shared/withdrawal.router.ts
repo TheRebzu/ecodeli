@@ -4,22 +4,19 @@ import { TRPCError } from "@trpc/server";
 import {
   getOrCreateWallet,
   createWithdrawalRequest,
-  processWithdrawalRequest,
-} from "@/server/services/shared/wallet.service";
+  processWithdrawalRequest} from "@/server/services/shared/wallet.service";
 import { WithdrawalStatus } from "@prisma/client";
 import { isRoleAllowed, hasDocumentAccess } from "@/lib/auth/auth-helpers";
 import { db } from "@/server/db";
 import {
   withdrawalBaseSchema,
-  requestWithdrawalSchema,
-} from "@/schemas/payment/withdrawal.schema";
+  requestWithdrawalSchema} from "@/schemas/payment/withdrawal.schema";
 
 /**
  * Router tRPC pour la gestion des retraits depuis les portefeuilles
  * Fournit des endpoints pour demander, approuver, rejeter et suivre les retraits
  */
-export const withdrawalRouter = router({
-  /**
+export const withdrawalRouter = router({ /**
    * Demande un retrait depuis le portefeuille
    */
   requestWithdrawal: protectedProcedure
@@ -28,36 +25,31 @@ export const withdrawalRouter = router({
         amount: z
           .number()
           .positive()
-          .min(10, { message: "Le montant minimum de retrait est de 10€" }),
+          .min(10, { message: "Le montant minimum de retrait est de 10€"  }),
         method: z
           .enum(["BANK_TRANSFER", "STRIPE_CONNECT"])
           .default("BANK_TRANSFER"),
         expedited: z.boolean().default(false),
-        notes: z.string().optional(),
-      }),
+        notes: z.string().optional()}),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const userId = ctx.session.user.id;
         const {
-          amount: _amount,
-          method: _method,
-          expedited: _expedited,
-          notes: _notes,
-        } = input;
+          amount: amount,
+          method: method,
+          expedited: expedited,
+          notes: notes} = input;
 
         // Vérifier que le rôle de l'utilisateur lui permet de faire des retraits
         if (
-          !isRoleAllowed(_ctx.session.user.role as UserRole, [
+          !isRoleAllowed(ctx.session.user.role as UserRole, [
             "DELIVERER",
             "PROVIDER",
-            "MERCHANT",
-          ])
+            "MERCHANT"])
         ) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Votre rôle ne vous permet pas d'effectuer des retraits",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Votre rôle ne vous permet pas d'effectuer des retraits" });
         }
 
         // Récupérer le portefeuille
@@ -65,20 +57,16 @@ export const withdrawalRouter = router({
 
         // Vérifier que le portefeuille a les informations bancaires requises
         if (method === "BANK_TRANSFER" && (!wallet.iban || !wallet.bic)) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
+          throw new TRPCError({ code: "BAD_REQUEST",
             message:
-              "Veuillez configurer vos informations bancaires avant de demander un retrait",
-          });
+              "Veuillez configurer vos informations bancaires avant de demander un retrait" });
         }
 
         // Vérifier que le compte est vérifié pour les retraits
         if (!wallet.accountVerified) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new TRPCError({ code: "FORBIDDEN",
             message:
-              "Votre compte doit être vérifié pour effectuer des retraits",
-          });
+              "Votre compte doit être vérifié pour effectuer des retraits" });
         }
 
         // Créer la demande de retrait
@@ -88,21 +76,17 @@ export const withdrawalRouter = router({
           {
             method,
             expedited,
-            notes,
-          },
+            notes},
         );
 
         return {
           success: true,
           withdrawalRequest,
-          message: `Demande de retrait de ${amount} ${wallet.currency} créée avec succès`,
-        };
+          message: `Demande de retrait de ${amount} ${wallet.currency} créée avec succès`};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Erreur lors de la demande de retrait",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -111,8 +95,7 @@ export const withdrawalRouter = router({
    */
   getMyWithdrawals: protectedProcedure
     .input(
-      z.object({
-        page: z.number().int().positive().default(1),
+      z.object({ page: z.number().int().positive().default(1),
         limit: z.number().int().positive().max(100).default(10),
         status: z
           .enum([
@@ -121,29 +104,25 @@ export const withdrawalRouter = router({
             "PROCESSING",
             "COMPLETED",
             "FAILED",
-            "CANCELLED",
-          ])
+            "CANCELLED"])
           .optional(),
-        sortOrder: z.enum(["asc", "desc"]).default("desc"),
-      }),
+        sortOrder: z.enum(["asc", "desc"]).default("desc") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const userId = ctx.session.user.id;
         const {
-          page: _page,
-          limit: _limit,
-          status: _status,
-          sortOrder: _sortOrder,
-        } = input;
+          page: page,
+          limit: limit,
+          status: status,
+          sortOrder: sortOrder} = input;
 
         // Récupérer le portefeuille
         const wallet = await getOrCreateWallet(userId);
 
         // Construire le filtre
         const where: any = {
-          walletId: wallet.id,
-        };
+          walletId: wallet.id};
 
         if (status && status !== "ALL") {
           where.status = status;
@@ -151,22 +130,17 @@ export const withdrawalRouter = router({
 
         // Récupérer les demandes de retrait
         const [withdrawals, total] = await Promise.all([
-          _ctx.db.withdrawalRequest.findMany({
+          ctx.db.withdrawalRequest.findMany({
             where,
-            orderBy: { requestedAt: sortOrder },
+            orderBy: { requestedAt },
             skip: (page - 1) * limit,
             take: limit,
             include: {
               processedByAdmin: {
                 select: {
                   id: true,
-                  name: true,
-                },
-              },
-            },
-          }),
-          ctx.db.withdrawalRequest.count({ where }),
-        ]);
+                  name: true}}}}),
+          ctx.db.withdrawalRequest.count({ where  })]);
 
         return {
           withdrawals,
@@ -174,16 +148,12 @@ export const withdrawalRouter = router({
             total,
             page,
             limit,
-            pages: Math.ceil(total / limit),
-          },
-        };
+            pages: Math.ceil(total / limit)}};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message || "Erreur lors de la récupération des retraits",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -192,53 +162,41 @@ export const withdrawalRouter = router({
    */
   getWithdrawalById: protectedProcedure
     .input(
-      z.object({
-        withdrawalId: z.string(),
-      }),
+      z.object({ withdrawalId: z.string() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const userId = ctx.session.user.id;
-        const { _withdrawalId: __withdrawalId } = input;
+        const { withdrawalId } = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
-          where: { id: withdrawalId },
+          where: { id },
           include: {
             wallet: {
               select: {
                 userId: true,
                 currency: true,
-                accountVerified: true,
-              },
-            },
+                accountVerified: true}},
             processedByAdmin: {
               select: {
                 id: true,
                 name: true,
-                email: true,
-              },
-            },
-          },
-        });
+                email: true}}}});
 
         if (!withdrawal) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Demande de retrait non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Demande de retrait non trouvée" });
         }
 
         // Vérifier que l'utilisateur a le droit d'accéder à cette demande
         if (
           withdrawal.wallet.userId !== userId &&
-          _ctx.session.user.role !== "ADMIN"
+          ctx.session.user.role !== "ADMIN"
         ) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new TRPCError({ code: "FORBIDDEN",
             message:
-              "Vous n'êtes pas autorisé à accéder à cette demande de retrait",
-          });
+              "Vous n'êtes pas autorisé à accéder à cette demande de retrait" });
         }
 
         // Récupérer les détails supplémentaires
@@ -247,11 +205,8 @@ export const withdrawalRouter = router({
             walletId: withdrawal.walletId,
             metadata: {
               path: ["withdrawalId"],
-              equals: withdrawalId,
-            },
-          },
-          orderBy: { createdAt: "desc" },
-        });
+              equals: withdrawalId}},
+          orderBy: { createdAt: "desc" }});
 
         // Calculer les dates importantes
         const now = new Date();
@@ -278,19 +233,15 @@ export const withdrawalRouter = router({
           timing: {
             daysSinceRequest,
             daysUntilArrival,
-            isExpedited: withdrawal.expedited,
-          },
+            isExpedited: withdrawal.expedited},
           canCancel:
             withdrawal.status === "PENDING" &&
             withdrawal.wallet.userId === userId,
-          isAdmin: ctx.session.user.role === "ADMIN",
-        };
+          isAdmin: ctx.session.user.role === "ADMIN"};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Erreur lors de la récupération du retrait",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -299,64 +250,49 @@ export const withdrawalRouter = router({
    */
   cancelWithdrawal: protectedProcedure
     .input(
-      z.object({
-        withdrawalId: z.string(),
-      }),
+      z.object({ withdrawalId: z.string() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const userId = ctx.session.user.id;
-        const { _withdrawalId: __withdrawalId } = input;
+        const { withdrawalId } = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
-          where: { id: withdrawalId },
+          where: { id },
           include: {
             wallet: {
-              select: {
-                userId: true,
-              },
-            },
-          },
-        });
+              select: { userId }}}});
 
         if (!withdrawal) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Demande de retrait non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Demande de retrait non trouvée" });
         }
 
         // Vérifier que l'utilisateur est le propriétaire de la demande
         if (withdrawal.wallet.userId !== userId) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new TRPCError({ code: "FORBIDDEN",
             message:
-              "Vous n'êtes pas autorisé à annuler cette demande de retrait",
-          });
+              "Vous n'êtes pas autorisé à annuler cette demande de retrait" });
         }
 
         // Vérifier que la demande est en attente
         if (withdrawal.status !== "PENDING") {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: `Impossible d'annuler un retrait avec le statut "${withdrawal.status}"`,
-          });
+            message: `Impossible d'annuler un retrait avec le statut "${withdrawal.status}"`});
         }
 
         // Annuler la demande
         const updatedWithdrawal = await ctx.db.withdrawalRequest.update({
-          where: { id: withdrawalId },
+          where: { id },
           data: {
             status: "CANCELLED",
             updatedAt: new Date(),
             metadata: {
               ...withdrawal.metadata,
               cancelledByUser: true,
-              cancelledAt: new Date().toISOString(),
-            },
-          },
-        });
+              cancelledAt: new Date().toISOString()}}});
 
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
@@ -367,22 +303,16 @@ export const withdrawalRouter = router({
             action: "CANCEL_WITHDRAWAL",
             changes: {
               previousStatus: withdrawal.status,
-              newStatus: "CANCELLED",
-            },
-          },
-        });
+              newStatus: "CANCELLED"}}});
 
         return {
           success: true,
           withdrawal: updatedWithdrawal,
-          message: "Demande de retrait annulée avec succès",
-        };
+          message: "Demande de retrait annulée avec succès"};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Erreur lors de l'annulation du retrait",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -393,8 +323,7 @@ export const withdrawalRouter = router({
    */
   getAllWithdrawals: adminProcedure
     .input(
-      z.object({
-        page: z.number().int().positive().default(1),
+      z.object({ page: z.number().int().positive().default(1),
         limit: z.number().int().positive().max(100).default(10),
         status: z
           .enum([
@@ -403,16 +332,14 @@ export const withdrawalRouter = router({
             "PROCESSING",
             "COMPLETED",
             "FAILED",
-            "CANCELLED",
-          ])
+            "CANCELLED"])
           .optional(),
         userId: z.string().optional(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
-        sortOrder: z.enum(["asc", "desc"]).default("desc"),
-      }),
+        sortOrder: z.enum(["asc", "desc"]).default("desc") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const { page, limit, status, userId, startDate, endDate, sortOrder } =
           input;
@@ -427,8 +354,7 @@ export const withdrawalRouter = router({
         if (userId) {
           const wallet = await ctx.db.wallet.findUnique({
             where: { userId },
-            select: { id: true },
-          });
+            select: { id }});
 
           if (wallet) {
             where.walletId = wallet.id;
@@ -440,9 +366,7 @@ export const withdrawalRouter = router({
                 total: 0,
                 page,
                 limit,
-                pages: 0,
-              },
-            };
+                pages: 0}};
           }
         }
 
@@ -454,9 +378,9 @@ export const withdrawalRouter = router({
 
         // Récupérer les demandes de retrait
         const [withdrawals, total] = await Promise.all([
-          _ctx.db.withdrawalRequest.findMany({
+          ctx.db.withdrawalRequest.findMany({
             where,
-            orderBy: { requestedAt: sortOrder },
+            orderBy: { requestedAt },
             skip: (page - 1) * limit,
             take: limit,
             include: {
@@ -468,30 +392,18 @@ export const withdrawalRouter = router({
                       id: true,
                       name: true,
                       email: true,
-                      role: true,
-                    },
-                  },
-                },
-              },
+                      role: true}}}},
               processedByAdmin: {
                 select: {
                   id: true,
-                  name: true,
-                },
-              },
-            },
-          }),
-          ctx.db.withdrawalRequest.count({ where }),
-        ]);
+                  name: true}}}}),
+          ctx.db.withdrawalRequest.count({ where  })]);
 
         // Statistiques des retraits
         const stats = await ctx.db.withdrawalRequest.groupBy({
           by: ["status"],
-          _count: true,
-          _sum: {
-            amount: true,
-          },
-        });
+          count: true,
+          sum: { amount }});
 
         return {
           withdrawals,
@@ -499,17 +411,13 @@ export const withdrawalRouter = router({
             total,
             page,
             limit,
-            pages: Math.ceil(total / limit),
-          },
-          stats,
-        };
+            pages: Math.ceil(total / limit)},
+          stats};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message || "Erreur lors de la récupération des retraits",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -518,42 +426,33 @@ export const withdrawalRouter = router({
    */
   approveWithdrawal: adminProcedure
     .input(
-      z.object({
-        withdrawalId: z.string(),
+      z.object({ withdrawalId: z.string(),
         notes: z.string().optional(),
-        processImmediately: z.boolean().default(false),
-      }),
+        processImmediately: z.boolean().default(false) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const adminId = ctx.session.user.id;
         const {
-          withdrawalId: _withdrawalId,
-          notes: _notes,
-          processImmediately: _processImmediately,
-        } = input;
+          withdrawalId: withdrawalId,
+          notes: notes,
+          processImmediately: processImmediately} = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
-          where: { id: withdrawalId },
-          include: {
-            wallet: true,
-          },
-        });
+          where: { id },
+          include: { wallet }});
 
         if (!withdrawal) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Demande de retrait non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Demande de retrait non trouvée" });
         }
 
         // Vérifier que la demande est en attente
         if (withdrawal.status !== "PENDING") {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: `Impossible d'approuver un retrait avec le statut "${withdrawal.status}"`,
-          });
+            message: `Impossible d'approuver un retrait avec le statut "${withdrawal.status}"`});
         }
 
         // Définir le statut selon le processus
@@ -564,8 +463,7 @@ export const withdrawalRouter = router({
           action: "APPROVE",
           adminId,
           notes,
-          completeImmediately: processImmediately,
-        });
+          completeImmediately: processImmediately});
 
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
@@ -578,24 +476,18 @@ export const withdrawalRouter = router({
               previousStatus: withdrawal.status,
               newStatus,
               processImmediately: processImmediately.toString(),
-              notes: notes || "",
-            },
-          },
-        });
+              notes: notes || ""}}});
 
         return {
           success: true,
           withdrawal: result,
           message: processImmediately
             ? "Demande de retrait approuvée et traitée avec succès"
-            : "Demande de retrait approuvée et mise en traitement",
-        };
+            : "Demande de retrait approuvée et mise en traitement"};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Erreur lors de l'approbation du retrait",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -604,24 +496,21 @@ export const withdrawalRouter = router({
    */
   rejectWithdrawal: adminProcedure
     .input(
-      z.object({
-        withdrawalId: z.string(),
+      z.object({ withdrawalId: z.string(),
         reason: z.string().min(5).max(200),
-        notifyUser: z.boolean().default(true),
-      }),
+        notifyUser: z.boolean().default(true) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const adminId = ctx.session.user.id;
         const {
-          withdrawalId: _withdrawalId,
-          reason: _reason,
-          notifyUser: _notifyUser,
-        } = input;
+          withdrawalId: withdrawalId,
+          reason: reason,
+          notifyUser: notifyUser} = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
-          where: { id: withdrawalId },
+          where: { id },
           include: {
             wallet: {
               include: {
@@ -629,19 +518,11 @@ export const withdrawalRouter = router({
                   select: {
                     id: true,
                     email: true,
-                    name: true,
-                  },
-                },
-              },
-            },
-          },
-        });
+                    name: true}}}}}});
 
         if (!withdrawal) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Demande de retrait non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Demande de retrait non trouvée" });
         }
 
         // Vérifier que la demande est en attente ou en traitement
@@ -651,8 +532,7 @@ export const withdrawalRouter = router({
         ) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: `Impossible de rejeter un retrait avec le statut "${withdrawal.status}"`,
-          });
+            message: `Impossible de rejeter un retrait avec le statut "${withdrawal.status}"`});
         }
 
         // Mise à jour de la demande via le service
@@ -660,8 +540,7 @@ export const withdrawalRouter = router({
           action: "REJECT",
           adminId,
           reason,
-          notifyUser,
-        });
+          notifyUser});
 
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
@@ -674,22 +553,16 @@ export const withdrawalRouter = router({
               previousStatus: withdrawal.status,
               newStatus: "FAILED",
               reason,
-              notifyUser: notifyUser.toString(),
-            },
-          },
-        });
+              notifyUser: notifyUser.toString()}}});
 
         return {
           success: true,
           withdrawal: result,
-          message: "Demande de retrait rejetée avec succès",
-        };
+          message: "Demande de retrait rejetée avec succès"};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Erreur lors du rejet du retrait",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -698,26 +571,23 @@ export const withdrawalRouter = router({
    */
   completeWithdrawal: adminProcedure
     .input(
-      z.object({
-        withdrawalId: z.string(),
+      z.object({ withdrawalId: z.string(),
         transferReference: z.string().optional(),
         notes: z.string().optional(),
-        notifyUser: z.boolean().default(true),
-      }),
+        notifyUser: z.boolean().default(true) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const adminId = ctx.session.user.id;
         const {
-          withdrawalId: _withdrawalId,
-          transferReference: _transferReference,
-          notes: _notes,
-          notifyUser: _notifyUser,
-        } = input;
+          withdrawalId: withdrawalId,
+          transferReference: transferReference,
+          notes: notes,
+          notifyUser: notifyUser} = input;
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
-          where: { id: withdrawalId },
+          where: { id },
           include: {
             wallet: {
               include: {
@@ -725,27 +595,18 @@ export const withdrawalRouter = router({
                   select: {
                     id: true,
                     email: true,
-                    name: true,
-                  },
-                },
-              },
-            },
-          },
-        });
+                    name: true}}}}}});
 
         if (!withdrawal) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Demande de retrait non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Demande de retrait non trouvée" });
         }
 
         // Vérifier que la demande est en traitement
         if (withdrawal.status !== "PROCESSING") {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: `Impossible de compléter un retrait avec le statut "${withdrawal.status}"`,
-          });
+            message: `Impossible de compléter un retrait avec le statut "${withdrawal.status}"`});
         }
 
         // Mise à jour de la demande via le service
@@ -754,8 +615,7 @@ export const withdrawalRouter = router({
           adminId,
           notes,
           transferReference,
-          notifyUser,
-        });
+          notifyUser});
 
         // Enregistrer dans les logs d'audit
         await ctx.db.auditLog.create({
@@ -769,22 +629,16 @@ export const withdrawalRouter = router({
               newStatus: "COMPLETED",
               transferReference: transferReference || "",
               notes: notes || "",
-              notifyUser: notifyUser.toString(),
-            },
-          },
-        });
+              notifyUser: notifyUser.toString()}}});
 
         return {
           success: true,
           withdrawal: result,
-          message: "Demande de retrait complétée avec succès",
-        };
+          message: "Demande de retrait complétée avec succès"};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Erreur lors de la complétion du retrait",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -793,19 +647,16 @@ export const withdrawalRouter = router({
    */
   getWithdrawalStats: adminProcedure
     .input(
-      z.object({
-        startDate: z.date().optional(),
+      z.object({ startDate: z.date().optional(),
         endDate: z.date().optional(),
-        groupBy: z.enum(["day", "week", "month"]).optional(),
-      }),
+        groupBy: z.enum(["day", "week", "month"]).optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const {
-          startDate: _startDate,
-          endDate: _endDate,
-          groupBy: _groupBy,
-        } = input;
+          startDate: startDate,
+          endDate: endDate,
+          groupBy: groupBy} = input;
 
         // Filtrage par date
         const dateFilter: any = {};
@@ -815,48 +666,36 @@ export const withdrawalRouter = router({
         // Statistiques globales
         const [totalStats, statusStats, userStats] = await Promise.all([
           // Statistiques totales
-          _ctx.db.withdrawalRequest.aggregate({
-            _count: true,
-            _sum: {
-              amount: true,
-            },
+          ctx.db.withdrawalRequest.aggregate({
+            count: true,
+            sum: { amount },
             where:
-              startDate || endDate ? { requestedAt: dateFilter } : undefined,
-          }),
+              startDate || endDate ? { requestedAt } : undefined}),
 
           // Statistiques par statut
           ctx.db.withdrawalRequest.groupBy({
             by: ["status"],
-            _count: true,
-            _sum: {
-              amount: true,
-            },
+            count: true,
+            sum: { amount },
             where:
-              startDate || endDate ? { requestedAt: dateFilter } : undefined,
-          }),
+              startDate || endDate ? { requestedAt } : undefined}),
 
           // Top utilisateurs avec le plus de retraits
           ctx.db.withdrawalRequest.groupBy({
             by: ["walletId"],
-            _count: true,
-            _sum: {
-              amount: true,
-            },
+            count: true,
+            sum: { amount },
             orderBy: {
-              _sum: {
-                amount: "desc",
-              },
-            },
+              sum: {
+                amount: "desc"}},
             take: 10,
             where:
-              startDate || endDate ? { requestedAt: dateFilter } : undefined,
-          }),
-        ]);
+              startDate || endDate ? { requestedAt } : undefined})]);
 
         // Récupérer les informations des utilisateurs pour les top retraits
         const walletIds = userStats.map((stat) => stat.walletId);
         const wallets = await ctx.db.wallet.findMany({
-          where: { id: { in: walletIds } },
+          where: { id: { in } },
           select: {
             id: true,
             userId: true,
@@ -865,48 +704,35 @@ export const withdrawalRouter = router({
                 id: true,
                 name: true,
                 email: true,
-                role: true,
-              },
-            },
-          },
-        });
+                role: true}}}});
 
         // Associer les utilisateurs aux statistiques
         const topUsers = userStats.map((stat) => {
           const wallet = wallets.find((w) => w.id === stat.walletId);
           return {
-            withdrawals: stat._count,
-            totalAmount: stat._sum.amount,
+            withdrawals: stat.count,
+            totalAmount: stat.sum.amount,
             walletId: stat.walletId,
-            user: wallet?.user,
-          };
+            user: wallet?.user};
         });
 
         return {
           total: {
-            count: totalStats._count,
-            amount: totalStats._sum.amount,
-          },
-          byStatus: statusStats.map((stat) => ({
-            status: stat.status,
-            count: stat._count,
-            amount: stat._sum.amount,
-          })),
+            count: totalStats.count,
+            amount: totalStats.sum.amount},
+          byStatus: statusStats.map((stat) => ({ status: stat.status,
+            count: stat.count,
+            amount: stat.sum.amount })),
           topUsers,
           period: {
             startDate: startDate || null,
-            endDate: endDate || null,
-          },
-        };
+            endDate: endDate || null}};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message || "Erreur lors de la récupération des statistiques",
-          cause: error,
-        });
+          cause: error });
       }
-    }),
-});
+    })});
 
 export default withdrawalRouter;

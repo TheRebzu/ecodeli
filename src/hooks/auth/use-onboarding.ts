@@ -23,8 +23,7 @@ export function useOnboardingStatus() {
     status: data,
     isLoading,
     error,
-    refetch,
-  };
+    refetch};
 }
 
 export function useOnboardingNavigation() {
@@ -34,23 +33,18 @@ export function useOnboardingNavigation() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const updateOnboardingStatus =
-    api.userPreferences.updateOnboardingStatus.useMutation({
-      onError: () => {
+    api.userPreferences.updateOnboardingStatus.useMutation({ onError: () => {
         toast({
           variant: "destructive",
           title: "Erreur lors de la mise à jour",
-          description: "Impossible de mettre à jour votre progression.",
-        });
-      },
-    });
+          description: "Impossible de mettre à jour votre progression." });
+      }});
 
   const goToStep = useCallback(
     async (step: number) => {
       setIsUpdating(true);
       try {
-        await updateOnboardingStatus.mutateAsync({
-          lastOnboardingStep: step,
-        });
+        await updateOnboardingStatus.mutateAsync({ lastOnboardingStep  });
         setCurrentStep(step);
       } catch (error) {
         console.error("Erreur lors de la mise à jour de l'étape:", error);
@@ -88,8 +82,7 @@ export function useOnboardingNavigation() {
     goToNextStep,
     goToPreviousStep,
     isUpdating,
-    setStepsConfiguration,
-  };
+    setStepsConfiguration};
 }
 
 export function useOnboardingCompletion(
@@ -100,48 +93,36 @@ export function useOnboardingCompletion(
   const [isCompleting, setIsCompleting] = useState(false);
 
   const updateOnboardingStatus =
-    api.userPreferences.updateOnboardingStatus.useMutation({
-      onSuccess: () => {
+    api.userPreferences.updateOnboardingStatus.useMutation({ onSuccess: () => {
         toast({
           title: "🎉 Félicitations !",
-          description: "Votre tutoriel a été complété avec succès.",
-        });
+          description: "Votre tutoriel a été complété avec succès." });
       },
       onError: () => {
-        toast({
-          variant: "destructive",
+        toast({ variant: "destructive",
           title: "Erreur",
-          description: "Impossible de sauvegarder votre progression.",
-        });
-      },
-    });
+          description: "Impossible de sauvegarder votre progression." });
+      }});
 
   const resetOnboardingStatus =
-    api.userPreferences.resetOnboardingStatus.useMutation({
-      onSuccess: () => {
+    api.userPreferences.resetOnboardingStatus.useMutation({ onSuccess: () => {
         toast({
           title: "🔄 Tutoriel réinitialisé",
-          description: "Vous pouvez maintenant recommencer le tutoriel.",
-        });
+          description: "Vous pouvez maintenant recommencer le tutoriel." });
       },
       onError: () => {
-        toast({
-          variant: "destructive",
+        toast({ variant: "destructive",
           title: "Erreur de réinitialisation",
-          description: "Impossible de réinitialiser le tutoriel.",
-        });
-      },
-    });
+          description: "Impossible de réinitialiser le tutoriel." });
+      }});
 
   const completeOnboarding = useCallback(
     async (options?: { redirectTo?: string }) => {
       setIsCompleting(true);
       try {
-        await updateOnboardingStatus.mutateAsync({
-          hasCompletedOnboarding: true,
+        await updateOnboardingStatus.mutateAsync({ hasCompletedOnboarding: true,
           onboardingCompletionDate: new Date().toISOString(),
-          tutorialSkipped: false,
-        });
+          tutorialSkipped: false });
 
         if (options?.redirectTo) {
           router.push(options.redirectTo);
@@ -162,11 +143,9 @@ export function useOnboardingCompletion(
     async (options?: { redirectTo?: string }) => {
       setIsCompleting(true);
       try {
-        await updateOnboardingStatus.mutateAsync({
-          hasCompletedOnboarding: true,
+        await updateOnboardingStatus.mutateAsync({ hasCompletedOnboarding: true,
           onboardingCompletionDate: new Date().toISOString(),
-          tutorialSkipped: true,
-        });
+          tutorialSkipped: true });
 
         if (options?.redirectTo) {
           router.push(options.redirectTo);
@@ -197,8 +176,7 @@ export function useOnboardingCompletion(
     completeOnboarding,
     skipOnboarding,
     resetOnboarding,
-    isCompleting,
-  };
+    isCompleting};
 }
 
 /**
@@ -222,16 +200,13 @@ export function useMission1Onboarding() {
   // Complétion spéciale pour Mission 1 avec redirection automatique
   const completeMission1 = useCallback(async () => {
     try {
-      const success = await completion.completeOnboarding({
-        redirectTo: "/client", // Redirection par défaut vers le dashboard client
-      });
+      const success = await completion.completeOnboarding({ redirectTo: "/client", // Redirection par défaut vers le dashboard client
+       });
 
       if (success) {
-        toast({
-          title: "🎉 Mission 1 accomplie !",
+        toast({ title: "🎉 Mission 1 accomplie !",
           description:
-            "Bienvenue dans l'aventure EcoDeli ! Vous pouvez maintenant utiliser toutes les fonctionnalités.",
-        });
+            "Bienvenue dans l'aventure EcoDeli ! Vous pouvez maintenant utiliser toutes les fonctionnalités." });
 
         // Actualiser le statut
         refetch();
@@ -241,11 +216,9 @@ export function useMission1Onboarding() {
       return false;
     } catch (error) {
       console.error("Erreur lors de la completion de Mission 1:", error);
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: "Erreur de completion",
-        description: "Impossible de terminer Mission 1. Veuillez réessayer.",
-      });
+        description: "Impossible de terminer Mission 1. Veuillez réessayer." });
       return false;
     }
   }, [completion, toast, refetch]);
@@ -257,17 +230,13 @@ export function useMission1Onboarding() {
       navigation.goToStep(0);
       refetch();
 
-      toast({
-        title: "🔄 Mission 1 redémarrée",
-        description: "Le tutoriel obligatoire va recommencer.",
-      });
+      toast({ title: "🔄 Mission 1 redémarrée",
+        description: "Le tutoriel obligatoire va recommencer." });
     } catch (error) {
       console.error("Erreur lors du redémarrage de Mission 1:", error);
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: "Erreur",
-        description: "Impossible de redémarrer Mission 1.",
-      });
+        description: "Impossible de redémarrer Mission 1." });
     }
   }, [completion, navigation, refetch, toast]);
 
@@ -288,8 +257,7 @@ export function useMission1Onboarding() {
 
     // Statut utilisateur
     status,
-    refetch,
-  };
+    refetch};
 }
 
 /**
@@ -305,6 +273,5 @@ export function useMission1AccessControl() {
     shouldBlockAccess,
     isLoading,
     hasCompletedOnboarding: status?.hasCompletedOnboarding || false,
-    tutorialSkipped: status?.tutorialSkipped || false,
-  };
+    tutorialSkipped: status?.tutorialSkipped || false};
 }

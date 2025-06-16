@@ -14,8 +14,7 @@ import {
   User as UserIcon,
   MapPin,
   Check,
-  X,
-} from "lucide-react";
+  X} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
@@ -24,8 +23,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -38,8 +36,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import ForceActivateDelivererButton from "@/components/admin/users/force-activate-deliverer-button";
 
 export default function UserDetailPage() {
@@ -54,8 +51,7 @@ export default function UserDetailPage() {
   } | null>(null);
 
   // API pour récupérer les détails complets de l'utilisateur
-  const { data: user, isLoading } = api.admin.users.getUserDetail.useQuery({
-    userId,
+  const { data: user, isLoading } = api.admin.users.getUserDetail.useQuery({ userId,
     includeDocuments: true,
     includeVerificationHistory: true,
     includeActivityLogs: true,
@@ -64,14 +60,12 @@ export default function UserDetailPage() {
     includePermissions: false,
     includeSubscriptions: false,
     includePaymentMethods: false,
-    includeNotificationSettings: false,
-  });
+    includeNotificationSettings: false });
   const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation(
     {
       onSuccess: () => {
         router.refresh();
-      },
-    },
+      }},
   );
 
   // Helper functions to show status/role badges
@@ -109,33 +103,27 @@ export default function UserDetailPage() {
 
   // Functions to handle user actions
   const handleActivateUser = () => {
-    setDialogAction({
-      title: "Activate User Account",
+    setDialogAction({ title: "Activate User Account",
       description: "Are you sure you want to activate this user account?",
       action: () => {
         updateUserStatusMutation.mutate({
           userId,
-          status: UserStatus.ACTIVE,
-        });
+          status: UserStatus.ACTIVE });
         setIsDialogOpen(false);
-      },
-    });
+      }});
     setIsDialogOpen(true);
   };
 
   const handleSuspendUser = () => {
-    setDialogAction({
-      title: "Suspend User Account",
+    setDialogAction({ title: "Suspend User Account",
       description:
         "Are you sure you want to suspend this user account? The user will lose access to the platform.",
       action: () => {
         updateUserStatusMutation.mutate({
           userId,
-          status: UserStatus.SUSPENDED,
-        });
+          status: UserStatus.SUSPENDED });
         setIsDialogOpen(false);
-      },
-    });
+      }});
     setIsDialogOpen(true);
   };
 

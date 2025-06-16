@@ -257,34 +257,26 @@ async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     // Générer le contenu HTML de l'email
     const html = generateEmailTemplate(templateName, data, locale);
 
-    // En développement, log au lieu d'envoyer si les emails ne sont pas activés
+    // Vérifier la configuration email obligatoire
     if (!emailConfig.enabled) {
-      console.log(`===== SIMULATION D'ENVOI D'EMAIL =====`);
-      console.log(`À: ${to}`);
-      console.log(`Sujet: ${subject}`);
-      console.log(`Template: ${templateName}`);
-      console.log(`Données:`, data);
-      console.log(`HTML généré:`, html.substring(0, 500) + "...");
-      console.log(`===== FIN DE LA SIMULATION =====`);
-      return true;
+      throw new Error("Email configuration is required but not enabled");
     }
 
     // Obtenir le transporteur email
     const transporter = getEmailTransporter();
 
     // Envoyer l'email
-    const info = await transporter.sendMail({
-      from: emailConfig.sender,
+    const info = await transporter.sendMail({ from: emailConfig.sender,
       to,
       subject,
       html,
-    });
+     });
 
     console.log(`Email envoyé à ${to} avec l'ID:`, info.messageId);
     return true;
   } catch (error) {
     console.error("Erreur lors de l'envoi de l'email:", error);
-    return false;
+    throw error;
   }
 }
 
@@ -302,33 +294,26 @@ export async function sendEmailNotification(
     // Générer le contenu HTML de l'email
     const html = generateEmailTemplate(templateName, data, locale);
 
-    // En développement, log au lieu d'envoyer si les emails ne sont pas activés
+    // Vérifier la configuration email obligatoire
     if (!emailConfig.enabled) {
-      console.log(`===== SIMULATION D'ENVOI DE NOTIFICATION =====`);
-      console.log(`À: ${to}`);
-      console.log(`Sujet: ${subject}`);
-      console.log(`Données:`, data);
-      console.log(`HTML généré:`, html.substring(0, 500) + "...");
-      console.log(`===== FIN DE LA SIMULATION =====`);
-      return true;
+      throw new Error("Email configuration is required but not enabled");
     }
 
     // Obtenir le transporteur email
     const transporter = getEmailTransporter();
 
     // Envoyer l'email
-    const info = await transporter.sendMail({
-      from: emailConfig.sender,
+    const info = await transporter.sendMail({ from: emailConfig.sender,
       to,
       subject,
       html,
-    });
+     });
 
     console.log(`Notification envoyée à ${to} avec l'ID:`, info.messageId);
     return true;
   } catch (error) {
     console.error("Erreur lors de l'envoi de la notification:", error);
-    return false;
+    throw error;
   }
 }
 

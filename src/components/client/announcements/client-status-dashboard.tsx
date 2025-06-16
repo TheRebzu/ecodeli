@@ -3,15 +3,13 @@
 import { useTranslations } from "next-intl";
 import {
   Announcement,
-  AnnouncementStatus,
-} from "@/types/announcements/announcement";
+  AnnouncementStatus} from "@/types/announcements/announcement";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { PlusCircle, Package, CheckCircle, Clock, Truck } from "lucide-react";
@@ -21,8 +19,7 @@ interface ClientStatusDashboardProps {
 }
 
 export function ClientStatusDashboard({
-  announcements,
-}: ClientStatusDashboardProps) {
+  announcements}: ClientStatusDashboardProps) {
   const t = useTranslations("announcements");
   const router = useRouter();
 
@@ -41,8 +38,7 @@ export function ClientStatusDashboard({
     ).length,
     completed: announcements.filter(
       (a) => a.status === AnnouncementStatus.COMPLETED,
-    ).length,
-  };
+    ).length};
 
   // Obtenir les annonces récentes (jusqu'à 3)
   const recentAnnouncements = [...announcements]
@@ -133,8 +129,7 @@ export function ClientStatusDashboard({
                       <span>
                         {announcement.applications
                           ? t("proposalsCount", {
-                              count: announcement.applications.length,
-                            })
+                              count: announcement.applications.length})
                           : t("proposalsCount", { count: 0 })}
                       </span>
                     </div>

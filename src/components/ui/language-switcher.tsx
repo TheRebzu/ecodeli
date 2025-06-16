@@ -9,8 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { ChevronDown, Globe } from "lucide-react";
 
 interface LanguageSwitcherProps {
@@ -29,8 +28,7 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
   // Mapping des codes de langue vers leurs noms complets
   const languageNames = {
     fr: "Français",
-    en: "English",
-  };
+    en: "English"};
 
   const handleLocaleChange = (newLocale: string) => {
     if (newLocale === locale) return;
@@ -42,7 +40,7 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
       // Since they'll always match for the current route, we can skip runtime checks
       // @ts-expect-error - Type checking limitation with dynamic params
       { pathname, params },
-      { locale: newLocale },
+      { locale },
     );
   };
 

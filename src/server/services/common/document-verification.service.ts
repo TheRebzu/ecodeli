@@ -12,8 +12,7 @@ import {
   DocumentStatus,
   DocumentType,
   UserDocumentStatus,
-  DocumentVerificationRelationship,
-} from "@/components/auth/document-verification";
+  DocumentVerificationRelationship} from "@/components/auth/document-verification";
 
 export class DocumentVerificationService
   implements DocumentVerificationRelationship
@@ -44,20 +43,16 @@ export class DocumentVerificationService
         DocumentType.ID_CARD,
         DocumentType.DRIVER_LICENSE,
         DocumentType.VEHICLE_REGISTRATION,
-        DocumentType.INSURANCE,
-      ],
+        DocumentType.INSURANCE],
       CLIENT: [DocumentType.ID_CARD],
       MERCHANT: [
         DocumentType.ID_CARD,
         DocumentType.BUSINESS_REGISTRATION,
-        DocumentType.PROOF_OF_ADDRESS,
-      ],
+        DocumentType.PROOF_OF_ADDRESS],
       PROVIDER: [
         DocumentType.ID_CARD,
         DocumentType.PROFESSIONAL_CERTIFICATION,
-        DocumentType.PROOF_OF_ADDRESS,
-      ],
-    };
+        DocumentType.PROOF_OF_ADDRESS]};
 
     return roleDocumentMap[role] || [];
   }
@@ -109,15 +104,12 @@ export class DocumentVerificationService
     try {
       // Get user information including role
       const user = await this.db.user.findUnique({
-        where: { id: userId },
-        select: { id: true, role: true },
-      });
+        where: { id },
+        select: { id: true, role: true }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "User not found" });
       }
 
       // Get required document types for the user's role
@@ -169,9 +161,8 @@ export class DocumentVerificationService
         hasAllRequiredDocuments,
         pendingDocuments,
         approvedDocuments,
-        rejectedDocuments,
-      };
-    } catch (_error) {
+        rejectedDocuments};
+    } catch (error) {
       console.error("Error getting user document status:", error);
       throw error;
     }
@@ -196,9 +187,8 @@ export class DocumentVerificationService
       if (isVerified) {
         // Set the user to active if all documents are verified
         await this.db.user.update({
-          where: { id: userId },
-          data: { status: UserStatus.ACTIVE },
-        });
+          where: { id },
+          data: { status: UserStatus.ACTIVE }});
 
         // Update the verification status through verification service
         await this.verificationService.updateUserVerificationStatus(
@@ -206,7 +196,7 @@ export class DocumentVerificationService
           true,
         );
       }
-    } catch (_error) {
+    } catch (error) {
       console.error("Error updating user verification status:", error);
       throw error;
     }
@@ -244,7 +234,7 @@ export class DocumentVerificationService
       }
 
       return document;
-    } catch (_error) {
+    } catch (error) {
       console.error("Error processing document verification:", error);
       throw error;
     }
@@ -266,8 +256,7 @@ export class DocumentVerificationService
       [DocumentType.BUSINESS_REGISTRATION]: "Business Registration",
       [DocumentType.PROOF_OF_ADDRESS]: "Proof of Address",
       [DocumentType.SELFIE]: "Selfie",
-      [DocumentType.OTHER]: "Other Document",
-    };
+      [DocumentType.OTHER]: "Other Document"};
 
     return typeNameMap[type] || "Unknown Document Type";
   }

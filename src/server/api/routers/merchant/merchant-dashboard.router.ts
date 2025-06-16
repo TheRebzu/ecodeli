@@ -3,16 +3,13 @@ import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { subDays, startOfDay, endOfDay, subMonths, format } from "date-fns";
 
-export const merchantDashboardRouter = router({
-  /**
+export const merchantDashboardRouter = router({ /**
    * Récupère les statistiques du dashboard merchant
    */
-  getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
+  getDashboardStats: protectedProcedure.query(async ({ ctx  }) => {
     if (ctx.session.user.role !== "MERCHANT") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Accès réservé aux marchands",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Accès réservé aux marchands" });
     }
 
     const merchantId = ctx.session.user.id;
@@ -28,27 +25,16 @@ export const merchantDashboardRouter = router({
         status: "COMPLETED",
         createdAt: {
           gte: startOfToday,
-          lte: endOfToday,
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
+          lte: endOfToday}},
+      sum: { amount }});
 
     // Revenus du mois
     const monthlyRevenue = await ctx.db.payment.aggregate({
       where: {
         userId: merchantId,
         status: "COMPLETED",
-        createdAt: {
-          gte: startOfMonth,
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
+        createdAt: { gte }},
+      sum: { amount }});
 
     // Commandes du jour
     const orderCount = await ctx.db.order.count({
@@ -56,22 +42,14 @@ export const merchantDashboardRouter = router({
         merchantId,
         createdAt: {
           gte: startOfToday,
-          lte: endOfToday,
-        },
-      },
-    });
+          lte: endOfToday}}});
 
     // Livraisons actives
     const activeDeliveries = await ctx.db.delivery.count({
       where: {
-        announcement: {
-          userId: merchantId,
-        },
+        announcement: { userId },
         status: {
-          in: ["PENDING", "ASSIGNED", "IN_PROGRESS"],
-        },
-      },
-    });
+          in: ["PENDING", "ASSIGNED", "IN_PROGRESS"]}}});
 
     // Articles en stock faible
     const lowStockItems = await ctx.db.product.count({
@@ -80,46 +58,31 @@ export const merchantDashboardRouter = router({
         stockQuantity: {
           lte: ctx.db.product.findFirst({
             where: { merchantId },
-            select: { minimumStock: true },
-          }),
-        },
-      },
-    });
+            select: { minimumStock }})}}});
 
     // Panier moyen
     const avgOrderValue = await ctx.db.order.aggregate({
       where: {
         merchantId,
         status: "COMPLETED",
-        createdAt: {
-          gte: startOfMonth,
-        },
-      },
-      _avg: {
-        total: true,
-      },
-    });
+        createdAt: { gte }},
+      avg: { total }});
 
     // Note moyenne de satisfaction
     const customerSatisfaction = await ctx.db.merchantReview.aggregate({
       where: {
-        merchantId,
-      },
-      _avg: {
-        rating: true,
-      },
-    });
+        merchantId},
+      avg: { rating }});
 
     return {
-      dailyRevenue: dailyRevenue._sum.amount || 0,
-      monthlyRevenue: monthlyRevenue._sum.amount || 0,
+      dailyRevenue: dailyRevenue.sum.amount || 0,
+      monthlyRevenue: monthlyRevenue.sum.amount || 0,
       orderCount,
       activeDeliveries,
       lowStockItems,
-      averageOrderValue: avgOrderValue._avg.total || 0,
-      customerSatisfaction: customerSatisfaction._avg.rating || 0,
-      conversionRate: 85, // Placeholder - à calculer selon vos métriques
-    };
+      averageOrderValue: avgOrderValue.avg.total || 0,
+      customerSatisfaction: customerSatisfaction.avg.rating || 0,
+      conversionRate: 85};
   }),
 
   /**
@@ -127,62 +90,43 @@ export const merchantDashboardRouter = router({
    */
   getRecentOrders: protectedProcedure
     .input(
-      z.object({
-        limit: z.number().optional().default(10),
-      }),
+      z.object({ limit: z.number().optional().default(10) }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx, input  }) => {
       if (ctx.session.user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès réservé aux marchands",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès réservé aux marchands" });
       }
 
       const merchantId = ctx.session.user.id;
 
       return await ctx.db.order.findMany({
         where: {
-          merchantId,
-        },
+          merchantId},
         include: {
           customer: {
             select: {
               profile: {
                 select: {
                   firstName: true,
-                  lastName: true,
-                },
-              },
-              email: true,
-            },
-          },
+                  lastName: true}},
+              email: true}},
           items: {
             include: {
               product: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
+                select: { name }}}}},
         orderBy: {
-          createdAt: "desc",
-        },
-        take: input.limit,
-      });
+          createdAt: "desc"},
+        take: input.limit});
     }),
 
   /**
    * Récupère les alertes de stock
    */
-  getStockAlerts: protectedProcedure.query(async ({ ctx }) => {
+  getStockAlerts: protectedProcedure.query(async ({ ctx  }) => {
     if (ctx.session.user.role !== "MERCHANT") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Accès réservé aux marchands",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Accès réservé aux marchands" });
     }
 
     const merchantId = ctx.session.user.id;
@@ -191,29 +135,20 @@ export const merchantDashboardRouter = router({
       where: {
         merchantId,
         stockQuantity: {
-          lte: ctx.db.product.fields.minimumStock,
-        },
-      },
+          lte: ctx.db.product.fields.minimumStock}},
       select: {
         id: true,
         name: true,
         stockQuantity: true,
         minimumStock: true,
         category: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
+          select: { name }}}});
 
-    return lowStockProducts.map((product) => ({
-      id: product.id,
+    return lowStockProducts.map((product) => ({ id: product.id,
       productName: product.name,
       currentStock: product.stockQuantity,
       minimumStock: product.minimumStock,
-      category: product.category?.name || "Non catégorisé",
-    }));
+      category: product.category?.name || "Non catégorisé" }));
   }),
 
   /**
@@ -221,16 +156,12 @@ export const merchantDashboardRouter = router({
    */
   getSalesChart: protectedProcedure
     .input(
-      z.object({
-        period: z.enum(["week", "month", "quarter"]).default("week"),
-      }),
+      z.object({ period: z.enum(["week", "month", "quarter"]).default("week") }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx, input  }) => {
       if (ctx.session.user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès réservé aux marchands",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès réservé aux marchands" });
       }
 
       const merchantId = ctx.session.user.id;
@@ -256,7 +187,7 @@ export const merchantDashboardRouter = router({
 
       // Générer les données pour chaque jour
       const chartData = await Promise.all(
-        Array.from({ length: days }, async (_, i) => {
+        Array.from({ length }, async (_, i) => {
           const date = subDays(today, days - 1 - i);
           const startOfDate = startOfDay(date);
           const endOfDate = endOfDay(date);
@@ -267,29 +198,20 @@ export const merchantDashboardRouter = router({
               status: "COMPLETED",
               createdAt: {
                 gte: startOfDate,
-                lte: endOfDate,
-              },
-            },
-            _sum: {
-              amount: true,
-            },
-          });
+                lte: endOfDate}},
+            sum: { amount }});
 
           const orders = await ctx.db.order.count({
             where: {
               merchantId,
               createdAt: {
                 gte: startOfDate,
-                lte: endOfDate,
-              },
-            },
-          });
+                lte: endOfDate}}});
 
           return {
             date: format(date, "MM/dd"),
-            revenue: revenue._sum.amount || 0,
-            orders,
-          };
+            revenue: revenue.sum.amount || 0,
+            orders};
         }),
       );
 
@@ -299,12 +221,10 @@ export const merchantDashboardRouter = router({
   /**
    * Récupère les commandes par statut pour les métriques
    */
-  getOrdersByStatus: protectedProcedure.query(async ({ ctx }) => {
+  getOrdersByStatus: protectedProcedure.query(async ({ ctx  }) => {
     if (ctx.session.user.role !== "MERCHANT") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Accès réservé aux marchands",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Accès réservé aux marchands" });
     }
 
     const merchantId = ctx.session.user.id;
@@ -312,17 +232,11 @@ export const merchantDashboardRouter = router({
     const orderStats = await ctx.db.order.groupBy({
       by: ["status"],
       where: {
-        merchantId,
-      },
-      _count: {
-        id: true,
-      },
-    });
+        merchantId},
+      count: { id }});
 
-    return orderStats.map((stat) => ({
-      status: stat.status,
-      count: stat._count.id,
-    }));
+    return orderStats.map((stat) => ({ status: stat.status,
+      count: stat.count.id }));
   }),
 
   /**
@@ -330,17 +244,13 @@ export const merchantDashboardRouter = router({
    */
   getTopProducts: protectedProcedure
     .input(
-      z.object({
-        limit: z.number().optional().default(5),
-        period: z.enum(["week", "month", "quarter"]).default("month"),
-      }),
+      z.object({ limit: z.number().optional().default(5),
+        period: z.enum(["week", "month", "quarter"]).default("month") }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx, input  }) => {
       if (ctx.session.user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès réservé aux marchands",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès réservé aux marchands" });
       }
 
       const merchantId = ctx.session.user.id;
@@ -362,26 +272,17 @@ export const merchantDashboardRouter = router({
         by: ["productId"],
         where: {
           product: {
-            merchantId,
-          },
+            merchantId},
           order: {
             status: "COMPLETED",
-            createdAt: {
-              gte: startDate,
-            },
-          },
-        },
-        _sum: {
+            createdAt: { gte }}},
+        sum: {
           quantity: true,
-          total: true,
-        },
+          total: true},
         orderBy: {
-          _sum: {
-            quantity: "desc",
-          },
-        },
-        take: input.limit,
-      });
+          sum: {
+            quantity: "desc"}},
+        take: input.limit});
 
       // Récupérer les détails des produits
       const productDetails = await Promise.all(
@@ -391,20 +292,16 @@ export const merchantDashboardRouter = router({
             select: {
               id: true,
               name: true,
-              price: true,
-            },
-          });
+              price: true}});
 
           return {
             id: product?.id || item.productId,
             name: product?.name || "Produit inconnu",
             price: product?.price || 0,
-            totalSold: item._sum.quantity || 0,
-            totalRevenue: item._sum.total || 0,
-          };
+            totalSold: item.sum.quantity || 0,
+            totalRevenue: item.sum.total || 0};
         }),
       );
 
       return productDetails;
-    }),
-});
+    })});

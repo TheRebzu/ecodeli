@@ -8,7 +8,7 @@ import { OnboardingWrapper } from "@/components/providers/onboarding-provider";
 
 interface LayoutProps {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
 }
 
 export default async function ProtectedLayout(props: LayoutProps) {
@@ -37,7 +37,7 @@ export default async function ProtectedLayout(props: LayoutProps) {
   // Charger les messages de traduction
   let messages;
   try {
-    messages = await getMessages({ locale });
+    messages = await getMessages({ locale  });
   } catch {
     notFound();
   }

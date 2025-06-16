@@ -78,6 +78,10 @@ import { clientDataRouter } from "./routers/client/client-data.router";
 // Financial router (using admin financial)
 import { financialRouter } from "./routers/admin/admin-financial.router";
 
+// Matching routers
+import { matchingRouter } from "./routers/matching/matching.router";
+import { partialDeliveryRouter } from "./routers/matching/partial-delivery.router";
+
 // Re-export createTRPCContext from trpc.ts
 export { createTRPCContext } from "./trpc";
 
@@ -89,8 +93,7 @@ export { createTRPCContext } from "./trpc";
 /**
  * Router API principal qui regroupe tous les autres routers.
  */
-export const appRouter = router({
-  // Auth
+export const appRouter = router({ // Auth
   auth: authRouter,
   verification: verificationRouter,
 
@@ -162,9 +165,12 @@ export const appRouter = router({
   // Financial
   financial: financialRouter,
 
+  // Matching
+  matching: matchingRouter,
+  partialDelivery: partialDeliveryRouter,
+
   // Legacy aliases (renamed from fileRouter to uploadRouter for clarity)
-  file: uploadRouter,
-});
+  file: uploadRouter });
 
 // Type d'export pour le typage côté client
 export type AppRouter = typeof appRouter;

@@ -10,8 +10,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -21,8 +20,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils/common";
 import { formatCurrency } from "@/utils/document-utils";
@@ -32,8 +30,7 @@ import {
   PaginationContent,
   PaginationItem,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  PaginationPrevious} from "@/components/ui/pagination";
 
 interface DeliveryWithDetails extends Delivery {
   deliverer?: {
@@ -65,8 +62,7 @@ export function DeliveryTable({
   pageSize = 10,
   isLoading = false,
   onPageChange,
-  onSortChange,
-}: DeliveryTableProps) {
+  onSortChange}: DeliveryTableProps) {
   const t = useTranslations("merchant.deliveries");
   const router = useRouter();
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -171,7 +167,7 @@ export function DeliveryTable({
     return (
       <div className="space-y-2">
         <Skeleton className="h-10 w-full" />
-        {Array.from({ length: 5 }).map((_, i) => (
+        {Array.from({ length: 5  }).map((_, i) => (
           <Skeleton key={i} className="h-16 w-full" />
         ))}
       </div>
@@ -288,9 +284,7 @@ export function DeliveryTable({
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {delivery.createdAt
-                    ? format(new Date(delivery.createdAt), "PPP", {
-                        locale: fr,
-                      })
+                    ? format(new Date(delivery.createdAt), "PPP", { locale })
                     : ""}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
@@ -335,7 +329,7 @@ export function DeliveryTable({
                 )}
               />
             </PaginationItem>
-            {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
+            {Array.from({ length: Math.min(totalPages, 5)  }).map((_, i) => {
               const page = i + 1;
               return (
                 <PaginationItem key={page}>

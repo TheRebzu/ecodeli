@@ -9,26 +9,23 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 
 export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }): Promise<Metadata> {
   // Attendre la résolution des paramètres
   const resolvedParams = await params;
   const locale = resolvedParams.locale;
 
-  const t = await getTranslations({ locale, namespace: "auth.register" });
+  const t = await getTranslations({ locale, namespace: "auth.register"  });
 
   return {
     title: t("merchant.pageTitle"),
-    description: t("merchant.pageDescription"),
-  };
+    description: t("merchant.pageDescription")};
 }
 
 export default async function MerchantRegisterPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }) {
   // Attendre que les paramètres soient résolus
   const resolvedParams = await params;
@@ -40,7 +37,7 @@ export default async function MerchantRegisterPage({
     redirect(`/${locale}/dashboard`);
   }
 
-  const t = await getTranslations({ locale, namespace: "auth.register" });
+  const t = await getTranslations({ locale, namespace: "auth.register"  });
 
   return (
     <div className="container flex h-screen flex-col items-center justify-center">

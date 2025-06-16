@@ -15,8 +15,7 @@ import {
   Smile,
   Image as ImageIcon,
   Check,
-  CheckCheck,
-} from "lucide-react";
+  CheckCheck} from "lucide-react";
 
 // UI Components
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -60,9 +59,8 @@ interface Conversation {
 }
 
 export default async function ClientMessageDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
+  params}: {
+  params: Promise<{ id }>;
 }) {
   const { id } = await params;
   const t = useTranslations("messages");
@@ -71,7 +69,7 @@ export default async function ClientMessageDetailPage({
 
   // Utilisation de tRPC pour récupérer la conversation
   const conversationQuery = api.client.messages.getConversation.useQuery(
-    { conversationId: id },
+    { conversationId },
     {
       refetchOnWindowFocus: false,
       refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
@@ -81,8 +79,7 @@ export default async function ClientMessageDetailPage({
   const sendMessageMutation = api.client.messages.sendMessage.useMutation({
     onSuccess: () => {
       conversationQuery.refetch();
-    },
-  });
+    }});
 
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -91,7 +88,7 @@ export default async function ClientMessageDetailPage({
 
   // Auto-scroll vers le bas quand de nouveaux messages arrivent
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth"  });
   }, [conversation?.messages]);
 
   const handleSendMessage = async () => {
@@ -101,11 +98,9 @@ export default async function ClientMessageDetailPage({
     setNewMessage("");
 
     try {
-      await sendMessageMutation.mutateAsync({
-        conversationId: conversation.id,
+      await sendMessageMutation.mutateAsync({ conversationId: conversation.id,
         content: newMessage.trim(),
-        type: "text",
-      });
+        type: "text" });
     } catch (error) {
       console.error("Erreur lors de l'envoi du message:", error);
       // Restaurer le message en cas d'erreur
@@ -127,7 +122,7 @@ export default async function ClientMessageDetailPage({
   };
 
   const formatLastSeen = (date: Date) => {
-    return format(date, "d MMM 'à' HH:mm", { locale: fr });
+    return format(date, "d MMM 'à' HH:mm", { locale });
   };
 
   if (conversationQuery.isLoading) {
@@ -240,7 +235,7 @@ export default async function ClientMessageDetailPage({
                           {format(
                             message.timestamp,
                             "EEEE d MMMM yyyy 'à' HH:mm",
-                            { locale: fr },
+                            { locale },
                           )}
                         </span>
                       </div>

@@ -4,29 +4,25 @@ export enum UserRole {
   DELIVERER = "DELIVERER",
   MERCHANT = "MERCHANT",
   PROVIDER = "PROVIDER",
-  ADMIN = "ADMIN",
-}
+  ADMIN = "ADMIN"}
 
 export enum UserStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
   SUSPENDED = "SUSPENDED",
-  PENDING_VERIFICATION = "PENDING_VERIFICATION",
-}
+  PENDING_VERIFICATION = "PENDING_VERIFICATION"}
 
 // Enum pour la gestion des vérifications
 export enum VerificationStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-}
+  REJECTED = "REJECTED"}
 
 // Enums pour la gestion des documents
 export enum DocumentStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-}
+  REJECTED = "REJECTED"}
 
 export enum DocumentType {
   ID_CARD = "ID_CARD",
@@ -39,12 +35,10 @@ export enum DocumentType {
   PROOF_OF_ADDRESS = "PROOF_OF_ADDRESS",
   BUSINESS_REGISTRATION = "BUSINESS_REGISTRATION",
   SELFIE = "SELFIE",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 // Types de tokens
 export enum TokenType {
   EMAIL_VERIFICATION = "EMAIL_VERIFICATION",
   PASSWORD_RESET = "PASSWORD_RESET",
-  TWO_FACTOR_AUTH = "TWO_FACTOR_AUTH",
-}
+  TWO_FACTOR_AUTH = "TWO_FACTOR_AUTH"}

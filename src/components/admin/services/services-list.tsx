@@ -7,8 +7,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,8 +27,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import {
   MoreHorizontal,
   Edit,
@@ -40,8 +37,7 @@ import {
   DollarSign,
   Package,
   ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+  ChevronRight} from "lucide-react";
 
 type ServiceStatus = "ACTIVE" | "INACTIVE" | "DRAFT" | "SUSPENDED";
 
@@ -75,24 +71,19 @@ const statusConfig = {
   ACTIVE: {
     label: "Actif",
     variant: "default" as const,
-    color: "bg-green-100 text-green-800",
-  },
+    color: "bg-green-100 text-green-800"},
   INACTIVE: {
     label: "Inactif",
     variant: "secondary" as const,
-    color: "bg-gray-100 text-gray-800",
-  },
+    color: "bg-gray-100 text-gray-800"},
   DRAFT: {
     label: "Brouillon",
     variant: "outline" as const,
-    color: "bg-yellow-100 text-yellow-800",
-  },
+    color: "bg-yellow-100 text-yellow-800"},
   SUSPENDED: {
     label: "Suspendu",
     variant: "destructive" as const,
-    color: "bg-red-100 text-red-800",
-  },
-};
+    color: "bg-red-100 text-red-800"}};
 
 export function ServicesList({
   services,
@@ -105,12 +96,11 @@ export function ServicesList({
   onDeleteService,
   onUpdateStatus,
   isDeleting,
-  isUpdatingStatus,
-}: ServicesListProps) {
+  isUpdatingStatus}: ServicesListProps) {
   const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean;
     service: Service | null;
-  }>({ isOpen: false, service: null });
+  }>({ isOpen: false, service: null  });
 
   const totalPages = Math.ceil(total / pageSize);
   const startItem = (currentPage - 1) * pageSize + 1;
@@ -119,26 +109,24 @@ export function ServicesList({
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("fr-FR", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
-    }).format(date);
+      year: "numeric"}).format(date);
   };
 
   const handleDeleteClick = (service: Service) => {
-    setDeleteDialog({ isOpen: true, service });
+    setDeleteDialog({ isOpen: true, service  });
   };
 
   const handleDeleteConfirm = () => {
     if (deleteDialog.service) {
       onDeleteService(deleteDialog.service.id);
-      setDeleteDialog({ isOpen: false, service: null });
+      setDeleteDialog({ isOpen: false, service: null  });
     }
   };
 
@@ -155,7 +143,7 @@ export function ServicesList({
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 5  }).map((_, i) => (
               <div key={i} className="flex items-center space-x-4">
                 <Skeleton className="h-12 w-12 rounded" />
                 <div className="space-y-2 flex-1">
@@ -329,7 +317,7 @@ export function ServicesList({
       <AlertDialog
         open={deleteDialog.isOpen}
         onOpenChange={(open) =>
-          setDeleteDialog({ isOpen: open, service: null })
+          setDeleteDialog({ isOpen: open, service: null  })
         }
       >
         <AlertDialogContent>

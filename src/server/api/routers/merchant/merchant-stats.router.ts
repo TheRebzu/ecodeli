@@ -8,51 +8,39 @@ import { TRPCError } from "@trpc/server";
  */
 
 // Schémas de validation
-const statsFiltersSchema = z.object({
-  period: z.enum(["DAY", "WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
+const statsFiltersSchema = z.object({ period: z.enum(["DAY", "WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-  compareWithPrevious: z.boolean().default(false),
-});
+  compareWithPrevious: z.boolean().default(false) });
 
-const productStatsSchema = z.object({
-  period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
+const productStatsSchema = z.object({ period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
   sortBy: z.enum(["sales", "revenue", "views", "conversions"]).default("sales"),
-  limit: z.number().min(1).max(100).default(20),
-});
+  limit: z.number().min(1).max(100).default(20) });
 
-const customerStatsSchema = z.object({
-  period: z.enum(["MONTH", "QUARTER", "YEAR"]).default("MONTH"),
+const customerStatsSchema = z.object({ period: z.enum(["MONTH", "QUARTER", "YEAR"]).default("MONTH"),
   segment: z.enum(["ALL", "NEW", "RETURNING", "VIP"]).default("ALL"),
-  city: z.string().optional(),
-});
+  city: z.string().optional() });
 
-export const merchantStatsRouter = router({
-  /**
+export const merchantStatsRouter = router({ /**
    * Obtenir les statistiques générales du tableau de bord
    */
   getDashboardStats: protectedProcedure
     .input(statsFiltersSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les commerçants peuvent consulter leurs statistiques",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent consulter leurs statistiques" });
       }
 
       try {
         const merchant = await ctx.db.merchant.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!merchant) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil commerçant non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé" });
         }
 
         // Calculer les dates de période
@@ -65,15 +53,14 @@ export const merchantStatsRouter = router({
           previousStats,
           topProducts,
           recentOrders,
-          pendingOrdersCount,
-        ] = await Promise.all([
+          pendingOrdersCount] = await Promise.all([
           // Statistiques période actuelle
-          getBasicStats(_ctx.db, merchant.id, startDate, endDate),
+          getBasicStats(ctx.db, merchant.id, startDate, endDate),
 
           // Statistiques période précédente (pour comparaison)
           input.compareWithPrevious
             ? getBasicStats(
-                _ctx.db,
+                ctx.db,
                 merchant.id,
                 previousStartDate!,
                 previousEndDate!,
@@ -87,37 +74,27 @@ export const merchantStatsRouter = router({
               product: { merchantId: merchant.id },
               order: {
                 status: { in: ["COMPLETED", "DELIVERED"] },
-                createdAt: { gte: startDate, lte: endDate },
-              },
-            },
-            _sum: { quantity: true, price: true },
-            orderBy: { _sum: { quantity: "desc" } },
-            take: 5,
-          }),
+                createdAt: { gte: startDate, lte: endDate }}},
+            sum: { quantity: true, price: true },
+            orderBy: { sum: { quantity: "desc" } },
+            take: 5}),
 
           // Commandes récentes
           ctx.db.order.findMany({
             where: {
               merchantId: merchant.id,
-              createdAt: { gte: startDate, lte: endDate },
-            },
+              createdAt: { gte: startDate, lte: endDate }},
             include: {
               client: {
-                select: { name: true, email: true },
-              },
-            },
+                select: { name: true, email: true }}},
             orderBy: { createdAt: "desc" },
-            take: 10,
-          }),
+            take: 10}),
 
           // Commandes en attente
           ctx.db.order.count({
             where: {
               merchantId: merchant.id,
-              status: { in: ["PENDING", "CONFIRMED", "PREPARING"] },
-            },
-          }),
-        ]);
+              status: { in: ["PENDING", "CONFIRMED", "PREPARING"] }}})]);
 
         // Calculer les comparaisons si demandées
         const comparisons =
@@ -138,8 +115,7 @@ export const merchantStatsRouter = router({
                 averageOrder: calculateGrowthRate(
                   currentStats.averageOrderValue,
                   previousStats.averageOrderValue,
-                ),
-              }
+                )}
             : null;
 
         // Enrichir les données des top produits
@@ -147,14 +123,12 @@ export const merchantStatsRouter = router({
           topProducts.map(async (item) => {
             const product = await ctx.db.product.findUnique({
               where: { id: item.productId },
-              select: { name: true, images: true, price: true },
-            });
+              select: { name: true, images: true, price: true }});
 
             return {
               ...product,
-              quantity: item._sum.quantity || 0,
-              revenue: item._sum.price || 0,
-            };
+              quantity: item.sum.quantity || 0,
+              revenue: item.sum.price || 0};
           }),
         );
 
@@ -164,8 +138,7 @@ export const merchantStatsRouter = router({
             period: {
               type: input.period,
               startDate,
-              endDate,
-            },
+              endDate},
             overview: {
               ...currentStats,
               pendingOrders: pendingOrdersCount,
@@ -178,25 +151,18 @@ export const merchantStatsRouter = router({
                 currentStats.totalOrders > 0
                   ? (currentStats.returnedOrders / currentStats.totalOrders) *
                     100
-                  : 0,
-            },
+                  : 0},
             comparisons,
             topProducts: enrichedTopProducts,
-            recentActivity: recentOrders.map((order) => ({
-              id: order.id,
+            recentActivity: recentOrders.map((order) => ({ id: order.id,
               status: order.status,
               amount: order.totalAmount,
               customer: order.client?.name || "Client anonyme",
-              createdAt: order.createdAt,
-            })),
-          },
-        };
-      } catch (_error) {
+              createdAt: order.createdAt }))}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des statistiques",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques" });
       }
     }),
 
@@ -205,45 +171,40 @@ export const merchantStatsRouter = router({
    */
   getSalesStats: protectedProcedure
     .input(statsFiltersSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
         const merchant = await ctx.db.merchant.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!merchant) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil commerçant non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé" });
         }
 
-        const { startDate: _startDate, endDate: _endDate } =
+        const { startDate: startDate, endDate: endDate } =
           calculatePeriodDates(input);
 
         // Données de ventes par jour/semaine/mois selon la période
         const interval = getTimeInterval(input.period);
-        const salesTimeline = (await _ctx.db.$queryRaw`
+        const salesTimeline = (await ctx.db.$queryRaw`
           SELECT 
-            DATE_TRUNC(${interval}, created_at) as period,
+            DATE_TRUNC(${interval}, createdat) as period,
             COUNT(*)::int as orders_count,
-            COALESCE(SUM(total_amount), 0)::float as revenue,
-            COALESCE(AVG(total_amount), 0)::float as avg_order_value
+            COALESCE(SUM(totalamount), 0)::float as revenue,
+            COALESCE(AVG(totalamount), 0)::float as avg_order_value
           FROM orders 
           WHERE merchant_id = ${merchant.id}
             AND status IN ('COMPLETED', 'DELIVERED')
             AND created_at >= ${startDate}
             AND created_at <= ${endDate}
-          GROUP BY DATE_TRUNC(${interval}, created_at)
+          GROUP BY DATE_TRUNC(${interval}, createdat)
           ORDER BY period ASC
         `) as Array<{
           period: Date;
@@ -259,24 +220,19 @@ export const merchantStatsRouter = router({
             product: { merchantId: merchant.id },
             order: {
               status: { in: ["COMPLETED", "DELIVERED"] },
-              createdAt: { gte: startDate, lte: endDate },
-            },
-          },
-          _sum: { quantity: true, price: true },
-        });
+              createdAt: { gte: startDate, lte: endDate }}},
+          sum: { quantity: true, price: true }});
 
         // Enrichir avec les catégories
         const categoryStats = await Promise.all(
           salesByCategory.map(async (item) => {
             const product = await ctx.db.product.findUnique({
               where: { id: item.productId },
-              select: { category: true },
-            });
+              select: { category }});
             return {
               category: product?.category || "UNKNOWN",
-              quantity: item._sum.quantity || 0,
-              revenue: item._sum.price || 0,
-            };
+              quantity: item.sum.quantity || 0,
+              revenue: item.sum.price || 0};
           }),
         );
 
@@ -317,25 +273,18 @@ export const merchantStatsRouter = router({
             },
             timeline: salesTimeline,
             byCategory: Object.entries(categoryTotals).map(
-              ([category, stats]) => ({
-                category,
+              ([category, stats]) => ({ category,
                 ...stats,
                 percentage:
-                  totalRevenue > 0 ? (stats.revenue / totalRevenue) * 100 : 0,
-              }),
+                  totalRevenue > 0 ? (stats.revenue / totalRevenue) * 100 : 0 }),
             ),
             trends: {
               revenueGrowth: calculateTrendGrowth(salesTimeline, "revenue"),
-              ordersGrowth: calculateTrendGrowth(salesTimeline, "orders_count"),
-            },
-          },
-        };
-      } catch (_error) {
+              ordersGrowth: calculateTrendGrowth(salesTimeline, "orders_count")}}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des statistiques de ventes",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques de ventes" });
       }
     }),
 
@@ -344,32 +293,25 @@ export const merchantStatsRouter = router({
    */
   getProductStats: protectedProcedure
     .input(productStatsSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
         const merchant = await ctx.db.merchant.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!merchant) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil commerçant non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé" });
         }
 
-        const { startDate: _startDate, endDate: _endDate } =
-          calculatePeriodDates({
-            period: input.period,
-          });
+        const { startDate: startDate, endDate: endDate } =
+          calculatePeriodDates({ period: input.period });
 
         // Statistiques des produits
         const productStats = await ctx.db.product.findMany({
@@ -379,25 +321,15 @@ export const merchantStatsRouter = router({
               where: {
                 order: {
                   status: { in: ["COMPLETED", "DELIVERED"] },
-                  createdAt: { gte: startDate, lte: endDate },
-                },
-              },
-            },
-            _count: {
+                  createdAt: { gte: startDate, lte: endDate }}}},
+            count: {
               select: {
                 orderItems: {
                   where: {
                     order: {
                       status: { in: ["COMPLETED", "DELIVERED"] },
-                      createdAt: { gte: startDate, lte: endDate },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          take: input.limit,
-        });
+                      createdAt: { gte: startDate, lte: endDate }}}}}}},
+          take: input.limit});
 
         // Calculer les métriques pour chaque produit
         const enrichedStats = productStats.map((product) => {
@@ -409,7 +341,7 @@ export const merchantStatsRouter = router({
             (sum, item) => sum + item.price * item.quantity,
             0,
           );
-          const orders = product._count.orderItems;
+          const orders = product.count.orderItems;
 
           return {
             id: product.id,
@@ -470,24 +402,18 @@ export const merchantStatsRouter = router({
         // Statistiques globales du catalogue
         const catalogStats = {
           totalProducts: await ctx.db.product.count({
-            where: { merchantId: merchant.id },
-          }),
+            where: { merchantId: merchant.id }}),
           activeProducts: await ctx.db.product.count({
             where: {
               merchantId: merchant.id,
               status: "ACTIVE",
-              isVisible: true,
-            },
-          }),
+              isVisible: true}}),
           lowStockProducts: enrichedStats.filter((p) => p.isLowStock).length,
           outOfStockProducts: await ctx.db.product.count({
             where: {
               merchantId: merchant.id,
               trackInventory: true,
-              stockQuantity: 0,
-            },
-          }),
-        };
+              stockQuantity: 0}})};
 
         return {
           success: true,
@@ -497,16 +423,11 @@ export const merchantStatsRouter = router({
             period: {
               type: input.period,
               startDate,
-              endDate,
-            },
-          },
-        };
-      } catch (_error) {
+              endDate}}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des statistiques produits",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques produits" });
       }
     }),
 
@@ -515,32 +436,25 @@ export const merchantStatsRouter = router({
    */
   getCustomerStats: protectedProcedure
     .input(customerStatsSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
         const merchant = await ctx.db.merchant.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!merchant) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil commerçant non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé" });
         }
 
-        const { startDate: _startDate, endDate: _endDate } =
-          calculatePeriodDates({
-            period: input.period,
-          });
+        const { startDate: startDate, endDate: endDate } =
+          calculatePeriodDates({ period: input.period });
 
         // Statistiques des clients
         const [
@@ -548,28 +462,23 @@ export const merchantStatsRouter = router({
           newCustomers,
           returningCustomers,
           customerOrders,
-          topCustomers,
-        ] = await Promise.all([
+          topCustomers] = await Promise.all([
           // Total des clients ayant commandé
-          _ctx.db.order.findMany({
+          ctx.db.order.findMany({
             where: {
               merchantId: merchant.id,
-              status: { in: ["COMPLETED", "DELIVERED"] },
-            },
-            select: { clientId: true },
-            distinct: ["clientId"],
-          }),
+              status: { in: ["COMPLETED", "DELIVERED"] }},
+            select: { clientId },
+            distinct: ["clientId"]}),
 
           // Nouveaux clients (première commande dans la période)
           ctx.db.order.findMany({
             where: {
               merchantId: merchant.id,
               status: { in: ["COMPLETED", "DELIVERED"] },
-              createdAt: { gte: startDate, lte: endDate },
-            },
+              createdAt: { gte: startDate, lte: endDate }},
             select: { clientId: true, createdAt: true },
-            orderBy: { createdAt: "asc" },
-          }),
+            orderBy: { createdAt: "asc" }}),
 
           // Clients récurrents
           ctx.db.order.groupBy({
@@ -577,11 +486,9 @@ export const merchantStatsRouter = router({
             where: {
               merchantId: merchant.id,
               status: { in: ["COMPLETED", "DELIVERED"] },
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _count: true,
-            having: { clientId: { _count: { gt: 1 } } },
-          }),
+              createdAt: { gte: startDate, lte: endDate }},
+            count: true,
+            having: { clientId: { count: { gt: 1 } } }}),
 
           // Commandes par client
           ctx.db.order.groupBy({
@@ -589,11 +496,9 @@ export const merchantStatsRouter = router({
             where: {
               merchantId: merchant.id,
               status: { in: ["COMPLETED", "DELIVERED"] },
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _sum: { totalAmount: true },
-            _count: true,
-          }),
+              createdAt: { gte: startDate, lte: endDate }},
+            sum: { totalAmount },
+            count: true}),
 
           // Top clients par revenus
           ctx.db.order.groupBy({
@@ -601,14 +506,11 @@ export const merchantStatsRouter = router({
             where: {
               merchantId: merchant.id,
               status: { in: ["COMPLETED", "DELIVERED"] },
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _sum: { totalAmount: true },
-            _count: true,
-            orderBy: { _sum: { totalAmount: "desc" } },
-            take: 10,
-          }),
-        ]);
+              createdAt: { gte: startDate, lte: endDate }},
+            sum: { totalAmount },
+            count: true,
+            orderBy: { sum: { totalAmount: "desc" } },
+            take: 10})]);
 
         // Identifier les nouveaux clients
         const firstOrderDates = new Map();
@@ -629,37 +531,33 @@ export const merchantStatsRouter = router({
               where: { id: customer.clientId },
               include: {
                 user: {
-                  select: { name: true, email: true },
-                },
-              },
-            });
+                  select: { name: true, email: true }}}});
 
             return {
               id: customer.clientId,
               name: client?.user?.name || "Client anonyme",
               email: client?.user?.email,
-              totalOrders: customer._count,
-              totalSpent: customer._sum.totalAmount || 0,
+              totalOrders: customer.count,
+              totalSpent: customer.sum.totalAmount || 0,
               averageOrderValue:
-                customer._count > 0
-                  ? (customer._sum.totalAmount || 0) / customer._count
+                customer.count > 0
+                  ? (customer.sum.totalAmount || 0) / customer.count
                   : 0,
               isNew: newCustomersInPeriod.some(
                 ([id]) => id === customer.clientId,
-              ),
-            };
+              )};
           }),
         );
 
         // Calculs des métriques
         const totalRevenue = customerOrders.reduce(
-          (sum, c) => sum + (c._sum.totalAmount || 0),
+          (sum, c) => sum + (c.sum.totalAmount || 0),
           0,
         );
         const averageOrderValue =
           customerOrders.length > 0
             ? totalRevenue /
-              customerOrders.reduce((sum, c) => sum + c._count, 0)
+              customerOrders.reduce((sum, c) => sum + c.count, 0)
             : 0;
 
         const customerLifetimeValue =
@@ -677,29 +575,22 @@ export const merchantStatsRouter = router({
                   ? (returningCustomers.length / totalCustomers.length) * 100
                   : 0,
               averageOrderValue,
-              customerLifetimeValue,
-            },
+              customerLifetimeValue},
             topCustomers: enrichedTopCustomers,
             segmentation: {
               new: newCustomersInPeriod.length,
               returning: returningCustomers.length,
               vip: enrichedTopCustomers.filter(
                 (c) => c.totalSpent > averageOrderValue * 3,
-              ).length,
-            },
+              ).length},
             period: {
               type: input.period,
               startDate,
-              endDate,
-            },
-          },
-        };
-      } catch (_error) {
+              endDate}}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des statistiques clients",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques clients" });
       }
     }),
 
@@ -708,54 +599,45 @@ export const merchantStatsRouter = router({
    */
   getPerformanceCharts: protectedProcedure
     .input(
-      z.object({
-        period: z.enum(["WEEK", "MONTH", "QUARTER"]).default("MONTH"),
+      z.object({ period: z.enum(["WEEK", "MONTH", "QUARTER"]).default("MONTH"),
         metrics: z
           .array(z.enum(["revenue", "orders", "customers", "products"]))
-          .default(["revenue", "orders"]),
-      }),
+          .default(["revenue", "orders"]) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
         const merchant = await ctx.db.merchant.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!merchant) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil commerçant non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil commerçant non trouvé" });
         }
 
-        const { startDate: _startDate, endDate: _endDate } =
-          calculatePeriodDates({
-            period: input.period,
-          });
+        const { startDate: startDate, endDate: endDate } =
+          calculatePeriodDates({ period: input.period });
         const interval = getTimeInterval(input.period);
 
         // Données temporelles pour les graphiques
-        const timeSeriesData = (await _ctx.db.$queryRaw`
+        const timeSeriesData = (await ctx.db.$queryRaw`
           SELECT 
-            DATE_TRUNC(${interval}, created_at) as period,
+            DATE_TRUNC(${interval}, createdat) as period,
             COUNT(*)::int as orders_count,
-            COALESCE(SUM(total_amount), 0)::float as revenue,
-            COUNT(DISTINCT client_id)::int as unique_customers
+            COALESCE(SUM(totalamount), 0)::float as revenue,
+            COUNT(DISTINCT clientid)::int as unique_customers
           FROM orders 
           WHERE merchant_id = ${merchant.id}
             AND status IN ('COMPLETED', 'DELIVERED')
             AND created_at >= ${startDate}
             AND created_at <= ${endDate}
-          GROUP BY DATE_TRUNC(${interval}, created_at)
+          GROUP BY DATE_TRUNC(${interval}, createdat)
           ORDER BY period ASC
         `) as Array<{
           period: Date;
@@ -769,39 +651,28 @@ export const merchantStatsRouter = router({
           ? await ctx.db.product.groupBy({
               by: ["category"],
               where: { merchantId: merchant.id },
-              _count: true,
-            })
+              count: true})
           : [];
 
         return {
           success: true,
           data: {
-            timeSeries: timeSeriesData.map((item) => ({
-              date: item.period,
+            timeSeries: timeSeriesData.map((item) => ({ date: item.period,
               revenue: item.revenue,
               orders: item.orders_count,
-              customers: item.unique_customers,
-            })),
-            productsByCategory: productData.map((item) => ({
-              category: item.category,
-              count: item._count,
-            })),
+              customers: item.unique_customers })),
+            productsByCategory: productData.map((item) => ({ category: item.category,
+              count: item.count })),
             period: {
               type: input.period,
               startDate,
-              endDate,
-            },
-          },
-        };
-      } catch (_error) {
+              endDate}}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des données de performance",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des données de performance" });
       }
-    }),
-});
+    })});
 
 // Helper functions
 function calculatePeriodDates(input: {
@@ -869,51 +740,39 @@ async function getBasicStats(
       where: {
         merchantId,
         status: { in: ["COMPLETED", "DELIVERED"] },
-        createdAt: { gte: startDate, lte: endDate },
-      },
-      _sum: { totalAmount: true },
-    }),
+        createdAt: { gte: startDate, lte: endDate }},
+      sum: { totalAmount }}),
     db.order.count({
       where: {
         merchantId,
-        createdAt: { gte: startDate, lte: endDate },
-      },
-    }),
+        createdAt: { gte: startDate, lte: endDate }}}),
     db.order.findMany({
       where: {
         merchantId,
         status: { in: ["COMPLETED", "DELIVERED"] },
-        createdAt: { gte: startDate, lte: endDate },
-      },
-      select: { clientId: true },
-      distinct: ["clientId"],
-    }),
+        createdAt: { gte: startDate, lte: endDate }},
+      select: { clientId },
+      distinct: ["clientId"]}),
     db.order.count({
       where: {
         merchantId,
         status: "RETURNED",
-        createdAt: { gte: startDate, lte: endDate },
-      },
-    }),
-  ]);
+        createdAt: { gte: startDate, lte: endDate }}})]);
 
   const completedOrders = await db.order.count({
     where: {
       merchantId,
       status: { in: ["COMPLETED", "DELIVERED"] },
-      createdAt: { gte: startDate, lte: endDate },
-    },
-  });
+      createdAt: { gte: startDate, lte: endDate }}});
 
   return {
-    revenue: revenue._sum.totalAmount || 0,
+    revenue: revenue.sum.totalAmount || 0,
     totalOrders: orders,
     completedOrders,
     returnedOrders: returns,
     uniqueCustomers: customers.length,
     averageOrderValue:
-      orders > 0 ? (revenue._sum.totalAmount || 0) / orders : 0,
-  };
+      orders > 0 ? (revenue.sum.totalAmount || 0) / orders : 0};
 }
 
 function calculateGrowthRate(current: number, previous: number): number {

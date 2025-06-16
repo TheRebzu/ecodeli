@@ -63,8 +63,7 @@ export enum BoxActionType {
   ACCESS = "ACCESS",
   DEPARTURE = "DEPARTURE",
   MAINTENANCE = "MAINTENANCE",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 // Type pour l'historique d'utilisation d'une box
 export interface BoxUsageHistoryRecord {

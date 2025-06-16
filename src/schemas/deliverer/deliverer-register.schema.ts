@@ -2,15 +2,13 @@ import { z } from "zod";
 import {
   UserRole,
   registerBaseFields,
-  addressFields,
-} from "@/schemas/auth/register.schema";
+  addressFields} from "@/schemas/auth/register.schema";
 
 /**
  * Schéma d'inscription pour les livreurs
  */
 export const delivererRegisterSchema = z
-  .object({
-    ...registerBaseFields,
+  .object({ ...registerBaseFields,
     ...addressFields,
 
     // Informations spécifiques au livreur
@@ -23,12 +21,10 @@ export const delivererRegisterSchema = z
     availableNights: z.boolean().default(false),
 
     // Le rôle est forcément DELIVERER pour ce schéma
-    role: z.literal(UserRole.DELIVERER),
-  })
+    role: z.literal(UserRole.DELIVERER) })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas",
-    path: ["confirmPassword"],
-  });
+    path: ["confirmPassword"]});
 
 export type DelivererRegisterSchemaType = z.infer<
   typeof delivererRegisterSchema

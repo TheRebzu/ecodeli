@@ -8,8 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Download, FileText, Loader2, Mail, Eye, Settings } from "lucide-react";
@@ -37,8 +36,7 @@ export function InvoiceDownload({
   invoice,
   showPreview = true,
   showEmail = true,
-  showTemplateOptions = true,
-}: InvoiceDownloadProps) {
+  showTemplateOptions = true}: InvoiceDownloadProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<
@@ -65,8 +63,7 @@ export function InvoiceDownload({
       console.error("Erreur génération PDF:", error);
       toast.error("Erreur lors de la génération du PDF");
       setIsDownloading(false);
-    },
-  });
+    }});
 
   // Mutation pour envoyer par email
   const sendEmailMutation = api.invoice.sendInvoiceEmail.useMutation({
@@ -78,8 +75,7 @@ export function InvoiceDownload({
       console.error("Erreur envoi email:", error);
       toast.error("Erreur lors de l'envoi de l'email");
       setIsSendingEmail(false);
-    },
-  });
+    }});
 
   const handleDownload = async (
     template: "DEFAULT" | "SIMPLE" | "DETAILED" = "DEFAULT",
@@ -101,10 +97,8 @@ export function InvoiceDownload({
         setIsDownloading(false);
       } else {
         // Générer un nouveau PDF avec le template spécifié
-        await generatePdfMutation.mutateAsync({
-          invoiceId: invoice.id,
-          template,
-        });
+        await generatePdfMutation.mutateAsync({ invoiceId: invoice.id,
+          template });
       }
     } catch (error) {
       console.error("Erreur téléchargement:", error);
@@ -122,11 +116,9 @@ export function InvoiceDownload({
     setIsSendingEmail(true);
 
     try {
-      await sendEmailMutation.mutateAsync({
-        invoiceId: invoice.id,
+      await sendEmailMutation.mutateAsync({ invoiceId: invoice.id,
         recipientEmail: invoice.user.email,
-        includePDF: true,
-      });
+        includePDF: true });
     } catch (error) {
       console.error("Erreur envoi email:", error);
       setIsSendingEmail(false);
@@ -135,7 +127,7 @@ export function InvoiceDownload({
 
   const handlePreview = () => {
     if (invoice.pdfUrl) {
-      window.open(invoice.pdfUrl, "_blank");
+      window.open(invoice.pdfUrl, "blank");
     } else {
       toast.info("Génération de l'aperçu en cours...");
       handleDownload("DEFAULT");
@@ -149,8 +141,7 @@ export function InvoiceDownload({
       ISSUED: { variant: "default" as const, label: "Émise" },
       PAID: { variant: "success" as const, label: "Payée" },
       OVERDUE: { variant: "destructive" as const, label: "Échue" },
-      CANCELLED: { variant: "secondary" as const, label: "Annulée" },
-    };
+      CANCELLED: { variant: "secondary" as const, label: "Annulée" }};
 
     const config =
       statusConfig[invoice.status as keyof typeof statusConfig] ||
@@ -238,8 +229,7 @@ export function InvoiceDownload({
       <div className="text-sm text-muted-foreground">
         {invoice.amount.toLocaleString("fr-FR", {
           style: "currency",
-          currency: invoice.currency || "EUR",
-        })}
+          currency: invoice.currency || "EUR"})}
       </div>
     </div>
   );

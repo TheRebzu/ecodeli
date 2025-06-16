@@ -23,8 +23,7 @@ export function ProtectedHeader({
   locale = "fr",
   showSearch = true,
   notificationCount = 3,
-  messageCount = 2,
-}: ProtectedHeaderProps) {
+  messageCount = 2}: ProtectedHeaderProps) {
   const [searchValue, setSearchValue] = useState("");
   const pathname = usePathname();
   const { user, logout } = useAuth();

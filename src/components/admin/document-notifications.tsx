@@ -10,16 +10,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Bell,
   CheckCircle,
   XCircle,
   FileText,
-  ChevronRight,
-} from "lucide-react";
+  ChevronRight} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
@@ -39,31 +37,27 @@ type Notification = {
 
 export function DocumentNotifications() {
   const t = useTranslations("documents");
-  const { t: tCommon } = useTranslations("common");
+  const { t } = useTranslations("common");
   const router = useRouter();
   const locale = "fr"; // Use a hook or context value for this in a real app
 
   const {
     data: notifications,
     isLoading,
-    refetch,
-  } = api.notification.getNotifications.useQuery({
-    limit: 10,
-    types: ["DOCUMENT_SUBMITTED"],
-  });
+    refetch} = api.notification.getNotifications.useQuery({ limit: 10,
+    types: ["DOCUMENT_SUBMITTED"] });
 
   // Mark notification as read
-  const { mutate: markAsRead } = api.notification.markAsRead.useMutation({
+  const { mutate } = api.notification.markAsRead.useMutation({
     onSuccess: () => {
       // Refetch notifications after marking one as read
       refetch();
-    },
-  });
+    }});
 
   // Navigate to document verification page and mark notification as read
   const handleViewDocument = (notification: Notification) => {
     if (notification.link && !notification.read) {
-      markAsRead({ id: notification.id });
+      markAsRead({ id: notification.id  });
     }
 
     if (notification.link) {
@@ -75,8 +69,7 @@ export function DocumentNotifications() {
   const formatCreationTime = (date: Date) => {
     return formatDistance(new Date(date), new Date(), {
       addSuffix: true,
-      locale: locale === "fr" ? fr : enUS,
-    });
+      locale: locale === "fr" ? fr : enUS});
   };
 
   // Parse notification data

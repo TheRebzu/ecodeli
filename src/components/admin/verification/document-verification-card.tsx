@@ -8,8 +8,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -19,8 +18,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import { formatDistanceToNow } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { useRouter } from "next/navigation";
@@ -38,8 +36,7 @@ interface DocumentVerificationCardProps {
 export function DocumentVerificationCard({
   document,
   locale,
-  onVerified,
-}: DocumentVerificationCardProps) {
+  onVerified}: DocumentVerificationCardProps) {
   const t = useTranslations();
   const router = useRouter();
   const [rejectReason, setRejectReason] = useState("");
@@ -59,8 +56,7 @@ export function DocumentVerificationCard({
     },
     onError: (error) => {
       toast.error(error.message);
-    },
-  });
+    }});
 
   const rejectDocument = api.verification.rejectDocument.useMutation({
     onSuccess: () => {
@@ -71,14 +67,11 @@ export function DocumentVerificationCard({
     },
     onError: (error) => {
       toast.error(error.message);
-    },
-  });
+    }});
 
   const handleApprove = () => {
-    approveDocument.mutate({
-      documentId: document.id,
-      notes: approveNotes || undefined,
-    });
+    approveDocument.mutate({ documentId: document.id,
+      notes: approveNotes || undefined });
   };
 
   const handleReject = () => {
@@ -87,17 +80,14 @@ export function DocumentVerificationCard({
       return;
     }
 
-    rejectDocument.mutate({
-      documentId: document.id,
-      reason: rejectReason,
-    });
+    rejectDocument.mutate({ documentId: document.id,
+      reason: rejectReason });
   };
 
   const formatDate = (date: Date) => {
     return formatDistanceToNow(new Date(date), {
       addSuffix: true,
-      locale: dateLocale,
-    });
+      locale: dateLocale});
   };
 
   const getDocumentTypeName = (type: string) => {
@@ -153,7 +143,7 @@ export function DocumentVerificationCard({
               {getDocumentTypeName(document.type)}
             </CardTitle>
             <CardDescription>
-              {t("uploaded_by")}: {document.user.name} ({document.user.email})
+              {t("uploaded_by")}: {document.user.name} ({ document.user.email })
             </CardDescription>
             <div className="text-sm text-muted-foreground mt-1">
               {t("uploaded")}: {formatDate(document.uploadedAt)}
@@ -350,7 +340,7 @@ export function DocumentVerificationCard({
                 <Button
                   variant="outline"
                   className="mt-4"
-                  onClick={() => window.open(document.fileUrl, "_blank")}
+                  onClick={() => window.open(document.fileUrl, "blank")}
                 >
                   {t("download_document")}
                 </Button>

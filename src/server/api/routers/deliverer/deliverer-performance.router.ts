@@ -9,16 +9,13 @@ import { calculateDistance } from "@/server/utils/geo-calculations";
  */
 
 // Schémas de validation
-const performanceFiltersSchema = z.object({
-  period: z.enum(["day", "week", "month", "quarter", "year"]).default("month"),
+const performanceFiltersSchema = z.object({ period: z.enum(["day", "week", "month", "quarter", "year"]).default("month"),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
   routeId: z.string().cuid().optional(),
-  includeProjections: z.boolean().default(false),
-});
+  includeProjections: z.boolean().default(false) });
 
-const routeOptimizationSchema = z.object({
-  deliveries: z.array(
+const routeOptimizationSchema = z.object({ deliveries: z.array(
     z.object({
       id: z.string().cuid(),
       address: z.string(),
@@ -28,58 +25,48 @@ const routeOptimizationSchema = z.object({
         .object({
           start: z.string(), // Format HH:MM
           end: z.string(), // Format HH:MM
-        })
+         })
         .optional(),
       priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).default("NORMAL"),
       estimatedDuration: z.number().min(5).max(120).default(15), // minutes
     }),
   ),
-  startLocation: z.object({
-    address: z.string(),
+  startLocation: z.object({ address: z.string(),
     latitude: z.number(),
-    longitude: z.number(),
-  }),
+    longitude: z.number() }),
   vehicleType: z.enum([
     "CAR",
     "MOTORCYCLE",
     "BICYCLE",
     "SCOOTER",
     "VAN",
-    "FOOT",
-  ]),
+    "FOOT"]),
   maxWorkingHours: z.number().min(1).max(14).default(8),
   includeBreaks: z.boolean().default(true),
   optimizationGoal: z
     .enum(["DISTANCE", "TIME", "EARNINGS", "FUEL"])
-    .default("TIME"),
-});
+    .default("TIME")});
 
-const planningExportSchema = z.object({
-  format: z.enum(["PDF", "ICAL", "JSON"]),
+const planningExportSchema = z.object({ format: z.enum(["PDF", "ICAL", "JSON"]),
   period: z.object({
     start: z.date(),
-    end: z.date(),
-  }),
+    end: z.date() }),
   includeCompleted: z.boolean().default(true),
   includePlanned: z.boolean().default(true),
   includeStats: z.boolean().default(true),
-  language: z.enum(["fr", "en"]).default("fr"),
-});
+  language: z.enum(["fr", "en"]).default("fr")});
 
-export const delivererPerformanceRouter = router({
-  /**
+export const delivererPerformanceRouter = router({ /**
    * Obtenir les statistiques de performance détaillées
    */
   getPerformanceStats: protectedProcedure
     .input(performanceFiltersSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent consulter leurs performances",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent consulter leurs performances" });
       }
 
       try {
@@ -93,8 +80,7 @@ export const delivererPerformanceRouter = router({
             where: {
               route: { delivererId: user.id },
               executionDate: { gte: startDate, lte: endDate },
-              ...(input.routeId && { routeId: input.routeId }),
-            },
+              ...(input.routeId && { routeId: input.routeId })},
             include: {
               route: {
                 select: {
@@ -102,11 +88,7 @@ export const delivererPerformanceRouter = router({
                   departureAddress: true,
                   arrivalAddress: true,
                   estimatedDistance: true,
-                  estimatedDuration: true,
-                },
-              },
-            },
-          });
+                  estimatedDuration: true}}}});
 
         // Performances de la période précédente pour comparaison
         const previousPerformances =
@@ -114,9 +96,7 @@ export const delivererPerformanceRouter = router({
             where: {
               route: { delivererId: user.id },
               executionDate: { gte: previousStartDate, lte: previousEndDate },
-              ...(input.routeId && { routeId: input.routeId }),
-            },
-          });
+              ...(input.routeId && { routeId: input.routeId })}});
 
         // Calculer les métriques agrégées
         const currentMetrics = calculateMetrics(currentPerformances);
@@ -124,13 +104,13 @@ export const delivererPerformanceRouter = router({
 
         // Gains et commissions
         const currentEarnings = await getEarningsForPeriod(
-          _ctx,
+          ctx,
           user.id,
           startDate,
           endDate,
         );
         const previousEarnings = await getEarningsForPeriod(
-          _ctx,
+          ctx,
           user.id,
           previousStartDate,
           previousEndDate,
@@ -140,7 +120,7 @@ export const delivererPerformanceRouter = router({
         const projections = null;
         if (input.includeProjections) {
           projections = await calculateProjections(
-            _ctx,
+            ctx,
             user.id,
             currentMetrics,
             input.period,
@@ -148,7 +128,7 @@ export const delivererPerformanceRouter = router({
         }
 
         // Top routes de la période
-        const topRoutes = await getTopRoutes(_ctx, user.id, startDate, endDate);
+        const topRoutes = await getTopRoutes(ctx, user.id, startDate, endDate);
 
         return {
           success: true,
@@ -156,16 +136,13 @@ export const delivererPerformanceRouter = router({
             period: {
               start: startDate,
               end: endDate,
-              label: getPeriodLabel(input.period, startDate),
-            },
+              label: getPeriodLabel(input.period, startDate)},
             current: {
               ...currentMetrics,
-              earnings: currentEarnings,
-            },
+              earnings: currentEarnings},
             previous: {
               ...previousMetrics,
-              earnings: previousEarnings,
-            },
+              earnings: previousEarnings},
             comparison: {
               earnings: calculateGrowth(
                 currentEarnings.total,
@@ -182,21 +159,16 @@ export const delivererPerformanceRouter = router({
               satisfaction: calculateGrowth(
                 currentMetrics.averageRating,
                 previousMetrics.averageRating,
-              ),
-            },
+              )},
             topRoutes,
             projections,
             recommendations: generateRecommendations(
               currentMetrics,
               previousMetrics,
-            ),
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des performances",
-        });
+            )}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des performances" });
       }
     }),
 
@@ -205,14 +177,12 @@ export const delivererPerformanceRouter = router({
    */
   optimizeRoute: protectedProcedure
     .input(routeOptimizationSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent optimiser des trajets",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent optimiser des trajets" });
       }
 
       try {
@@ -226,20 +196,15 @@ export const delivererPerformanceRouter = router({
               vehicleType: input.vehicleType,
               maxWorkingHours: input.maxWorkingHours,
               includeBreaks: input.includeBreaks,
-              optimizationGoal: input.optimizationGoal,
-            },
-            status: "PROCESSING",
-          },
-        });
+              optimizationGoal: input.optimizationGoal},
+            status: "PROCESSING"}});
 
         // Algorithme d'optimisation simplifié (TSP + contraintes)
-        const optimizedRoute = await optimizeDeliveryRoute({
-          startLocation: input.startLocation,
+        const optimizedRoute = await optimizeDeliveryRoute({ startLocation: input.startLocation,
           deliveries: input.deliveries,
           vehicleType: input.vehicleType,
           maxWorkingHours: input.maxWorkingHours,
-          optimizationGoal: input.optimizationGoal,
-        });
+          optimizationGoal: input.optimizationGoal });
 
         // Mettre à jour avec les résultats
         const updatedOptimization = await ctx.db.routeOptimization.update({
@@ -250,9 +215,7 @@ export const delivererPerformanceRouter = router({
             totalDuration: optimizedRoute.totalDuration,
             estimatedEarnings: optimizedRoute.estimatedEarnings,
             status: "COMPLETED",
-            completedAt: new Date(),
-          },
-        });
+            completedAt: new Date()}});
 
         return {
           success: true,
@@ -263,16 +226,11 @@ export const delivererPerformanceRouter = router({
               distance: optimizedRoute.distanceSaved || 0,
               time: optimizedRoute.timeSaved || 0,
               fuel: optimizedRoute.fuelSaved || 0,
-              earnings: optimizedRoute.earningsIncrease || 0,
-            },
-          },
-          message: "Trajet optimisé avec succès",
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'optimisation du trajet",
-        });
+              earnings: optimizedRoute.earningsIncrease || 0}},
+          message: "Trajet optimisé avec succès"};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'optimisation du trajet" });
       }
     }),
 
@@ -281,21 +239,17 @@ export const delivererPerformanceRouter = router({
    */
   getDeliverySchedule: protectedProcedure
     .input(
-      z.object({
-        startDate: z.date(),
+      z.object({ startDate: z.date(),
         endDate: z.date(),
         includeCompleted: z.boolean().default(true),
-        includeRoutes: z.boolean().default(true),
-      }),
+        includeRoutes: z.boolean().default(true) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent consulter leur planning",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent consulter leur planning" });
       }
 
       try {
@@ -305,14 +259,11 @@ export const delivererPerformanceRouter = router({
             delivererId: user.id,
             scheduledAt: {
               gte: input.startDate,
-              lte: input.endDate,
-            },
+              lte: input.endDate},
             ...(input.includeCompleted
               ? {}
               : {
-                  status: { notIn: ["DELIVERED", "COMPLETED", "CANCELLED"] },
-                }),
-          },
+                  status: { notIn: ["DELIVERED", "COMPLETED", "CANCELLED"] }})},
           include: {
             announcement: {
               select: {
@@ -320,12 +271,8 @@ export const delivererPerformanceRouter = router({
                 pickupAddress: true,
                 deliveryAddress: true,
                 suggestedPrice: true,
-                priority: true,
-              },
-            },
-          },
-          orderBy: { scheduledAt: "asc" },
-        });
+                priority: true}}},
+          orderBy: { scheduledAt: "asc" }});
 
         // Routes planifiées si demandées
         const plannedRoutes = [];
@@ -335,21 +282,14 @@ export const delivererPerformanceRouter = router({
               delivererId: user.id,
               departureTime: {
                 gte: input.startDate,
-                lte: input.endDate,
-              },
-              status: { in: ["PUBLISHED", "ACTIVE", "IN_PROGRESS"] },
-            },
+                lte: input.endDate},
+              status: { in: ["PUBLISHED", "ACTIVE", "IN_PROGRESS"] }},
             include: {
               matchedAnnouncements: {
                 include: {
                   announcement: {
-                    select: { title: true, suggestedPrice: true },
-                  },
-                },
-              },
-            },
-            orderBy: { departureTime: "asc" },
-          });
+                    select: { title: true, suggestedPrice: true }}}}},
+            orderBy: { departureTime: "asc" }});
         }
 
         // Organiser par jour
@@ -373,8 +313,7 @@ export const delivererPerformanceRouter = router({
           ).length,
           upcomingDeliveries: deliveries.filter(
             (d) => !["DELIVERED", "COMPLETED", "CANCELLED"].includes(d.status),
-          ).length,
-        };
+          ).length};
 
         return {
           success: true,
@@ -387,15 +326,10 @@ export const delivererPerformanceRouter = router({
               days: Math.ceil(
                 (input.endDate.getTime() - input.startDate.getTime()) /
                   (1000 * 60 * 60 * 24),
-              ),
-            },
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération du planning",
-        });
+              )}}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération du planning" });
       }
     }),
 
@@ -404,14 +338,12 @@ export const delivererPerformanceRouter = router({
    */
   exportPlanning: protectedProcedure
     .input(planningExportSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent exporter leur planning",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent exporter leur planning" });
       }
 
       try {
@@ -421,19 +353,13 @@ export const delivererPerformanceRouter = router({
             delivererId: user.id,
             scheduledAt: {
               gte: input.period.start,
-              lte: input.period.end,
-            },
+              lte: input.period.end},
             ...(input.includeCompleted
               ? {}
               : {
-                  status: { notIn: ["DELIVERED", "COMPLETED", "CANCELLED"] },
-                }),
-          },
-          include: {
-            announcement: true,
-          },
-          orderBy: { scheduledAt: "asc" },
-        });
+                  status: { notIn: ["DELIVERED", "COMPLETED", "CANCELLED"] }})},
+          include: { announcement },
+          orderBy: { scheduledAt: "asc" }});
 
         const plannedRoutes = input.includePlanned
           ? await ctx.db.delivererPlannedRoute.findMany({
@@ -441,34 +367,27 @@ export const delivererPerformanceRouter = router({
                 delivererId: user.id,
                 departureTime: {
                   gte: input.period.start,
-                  lte: input.period.end,
-                },
-              },
-              orderBy: { departureTime: "asc" },
-            })
+                  lte: input.period.end}},
+              orderBy: { departureTime: "asc" }})
           : [];
 
         let exportResult;
 
         switch (input.format) {
           case "PDF":
-            exportResult = await generatePDFPlanning({
-              deliverer: user,
+            exportResult = await generatePDFPlanning({ deliverer: user,
               deliveries,
               plannedRoutes,
               period: input.period,
               includeStats: input.includeStats,
-              language: input.language,
-            });
+              language: input.language });
             break;
 
           case "ICAL":
-            exportResult = await generateICalPlanning({
-              deliverer: user,
+            exportResult = await generateICalPlanning({ deliverer: user,
               deliveries,
               plannedRoutes,
-              period: input.period,
-            });
+              period: input.period });
             break;
 
           case "JSON":
@@ -478,42 +397,32 @@ export const delivererPerformanceRouter = router({
                 deliverer: {
                   id: user.id,
                   name: user.name,
-                  email: user.email,
-                },
+                  email: user.email},
                 period: input.period,
-                deliveries: deliveries.map((d) => ({
-                  id: d.id,
+                deliveries: deliveries.map((d) => ({ id: d.id,
                   title: d.announcement.title,
                   scheduledAt: d.scheduledAt,
                   status: d.status,
                   pickupAddress: d.announcement.pickupAddress,
                   deliveryAddress: d.announcement.deliveryAddress,
-                  price: d.announcement.suggestedPrice?.toNumber(),
-                })),
-                plannedRoutes: plannedRoutes.map((r) => ({
-                  id: r.id,
+                  price: d.announcement.suggestedPrice?.toNumber() })),
+                plannedRoutes: plannedRoutes.map((r) => ({ id: r.id,
                   title: r.title,
                   departureTime: r.departureTime,
                   arrivalTime: r.arrivalTime,
                   departureAddress: r.departureAddress,
-                  arrivalAddress: r.arrivalAddress,
-                })),
-                generatedAt: new Date(),
-              },
-            };
+                  arrivalAddress: r.arrivalAddress })),
+                generatedAt: new Date()}};
             break;
         }
 
         return {
           success: true,
           data: exportResult,
-          message: `Planning exporté en ${input.format} avec succès`,
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'export du planning",
-        });
+          message: `Planning exporté en ${input.format} avec succès`};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'export du planning" });
       }
     }),
 
@@ -522,21 +431,17 @@ export const delivererPerformanceRouter = router({
    */
   getEarningsEstimation: protectedProcedure
     .input(
-      z.object({
-        deliveryIds: z.array(z.string().cuid()),
+      z.object({ deliveryIds: z.array(z.string().cuid()),
         routeId: z.string().cuid().optional(),
         considerTraffic: z.boolean().default(true),
-        considerWeather: z.boolean().default(false),
-      }),
+        considerWeather: z.boolean().default(false) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent obtenir des estimations",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent obtenir des estimations" });
       }
 
       try {
@@ -544,21 +449,15 @@ export const delivererPerformanceRouter = router({
         const deliveries = await ctx.db.delivery.findMany({
           where: {
             id: { in: input.deliveryIds },
-            delivererId: user.id,
-          },
-          include: {
-            announcement: true,
-          },
-        });
+            delivererId: user.id},
+          include: { announcement }});
 
         // Récupérer la route si spécifiée
         const route = input.routeId
           ? await ctx.db.delivererPlannedRoute.findFirst({
               where: {
                 id: input.routeId,
-                delivererId: user.id,
-              },
-            })
+                delivererId: user.id}})
           : null;
 
         // Calculer les estimations
@@ -570,12 +469,10 @@ export const delivererPerformanceRouter = router({
             const netEarnings = baseEarnings - platformFee;
 
             // Estimation du temps basée sur la distance et le trafic
-            const timeEstimation = await estimateDeliveryTime({
-              pickupAddress: delivery.announcement.pickupAddress,
+            const timeEstimation = await estimateDeliveryTime({ pickupAddress: delivery.announcement.pickupAddress,
               deliveryAddress: delivery.announcement.deliveryAddress,
               considerTraffic: input.considerTraffic,
-              considerWeather: input.considerWeather,
-            });
+              considerWeather: input.considerWeather });
 
             return {
               deliveryId: delivery.id,
@@ -588,27 +485,23 @@ export const delivererPerformanceRouter = router({
               fuelCost: timeEstimation.fuelCost,
               profitMargin: netEarnings - timeEstimation.fuelCost,
               trafficDelayRisk: timeEstimation.trafficRisk,
-              weatherImpact: timeEstimation.weatherImpact,
-            };
+              weatherImpact: timeEstimation.weatherImpact};
           }),
         );
 
         // Totaux
         const totals = estimations.reduce(
-          (acc, est) => ({
-            totalTime: acc.totalTime + est.estimatedTime,
+          (acc, est) => ({ totalTime: acc.totalTime + est.estimatedTime,
             totalDistance: acc.totalDistance + est.estimatedDistance,
             totalEarnings: acc.totalEarnings + est.netEarnings,
             totalFuelCost: acc.totalFuelCost + est.fuelCost,
-            totalProfit: acc.totalProfit + est.profitMargin,
-          }),
+            totalProfit: acc.totalProfit + est.profitMargin }),
           {
             totalTime: 0,
             totalDistance: 0,
             totalEarnings: 0,
             totalFuelCost: 0,
-            totalProfit: 0,
-          },
+            totalProfit: 0},
         );
 
         return {
@@ -624,25 +517,18 @@ export const delivererPerformanceRouter = router({
               profitMargin:
                 totals.totalEarnings > 0
                   ? (totals.totalProfit / totals.totalEarnings) * 100
-                  : 0,
-            },
+                  : 0},
             route: route
               ? {
                   id: route.id,
                   title: route.title,
-                  compatibility: calculateRouteCompatibility(route, deliveries),
-                }
-              : null,
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du calcul des estimations",
-        });
+                  compatibility: calculateRouteCompatibility(route, deliveries)}
+              : null}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du calcul des estimations" });
       }
-    }),
-});
+    })});
 
 // Helper functions
 function calculatePeriodDates(input: any) {
@@ -700,18 +586,15 @@ function calculateMetrics(performances: any[]) {
       totalDuration: 0,
       averageRating: 0,
       averageEfficiency: 0,
-      onTimeRate: 0,
-    };
+      onTimeRate: 0};
   }
 
   const totals = performances.reduce(
-    (acc, perf) => ({
-      deliveries: acc.deliveries + perf.packagesDelivered,
+    (acc, perf) => ({ deliveries: acc.deliveries + perf.packagesDelivered,
       distance: acc.distance + perf.actualDistance,
       duration: acc.duration + perf.actualDuration,
       rating: acc.rating + (perf.averageRating || 0),
-      onTime: acc.onTime + perf.onTimeDeliveries,
-    }),
+      onTime: acc.onTime + perf.onTimeDeliveries }),
     { deliveries: 0, distance: 0, duration: 0, rating: 0, onTime: 0 },
   );
 
@@ -723,8 +606,7 @@ function calculateMetrics(performances: any[]) {
     averageEfficiency:
       totals.deliveries > 0 ? totals.distance / totals.deliveries : 0,
     onTimeRate:
-      totals.deliveries > 0 ? (totals.onTime / totals.deliveries) * 100 : 0,
-  };
+      totals.deliveries > 0 ? (totals.onTime / totals.deliveries) * 100 : 0};
 }
 
 function calculateGrowth(current: number, previous: number): number {
@@ -745,8 +627,7 @@ function getPeriodLabel(period: string, date: Date): string {
     "Septembre",
     "Octobre",
     "Novembre",
-    "Décembre",
-  ];
+    "Décembre"];
 
   switch (period) {
     case "day":
@@ -773,28 +654,23 @@ async function getEarningsForPeriod(
       wallet: { userId },
       type: { in: ["EARNING", "DELIVERY_PAYOUT"] },
       status: "COMPLETED",
-      createdAt: { gte: startDate, lte: endDate },
-    },
-    _sum: { amount: true },
-  });
+      createdAt: { gte: startDate, lte: endDate }},
+    sum: { amount }});
 
   const commissions = await ctx.db.transaction.aggregate({
     where: {
       wallet: { userId },
       type: "PLATFORM_FEE",
       status: "COMPLETED",
-      createdAt: { gte: startDate, lte: endDate },
-    },
-    _sum: { amount: true },
-  });
+      createdAt: { gte: startDate, lte: endDate }},
+    sum: { amount }});
 
   return {
-    total: earnings._sum.amount?.toNumber() || 0,
-    commissions: Math.abs(commissions._sum.amount?.toNumber() || 0),
+    total: earnings.sum.amount?.toNumber() || 0,
+    commissions: Math.abs(commissions.sum.amount?.toNumber() || 0),
     net:
-      (earnings._sum.amount?.toNumber() || 0) -
-      Math.abs(commissions._sum.amount?.toNumber() || 0),
-  };
+      (earnings.sum.amount?.toNumber() || 0) -
+      Math.abs(commissions.sum.amount?.toNumber() || 0)};
 }
 
 async function calculateProjections(
@@ -823,17 +699,13 @@ async function getTopRoutes(
 ) {
   return ctx.db.delivererRoutePerformance.findMany({
     where: {
-      route: { delivererId: userId },
-      executionDate: { gte: startDate, lte: endDate },
-    },
+      route: { delivererId },
+      executionDate: { gte: startDate, lte: endDate }},
     include: {
       route: {
-        select: { title: true, departureAddress: true, arrivalAddress: true },
-      },
-    },
+        select: { title: true, departureAddress: true, arrivalAddress: true }}},
     orderBy: { totalEarnings: "desc" },
-    take: 5,
-  });
+    take: 5});
 }
 
 function generateRecommendations(current: any, previous: any): string[] {
@@ -859,10 +731,9 @@ async function optimizeDeliveryRoute(params: any) {
   // En production, utiliser un service comme Google Routes API ou OSRM
 
   const {
-    startLocation: _startLocation,
-    deliveries: _deliveries,
-    optimizationGoal: _optimizationGoal,
-  } = params;
+    startLocation: startLocation,
+    deliveries: deliveries,
+    optimizationGoal: optimizationGoal} = params;
 
   // Tri simple par priorité et proximité
   const sortedDeliveries = deliveries.sort((a: any, b: any) => {
@@ -889,21 +760,18 @@ async function optimizeDeliveryRoute(params: any) {
   const estimatedEarnings = sortedDeliveries.length * 12; // 12€ par livraison
 
   return {
-    steps: sortedDeliveries.map((delivery: any, index: number) => ({
-      order: index + 1,
+    steps: sortedDeliveries.map((delivery: any, index: number) => ({ order: index + 1,
       deliveryId: delivery.id,
       address: delivery.address,
       estimatedArrival: new Date(Date.now() + (index + 1) * 20 * 60 * 1000),
-      estimatedDuration: delivery.estimatedDuration,
-    })),
+      estimatedDuration: delivery.estimatedDuration })),
     totalDistance,
     totalDuration,
     estimatedEarnings,
     distanceSaved: 2.5,
     timeSaved: 15,
     fuelSaved: 3.2,
-    earningsIncrease: 5.5,
-  };
+    earningsIncrease: 5.5};
 }
 
 function organizeScheduleByDay(
@@ -928,8 +796,7 @@ function organizeScheduleByDay(
         (r) =>
           r.departureTime &&
           r.departureTime.toISOString().split("T")[0] === dateKey,
-      ),
-    };
+      )};
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
@@ -941,8 +808,7 @@ async function generatePDFPlanning(params: any) {
   return {
     url: "/api/exports/planning.pdf",
     filename: `planning_${params.deliverer.name}_${params.period.start.toISOString().split("T")[0]}.pdf`,
-    size: "2.1 MB",
-  };
+    size: "2.1 MB"};
 }
 
 async function generateICalPlanning(params: any) {
@@ -950,8 +816,7 @@ async function generateICalPlanning(params: any) {
   return {
     url: "/api/exports/planning.ics",
     filename: `planning_${params.deliverer.name}.ics`,
-    size: "15 KB",
-  };
+    size: "15 KB"};
 }
 
 async function estimateDeliveryTime(params: any) {
@@ -961,8 +826,7 @@ async function estimateDeliveryTime(params: any) {
     distance: 8.5, // km
     fuelCost: 2.1, // euros
     trafficRisk: "MODERATE",
-    weatherImpact: "NONE",
-  };
+    weatherImpact: "NONE"};
 }
 
 function calculateRouteCompatibility(route: any, deliveries: any[]) {

@@ -11,8 +11,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -20,8 +19,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,24 +28,21 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils/common";
 import { CalendarIcon, Package, RefreshCw, Save } from "lucide-react";
 
 // Define the form schema
-const formSchema = z.object({
-  title: z.string().min(5, "Le titre doit contenir au moins 5 caractères"),
+const formSchema = z.object({ title: z.string().min(5, "Le titre doit contenir au moins 5 caractères"),
   description: z
     .string()
     .min(20, "La description doit contenir au moins 20 caractères"),
@@ -73,8 +68,7 @@ const formSchema = z.object({
   fragile: z.boolean().default(false),
   requiresSignature: z.boolean().default(false),
   requiresId: z.boolean().default(true),
-  suggestedPrice: z.number().optional(),
-});
+  suggestedPrice: z.number().optional() });
 
 export type AnnouncementFormData = z.infer<typeof formSchema>;
 
@@ -87,8 +81,7 @@ interface AnnouncementFormProps {
 export function AnnouncementForm({
   initialValues,
   isSubmitting = false,
-  onSubmit,
-}: AnnouncementFormProps) {
+  onSubmit}: AnnouncementFormProps) {
   const t = useTranslations("announcements.form");
 
   const form = useForm<AnnouncementFormData>({
@@ -119,9 +112,7 @@ export function AnnouncementForm({
       requiresSignature: false,
       requiresId: true,
       suggestedPrice: undefined,
-      ...initialValues,
-    },
-  });
+      ...initialValues}});
 
   return (
     <Form {...form}>
@@ -135,7 +126,7 @@ export function AnnouncementForm({
             <FormField
               control={form.control}
               name="title"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("title")}</FormLabel>
                   <FormControl>
@@ -150,7 +141,7 @@ export function AnnouncementForm({
             <FormField
               control={form.control}
               name="description"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
@@ -170,7 +161,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="type"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("type")}</FormLabel>
                     <Select
@@ -205,7 +196,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="category"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("category")}</FormLabel>
                     <Select
@@ -253,7 +244,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="weight"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("weight")}</FormLabel>
                     <FormControl>
@@ -274,7 +265,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="volume"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("volume")}</FormLabel>
                     <FormControl>
@@ -295,7 +286,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="quantity"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("quantity")}</FormLabel>
                     <FormControl>
@@ -321,7 +312,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="fragile"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
@@ -342,7 +333,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="requiresSignature"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
@@ -363,7 +354,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="requiresId"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
@@ -393,7 +384,7 @@ export function AnnouncementForm({
             <FormField
               control={form.control}
               name="pickupAddress"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("pickupAddress")}</FormLabel>
                   <FormControl>
@@ -408,7 +399,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="pickupCity"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("city")}</FormLabel>
                     <FormControl>
@@ -422,7 +413,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="pickupPostal"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("postalCode")}</FormLabel>
                     <FormControl>
@@ -441,7 +432,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="pickupDateStart"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("pickupDateStart")}</FormLabel>
                     <Popover>
@@ -455,7 +446,7 @@ export function AnnouncementForm({
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP", { locale: fr })
+                              format(field.value, "PPP", { locale })
                             ) : (
                               <span>{t("selectDate")}</span>
                             )}
@@ -481,7 +472,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="pickupTimeStart"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("pickupTimeStart")}</FormLabel>
                     <FormControl>
@@ -500,7 +491,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="pickupDateEnd"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("pickupDateEnd")}</FormLabel>
                     <Popover>
@@ -514,7 +505,7 @@ export function AnnouncementForm({
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP", { locale: fr })
+                              format(field.value, "PPP", { locale })
                             ) : (
                               <span>{t("selectDate")}</span>
                             )}
@@ -544,7 +535,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="pickupTimeEnd"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("pickupTimeEnd")}</FormLabel>
                     <FormControl>
@@ -570,7 +561,7 @@ export function AnnouncementForm({
             <FormField
               control={form.control}
               name="deliveryAddress"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("deliveryAddress")}</FormLabel>
                   <FormControl>
@@ -585,7 +576,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="deliveryCity"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("city")}</FormLabel>
                     <FormControl>
@@ -599,7 +590,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="deliveryPostal"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("postalCode")}</FormLabel>
                     <FormControl>
@@ -618,7 +609,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="deliveryDateStart"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("deliveryDateStart")}</FormLabel>
                     <Popover>
@@ -632,7 +623,7 @@ export function AnnouncementForm({
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP", { locale: fr })
+                              format(field.value, "PPP", { locale })
                             ) : (
                               <span>{t("selectDate")}</span>
                             )}
@@ -662,7 +653,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="deliveryTimeStart"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("deliveryTimeStart")}</FormLabel>
                     <FormControl>
@@ -681,7 +672,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="deliveryDateEnd"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("deliveryDateEnd")}</FormLabel>
                     <Popover>
@@ -695,7 +686,7 @@ export function AnnouncementForm({
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP", { locale: fr })
+                              format(field.value, "PPP", { locale })
                             ) : (
                               <span>{t("selectDate")}</span>
                             )}
@@ -725,7 +716,7 @@ export function AnnouncementForm({
               <FormField
                 control={form.control}
                 name="deliveryTimeEnd"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("deliveryTimeEnd")}</FormLabel>
                     <FormControl>
@@ -751,7 +742,7 @@ export function AnnouncementForm({
             <FormField
               control={form.control}
               name="suggestedPrice"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("suggestedPrice")}</FormLabel>
                   <FormControl>

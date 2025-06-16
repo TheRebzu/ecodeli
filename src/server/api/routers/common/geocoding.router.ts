@@ -1,19 +1,17 @@
 import { z } from "zod";
 import { router } from "@/server/api/trpc";
 
-export const geocodingRouter = router({
-  // Recherche d'adresse (géocodage)
+export const geocodingRouter = router({ // Recherche d'adresse (géocodage)
   searchAddress: publicProcedure
     .input(
       z.object({
         query: z
           .string()
           .min(3, "La requête doit contenir au moins 3 caractères"),
-        limit: z.number().min(1).max(10).default(5),
-      }),
+        limit: z.number().min(1).max(10).default(5) }),
     )
-    .query(async ({ input: _input }) => {
-      const { query: _query, limit: _limit } = input;
+    .query(async ({ input  }) => {
+      const { query: query, limit: limit } = input;
 
       try {
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
@@ -22,9 +20,7 @@ export const geocodingRouter = router({
 
         const response = await fetch(url, {
           headers: {
-            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.fr)",
-          },
-        });
+            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.fr)"}});
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -32,16 +28,13 @@ export const geocodingRouter = router({
 
         const data = await response.json();
 
-        return data.map((item: any) => ({
-          display_name: item.display_name,
+        return data.map((item: any) => ({ displayname: item.display_name,
           lat: parseFloat(item.lat),
           lon: parseFloat(item.lon),
-          address: item.address,
-          place_id: item.place_id,
+          address: item.address, place_id: item.place_id,
           type: item.type,
-          importance: item.importance,
-        }));
-      } catch (_error) {
+          importance: item.importance }));
+      } catch (error) {
         console.error("Geocoding error:", error);
         throw new Error("Erreur lors de la recherche d'adresse");
       }
@@ -50,23 +43,19 @@ export const geocodingRouter = router({
   // Géocodage inverse (coordonnées -> adresse)
   reverseGeocode: publicProcedure
     .input(
-      z.object({
-        lat: z.number().min(-90).max(90),
+      z.object({ lat: z.number().min(-90).max(90),
         lon: z.number().min(-180).max(180),
-        zoom: z.number().min(1).max(18).default(18),
-      }),
+        zoom: z.number().min(1).max(18).default(18) }),
     )
-    .query(async ({ input: _input }) => {
-      const { lat: _lat, lon: _lon, zoom: _zoom } = input;
+    .query(async ({ input  }) => {
+      const { lat: lat, lon: lon, zoom: zoom } = input;
 
       try {
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=${zoom}&addressdetails=1`;
 
         const response = await fetch(url, {
           headers: {
-            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.fr)",
-          },
-        });
+            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.fr)"}});
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -78,17 +67,13 @@ export const geocodingRouter = router({
           throw new Error(data.error);
         }
 
-        return {
-          display_name: data.display_name,
+        return { display_name: data.display_name,
           lat: parseFloat(data.lat),
           lon: parseFloat(data.lon),
-          address: data.address,
-          place_id: data.place_id,
-          type: data.type,
-        };
-      } catch (_error) {
+          address: data.address, place_id: data.place_id,
+          type: data.type};
+      } catch (error) {
         console.error("Reverse geocoding error:", error);
         throw new Error("Erreur lors du géocodage inverse");
       }
-    }),
-});
+    })});

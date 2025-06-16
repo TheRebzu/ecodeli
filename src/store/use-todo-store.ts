@@ -60,10 +60,9 @@ export const useTodoStore = create<TodoState>()(
           ...todo,
           id: uuidv4(),
         };
-        set((state) => ({
-          todos: [...state.todos, newTodo],
+        set((state) => ({ todos: [...state.todos, newTodo],
           isFormVisible: false,
-        }));
+         }));
       },
 
       toggleTodo: (id, completed) => {
@@ -75,18 +74,17 @@ export const useTodoStore = create<TodoState>()(
       },
 
       deleteTodo: (id) => {
-        set((state) => ({
-          todos: state.todos.filter((todo) => todo.id !== id),
-        }));
+        set((state) => ({ todos: state.todos.filter((todo) => todo.id !== id),
+         }));
       },
 
-      showForm: () => set({ isFormVisible: true }),
-      hideForm: () => set({ isFormVisible: false }),
+      showForm: () => set({ isFormVisible  }),
+      hideForm: () => set({ isFormVisible  }),
 
-      setFilter: (filter) => set({ activeFilter: filter }),
+      setFilter: (filter) => set({ activeFilter  }),
 
       getFilteredTodos: () => {
-        const { todos: _todos, activeFilter: _activeFilter } = get();
+        const { todos: todos, activeFilter: activeFilter } = get();
         switch (activeFilter) {
           case "active":
             return todos.filter((todo) => !todo.completed);

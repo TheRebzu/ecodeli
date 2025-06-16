@@ -58,10 +58,8 @@ const PaginationLink = ({
   <Link
     aria-current={isActive ? "page" : undefined}
     className={cn(
-      buttonVariants({
-        variant: isActive ? "outline" : "ghost",
-        size,
-      }),
+      buttonVariants({ variant: isActive ? "outline" : "ghost",
+        size }),
       className,
     )}
     {...props}
@@ -125,8 +123,7 @@ interface DataTablePaginationProps {
 export function DataTablePagination({
   currentPage,
   totalPages,
-  onPageChange,
-}: DataTablePaginationProps) {
+  onPageChange}: DataTablePaginationProps) {
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
@@ -173,8 +170,8 @@ export function DataTablePagination({
         </Button>,
       );
 
-      let startPage = Math.max(2, currentPage - 1);
-      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      const startPage = Math.max(2, currentPage - 1);
+      const endPage = Math.min(totalPages - 1, currentPage + 1);
 
       // Ajuster pour montrer 3 pages au milieu
       if (startPage > 2) {
@@ -274,5 +271,4 @@ export {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-};
+  PaginationPrevious};

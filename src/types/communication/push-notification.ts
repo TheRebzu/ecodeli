@@ -1,8 +1,7 @@
 import {
   Notification as PrismaNotification,
   UserRole,
-  AnnouncementStatus,
-} from "@prisma/client";
+  AnnouncementStatus} from "@prisma/client";
 
 // Type pour les types de notifications
 export enum NotificationType {
@@ -14,22 +13,19 @@ export enum NotificationType {
   ACCOUNT = "ACCOUNT",
   CONTRACT = "CONTRACT",
   INVOICE = "INVOICE",
-  VERIFICATION = "VERIFICATION",
-}
+  VERIFICATION = "VERIFICATION"}
 
 // Types de canaux de notification
 export enum NotificationChannel {
   EMAIL = "EMAIL",
   PUSH = "PUSH",
   SMS = "SMS",
-  IN_APP = "IN_APP",
-}
+  IN_APP = "IN_APP"}
 
 // Langues supportées
 export enum SupportedLanguage {
   FR = "fr",
-  EN = "en",
-}
+  EN = "en"}
 
 // Paramètres de notifications pour un utilisateur - Version étendue
 export interface UserNotificationSettings {

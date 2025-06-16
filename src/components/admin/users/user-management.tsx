@@ -9,16 +9,14 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,8 +33,7 @@ import {
   CheckCircle,
   Ban,
   Power,
-  Trash2,
-} from "lucide-react";
+  Trash2} from "lucide-react";
 import { Link } from "@/navigation";
 import { useUserBan } from "@/hooks/use-user-ban";
 import { UserBanAction } from "@/types/users/verification";
@@ -48,8 +45,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,8 +82,7 @@ export default function UserTable({
   users,
   onSelectionChange,
   selectedUserIds,
-  isLoading = false,
-}: UserTableProps) {
+  isLoading = false}: UserTableProps) {
   const t = useTranslations("Admin.verification.users");
   const [selectAll, setSelectAll] = useState(false);
   const { toast } = useToast();
@@ -99,8 +94,7 @@ export default function UserTable({
     isArray: Array.isArray(users),
     usersLength: Array.isArray(users) ? users.length : "N/A",
     isLoading: isLoading,
-    firstUser: Array.isArray(users) ? users[0] : null,
-  });
+    firstUser: Array.isArray(users) ? users[0] : null});
 
   // Vérification défensive
   const safeUsers = Array.isArray(users) ? users : [];
@@ -134,24 +128,19 @@ export default function UserTable({
   const userBan = useUserBan();
   const { toggleUserActivation, isPending: isActivationPending } =
     useUserActivation();
-  const deleteUserMutation = api.adminUser.permanentlyDeleteUser.useMutation({
-    onSuccess: () => {
+  const deleteUserMutation = api.adminUser.permanentlyDeleteUser.useMutation({ onSuccess: () => {
       toast({
         title: "Utilisateur supprimé",
-        variant: "default",
-      });
+        variant: "default" });
       setIsDeleteDialogOpen(false);
       // Recharger la page ou rafraîchir la liste
       window.location.reload();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur",
+        variant: "destructive" });
       console.error("Erreur de suppression:", error);
-    },
-  });
+    }});
 
   // Gérer la sélection de tous les utilisateurs
   const handleSelectAll = (checked: boolean) => {
@@ -208,7 +197,7 @@ export default function UserTable({
     userName: string,
     action: UserBanAction,
   ) => {
-    setBanAction({ userId, name: userName, action });
+    setBanAction({ userId, name: userName, action  });
     setBanReason("");
     setIsDialogOpen(true);
   };
@@ -221,27 +210,21 @@ export default function UserTable({
       {
         userId: banAction.userId,
         action: banAction.action,
-        reason: banAction.action === UserBanAction.BAN ? banReason : undefined,
-      },
+        reason: banAction.action === UserBanAction.BAN ? banReason : undefined},
       {
         onSuccess: () => {
           setIsDialogOpen(false);
-          toast({
-            title:
+          toast({ title:
               banAction.action === UserBanAction.BAN
                 ? "Utilisateur banni"
                 : "Utilisateur débanni",
-            variant: "default",
-          });
+            variant: "default" });
         },
         onError: (error) => {
-          toast({
-            title: "Erreur",
-            variant: "destructive",
-          });
+          toast({ title: "Erreur",
+            variant: "destructive" });
           console.error("Erreur:", error);
-        },
-      },
+        }},
     );
   };
 
@@ -251,7 +234,7 @@ export default function UserTable({
     userName: string,
     activate: boolean,
   ) => {
-    setActivationAction({ userId, name: userName, activate });
+    setActivationAction({ userId, name: userName, activate  });
     setIsActivationDialogOpen(true);
   };
 
@@ -265,7 +248,7 @@ export default function UserTable({
 
   // Handler pour ouvrir la modale de suppression
   const handleDeleteAction = (userId: string, userName: string) => {
-    setDeleteAction({ userId, name: userName });
+    setDeleteAction({ userId, name: userName  });
     setDeleteReason("");
     setAdminPassword("");
     setIsDeleteDialogOpen(true);
@@ -275,11 +258,9 @@ export default function UserTable({
   const handleConfirmDelete = () => {
     if (!deleteAction || !adminPassword || !deleteReason) return;
 
-    deleteUserMutation.mutate({
-      userId: deleteAction.userId,
+    deleteUserMutation.mutate({ userId: deleteAction.userId,
       adminPassword,
-      reason: deleteReason,
-    });
+      reason: deleteReason });
   };
 
   // RENDU PRINCIPAL
@@ -311,7 +292,7 @@ export default function UserTable({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
+              Array.from({ length: 5  }).map((_, i) => (
                 <TableRow key={i} className="animate-pulse">
                   <TableCell>
                     <div className="h-4 w-4 rounded-sm bg-muted"></div>

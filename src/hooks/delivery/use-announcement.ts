@@ -3,19 +3,16 @@ import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import useAnnouncementStore, {
-  useAnnouncementList,
-} from "@/store/use-announcement-store";
+  useAnnouncementList} from "@/store/use-announcement-store";
 import type {
   AnnouncementStatus,
   AnnouncementType,
-  Announcement,
-} from "@prisma/client";
+  Announcement} from "@prisma/client";
 import {
   CreateAnnouncementInput,
   UpdateAnnouncementInput,
   AnnouncementFilterInput,
-  CreateAnnouncementApplicationInput,
-} from "@/schemas/delivery/announcement.schema";
+  CreateAnnouncementApplicationInput} from "@/schemas/delivery/announcement.schema";
 
 type AnnouncementWithDetails = Announcement & {
   client?: {
@@ -61,8 +58,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
   const {
     enableAutoRefresh = true,
     refreshInterval = 60000, // 1 minute
-    initialFilter = { page: 1, limit: 10 },
-  } = options;
+    initialFilter = { page: 1, limit: 10 }} = options;
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -85,8 +81,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
   const {
     toggleFavorite,
     fetchAnnouncements: fetchFromStore,
-    setFilters: setStoreFilters,
-  } = useAnnouncementStore();
+    setFilters: setStoreFilters} = useAnnouncementStore();
 
   /**
    * Récupère la liste des annonces avec filtrage
@@ -100,8 +95,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         const mergedFilter = {
           ...filters,
           ...filter,
-          page,
-        } as AnnouncementFilterInput;
+          page} as AnnouncementFilterInput;
         setFilters(mergedFilter);
 
         // Note : Store Zustand retiré
@@ -138,7 +132,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await api.announcement.getById.query({ id });
+      const response = await api.announcement.getById.query({ id  });
       setCurrentAnnouncement(response);
 
       return response;
@@ -193,14 +187,12 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(true);
         setError(null);
 
-        const response = await api.announcement.update.mutate({
-          id,
-          ...data,
-        });
+        const response = await api.announcement.update.mutate({ id,
+          ...data });
 
         // Mettre à jour l'annonce courante si c'est celle-ci
         if (currentAnnouncement && currentAnnouncement.id === id) {
-          setCurrentAnnouncement({ ...currentAnnouncement, ...response });
+          setCurrentAnnouncement({ ...currentAnnouncement, ...response  });
         }
 
         toast.success("Annonce mise à jour avec succès");
@@ -230,7 +222,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsDeleting(true);
         setError(null);
 
-        await api.announcement.delete.mutate({ id });
+        await api.announcement.delete.mutate({ id  });
 
         // Retirer l'annonce de la liste locale
         setAnnouncements((prev) => prev.filter((a) => a.id !== id));
@@ -267,14 +259,12 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(true);
         setError(null);
 
-        const result = await api.announcement.publish.mutate({ id });
+        const result = await api.announcement.publish.mutate({ id  });
 
         // Mettre à jour l'annonce courante si c'est celle-ci
         if (currentAnnouncement && currentAnnouncement.id === id) {
-          setCurrentAnnouncement({
-            ...currentAnnouncement,
-            status: "PUBLISHED" as AnnouncementStatus,
-          });
+          setCurrentAnnouncement({ ...currentAnnouncement,
+            status: "PUBLISHED" as AnnouncementStatus });
         }
 
         toast.success("Annonce publiée avec succès");
@@ -304,19 +294,15 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(true);
         setError(null);
 
-        await api.announcement.updateStatus.mutate({
-          id,
+        await api.announcement.updateStatus.mutate({ id,
           status: "CANCELLED",
-          cancelReason: reason,
-        });
+          cancelReason: reason });
 
         // Mettre à jour l'annonce courante si c'est celle-ci
         if (currentAnnouncement && currentAnnouncement.id === id) {
-          setCurrentAnnouncement({
-            ...currentAnnouncement,
+          setCurrentAnnouncement({ ...currentAnnouncement,
             status: "CANCELLED" as AnnouncementStatus,
-            cancelReason: reason,
-          });
+            cancelReason: reason });
         }
 
         toast.success("Annonce annulée avec succès");
@@ -346,10 +332,8 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(true);
         setError(null);
 
-        const result = await api.announcement.assignDeliverer.mutate({
-          announcementId,
-          applicationId,
-        });
+        const result = await api.announcement.assignDeliverer.mutate({ announcementId,
+          applicationId });
 
         // Mettre à jour l'annonce courante si c'est celle-ci
         if (currentAnnouncement && currentAnnouncement.id === announcementId) {
@@ -359,16 +343,13 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
           );
 
           if (selectedApplication) {
-            setCurrentAnnouncement({
-              ...currentAnnouncement,
+            setCurrentAnnouncement({ ...currentAnnouncement,
               status: "ASSIGNED" as AnnouncementStatus,
               delivererId: selectedApplication.delivererId,
               // Mettre à jour les applications pour montrer celle qui a été acceptée
               applications: currentAnnouncement.applications?.map((app) => ({
                 ...app,
-                status: app.id === applicationId ? "ACCEPTED" : "REJECTED",
-              })),
-            });
+                status: app.id === applicationId ? "ACCEPTED" : "REJECTED" }))});
           }
         }
 
@@ -400,10 +381,8 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setError(null);
 
         // Requête au routeur de paiement
-        const result = await api.payment.createForAnnouncement.mutate({
-          announcementId,
-          paymentMethodId,
-        });
+        const result = await api.payment.createForAnnouncement.mutate({ announcementId,
+          paymentMethodId });
 
         if (result && result.clientSecret) {
           // Redirection vers la page de confirmation de paiement
@@ -434,9 +413,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
       setIsSaving(true);
       setError(null);
 
-      const result = await api.payment.confirmPayment.mutate({
-        clientSecret,
-      });
+      const result = await api.payment.confirmPayment.mutate({ clientSecret });
 
       if (result.success) {
         toast.success("Paiement confirmé avec succès");
@@ -473,18 +450,14 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(true);
         setError(null);
 
-        const result = await api.announcement.applyForAnnouncement.mutate({
-          announcementId,
-          ...data,
-        });
+        const result = await api.announcement.applyForAnnouncement.mutate({ announcementId,
+          ...data });
 
         // Mettre à jour l'annonce courante si c'est celle-ci
         if (currentAnnouncement && currentAnnouncement.id === announcementId) {
           const applications = currentAnnouncement.applications || [];
-          setCurrentAnnouncement({
-            ...currentAnnouncement,
-            applications: [...applications, result],
-          });
+          setCurrentAnnouncement({ ...currentAnnouncement,
+            applications: [...applications, result] });
         }
 
         toast.success("Candidature envoyée avec succès");
@@ -512,19 +485,15 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(true);
         setError(null);
 
-        await api.announcement.updateApplicationStatus.mutate({
-          applicationId,
-          status: "WITHDRAWN",
-        });
+        await api.announcement.updateApplicationStatus.mutate({ applicationId,
+          status: "WITHDRAWN" });
 
         // Mettre à jour l'annonce courante si c'est celle-ci
         if (currentAnnouncement && currentAnnouncement.id === announcementId) {
-          setCurrentAnnouncement({
-            ...currentAnnouncement,
+          setCurrentAnnouncement({ ...currentAnnouncement,
             applications: currentAnnouncement.applications?.filter(
               (app) => app.id !== applicationId,
-            ),
-          });
+            ) });
         }
 
         toast.success("Candidature retirée avec succès");
@@ -562,10 +531,8 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
 
       // Mettre à jour l'annonce courante si c'est celle-ci
       if (currentAnnouncement && currentAnnouncement.id === id) {
-        setCurrentAnnouncement({
-          ...currentAnnouncement,
-          isFavorite: !currentAnnouncement.isFavorite,
-        });
+        setCurrentAnnouncement({ ...currentAnnouncement,
+          isFavorite: !currentAnnouncement.isFavorite });
       }
     },
     [toggleFavorite, currentAnnouncement],
@@ -589,8 +556,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
     refreshInterval,
     currentPage,
     filters,
-    fetchAnnouncements,
-  ]);
+    fetchAnnouncements]);
 
   return {
     // États
@@ -632,8 +598,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
 
     // Utilitaires
     setFilters,
-    resetError: () => setError(null),
-  };
+    resetError: () => setError(null)};
 };
 
 /**
@@ -651,9 +616,7 @@ export const useClientAnnouncements = (
   const {
     initialFilter = {
       page: 1,
-      limit: 10,
-    },
-  } = options;
+      limit: 10}} = options;
 
   const [filters, setFilters] =
     useState<Partial<AnnouncementFilterInput>>(initialFilter);
@@ -704,10 +667,8 @@ export const useClientAnnouncements = (
           "PUBLISHED",
           "IN_APPLICATION",
           "ASSIGNED",
-          "IN_PROGRESS",
-        ] as AnnouncementStatus[],
-        page: 1,
-      } as AnnouncementFilterInput;
+          "IN_PROGRESS"] as AnnouncementStatus[],
+        page: 1} as AnnouncementFilterInput;
 
       const response =
         await api.announcement.getMyAnnouncements.query(activeFilters);
@@ -739,8 +700,7 @@ export const useClientAnnouncements = (
       const historyFilters = {
         ...filters,
         status: ["COMPLETED", "CANCELLED", "PAID"] as AnnouncementStatus[],
-        page: 1,
-      } as AnnouncementFilterInput;
+        page: 1} as AnnouncementFilterInput;
 
       const response =
         await api.announcement.getMyAnnouncements.query(historyFilters);
@@ -782,8 +742,7 @@ export const useClientAnnouncements = (
     fetchActiveAnnouncements,
     fetchAnnouncementHistory,
     setFilters,
-    resetError: () => setError(null),
-  };
+    resetError: () => setError(null)};
 };
 
 /**
@@ -806,9 +765,7 @@ export const useDelivererAnnouncements = (
   const {
     initialFilter = {
       page: 1,
-      limit: 10,
-    },
-  } = options;
+      limit: 10}} = options;
 
   const [filters, setFilters] =
     useState<Partial<AnnouncementFilterInput>>(initialFilter);
@@ -825,8 +782,7 @@ export const useDelivererAnnouncements = (
         const updatedFilters = {
           ...filters,
           status: ["PUBLISHED", "IN_APPLICATION"] as AnnouncementStatus[],
-          page,
-        } as AnnouncementFilterInput;
+          page} as AnnouncementFilterInput;
 
         // Utiliser la recherche avec filtre de statut
         const response = await api.announcement.search.query(updatedFilters);
@@ -884,11 +840,9 @@ export const useDelivererAnnouncements = (
       setError(null);
 
       // Cette route n'existe pas spécifiquement, utiliser la route de recherche
-      const response = await api.announcement.search.query({
-        hasApplied: true,
+      const response = await api.announcement.search.query({ hasApplied: true,
         page: 1,
-        limit: 20,
-      });
+        limit: 20 });
 
       setMyApplications(response.announcements);
 
@@ -916,9 +870,7 @@ export const useDelivererAnnouncements = (
         near: {
           latitude,
           longitude,
-          radius,
-        },
-      };
+          radius}};
 
       setFilters(proximityFilter);
       return fetchAvailableAnnouncements(1);
@@ -944,8 +896,7 @@ export const useDelivererAnnouncements = (
     fetchMyApplications,
     filterByProximity,
     setFilters,
-    resetError: () => setError(null),
-  };
+    resetError: () => setError(null)};
 };
 
 export default useAnnouncement;

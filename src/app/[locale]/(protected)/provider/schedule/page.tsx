@@ -8,8 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("title") || "Planning de Disponibilités | EcoDeli Prestataire",
-    description: t("description") || "Gérez vos créneaux de disponibilité pour les services EcoDeli",
-  };
+    description: t("description") || "Gérez vos créneaux de disponibilité pour les services EcoDeli"};
 }
 
 export default async function ProviderSchedulePage() {

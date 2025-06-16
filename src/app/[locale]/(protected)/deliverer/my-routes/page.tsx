@@ -9,8 +9,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,8 +21,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import {
   Plus,
   AlertCircle,
@@ -31,8 +29,7 @@ import {
   MapPin,
   Trash2,
   ArrowRight,
-  Loader2,
-} from "lucide-react";
+  Loader2} from "lucide-react";
 import { Link } from "@/navigation";
 import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 import { api } from "@/trpc/react";
@@ -80,10 +77,8 @@ export default function DelivererRoutesPage() {
       const response = await fetch("/api/trpc/deliverer.getMyRoutes", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}),
-      });
+          "Content-Type": "application/json"},
+        body: JSON.stringify({})});
 
       if (!response.ok) {
         throw new Error("Erreur lors du chargement des itinéraires");
@@ -111,10 +106,8 @@ export default function DelivererRoutesPage() {
       const response = await fetch("/api/trpc/deliverer.deleteRoute", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ routeId }),
-      });
+          "Content-Type": "application/json"},
+        body: JSON.stringify({ routeId  })});
 
       if (!response.ok) {
         throw new Error("Erreur lors de la suppression de l'itinéraire");
@@ -151,8 +144,7 @@ export default function DelivererRoutesPage() {
       THURSDAY: t("days.thursday"),
       FRIDAY: t("days.friday"),
       SATURDAY: t("days.saturday"),
-      SUNDAY: t("days.sunday"),
-    };
+      SUNDAY: t("days.sunday")};
 
     return days.map((day) => dayMap[day] || day).join(", ");
   };
@@ -185,7 +177,7 @@ export default function DelivererRoutesPage() {
 
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {Array.from({ length: 3  }).map((_, i) => (
             <Skeleton key={i} className="h-[250px] w-full rounded-lg" />
           ))}
         </div>

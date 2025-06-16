@@ -59,56 +59,43 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-// Type d'une ligne de facture pour le démo
-interface DemoInvoiceLineItem {
+// Type pour les détails d'une facture
+interface InvoiceDetails {
   id: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  taxRate: number;
-  totalExclTax: number;
-  taxAmount: number;
-  totalAmount: number;
-}
-
-// Type d'une facture complète pour le démo
-interface DemoInvoiceDetails {
-  id: string;
-  invoiceNumber: string;
-  createdAt: Date;
-  dueDate: Date | null;
-  status: "DRAFT" | "ISSUED" | "PAID" | "OVERDUE" | "CANCELLED" | "PENDING";
-  type: "STANDARD" | "SUBSCRIPTION" | "COMMISSION" | "SERVICE";
+  number: string;
+  date: Date;
+  dueDate: Date;
+  status: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
   amount: number;
-  taxAmount: number;
-  totalExclTax: number;
+  tax: number;
+  total: number;
   currency: string;
-  paymentMethod?: string;
-  paidAt?: Date | null;
-  issuerDetails: {
+  customer: {
+    name: string;
+    email: string;
+    address: string;
+  };
+  merchant: {
     name: string;
     address: string;
-    email: string;
-    phone?: string;
-    taxId?: string;
-    logoUrl?: string;
+    siret: string;
   };
-  recipientDetails: {
-    name: string;
-    address?: string;
-    email: string;
-    taxId?: string;
+  items: Array<{
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>;
+  paymentDetails?: {
+    method: string;
+    transactionId: string;
+    paidAt: Date;
   };
-  items: DemoInvoiceLineItem[];
-  notes?: string;
-  termsAndConditions?: string;
-  paymentInstructions?: string;
-  metadata?: Record<string, any>;
 }
 
 interface InvoiceDetailsProps {
   invoiceId: string;
-  isDemo?: boolean;
+  
   onBack: () => void;
   onDownload?: (invoiceId: string) => Promise<void>;
   onPrint?: (invoiceId: string) => Promise<void>;
@@ -117,7 +104,7 @@ interface InvoiceDetailsProps {
 
 export function InvoiceDetails({
   invoiceId,
-  isDemo = false,
+  
   onBack,
   onDownload,
   onPrint,
@@ -128,147 +115,37 @@ export function InvoiceDetails({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
-  // Générer une facture démo
-  const generateDemoInvoice = (): DemoInvoiceDetails => {
-    const createdDate = new Date();
-    createdDate.setDate(createdDate.getDate() - Math.floor(Math.random() * 30));
-
-    const dueDate = new Date(createdDate);
-    dueDate.setDate(createdDate.getDate() + 30);
-
-    // Générer des lignes de facture
-    const items: DemoInvoiceLineItem[] = [];
-    const numberOfItems = Math.floor(Math.random() * 4) + 1;
-
-    for (let i = 0; i < numberOfItems; i++) {
-      const quantity = Math.floor(Math.random() * 5) + 1;
-      const unitPrice = Math.floor(Math.random() * 100) + 50;
-      const taxRate = 0.2; // 20% TVA
-      const totalExclTax = quantity * unitPrice;
-      const taxAmount = totalExclTax * taxRate;
-
-      items.push({
-        id: `item-${i}`,
-        description:
-          i === 0
-            ? "Abonnement Premium - Mensuel"
-            : i === 1
-              ? "Service de livraison écologique"
-              : i === 2
-                ? "Commission sur ventes"
-                : "Frais de gestion",
-        quantity,
-        unitPrice,
-        taxRate,
-        totalExclTax,
-        taxAmount,
-        totalAmount: totalExclTax + taxAmount,
-      });
-    }
-
-    // Calculer les totaux
-    const totalExclTax = items.reduce(
-      (sum, item) => sum + item.totalExclTax,
-      0,
-    );
-    const taxAmount = items.reduce((sum, item) => sum + item.taxAmount, 0);
-    const totalAmount = totalExclTax + taxAmount;
-
-    // Créer la facture démo
-    return {
-      id: invoiceId,
-      invoiceNumber: `FAC-${2025}-${invoiceId.slice(-3).padStart(3, "0")}`,
-      createdAt: createdDate,
-      dueDate,
-      status:
-        Math.random() > 0.7 ? "PAID" : Math.random() > 0.5 ? "ISSUED" : "DRAFT",
-      type: "SUBSCRIPTION",
-      amount: totalAmount,
-      taxAmount,
-      totalExclTax,
-      currency: "EUR",
-      paymentMethod:
-        Math.random() > 0.5 ? "Carte bancaire" : "Virement bancaire",
-      paidAt: Math.random() > 0.7 ? new Date() : null,
-      issuerDetails: {
-        name: "EcoDeli SAS",
-        address: "15 Avenue des Champs-Élysées, 75008 Paris, France",
-        email: "facturation@ecodeli.fr",
-        phone: "+33 1 23 45 67 89",
-        taxId: "FR 12 345 678 901",
-        logoUrl: "/images/logo.png",
-      },
-      recipientDetails: {
-        name: "Client Demo",
-        address: "123 Rue de la Démo, 75001 Paris, France",
-        email: "client@exemple.fr",
-        taxId: "FR 98 765 432 109",
-      },
-      items,
-      notes:
-        "Merci pour votre confiance. Cette facture a été générée automatiquement.",
-      termsAndConditions:
-        "Paiement à réception. Pénalités de retard au taux légal en vigueur.",
-      paymentInstructions:
-        "Veuillez effectuer votre paiement par virement bancaire en précisant le numéro de facture.",
-      metadata: {
-        subscriptionPlan: "Premium",
-        period: format(createdDate, "MMMM yyyy", { locale: fr }),
-      },
-    };
-  };
-
   // Requête pour récupérer les détails de la facture
   const {
     data: invoiceData,
     isLoading,
     refetch,
-  } = isDemo
-    ? {
-        data: { invoice: generateDemoInvoice() },
-        isLoading: false,
-        refetch: async () => {},
-      }
-    : api.invoice.getInvoiceDetails.useQuery(
-        { invoiceId },
-        {
-          enabled: !!invoiceId && !isDemo,
-          refetchOnWindowFocus: false,
-        },
-      );
+  } = api.invoice.getInvoiceDetails.useQuery(
+    { invoiceId },
+    {
+      enabled: !!invoiceId,
+      refetchOnWindowFocus: false,
+    },
+  );
 
   const invoice = invoiceData?.invoice;
 
   // Télécharger la facture
   const handleDownload = async () => {
     try {
-      if (isDemo) {
-        toast({
-          title: t("downloadStarted"),
-        });
-        return;
-      }
-
       if (onDownload && invoice) {
         await onDownload(invoice.id);
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("downloadError"),
-      });
+       });
     }
   };
 
   // Imprimer la facture
   const handlePrint = async () => {
     try {
-      if (isDemo) {
-        // Simuler l'impression
-        window.print();
-        return;
-      }
-
       if (onPrint && invoice) {
         await onPrint(invoice.id);
       } else {
@@ -276,10 +153,9 @@ export function InvoiceDetails({
         window.print();
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("printError"),
-      });
+       });
     }
   };
 
@@ -299,9 +175,8 @@ export function InvoiceDetails({
       navigator.clipboard.writeText(invoice.invoiceNumber);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
-      toast({
-        title: t("copied"),
-      });
+      toast({ title: t("copied"),
+       });
     }
   };
 
@@ -393,7 +268,7 @@ export function InvoiceDetails({
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>{t("error")}</AlertTitle>
               <AlertDescription>
-                {t("invoiceNotFoundError", { id: invoiceId })}
+                {t("invoiceNotFoundError", { id })}
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -409,69 +284,6 @@ export function InvoiceDetails({
 
   const statusInfo = getStatusInfo(invoice.status);
 
-  // Fonction pour adapter les données selon le mode démo ou réel
-  const getDisplayInvoice = (): DemoInvoiceDetails => {
-    if (isDemo || !invoice) {
-      return invoice as DemoInvoiceDetails;
-    }
-
-    // Adapter les données Prisma pour l'affichage
-    const realInvoice = invoice as any; // Cast temporaire pour éviter les erreurs de type
-
-    return {
-      id: realInvoice.id,
-      invoiceNumber: realInvoice.invoiceNumber,
-      createdAt: realInvoice.issueDate || realInvoice.createdAt,
-      dueDate: realInvoice.dueDate,
-      status: realInvoice.status,
-      type: realInvoice.invoiceType || "STANDARD",
-      amount: Number(realInvoice.totalAmount || realInvoice.amount),
-      taxAmount: Number(realInvoice.taxAmount || 0),
-      totalExclTax:
-        Number(realInvoice.totalAmount || realInvoice.amount) -
-        Number(realInvoice.taxAmount || 0),
-      currency: realInvoice.currency || "EUR",
-      paymentMethod: realInvoice.paymentMethod,
-      paidAt: realInvoice.paidDate,
-      // Données de l'émetteur (par défaut EcoDeli)
-      issuerDetails: {
-        name: "EcoDeli SAS",
-        address: "15 Avenue des Champs-Élysées, 75008 Paris, France",
-        email: "facturation@ecodeli.fr",
-        phone: "+33 1 23 45 67 89",
-        taxId: "FR 12 345 678 901",
-        logoUrl: "/images/logo.png",
-      },
-      // Données du destinataire (depuis user)
-      recipientDetails: {
-        name: realInvoice.user?.name || realInvoice.billingName || "Client",
-        email: realInvoice.user?.email || "",
-        address: realInvoice.billingAddress
-          ? `${realInvoice.billingAddress}${realInvoice.billingCity ? ", " + realInvoice.billingCity : ""}${realInvoice.billingPostal ? " " + realInvoice.billingPostal : ""}${realInvoice.billingCountry ? ", " + realInvoice.billingCountry : ""}`
-          : undefined,
-        taxId: realInvoice.taxId,
-      },
-      // Adapter les items
-      items:
-        realInvoice.items?.map((item: any) => ({
-          id: item.id,
-          description: item.description,
-          quantity: Number(item.quantity),
-          unitPrice: Number(item.unitPrice),
-          taxRate: Number(item.taxRate || 0),
-          taxAmount: Number(item.taxAmount || 0),
-          totalAmount: Number(item.amount),
-          totalExclTax: Number(item.amount) - Number(item.taxAmount || 0),
-        })) || [],
-      notes: realInvoice.notes,
-      termsAndConditions: realInvoice.termsAndConditions,
-      paymentInstructions: realInvoice.paymentTerms,
-      metadata: {},
-    };
-  };
-
-  const displayInvoice = getDisplayInvoice();
-
   return (
     <div className="space-y-4 print:m-0 print:p-0">
       <div className="flex items-center justify-between print:hidden">
@@ -481,25 +293,6 @@ export function InvoiceDetails({
         </Button>
 
         <div className="flex items-center gap-2">
-          {isDemo && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
-                  >
-                    <Zap className="h-3 w-3" />
-                    {t("demoMode")}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("demoModeDescription")}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-
           <Button
             variant="outline"
             size="sm"
@@ -542,29 +335,29 @@ export function InvoiceDetails({
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">
-                    {displayInvoice.issuerDetails.name}
+                    {invoice.issuerDetails.name}
                   </h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {displayInvoice.issuerDetails.address}
+                    {invoice.issuerDetails.address}
                   </p>
                   <div className="text-sm mt-2">
-                    <p>{displayInvoice.issuerDetails.email}</p>
-                    {displayInvoice.issuerDetails.phone && (
-                      <p>{displayInvoice.issuerDetails.phone}</p>
+                    <p>{invoice.issuerDetails.email}</p>
+                    {invoice.issuerDetails.phone && (
+                      <p>{invoice.issuerDetails.phone}</p>
                     )}
-                    {displayInvoice.issuerDetails.taxId && (
+                    {invoice.issuerDetails.taxId && (
                       <p className="flex items-center gap-1">
                         <Building className="h-3.5 w-3.5" />
-                        {displayInvoice.issuerDetails.taxId}
+                        {invoice.issuerDetails.taxId}
                       </p>
                     )}
                   </div>
                 </div>
-                {displayInvoice.issuerDetails.logoUrl && (
+                {invoice.issuerDetails.logoUrl && (
                   <div className="hidden md:block">
                     <img
-                      src={displayInvoice.issuerDetails.logoUrl}
-                      alt={displayInvoice.issuerDetails.name}
+                      src={invoice.issuerDetails.logoUrl}
+                      alt={invoice.issuerDetails.name}
                       className="h-16 w-auto object-contain"
                     />
                   </div>
@@ -580,20 +373,20 @@ export function InvoiceDetails({
                 </h3>
                 <div className="mt-1">
                   <p className="font-medium">
-                    {displayInvoice.recipientDetails.name}
+                    {invoice.recipientDetails.name}
                   </p>
-                  {displayInvoice.recipientDetails.address && (
+                  {invoice.recipientDetails.address && (
                     <p className="text-sm text-muted-foreground whitespace-pre-line">
-                      {displayInvoice.recipientDetails.address}
+                      {invoice.recipientDetails.address}
                     </p>
                   )}
                   <p className="text-sm">
-                    {displayInvoice.recipientDetails.email}
+                    {invoice.recipientDetails.email}
                   </p>
-                  {displayInvoice.recipientDetails.taxId && (
+                  {invoice.recipientDetails.taxId && (
                     <p className="text-sm flex items-center gap-1">
                       <Building className="h-3.5 w-3.5" />
-                      {displayInvoice.recipientDetails.taxId}
+                      {invoice.recipientDetails.taxId}
                     </p>
                   )}
                 </div>
@@ -606,7 +399,7 @@ export function InvoiceDetails({
                   </p>
                   <div className="flex items-center gap-1">
                     <p className="font-medium">
-                      {displayInvoice.invoiceNumber}
+                      {invoice.invoiceNumber}
                     </p>
                     <TooltipProvider>
                       <Tooltip>
@@ -639,9 +432,9 @@ export function InvoiceDetails({
                   <p className="font-medium flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
                     {format(
-                      new Date(displayInvoice.createdAt),
+                      new Date(invoice.createdAt),
                       "dd MMMM yyyy",
-                      { locale: fr },
+                      { locale },
                     )}
                   </p>
                 </div>
@@ -651,47 +444,47 @@ export function InvoiceDetails({
                     {t("dueDate")}
                   </p>
                   <p className="font-medium">
-                    {displayInvoice.dueDate
+                    {invoice.dueDate
                       ? format(
-                          new Date(displayInvoice.dueDate),
+                          new Date(invoice.dueDate),
                           "dd MMMM yyyy",
-                          { locale: fr },
+                          { locale },
                         )
                       : "-"}
                   </p>
                 </div>
 
-                {displayInvoice.status === "PAID" && displayInvoice.paidAt && (
+                {invoice.status === "PAID" && invoice.paidAt && (
                   <div>
                     <p className="text-sm text-muted-foreground">
                       {t("paidOn")}
                     </p>
                     <p className="font-medium text-green-600">
-                      {format(new Date(displayInvoice.paidAt), "dd MMMM yyyy", {
+                      {format(new Date(invoice.paidAt), "dd MMMM yyyy", {
                         locale: fr,
                       })}
                     </p>
                   </div>
                 )}
 
-                {displayInvoice.paymentMethod && (
+                {invoice.paymentMethod && (
                   <div>
                     <p className="text-sm text-muted-foreground">
                       {t("paymentMethod")}
                     </p>
                     <p className="font-medium flex items-center gap-1">
                       <CreditCard className="h-3.5 w-3.5" />
-                      {displayInvoice.paymentMethod}
+                      {invoice.paymentMethod}
                     </p>
                   </div>
                 )}
 
-                {displayInvoice.type && (
+                {invoice.type && (
                   <div>
                     <p className="text-sm text-muted-foreground">
                       {t("invoiceType")}
                     </p>
-                    <p className="font-medium">{displayInvoice.type}</p>
+                    <p className="font-medium">{invoice.type}</p>
                   </div>
                 )}
               </div>
@@ -720,7 +513,7 @@ export function InvoiceDetails({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {displayInvoice.items.map((item) => (
+                  {invoice.items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">
                         {item.description}
@@ -731,13 +524,13 @@ export function InvoiceDetails({
                       <TableCell className="text-right">
                         {formatCurrency(
                           item.unitPrice,
-                          displayInvoice.currency,
+                          invoice.currency,
                         )}
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {formatCurrency(
-                          item.totalAmount,
-                          displayInvoice.currency,
+                          item.total,
+                          invoice.currency,
                         )}
                       </TableCell>
                     </TableRow>
@@ -748,8 +541,8 @@ export function InvoiceDetails({
                     <TableCell colSpan={3}>{t("total")}</TableCell>
                     <TableCell className="text-right font-medium">
                       {formatCurrency(
-                        displayInvoice.amount,
-                        displayInvoice.currency,
+                        invoice.amount,
+                        invoice.currency,
                       )}
                     </TableCell>
                   </TableRow>
@@ -760,28 +553,28 @@ export function InvoiceDetails({
 
           {/* Informations complémentaires */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {displayInvoice.notes && (
+            {invoice.notes && (
               <div>
                 <h3 className="text-sm font-medium mb-2">{t("notes")}</h3>
                 <p className="text-sm text-muted-foreground whitespace-pre-line">
-                  {displayInvoice.notes}
+                  {invoice.notes}
                 </p>
               </div>
             )}
 
-            {displayInvoice.paymentInstructions && (
+            {invoice.paymentInstructions && (
               <div>
                 <h3 className="text-sm font-medium mb-2">
                   {t("paymentInstructions")}
                 </h3>
                 <p className="text-sm text-muted-foreground whitespace-pre-line">
-                  {displayInvoice.paymentInstructions}
+                  {invoice.paymentInstructions}
                 </p>
               </div>
             )}
           </div>
 
-          {displayInvoice.termsAndConditions && (
+          {invoice.termsAndConditions && (
             <div>
               <Separator />
               <div className="mt-4">
@@ -789,7 +582,7 @@ export function InvoiceDetails({
                   {t("termsAndConditions")}
                 </h3>
                 <p className="text-sm text-muted-foreground whitespace-pre-line">
-                  {displayInvoice.termsAndConditions}
+                  {invoice.termsAndConditions}
                 </p>
               </div>
             </div>
@@ -801,7 +594,7 @@ export function InvoiceDetails({
             <Button
               variant="default"
               onClick={handleDownload}
-              disabled={displayInvoice.status === "DRAFT"}
+              disabled={invoice.status === "DRAFT"}
             >
               <Download className="h-4 w-4 mr-2" />
               {t("downloadPdf")}
@@ -812,15 +605,15 @@ export function InvoiceDetails({
             </Button>
           </div>
 
-          {(displayInvoice.status === "ISSUED" ||
-            displayInvoice.status === "PENDING") && (
+          {(invoice.status === "ISSUED" ||
+            invoice.status === "PENDING") && (
             <Badge
               variant="outline"
               className="bg-yellow-50 text-yellow-700 border-yellow-200"
             >
               {t("paymentDue", {
                 date: format(
-                  new Date(displayInvoice.dueDate || new Date()),
+                  new Date(invoice.dueDate || new Date()),
                   "dd MMMM yyyy",
                   {
                     locale: fr,

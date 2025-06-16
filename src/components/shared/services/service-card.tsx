@@ -7,8 +7,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StarIcon, MapPinIcon, ClockIcon, EuroIcon } from "lucide-react";
@@ -69,7 +68,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
       <div className="flex items-center space-x-1">
         <div className="flex">{stars}</div>
         <span className="text-sm text-gray-600">
-          ({provider.rating.toFixed(1)})
+          ({ provider.rating.toFixed(1) })
         </span>
       </div>
     );

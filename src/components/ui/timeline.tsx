@@ -93,8 +93,7 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
         month: "short",
         day: "numeric",
         hour: "2-digit",
-        minute: "2-digit",
-      });
+        minute: "2-digit"});
     };
 
     return (

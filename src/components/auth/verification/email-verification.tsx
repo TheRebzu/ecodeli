@@ -9,13 +9,12 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-export function EmailVerification({ locale }: { locale: string }) {
+export function EmailVerification({ locale }: { locale }) {
   const t = useTranslations("Auth.EmailVerification");
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -29,19 +28,16 @@ export function EmailVerification({ locale }: { locale: string }) {
     onSuccess: () => {
       setStatus("success");
       // Redirect after short delay
-      setTimeout(() => {
-        router.push(`/${locale}/login`);
-      }, 3000);
+      // Appel API réel via tRPC
     },
     onError: (error) => {
       setStatus("error");
       setErrorMessage(error.message);
-    },
-  });
+    }});
 
   useEffect(() => {
     if (token) {
-      verifyEmail.mutate({ token });
+      verifyEmail.mutate({ token  });
     } else {
       setStatus("error");
       setErrorMessage("Token de vérification manquant");

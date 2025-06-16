@@ -7,8 +7,7 @@ interface VerificationEmailProps {
 
 export const VerificationEmail = ({
   username,
-  verificationUrl,
-}: VerificationEmailProps) => {
+  verificationUrl}: VerificationEmailProps) => {
   return (
     <div>
       <h1>Vérifiez votre adresse email</h1>

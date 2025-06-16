@@ -1,23 +1,18 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "@/components/providers/providers";
-import "@/app/globals.css";
 
-const inter = Inter({
-  variable: "--font-sans",
+const inter = Inter({ variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
-  fallback: ["system-ui", "arial"],
-});
+  fallback: ["system-ui", "arial"] });
 
 export const metadata: Metadata = {
   title: "EcoDeli - Service de livraison collaboratif",
-  description: "Plateforme de livraison collaborative écologique et économique",
-};
+  description: "Plateforme de livraison collaborative écologique et économique"};
 
 export default function RootLayout({
-  children,
-}: Readonly<{
+  children}: Readonly<{
   children: React.ReactNode;
 }>) {
   return (

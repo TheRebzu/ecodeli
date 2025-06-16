@@ -11,8 +11,7 @@ const navigationLabels = {
   skip: "Passer le tutoriel",
   previous: "Précédent",
   next: "Suivant",
-  finish: "Terminer",
-};
+  finish: "Terminer"};
 
 // Définition des étapes du tutoriel administrateur
 const ADMIN_TUTORIAL_STEPS = [
@@ -23,8 +22,7 @@ const ADMIN_TUTORIAL_STEPS = [
     // Fallbacks de traduction pour éviter les erreurs
     title: "Bienvenue sur le panneau administrateur",
     description: "Découvrez comment gérer efficacement la plateforme EcoDeli.",
-    image: "/images/onboarding/admin/welcome.png",
-  },
+    image: "/images/onboarding/admin/welcome.png"},
   {
     id: "user-management",
     titleKey: "steps.admin.users.title",
@@ -32,8 +30,7 @@ const ADMIN_TUTORIAL_STEPS = [
     title: "Gestion des utilisateurs",
     description:
       "Gérez les utilisateurs, leurs rôles et leurs permissions sur la plateforme.",
-    image: "/images/onboarding/admin/users.png",
-  },
+    image: "/images/onboarding/admin/users.png"},
   {
     id: "verification",
     titleKey: "steps.admin.verification.title",
@@ -41,8 +38,7 @@ const ADMIN_TUTORIAL_STEPS = [
     title: "Vérification des documents",
     description:
       "Validez les documents soumis par les livreurs, commerçants et prestataires.",
-    image: "/images/onboarding/admin/verification.png",
-  },
+    image: "/images/onboarding/admin/verification.png"},
   {
     id: "dashboard",
     titleKey: "steps.admin.dashboard.title",
@@ -50,8 +46,7 @@ const ADMIN_TUTORIAL_STEPS = [
     title: "Tableau de bord administratif",
     description:
       "Suivez les statistiques importantes et les indicateurs clés de performance.",
-    image: "/images/onboarding/admin/dashboard.png",
-  },
+    image: "/images/onboarding/admin/dashboard.png"},
   {
     id: "settings",
     titleKey: "steps.admin.settings.title",
@@ -59,9 +54,7 @@ const ADMIN_TUTORIAL_STEPS = [
     title: "Paramètres de la plateforme",
     description:
       "Configurez les paramètres globaux et les options de la plateforme.",
-    image: "/images/onboarding/admin/settings.png",
-  },
-];
+    image: "/images/onboarding/admin/settings.png"}];
 
 type AdminTutorialProps = {
   options?: {
@@ -78,8 +71,7 @@ export function AdminTutorial({ options }: AdminTutorialProps) {
     completeOnboarding,
     skipOnboarding,
     isCompleting = false,
-    setStepsConfiguration,
-  } = useOnboarding();
+    setStepsConfiguration} = useOnboarding();
 
   // Initialiser le tutoriel avec le bon nombre d'étapes
   useEffect(() => {

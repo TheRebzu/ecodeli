@@ -6,16 +6,14 @@ import { db } from "@/server/db";
 import {
   PaymentStatus,
   InvoiceStatus,
-  SubscriptionStatus,
-} from "@prisma/client";
+  SubscriptionStatus} from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { sendNotification } from "@/lib/services/notification.service";
 import { paymentService } from "@/server/services/shared/payment.service";
 
 // Initialiser Stripe avec la clé secrète
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil",
-});
+  apiVersion: "2025-04-30.basil"});
 
 // Secret pour vérifier la signature du webhook
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -56,13 +54,10 @@ export async function POST(req: NextRequest) {
           changes: {
             eventType: event.type,
             eventId: event.id,
-            webhookProcessed: new Date().toISOString(),
-          },
-        },
-      });
+            webhookProcessed: new Date().toISOString()}}});
 
       await handleStripeEvent(event);
-      return NextResponse.json({ received: true });
+      return NextResponse.json({ received  });
     } catch (error) {
       console.error("Erreur lors du traitement de l'événement:", error);
       return NextResponse.json(
@@ -165,8 +160,7 @@ async function handlePaymentIntentSucceeded(
 
   // Récupérer le paiement existant ou en créer un nouveau
   const existingPayment = await db.payment.findFirst({
-    where: { paymentIntentId: id },
-  });
+    where: { paymentIntentId }});
 
   if (existingPayment) {
     // Mettre à jour le paiement existant
@@ -176,9 +170,7 @@ async function handlePaymentIntentSucceeded(
         status: PaymentStatus.COMPLETED,
         stripePaymentId: id,
         updatedAt: new Date(),
-        receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null,
-      },
-    });
+        receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null}});
 
     // Si c'est lié à une livraison, mettre à jour le statut
     if (deliveryId) {
@@ -192,23 +184,18 @@ async function handlePaymentIntentSucceeded(
         title: "Paiement de livraison accepté",
         message: `Votre paiement de ${amount / 100}${currency.toUpperCase()} pour la livraison a été accepté.`,
         type: "PAYMENT_CONFIRMED",
-        link: `/client/deliveries/${deliveryId}`,
-      });
+        link: `/client/deliveries/${deliveryId}`});
     }
 
     // Si c'est lié à un service, mettre à jour le statut
     if (serviceId) {
       await db.service.update({
-        where: { id: serviceId },
+        where: { id },
         data: {
           bookings: {
             updateMany: {
               where: { serviceId, paymentId: existingPayment.id },
-              data: { status: "CONFIRMED" },
-            },
-          },
-        },
-      });
+              data: { status: "CONFIRMED" }}}}});
 
       // Notifier le client que le service a été confirmé
       await sendNotification({
@@ -216,8 +203,7 @@ async function handlePaymentIntentSucceeded(
         title: "Réservation de service confirmée",
         message: `Votre paiement de ${amount / 100}${currency.toUpperCase()} a été accepté. Votre réservation est confirmée.`,
         type: "PAYMENT_CONFIRMED",
-        link: `/client/services/bookings`,
-      });
+        link: `/client/services/bookings`});
     }
 
     // Si c'est lié à un abonnement
@@ -227,8 +213,7 @@ async function handlePaymentIntentSucceeded(
         title: "Abonnement renouvelé",
         message: `Votre abonnement a été renouvelé avec succès pour un montant de ${amount / 100}${currency.toUpperCase()}.`,
         type: "PAYMENT_CONFIRMED",
-        link: `/client/subscription`,
-      });
+        link: `/client/subscription`});
     }
   } else {
     // Créer un nouveau paiement
@@ -243,9 +228,7 @@ async function handlePaymentIntentSucceeded(
         ...(deliveryId ? { deliveryId } : {}),
         ...(serviceId ? { serviceId } : {}),
         ...(subscriptionId ? { subscriptionId } : {}),
-        metadata: metadata || {},
-      },
-    });
+        metadata: metadata || {}}});
 
     // Notifier l'utilisateur du nouveau paiement
     await sendNotification({
@@ -253,8 +236,7 @@ async function handlePaymentIntentSucceeded(
       title: "Paiement effectué",
       message: `Votre paiement de ${amount / 100}${currency.toUpperCase()} a été traité avec succès.`,
       type: "PAYMENT_CONFIRMED",
-      link: `/payments/${newPayment.id}`,
-    });
+      link: `/payments/${newPayment.id}`});
   }
 }
 
@@ -266,8 +248,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 
   // Mettre à jour le paiement en échec
   const existingPayment = await db.payment.findFirst({
-    where: { paymentIntentId: id },
-  });
+    where: { paymentIntentId }});
 
   if (existingPayment) {
     await db.payment.update({
@@ -276,9 +257,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
         status: PaymentStatus.FAILED,
         updatedAt: new Date(),
         errorMessage:
-          paymentIntent.last_payment_error?.message || "Paiement refusé",
-      },
-    });
+          paymentIntent.last_payment_error?.message || "Paiement refusé"}});
 
     // Notifier l'utilisateur de l'échec du paiement
     await sendNotification({
@@ -286,15 +265,13 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
       title: "Échec de paiement",
       message: `Le paiement de ${existingPayment.amount}${existingPayment.currency} a échoué. Veuillez vérifier votre moyen de paiement.`,
       type: "ERROR",
-      link: `/payments/${existingPayment.id}`,
-    });
+      link: `/payments/${existingPayment.id}`});
 
     // Si le paiement est lié à une livraison, notifier également
     if (existingPayment.deliveryId) {
       const delivery = await db.delivery.findUnique({
         where: { id: existingPayment.deliveryId },
-        select: { id: true },
-      });
+        select: { id }});
 
       if (delivery) {
         await sendNotification({
@@ -302,8 +279,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
           title: "Problème de paiement pour votre livraison",
           message: `Votre paiement pour la livraison a échoué. Veuillez mettre à jour votre moyen de paiement pour poursuivre.`,
           type: "DELIVERY_PROBLEM",
-          link: `/client/deliveries/${delivery.id}`,
-        });
+          link: `/client/deliveries/${delivery.id}`});
       }
     }
   }
@@ -317,8 +293,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 
   // Récupérer l'utilisateur via le customer Stripe
   const user = await db.user.findFirst({
-    where: { stripeCustomerId: customer as string },
-  });
+    where: { stripeCustomerId: customer as string }});
 
   if (!user) {
     console.error(`Utilisateur non trouvé pour customer Stripe: ${customer}`);
@@ -337,14 +312,12 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       stripeSubscriptionId: id,
       planType,
       status: SubscriptionStatus.ACTIVE,
-      startDate: new Date(subscription.current_period_start * 1000),
-      endDate: new Date(subscription.current_period_end * 1000),
+      startDate: new Date(subscription.current_periodstart * 1000),
+      endDate: new Date(subscription.current_periodend * 1000),
       autoRenew: subscription.cancel_at_period_end === false,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      stripePriceId: subscription.items.data[0]?.price.id,
-    },
-  });
+      currentPeriodStart: new Date(subscription.current_periodstart * 1000),
+      currentPeriodEnd: new Date(subscription.current_periodend * 1000),
+      stripePriceId: subscription.items.data[0]?.price.id}});
 
   // Notifier l'utilisateur de la création de l'abonnement
   await sendNotification({
@@ -352,8 +325,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     title: "Abonnement créé",
     message: `Votre abonnement ${planType} a été créé avec succès.`,
     type: "PAYMENT_CONFIRMED",
-    link: `/client/subscription`,
-  });
+    link: `/client/subscription`});
 }
 
 /**
@@ -364,8 +336,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
   // Récupérer l'abonnement dans notre base de données
   const existingSubscription = await db.subscription.findFirst({
-    where: { stripeSubscriptionId: id },
-  });
+    where: { stripeSubscriptionId }});
 
   if (!existingSubscription) {
     console.error(`Abonnement non trouvé: ${id}`);
@@ -385,15 +356,13 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       status,
       planType,
       autoRenew: subscription.cancel_at_period_end === false,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodStart: new Date(subscription.current_periodstart * 1000),
+      currentPeriodEnd: new Date(subscription.current_periodend * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       cancelledAt: subscription.canceled_at
-        ? new Date(subscription.canceled_at * 1000)
+        ? new Date(subscription.canceledat * 1000)
         : null,
-      stripePriceId: subscription.items.data[0]?.price.id,
-    },
-  });
+      stripePriceId: subscription.items.data[0]?.price.id}});
 }
 
 /**
@@ -404,8 +373,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   // Récupérer l'abonnement dans notre base de données
   const existingSubscription = await db.subscription.findFirst({
-    where: { stripeSubscriptionId: id },
-  });
+    where: { stripeSubscriptionId }});
 
   if (!existingSubscription) {
     console.error(`Abonnement non trouvé: ${id}`);
@@ -419,9 +387,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       status: SubscriptionStatus.ENDED,
       endDate: new Date(),
       cancelledAt: new Date(),
-      autoRenew: false,
-    },
-  });
+      autoRenew: false}});
 
   // Créer un abonnement gratuit pour l'utilisateur
   await db.subscription.create({
@@ -430,9 +396,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       planType: "FREE",
       status: SubscriptionStatus.ACTIVE,
       startDate: new Date(),
-      autoRenew: true,
-    },
-  });
+      autoRenew: true}});
 }
 
 /**
@@ -445,8 +409,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
   // Récupérer l'utilisateur via le customer Stripe
   const user = await db.user.findFirst({
-    where: { stripeCustomerId: customer as string },
-  });
+    where: { stripeCustomerId: customer as string }});
 
   if (!user) {
     console.error(`Utilisateur non trouvé pour customer Stripe: ${customer}`);
@@ -455,8 +418,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
   // Récupérer l'abonnement dans notre base de données
   const existingSubscription = await db.subscription.findFirst({
-    where: { stripeSubscriptionId: subscription as string },
-  });
+    where: { stripeSubscriptionId: subscription as string }});
 
   if (!existingSubscription) {
     console.error(`Abonnement non trouvé: ${subscription}`);
@@ -473,14 +435,12 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       currency: invoice.currency.toUpperCase(),
       status: InvoiceStatus.PAID,
       dueDate: new Date(
-        invoice.due_date ? invoice.due_date * 1000 : Date.now(),
+        invoice.duedate ? invoice.due_date * 1000 : Date.now(),
       ),
       issuedDate: new Date(invoice.created * 1000),
       paidDate: new Date(),
       stripeInvoiceId: id,
-      pdfUrl: invoice.invoice_pdf,
-    },
-  });
+      pdfUrl: invoice.invoice_pdf}});
 
   // Ajouter les éléments de la facture
   for (const item of invoice.lines.data) {
@@ -501,9 +461,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
         unitPrice: preTaxAmount,
         taxRate,
         taxAmount,
-        totalAmount: new Decimal(amount),
-      },
-    });
+        totalAmount: new Decimal(amount)}});
   }
 }
 
@@ -517,8 +475,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
   // Récupérer l'utilisateur via le customer Stripe
   const user = await db.user.findFirst({
-    where: { stripeCustomerId: customer as string },
-  });
+    where: { stripeCustomerId: customer as string }});
 
   if (!user) {
     console.error(`Utilisateur non trouvé pour customer Stripe: ${customer}`);
@@ -527,8 +484,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
   // Récupérer l'abonnement dans notre base de données
   const existingSubscription = await db.subscription.findFirst({
-    where: { stripeSubscriptionId: subscription as string },
-  });
+    where: { stripeSubscriptionId: subscription as string }});
 
   if (!existingSubscription) {
     console.error(`Abonnement non trouvé: ${subscription}`);
@@ -539,9 +495,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   await db.subscription.update({
     where: { id: existingSubscription.id },
     data: {
-      status: SubscriptionStatus.PAST_DUE,
-    },
-  });
+      status: SubscriptionStatus.PAST_DUE}});
 
   // Notifier l'utilisateur
   await db.notification.create({
@@ -550,9 +504,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
       title: "Paiement d'abonnement échoué",
       content: `Le paiement de votre abonnement ${existingSubscription.planType} a échoué. Veuillez mettre à jour votre méthode de paiement pour éviter l'interruption de service.`,
       type: "SUBSCRIPTION_PAYMENT_FAILED",
-      isRead: false,
-    },
-  });
+      isRead: false}});
 }
 
 /**
@@ -561,8 +513,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 async function handleConnectAccountUpdated(account: Stripe.Account) {
   // Récupérer le wallet associé au compte Stripe Connect
   const wallet = await db.wallet.findFirst({
-    where: { stripeAccountId: account.id },
-  });
+    where: { stripeAccountId: account.id }});
 
   if (!wallet) {
     console.error(`Wallet non trouvé pour le compte Stripe: ${account.id}`);
@@ -575,13 +526,11 @@ async function handleConnectAccountUpdated(account: Stripe.Account) {
     data: {
       accountVerified:
         account.details_submitted && !account.requirements?.disabled_reason,
-      accountType: account.type,
-    },
-  });
+      accountType: account.type}});
 
   // Si le compte est maintenant vérifié, notifier l'utilisateur
   if (
-    account.details_submitted &&
+    account.detailssubmitted &&
     !account.requirements?.disabled_reason &&
     !wallet.accountVerified
   ) {
@@ -592,9 +541,7 @@ async function handleConnectAccountUpdated(account: Stripe.Account) {
         content:
           "Votre compte de paiement a été vérifié avec succès. Vous pouvez maintenant recevoir des paiements.",
         type: "WALLET_VERIFIED",
-        isRead: false,
-      },
-    });
+        isRead: false}});
   }
 }
 
@@ -610,17 +557,14 @@ async function handlePayoutCreated(payout: Stripe.Payout) {
 
   if (withdrawalRequestId) {
     await db.withdrawalRequest.update({
-      where: { id: withdrawalRequestId },
+      where: { id },
       data: {
         status: "PROCESSING",
-        stripePayoutId: id,
-      },
-    });
+        stripePayoutId: id}});
   } else {
     // Essayer de trouver le wallet par le compte destination
     const wallet = await db.wallet.findFirst({
-      where: { stripeAccountId: destination as string },
-    });
+      where: { stripeAccountId: destination as string }});
 
     if (wallet) {
       // Créer une transaction dans le wallet
@@ -632,9 +576,7 @@ async function handlePayoutCreated(payout: Stripe.Payout) {
           type: "WITHDRAWAL",
           status: "PENDING",
           description: "Retrait automatique via Stripe",
-          stripeTransferId: id,
-        },
-      });
+          stripeTransferId: id}});
     }
   }
 }
@@ -649,18 +591,15 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
 
   if (withdrawalRequestId) {
     await db.withdrawalRequest.update({
-      where: { id: withdrawalRequestId },
+      where: { id },
       data: {
         status: "FAILED",
-        rejectionReason: `${failure_code}: ${failure_message}`,
-      },
-    });
+        rejectionReason: `${failure_code}: ${failure_message}`}});
 
     // Récupérer la demande complète
     const request = await db.withdrawalRequest.findUnique({
-      where: { id: withdrawalRequestId },
-      include: { wallet: true },
-    });
+      where: { id },
+      include: { wallet }});
 
     if (request) {
       // Notifier l'utilisateur
@@ -670,25 +609,20 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
           title: "Échec du virement",
           content: `Votre demande de virement de ${request.amount} ${request.currency} a échoué: ${failure_message}`,
           type: "WITHDRAWAL_FAILED",
-          isRead: false,
-        },
-      });
+          isRead: false}});
     }
   } else {
     // Si nous n'avons pas de lien direct, essayer de trouver via stripePayoutId
     const withdrawalRequest = await db.withdrawalRequest.findFirst({
-      where: { stripePayoutId: id },
-      include: { wallet: true },
-    });
+      where: { stripePayoutId },
+      include: { wallet }});
 
     if (withdrawalRequest) {
       await db.withdrawalRequest.update({
         where: { id: withdrawalRequest.id },
         data: {
           status: "FAILED",
-          rejectionReason: `${failure_code}: ${failure_message}`,
-        },
-      });
+          rejectionReason: `${failure_code}: ${failure_message}`}});
 
       // Notifier l'utilisateur
       await db.notification.create({
@@ -697,9 +631,7 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
           title: "Échec du virement",
           content: `Votre demande de virement de ${withdrawalRequest.amount} ${withdrawalRequest.currency} a échoué: ${failure_message}`,
           type: "WITHDRAWAL_FAILED",
-          isRead: false,
-        },
-      });
+          isRead: false}});
     }
   }
 }
@@ -730,9 +662,9 @@ function getSubscriptionStatus(stripeStatus: string): SubscriptionStatus {
 function getPlanTypeFromStripePriceId(priceId?: string) {
   if (!priceId) return "FREE";
 
-  if (priceId === process.env.STRIPE_PRICE_STARTER) {
+  if (priceId === process.env.STRIPE_PRICESTARTER) {
     return "STARTER";
-  } else if (priceId === process.env.STRIPE_PRICE_PREMIUM) {
+  } else if (priceId === process.env.STRIPE_PRICEPREMIUM) {
     return "PREMIUM";
   }
 
@@ -754,8 +686,7 @@ async function handleDisputeCreated(dispute: any) {
   // Récupérer le paiement associé au PaymentIntent
   const payment = await db.payment.findFirst({
     where: { paymentIntentId },
-    include: { user: true },
-  });
+    include: { user }});
 
   if (!payment) {
     console.error(`Paiement non trouvé pour PaymentIntent: ${paymentIntentId}`);
@@ -773,10 +704,7 @@ async function handleDisputeCreated(dispute: any) {
         disputeReason: dispute.reason,
         disputeAmount: dispute.amount,
         disputeCreatedAt: new Date().toISOString(),
-        disputeStatus: dispute.status,
-      },
-    },
-  });
+        disputeStatus: dispute.status}}});
 
   // Notifier l'utilisateur du litige
   await sendNotification({
@@ -784,13 +712,11 @@ async function handleDisputeCreated(dispute: any) {
     title: "Paiement contesté",
     message: `Votre paiement de ${payment.amount}${payment.currency} fait l'objet d'une contestation. Notre équipe étudie le dossier.`,
     type: "WARNING",
-    link: `/payments/${payment.id}`,
-  });
+    link: `/payments/${payment.id}`});
 
   // Notifier également les administrateurs
   const admins = await db.user.findMany({
-    where: { role: "ADMIN" },
-  });
+    where: { role: "ADMIN" }});
 
   for (const admin of admins) {
     await sendNotification({
@@ -798,8 +724,7 @@ async function handleDisputeCreated(dispute: any) {
       title: "Litige de paiement",
       message: `Un paiement de ${payment.amount}${payment.currency} a été contesté. Raison: ${dispute.reason || "Non spécifiée"}`,
       type: "ADMIN_ALERT",
-      link: `/admin/payments/${payment.id}`,
-    });
+      link: `/admin/payments/${payment.id}`});
   }
 }
 
@@ -818,8 +743,7 @@ async function handleDisputeClosed(dispute: any) {
   // Récupérer le paiement associé au PaymentIntent
   const payment = await db.payment.findFirst({
     where: { paymentIntentId },
-    include: { user: true },
-  });
+    include: { user }});
 
   if (!payment) {
     console.error(`Paiement non trouvé pour PaymentIntent: ${paymentIntentId}`);
@@ -839,10 +763,7 @@ async function handleDisputeClosed(dispute: any) {
         disputeId: dispute.id,
         disputeStatus: dispute.status,
         disputeClosedAt: new Date().toISOString(),
-        disputeOutcome: dispute.status,
-      },
-    },
-  });
+        disputeOutcome: dispute.status}}});
 
   // Notifier l'utilisateur du résultat du litige
   await sendNotification({
@@ -856,8 +777,7 @@ async function handleDisputeClosed(dispute: any) {
         ? `Suite à votre contestation, le paiement de ${payment.amount}${payment.currency} a été remboursé.`
         : `La contestation concernant votre paiement de ${payment.amount}${payment.currency} a été résolue en notre faveur. Le paiement est confirmé.`,
     type: dispute.status === "lost" ? "PAYMENT_REFUNDED" : "PAYMENT_CONFIRMED",
-    link: `/payments/${payment.id}`,
-  });
+    link: `/payments/${payment.id}`});
 }
 
 /**
@@ -867,8 +787,7 @@ async function handleChargeRefunded(charge: any) {
   // Récupérer le paiement associé
   const payment = await db.payment.findFirst({
     where: { stripePaymentId: charge.payment_intent || charge.id },
-    include: { user: true },
-  });
+    include: { user }});
 
   if (!payment) {
     console.error(`Paiement non trouvé pour charge: ${charge.id}`);
@@ -883,16 +802,13 @@ async function handleChargeRefunded(charge: any) {
     where: { id: payment.id },
     data: {
       status: isFullRefund ? "REFUNDED" : "PARTIALLY_REFUNDED",
-      refundedAmount: new Decimal(charge.amount_refunded / 100),
+      refundedAmount: new Decimal(charge.amountrefunded / 100),
       metadata: {
         ...payment.metadata,
         refundId: charge.refunds?.data[0]?.id,
         refundedAt: new Date().toISOString(),
         refundReason: charge.refunds?.data[0]?.reason || "Demande client",
-        isFullRefund: isFullRefund,
-      },
-    },
-  });
+        isFullRefund: isFullRefund}}});
 
   // Notifier l'utilisateur du remboursement
   await sendNotification({
@@ -902,8 +818,7 @@ async function handleChargeRefunded(charge: any) {
       ? `Votre paiement de ${payment.amount}${payment.currency} a été intégralement remboursé.`
       : `Un remboursement partiel de ${charge.amount_refunded / 100}${charge.currency.toUpperCase()} a été effectué sur votre paiement.`,
     type: "PAYMENT_REFUNDED",
-    link: `/payments/${payment.id}`,
-  });
+    link: `/payments/${payment.id}`});
 
   // Si le paiement est lié à une livraison ou un service, envoyer une notification supplémentaire
   if (payment.deliveryId) {
@@ -912,15 +827,12 @@ async function handleChargeRefunded(charge: any) {
       title: "Livraison remboursée",
       message: `Votre livraison a été remboursée. Consultez votre compte pour plus d'informations.`,
       type: "DELIVERY_PROBLEM",
-      link: `/client/deliveries/${payment.deliveryId}`,
-    });
+      link: `/client/deliveries/${payment.deliveryId}`});
   } else if (payment.serviceId) {
-    await sendNotification({
-      userId: payment.userId,
+    await sendNotification({ userId: payment.userId,
       title: "Service remboursé",
       message: `Votre réservation de service a été remboursée. Consultez votre compte pour plus d'informations.`,
       type: "INFO",
-      link: `/client/services/bookings`,
-    });
+      link: `/client/services/bookings` });
   }
 }

@@ -3,8 +3,7 @@ import { NotificationCenter } from "@/components/shared/messaging/notification-c
 
 export const metadata: Metadata = {
   title: "Notifications | EcoDeli Livreur",
-  description: "Gérez vos notifications",
-};
+  description: "Gérez vos notifications"};
 
 interface DelivererNotificationsPageProps {
   params: Promise<{
@@ -13,8 +12,7 @@ interface DelivererNotificationsPageProps {
 }
 
 export default async function DelivererNotificationsPage({
-  params,
-}: DelivererNotificationsPageProps) {
+  params}: DelivererNotificationsPageProps) {
   return (
     <div className="container py-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Notifications</h1>

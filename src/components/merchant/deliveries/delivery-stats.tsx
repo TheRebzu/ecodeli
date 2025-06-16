@@ -10,8 +10,7 @@ import {
   Clock,
   Truck,
   CheckCircle,
-  AlertTriangle,
-} from "lucide-react";
+  AlertTriangle} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DeliveryStatsProps {
@@ -33,8 +32,7 @@ interface DeliveryStatsProps {
 export function DeliveryStats({
   stats,
   isLoading = false,
-  className,
-}: DeliveryStatsProps) {
+  className}: DeliveryStatsProps) {
   const t = useTranslations("merchant.deliveries.stats");
 
   if (isLoading) {
@@ -42,7 +40,7 @@ export function DeliveryStats({
       <div
         className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-4", className)}
       >
-        {Array.from({ length: 4 }).map((_, i) => (
+        {Array.from({ length: 4  }).map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">
@@ -173,8 +171,7 @@ function StatsCard({
   trendReversed = false,
   icon,
   iconColor,
-  iconBackground,
-}: StatsCardProps) {
+  iconBackground}: StatsCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">

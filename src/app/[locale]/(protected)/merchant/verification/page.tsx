@@ -9,24 +9,21 @@ import { VerificationStatusBanner } from "@/components/admin/verification/verifi
 import { db } from "@/server/db";
 
 export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
   const { locale } = resolvedParams;
-  const t = await getTranslations({ locale, namespace: "verification" });
+  const t = await getTranslations({ locale, namespace: "verification"  });
 
   return {
     title: t("merchant.title"),
-    description: t("merchant.description"),
-  };
+    description: t("merchant.description")};
 }
 
 export default async function MerchantVerificationPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }) {
   // Vérifier si l'utilisateur est connecté et est un merchant
   const session = await getServerSession(authOptions);
@@ -45,10 +42,7 @@ export default async function MerchantVerificationPage({
 
   // Récupérer le merchant pour cet utilisateur
   const merchant = await db.merchant.findUnique({
-    where: {
-      userId: userId,
-    },
-  });
+    where: { userId }});
 
   if (!merchant) {
     redirect(`/${locale}/dashboard`);
@@ -58,17 +52,14 @@ export default async function MerchantVerificationPage({
   const merchantVerification = await db.verification.findFirst({
     where: {
       submitterId: userId,
-      type: "MERCHANT",
-    },
+      type: "MERCHANT"},
     orderBy: {
-      createdAt: "desc",
-    },
-  });
+      createdAt: "desc"}});
 
   const verificationStatus = merchantVerification?.status || null;
 
   // Traduire les textes
-  const t = await getTranslations({ locale, namespace: "verification" });
+  const t = await getTranslations({ locale, namespace: "verification"  });
 
   return (
     <div className="container max-w-4xl py-8">

@@ -4,7 +4,7 @@ import { authOptions } from "@/server/auth/next-auth";
 import MerchantDashboard from "@/components/merchant/dashboard/merchant-dashboard";
 
 type Props = {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
 };
 
 export default async function MerchantDashboardPage({ params }: Props) {

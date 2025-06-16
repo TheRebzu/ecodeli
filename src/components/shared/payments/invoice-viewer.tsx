@@ -1,3 +1,3 @@
-export function InvoicePreview({ invoice }) {
+export function InvoicePreview({ invoice  }) {
   return <div>Aperçu de facture</div>;
 }

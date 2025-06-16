@@ -2,8 +2,7 @@ import { z } from "zod";
 import {
   UserRole,
   registerBaseFields,
-  addressFields,
-} from "@/schemas/auth/register.schema";
+  addressFields} from "@/schemas/auth/register.schema";
 
 // Types de services proposés par les prestataires
 export enum ServiceType {
@@ -12,15 +11,13 @@ export enum ServiceType {
   REPAIR = "REPAIR",
   INSTALLATION = "INSTALLATION",
   CONSULTING = "CONSULTING",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 /**
  * Schéma d'inscription pour les prestataires de services
  */
 export const providerRegisterSchema = z
-  .object({
-    ...registerBaseFields,
+  .object({ ...registerBaseFields,
     ...addressFields,
 
     // Informations professionnelles
@@ -32,8 +29,7 @@ export const providerRegisterSchema = z
     services: z.array(z.string()).min(1, "Sélectionnez au moins un service"),
     serviceType: z
       .nativeEnum(ServiceType, {
-        invalid_type_error: "Type de service invalide",
-      })
+        invalid_typeerror: "Type de service invalide" })
       .optional(),
     description: z.string().optional(),
 
@@ -43,15 +39,13 @@ export const providerRegisterSchema = z
     // Champs optionnels
     websiteUrl: z
       .string()
-      .url({ message: "URL de site web invalide" })
+      .url({ message: "URL de site web invalide"  })
       .optional(),
 
     // Le rôle est forcément PROVIDER pour ce schéma
-    role: z.literal(UserRole.PROVIDER),
-  })
+    role: z.literal(UserRole.PROVIDER)})
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas",
-    path: ["confirmPassword"],
-  });
+    path: ["confirmPassword"]});
 
 export type ProviderRegisterSchemaType = z.infer<typeof providerRegisterSchema>;

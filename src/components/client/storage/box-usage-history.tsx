@@ -6,8 +6,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   BoxUsageHistoryRecord,
-  BoxActionType,
-} from "@/types/warehouses/storage-box";
+  BoxActionType} from "@/types/warehouses/storage-box";
 import { DoorOpen, DoorClosed, Clock, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -71,9 +70,7 @@ export function BoxUsageHistory({ history }: BoxUsageHistoryProps) {
                   <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" />
                     <span>
-                      {format(new Date(record.timestamp), "PPP à HH:mm", {
-                        locale: fr,
-                      })}
+                      {format(new Date(record.timestamp), "PPP à HH:mm", { locale })}
                     </span>
                   </div>
 

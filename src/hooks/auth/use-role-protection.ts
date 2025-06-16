@@ -31,12 +31,10 @@ export function useRoleProtection(
     // Si des rôles sont spécifiés mais que l'utilisateur n'a pas le bon rôle
     if (allowedRoles.length > 0 && role && !allowedRoles.includes(role)) {
       // Afficher une notification
-      toast({
-        title: "Accès refusé",
+      toast({ title: "Accès refusé",
         description:
           "Vous n'avez pas les autorisations nécessaires pour accéder à cette page.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
 
       // Rediriger vers la page spécifiée ou le dashboard approprié
       if (redirectTo) {
@@ -56,8 +54,7 @@ export function useRoleProtection(
     router,
     pathname,
     redirectTo,
-    toast,
-  ]);
+    toast]);
 
   // Retourner les informations utiles au composant
   return {
@@ -65,8 +62,7 @@ export function useRoleProtection(
     isLoading,
     isAuthorized:
       !role || allowedRoles.length === 0 || allowedRoles.includes(role),
-    user,
-  };
+    user};
 }
 
 /**

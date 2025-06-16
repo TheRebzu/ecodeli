@@ -10,13 +10,12 @@ import { Decimal } from "@prisma/client/runtime/library";
 /**
  * Configuration du client Stripe
  */
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY est requis pour le service Stripe");
+if (!process.env.STRIPE_SECRETKEY) {
+  throw new Error("STRIPE_SECRETKEY est requis pour le service Stripe");
 }
 
-const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-05-28.basil",
-});
+const stripeClient = new Stripe(process.env.STRIPE_SECRETKEY, {
+  apiVersion: "2025-05-28.basil"});
 
 /**
  * Service Stripe pour la gestion des paiements
@@ -31,19 +30,14 @@ export const stripeService = {
     metadata: Record<string, string> = {},
   ) {
     try {
-      return await stripeClient.paymentIntents.create({
-        amount: Math.round(amount * 100), // Stripe utilise les centimes
-        currency,
-        payment_method_types: ["card"],
-        metadata,
-      });
-    } catch (_error) {
+      return await stripeClient.paymentIntents.create({ amount: Math.round(amount * 100), // Stripe utilise les centimes
+        currency, payment_method_types: ["card"],
+        metadata });
+    } catch (error) {
       console.error("Erreur lors de la création du paiement Stripe:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Impossible de créer l'intention de paiement",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -53,16 +47,14 @@ export const stripeService = {
   async retrievePaymentIntent(paymentIntentId: string) {
     try {
       return await stripeClient.paymentIntents.retrieve(paymentIntentId);
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération du paiement Stripe:",
         error,
       );
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new TRPCError({ code: "NOT_FOUND",
         message: "Paiement introuvable",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -79,10 +71,8 @@ export const stripeService = {
       const wallet = await walletService.getOrCreateWallet(userId);
 
       if (!wallet.stripeAccountId) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: "Compte Stripe Connect non configuré",
-        });
+        throw new TRPCError({ code: "PRECONDITION_FAILED",
+          message: "Compte Stripe Connect non configuré" });
       }
 
       return await stripeClient.transfers.create({
@@ -91,16 +81,12 @@ export const stripeService = {
         destination: wallet.stripeAccountId,
         metadata: {
           ...metadata,
-          userId,
-        },
-      });
-    } catch (_error) {
+          userId}});
+    } catch (error) {
       console.error("Erreur lors du retrait Stripe:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Impossible d'effectuer le retrait",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -115,7 +101,7 @@ export const stripeService = {
       type?: string;
     },
   ) {
-    const { email: _email, country = "FR", type = "express" } = accountInfo;
+    const { email: email, country = "FR", type = "express" } = accountInfo;
 
     try {
       const account = await stripeClient.accounts.create({
@@ -123,10 +109,8 @@ export const stripeService = {
         country,
         email,
         capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-      });
+          card_payments: { requested },
+          transfers: { requested }}});
 
       // Créer ou mettre à jour le wallet avec l'ID du compte Connect
       const wallet = await walletService.getOrCreateWallet(delivererId);
@@ -135,18 +119,14 @@ export const stripeService = {
         data: {
           stripeAccountId: account.id,
           accountType: type,
-          accountVerified: account.details_submitted || false,
-        },
-      });
+          accountVerified: account.details_submitted || false}});
 
       return account;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la création du compte Connect:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Impossible de créer le compte Connect",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -159,19 +139,13 @@ export const stripeService = {
     returnUrl: string,
   ) {
     try {
-      return await stripeClient.accountLinks.create({
-        account: accountId,
-        refresh_url: refreshUrl,
-        return_url: returnUrl,
-        type: "account_onboarding",
-      });
-    } catch (_error) {
+      return await stripeClient.accountLinks.create({ account: accountId, refresh_url: refreshUrl, return_url: returnUrl,
+        type: "account_onboarding" });
+    } catch (error) {
       console.error("Erreur lors de la création du lien d'onboarding:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec de la création du lien d'onboarding",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -181,13 +155,11 @@ export const stripeService = {
   async retrieveConnectAccount(accountId: string) {
     try {
       return await stripeClient.accounts.retrieve(accountId);
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la récupération du compte Connect:", error);
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new TRPCError({ code: "NOT_FOUND",
         message: "Compte Connect non trouvé",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -200,17 +172,14 @@ export const stripeService = {
     metadata: Record<string, string> = {},
   ) {
     try {
-      const transfer = await stripeClient.transfers.create({
-        amount: Math.round(amount * 100), // Convertir en centimes
+      const transfer = await stripeClient.transfers.create({ amount: Math.round(amount * 100), // Convertir en centimes
         currency: "eur",
         destination: accountId,
-        metadata,
-      });
+        metadata });
 
       // Mettre à jour le wallet correspondant
       const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId: accountId },
-      });
+        where: { stripeAccountId }});
 
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
@@ -220,19 +189,15 @@ export const stripeService = {
           reference: transfer.id,
           metadata: {
             ...metadata,
-            stripeTransferId: transfer.id,
-          },
-        });
+            stripeTransferId: transfer.id}});
       }
 
       return transfer;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors du transfert Stripe Connect:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec du transfert",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -249,17 +214,13 @@ export const stripeService = {
         {
           amount: Math.round(amount * 100),
           currency: "eur",
-          method,
-        },
-        {
-          stripeAccount: accountId,
-        },
+          method},
+        { stripeAccount },
       );
 
       // Mettre à jour le wallet correspondant
       const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId: accountId },
-      });
+        where: { stripeAccountId }});
 
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
@@ -269,19 +230,15 @@ export const stripeService = {
           reference: payout.id,
           metadata: {
             stripePayoutId: payout.id,
-            method,
-          },
-        });
+            method}});
       }
 
       return payout;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors du payout Stripe Connect:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec du paiement",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -294,18 +251,14 @@ export const stripeService = {
     metadata: Record<string, string> = {},
   ) {
     try {
-      return await stripeClient.customers.create({
-        email,
+      return await stripeClient.customers.create({ email,
         name,
-        metadata,
-      });
-    } catch (_error) {
+        metadata });
+    } catch (error) {
       console.error("Erreur lors de la création du customer:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec de la création du customer",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -315,14 +268,13 @@ export const stripeService = {
   async getOrCreateCustomer(userId: string, email: string, name?: string) {
     // Vérifier si l'utilisateur a déjà un customer ID
     const user = await db.user.findUnique({
-      where: { id: userId },
-    });
+      where: { id }});
 
     if (user?.stripeCustomerId) {
       // Récupérer le customer existant
       try {
         return await stripeClient.customers.retrieve(user.stripeCustomerId);
-      } catch (_error) {
+      } catch (error) {
         console.warn(
           "Customer Stripe non trouvé, création d'un nouveau:",
           error,
@@ -336,9 +288,8 @@ export const stripeService = {
 
     // Mettre à jour l'utilisateur avec le customer ID
     await db.user.update({
-      where: { id: userId },
-      data: { stripeCustomerId: customer.id },
-    });
+      where: { id },
+      data: { stripeCustomerId: customer.id }});
 
     return customer;
   },
@@ -351,18 +302,13 @@ export const stripeService = {
     metadata: Record<string, string> = {},
   ) {
     try {
-      return await stripeClient.setupIntents.create({
-        customer: customerId,
-        payment_method_types: ["card"],
-        metadata,
-      });
-    } catch (_error) {
+      return await stripeClient.setupIntents.create({ customer: customerId, payment_method_types: ["card"],
+        metadata });
+    } catch (error) {
       console.error("Erreur lors de la création du Setup Intent:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec de la création du Setup Intent",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -383,10 +329,9 @@ export const stripeService = {
     try {
       const subscriptionData: any = {
         customer: customerId,
-        items: [{ price: priceId }],
+        items: [{ price }],
         metadata,
-        expand: ["latest_invoice.payment_intent"],
-      };
+        expand: ["latest_invoice.payment_intent"]};
 
       if (trialPeriodDays) {
         subscriptionData.trial_period_days = trialPeriodDays;
@@ -397,16 +342,14 @@ export const stripeService = {
       }
 
       return await stripeClient.subscriptions.create(subscriptionData);
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la création de l'abonnement récurrent:",
         error,
       );
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec de la création de l'abonnement",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -441,22 +384,18 @@ export const stripeService = {
           {
             id: subscription.items.data[0]?.id,
             price: updates.priceId,
-            quantity: updates.quantity || 1,
-          },
-        ];
+            quantity: updates.quantity || 1}];
       }
 
       return await stripeClient.subscriptions.update(
         subscriptionId,
         updateData,
       );
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la mise à jour de l'abonnement:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec de la mise à jour de l'abonnement",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -472,16 +411,13 @@ export const stripeService = {
         return await stripeClient.subscriptions.cancel(subscriptionId);
       } else {
         return await stripeClient.subscriptions.update(subscriptionId, {
-          cancel_at_period_end: true,
-        });
+          cancel_at_periodend: true});
       }
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de l'annulation de l'abonnement:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Échec de l'annulation de l'abonnement",
-        cause: error,
-      });
+        cause: error });
     }
   },
 
@@ -502,30 +438,25 @@ export const stripeService = {
         number: "4242424242424242",
         expMonth: 12,
         expYear: 2030,
-        cvc: "123",
-      },
+        cvc: "123"},
       {
         type: "Mastercard",
         number: "5555555555554444",
         expMonth: 12,
         expYear: 2030,
-        cvc: "123",
-      },
+        cvc: "123"},
       {
         type: "Découverte",
         number: "6011111111111117",
         expMonth: 12,
         expYear: 2030,
-        cvc: "123",
-      },
+        cvc: "123"},
       {
         type: "Échec",
         number: "4000000000000002",
         expMonth: 12,
         expYear: 2030,
-        cvc: "123",
-      },
-    ];
+        cvc: "123"}];
   },
 
   /**
@@ -534,22 +465,21 @@ export const stripeService = {
   async processConnectWebhook(event: any) {
     switch (event.type) {
       case "account.updated":
-        return await this._handleAccountUpdated(event.data.object);
+        return await this.handleAccountUpdated(event.data.object);
       case "payout.created":
-        return await this._handlePayoutCreated(event.data.object);
+        return await this.handlePayoutCreated(event.data.object);
       case "payout.failed":
-        return await this._handlePayoutFailed(event.data.object);
+        return await this.handlePayoutFailed(event.data.object);
       case "transfer.created":
-        return await this._handleTransferCreated(event.data.object);
+        return await this.handleTransferCreated(event.data.object);
       default:
         console.log(`Événement Connect non géré: ${event.type}`);
     }
   },
 
-  async _handleAccountUpdated(account: any) {
+  async handleAccountUpdated(account: any) {
     const wallet = await db.wallet.findFirst({
-      where: { stripeAccountId: account.id },
-    });
+      where: { stripeAccountId: account.id }});
 
     if (wallet) {
       await db.wallet.update({
@@ -557,21 +487,18 @@ export const stripeService = {
         data: {
           accountVerified:
             account.details_submitted && !account.requirements?.disabled_reason,
-          accountType: account.type,
-        },
-      });
+          accountType: account.type}});
     }
   },
 
-  async _handlePayoutCreated(payout: any) {
+  async handlePayoutCreated(payout: any) {
     // Géré par le webhook principal
   },
 
-  async _handlePayoutFailed(payout: any) {
+  async handlePayoutFailed(payout: any) {
     // Géré par le webhook principal
   },
 
-  async _handleTransferCreated(transfer: any) {
+  async handleTransferCreated(transfer: any) {
     // Géré automatiquement par createTransfer
-  },
-};
+  }};

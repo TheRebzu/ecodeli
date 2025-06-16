@@ -33,8 +33,7 @@ interface AppointmentCalendarProps {
 export function AppointmentCalendar({
   selectedDate,
   onDateSelect,
-  appointments,
-}: AppointmentCalendarProps) {
+  appointments}: AppointmentCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(selectedDate);
 
   const startDate = startOfWeek(currentMonth, { weekStartsOn: 1 });
@@ -47,12 +46,10 @@ export function AppointmentCalendar({
       isSameDay(apt.scheduledDate, date),
     );
 
-    days.push({
-      date,
+    days.push({ date,
       isCurrentMonth: date.getMonth() === currentMonth.getMonth(),
       isToday: isToday(date),
-      appointments: dayAppointments,
-    });
+      appointments: dayAppointments });
   }
 
   return (
@@ -60,7 +57,7 @@ export function AppointmentCalendar({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">
-            {format(currentMonth, "MMMM yyyy", { locale: fr })}
+            {format(currentMonth, "MMMM yyyy", { locale })}
           </h3>
           <div className="flex gap-1">
             <Button

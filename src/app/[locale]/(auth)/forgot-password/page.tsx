@@ -3,8 +3,7 @@ import { ForgotPasswordForm } from "@/components/auth/login/forgot-password-form
 
 export const metadata: Metadata = {
   title: "Mot de passe oublié | EcoDeli",
-  description: "Réinitialisez votre mot de passe EcoDeli",
-};
+  description: "Réinitialisez votre mot de passe EcoDeli"};
 
 export default function ForgotPasswordPage() {
   return (

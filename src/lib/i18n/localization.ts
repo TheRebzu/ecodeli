@@ -12,8 +12,7 @@ export const i18n = {
   // Ajouter un paramètre pour éviter les erreurs de localisation
   localeDetection: true,
   // Spécifier que les locales doivent être préfixées dans les URL
-  localePrefix: "always",
-};
+  localePrefix: "always"};
 
 /**
  * Normalise une locale pour s'assurer qu'elle est supportée
@@ -36,7 +35,7 @@ export function normalizeLocale(locale: string): string {
   return defaultLocale;
 }
 
-export default getRequestConfig(async ({ locale }) => {
+export default getRequestConfig(async ({ locale  }) => {
   // Vérifier si la locale est supportée
   if (!locales.includes(locale as string)) {
     console.error(`Locale non supportée: ${locale}`);
@@ -56,32 +55,23 @@ export default getRequestConfig(async ({ locale }) => {
           short: {
             day: "numeric",
             month: "short",
-            year: "numeric",
-          },
+            year: "numeric"},
           medium: {
             day: "numeric",
             month: "long",
-            year: "numeric",
-          },
+            year: "numeric"},
           long: {
             day: "numeric",
             month: "long",
             year: "numeric",
             hour: "numeric",
-            minute: "numeric",
-          },
-        },
+            minute: "numeric"}},
         number: {
           currency: {
             style: "currency",
-            currency: "EUR",
-          },
+            currency: "EUR"},
           percent: {
-            style: "percent",
-          },
-        },
-      },
-    };
+            style: "percent"}}}};
   } catch (error) {
     console.warn(
       `Impossible de charger les messages pour la locale: ${locale}`,
@@ -91,8 +81,7 @@ export default getRequestConfig(async ({ locale }) => {
     return {
       locale: locale as string,
       messages: {},
-      timeZone: "Europe/Paris",
-    };
+      timeZone: "Europe/Paris"};
   }
 });
 
@@ -110,8 +99,7 @@ export async function getMessages(locale: string = defaultLocale) {
     const messages = (await import(`../messages/${locale}.json`)).default;
     return {
       locale: locale as string,
-      messages,
-    };
+      messages};
   } catch (error) {
     console.error(`Failed to load messages for locale ${locale}`, error);
     // Fallback sur la locale par défaut si la locale demandée échoue
@@ -119,8 +107,7 @@ export async function getMessages(locale: string = defaultLocale) {
       .default;
     return {
       locale: defaultLocale,
-      messages: defaultMessages,
-    };
+      messages: defaultMessages};
   }
 }
 /**
@@ -136,12 +123,7 @@ type TranslationFunction = (key: string, params?: TranslationParams) => string;
  * Renvoie une fonction qui retourne simplement la clé passée en paramètre
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function useTranslations(_namespace: string): TranslationFunction {
-  // Le paramètre namespace n'est pas utilisé dans cette implémentation mock
-  // mais il est conservé pour la compatibilité d'interface avec next-intl
-  return (key: string) => {
-    // Extraire le dernier segment de la clé pour avoir un texte plus lisible
-    const segments = key.split(".");
+
     const lastSegment = segments[segments.length - 1];
 
     // Convertir camelCase vers des espaces

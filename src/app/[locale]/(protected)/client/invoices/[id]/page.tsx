@@ -31,62 +31,50 @@ export default async function InvoiceDetailsPage({
   params,
 }: InvoiceDetailsPageProps) {
   const { id, locale } = use(params);
-  const t = useTranslations("invoices");
+  const t = useTranslations("Client.invoices");
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data } = useSession();
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
 
-  // Mode démo seulement si l'ID contient explicitement "demo"
-  const isDemo = id === "demo" || id.startsWith("demo-");
-
   // Fonction pour télécharger la facture
-  const handleDownloadInvoice = async (invoiceId: string) => {
+  const handleDownload = async (invoiceId: string) => {
     try {
-      setIsDownloading(true);
-
-      // Dans une implémentation réelle, appelez l'API pour télécharger la facture
-      if (!isDemo) {
-        // Simulation du téléchargement pour le moment
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-
-      toast({
-        variant: "default",
-        title: t("downloadStarted"),
-      });
-
-      return Promise.resolve();
+      // Appel API pour télécharger la facture
+      const response = await fetch(`/api/invoices/${invoiceId}/download`);
+      if (!response.ok) throw new Error('Download failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `invoice-${invoiceId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast({ title: t("downloadSuccess"),
+        description: t("invoiceDownloaded"),
+       });
     } catch (error) {
-      toast({
+      toast({ title: t("downloadError"),
+        description: t("downloadFailed"),
         variant: "destructive",
-        title: t("downloadError"),
-      });
-      throw error;
-    } finally {
-      setIsDownloading(false);
+       });
     }
   };
 
   // Fonction pour imprimer la facture
-  const handlePrintInvoice = async (invoiceId: string) => {
+  const handlePrint = async (invoiceId: string) => {
     try {
-      setIsPrinting(true);
-
-      // Dans la version actuelle, on utilise l'impression native du navigateur
-      // Une implémentation réelle pourrait générer un PDF puis l'imprimer
       window.print();
-
-      return Promise.resolve();
     } catch (error) {
-      toast({
+      toast({ title: t("printError"),
+        description: t("printFailed"),
         variant: "destructive",
-        title: t("printError"),
-      });
-      throw error;
-    } finally {
-      setIsPrinting(false);
+       });
     }
   };
 
@@ -94,21 +82,19 @@ export default async function InvoiceDetailsPage({
   const handleShareInvoice = () => {
     if (navigator.share) {
       navigator
-        .share({
-          title: t("shareInvoiceTitle"),
+        .share({ title: t("shareInvoiceTitle"),
           text: t("shareInvoiceText"),
           url: window.location.href,
-        })
+         })
         .catch((err) => {
           console.error("Erreur lors du partage:", err);
         });
     } else {
       // Copier l'URL dans le presse-papier si le partage n'est pas disponible
       navigator.clipboard.writeText(window.location.href);
-      toast({
-        variant: "default",
+      toast({ variant: "default",
         title: t("linkCopied"),
-      });
+       });
     }
   };
 
@@ -142,7 +128,7 @@ export default async function InvoiceDetailsPage({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handlePrintInvoice(id)}
+            onClick={() => handlePrint(id)}
             disabled={isPrinting}
           >
             <Printer className="h-4 w-4 mr-2" />
@@ -152,7 +138,7 @@ export default async function InvoiceDetailsPage({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleDownloadInvoice(id)}
+            onClick={() => handleDownload(id)}
             disabled={isDownloading}
           >
             <Download className="h-4 w-4 mr-2" />
@@ -187,10 +173,9 @@ export default async function InvoiceDetailsPage({
       {/* Contenu principal */}
       <InvoiceDetails
         invoiceId={id}
-        isDemo={isDemo}
         onBack={handleBack}
-        onDownload={handleDownloadInvoice}
-        onPrint={handlePrintInvoice}
+        onDownload={handleDownload}
+        onPrint={handlePrint}
       />
 
       {/* Actions supplémentaires */}

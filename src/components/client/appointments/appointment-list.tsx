@@ -26,8 +26,7 @@ import {
   RotateCcw,
   Eye,
   AlertCircle,
-  Plus,
-} from "lucide-react";
+  Plus} from "lucide-react";
 
 // Types
 interface Appointment {
@@ -78,8 +77,7 @@ const AppointmentCard = ({
   appointment,
   onView,
   onCancel,
-  onReschedule,
-}: {
+  onReschedule}: {
   appointment: Appointment;
   onView: (id: string) => void;
   onCancel: (id: string) => void;
@@ -168,9 +166,7 @@ const AppointmentCard = ({
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span>
-              {format(appointment.scheduledDate, "EEEE d MMMM yyyy", {
-                locale: fr,
-              })}
+              {format(appointment.scheduledDate, "EEEE d MMMM yyyy", { locale })}
             </span>
           </div>
 
@@ -252,8 +248,7 @@ export function AppointmentList({
   onView,
   onCancel,
   onReschedule,
-  onBookNew,
-}: AppointmentListProps) {
+  onBookNew}: AppointmentListProps) {
   const t = useTranslations("appointments");
 
   if (isLoading) {

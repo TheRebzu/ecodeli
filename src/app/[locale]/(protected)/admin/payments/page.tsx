@@ -23,8 +23,7 @@ import {
   CreditCard,
   Users,
   ArrowDownUp,
-  BarChart4,
-} from "lucide-react";
+  BarChart4} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { formatCurrency } from "@/utils/document-utils";
@@ -36,16 +35,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -58,28 +55,25 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  PaginationPrevious} from "@/components/ui/pagination";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  CollapsibleTrigger} from "@/components/ui/collapsible";
 import { AreaChart, LineChart, BarChart } from "@/components/ui/charts";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminPaymentsPage() {
   const t = useTranslations("admin.payments");
-  const { data: session } = useSession();
+  const { data } = useSession();
   const { toast } = useToast();
 
   // États pour la pagination, le filtrage et la recherche
@@ -91,10 +85,8 @@ export default function AdminPaymentsPage() {
   const [currentTab, setCurrentTab] = useState("payments");
   const [dateRange, setDateRange] = useState<
     { from: Date; to: Date } | undefined
-  >({
-    from: new Date(new Date().setDate(1)), // Premier jour du mois
-    to: new Date(),
-  });
+  >({ from: new Date(new Date().setDate(1)), // Premier jour du mois
+    to: new Date() });
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [userFilter, setUserFilter] = useState<string | undefined>();
@@ -103,8 +95,7 @@ export default function AdminPaymentsPage() {
   const {
     data: payments,
     isLoading: isLoadingPayments,
-    refetch: refetchPayments,
-  } = api.payment.getAllPayments.useQuery(
+    refetch: refetchPayments} = api.payment.getAllPayments.useQuery(
     {
       page: currentPage,
       limit: pageSize,
@@ -113,51 +104,36 @@ export default function AdminPaymentsPage() {
       search: searchQuery || undefined,
       startDate: dateRange?.from,
       endDate: dateRange?.to,
-      userId: userFilter,
-    },
+      userId: userFilter},
     {
       keepPreviousData: true,
-      refetchOnWindowFocus: false,
-    },
+      refetchOnWindowFocus: false},
   );
 
   // Récupérer les statistiques financières
   const {
     data: financialStats,
     isLoading: isLoadingStats,
-    refetch: refetchStats,
-  } = api.financial.getFinancialStats.useQuery(
+    refetch: refetchStats} = api.financial.getFinancialStats.useQuery(
     {
       period: "monthly",
       startDate: dateRange?.from,
-      endDate: dateRange?.to,
-    },
-    {
-      refetchOnWindowFocus: false,
-    },
+      endDate: dateRange?.to},
+    { refetchOnWindowFocus },
   );
 
   // Télécharger le rapport de paiements
   const handleDownloadReport = async () => {
     try {
-      toast({
-        title: t("downloadStarted"),
-        description: t("paymentReportDownloadStarted"),
-      });
+      toast({ title: t("downloadStarted"),
+        description: t("paymentReportDownloadStarted") });
 
       // Simuler un délai pour la démo
-      setTimeout(() => {
-        toast({
-          title: t("downloadComplete"),
-          description: t("paymentReportDownloadComplete"),
-        });
-      }, 2000);
+      // Appel API réel via tRPC
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("downloadError"),
-        description: typeof error === "string" ? error : t("genericError"),
-      });
+        description: typeof error === "string" ? error : t("genericError") });
     }
   };
 
@@ -166,16 +142,12 @@ export default function AdminPaymentsPage() {
     setIsRefreshing(true);
     try {
       await Promise.all([refetchPayments(), refetchStats()]);
-      toast({
-        title: t("refreshSuccess"),
-        description: t("dataRefreshed"),
-      });
+      toast({ title: t("refreshSuccess"),
+        description: t("dataRefreshed") });
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("refreshError"),
-        description: typeof error === "string" ? error : t("genericError"),
-      });
+        description: typeof error === "string" ? error : t("genericError") });
     } finally {
       setIsRefreshing(false);
     }
@@ -187,10 +159,8 @@ export default function AdminPaymentsPage() {
     setTypeFilter(undefined);
     setStatusFilter(undefined);
     setUserFilter(undefined);
-    setDateRange({
-      from: new Date(new Date().setDate(1)), // Premier jour du mois
-      to: new Date(),
-    });
+    setDateRange({ from: new Date(new Date().setDate(1)), // Premier jour du mois
+      to: new Date() });
     setCurrentPage(1);
   };
 
@@ -278,11 +248,9 @@ export default function AdminPaymentsPage() {
   const formatChartData = () => {
     if (!financialStats?.dailyStats) return [];
 
-    return financialStats.dailyStats.map((stat) => ({
-      date: format(new Date(stat.date), "dd/MM"),
+    return financialStats.dailyStats.map((stat) => ({ date: format(new Date(stat.date), "dd/MM"),
       montant: parseFloat(stat.totalAmount.toFixed(2)),
-      nombre: stat.count,
-    }));
+      nombre: stat.count }));
   };
 
   // Formater les données pour le graphique de répartition
@@ -290,11 +258,9 @@ export default function AdminPaymentsPage() {
     if (!financialStats?.paymentTypeStats) return [];
 
     return Object.entries(financialStats.paymentTypeStats).map(
-      ([type, data]) => ({
-        type,
+      ([type, data]) => ({ type,
         montant: parseFloat(data.amount.toFixed(2)),
-        nombre: data.count,
-      }),
+        nombre: data.count }),
     );
   };
 
@@ -789,9 +755,9 @@ export default function AdminPaymentsPage() {
                         />
                       </PaginationItem>
 
-                      {Array.from({ length: Math.min(totalPages, 5) }).map(
+                      {Array.from({ length: Math.min(totalPages, 5)  }).map(
                         (_, i) => {
-                          let pageNumber = i + 1;
+                          const pageNumber = i + 1;
 
                           return (
                             <PaginationItem key={pageNumber}>

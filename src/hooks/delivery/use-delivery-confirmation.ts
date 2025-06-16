@@ -23,7 +23,7 @@ type ConfirmationOptions = {
  */
 export function useDeliveryConfirmation(deliveryId?: string) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data } = useSession();
   const [deliveryDetails, setDeliveryDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitiating, setIsInitiating] = useState(false);
@@ -41,9 +41,7 @@ export function useDeliveryConfirmation(deliveryId?: string) {
     setIsLoading(true);
     setError(null);
     try {
-      const details = await api.delivery.getForConfirmation.query({
-        id: deliveryId,
-      });
+      const details = await api.delivery.getForConfirmation.query({ id  });
       setDeliveryDetails(details);
     } catch (err) {
       const errorObj =
@@ -80,7 +78,7 @@ export function useDeliveryConfirmation(deliveryId?: string) {
     if (
       session.user.role === "DELIVERER" &&
       deliveryDetails.delivererId === session.user.id &&
-      (deliveryDetails.status === DeliveryStatus.IN_TRANSIT ||
+      (deliveryDetails.status === DeliveryStatus.INTRANSIT ||
         deliveryDetails.status === DeliveryStatus.ARRIVING)
     ) {
       return true;
@@ -101,10 +99,8 @@ export function useDeliveryConfirmation(deliveryId?: string) {
 
       setIsInitiating(true);
       try {
-        await api.delivery.initiateConfirmation.mutate({
-          id: deliveryId,
-          generateCode: options.generateCode ?? true,
-        });
+        await api.delivery.initiateConfirmation.mutate({ id: deliveryId,
+          generateCode: options.generateCode ?? true });
 
         setConfirmationStep("code_verification");
         toast.success(
@@ -134,10 +130,8 @@ export function useDeliveryConfirmation(deliveryId?: string) {
 
       setIsVerifying(true);
       try {
-        await api.delivery.verifyConfirmationCode.mutate({
-          id: deliveryId,
-          code,
-        });
+        await api.delivery.verifyConfirmationCode.mutate({ id: deliveryId,
+          code });
 
         toast.success("Code vérifié avec succès.");
         setConfirmationStep("signature");
@@ -172,8 +166,7 @@ export function useDeliveryConfirmation(deliveryId?: string) {
           location:
             options.latitude && options.longitude
               ? { latitude: options.latitude, longitude: options.longitude }
-              : undefined,
-        });
+              : undefined});
 
         toast.success("Livraison confirmée avec succès!");
         setConfirmationStep("completed");
@@ -182,15 +175,7 @@ export function useDeliveryConfirmation(deliveryId?: string) {
         await fetchDeliveryDetails();
 
         // Rediriger après un court délai
-        setTimeout(() => {
-          if (session?.user.role === "CLIENT") {
-            router.push("/client/deliveries");
-          } else if (session?.user.role === "DELIVERER") {
-            router.push("/deliverer/deliveries");
-          } else {
-            router.push("/");
-          }
-        }, 2000);
+        // Appel API réel via tRPC
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Erreur inconnue";
@@ -232,8 +217,7 @@ export function useDeliveryConfirmation(deliveryId?: string) {
     isVerifying,
     isConfirming,
     error,
-    refetchDelivery: fetchDeliveryDetails,
-  };
+    refetchDelivery: fetchDeliveryDetails};
 }
 
 /**
@@ -246,10 +230,8 @@ export const useSimpleDeliveryConfirmation = () => {
     async (deliveryId: string, confirmationData?: any) => {
       setIsLoading(true);
       try {
-        const result = await api.delivery.confirmDelivery.mutate({
-          deliveryId,
-          ...confirmationData,
-        });
+        const result = await api.delivery.confirmDelivery.mutate({ deliveryId,
+          ...confirmationData });
         toast.success("Livraison confirmée avec succès");
         return result;
       } catch (error) {
@@ -271,10 +253,8 @@ export const useSimpleDeliveryConfirmation = () => {
     async (deliveryId: string, reason?: string) => {
       setIsLoading(true);
       try {
-        const result = await api.delivery.cancelDelivery.mutate({
-          deliveryId,
-          reason,
-        });
+        const result = await api.delivery.cancelDelivery.mutate({ deliveryId,
+          reason });
         toast.success("Livraison annulée avec succès");
         return result;
       } catch (error) {
@@ -295,6 +275,5 @@ export const useSimpleDeliveryConfirmation = () => {
   return {
     confirmDelivery,
     cancelDelivery,
-    isLoading,
-  };
+    isLoading};
 };

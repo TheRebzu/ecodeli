@@ -1,4 +1,4 @@
-export function StatsCard({ title, value, icon }) {
+export function StatsCard({ title, value, icon  }) {
   return (
     <div>
       {title}: {value}

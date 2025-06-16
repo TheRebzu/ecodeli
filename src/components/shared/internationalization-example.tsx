@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
@@ -17,14 +16,12 @@ interface InternationalizationExampleProps {
 }
 
 export function InternationalizationExample({
-  locale,
-}: InternationalizationExampleProps) {
+  locale}: InternationalizationExampleProps) {
   const t = useTranslations();
   const {
     formatLocalizedDate,
     formatLocalizedRelativeDate,
-    formatLocalizedCurrency,
-  } = useLocalizedFormat();
+    formatLocalizedCurrency} = useLocalizedFormat();
 
   const now = new Date();
   const pastDate = new Date(now.getTime() - 86400000 * 3); // 3 days ago

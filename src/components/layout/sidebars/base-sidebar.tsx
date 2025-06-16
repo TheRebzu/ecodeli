@@ -62,8 +62,7 @@ export function BaseSidebar({
   className,
   collapsible = true,
   defaultCollapsed = false,
-  notifications = 0,
-}: BaseSidebarProps) {
+  notifications = 0}: BaseSidebarProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);

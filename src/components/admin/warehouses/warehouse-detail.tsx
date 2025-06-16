@@ -11,16 +11,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -38,8 +36,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 type WarehouseDetailProps = {
@@ -49,8 +46,7 @@ type WarehouseDetailProps = {
 
 export function WarehouseDetail({
   warehouseId,
-  initialData,
-}: WarehouseDetailProps) {
+  initialData}: WarehouseDetailProps) {
   const t = useTranslations("admin.warehouses.details");
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,8 +62,7 @@ export function WarehouseDetail({
     boxesLoading,
     boxFilters,
     updateBoxFilters,
-    deleteBox,
-  } = useWarehouse();
+    deleteBox} = useWarehouse();
 
   // Use the server-side fetched data if available
   const warehouseQuery = getWarehouseById(warehouseId);
@@ -78,7 +73,7 @@ export function WarehouseDetail({
   };
 
   const handleSearch = () => {
-    updateBoxFilters({ search: searchQuery, warehouseId, page: 1 });
+    updateBoxFilters({ search: searchQuery, warehouseId, page: 1  });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -88,7 +83,7 @@ export function WarehouseDetail({
   };
 
   const handlePageChange = (page: number) => {
-    updateBoxFilters({ page });
+    updateBoxFilters({ page  });
   };
 
   const handleCreateBox = () => {
@@ -112,7 +107,7 @@ export function WarehouseDetail({
     if (!boxToDelete) return;
 
     try {
-      await deleteBox({ id: boxToDelete });
+      await deleteBox({ id  });
       toast.success(t("deleteBoxSuccess"));
     } catch (error) {
       console.error("Error deleting box:", error);

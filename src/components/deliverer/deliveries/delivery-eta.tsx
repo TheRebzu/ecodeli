@@ -11,8 +11,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 
 interface DeliveryETAProps {
@@ -24,14 +23,13 @@ interface DeliveryETAProps {
   size?: "sm" | "md" | "lg";
 }
 
-const DeliveryETA: React.FC<DeliveryETAProps> = ({
-  deliveryId,
+const DeliveryETA: React.FC<DeliveryETAProps> = ({ deliveryId,
   showProgress = true,
   showIcon = true,
   className,
   variant = "default",
   size = "md",
-}) => {
+ }) => {
   // Récupérer les données de livraison
   const { deliveryInfo, isLoading } = useDeliveryLiveTracking(deliveryId);
 
@@ -65,8 +63,7 @@ const DeliveryETA: React.FC<DeliveryETAProps> = ({
   // Calcul des différences de temps
   const isDelivered = [
     DeliveryStatus.DELIVERED,
-    DeliveryStatus.CONFIRMED,
-  ].includes(deliveryInfo.status as DeliveryStatus);
+    DeliveryStatus.CONFIRMED].includes(deliveryInfo.status as DeliveryStatus);
 
   const isLate = isPast(eta) && !isDelivered;
   const timeRemaining = formatDistance(eta, now, {
@@ -117,9 +114,9 @@ const DeliveryETA: React.FC<DeliveryETAProps> = ({
         <span>
           Arrivée prévue{" "}
           <time dateTime={eta.toISOString()}>
-            {format(eta, "PPp", { locale: fr })}
+            {format(eta, "PPp", { locale })}
           </time>
-          <span className="text-muted-foreground ml-1">({timeRemaining})</span>
+          <span className="text-muted-foreground ml-1">({ timeRemaining })</span>
         </span>
       );
     }
@@ -144,7 +141,7 @@ const DeliveryETA: React.FC<DeliveryETAProps> = ({
             )}
           />
         )}
-        <span className={cn({ [statusColor]: isLate || isDelivered })}>
+        <span className={cn({ [statusColor]: isLate || isDelivered  })}>
           {getETAText()}
         </span>
       </div>
@@ -156,10 +153,9 @@ const DeliveryETA: React.FC<DeliveryETAProps> = ({
             "bg-slate-100": !isLate,
             "bg-amber-100": isLate,
           })}
-          indicatorClassName={cn({
-            "bg-blue-500": !isLate,
+          indicatorClassName={cn({ "bg-blue-500": !isLate,
             "bg-amber-500": isLate,
-          })}
+           })}
         />
       )}
     </div>
@@ -175,12 +171,12 @@ const DeliveryETA: React.FC<DeliveryETAProps> = ({
             <p className="font-medium">
               {isDelivered
                 ? "Livraison terminée"
-                : `Arrivée estimée: ${format(eta, "PPp", { locale: fr })}`}
+                : `Arrivée estimée: ${format(eta, "PPp", { locale })}`}
             </p>
             {!isDelivered && (
               <p className="text-sm text-muted-foreground">
                 {isLate
-                  ? `En retard de ${formatDistance(now, eta, { locale: fr })}`
+                  ? `En retard de ${formatDistance(now, eta, { locale })}`
                   : `${timeRemaining}`}
               </p>
             )}

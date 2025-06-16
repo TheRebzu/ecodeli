@@ -3,8 +3,7 @@ import {
   financialProcedure,
   protectedProcedure,
   adminProcedure,
-  router as createTRPCRouter,
-} from "@/server/api/trpc";
+  router as createTRPCRouter} from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { UserRole, PaymentStatus } from "@prisma/client";
 import { paymentService } from "@/server/services/shared/payment.service";
@@ -16,24 +15,21 @@ import {
   financialProtect,
   validateFinancialAmount,
   validateWithdrawal,
-  preventDoubleInvoicing,
-} from "@/server/api/middlewares/financial-security.middleware";
+  preventDoubleInvoicing} from "@/server/api/middlewares/financial-security.middleware";
 
 /**
  * Router tRPC pour les fonctionnalités financières
  */
-export const financialRouter = createTRPCRouter({
-  /**
+export const financialRouter = createTRPCRouter({ /**
    * STATISTIQUES FINANCIÈRES
    */
   getStats: adminProcedure
     .input(
       z.object({
         startDate: z.coerce.date(),
-        endDate: z.coerce.date(),
-      }),
+        endDate: z.coerce.date() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const [
           totalPayments,
@@ -41,60 +37,45 @@ export const financialRouter = createTRPCRouter({
           pendingPayments,
           failedPayments,
           totalAmount,
-          refundedAmount,
-        ] = await Promise.all([
-          _ctx.db.payment.count({
-            where: { createdAt: { gte: input.startDate, lte: input.endDate } },
-          }),
+          refundedAmount] = await Promise.all([
+          ctx.db.payment.count({
+            where: { createdAt: { gte: input.startDate, lte: input.endDate } }}),
           ctx.db.payment.count({
             where: {
               status: PaymentStatus.COMPLETED,
-              createdAt: { gte: input.startDate, lte: input.endDate },
-            },
-          }),
+              createdAt: { gte: input.startDate, lte: input.endDate }}}),
           ctx.db.payment.count({
             where: {
               status: PaymentStatus.PENDING,
-              createdAt: { gte: input.startDate, lte: input.endDate },
-            },
-          }),
+              createdAt: { gte: input.startDate, lte: input.endDate }}}),
           ctx.db.payment.count({
             where: {
               status: PaymentStatus.FAILED,
-              createdAt: { gte: input.startDate, lte: input.endDate },
-            },
-          }),
+              createdAt: { gte: input.startDate, lte: input.endDate }}}),
           ctx.db.payment.aggregate({
             where: {
               status: PaymentStatus.COMPLETED,
-              createdAt: { gte: input.startDate, lte: input.endDate },
-            },
-            _sum: { amount: true },
-          }),
+              createdAt: { gte: input.startDate, lte: input.endDate }},
+            sum: { amount }}),
           ctx.db.payment.aggregate({
             where: {
               status: PaymentStatus.REFUNDED,
-              createdAt: { gte: input.startDate, lte: input.endDate },
-            },
-            _sum: { amount: true },
-          }),
-        ]);
+              createdAt: { gte: input.startDate, lte: input.endDate }},
+            sum: { amount }})]);
 
         return {
           totalPayments,
           completedPayments,
           pendingPayments,
           failedPayments,
-          totalAmount: totalAmount._sum.amount || 0,
-          refundedAmount: refundedAmount._sum.amount || 0,
+          totalAmount: totalAmount.sum.amount || 0,
+          refundedAmount: refundedAmount.sum.amount || 0,
           successRate:
             totalPayments > 0 ? (completedPayments / totalPayments) * 100 : 0,
           timeRange: {
             startDate: input.startDate,
-            endDate: input.endDate,
-          },
-        };
-      } catch (_error) {
+            endDate: input.endDate}};
+      } catch (error) {
         console.error("Erreur dans financial.getStats:", error);
         throw error;
       }
@@ -107,8 +88,7 @@ export const financialRouter = createTRPCRouter({
     .use(financialProtect([]))
     .use(validateFinancialAmount("amount", { min: 0.5 }))
     .input(
-      z.object({
-        amount: z.number().positive(),
+      z.object({ amount: z.number().positive(),
         description: z.string(),
         currency: z.string().default("EUR"),
         serviceId: z.string().optional(),
@@ -116,44 +96,35 @@ export const financialRouter = createTRPCRouter({
         invoiceId: z.string().optional(),
         isEscrow: z.boolean().default(false),
         paymentMethodId: z.string().optional(),
-        metadata: z.record(z.any()).optional(),
-      }),
+        metadata: z.record(z.any()).optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
-      return await paymentService.initiatePayment({
-        userId,
-        ...input,
-      });
+      return await paymentService.initiatePayment({ userId,
+        ...input });
     }),
 
   getPaymentDetails: protectedProcedure
-    .input(z.object({ paymentId: z.string() }))
-    .query(async ({ _ctx, input: _input }) => {
-      const { db: _db, session: _session } = ctx;
-      const { _paymentId: __paymentId } = input;
+    .input(z.object({ paymentId: z.string()  }))
+    .query(async ({ ctx, input: input  }) => {
+      const { db: db, session: session } = ctx;
+      const { paymentId } = input;
 
       const payment = await db.payment.findUnique({
-        where: { id: paymentId },
+        where: { id },
         include: {
           user: {
             select: {
               id: true,
               name: true,
-              email: true,
-            },
-          },
+              email: true}},
           delivery: true,
           service: true,
-          invoice: true,
-        },
-      });
+          invoice: true}});
 
       if (!payment) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Paiement non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Paiement non trouvé" });
       }
 
       // Vérifier que l'utilisateur a le droit d'accéder à ce paiement
@@ -161,10 +132,8 @@ export const financialRouter = createTRPCRouter({
       const isAdmin = session.user.role === UserRole.ADMIN;
 
       if (!isOwner && !isAdmin) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'avez pas accès à ce paiement",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'avez pas accès à ce paiement" });
       }
 
       return payment;
@@ -172,23 +141,21 @@ export const financialRouter = createTRPCRouter({
 
   listUserPayments: protectedProcedure
     .input(
-      z.object({
-        status: z
+      z.object({ status: z
           .enum(["ALL", "PENDING", "COMPLETED", "FAILED", "REFUNDED"])
           .default("ALL"),
         limit: z.number().min(1).max(100).default(10),
         cursor: z.string().optional(),
         userId: z.string().optional(), // Utilisé par les administrateurs
-      }),
+       }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { db: _db, session: _session } = ctx;
+    .query(async ({ ctx, input: input  }) => {
+      const { db: db, session: session } = ctx;
       const {
-        status: _status,
-        limit: _limit,
-        cursor: _cursor,
-        userId: _userId,
-      } = input;
+        status: status,
+        limit: limit,
+        cursor: cursor,
+        userId: userId} = input;
 
       // Vérifier si l'utilisateur est administrateur pour filtrer par userId
       const targetUserId =
@@ -204,37 +171,27 @@ export const financialRouter = createTRPCRouter({
       const payments = await db.payment.findMany({
         where: {
           userId: targetUserId,
-          ...statusFilter,
-        },
+          ...statusFilter},
         orderBy: {
-          createdAt: "desc",
-        },
+          createdAt: "desc"},
         take: limit + 1, // +1 pour déterminer s'il y a une page suivante
-        cursor: cursor ? { id: cursor } : undefined,
+        cursor: cursor ? { id } : undefined,
         include: {
           delivery: {
             select: {
               id: true,
               status: true,
               pickupAddress: true,
-              deliveryAddress: true,
-            },
-          },
+              deliveryAddress: true}},
           service: {
             select: {
               id: true,
-              providerId: true,
-            },
-          },
+              providerId: true}},
           invoice: {
             select: {
               id: true,
               invoiceNumber: true,
-              status: true,
-            },
-          },
-        },
-      });
+              status: true}}}});
 
       // Déterminer s'il y a une page suivante
       const hasNextPage = payments.length > limit;
@@ -251,33 +208,26 @@ export const financialRouter = createTRPCRouter({
         payments,
         pagination: {
           hasNextPage,
-          nextCursor,
-        },
-      };
+          nextCursor}};
     }),
 
   refundPayment: protectedProcedure
     .use(financialProtect([UserRole.ADMIN]))
     .input(
-      z.object({
-        paymentId: z.string(),
+      z.object({ paymentId: z.string(),
         amount: z.number().optional(),
-        reason: z.string().min(5).max(200),
-      }),
+        reason: z.string().min(5).max(200) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { paymentId: _paymentId, amount: _amount, reason: _reason } = input;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { paymentId: paymentId, amount: amount, reason: reason } = input;
 
       // Vérifier si le paiement existe
       const payment = await ctx.db.payment.findUnique({
-        where: { id: paymentId },
-      });
+        where: { id }});
 
       if (!payment) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Paiement non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Paiement non trouvé" });
       }
 
       return await paymentService.refundPayment(paymentId, amount, reason);
@@ -286,8 +236,8 @@ export const financialRouter = createTRPCRouter({
   /**
    * PORTEFEUILLES
    */
-  getUserWallet: protectedProcedure.query(async ({ _ctx }) => {
-    const { _session: __session } = ctx;
+  getUserWallet: protectedProcedure.query(async ({ ctx  }) => {
+    const { session } = ctx;
     const userId = session.user.id;
 
     const wallet = await walletService.getOrCreateWallet(userId);
@@ -296,45 +246,37 @@ export const financialRouter = createTRPCRouter({
     const recentTransactions = await ctx.db.walletTransaction.findMany({
       where: { walletId: wallet.id },
       orderBy: { createdAt: "desc" },
-      take: 5,
-    });
+      take: 5});
 
     return {
       wallet,
-      recentTransactions,
-    };
+      recentTransactions};
   }),
 
   getWalletTransactions: protectedProcedure
     .input(
-      z.object({
-        walletId: z.string(),
+      z.object({ walletId: z.string(),
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().optional(),
         type: z
           .enum(["ALL", "DEPOSIT", "WITHDRAWAL", "EARNING", "REFUND"])
-          .default("ALL"),
-      }),
+          .default("ALL") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { session: _session, db: _db } = ctx;
+    .query(async ({ ctx, input: input  }) => {
+      const { session: session, db: db } = ctx;
       const {
-        walletId: _walletId,
-        limit: _limit,
-        cursor: _cursor,
-        type: _type,
-      } = input;
+        walletId: walletId,
+        limit: limit,
+        cursor: cursor,
+        type: type} = input;
 
       // Vérifier que le portefeuille appartient à l'utilisateur
       const wallet = await db.wallet.findUnique({
-        where: { id: walletId },
-      });
+        where: { id }});
 
       if (!wallet) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Portefeuille non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Portefeuille non trouvé" });
       }
 
       // Vérifier que l'utilisateur a le droit d'accéder à ce portefeuille
@@ -342,10 +284,8 @@ export const financialRouter = createTRPCRouter({
       const isAdmin = session.user.role === UserRole.ADMIN;
 
       if (!isOwner && !isAdmin) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'avez pas accès à ce portefeuille",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'avez pas accès à ce portefeuille" });
       }
 
       // Construire le filtre de type
@@ -355,17 +295,12 @@ export const financialRouter = createTRPCRouter({
       const transactions = await db.walletTransaction.findMany({
         where: {
           walletId,
-          ...typeFilter,
-        },
+          ...typeFilter},
         orderBy: {
-          createdAt: "desc",
-        },
+          createdAt: "desc"},
         take: limit + 1, // +1 pour déterminer s'il y a une page suivante
-        cursor: cursor ? { id: cursor } : undefined,
-        include: {
-          payment: true,
-        },
-      });
+        cursor: cursor ? { id } : undefined,
+        include: { payment }});
 
       // Déterminer s'il y a une page suivante
       const hasNextPage = transactions.length > limit;
@@ -382,42 +317,34 @@ export const financialRouter = createTRPCRouter({
         transactions,
         pagination: {
           hasNextPage,
-          nextCursor,
-        },
-      };
+          nextCursor}};
     }),
 
   requestWithdrawal: protectedProcedure
     .use(validateWithdrawal())
     .input(
-      z.object({
-        walletId: z.string(),
+      z.object({ walletId: z.string(),
         amount: z.number().positive(),
         bankDetails: z.object({
           accountHolderName: z.string(),
           iban: z.string(),
           bic: z.string().optional(),
-          bankName: z.string().optional(),
-        }),
-        notes: z.string().optional(),
-      }),
+          bankName: z.string().optional() }),
+        notes: z.string().optional()}),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _session: __session } = ctx;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { session } = ctx;
       const {
-        walletId: _walletId,
-        amount: _amount,
-        bankDetails: _bankDetails,
-        notes: _notes,
-      } = input;
+        walletId: walletId,
+        amount: amount,
+        bankDetails: bankDetails,
+        notes: notes} = input;
 
-      return await walletService.requestWithdrawal({
-        walletId,
+      return await walletService.requestWithdrawal({ walletId,
         userId: session.user.id,
         amount,
         bankDetails,
-        notes,
-      });
+        notes });
     }),
 
   /**
@@ -425,18 +352,15 @@ export const financialRouter = createTRPCRouter({
    */
   adjustUserCommissionRate: adminProcedure
     .input(
-      z.object({
-        userId: z.string(),
+      z.object({ userId: z.string(),
         serviceType: z.enum(["DELIVERY", "SERVICE", "STORAGE", "CUSTOM"]),
-        newRate: z.number().min(0).max(1),
-      }),
+        newRate: z.number().min(0).max(1) }),
     )
-    .mutation(async ({ input: _input }) => {
+    .mutation(async ({ input  }) => {
       const {
-        userId: _userId,
-        serviceType: _serviceType,
-        newRate: _newRate,
-      } = input;
+        userId: userId,
+        serviceType: serviceType,
+        newRate: newRate} = input;
 
       return await commissionService.adjustUserCommissionRate(
         userId,
@@ -447,14 +371,12 @@ export const financialRouter = createTRPCRouter({
 
   getUserCommissions: protectedProcedure
     .input(
-      z.object({
-        userId: z.string().optional(),
-        months: z.number().min(1).max(24).default(6),
-      }),
+      z.object({ userId: z.string().optional(),
+        months: z.number().min(1).max(24).default(6) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _session: __session } = ctx;
-      const { months: _months, userId: _userId } = input;
+    .query(async ({ ctx, input: input  }) => {
+      const { session } = ctx;
+      const { months: months, userId: userId } = input;
 
       // Vérifier les permissions
       const targetUserId = userId || session.user.id;
@@ -463,11 +385,9 @@ export const financialRouter = createTRPCRouter({
         targetUserId !== session.user.id &&
         session.user.role !== UserRole.ADMIN
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Vous n'avez pas le droit de consulter les commissions d'un autre utilisateur",
-        });
+            "Vous n'avez pas le droit de consulter les commissions d'un autre utilisateur" });
       }
 
       return await commissionService.getUserCommissionSummary(
@@ -478,15 +398,13 @@ export const financialRouter = createTRPCRouter({
 
   generateMonthlyCommissionInvoices: adminProcedure
     .input(
-      z.object({
-        month: z.number().min(0).max(11).optional(),
+      z.object({ month: z.number().min(0).max(11).optional(),
         year: z.number().min(2020).max(2100).optional(),
         roleFilter: z
           .array(z.enum(["DELIVERER", "PROVIDER", "MERCHANT"]))
-          .optional(),
-      }),
+          .optional() }),
     )
-    .mutation(async ({ input: _input }) => {
+    .mutation(async ({ input  }) => {
       return await commissionService.generateMonthlyCommissionInvoices(input);
     }),
 
@@ -496,8 +414,7 @@ export const financialRouter = createTRPCRouter({
   createInvoice: protectedProcedure
     .use(preventDoubleInvoicing())
     .input(
-      z.object({
-        items: z
+      z.object({ items: z
           .array(
             z.object({
               description: z.string(),
@@ -505,8 +422,7 @@ export const financialRouter = createTRPCRouter({
               unitPrice: z.number().positive(),
               taxRate: z.number().min(0).max(1).optional(),
               serviceId: z.string().optional(),
-              deliveryId: z.string().optional(),
-            }),
+              deliveryId: z.string().optional() }),
           )
           .min(1),
         dueDate: z.date().optional(),
@@ -516,48 +432,38 @@ export const financialRouter = createTRPCRouter({
         companyName: z.string().optional(),
         billingAddress: z.string().optional(),
         billingName: z.string().optional(),
-        taxId: z.string().optional(),
-      }),
+        taxId: z.string().optional()}),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _session: __session } = ctx;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { session } = ctx;
 
-      return await invoiceService.createInvoice({
-        userId: session.user.id,
-        ...input,
-      });
+      return await invoiceService.createInvoice({ userId: session.user.id,
+        ...input });
     }),
 
   finalizeInvoice: protectedProcedure
     .input(
-      z.object({
-        invoiceId: z.string(),
-      }),
+      z.object({ invoiceId: z.string() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { db: _db, session: _session } = ctx;
-      const { _invoiceId: __invoiceId } = input;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { db: db, session: session } = ctx;
+      const { invoiceId } = input;
 
       // Vérifier que la facture existe et appartient à l'utilisateur
       const invoice = await db.invoice.findUnique({
-        where: { id: invoiceId },
-      });
+        where: { id }});
 
       if (!invoice) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Facture non trouvée",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Facture non trouvée" });
       }
 
       if (
         invoice.userId !== session.user.id &&
         session.user.role !== UserRole.ADMIN
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'avez pas le droit de finaliser cette facture",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'avez pas le droit de finaliser cette facture" });
       }
 
       return await invoiceService.finalizeInvoice(invoiceId);
@@ -565,23 +471,21 @@ export const financialRouter = createTRPCRouter({
 
   getUserInvoices: protectedProcedure
     .input(
-      z.object({
-        status: z
+      z.object({ status: z
           .enum(["ALL", "DRAFT", "ISSUED", "PAID", "OVERDUE", "CANCELLED"])
           .default("ALL"),
         limit: z.number().min(1).max(100).default(10),
         cursor: z.string().optional(),
         userId: z.string().optional(), // Utilisé par les administrateurs
-      }),
+       }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { db: _db, session: _session } = ctx;
+    .query(async ({ ctx, input: input  }) => {
+      const { db: db, session: session } = ctx;
       const {
-        status: _status,
-        limit: _limit,
-        cursor: _cursor,
-        userId: _userId,
-      } = input;
+        status: status,
+        limit: limit,
+        cursor: cursor,
+        userId: userId} = input;
 
       // Vérifier si l'utilisateur est administrateur pour filtrer par userId
       const targetUserId =
@@ -596,17 +500,12 @@ export const financialRouter = createTRPCRouter({
       const invoices = await db.invoice.findMany({
         where: {
           userId: targetUserId,
-          ...statusFilter,
-        },
+          ...statusFilter},
         orderBy: {
-          issueDate: "desc",
-        },
+          issueDate: "desc"},
         take: limit + 1, // +1 pour déterminer s'il y a une page suivante
-        cursor: cursor ? { id: cursor } : undefined,
-        include: {
-          items: true,
-        },
-      });
+        cursor: cursor ? { id } : undefined,
+        include: { items }});
 
       // Déterminer s'il y a une page suivante
       const hasNextPage = invoices.length > limit;
@@ -623,9 +522,7 @@ export const financialRouter = createTRPCRouter({
         invoices,
         pagination: {
           hasNextPage,
-          nextCursor,
-        },
-      };
+          nextCursor}};
     }),
 
   /**
@@ -635,41 +532,35 @@ export const financialRouter = createTRPCRouter({
     return await subscriptionService.getPlans();
   }),
 
-  getCurrentSubscription: protectedProcedure.query(async ({ _ctx }) => {
-    const { db: _db, session: _session } = ctx;
+  getCurrentSubscription: protectedProcedure.query(async ({ ctx  }) => {
+    const { db: db, session: session } = ctx;
 
     // Trouver l'abonnement actif
     const subscription = await db.subscription.findFirst({
       where: {
         userId: session.user.id,
-        status: { in: ["ACTIVE", "TRIALING"] },
-      },
-    });
+        status: { in: ["ACTIVE", "TRIALING"] }}});
 
     if (!subscription) {
       return {
         currentPlan: "FREE",
         subscription: null,
-        planDetails: subscriptionService.getPlan("FREE"),
-      };
+        planDetails: subscriptionService.getPlan("FREE")};
     }
 
     return {
       currentPlan: subscription.planType,
       subscription,
-      planDetails: subscriptionService.getPlan(subscription.planType),
-    };
+      planDetails: subscriptionService.getPlan(subscription.planType)};
   }),
 
   createSubscription: protectedProcedure
     .input(
-      z.object({
-        planType: z.enum(["FREE", "STARTER", "PREMIUM", "CUSTOM"]),
-      }),
+      z.object({ planType: z.enum(["FREE", "STARTER", "PREMIUM", "CUSTOM"]) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _session: __session } = ctx;
-      const { _planType: __planType } = input;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { session } = ctx;
+      const { planType } = input;
 
       return await subscriptionService.createSubscription(
         session.user.id,
@@ -677,9 +568,8 @@ export const financialRouter = createTRPCRouter({
       );
     }),
 
-  cancelSubscription: protectedProcedure.mutation(async ({ _ctx }) => {
-    const { _session: __session } = ctx;
+  cancelSubscription: protectedProcedure.mutation(async ({ ctx  }) => {
+    const { session } = ctx;
 
     return await subscriptionService.cancelSubscription(session.user.id);
-  }),
-});
+  })});

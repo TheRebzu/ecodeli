@@ -7,9 +7,7 @@ import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 
 // Import dynamique du composant client
-const BoxUsageHistory = dynamic(() => import("./box-usage-history"), {
-  ssr: false,
-});
+const BoxUsageHistory = dynamic(() => import("./box-usage-history"), { ssr });
 
 interface BoxDetailTabsProps {
   box: {

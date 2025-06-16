@@ -11,8 +11,7 @@ import {
   LucideIcon,
   Recycle,
   Shield,
-  Users,
-} from "lucide-react";
+  Users} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -125,39 +124,32 @@ export default function AboutPage() {
                 icon: Leaf,
                 title: "Réduire l'impact environnemental",
                 description:
-                  "En optimisant les trajets existants, nous contribuons à réduire les émissions de CO2 liées au transport de colis et de personnes.",
-              },
+                  "En optimisant les trajets existants, nous contribuons à réduire les émissions de CO2 liées au transport de colis et de personnes."},
               {
                 icon: Users,
                 title: "Créer du pouvoir d'achat",
                 description:
-                  "Notre plateforme permet aux particuliers de générer des revenus complémentaires en proposant leurs services de livraison ou autres.",
-              },
+                  "Notre plateforme permet aux particuliers de générer des revenus complémentaires en proposant leurs services de livraison ou autres."},
               {
                 icon: Shield,
                 title: "Lutter contre l'isolement",
                 description:
-                  "Nos services favorisent les liens sociaux et contribuent à lutter contre l'isolement, notamment des personnes âgées ou à mobilité réduite.",
-              },
+                  "Nos services favorisent les liens sociaux et contribuent à lutter contre l'isolement, notamment des personnes âgées ou à mobilité réduite."},
               {
                 icon: Recycle,
                 title: "Optimiser les ressources",
                 description:
-                  "En utilisant les trajets existants, nous optimisons les ressources déjà en circulation plutôt que d'en ajouter de nouvelles.",
-              },
+                  "En utilisant les trajets existants, nous optimisons les ressources déjà en circulation plutôt que d'en ajouter de nouvelles."},
               {
                 icon: Award,
                 title: "Proposer des services variés",
                 description:
-                  "Au-delà du transport de colis, nous proposons divers services à la personne pour répondre à tous les besoins.",
-              },
+                  "Au-delà du transport de colis, nous proposons divers services à la personne pour répondre à tous les besoins."},
               {
                 icon: Heart,
                 title: "Soutenir l'économie locale",
                 description:
-                  "Notre système facilite les échanges locaux et aide les petits commerces à proposer des livraisons abordables.",
-              },
-            ].map((item, index) => (
+                  "Notre système facilite les échanges locaux et aide les petits commerces à proposer des livraisons abordables."}].map((item, index) => (
               <Card
                 key={index}
                 className="p-6 border hover:border-primary/50 transition-all"
@@ -273,27 +265,22 @@ export default function AboutPage() {
                 number: "01",
                 title: "Publication d'annonces",
                 description:
-                  "Les utilisateurs publient leurs besoins ou les services qu'ils proposent via notre système d'annonces.",
-              },
+                  "Les utilisateurs publient leurs besoins ou les services qu'ils proposent via notre système d'annonces."},
               {
                 number: "02",
                 title: "Mise en relation",
                 description:
-                  "Notre plateforme met en relation les personnes ayant des besoins compatibles avec celles proposant des services.",
-              },
+                  "Notre plateforme met en relation les personnes ayant des besoins compatibles avec celles proposant des services."},
               {
                 number: "03",
                 title: "Suivi en temps réel",
                 description:
-                  "Durant le service, un système de suivi en temps réel permet de savoir où en est la livraison ou le service.",
-              },
+                  "Durant le service, un système de suivi en temps réel permet de savoir où en est la livraison ou le service."},
               {
                 number: "04",
                 title: "Validation et paiement",
                 description:
-                  "Une fois le service effectué, un code de confirmation valide la livraison et déclenche le paiement.",
-              },
-            ].map((step, index) => (
+                  "Une fois le service effectué, un code de confirmation valide la livraison et déclenche le paiement."}].map((step, index) => (
               <div
                 key={index}
                 className="relative p-6 bg-background rounded-xl border"

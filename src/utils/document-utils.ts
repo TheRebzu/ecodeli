@@ -4,14 +4,12 @@
 import { db } from "@/server/db";
 import {
   formatCurrency as formatCurrencyUtil,
-  formatDate as formatDateUtil,
-} from "@/lib/utils/common";
+  formatDate as formatDateUtil} from "@/lib/utils/common";
 
 // Import types from proper locations
 import type {
   Document,
-  VerificationStatus,
-} from "@/types/documents/verification";
+  VerificationStatus} from "@/types/documents/verification";
 
 // UserRole enum values for typing
 export enum UserRole {
@@ -19,8 +17,7 @@ export enum UserRole {
   DELIVERER = "DELIVERER",
   MERCHANT = "MERCHANT",
   PROVIDER = "PROVIDER",
-  ADMIN = "ADMIN",
-}
+  ADMIN = "ADMIN"}
 
 // Type pour les documents avec informations de statut étendues
 export type DocumentWithFullStatus = Document & {
@@ -56,8 +53,7 @@ export async function getUserDocumentsWithFullStatus(
     const documents = await db.document.findMany({
       where: {
         userId,
-        ...(userRole ? { userRole } : {}),
-      },
+        ...(userRole ? { userRole } : {})},
       orderBy: { uploadedAt: "desc" },
       include: {
         user: {
@@ -65,9 +61,7 @@ export async function getUserDocumentsWithFullStatus(
             id: true,
             name: true,
             email: true,
-            role: true,
-          },
-        },
+            role: true}},
         verifications: {
           orderBy: { requestedAt: "desc" },
           take: 1, // Récupère seulement la dernière vérification
@@ -77,11 +71,7 @@ export async function getUserDocumentsWithFullStatus(
             verifiedAt: true,
             notes: true,
             rejectionReason: true,
-            requestedAt: true,
-          },
-        },
-      },
-    });
+            requestedAt: true}}}});
 
     // Ajoute des informations dérivées pour chaque document
     return documents.map((doc: any) => {
@@ -94,7 +84,7 @@ export async function getUserDocumentsWithFullStatus(
           ? doc.verifications[0]
           : null;
 
-      let effectiveStatus = doc.verificationStatus;
+      const effectiveStatus = doc.verificationStatus;
 
       // Si le document est expiré, remplacer le statut par EXPIRED
       if (isExpired && effectiveStatus === "APPROVED") {
@@ -110,8 +100,7 @@ export async function getUserDocumentsWithFullStatus(
         statusInfo,
         isExpired,
         lastVerification,
-        canResubmit: ["REJECTED", "EXPIRED"].includes(effectiveStatus),
-      };
+        canResubmit: ["REJECTED", "EXPIRED"].includes(effectiveStatus)};
     });
   } catch (error) {
     console.error("Erreur lors de la récupération des documents:", error);
@@ -266,8 +255,7 @@ export function formatTime(date: string | Date): string {
 
   return new Intl.DateTimeFormat("fr-FR", {
     hour: "2-digit",
-    minute: "2-digit",
-  }).format(dateObj);
+    minute: "2-digit"}).format(dateObj);
 }
 
 /**
@@ -276,23 +264,15 @@ export function formatTime(date: string | Date): string {
  * @returns Nom d'affichage du type de document
  */
 export function getDocumentTypeName(type: string): string {
-  const typeNames: Record<string, string> = {
-    IDENTITY_CARD: "Carte d'identité",
-    PASSPORT: "Passeport",
-    DRIVING_LICENSE: "Permis de conduire",
-    VEHICLE_REGISTRATION: "Carte grise",
-    INSURANCE_CERTIFICATE: "Attestation d'assurance",
-    CRIMINAL_RECORD: "Extrait de casier judiciaire",
-    BANK_RIB: "RIB",
-    KBIS: "Extrait Kbis",
-    PROFESSIONAL_CARD: "Carte professionnelle",
+  const typeNames: Record<string, string> = { IDENTITY_CARD: "Carte d'identité",
+    PASSPORT: "Passeport", DRIVING_LICENSE: "Permis de conduire", VEHICLE_REGISTRATION: "Carte grise", INSURANCE_CERTIFICATE: "Attestation d'assurance", CRIMINAL_RECORD: "Extrait de casier judiciaire", BANK_RIB: "RIB",
+    KBIS: "Extrait Kbis", PROFESSIONAL_CARD: "Carte professionnelle",
     DIPLOMA: "Diplôme",
     CERTIFICATE: "Certificat",
     CONTRACT: "Contrat",
     INVOICE: "Facture",
     RECEIPT: "Reçu",
-    OTHER: "Autre document",
-  };
+    OTHER: "Autre document"};
 
   return typeNames[type] || type;
 }
@@ -329,113 +309,91 @@ export function getRequiredDocumentTypesByRole(role: UserRole): Array<{
         type: "IDENTITY_CARD",
         name: "Carte d'identité",
         required: true,
-        description: "Document d'identité valide",
-      },
+        description: "Document d'identité valide"},
       {
         type: "BANK_RIB",
         name: "RIB",
         required: false,
-        description: "Relevé d'identité bancaire",
-      },
-    ],
+        description: "Relevé d'identité bancaire"}],
     DELIVERER: [
       {
         type: "IDENTITY_CARD",
         name: "Carte d'identité",
         required: true,
-        description: "Document d'identité valide",
-      },
+        description: "Document d'identité valide"},
       {
         type: "DRIVING_LICENSE",
         name: "Permis de conduire",
         required: true,
-        description: "Permis de conduire valide",
-      },
+        description: "Permis de conduire valide"},
       {
         type: "VEHICLE_REGISTRATION",
         name: "Carte grise",
         required: true,
-        description: "Carte grise du véhicule",
-      },
+        description: "Carte grise du véhicule"},
       {
         type: "INSURANCE_CERTIFICATE",
         name: "Attestation d'assurance",
         required: true,
-        description: "Assurance véhicule",
-      },
+        description: "Assurance véhicule"},
       {
         type: "CRIMINAL_RECORD",
         name: "Casier judiciaire",
         required: true,
-        description: "Extrait de casier judiciaire",
-      },
+        description: "Extrait de casier judiciaire"},
       {
         type: "BANK_RIB",
         name: "RIB",
         required: true,
-        description: "Pour les virements",
-      },
-    ],
+        description: "Pour les virements"}],
     MERCHANT: [
       {
         type: "IDENTITY_CARD",
         name: "Carte d'identité",
         required: true,
-        description: "Document d'identité du représentant",
-      },
+        description: "Document d'identité du représentant"},
       {
         type: "KBIS",
         name: "Extrait Kbis",
         required: true,
-        description: "Extrait Kbis récent (moins de 3 mois)",
-      },
+        description: "Extrait Kbis récent (moins de 3 mois)"},
       {
         type: "BANK_RIB",
         name: "RIB professionnel",
         required: true,
-        description: "RIB du compte professionnel",
-      },
+        description: "RIB du compte professionnel"},
       {
         type: "INSURANCE_CERTIFICATE",
         name: "Assurance professionnelle",
         required: false,
-        description: "RC professionnelle",
-      },
-    ],
+        description: "RC professionnelle"}],
     PROVIDER: [
       {
         type: "IDENTITY_CARD",
         name: "Carte d'identité",
         required: true,
-        description: "Document d'identité valide",
-      },
+        description: "Document d'identité valide"},
       {
         type: "PROFESSIONAL_CARD",
         name: "Carte professionnelle",
         required: true,
-        description: "Justificatif d'activité",
-      },
+        description: "Justificatif d'activité"},
       {
         type: "INSURANCE_CERTIFICATE",
         name: "Assurance professionnelle",
         required: true,
-        description: "RC professionnelle",
-      },
+        description: "RC professionnelle"},
       {
         type: "DIPLOMA",
         name: "Diplôme/Certification",
         required: false,
-        description: "Qualifications professionnelles",
-      },
+        description: "Qualifications professionnelles"},
       {
         type: "BANK_RIB",
         name: "RIB",
         required: true,
-        description: "Pour les paiements",
-      },
-    ],
-    ADMIN: [],
-  };
+        description: "Pour les paiements"}],
+    ADMIN: []};
 
   return documentTypes[role] || [];
 }

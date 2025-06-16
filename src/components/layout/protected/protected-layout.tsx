@@ -40,8 +40,7 @@ export function ProtectedLayout({
   showFooter = true,
   showSidebar = true,
   showPageHeader = true,
-  className,
-}: ProtectedLayoutProps) {
+  className}: ProtectedLayoutProps) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
 

@@ -77,8 +77,7 @@ export enum CheckpointType {
   WAREHOUSE = "WAREHOUSE",
   CUSTOMS = "CUSTOMS",
   HANDOFF = "HANDOFF",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 export interface DeliveryCheckpointData {
   id?: string;
@@ -103,14 +102,12 @@ export interface DeliveryCheckpointData {
 export enum ETACalculationType {
   REAL_TIME = "REAL_TIME",
   HISTORICAL = "HISTORICAL",
-  MANUAL = "MANUAL",
-}
+  MANUAL = "MANUAL"}
 
 export enum TrafficCondition {
   LIGHT = "LIGHT",
   MODERATE = "MODERATE",
-  HEAVY = "HEAVY",
-}
+  HEAVY = "HEAVY"}
 
 export interface DeliveryETAData {
   id?: string;
@@ -140,23 +137,20 @@ export enum DeliveryIssueType {
   TRAFFIC_JAM = "TRAFFIC_JAM",
   WEATHER_CONDITION = "WEATHER_CONDITION",
   SECURITY_ISSUE = "SECURITY_ISSUE",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 export enum IssueSeverity {
   LOW = "LOW",
   MEDIUM = "MEDIUM",
   HIGH = "HIGH",
-  CRITICAL = "CRITICAL",
-}
+  CRITICAL = "CRITICAL"}
 
 export enum IssueStatus {
   OPEN = "OPEN",
   IN_PROGRESS = "IN_PROGRESS",
   RESOLVED = "RESOLVED",
   ESCALATED = "ESCALATED",
-  CLOSED = "CLOSED",
-}
+  CLOSED = "CLOSED"}
 
 export interface DeliveryIssueData {
   id?: string;
@@ -249,8 +243,7 @@ export enum TrackingEventType {
   ETA_UPDATE = "ETA_UPDATE",
   CHECKPOINT_REACHED = "CHECKPOINT_REACHED",
   ISSUE_REPORTED = "ISSUE_REPORTED",
-  ISSUE_RESOLVED = "ISSUE_RESOLVED",
-}
+  ISSUE_RESOLVED = "ISSUE_RESOLVED"}
 
 export interface TrackingUpdate {
   type: TrackingEventType | string;
@@ -360,51 +353,38 @@ export type DeliveryIssuesResponse = {
 };
 
 // Schémas Zod pour validation
-export const geoPointSchema = z.object({
-  type: z.literal("Point"),
-  coordinates: z.tuple([z.number(), z.number()]),
-});
+export const geoPointSchema = z.object({ type: z.literal("Point"),
+  coordinates: z.tuple([z.number(), z.number()]) });
 
-export const coordinatesSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-});
+export const coordinatesSchema = z.object({ latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180) });
 
-export const geoBoundsSchema = z.object({
-  southWest: coordinatesSchema,
-  northEast: coordinatesSchema,
-});
+export const geoBoundsSchema = z.object({ southWest: coordinatesSchema,
+  northEast: coordinatesSchema });
 
-export const deliveryTrackingCreateSchema = z.object({
-  deliveryId: z.string(),
+export const deliveryTrackingCreateSchema = z.object({ deliveryId: z.string(),
   delivererId: z.string(),
   isActive: z.boolean().default(true),
   batteryLevel: z.number().min(0).max(100).optional(),
-  networkType: z.string().optional(),
-});
+  networkType: z.string().optional() });
 
-export const deliveryPositionUpdateSchema = z.object({
-  deliveryId: z.string(),
+export const deliveryPositionUpdateSchema = z.object({ deliveryId: z.string(),
   location: geoPointSchema,
   accuracy: z.number().optional(),
   heading: z.number().min(0).max(360).optional(),
   speed: z.number().min(0).optional(),
   altitude: z.number().optional(),
-  metadata: z.record(z.any()).optional(),
-});
+  metadata: z.record(z.any()).optional() });
 
-export const deliveryStatusUpdateSchema = z.object({
-  deliveryId: z.string(),
+export const deliveryStatusUpdateSchema = z.object({ deliveryId: z.string(),
   status: z.nativeEnum(DeliveryStatus),
   previousStatus: z.nativeEnum(DeliveryStatus).optional(),
   location: geoPointSchema.optional(),
   notes: z.string().optional(),
   reason: z.string().optional(),
-  notifyCustomer: z.boolean().default(true),
-});
+  notifyCustomer: z.boolean().default(true) });
 
-export const deliveryCheckpointCreateSchema = z.object({
-  deliveryId: z.string(),
+export const deliveryCheckpointCreateSchema = z.object({ deliveryId: z.string(),
   type: z.nativeEnum(CheckpointType),
   location: geoPointSchema,
   address: z.string(),
@@ -416,11 +396,9 @@ export const deliveryCheckpointCreateSchema = z.object({
   photoProofUrl: z.string().url().optional(),
   signatureProofUrl: z.string().url().optional(),
   confirmationCode: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
-});
+  metadata: z.record(z.any()).optional() });
 
-export const deliveryETAUpdateSchema = z.object({
-  deliveryId: z.string(),
+export const deliveryETAUpdateSchema = z.object({ deliveryId: z.string(),
   estimatedTime: z.date(),
   distanceRemaining: z.number().min(0).optional(),
   trafficCondition: z.enum(["LIGHT", "MODERATE", "HEAVY"]).optional(),
@@ -428,19 +406,16 @@ export const deliveryETAUpdateSchema = z.object({
   calculationType: z
     .enum(["REAL_TIME", "HISTORICAL", "MANUAL"])
     .default("REAL_TIME"),
-  metadata: z.record(z.any()).optional(),
-});
+  metadata: z.record(z.any()).optional() });
 
-export const deliveryIssueCreateSchema = z.object({
-  deliveryId: z.string(),
+export const deliveryIssueCreateSchema = z.object({ deliveryId: z.string(),
   type: z.nativeEnum(DeliveryIssueType),
   reportedById: z.string(),
   description: z.string(),
   severity: z.nativeEnum(IssueSeverity).default(IssueSeverity.MEDIUM),
   photoUrls: z.array(z.string().url()).default([]),
   location: geoPointSchema.optional(),
-  metadata: z.record(z.any()).optional(),
-});
+  metadata: z.record(z.any()).optional() });
 
 // Utilitaires pour conversion
 
@@ -450,8 +425,7 @@ export const deliveryIssueCreateSchema = z.object({
 export function geoPointToCoordinates(point: GeoPoint): Coordinates {
   return {
     latitude: point.coordinates[1],
-    longitude: point.coordinates[0],
-  };
+    longitude: point.coordinates[0]};
 }
 
 /**
@@ -460,8 +434,7 @@ export function geoPointToCoordinates(point: GeoPoint): Coordinates {
 export function coordinatesToGeoPoint(coords: Coordinates): GeoPoint {
   return {
     type: "Point",
-    coordinates: [coords.longitude, coords.latitude],
-  };
+    coordinates: [coords.longitude, coords.latitude]};
 }
 
 /**
@@ -484,13 +457,10 @@ export function calculateBounds(
   return {
     southWest: {
       latitude: Math.min(...latitudes),
-      longitude: Math.min(...longitudes),
-    },
+      longitude: Math.min(...longitudes)},
     northEast: {
       latitude: Math.max(...latitudes),
-      longitude: Math.max(...longitudes),
-    },
-  };
+      longitude: Math.max(...longitudes)}};
 }
 
 /**

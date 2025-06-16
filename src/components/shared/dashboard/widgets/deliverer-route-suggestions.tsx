@@ -5,8 +5,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+  CardFooter} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +18,7 @@ import {
   TrendingUp,
   ChevronRight,
   Route,
-  AlertCircle,
-} from "lucide-react";
+  AlertCircle} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
@@ -47,8 +45,7 @@ type DelivererRouteSuggestionsProps = {
 export function DelivererRouteSuggestions({
   suggestions,
   isLoading = false,
-  currency = "€",
-}: DelivererRouteSuggestionsProps) {
+  currency = "€"}: DelivererRouteSuggestionsProps) {
   const t = useTranslations("dashboard.deliverer");
   const router = useRouter();
 
@@ -87,8 +84,7 @@ export function DelivererRouteSuggestions({
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: currency === "€" ? "EUR" : "USD",
-      minimumFractionDigits: 2,
-    }).format(amount);
+      minimumFractionDigits: 2}).format(amount);
   };
 
   const formatTime = (minutes: number) => {
@@ -152,8 +148,7 @@ export function DelivererRouteSuggestions({
       availableDeliveries: 12,
       popularity: 5,
       traffic: "light",
-      bestTimeSlots: ["08:00-10:00", "17:00-19:00"],
-    },
+      bestTimeSlots: ["08:00-10:00", "17:00-19:00"]},
     {
       id: "2",
       from: "Zone commerciale",
@@ -165,8 +160,7 @@ export function DelivererRouteSuggestions({
       availableDeliveries: 8,
       popularity: 4,
       traffic: "moderate",
-      bestTimeSlots: ["11:00-14:00", "19:00-21:00"],
-    },
+      bestTimeSlots: ["11:00-14:00", "19:00-21:00"]},
     {
       id: "3",
       from: "Campus universitaire",
@@ -178,9 +172,7 @@ export function DelivererRouteSuggestions({
       availableDeliveries: 6,
       popularity: 3,
       traffic: "light",
-      bestTimeSlots: ["12:00-14:00", "18:00-20:00"],
-    },
-  ];
+      bestTimeSlots: ["12:00-14:00", "18:00-20:00"]}];
 
   const routeData = suggestions || defaultSuggestions;
 

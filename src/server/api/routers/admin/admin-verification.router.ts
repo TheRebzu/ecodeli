@@ -9,8 +9,7 @@ import { VerificationStatus, DocumentType } from "@prisma/client";
  */
 
 // Sch�mas de validation
-const verificationFiltersSchema = z.object({
-  userRole: z.nativeEnum(UserRole).optional(),
+const verificationFiltersSchema = z.object({ userRole: z.nativeEnum(UserRole).optional(),
   status: z.nativeEnum(VerificationStatus).optional(),
   documentType: z.nativeEnum(DocumentType).optional(),
   priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).optional(),
@@ -22,11 +21,9 @@ const verificationFiltersSchema = z.object({
     .default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
   limit: z.number().min(1).max(100).default(20),
-  offset: z.number().min(0).default(0),
-});
+  offset: z.number().min(0).default(0) });
 
-const processVerificationSchema = z.object({
-  verificationId: z.string().cuid(),
+const processVerificationSchema = z.object({ verificationId: z.string().cuid(),
   status: z.enum(["APPROVED", "REJECTED"]),
   comments: z.string().min(10).max(1000),
 
@@ -41,70 +38,54 @@ const processVerificationSchema = z.object({
 
   // Notification � l'utilisateur
   notifyUser: z.boolean().default(true),
-  notificationMessage: z.string().max(500).optional(),
-});
+  notificationMessage: z.string().max(500).optional() });
 
-const bulkVerificationSchema = z.object({
-  verificationIds: z.array(z.string().cuid()).min(1).max(50),
+const bulkVerificationSchema = z.object({ verificationIds: z.array(z.string().cuid()).min(1).max(50),
   action: z.enum(["APPROVE", "REJECT", "REQUEST_MORE_INFO"]),
   comments: z.string().min(10).max(1000),
-  notifyUsers: z.boolean().default(true),
-});
+  notifyUsers: z.boolean().default(true) });
 
-const verificationStatsSchema = z.object({
-  period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
-  userRole: z.nativeEnum(UserRole).optional(),
-});
+const verificationStatsSchema = z.object({ period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
+  userRole: z.nativeEnum(UserRole).optional() });
 
-export const adminVerificationRouter = router({
-  /**
+export const adminVerificationRouter = router({ /**
    * Obtenir toutes les v�rifications en attente
    */
   getPendingVerifications: protectedProcedure
     .input(verificationFiltersSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent consulter les v�rifications",
-        });
+            "Seuls les administrateurs peuvent consulter les v�rifications" });
       }
 
       try {
         // Construire les filtres
         const where: any = {
           ...(input.userRole && {
-            user: { role: input.userRole },
-          }),
+            user: { role: input.userRole }}),
           ...(input.status && { status: input.status }),
           ...(input.documentType && {
             documents: {
-              some: { type: input.documentType },
-            },
-          }),
+              some: { type: input.documentType }}}),
           ...(input.priority && { priority: input.priority }),
           ...(input.search && {
             user: {
               OR: [
                 { name: { contains: input.search, mode: "insensitive" } },
-                { email: { contains: input.search, mode: "insensitive" } },
-              ],
-            },
-          }),
+                { email: { contains: input.search, mode: "insensitive" } }]}}),
           ...(input.dateFrom &&
             input.dateTo && {
-              createdAt: { gte: input.dateFrom, lte: input.dateTo },
-            }),
-        };
+              createdAt: { gte: input.dateFrom, lte: input.dateTo }})};
 
         const orderBy: any = {};
         orderBy[input.sortBy] = input.sortOrder;
 
         const [verifications, totalCount] = await Promise.all([
-          _ctx.db.verification.findMany({
+          ctx.db.verification.findMany({
             where,
             include: {
               user: {
@@ -114,9 +95,7 @@ export const adminVerificationRouter = router({
                   email: true,
                   role: true,
                   city: true,
-                  profilePicture: true,
-                },
-              },
+                  profilePicture: true}},
               documents: {
                 include: {
                   document: {
@@ -124,28 +103,18 @@ export const adminVerificationRouter = router({
                       type: true,
                       fileName: true,
                       fileUrl: true,
-                      uploadedAt: true,
-                    },
-                  },
-                },
-              },
+                      uploadedAt: true}}}},
               verifiedBy: {
                 select: {
                   name: true,
-                  email: true,
-                },
-              },
-            },
+                  email: true}}},
             orderBy,
             skip: input.offset,
-            take: input.limit,
-          }),
-          ctx.db.verification.count({ where }),
-        ]);
+            take: input.limit}),
+          ctx.db.verification.count({ where  })]);
 
         // Formatter les donn�es
-        const formattedVerifications = verifications.map((verification) => ({
-          ...verification,
+        const formattedVerifications = verifications.map((verification) => ({ ...verification,
           daysPending: Math.floor(
             (new Date().getTime() - verification.createdAt.getTime()) /
               (1000 * 60 * 60 * 24),
@@ -156,8 +125,7 @@ export const adminVerificationRouter = router({
             verification.createdAt <
               new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
           userType: getUserTypeLabel(verification.user.role),
-          completenessScore: calculateCompletenessScore(verification.documents),
-        }));
+          completenessScore: calculateCompletenessScore(verification.documents) }));
 
         return {
           success: true,
@@ -166,15 +134,11 @@ export const adminVerificationRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount,
-          },
-        };
-      } catch (_error) {
+            hasMore: input.offset + input.limit < totalCount}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la r�cup�ration des v�rifications",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la r�cup�ration des v�rifications" });
       }
     }),
 
@@ -182,15 +146,13 @@ export const adminVerificationRouter = router({
    * Obtenir les d�tails d'une v�rification
    */
   getVerificationDetails: protectedProcedure
-    .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .input(z.object({ id: z.string().cuid()  }))
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Acc�s non autoris�",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Acc�s non autoris�" });
       }
 
       try {
@@ -202,20 +164,13 @@ export const adminVerificationRouter = router({
                 // Donn�es sp�cifiques selon le r�le
                 deliverer: true,
                 provider: true,
-                merchant: true,
-              },
-            },
+                merchant: true}},
             documents: {
-              include: {
-                document: true,
-              },
-            },
+              include: { document }},
             verifiedBy: {
               select: {
                 name: true,
-                email: true,
-              },
-            },
+                email: true}},
             auditLogs: {
               orderBy: { createdAt: "desc" },
               take: 10,
@@ -223,19 +178,11 @@ export const adminVerificationRouter = router({
                 performedBy: {
                   select: {
                     name: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-          },
-        });
+                    email: true}}}}}});
 
         if (!verification) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "V�rification non trouv�e",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "V�rification non trouv�e" });
         }
 
         // Informations suppl�mentaires selon le r�le
@@ -246,8 +193,7 @@ export const adminVerificationRouter = router({
               roleSpecificData = {
                 vehicleType: verification.user.deliverer.vehicleType,
                 licenseNumber: verification.user.deliverer.licenseNumber,
-                insuranceNumber: verification.user.deliverer.insuranceNumber,
-              };
+                insuranceNumber: verification.user.deliverer.insuranceNumber};
             }
             break;
           case "PROVIDER":
@@ -255,8 +201,7 @@ export const adminVerificationRouter = router({
               roleSpecificData = {
                 serviceType: verification.user.provider.serviceType,
                 experience: verification.user.provider.experience,
-                specializations: verification.user.provider.specializations,
-              };
+                specializations: verification.user.provider.specializations};
             }
             break;
           case "MERCHANT":
@@ -264,8 +209,7 @@ export const adminVerificationRouter = router({
               roleSpecificData = {
                 businessName: verification.user.merchant.businessName,
                 businessType: verification.user.merchant.businessType,
-                siretNumber: verification.user.merchant.siretNumber,
-              };
+                siretNumber: verification.user.merchant.siretNumber};
             }
             break;
         }
@@ -279,15 +223,11 @@ export const adminVerificationRouter = router({
               verification.documents,
             ),
             recommendedAction: getRecommendedAction(verification),
-            similarCases: await findSimilarVerifications(_ctx.db, verification),
-          },
-        };
-      } catch (_error) {
+            similarCases: await findSimilarVerifications(ctx.db, verification)}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la r�cup�ration des d�tails",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la r�cup�ration des d�tails" });
       }
     }),
 
@@ -296,15 +236,13 @@ export const adminVerificationRouter = router({
    */
   processVerification: protectedProcedure
     .input(processVerificationSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent traiter les v�rifications",
-        });
+            "Seuls les administrateurs peuvent traiter les v�rifications" });
       }
 
       try {
@@ -312,22 +250,16 @@ export const adminVerificationRouter = router({
           where: { id: input.verificationId },
           include: {
             user: true,
-            documents: true,
-          },
-        });
+            documents: true}});
 
         if (!verification) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "V�rification non trouv�e",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "V�rification non trouv�e" });
         }
 
         if (verification.status !== "PENDING") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Cette v�rification a d�j� �t� trait�e",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Cette v�rification a d�j� �t� trait�e" });
         }
 
         // Transaction pour traiter la v�rification
@@ -341,9 +273,7 @@ export const adminVerificationRouter = router({
               validUntil: input.validUntil,
               conditions: input.conditions,
               verifiedById: user.id,
-              verifiedAt: new Date(),
-            },
-          });
+              verifiedAt: new Date()}});
 
           // Mettre � jour le statut de l'utilisateur
           if (input.status === "APPROVED") {
@@ -368,10 +298,7 @@ export const adminVerificationRouter = router({
               details: {
                 comments: input.comments,
                 conditions: input.conditions,
-                validUntil: input.validUntil,
-              },
-            },
-          });
+                validUntil: input.validUntil}}});
 
           return updatedVerification;
         });
@@ -379,12 +306,11 @@ export const adminVerificationRouter = router({
         // Envoyer une notification � l'utilisateur si demand�
         if (input.notifyUser) {
           // TODO: Impl�menter l'envoi de notification
-          // await notificationService.sendVerificationResult({
-          //   userId: verification.user.id,
+          // await notificationService.sendVerificationResult({ //   userId: verification.user.id,
           //   status: input.status,
           //   message: input.notificationMessage,
           //   comments: input.comments
-          // });
+          //  });
         }
 
         return {
@@ -393,14 +319,11 @@ export const adminVerificationRouter = router({
           message:
             input.status === "APPROVED"
               ? "V�rification approuv�e avec succ�s"
-              : "V�rification rejet�e",
-        };
-      } catch (_error) {
+              : "V�rification rejet�e"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du traitement de la v�rification",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du traitement de la v�rification" });
       }
     }),
 
@@ -409,15 +332,13 @@ export const adminVerificationRouter = router({
    */
   bulkProcessVerifications: protectedProcedure
     .input(bulkVerificationSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent traiter les v�rifications",
-        });
+            "Seuls les administrateurs peuvent traiter les v�rifications" });
       }
 
       try {
@@ -425,19 +346,13 @@ export const adminVerificationRouter = router({
         const verifications = await ctx.db.verification.findMany({
           where: {
             id: { in: input.verificationIds },
-            status: "PENDING",
-          },
-          include: {
-            user: true,
-          },
-        });
+            status: "PENDING"},
+          include: { user }});
 
         if (verifications.length !== input.verificationIds.length) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
+          throw new TRPCError({ code: "BAD_REQUEST",
             message:
-              "Certaines v�rifications n'existent pas ou ont d�j� �t� trait�es",
-          });
+              "Certaines v�rifications n'existent pas ou ont d�j� �t� trait�es" });
         }
 
         const results = await ctx.db.$transaction(
@@ -455,9 +370,7 @@ export const adminVerificationRouter = router({
                 status,
                 comments: input.comments,
                 verifiedById: user.id,
-                verifiedAt: new Date(),
-              },
-            });
+                verifiedAt: new Date()}});
           }),
         );
 
@@ -466,7 +379,7 @@ export const adminVerificationRouter = router({
           await Promise.all(
             verifications.map((verification) =>
               updateUserVerificationStatus(
-                _ctx.db,
+                ctx.db,
                 verification.user.id,
                 verification.user.role,
                 true,
@@ -479,16 +392,12 @@ export const adminVerificationRouter = router({
           success: true,
           data: {
             processedCount: results.length,
-            action: input.action,
-          },
-          message: `${results.length} v�rification(s) trait�e(s) avec succ�s`,
-        };
-      } catch (_error) {
+            action: input.action},
+          message: `${results.length} v�rification(s) trait�e(s) avec succ�s`};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du traitement en lot",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du traitement en lot" });
       }
     }),
 
@@ -497,26 +406,22 @@ export const adminVerificationRouter = router({
    */
   getVerificationStats: protectedProcedure
     .input(verificationStatsSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Acc�s non autoris�",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Acc�s non autoris�" });
       }
 
       try {
-        const { startDate: _startDate, endDate: _endDate } =
+        const { startDate: startDate, endDate: endDate } =
           calculatePeriodDates(input.period);
 
         const baseWhere = {
           ...(input.userRole && {
-            user: { role: input.userRole },
-          }),
-          createdAt: { gte: startDate, lte: endDate },
-        };
+            user: { role: input.userRole }}),
+          createdAt: { gte: startDate, lte: endDate }};
 
         const [
           totalVerifications,
@@ -526,55 +431,42 @@ export const adminVerificationRouter = router({
           byRole,
           byDocumentType,
           averageProcessingTime,
-          urgentVerifications,
-        ] = await Promise.all([
+          urgentVerifications] = await Promise.all([
           // Total des v�rifications
-          _ctx.db.verification.count({
-            where: baseWhere,
-          }),
+          ctx.db.verification.count({ where  }),
 
           // V�rifications en attente
           ctx.db.verification.count({
-            where: { ...baseWhere, status: "PENDING" },
-          }),
+            where: { ...baseWhere, status: "PENDING" }}),
 
           // V�rifications approuv�es
           ctx.db.verification.count({
-            where: { ...baseWhere, status: "APPROVED" },
-          }),
+            where: { ...baseWhere, status: "APPROVED" }}),
 
           // V�rifications rejet�es
           ctx.db.verification.count({
-            where: { ...baseWhere, status: "REJECTED" },
-          }),
+            where: { ...baseWhere, status: "REJECTED" }}),
 
           // R�partition par r�le
-          ctx.db.verification.groupBy({
-            by: ["user"],
+          ctx.db.verification.groupBy({ by: ["user"],
             where: baseWhere,
-            _count: true,
-          }),
+            count: true }),
 
           // R�partition par type de document
           ctx.db.verificationDocument.groupBy({
             by: ["document"],
-            where: {
-              verification: baseWhere,
-            },
-            _count: true,
-          }),
+            where: { verification },
+            count: true}),
 
           // Temps moyen de traitement
           ctx.db.verification.aggregate({
             where: {
               ...baseWhere,
               status: { in: ["APPROVED", "REJECTED"] },
-              verifiedAt: { not: null },
-            },
-            _avg: {
+              verifiedAt: { not }},
+            avg: {
               // TODO: Calculer la diff�rence entre createdAt et verifiedAt
-            },
-          }),
+            }}),
 
           // V�rifications urgentes
           ctx.db.verification.count({
@@ -585,18 +477,12 @@ export const adminVerificationRouter = router({
                 {
                   status: "PENDING",
                   createdAt: {
-                    lte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-                  },
-                },
-              ],
-            },
-          }),
-        ]);
+                    lte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)}}]}})]);
 
         // Timeline des v�rifications
         const timeline = await ctx.db.$queryRaw`
           SELECT 
-            DATE_TRUNC('day', created_at) as date,
+            DATE_TRUNC('day', createdat) as date,
             COUNT(*)::int as total,
             COUNT(CASE WHEN status = 'APPROVED' THEN 1 END)::int as approved,
             COUNT(CASE WHEN status = 'REJECTED' THEN 1 END)::int as rejected,
@@ -605,7 +491,7 @@ export const adminVerificationRouter = router({
           WHERE created_at >= ${startDate}
             AND created_at <= ${endDate}
             ${input.userRole ? `AND user_role = '${input.userRole}'` : ""}
-          GROUP BY DATE_TRUNC('day', created_at)
+          GROUP BY DATE_TRUNC('day', createdat)
           ORDER BY date ASC
         `;
 
@@ -625,8 +511,7 @@ export const adminVerificationRouter = router({
             period: {
               type: input.period,
               startDate,
-              endDate,
-            },
+              endDate},
             overview: {
               total: totalVerifications,
               pending: pendingVerifications,
@@ -634,32 +519,21 @@ export const adminVerificationRouter = router({
               rejected: rejectedVerifications,
               urgent: urgentVerifications,
               approvalRate: Math.round(approvalRate * 100) / 100,
-              rejectionRate: Math.round(rejectionRate * 100) / 100,
-            },
+              rejectionRate: Math.round(rejectionRate * 100) / 100},
             distribution: {
-              byRole: byRole.map((item) => ({
-                role: item.user,
-                count: item._count,
-              })),
-              byDocumentType: byDocumentType.map((item) => ({
-                type: item.document,
-                count: item._count,
-              })),
-            },
+              byRole: byRole.map((item) => ({ role: item.user,
+                count: item.count })),
+              byDocumentType: byDocumentType.map((item) => ({ type: item.document,
+                count: item.count }))},
             timeline: timeline,
             averageProcessingTime: 0, // TODO: Calculer correctement
             alerts: {
-              oldestPending: await getOldestPendingVerification(_ctx.db),
+              oldestPending: await getOldestPendingVerification(ctx.db),
               highPriorityCount: urgentVerifications,
-              backlogSize: pendingVerifications,
-            },
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la r�cup�ration des statistiques",
-        });
+              backlogSize: pendingVerifications}}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la r�cup�ration des statistiques" });
       }
     }),
 
@@ -668,34 +542,27 @@ export const adminVerificationRouter = router({
    */
   requestAdditionalDocuments: protectedProcedure
     .input(
-      z.object({
-        verificationId: z.string().cuid(),
+      z.object({ verificationId: z.string().cuid(),
         requiredDocuments: z.array(z.nativeEnum(DocumentType)),
         message: z.string().min(10).max(500),
-        deadline: z.date().optional(),
-      }),
+        deadline: z.date().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Acc�s non autoris�",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Acc�s non autoris�" });
       }
 
       try {
         const verification = await ctx.db.verification.findUnique({
           where: { id: input.verificationId },
-          include: { user: true },
-        });
+          include: { user }});
 
         if (!verification) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "V�rification non trouv�e",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "V�rification non trouv�e" });
         }
 
         // Cr�er la demande de documents suppl�mentaires
@@ -706,9 +573,7 @@ export const adminVerificationRouter = router({
             requiredDocuments: input.requiredDocuments,
             message: input.message,
             deadline: input.deadline,
-            status: "PENDING",
-          },
-        });
+            status: "PENDING"}});
 
         // Cr�er un log d'audit
         await ctx.db.auditLog.create({
@@ -720,33 +585,25 @@ export const adminVerificationRouter = router({
             details: {
               requiredDocuments: input.requiredDocuments,
               message: input.message,
-              deadline: input.deadline,
-            },
-          },
-        });
+              deadline: input.deadline}}});
 
         // TODO: Envoyer une notification � l'utilisateur
-        // await notificationService.sendDocumentRequest({
-        //   userId: verification.user.id,
+        // await notificationService.sendDocumentRequest({ //   userId: verification.user.id,
         //   requiredDocuments: input.requiredDocuments,
         //   message: input.message,
         //   deadline: input.deadline
-        // });
+        //  });
 
         return {
           success: true,
           data: request,
-          message: "Demande de documents envoy�e � l'utilisateur",
-        };
-      } catch (_error) {
+          message: "Demande de documents envoy�e � l'utilisateur"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la demande de documents",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la demande de documents" });
       }
-    }),
-});
+    })});
 
 // Helper functions
 function getUserTypeLabel(role: UserRole): string {
@@ -755,8 +612,7 @@ function getUserTypeLabel(role: UserRole): string {
     DELIVERER: "Livreur",
     MERCHANT: "Commer�ant",
     PROVIDER: "Prestataire",
-    ADMIN: "Administrateur",
-  };
+    ADMIN: "Administrateur"};
   return labels[role] || role;
 }
 
@@ -792,16 +648,12 @@ async function findSimilarVerifications(
     where: {
       user: { role: verification.user.role },
       status: { in: ["APPROVED", "REJECTED"] },
-      id: { not: verification.id },
-    },
+      id: { not: verification.id }},
     take: 3,
     orderBy: { verifiedAt: "desc" },
     include: {
       user: {
-        select: { name: true, email: true },
-      },
-    },
-  });
+        select: { name: true, email: true }}}});
 }
 
 async function updateUserVerificationStatus(
@@ -816,20 +668,17 @@ async function updateUserVerificationStatus(
     case "DELIVERER":
       await db.deliverer.updateMany({
         where: { userId },
-        data: updateData,
-      });
+        data: updateData});
       break;
     case "PROVIDER":
       await db.provider.updateMany({
         where: { userId },
-        data: updateData,
-      });
+        data: updateData});
       break;
     case "MERCHANT":
       await db.merchant.updateMany({
         where: { userId },
-        data: updateData,
-      });
+        data: updateData});
       break;
   }
 }
@@ -840,10 +689,7 @@ async function getOldestPendingVerification(db: any): Promise<any> {
     orderBy: { createdAt: "asc" },
     include: {
       user: {
-        select: { name: true, role: true },
-      },
-    },
-  });
+        select: { name: true, role: true }}}});
 }
 
 function calculatePeriodDates(period: string): {

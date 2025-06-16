@@ -8,8 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   totpChallengeSchema,
-  TotpChallengeSchemaType,
-} from "@/schemas/auth/login.schema";
+  TotpChallengeSchemaType} from "@/schemas/auth/login.schema";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,16 +17,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -40,10 +37,9 @@ interface TwoFactorChallengeProps {
 export default function TwoFactorChallenge({
   email,
   password,
-  callbackUrl = "/dashboard",
-}: TwoFactorChallengeProps) {
+  callbackUrl = "/dashboard"}: TwoFactorChallengeProps) {
   const t = useTranslations("auth.twoFactorChallenge");
-  const { toast: _toast } = useToast();
+  const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -61,9 +57,7 @@ export default function TwoFactorChallenge({
     resolver: zodResolver(totpChallengeSchema),
     defaultValues: {
       totp: "",
-      remember: false,
-    },
-  });
+      remember: false}});
 
   const onSubmit = async (data: TotpChallengeSchemaType) => {
     setIsLoading(true);
@@ -76,8 +70,7 @@ export default function TwoFactorChallenge({
         totp: data.totp,
         remember: data.remember,
         redirect: false,
-        callbackUrl,
-      });
+        callbackUrl});
 
       if (result?.error) {
         setError(t("errors.invalidCode"));
@@ -123,7 +116,7 @@ export default function TwoFactorChallenge({
             <FormField
               control={form.control}
               name="totp"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("codeLabel")}</FormLabel>
                   <FormControl>
@@ -151,7 +144,7 @@ export default function TwoFactorChallenge({
             <FormField
               control={form.control}
               name="remember"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox

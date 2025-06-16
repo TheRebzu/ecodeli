@@ -2,8 +2,7 @@ import { db } from "@/server/db";
 import {
   UserPreferences,
   UpdateUserPreferences,
-  UpdateOnboardingStatus,
-} from "@/schemas/user/user-preferences.schema";
+  UpdateOnboardingStatus} from "@/schemas/user/user-preferences.schema";
 import { defaultLocale } from "@/types/i18n/translation";
 
 export const userPreferencesService = {
@@ -12,15 +11,13 @@ export const userPreferencesService = {
    */
   async getUserPreferences(userId: string): Promise<UserPreferences> {
     const user = await db.user.findUnique({
-      where: { id: userId },
+      where: { id },
       select: {
         locale: true,
         preferences: true,
         hasCompletedOnboarding: true,
         lastOnboardingStep: true,
-        onboardingCompletionDate: true,
-      },
-    });
+        onboardingCompletionDate: true}});
 
     if (!user) {
       return {
@@ -29,8 +26,7 @@ export const userPreferencesService = {
         currencyFormat: "EUR",
         hasCompletedOnboarding: false,
         lastOnboardingStep: 0,
-        tutorialSkipped: false,
-      };
+        tutorialSkipped: false};
     }
 
     const preferences = (user.preferences as Record<string, any>) || {};
@@ -43,8 +39,7 @@ export const userPreferencesService = {
       hasCompletedOnboarding: user.hasCompletedOnboarding || false,
       lastOnboardingStep: user.lastOnboardingStep || 0,
       onboardingCompletionDate: user.onboardingCompletionDate?.toISOString(),
-      tutorialSkipped: preferences.tutorialSkipped || false,
-    };
+      tutorialSkipped: preferences.tutorialSkipped || false};
   },
 
   /**
@@ -63,26 +58,21 @@ export const userPreferencesService = {
     } = data;
 
     const updatedUser = await db.user.update({
-      where: { id: userId },
+      where: { id },
       data: {
         ...(locale && { locale }),
         ...(hasCompletedOnboarding !== undefined && { hasCompletedOnboarding }),
         ...(lastOnboardingStep !== undefined && { lastOnboardingStep }),
         ...(onboardingCompletionDate !== undefined && {
-          onboardingCompletionDate: new Date(onboardingCompletionDate),
-        }),
+          onboardingCompletionDate: new Date(onboardingCompletionDate)}),
         preferences: {
-          ...(otherPreferences && otherPreferences),
-        },
-      },
+          ...(otherPreferences && otherPreferences)}},
       select: {
         locale: true,
         preferences: true,
         hasCompletedOnboarding: true,
         lastOnboardingStep: true,
-        onboardingCompletionDate: true,
-      },
-    });
+        onboardingCompletionDate: true}});
 
     const preferences = (updatedUser.preferences as Record<string, any>) || {};
 
@@ -95,8 +85,7 @@ export const userPreferencesService = {
       lastOnboardingStep: updatedUser.lastOnboardingStep || 0,
       onboardingCompletionDate:
         updatedUser.onboardingCompletionDate?.toISOString(),
-      tutorialSkipped: preferences.tutorialSkipped || false,
-    };
+      tutorialSkipped: preferences.tutorialSkipped || false};
   },
 
   /**
@@ -109,21 +98,18 @@ export const userPreferencesService = {
     tutorialSkipped: boolean;
   }> {
     const user = await db.user.findUnique({
-      where: { id: userId },
+      where: { id },
       select: {
         hasCompletedOnboarding: true,
         lastOnboardingStep: true,
         onboardingCompletionDate: true,
-        preferences: true,
-      },
-    });
+        preferences: true}});
 
     if (!user) {
       return {
         hasCompletedOnboarding: false,
         lastOnboardingStep: 0,
-        tutorialSkipped: false,
-      };
+        tutorialSkipped: false};
     }
 
     const preferences = (user.preferences as Record<string, any>) || {};
@@ -132,8 +118,7 @@ export const userPreferencesService = {
       hasCompletedOnboarding: user.hasCompletedOnboarding || false,
       lastOnboardingStep: user.lastOnboardingStep || 0,
       onboardingCompletionDate: user.onboardingCompletionDate?.toISOString(),
-      tutorialSkipped: preferences.tutorialSkipped || false,
-    };
+      tutorialSkipped: preferences.tutorialSkipped || false};
   },
 
   /**
@@ -152,8 +137,7 @@ export const userPreferencesService = {
       hasCompletedOnboarding,
       lastOnboardingStep,
       onboardingCompletionDate,
-      tutorialSkipped,
-    } = data;
+      tutorialSkipped} = data;
 
     // Préparer les données de mise à jour
     const updateData: any = {};
@@ -168,28 +152,24 @@ export const userPreferencesService = {
     const currentPreferences = {};
     if (tutorialSkipped !== undefined) {
       const user = await db.user.findUnique({
-        where: { id: userId },
-        select: { preferences: true },
-      });
+        where: { id },
+        select: { preferences }});
       currentPreferences = (user?.preferences as Record<string, any>) || {};
 
       // Mettre à jour les préférences
       updateData.preferences = {
         ...currentPreferences,
-        tutorialSkipped,
-      };
+        tutorialSkipped};
     }
 
     const updatedUser = await db.user.update({
-      where: { id: userId },
+      where: { id },
       data: updateData,
       select: {
         hasCompletedOnboarding: true,
         lastOnboardingStep: true,
         onboardingCompletionDate: true,
-        preferences: true,
-      },
-    });
+        preferences: true}});
 
     const preferences = (updatedUser.preferences as Record<string, any>) || {};
 
@@ -198,8 +178,7 @@ export const userPreferencesService = {
       lastOnboardingStep: updatedUser.lastOnboardingStep || 0,
       onboardingCompletionDate:
         updatedUser.onboardingCompletionDate?.toISOString(),
-      tutorialSkipped: preferences.tutorialSkipped || false,
-    };
+      tutorialSkipped: preferences.tutorialSkipped || false};
   },
 
   /**
@@ -212,36 +191,30 @@ export const userPreferencesService = {
   }> {
     // Récupérer les préférences actuelles pour mettre à jour uniquement tutorialSkipped
     const user = await db.user.findUnique({
-      where: { id: userId },
-      select: { preferences: true },
-    });
+      where: { id },
+      select: { preferences }});
     const currentPreferences = (user?.preferences as Record<string, any>) || {};
 
     const updatedUser = await db.user.update({
-      where: { id: userId },
+      where: { id },
       data: {
         hasCompletedOnboarding: false,
         lastOnboardingStep: 0,
         onboardingCompletionDate: null,
         preferences: {
           ...currentPreferences,
-          tutorialSkipped: false,
-        },
-      },
+          tutorialSkipped: false}},
       select: {
         hasCompletedOnboarding: true,
         lastOnboardingStep: true,
-        preferences: true,
-      },
-    });
+        preferences: true}});
 
     const preferences = (updatedUser.preferences as Record<string, any>) || {};
 
     return {
       hasCompletedOnboarding: updatedUser.hasCompletedOnboarding || false,
       lastOnboardingStep: updatedUser.lastOnboardingStep || 0,
-      tutorialSkipped: preferences.tutorialSkipped || false,
-    };
+      tutorialSkipped: preferences.tutorialSkipped || false};
   },
 
   /**
@@ -279,13 +252,11 @@ export const userPreferencesService = {
     };
   }> {
     const user = await db.user.findUnique({
-      where: { id: userId },
+      where: { id },
       select: {
         notificationPreferences: true,
         preferences: true,
-        locale: true,
-      },
-    });
+        locale: true}});
 
     if (!user) {
       // Retourner les préférences par défaut
@@ -307,15 +278,12 @@ export const userPreferencesService = {
           enabled: false,
           startTime: "22:00",
           endTime: "08:00",
-          timezone: "Europe/Paris",
-        },
+          timezone: "Europe/Paris"},
         frequency: {
           immediate: true,
           hourly: false,
           daily: false,
-          weekly: false,
-        },
-      };
+          weekly: false}};
     }
 
     const notifPrefs = (user.notificationPreferences as any) || {};
@@ -337,21 +305,17 @@ export const userPreferencesService = {
       notificationCategories: notifPrefs.notificationCategories || [
         "security",
         "payments",
-        "deliveries",
-      ],
+        "deliveries"],
       quietHours: notifPrefs.quietHours || {
         enabled: false,
         startTime: "22:00",
         endTime: "08:00",
-        timezone: generalPrefs.timeZone || "Europe/Paris",
-      },
+        timezone: generalPrefs.timeZone || "Europe/Paris"},
       frequency: notifPrefs.frequency || {
         immediate: true,
         hourly: false,
         daily: false,
-        weekly: false,
-      },
-    };
+        weekly: false}};
   },
 
   /**
@@ -390,9 +354,8 @@ export const userPreferencesService = {
     try {
       // Récupérer les préférences actuelles
       const currentUser = await db.user.findUnique({
-        where: { id: userId },
-        select: { notificationPreferences: true },
-      });
+        where: { id },
+        select: { notificationPreferences }});
 
       if (!currentUser) {
         throw new Error("Utilisateur non trouvé");
@@ -408,28 +371,22 @@ export const userPreferencesService = {
         quietHours: preferences.quietHours
           ? {
               ...currentPrefs.quietHours,
-              ...preferences.quietHours,
-            }
+              ...preferences.quietHours}
           : currentPrefs.quietHours,
         // S'assurer que la fréquence est correctement formatée
         frequency: preferences.frequency
           ? {
               ...currentPrefs.frequency,
-              ...preferences.frequency,
-            }
-          : currentPrefs.frequency,
-      };
+              ...preferences.frequency}
+          : currentPrefs.frequency};
 
       // Mettre à jour dans la base de données
       await db.user.update({
-        where: { id: userId },
-        data: {
-          notificationPreferences: updatedPrefs,
-        },
-      });
+        where: { id },
+        data: { notificationPreferences }});
 
       return true;
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la mise à jour des préférences de notification:",
         error,
@@ -498,7 +455,7 @@ export const userPreferencesService = {
         default:
           return true;
       }
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la vérification des permissions de notification:",
         error,
@@ -521,7 +478,7 @@ export const userPreferencesService = {
       const currentPrefs = await this.getNotificationPreferences(userId);
 
       await db.user.update({
-        where: { id: userId },
+        where: { id },
         data: {
           notificationPreferences: {
             ...currentPrefs,
@@ -532,26 +489,19 @@ export const userPreferencesService = {
               originalPrefs: {
                 emailNotifications: currentPrefs.emailNotifications,
                 pushNotifications: currentPrefs.pushNotifications,
-                smsNotifications: currentPrefs.smsNotifications,
-              },
-            },
-          },
-        },
-      });
+                smsNotifications: currentPrefs.smsNotifications}}}}});
 
       return {
         success: true,
-        unsnoozeAt,
-      };
-    } catch (_error) {
+        unsnoozeAt};
+    } catch (error) {
       console.error(
         "Erreur lors de la mise en pause des notifications:",
         error,
       );
       return {
         success: false,
-        unsnoozeAt: new Date(),
-      };
+        unsnoozeAt: new Date()};
     }
   },
 
@@ -561,9 +511,8 @@ export const userPreferencesService = {
   async unsnoozeNotifications(userId: string): Promise<boolean> {
     try {
       const currentUser = await db.user.findUnique({
-        where: { id: userId },
-        select: { notificationPreferences: true },
-      });
+        where: { id },
+        select: { notificationPreferences }});
 
       if (!currentUser) {
         return false;
@@ -575,25 +524,19 @@ export const userPreferencesService = {
         const originalPrefs = prefs.snoozed.originalPrefs || {};
 
         await db.user.update({
-          where: { id: userId },
+          where: { id },
           data: {
             notificationPreferences: {
               ...prefs,
               emailNotifications: originalPrefs.emailNotifications,
               pushNotifications: originalPrefs.pushNotifications,
               smsNotifications: originalPrefs.smsNotifications,
-              snoozed: {
-                enabled: false,
-              },
-            },
-          },
-        });
+              snoozed: { enabled }}}});
       }
 
       return true;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la réactivation des notifications:", error);
       return false;
     }
-  },
-};
+  }};

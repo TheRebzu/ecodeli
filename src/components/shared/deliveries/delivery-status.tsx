@@ -12,14 +12,12 @@ import {
   AlertTriangle,
   Timer,
   Loader2,
-  ShieldAlert,
-} from "lucide-react";
+  ShieldAlert} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 import { useDeliveryLiveTracking } from "@/hooks/features/use-delivery-tracking";
 import { useDeliveryStatusHistory } from "@/hooks/delivery/use-delivery-status";
 
@@ -45,81 +43,70 @@ export const STATUS_CONFIG = {
     borderColor: "border-slate-200",
     icon: Clock,
     label: "En attente",
-    description: "La livraison est en attente de prise en charge",
-  },
+    description: "La livraison est en attente de prise en charge"},
   [DeliveryStatusEnum.ACCEPTED]: {
     color: "text-blue-500",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-200",
     icon: Timer,
     label: "Acceptée",
-    description: "La livraison a été acceptée par un livreur",
-  },
+    description: "La livraison a été acceptée par un livreur"},
   [DeliveryStatusEnum.PICKED_UP]: {
     color: "text-amber-500",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-200",
     icon: Package,
     label: "Collectée",
-    description: "Le colis a été collecté par le livreur",
-  },
+    description: "Le colis a été collecté par le livreur"},
   [DeliveryStatusEnum.IN_TRANSIT]: {
     color: "text-indigo-500",
     bgColor: "bg-indigo-50",
     borderColor: "border-indigo-200",
     icon: Truck,
     label: "En transit",
-    description: "Le colis est en cours de livraison",
-  },
+    description: "Le colis est en cours de livraison"},
   [DeliveryStatusEnum.DELIVERED]: {
     color: "text-emerald-500",
     bgColor: "bg-emerald-50",
     borderColor: "border-emerald-200",
     icon: CheckCircle2,
     label: "Livrée",
-    description: "Le colis a été livré à destination",
-  },
+    description: "Le colis a été livré à destination"},
   [DeliveryStatusEnum.CONFIRMED]: {
     color: "text-green-600",
     bgColor: "bg-green-50",
     borderColor: "border-green-200",
     icon: CheckCircle2,
     label: "Confirmée",
-    description: "La livraison a été confirmée par le destinataire",
-  },
+    description: "La livraison a été confirmée par le destinataire"},
   [DeliveryStatusEnum.CANCELLED]: {
     color: "text-red-500",
     bgColor: "bg-red-50",
     borderColor: "border-red-200",
     icon: X,
     label: "Annulée",
-    description: "La livraison a été annulée",
-  },
+    description: "La livraison a été annulée"},
   [DeliveryStatusEnum.DISPUTED]: {
     color: "text-purple-500",
     bgColor: "bg-purple-50",
     borderColor: "border-purple-200",
     icon: ShieldAlert,
     label: "Litige",
-    description: "La livraison fait l'objet d'un litige",
-  },
+    description: "La livraison fait l'objet d'un litige"},
   PROBLEM: {
     color: "text-orange-500",
     bgColor: "bg-orange-50",
     borderColor: "border-orange-200",
     icon: AlertTriangle,
     label: "Problème",
-    description: "Un problème est survenu lors de la livraison",
-  },
+    description: "Un problème est survenu lors de la livraison"},
   UNKNOWN: {
     color: "text-gray-500",
     bgColor: "bg-gray-50",
     borderColor: "border-gray-200",
     icon: Loader2,
     label: "Inconnu",
-    description: "Le statut de la livraison est inconnu",
-  },
-};
+    description: "Le statut de la livraison est inconnu"}};
 
 // Formatage relatif du temps écoulé
 const getRelativeTime = (date: Date | string) => {
@@ -140,8 +127,7 @@ const getRelativeTime = (date: Date | string) => {
   return past.toLocaleDateString();
 };
 
-const DeliveryStatusIndicator: React.FC<DeliveryStatusProps> = ({
-  deliveryId,
+const DeliveryStatusIndicator: React.FC<DeliveryStatusProps> = ({ deliveryId,
   status,
   updatedAt,
   variant = "default",
@@ -151,8 +137,7 @@ const DeliveryStatusIndicator: React.FC<DeliveryStatusProps> = ({
   hideTooltip = false,
   size = "md",
   showTimestamp = false,
-  isLoading: externalLoading,
-}) => {
+  isLoading: externalLoading }) => {
   // Si deliveryId est fourni, on utilise le hook pour obtenir le statut en temps réel
   const { deliveryInfo, isLoading: trackingLoading } = deliveryId
     ? useDeliveryLiveTracking(deliveryId)
@@ -191,8 +176,7 @@ const DeliveryStatusIndicator: React.FC<DeliveryStatusProps> = ({
           {
             "gap-1.5": size === "sm",
             "gap-2": size === "md",
-            "gap-3": size === "lg",
-          },
+            "gap-3": size === "lg"},
           className,
         )}
       >
@@ -201,8 +185,7 @@ const DeliveryStatusIndicator: React.FC<DeliveryStatusProps> = ({
             className={cn("animate-spin text-slate-400", {
               "h-3 w-3": size === "sm",
               "h-4 w-4": size === "md",
-              "h-5 w-5": size === "lg",
-            })}
+              "h-5 w-5": size === "lg"})}
           />
         )}
         {!hideLabel && (
@@ -230,8 +213,7 @@ const DeliveryStatusIndicator: React.FC<DeliveryStatusProps> = ({
                 {
                   "gap-1.5": size === "sm",
                   "gap-2": size === "md",
-                  "gap-3": size === "lg",
-                },
+                  "gap-3": size === "lg"},
                 className,
               )}
             >
@@ -240,8 +222,7 @@ const DeliveryStatusIndicator: React.FC<DeliveryStatusProps> = ({
                   className={cn(config.color, {
                     "h-3 w-3": size === "sm",
                     "h-4 w-4": size === "md",
-                    "h-5 w-5": size === "lg",
-                  })}
+                    "h-5 w-5": size === "lg"})}
                 />
               )}
               {!hideLabel && (
@@ -276,8 +257,7 @@ const DeliveryStatusIndicator: React.FC<DeliveryStatusProps> = ({
         {
           "gap-1.5": size === "sm",
           "gap-2": size === "md",
-          "gap-3": size === "lg",
-        },
+          "gap-3": size === "lg"},
         className,
       )}
     >
@@ -286,8 +266,7 @@ const DeliveryStatusIndicator: React.FC<DeliveryStatusProps> = ({
           className={cn(config.color, {
             "h-3 w-3": size === "sm",
             "h-4 w-4": size === "md",
-            "h-5 w-5": size === "lg",
-          })}
+            "h-5 w-5": size === "lg"})}
         />
       )}
       {!hideLabel && (

@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,15 +17,13 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calculator,
@@ -42,8 +39,7 @@ import {
   FileText,
   Euro,
   ArrowUpRight,
-  ArrowDownRight,
-} from "lucide-react";
+  ArrowDownRight} from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 interface FinancialData {
@@ -72,18 +68,15 @@ export default function AccountingPage() {
 
   // Récupérer les données financières via tRPC
   const { data: financialData, isLoading } =
-    api.admin.financial.getStats.useQuery({
-      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Début du mois
+    api.admin.financial.getStats.useQuery({ startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Début du mois
       endDate: new Date(), // Aujourd'hui
-    });
+     });
 
   // Récupérer les transactions via tRPC
-  const { data: transactionsData } =
-    api.admin.financial.getTransactions.useQuery({
-      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  const { data } =
+    api.admin.financial.getTransactions.useQuery({ startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
       endDate: new Date(),
-      limit: 50,
-    });
+      limit: 50 });
 
   const financialSummary: FinancialData = financialData || {
     revenue: 0,
@@ -93,9 +86,7 @@ export default function AccountingPage() {
     taxes: 0,
     period: new Date().toLocaleDateString("fr-FR", {
       month: "long",
-      year: "numeric",
-    }),
-  };
+      year: "numeric"})};
 
   const transactions: Transaction[] = transactionsData?.transactions || [
     {
@@ -106,8 +97,7 @@ export default function AccountingPage() {
       description: "Commission sur livraisons",
       amount: 1250.0,
       status: "COMPLETED",
-      reference: "COM-2024-001",
-    },
+      reference: "COM-2024-001"},
     {
       id: "2",
       date: new Date("2024-01-13"),
@@ -116,8 +106,7 @@ export default function AccountingPage() {
       description: "Serveurs AWS",
       amount: 890.5,
       status: "COMPLETED",
-      reference: "AWS-2024-001",
-    },
+      reference: "AWS-2024-001"},
     {
       id: "3",
       date: new Date("2024-01-12"),
@@ -126,8 +115,7 @@ export default function AccountingPage() {
       description: "Abonnements premium",
       amount: 2340.0,
       status: "COMPLETED",
-      reference: "SUB-2024-001",
-    },
+      reference: "SUB-2024-001"},
     {
       id: "4",
       date: new Date("2024-01-11"),
@@ -136,8 +124,7 @@ export default function AccountingPage() {
       description: "Campagne publicitaire",
       amount: 1500.0,
       status: "PENDING",
-      reference: "MKT-2024-001",
-    },
+      reference: "MKT-2024-001"},
     {
       id: "5",
       date: new Date("2024-01-10"),
@@ -146,24 +133,12 @@ export default function AccountingPage() {
       description: "Salaires équipe",
       amount: 15000.0,
       status: "COMPLETED",
-      reference: "SAL-2024-001",
-    },
-  ];
-
-  const monthlyData = [
-    { month: "Jan", revenue: 125430, expenses: 78920, profit: 46510 },
-    { month: "Fév", revenue: 134200, expenses: 82100, profit: 52100 },
-    { month: "Mar", revenue: 142800, expenses: 85600, profit: 57200 },
-    { month: "Avr", revenue: 138900, expenses: 83400, profit: 55500 },
-    { month: "Mai", revenue: 156700, expenses: 89200, profit: 67500 },
-    { month: "Jun", revenue: 148300, expenses: 87100, profit: 61200 },
-  ];
+      reference: "SAL-2024-001"}];
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const getTransactionTypeIcon = (type: "INCOME" | "EXPENSE") => {

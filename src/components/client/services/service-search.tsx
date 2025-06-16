@@ -42,8 +42,7 @@ export function ServiceList() {
     handlePageChange,
     handleSearch,
     handleSortChange,
-    updateFilters,
-  } = useSearchServices();
+    updateFilters} = useSearchServices();
 
   // Fonction pour basculer l'affichage des filtres
   const toggleFilters = () => {
@@ -79,7 +78,7 @@ export function ServiceList() {
           {isLoading ? (
             /* Affichage du loading state */
             <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, index) => (
+              {Array.from({ length: 3  }).map((_, index) => (
                 <Card key={index}>
                   <CardContent className="p-0">
                     <div className="p-6 space-y-4">

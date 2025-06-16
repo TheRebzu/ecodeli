@@ -11,8 +11,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -54,8 +53,7 @@ export function ServiceFilters({
   onEmergencyChange,
   onEquipmentChange,
   onReset,
-  categories,
-}: ServiceFiltersProps) {
+  categories}: ServiceFiltersProps) {
   const t = useTranslations("providerServices");
 
   return (

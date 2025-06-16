@@ -6,8 +6,7 @@ import {
   CreateAnnouncementInput,
   UpdateAnnouncementInput,
   Announcement,
-  GeoSearchParams,
-} from "@/types/announcements/announcement";
+  GeoSearchParams} from "@/types/announcements/announcement";
 import { Prisma } from "@prisma/client";
 import { AuditService } from "@/server/services/admin/audit.service";
 
@@ -60,8 +59,7 @@ export const AnnouncementService = {
       limit = 10,
       offset = 0,
       sortBy = "createdAt",
-      sortOrder = "desc",
-    } = filters;
+      sortOrder = "desc"} = filters;
 
     // Construction de la requête avec conditions
     const where: any = {};
@@ -123,15 +121,12 @@ export const AnnouncementService = {
         { title: { contains: keyword, mode: "insensitive" } },
         { description: { contains: keyword, mode: "insensitive" } },
         { pickupAddress: { contains: keyword, mode: "insensitive" } },
-        { deliveryAddress: { contains: keyword, mode: "insensitive" } },
-      ];
+        { deliveryAddress: { contains: keyword, mode: "insensitive" } }];
     }
 
     // Filtre par tags
     if (tags && tags.length > 0) {
-      where.tags = {
-        hasSome: tags,
-      };
+      where.tags = { hasSome };
     }
 
     // Exécution de la requête
@@ -146,37 +141,25 @@ export const AnnouncementService = {
                 id: true,
                 name: true,
                 email: true,
-                image: true,
-              },
-            },
+                image: true}},
             deliverer: {
               select: {
                 id: true,
                 name: true,
                 email: true,
-                image: true,
-              },
-            },
+                image: true}},
             applications: {
               include: {
                 deliverer: {
                   select: {
                     id: true,
                     name: true,
-                    image: true,
-                  },
-                },
-              },
-            },
-          },
+                    image: true}}}}},
           orderBy: {
-            [sortBy]: sortOrder,
-          },
+            [sortBy]: sortOrder},
           skip: offset,
-          take: limit,
-        }),
-        db.announcement.count({ where }),
-      ]);
+          take: limit}),
+        db.announcement.count({ where  })]);
 
       // Formater les annonces pour le client
       const formattedAnnouncements = announcements.map((announcement: any) => ({
@@ -187,11 +170,8 @@ export const AnnouncementService = {
             ? {
                 id: app.deliverer.id,
                 name: app.deliverer.name,
-                image: app.deliverer.image,
-              }
-            : null,
-        })),
-      }));
+                image: app.deliverer.image}
+            : null}))}));
 
       return {
         announcements: formattedAnnouncements,
@@ -199,10 +179,8 @@ export const AnnouncementService = {
         pagination: {
           limit,
           offset,
-          hasMore: offset + announcements.length < totalCount,
-        },
-      };
-    } catch (_error) {
+          hasMore: offset + announcements.length < totalCount}};
+    } catch (error) {
       console.error("Erreur lors de la récupération des annonces:", error);
       throw new Error("Erreur lors de la récupération des annonces");
     }
@@ -221,30 +199,20 @@ export const AnnouncementService = {
               id: true,
               name: true,
               email: true,
-              image: true,
-            },
-          },
+              image: true}},
           deliverer: {
             select: {
               id: true,
               name: true,
               email: true,
-              image: true,
-            },
-          },
+              image: true}},
           applications: {
             include: {
               deliverer: {
                 select: {
                   id: true,
                   name: true,
-                  image: true,
-                },
-              },
-            },
-          },
-        },
-      });
+                  image: true}}}}}});
 
       if (!announcement) {
         throw new Error("Annonce non trouvée");
@@ -254,9 +222,7 @@ export const AnnouncementService = {
       await db.announcement.update({
         where: { id },
         data: {
-          viewCount: { increment: 1 },
-        },
-      });
+          viewCount: { increment: 1 }}});
 
       // Convertir le modèle Prisma en type Announcement
       const formattedAnnouncement = {
@@ -267,14 +233,11 @@ export const AnnouncementService = {
             ? {
                 id: app.deliverer.id,
                 name: app.deliverer.name,
-                image: app.deliverer.image,
-              }
-            : null,
-        })),
-      } as unknown as Announcement;
+                image: app.deliverer.image}
+            : null}))} as unknown as Announcement;
 
       return formattedAnnouncement;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la récupération de l'annonce:", error);
       throw new Error("Erreur lors de la récupération de l'annonce");
     }
@@ -309,15 +272,13 @@ export const AnnouncementService = {
       suggestedPrice,
       isNegotiable = true,
       tags = [],
-      notes,
-    } = data;
+      notes} = data;
 
     try {
       // Vérifier si l'utilisateur est un client
       const user = await db.user.findUnique({
-        where: { id: clientId },
-        include: { client: true },
-      });
+        where: { id },
+        include: { client }});
 
       if (!user || !user.client) {
         throw new Error("Seuls les clients peuvent créer des annonces");
@@ -353,12 +314,9 @@ export const AnnouncementService = {
           tags: tags || [],
           notes,
           client: {
-            connect: { id: clientId },
-          },
+            connect: { id }},
           viewCount: 0,
-          applicationsCount: 0,
-        },
-      });
+          applicationsCount: 0}});
 
       // Récupérer l'annonce créée avec ses relations
       const announcement = await this.getById(newAnnouncement.id);
@@ -374,7 +332,7 @@ export const AnnouncementService = {
       );
 
       return announcement;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la création de l'annonce:", error);
       throw new Error("Erreur lors de la création de l'annonce");
     }
@@ -408,13 +366,12 @@ export const AnnouncementService = {
       }
 
       // Exclure l'ID de l'objet de mise à jour
-      const { id: _idToIgnore, ...updateData } = data;
+      const { id: idToIgnore, ...updateData } = data;
 
       // Mettre à jour l'annonce
       await db.announcement.update({
         where: { id },
-        data: updateData as any,
-      });
+        data: updateData as any});
 
       // Récupérer l'annonce mise à jour
       const updatedAnnouncement = await this.getById(id);
@@ -430,7 +387,7 @@ export const AnnouncementService = {
       );
 
       return updatedAnnouncement;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la mise à jour de l'annonce:", error);
       throw new Error("Erreur lors de la mise à jour de l'annonce");
     }
@@ -450,9 +407,8 @@ export const AnnouncementService = {
 
       // Vérifier l'autorisation (seul le client propriétaire ou un admin peut supprimer)
       const user = await db.user.findUnique({
-        where: { id: userId },
-        include: { admin: true },
-      });
+        where: { id },
+        include: { admin }});
 
       if (announcement.clientId !== userId && !user?.admin) {
         throw new Error("Vous n'êtes pas autorisé à supprimer cette annonce");
@@ -460,7 +416,7 @@ export const AnnouncementService = {
 
       // Vérifier si l'annonce est supprimable
       if (
-        announcement.status === AnnouncementStatus.IN_PROGRESS ||
+        announcement.status === AnnouncementStatus.INPROGRESS ||
         announcement.status === AnnouncementStatus.ASSIGNED
       ) {
         throw new Error("Une annonce en cours ne peut pas être supprimée");
@@ -480,17 +436,15 @@ export const AnnouncementService = {
       await db.$transaction(async (tx: any) => {
         // Supprimer d'abord les candidatures associées
         await tx.deliveryApplication.deleteMany({
-          where: { announcementId: id },
-        });
+          where: { announcementId }});
 
         // Supprimer l'annonce
         await tx.announcement.delete({
-          where: { id },
-        });
+          where: { id }});
       });
 
       return { success: true, message: "Annonce supprimée avec succès" };
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la suppression de l'annonce:", error);
       throw new Error("Erreur lors de la suppression de l'annonce");
     }
@@ -522,9 +476,8 @@ export const AnnouncementService = {
 
       // Vérifier si l'utilisateur est un livreur
       const user = await db.user.findUnique({
-        where: { id: delivererId },
-        include: { deliverer: true },
-      });
+        where: { id },
+        include: { deliverer }});
 
       if (!user || !user.deliverer) {
         throw new Error("Seuls les livreurs peuvent postuler aux annonces");
@@ -534,9 +487,7 @@ export const AnnouncementService = {
       const existingApplication = await db.deliveryApplication.findFirst({
         where: {
           announcementId,
-          delivererId,
-        },
-      });
+          delivererId}});
 
       if (existingApplication) {
         throw new Error("Vous avez déjà postulé pour cette annonce");
@@ -550,22 +501,17 @@ export const AnnouncementService = {
             delivererId,
             proposedPrice: data.proposedPrice,
             message: data.message,
-            status: "PENDING",
-          },
+            status: "PENDING"},
           include: {
             announcement: true,
-            deliverer: true,
-          },
-        });
+            deliverer: true}});
 
         // Mettre à jour le compteur de candidatures
         await tx.announcement.update({
-          where: { id: announcementId },
+          where: { id },
           data: {
             applicationsCount: { increment: 1 },
-            updatedAt: new Date(),
-          },
-        });
+            updatedAt: new Date()}});
 
         return app;
       });
@@ -581,7 +527,7 @@ export const AnnouncementService = {
       );
 
       return application;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la candidature:", error);
       throw new Error("Erreur lors de la candidature");
     }
@@ -598,9 +544,8 @@ export const AnnouncementService = {
     try {
       // Récupérer la candidature
       const application = await db.deliveryApplication.findUnique({
-        where: { id: applicationId },
-        include: { announcement: true },
-      });
+        where: { id },
+        include: { announcement }});
 
       if (!application) {
         throw new Error("Candidature non trouvée");
@@ -617,13 +562,11 @@ export const AnnouncementService = {
       const updatedApplication = await db.$transaction(async (tx: any) => {
         // Mettre à jour le statut de la candidature
         const updated = await tx.deliveryApplication.update({
-          where: { id: applicationId },
+          where: { id },
           data: { status },
           include: {
             announcement: true,
-            deliverer: true,
-          },
-        });
+            deliverer: true}});
 
         // Si la candidature est acceptée
         if (status === "ACCEPTED") {
@@ -633,21 +576,16 @@ export const AnnouncementService = {
             data: {
               status: AnnouncementStatus.ASSIGNED,
               delivererId: application.delivererId,
-              updatedAt: new Date(),
-            },
-          });
+              updatedAt: new Date()}});
 
           // Refuser automatiquement les autres candidatures
           await tx.deliveryApplication.updateMany({
             where: {
               announcementId: application.announcementId,
-              id: { not: applicationId },
-            },
+              id: { not }},
             data: {
               status: "REJECTED",
-              updatedAt: new Date(),
-            },
-          });
+              updatedAt: new Date()}});
         }
 
         return updated;
@@ -676,7 +614,7 @@ export const AnnouncementService = {
       }
 
       return updatedApplication;
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la mise à jour du statut de la candidature:",
         error,
@@ -719,9 +657,7 @@ export const AnnouncementService = {
         where: { id },
         data: {
           status: AnnouncementStatus.PUBLISHED,
-          updatedAt: new Date(),
-        },
-      });
+          updatedAt: new Date()}});
 
       // Récupérer l'annonce mise à jour
       const updatedAnnouncement = await this.getById(id);
@@ -737,7 +673,7 @@ export const AnnouncementService = {
       );
 
       return updatedAnnouncement;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la publication de l'annonce:", error);
       throw new Error("Erreur lors de la publication de l'annonce");
     }
@@ -766,7 +702,7 @@ export const AnnouncementService = {
       }
 
       // Vérifier si l'annonce est en cours
-      if (announcement.status !== AnnouncementStatus.IN_PROGRESS) {
+      if (announcement.status !== AnnouncementStatus.INPROGRESS) {
         throw new Error(
           "Seules les annonces en cours peuvent être marquées comme complétées",
         );
@@ -777,9 +713,7 @@ export const AnnouncementService = {
         where: { id },
         data: {
           status: AnnouncementStatus.COMPLETED,
-          updatedAt: new Date(),
-        },
-      });
+          updatedAt: new Date()}});
 
       // Récupérer l'annonce mise à jour
       const updatedAnnouncement = await this.getById(id);
@@ -795,7 +729,7 @@ export const AnnouncementService = {
       );
 
       return updatedAnnouncement;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la complétion de l'annonce:", error);
       throw new Error("Erreur lors de la complétion de l'annonce");
     }
@@ -806,33 +740,27 @@ export const AnnouncementService = {
    */
   async findNearby(params: GeoSearchParams) {
     const {
-      latitude: _latitude,
-      longitude: _longitude,
-      radiusKm: _radiusKm,
+      latitude: latitude,
+      longitude: longitude,
+      radiusKm: radiusKm,
       limit = 10,
-      offset = 0,
-    } = params;
+      offset = 0} = params;
 
     try {
       // Récupérer toutes les annonces avec coordonnées
       const announcements = await db.announcement.findMany({
         where: {
           status: AnnouncementStatus.PUBLISHED,
-          pickupLatitude: { not: null },
-          pickupLongitude: { not: null },
-          deliveryLatitude: { not: null },
-          deliveryLongitude: { not: null },
-        },
+          pickupLatitude: { not },
+          pickupLongitude: { not },
+          deliveryLatitude: { not },
+          deliveryLongitude: { not }},
         include: {
           client: {
             select: {
               id: true,
               name: true,
-              image: true,
-            },
-          },
-        },
-      });
+              image: true}}}});
 
       // Calculer la distance pour chaque annonce et filtrer
       const nearbyAnnouncements = announcements
@@ -858,8 +786,7 @@ export const AnnouncementService = {
 
           return {
             ...announcement,
-            distance,
-          };
+            distance};
         })
         .filter((announcement: any) => announcement.distance <= radiusKm)
         .sort((a: any, b: any) => a.distance - b.distance)
@@ -873,10 +800,8 @@ export const AnnouncementService = {
         pagination: {
           limit,
           offset,
-          hasMore: offset + nearbyAnnouncements.length < totalCount,
-        },
-      };
-    } catch (_error) {
+          hasMore: offset + nearbyAnnouncements.length < totalCount}};
+    } catch (error) {
       console.error(
         "Erreur lors de la recherche d'annonces à proximité:",
         error,
@@ -892,8 +817,7 @@ export const AnnouncementService = {
     try {
       // Récupérer les informations du livreur
       const deliverer = await db.deliverer.findUnique({
-        where: { userId: delivererId },
-      });
+        where: { userId }});
 
       if (!deliverer) {
         throw new Error("Livreur non trouvé");
@@ -907,41 +831,30 @@ export const AnnouncementService = {
             in: [
               AnnouncementStatus.ASSIGNED,
               AnnouncementStatus.IN_PROGRESS,
-              AnnouncementStatus.COMPLETED,
-            ],
-          },
-        },
+              AnnouncementStatus.COMPLETED]}},
         take: 10,
-        orderBy: { updatedAt: "desc" },
-      });
+        orderBy: { updatedAt: "desc" }});
 
       // Si le livreur n'a pas encore d'historique, retourner les annonces les plus récentes
       if (delivererAnnouncements.length === 0) {
         return await db.announcement.findMany({
           where: {
-            status: AnnouncementStatus.PUBLISHED,
-          },
+            status: AnnouncementStatus.PUBLISHED},
           include: {
             client: {
               select: {
                 id: true,
                 name: true,
-                image: true,
-              },
-            },
-          },
+                image: true}}},
           take: 10,
-          orderBy: { createdAt: "desc" },
-        });
+          orderBy: { createdAt: "desc" }});
       }
 
       // Extraire les coordonnées des itinéraires précédents
-      const routes = delivererAnnouncements.map((ann) => ({
-        pickupLat: ann.pickupLatitude,
+      const routes = delivererAnnouncements.map((ann) => ({ pickupLat: ann.pickupLatitude,
         pickupLng: ann.pickupLongitude,
         deliveryLat: ann.deliveryLatitude,
-        deliveryLng: ann.deliveryLongitude,
-      }));
+        deliveryLng: ann.deliveryLongitude }));
 
       // Calculer le centre approximatif des itinéraires précédents
       const avgCoordinates = routes.reduce(
@@ -965,33 +878,26 @@ export const AnnouncementService = {
       if (avgCoordinates.count === 0) {
         return await db.announcement.findMany({
           where: {
-            status: AnnouncementStatus.PUBLISHED,
-          },
+            status: AnnouncementStatus.PUBLISHED},
           include: {
             client: {
               select: {
                 id: true,
                 name: true,
-                image: true,
-              },
-            },
-          },
+                image: true}}},
           take: 10,
-          orderBy: { createdAt: "desc" },
-        });
+          orderBy: { createdAt: "desc" }});
       }
 
       const centerLat = avgCoordinates.lat / avgCoordinates.count;
       const centerLng = avgCoordinates.lng / avgCoordinates.count;
 
       // Chercher des annonces dans un rayon de 20km du centre
-      return await this.findNearby({
-        latitude: centerLat,
+      return await this.findNearby({ latitude: centerLat,
         longitude: centerLng,
         radiusKm: 20,
-        limit: 10,
-      });
-    } catch (_error) {
+        limit: 10 });
+    } catch (error) {
       console.error(
         "Erreur lors de la suggestion d'annonces pour le livreur:",
         error,
@@ -1006,12 +912,11 @@ export const AnnouncementService = {
   async toggleFavorite(
     id: string,
     delivererId: string,
-  ): Promise<{ isFavorite: boolean }> {
+  ): Promise<{ isFavorite }> {
     try {
       // Vérifier que l'annonce existe
       const announcement = await db.announcement.findUnique({
-        where: { id },
-      });
+        where: { id }});
 
       if (!announcement) {
         throw new Error("Annonce non trouvée");
@@ -1022,30 +927,23 @@ export const AnnouncementService = {
         where: {
           delivererId_announcementId: {
             delivererId,
-            announcementId: id,
-          },
-        },
-      });
+            announcementId: id}}});
 
       if (existingFavorite) {
         // Supprimer des favoris
         await db.delivererFavorite.delete({
           where: {
-            id: existingFavorite.id,
-          },
-        });
-        return { isFavorite: false };
+            id: existingFavorite.id}});
+        return { isFavorite };
       } else {
         // Ajouter aux favoris
         await db.delivererFavorite.create({
           data: {
             delivererId,
-            announcementId: id,
-          },
-        });
-        return { isFavorite: true };
+            announcementId: id}});
+        return { isFavorite };
       }
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la modification des favoris:", error);
       throw new Error("Erreur lors de la modification des favoris");
     }
@@ -1065,19 +963,11 @@ export const AnnouncementService = {
                 select: {
                   id: true,
                   name: true,
-                  image: true,
-                },
-              },
-            },
-          },
-        },
-      });
+                  image: true}}}}}});
 
-      return favorites.map((fav) => ({
-        ...fav.announcement,
-        isFavorite: true,
-      }));
-    } catch (_error) {
+      return favorites.map((fav) => ({ ...fav.announcement,
+        isFavorite: true }));
+    } catch (error) {
       console.error("Erreur lors de la récupération des favoris:", error);
       throw new Error("Erreur lors de la récupération des favoris");
     }
@@ -1096,9 +986,7 @@ export const AnnouncementService = {
       const announcement = await db.announcement.findFirst({
         where: {
           id: announcementId,
-          clientId,
-        },
-      });
+          clientId}});
 
       if (!announcement) {
         throw new Error(
@@ -1108,8 +996,7 @@ export const AnnouncementService = {
 
       // Vérifier que l'application existe
       const application = await db.deliveryApplication.findUnique({
-        where: { id: applicationId },
-      });
+        where: { id }});
 
       if (!application || application.announcementId !== announcementId) {
         throw new Error("Candidature non trouvée ou invalide");
@@ -1117,32 +1004,25 @@ export const AnnouncementService = {
 
       // Mettre à jour le statut de l'annonce et assigner le livreur
       await db.announcement.update({
-        where: { id: announcementId },
+        where: { id },
         data: {
           status: AnnouncementStatus.ASSIGNED,
           delivererId: application.delivererId,
-          finalPrice: application.proposedPrice,
-        },
-      });
+          finalPrice: application.proposedPrice}});
 
       // Mettre à jour le statut de l'application
       await db.deliveryApplication.update({
-        where: { id: applicationId },
+        where: { id },
         data: {
-          status: "ACCEPTED",
-        },
-      });
+          status: "ACCEPTED"}});
 
       // Refuser automatiquement toutes les autres applications
       await db.deliveryApplication.updateMany({
         where: {
           announcementId,
-          id: { not: applicationId },
-        },
+          id: { not }},
         data: {
-          status: "REJECTED",
-        },
-      });
+          status: "REJECTED"}});
 
       // Créer une notification pour le livreur
       await db.notification.create({
@@ -1153,10 +1033,7 @@ export const AnnouncementService = {
           type: "ANNOUNCEMENT",
           read: false,
           metadata: {
-            announcementId,
-          },
-        },
-      });
+            announcementId}}});
 
       // Journaliser l'action
       await AuditService.log({
@@ -1165,15 +1042,12 @@ export const AnnouncementService = {
         details: {
           announcementId,
           applicationId,
-          delivererId: application.delivererId,
-        },
-      });
+          delivererId: application.delivererId}});
 
       return {
         success: true,
-        message: "Proposition acceptée avec succès",
-      };
-    } catch (_error) {
+        message: "Proposition acceptée avec succès"};
+    } catch (error) {
       console.error("Erreur lors de l'acceptation de la proposition:", error);
       throw new Error("Erreur lors de l'acceptation de la proposition");
     }
@@ -1194,8 +1068,7 @@ export const AnnouncementService = {
     try {
       // Vérifier que l'annonce existe
       const announcement = await db.announcement.findUnique({
-        where: { id },
-      });
+        where: { id }});
 
       if (!announcement) {
         throw new Error("Annonce non trouvée");
@@ -1204,8 +1077,7 @@ export const AnnouncementService = {
       // Mettre à jour les coordonnées
       await db.announcement.update({
         where: { id },
-        data,
-      });
+        data});
 
       // Si toutes les coordonnées sont fournies, calculer la distance estimée
       if (
@@ -1228,13 +1100,11 @@ export const AnnouncementService = {
           where: { id },
           data: {
             estimatedDistance: distance,
-            estimatedDuration: durationMinutes,
-          },
-        });
+            estimatedDuration: durationMinutes}});
       }
 
-      return { success: true };
-    } catch (_error) {
+      return { success };
+    } catch (error) {
       console.error(
         "Erreur lors de la mise à jour des coordonnées GPS:",
         error,
@@ -1262,13 +1132,11 @@ export const AnnouncementService = {
         availableOnly = true,
         minRating = 0,
         sortBy = "distance",
-        maxResults = 20,
-      } = filters;
+        maxResults = 20} = filters;
 
       // Récupérer l'annonce avec ses coordonnées
       const announcement = await db.announcement.findUnique({
-        where: { id: announcementId },
-      });
+        where: { id }});
 
       if (!announcement) {
         throw new Error("Annonce non trouvée");
@@ -1287,9 +1155,7 @@ export const AnnouncementService = {
         },
         user: {
           isActive: true,
-          isEmailVerified: true,
-        },
-      };
+          isEmailVerified: true}};
 
       // Filtrer par disponibilité si requis
       if (availableOnly) {
@@ -1305,38 +1171,24 @@ export const AnnouncementService = {
               id: true,
               name: true,
               email: true,
-              image: true,
-            },
-          },
+              image: true}},
           verification: true,
           // Inclure les évaluations pour calculer la note moyenne
           receivedRatings: {
-            select: {
-              rating: true,
-            },
-          },
+            select: { rating }},
           // Historique des livraisons pour calculer l'expérience
           assignedAnnouncements: {
             where: {
-              status: "COMPLETED",
-            },
+              status: "COMPLETED"},
             select: {
               id: true,
               type: true,
-              completedAt: true,
-            },
-          },
+              completedAt: true}},
           // Applications en cours pour vérifier la charge de travail
           applications: {
             where: {
-              status: "PENDING",
-            },
-            select: {
-              id: true,
-            },
-          },
-        },
-      });
+              status: "PENDING"},
+            select: { id }}}});
 
       // Calculer le score et les métriques pour chaque livreur
       const scoredDeliverers = deliverers
@@ -1466,8 +1318,7 @@ export const AnnouncementService = {
           maxDistance,
           availableOnly,
           minRating,
-          sortBy,
-        },
+          sortBy},
         matchingStats: {
           averageDistance:
             finalResults.reduce(
@@ -1483,10 +1334,8 @@ export const AnnouncementService = {
             finalResults.reduce(
               (sum: number, d: any) => sum + d.experienceCount,
               0,
-            ) / finalResults.length,
-        },
-      };
-    } catch (_error) {
+            ) / finalResults.length}};
+    } catch (error) {
       console.error(
         "Erreur lors de la recherche de livreurs compatibles:",
         error,
@@ -1510,18 +1359,15 @@ export const AnnouncementService = {
       const {
         maxDeliverers = 10,
         onlyTopMatches = true,
-        minCompatibilityScore = 60,
-      } = options;
+        minCompatibilityScore = 60} = options;
 
       // Trouver les livreurs compatibles
       const matchingResult = await this.findMatchingDeliverers(announcementId, {
         maxResults: onlyTopMatches ? maxDeliverers : 50,
-        sortBy: "distance",
-      });
+        sortBy: "distance"});
 
       const announcement = await db.announcement.findUnique({
-        where: { id: announcementId },
-      });
+        where: { id }});
 
       if (!announcement) {
         throw new Error("Annonce non trouvée");
@@ -1546,14 +1392,10 @@ export const AnnouncementService = {
           announcementId,
           compatibilityScore: deliverer.compatibilityScore,
           distance: deliverer.distance,
-          estimatedEarnings: announcement.suggestedPrice,
-        },
-      }));
+          estimatedEarnings: announcement.suggestedPrice}}));
 
       if (notifications.length > 0) {
-        await db.notification.createMany({
-          data: notifications,
-        });
+        await db.notification.createMany({ data  });
       }
 
       // Journaliser l'action
@@ -1566,22 +1408,18 @@ export const AnnouncementService = {
         {
           notifiedCount: notifications.length,
           totalMatches: matchingResult.totalMatches,
-          minCompatibilityScore,
-        },
+          minCompatibilityScore},
       );
 
       return {
         success: true,
         notifiedDeliverers: notifications.length,
         totalMatches: matchingResult.totalMatches,
-        eligibleDeliverers: eligibleDeliverers.map((d: any) => ({
-          id: d.id,
+        eligibleDeliverers: eligibleDeliverers.map((d: any) => ({ id: d.id,
           name: d.user.name,
           compatibilityScore: d.compatibilityScore,
-          distance: d.distance,
-        })),
-      };
-    } catch (_error) {
+          distance: d.distance }))};
+    } catch (error) {
       console.error("Erreur lors de la notification des livreurs:", error);
       throw new Error("Erreur lors de la notification des livreurs");
     }
@@ -1621,30 +1459,19 @@ export const AnnouncementService = {
         where: {
           type: announcementData.type,
           status: "COMPLETED",
-          finalPrice: { not: null },
+          finalPrice: { not },
           completedAt: {
             gte: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000), // 3 mois
-          },
-        },
+          }},
         select: {
           finalPrice: true,
           estimatedDistance: true,
           weight: true,
-          priority: true,
-        },
-      });
+          priority: true}});
 
       if (similarAnnouncements.length === 0) {
         // Prix de base par défaut selon le type
-        const basePrices: Record<string, number> = {
-          PACKAGE_DELIVERY: 8,
-          GROCERY_SHOPPING: 12,
-          PERSON_TRANSPORT: 15,
-          AIRPORT_TRANSFER: 25,
-          FOREIGN_PURCHASE: 20,
-          PET_CARE: 18,
-          HOME_SERVICES: 25,
-        };
+        const basePrices: Record<string, number> = { PACKAGE_DELIVERY: 8, GROCERY_SHOPPING: 12, PERSON_TRANSPORT: 15, AIRPORT_TRANSFER: 25, FOREIGN_PURCHASE: 20, PET_CARE: 18, HOME_SERVICES: 25};
 
         const basePrice = basePrices[announcementData.type] || 10;
         const distancePrice = distance * 0.8; // 0.8€ par km
@@ -1666,17 +1493,14 @@ export const AnnouncementService = {
           suggestedPrice,
           priceRange: {
             min: Math.round(suggestedPrice * 0.8),
-            max: Math.round(suggestedPrice * 1.3),
-          },
+            max: Math.round(suggestedPrice * 1.3)},
           basedOn: "DEFAULT_PRICING",
           confidence: "LOW",
           factors: {
             basePrice,
             distancePrice,
             weightMultiplier,
-            priorityMultiplier,
-          },
-        };
+            priorityMultiplier}};
       }
 
       // Analyser les prix des annonces similaires
@@ -1743,26 +1567,21 @@ export const AnnouncementService = {
           min: Math.round(
             Math.max(suggestedPrice - priceStdDev, suggestedPrice * 0.7),
           ),
-          max: Math.round(suggestedPrice + priceStdDev),
-        },
+          max: Math.round(suggestedPrice + priceStdDev)},
         basedOn: "HISTORICAL_DATA",
         confidence: similarAnnouncements.length >= 10 ? "HIGH" : "MEDIUM",
-        sampleSize: similarAnnouncements.length,
+        
         marketData: {
           averagePrice: Math.round(averagePrice),
           medianPrice: Math.round(medianPrice),
           priceRange: {
             min: Math.min(...prices),
-            max: Math.max(...prices),
-          },
-        },
+            max: Math.max(...prices)}},
         adjustments: {
           distanceAdjustment,
           weightAdjustment,
-          priorityMultiplier,
-        },
-      };
-    } catch (_error) {
+          priorityMultiplier}};
+    } catch (error) {
       console.error("Erreur lors du calcul du prix optimal:", error);
       throw new Error("Erreur lors du calcul du prix optimal");
     }
@@ -1779,11 +1598,10 @@ export const AnnouncementService = {
   }) {
     try {
       const {
-        type: _type,
-        latitude: _latitude,
-        longitude: _longitude,
-        radiusKm = 10,
-      } = params;
+        type: type,
+        latitude: latitude,
+        longitude: longitude,
+        radiusKm = 10} = params;
 
       const now = new Date();
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -1791,8 +1609,7 @@ export const AnnouncementService = {
 
       // Construire les filtres pour les annonces
       const baseFilters: any = {
-        createdAt: { gte: oneMonthAgo },
-      };
+        createdAt: { gte }};
 
       if (type) {
         baseFilters.type = type;
@@ -1809,9 +1626,7 @@ export const AnnouncementService = {
           pickupLatitude: true,
           pickupLongitude: true,
           applicationsCount: true,
-          finalPrice: true,
-        },
-      });
+          finalPrice: true}});
 
       // Filtrer par zone géographique si les coordonnées sont fournies
       if (latitude && longitude) {
@@ -1874,9 +1689,7 @@ export const AnnouncementService = {
         priceAnalysis = {
           averagePrice: Math.round(avgPrice),
           minPrice,
-          maxPrice,
-          sampleSize: pricesData.length,
-        };
+          maxPrice};
       }
 
       return {
@@ -1886,19 +1699,16 @@ export const AnnouncementService = {
           demandTrend,
           completionRate: Math.round(completionRate),
           averageApplications: Math.round(averageApplications * 10) / 10,
-          competitionLevel,
-        },
+          competitionLevel},
         timeframe: {
           totalPeriodDays: 30,
-          recentPeriodDays: 7,
-        },
+          recentPeriodDays: 7},
         geographicScope:
           latitude && longitude
             ? {
                 centerLatitude: latitude,
                 centerLongitude: longitude,
-                radiusKm,
-              }
+                radiusKm}
             : null,
         priceAnalysis,
         recommendations: {
@@ -1917,11 +1727,8 @@ export const AnnouncementService = {
               : null,
             demandTrend === "INCREASING"
               ? "La demande est en hausse, bon moment pour publier"
-              : null,
-          ].filter(Boolean),
-        },
-      };
-    } catch (_error) {
+              : null].filter(Boolean)}};
+    } catch (error) {
       console.error("Erreur lors de l'analyse de la demande:", error);
       throw new Error("Erreur lors de l'analyse de la demande");
     }
@@ -1936,9 +1743,7 @@ export const AnnouncementService = {
       const announcement = await db.announcement.findFirst({
         where: {
           id: announcementId,
-          clientId: clientId,
-        },
-      });
+          clientId: clientId}});
 
       if (!announcement) {
         throw new Error("Annonce non trouvée ou accès non autorisé");
@@ -1946,9 +1751,7 @@ export const AnnouncementService = {
 
       // Récupérer toutes les propositions avec détails des livreurs
       const proposals = await db.delivererApplication.findMany({
-        where: {
-          announcementId: announcementId,
-        },
+        where: { announcementId },
         include: {
           deliverer: {
             include: {
@@ -1956,34 +1759,17 @@ export const AnnouncementService = {
                 select: {
                   id: true,
                   name: true,
-                  image: true,
-                },
-              },
+                  image: true}},
               receivedRatings: {
-                select: {
-                  rating: true,
-                },
-              },
+                select: { rating }},
               assignedAnnouncements: {
                 where: {
-                  status: "COMPLETED",
-                },
-                select: {
-                  id: true,
-                },
-              },
+                  status: "COMPLETED"},
+                select: { id }},
               verification: {
-                select: {
-                  status: true,
-                },
-              },
-            },
-          },
-        },
+                select: { status }}}}},
         orderBy: {
-          createdAt: "desc",
-        },
-      });
+          createdAt: "desc"}});
 
       // Enrichir les propositions avec des métriques calculées
       const enrichedProposals = proposals.map((proposal: any) => {
@@ -2051,8 +1837,7 @@ export const AnnouncementService = {
             verificationStatus: deliverer.verification?.status || "UNVERIFIED",
             transportMethods: deliverer.vehicleType
               ? [deliverer.vehicleType]
-              : [],
-          },
+              : []},
           status: proposal.status,
           proposedPrice:
             proposal.proposedPrice || announcement.suggestedPrice || 0,
@@ -2065,8 +1850,7 @@ export const AnnouncementService = {
             100,
             Math.max(0, Math.round(compatibilityScore)),
           ),
-          distance: distance ? Math.round(distance * 10) / 10 : null,
-        };
+          distance: distance ? Math.round(distance * 10) / 10 : null};
       });
 
       return {
@@ -2076,9 +1860,8 @@ export const AnnouncementService = {
         accepted: enrichedProposals.filter((p) => p.status === "ACCEPTED")
           .length,
         rejected: enrichedProposals.filter((p) => p.status === "REJECTED")
-          .length,
-      };
-    } catch (_error) {
+          .length};
+    } catch (error) {
       console.error("Erreur lors de la récupération des propositions:", error);
       throw error;
     }
@@ -2097,9 +1880,7 @@ export const AnnouncementService = {
       const announcement = await db.announcement.findFirst({
         where: {
           id: announcementId,
-          clientId: clientId,
-        },
-      });
+          clientId: clientId}});
 
       if (!announcement) {
         throw new Error("Annonce non trouvée ou accès non autorisé");
@@ -2110,8 +1891,7 @@ export const AnnouncementService = {
         where: {
           id: proposalId,
           announcementId: announcementId,
-          status: "PENDING",
-        },
+          status: "PENDING"},
         include: {
           deliverer: {
             include: {
@@ -2119,13 +1899,7 @@ export const AnnouncementService = {
                 select: {
                   id: true,
                   name: true,
-                  email: true,
-                },
-              },
-            },
-          },
-        },
-      });
+                  email: true}}}}}});
 
       if (!proposal) {
         throw new Error("Proposition non trouvée ou déjà traitée");
@@ -2135,36 +1909,29 @@ export const AnnouncementService = {
       const result = await db.$transaction(async (tx) => {
         // Accepter la proposition sélectionnée
         const acceptedProposal = await tx.delivererApplication.update({
-          where: { id: proposalId },
+          where: { id },
           data: {
             status: "ACCEPTED",
-            acceptedAt: new Date(),
-          },
-        });
+            acceptedAt: new Date()}});
 
         // Rejeter toutes les autres propositions pour cette annonce
         await tx.delivererApplication.updateMany({
           where: {
             announcementId: announcementId,
-            id: { not: proposalId },
-            status: "PENDING",
-          },
+            id: { not },
+            status: "PENDING"},
           data: {
             status: "REJECTED",
-            rejectedAt: new Date(),
-          },
-        });
+            rejectedAt: new Date()}});
 
         // Mettre à jour le statut de l'annonce
         const updatedAnnouncement = await tx.announcement.update({
-          where: { id: announcementId },
+          where: { id },
           data: {
             status: "IN_PROGRESS",
             assignedDelivererId: proposal.delivererId,
             acceptedPrice:
-              proposal.proposedPrice || announcement.suggestedPrice,
-          },
-        });
+              proposal.proposedPrice || announcement.suggestedPrice}});
 
         // Créer la livraison associée
         const delivery = await tx.delivery.create({
@@ -2181,19 +1948,16 @@ export const AnnouncementService = {
             deliveryAddress: announcement.deliveryAddress,
             deliveryLatitude: announcement.deliveryLatitude,
             deliveryLongitude: announcement.deliveryLongitude,
-            estimatedDeliveryTime: proposal.estimatedDeliveryTime,
-          },
-        });
+            estimatedDeliveryTime: proposal.estimatedDeliveryTime}});
 
         return {
           acceptedProposal,
           updatedAnnouncement,
-          delivery,
-        };
+          delivery};
       });
 
       return result;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de l'acceptation de la proposition:", error);
       throw error;
     }
@@ -2213,9 +1977,7 @@ export const AnnouncementService = {
       const announcement = await db.announcement.findFirst({
         where: {
           id: announcementId,
-          clientId: clientId,
-        },
-      });
+          clientId: clientId}});
 
       if (!announcement) {
         throw new Error("Annonce non trouvée ou accès non autorisé");
@@ -2226,8 +1988,7 @@ export const AnnouncementService = {
         where: {
           id: proposalId,
           announcementId: announcementId,
-          status: "PENDING",
-        },
+          status: "PENDING"},
         include: {
           deliverer: {
             include: {
@@ -2235,13 +1996,7 @@ export const AnnouncementService = {
                 select: {
                   id: true,
                   name: true,
-                  email: true,
-                },
-              },
-            },
-          },
-        },
-      });
+                  email: true}}}}}});
 
       if (!proposal) {
         throw new Error("Proposition non trouvée ou déjà traitée");
@@ -2249,16 +2004,14 @@ export const AnnouncementService = {
 
       // Rejeter la proposition
       const rejectedProposal = await db.delivererApplication.update({
-        where: { id: proposalId },
+        where: { id },
         data: {
           status: "REJECTED",
           rejectedAt: new Date(),
-          rejectionReason: reason,
-        },
-      });
+          rejectionReason: reason}});
 
       return rejectedProposal;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors du rejet de la proposition:", error);
       throw error;
     }
@@ -2272,14 +2025,8 @@ export const AnnouncementService = {
       const proposalsSummary = await db.delivererApplication.groupBy({
         by: ["announcementId", "status"],
         where: {
-          announcement: {
-            clientId: clientId,
-          },
-        },
-        _count: {
-          id: true,
-        },
-      });
+          announcement: { clientId }},
+        count: { id }});
 
       // Organiser les données par annonce
       const summary: Record<
@@ -2293,27 +2040,26 @@ export const AnnouncementService = {
             total: 0,
             pending: 0,
             accepted: 0,
-            rejected: 0,
-          };
+            rejected: 0};
         }
 
-        summary[item.announcementId].total += item._count.id;
+        summary[item.announcementId].total += item.count.id;
 
         switch (item.status) {
           case "PENDING":
-            summary[item.announcementId].pending = item._count.id;
+            summary[item.announcementId].pending = item.count.id;
             break;
           case "ACCEPTED":
-            summary[item.announcementId].accepted = item._count.id;
+            summary[item.announcementId].accepted = item.count.id;
             break;
           case "REJECTED":
-            summary[item.announcementId].rejected = item._count.id;
+            summary[item.announcementId].rejected = item.count.id;
             break;
         }
       });
 
-      return { proposalsSummary: summary };
-    } catch (_error) {
+      return { proposalsSummary };
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération du résumé des propositions:",
         error,
@@ -2337,48 +2083,34 @@ export const AnnouncementService = {
               status: true,
               suggestedPrice: true,
               acceptedPrice: true,
-              createdAt: true,
-            },
-          }),
+              createdAt: true}}),
 
           // Livraisons complétées
           db.delivery.findMany({
             where: {
               clientId,
-              status: "COMPLETED",
-            },
+              status: "COMPLETED"},
             select: {
               agreedPrice: true,
               completedAt: true,
-              createdAt: true,
-            },
-          }),
+              createdAt: true}}),
 
           // Applications/propositions reçues
           db.delivererApplication.findMany({
             where: {
               announcement: {
-                clientId,
-              },
-            },
+                clientId}},
             select: {
               id: true,
               status: true,
-              announcementId: true,
-            },
-          }),
+              announcementId: true}}),
 
           // Paiements effectués
           db.payment.findMany({
             where: {
               clientId,
-              status: "COMPLETED",
-            },
-            select: {
-              amount: true,
-            },
-          }),
-        ]);
+              status: "COMPLETED"},
+            select: { amount }})]);
 
       // Calculer les statistiques
       const totalAnnouncements = announcements.length;
@@ -2420,12 +2152,11 @@ export const AnnouncementService = {
           Math.round(averageProposalsPerAnnouncement * 10) / 10,
         satisfactionScore: 0, // TODO: Implémenter système de satisfaction
       };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des statistiques client:",
         error,
       );
       throw error;
     }
-  },
-};
+  }};

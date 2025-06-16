@@ -32,13 +32,15 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import WalletBalance from "@/components/deliverer/wallet/wallet-balance";
 
 export default function DelivererWalletPage() {
   const t = useTranslations("wallet");
-  const { data: session } = useSession();
+  const { data } = useSession();
   const router = useRouter();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showWithdrawalForm, setShowWithdrawalForm] = useState(false);
 
   // Récupérer les données du portefeuille
   const { data: walletData, isLoading: isLoadingWallet } =
@@ -64,16 +66,14 @@ export default function DelivererWalletPage() {
         api.withdrawal.getMyWithdrawals.refetch(),
       ]);
 
-      toast({
-        title: t("refreshSuccess"),
+      toast({ title: t("refreshSuccess"),
         description: t("dataRefreshed"),
-      });
+       });
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("refreshError"),
         description: typeof error === "string" ? error : t("genericError"),
-      });
+       });
     } finally {
       setIsRefreshing(false);
     }
@@ -229,15 +229,13 @@ export default function DelivererWalletPage() {
                 {pendingWithdrawals &&
                   pendingWithdrawals.withdrawals.length > 0 && (
                     <div className="text-sm text-muted-foreground">
-                      (
-                      {formatCurrency(
+                      ({ formatCurrency(
                         pendingWithdrawals.withdrawals.reduce(
                           (sum, w) => sum + w.amount,
                           0,
                         ),
                         walletData.wallet.currency,
-                      )}
-                      )
+                      ) })
                     </div>
                   )}
               </div>
@@ -268,9 +266,21 @@ export default function DelivererWalletPage() {
 
       {/* Afficher le contenu du tableau de bord */}
       {session?.user ? (
-        <DelivererWalletDashboard
-          userId={session.user.id}
-          isDemo={walletData?.isDemoMode}
+        <WalletBalance
+          balance={walletData?.balance || 0}
+          currency={walletData?.currency || "EUR"}
+          transactions={walletData?.transactions || []}
+          isLoading={isLoadingWallet}
+          onRequestWithdrawal={() => setShowWithdrawalForm(true)}
+          onViewAllTransactions={() => router.push("/deliverer/wallet/transactions")}
+          lastUpdated={walletData?.lastUpdated}
+          pendingAmount={walletData?.pendingAmount}
+          reservedAmount={walletData?.reservedAmount}
+          availableAmount={walletData?.availableAmount}
+          onRefresh={handleRefresh}
+          error={null}
+          userId={session?.user?.id}
+          className="mb-6"
         />
       ) : (
         <Alert variant="destructive">

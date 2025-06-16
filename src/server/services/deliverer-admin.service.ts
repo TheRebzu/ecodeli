@@ -12,8 +12,7 @@ export const delivererAdminService = {
     page = 1,
     limit = 10,
     search,
-    status,
-  }: {
+    status}: {
     page?: number;
     limit?: number;
     search?: string;
@@ -22,15 +21,13 @@ export const delivererAdminService = {
     const skip = (page - 1) * limit;
 
     const where: any = {
-      role: UserRole.DELIVERER,
-    };
+      role: UserRole.DELIVERER};
 
     if (search) {
       where.OR = [
         { firstName: { contains: search, mode: "insensitive" } },
         { lastName: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-      ];
+        { email: { contains: search, mode: "insensitive" } }];
     }
 
     if (status) {
@@ -58,29 +55,14 @@ export const delivererAdminService = {
               id: true,
               status: true,
               ratings: {
-                select: {
-                  rating: true,
-                },
-              },
-            },
-          },
+                select: { rating }}}},
           wallet: {
-            select: {
-              balance: true,
-            },
-          },
+            select: { balance }},
           documents: {
-            select: {
-              verificationStatus: true,
-            },
-          },
-        },
+            select: { verificationStatus }}},
         orderBy: {
-          createdAt: "desc",
-        },
-      }),
-      db.user.count({ where }),
-    ]);
+          createdAt: "desc"}}),
+      db.user.count({ where  })]);
 
     const transformedDeliverers = deliverers.map((deliverer) => {
       const completedDeliveries = deliverer.delivererDeliveries.filter(
@@ -133,16 +115,14 @@ export const delivererAdminService = {
         earnings: deliverer.wallet?.balance || 0,
         hasVehicle: false,
         vehicleType: undefined,
-        preferredZones: [],
-      };
+        preferredZones: []};
     });
 
     return {
       deliverers: transformedDeliverers,
       total,
       totalPages: Math.ceil(total / limit),
-      currentPage: page,
-    };
+      currentPage: page};
   },
 
   /**
@@ -156,44 +136,30 @@ export const delivererAdminService = {
         verifiedDeliverers,
         pendingVerification,
         suspendedDeliverers,
-        deliveryStats,
-      ] = await Promise.all([
+        deliveryStats] = await Promise.all([
         db.user.count({
-          where: { role: UserRole.DELIVERER },
-        }),
+          where: { role: UserRole.DELIVERER }}),
         db.user.count({
           where: {
             role: UserRole.DELIVERER,
-            status: UserStatus.ACTIVE,
-          },
-        }),
+            status: UserStatus.ACTIVE}}),
         db.user.count({
           where: {
             role: UserRole.DELIVERER,
-            isVerified: true,
-          },
-        }),
+            isVerified: true}}),
         db.user.count({
           where: {
             role: UserRole.DELIVERER,
-            isVerified: false,
-          },
-        }),
+            isVerified: false}}),
         db.user.count({
           where: {
             role: UserRole.DELIVERER,
-            status: UserStatus.SUSPENDED,
-          },
-        }),
+            status: UserStatus.SUSPENDED}}),
         db.delivery.aggregate({
-          _count: { id: true },
+          count: { id },
           where: {
             deliverer: {
-              role: UserRole.DELIVERER,
-            },
-          },
-        }),
-      ]);
+              role: UserRole.DELIVERER}}})]);
 
       const result = {
         totalDeliverers,
@@ -202,17 +168,16 @@ export const delivererAdminService = {
         pendingVerification,
         suspendedDeliverers,
         averageRating: 4.5, // TODO: Calculer la vraie moyenne des ratings
-        totalDeliveries: deliveryStats._count.id || 0,
+        totalDeliveries: deliveryStats.count.id || 0,
         averageEarnings: 850,
         vehicledDeliverers: 0,
         topPerformers: [],
         growthRate: 12.5,
-        activeZones: 25,
-      };
+        activeZones: 25};
 
       console.log("📊 Stats livreurs:", result);
       return result;
-    } catch (_error) {
+    } catch (error) {
       console.error("❌ Erreur dans getDeliverersStats:", error);
       // Retourner des valeurs par défaut en cas d'erreur
       return {
@@ -227,8 +192,7 @@ export const delivererAdminService = {
         vehicledDeliverers: 0,
         topPerformers: [],
         growthRate: 12.5,
-        activeZones: 25,
-      };
+        activeZones: 25};
     }
   },
 
@@ -239,13 +203,10 @@ export const delivererAdminService = {
     return await db.user.update({
       where: {
         id: delivererId,
-        role: UserRole.DELIVERER,
-      },
+        role: UserRole.DELIVERER},
       data: {
         status,
-        updatedAt: new Date(),
-      },
-    });
+        updatedAt: new Date()}});
   },
 
   /**
@@ -255,13 +216,10 @@ export const delivererAdminService = {
     return await db.user.update({
       where: {
         id: delivererId,
-        role: UserRole.DELIVERER,
-      },
+        role: UserRole.DELIVERER},
       data: {
         isVerified: true,
-        updatedAt: new Date(),
-      },
-    });
+        updatedAt: new Date()}});
   },
 
   /**
@@ -271,8 +229,7 @@ export const delivererAdminService = {
     const deliverer = await db.user.findUnique({
       where: {
         id: delivererId,
-        role: UserRole.DELIVERER,
-      },
+        role: UserRole.DELIVERER},
       include: {
         deliverer: true,
         delivererDeliveries: {
@@ -280,28 +237,18 @@ export const delivererAdminService = {
             client: {
               select: {
                 name: true,
-                email: true,
-              },
-            },
-          },
+                email: true}}},
           orderBy: {
-            createdAt: "desc",
-          },
-          take: 10,
-        },
+            createdAt: "desc"},
+          take: 10},
         documents: {
           orderBy: {
-            uploadedAt: "desc",
-          },
-        },
-        wallet: true,
-      },
-    });
+            uploadedAt: "desc"}},
+        wallet: true}});
 
     if (!deliverer) {
       throw new Error("Livreur non trouvé");
     }
 
     return deliverer;
-  },
-};
+  }};

@@ -9,8 +9,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 
 interface DeliveryStatusBadgeProps {
   status: string;
@@ -19,8 +18,7 @@ interface DeliveryStatusBadgeProps {
 
 export function DeliveryStatusBadge({
   status,
-  className,
-}: DeliveryStatusBadgeProps) {
+  className}: DeliveryStatusBadgeProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING":

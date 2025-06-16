@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-// import { api } from "@/trpc/react";
+import { useState } from "react";
+import { api } from "@/trpc/react";
 
 // Types
 interface MonthlyBilling {
@@ -86,94 +86,112 @@ interface UseProviderMonthlyBillingReturn {
 export function useProviderMonthlyBilling(
   options: UseProviderMonthlyBillingOptions = {},
 ): UseProviderMonthlyBillingReturn {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [summary, setSummary] = useState<Summary>({
-    totalRevenue: 0,
-    totalCommissions: 0,
-    netAmount: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refetch = () => {
-    setIsLoading(true);
-    setError(null);
+  // Appels tRPC réels pour récupérer les données
+  const {
+    data: invoicesData,
+    isLoading: invoicesLoading,
+    refetch: refetchInvoices,
+  } = api.provider.billing.getProviderInvoices.useQuery(
+    {
+      year: options.year,
+      month: options.month,
+      status: options.status,
+        },
+        {
+      onError: (err: any) => {
+        setError(err.message || "Erreur lors du chargement des factures");
+      },
+        },
+  );
 
-    // Simuler le chargement avec données mock
-    setTimeout(() => {
-      const mockInvoices: Invoice[] = [
-        {
-          id: "1",
-          status: "PAID",
-          amounts: { netAmount: 850 },
-          scheduledDelivery: new Date(),
+  const {
+    data: summaryData,
+    isLoading: summaryLoading,
+    refetch: refetchSummary,
+  } = api.provider.billing.getProviderSummary.useQuery(
+    {
+      year: options.year,
+      month: options.month,
         },
-        {
-          id: "2",
-          status: "ISSUED",
-          amounts: { netAmount: 650 },
-          scheduledDelivery: new Date(),
+    {
+      onError: (err: any) => {
+        setError(err.message || "Erreur lors du chargement du résumé");
+      },
         },
-      ];
-      
-      setInvoices(mockInvoices);
-      setSummary({
-        totalRevenue: 1500,
-        totalCommissions: 150,
-        netAmount: 1350,
-        currentMonth: {
-          earnings: 1500,
-          hours: 45,
-          interventions: 12,
-          averageHourlyRate: 33.33,
-          commission: 150,
-          netEarnings: 1350,
-        },
-        previousMonth: {
-          earnings: 1200,
-          hours: 38,
-          interventions: 10,
-        },
-        yearToDate: {
-          earnings: 12500,
-          hours: 380,
-          interventions: 95,
-          averageHourlyRate: 32.89,
-        },
-        goals: {
-          monthlyTarget: 2000,
-          yearlyTarget: 20000,
-          monthlyProgress: 67.5,
-          yearlyProgress: 62.5,
-        },
-        trends: {
-          earningsGrowth: 25.0,
-          hoursGrowth: 18.4,
-          rateGrowth: 1.3,
+  );
+
+  const downloadInvoiceMutation = api.provider.billing.downloadInvoice.useMutation({
+    onError: (err: any) => {
+      setError(err.message || "Erreur lors du téléchargement");
         },
       });
-      setIsLoading(false);
-    }, 1000);
+
+  const refetch = () => {
+    setError(null);
+    refetchInvoices();
+    refetchSummary();
   };
 
   const downloadInvoice = async (id: string) => {
-    // Mock download functionality
-    console.log(`Downloading invoice ${id}`);
+    try {
+      const result = await downloadInvoiceMutation.mutateAsync({ id  });
+      // Télécharger le fichier PDF
+      if (result.downloadUrl) {
+        window.open(result.downloadUrl, 'blank');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur lors du téléchargement");
+    }
   };
 
   const viewInvoice = (id: string) => {
-    // Mock view functionality
-    console.log(`Viewing invoice ${id}`);
+    // Navigation vers la page de détail de la facture
+    window.location.href = `/provider/invoices/${id}`;
   };
 
-  useEffect(() => {
-    refetch();
-  }, [options.year, options.month, options.status]);
+  // Valeurs par défaut pour les données manquantes
+  const defaultSummary: Summary = {
+    totalRevenue: 0,
+    totalCommissions: 0,
+    netAmount: 0,
+    currentMonth: {
+      earnings: 0,
+      hours: 0,
+      interventions: 0,
+      averageHourlyRate: 0,
+      commission: 0,
+      netEarnings: 0,
+    },
+    previousMonth: {
+      earnings: 0,
+      hours: 0,
+      interventions: 0,
+    },
+    yearToDate: {
+      earnings: 0,
+      hours: 0,
+      interventions: 0,
+      averageHourlyRate: 0,
+    },
+    goals: {
+      monthlyTarget: 0,
+      yearlyTarget: 0,
+      monthlyProgress: 0,
+      yearlyProgress: 0,
+    },
+    trends: {
+      earningsGrowth: 0,
+      hoursGrowth: 0,
+      rateGrowth: 0,
+    },
+  };
 
   return {
-    invoices,
-    summary,
-    isLoading,
+    invoices: invoicesData?.invoices || [],
+    summary: summaryData?.summary || defaultSummary,
+    isLoading: invoicesLoading || summaryLoading,
     error,
     refetch,
     downloadInvoice,

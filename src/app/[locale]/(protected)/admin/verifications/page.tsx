@@ -8,8 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("metadata.title"),
-    description: t("metadata.description"),
-  };
+    description: t("metadata.description")};
 }
 
 export default async function VerificationsPage() {

@@ -7,8 +7,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useDeliveryStatus } from "@/hooks/delivery/use-delivery-status";
@@ -20,8 +19,7 @@ import {
   MapPin,
   XCircle,
   AlertCircle,
-  RefreshCw,
-} from "lucide-react";
+  RefreshCw} from "lucide-react";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -34,8 +32,7 @@ interface DeliveryStatusUpdateProps {
 export default function DeliveryStatusUpdate({
   deliveryId,
   currentStatus,
-  className = "",
-}: DeliveryStatusUpdateProps) {
+  className = ""}: DeliveryStatusUpdateProps) {
   const t = useTranslations("deliveries.statusUpdate");
   const [note, setNote] = useState("");
 
@@ -51,8 +48,7 @@ export default function DeliveryStatusUpdate({
     DeliveryStatus.PENDING,
     DeliveryStatus.ACCEPTED,
     DeliveryStatus.PICKED_UP,
-    DeliveryStatus.IN_TRANSIT,
-  ].includes(currentStatus);
+    DeliveryStatus.IN_TRANSIT].includes(currentStatus);
 
   // Gérer la position actuelle (à implémenter avec la géolocalisation)
   const getCurrentPosition = (): Promise<{
@@ -71,15 +67,13 @@ export default function DeliveryStatusUpdate({
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
+          resolve({ latitude: position.coords.latitude,
+            longitude: position.coords.longitude });
         },
         (error) => {
           reject(error);
         },
-        { enableHighAccuracy: true },
+        { enableHighAccuracy },
       );
     });
   };
@@ -126,26 +120,22 @@ export default function DeliveryStatusUpdate({
       return {
         action: handleAccept,
         label: t("acceptDelivery"),
-        icon: <CheckCircle2 className="h-4 w-4 mr-2" />,
-      };
+        icon: <CheckCircle2 className="h-4 w-4 mr-2" />};
     if (canPickup)
       return {
         action: handlePickup,
         label: t("startPickup"),
-        icon: <Package className="h-4 w-4 mr-2" />,
-      };
+        icon: <Package className="h-4 w-4 mr-2" />};
     if (canTransit)
       return {
         action: handleTransit,
         label: t("confirmPickup"),
-        icon: <Truck className="h-4 w-4 mr-2" />,
-      };
+        icon: <Truck className="h-4 w-4 mr-2" />};
     if (canDeliver)
       return {
         action: handleDeliver,
         label: t("markAsDelivered"),
-        icon: <MapPin className="h-4 w-4 mr-2" />,
-      };
+        icon: <MapPin className="h-4 w-4 mr-2" />};
     return null;
   };
 

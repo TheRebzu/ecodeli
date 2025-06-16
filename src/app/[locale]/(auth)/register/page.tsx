@@ -6,7 +6,7 @@ import { authOptions } from "@/server/auth/next-auth";
 import { getTranslations } from "next-intl/server";
 
 type Props = {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
 };
 
 // Définition des métadonnées de la page
@@ -18,12 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Vérifier si la locale est valide
   if (!["en", "fr"].includes(locale)) notFound();
 
-  const t = await getTranslations({ locale, namespace: "auth.register" });
+  const t = await getTranslations({ locale, namespace: "auth.register"  });
 
   return {
     title: t("pageTitle") || "Inscription | EcoDeli",
-    description: t("pageDescription") || "Créez votre compte EcoDeli",
-  };
+    description: t("pageDescription") || "Créez votre compte EcoDeli"};
 }
 
 export default async function RegisterPage({ params }: Props) {
@@ -43,7 +42,7 @@ export default async function RegisterPage({ params }: Props) {
   }
 
   // Récupérer les traductions
-  const t = await getTranslations({ locale, namespace: "auth.register" });
+  const t = await getTranslations({ locale, namespace: "auth.register"  });
 
   return (
     <div className="max-w-lg w-full">

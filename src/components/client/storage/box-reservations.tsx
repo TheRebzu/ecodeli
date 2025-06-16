@@ -9,8 +9,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -27,8 +26,7 @@ import {
   ClipboardCheck,
   ArrowRight,
   Ban,
-  ShieldCheck,
-} from "lucide-react";
+  ShieldCheck} from "lucide-react";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReservationWithBoxAndWarehouse } from "@/types/warehouses/storage-box";
@@ -57,12 +55,12 @@ const ExtendReservationDialog = dynamic<ExtendReservationDialogProps>(
     import("./extend-reservation-dialog").then(
       (mod) => mod.ExtendReservationDialog,
     ),
-  { ssr: false },
+  { ssr },
 );
 
 const AccessBoxDialog = dynamic<AccessBoxDialogProps>(
   () => import("./access-box-dialog").then((mod) => mod.AccessBoxDialog),
-  { ssr: false },
+  { ssr },
 );
 
 export function BoxReservations() {
@@ -219,8 +217,7 @@ export function BoxReservations() {
                   style: "currency",
                   currency: "EUR",
                   minimumFractionDigits: 0,
-                  maximumFractionDigits: 2,
-                })}
+                  maximumFractionDigits: 2})}
               </span>
               <p className="text-xs text-muted-foreground">
                 {t("reservations.totalPrice")}
@@ -236,7 +233,7 @@ export function BoxReservations() {
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
-                <span>{format(startDate, "PPP", { locale: fr })}</span>
+                <span>{format(startDate, "PPP", { locale })}</span>
               </div>
             </div>
             <div className="space-y-1">
@@ -245,7 +242,7 @@ export function BoxReservations() {
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
-                <span>{format(endDate, "PPP", { locale: fr })}</span>
+                <span>{format(endDate, "PPP", { locale })}</span>
               </div>
             </div>
           </div>

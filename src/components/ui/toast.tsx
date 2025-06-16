@@ -33,13 +33,9 @@ const toastVariants = cva(
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
         success:
-          "success group border-success bg-success text-success-foreground",
-      },
-    },
+          "success group border-success bg-success text-success-foreground"}},
     defaultVariants: {
-      variant: "default",
-    },
-  },
+      variant: "default"}},
 );
 
 const Toast = React.forwardRef<
@@ -50,7 +46,7 @@ const Toast = React.forwardRef<
   return (
     <ToastPrimitives.Root
       ref={ref}
-      className={cn(toastVariants({ variant }), className)}
+      className={cn(toastVariants({ variant  }), className)}
       {...props}
     />
   );
@@ -131,8 +127,7 @@ export {
   ToastTitle,
   ToastDescription,
   ToastClose,
-  ToastAction,
-};
+  ToastAction};
 
 export function useToast() {
   const [toasts, setToasts] = React.useState<ToastProps[]>([]);

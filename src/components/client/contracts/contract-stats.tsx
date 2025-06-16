@@ -32,8 +32,7 @@ export function ContractStats({ contracts }: ContractStatsProps) {
       .filter(
         (contract) => contract.status === "ACTIVE" && contract.monthlyValue,
       )
-      .reduce((sum, contract) => sum + (contract.monthlyValue || 0), 0),
-  };
+      .reduce((sum, contract) => sum + (contract.monthlyValue || 0), 0)};
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

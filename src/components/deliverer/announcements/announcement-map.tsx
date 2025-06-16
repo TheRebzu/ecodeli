@@ -9,8 +9,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/common";
@@ -19,33 +18,29 @@ import dynamic from "next/dynamic";
 // Import dynamique de Leaflet (sans SSR)
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
-  {
-    ssr: false,
-  },
+  { ssr },
 );
 const TileLayer = dynamic(
   () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false },
+  { ssr },
 );
 const Marker = dynamic(
   () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false },
+  { ssr },
 );
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
-  ssr: false,
-});
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr });
 const Tooltip = dynamic(
   () => import("react-leaflet").then((mod) => mod.Tooltip),
-  { ssr: false },
+  { ssr },
 );
 const Polyline = dynamic(
   () => import("react-leaflet").then((mod) => mod.Polyline),
-  { ssr: false },
+  { ssr },
 );
 
 // Interface pour le prototype de l'icône Leaflet
 interface LeafletIconDefaultPrototype {
-  _getIconUrl?: unknown;
+  getIconUrl?: unknown;
 }
 
 // Import dynamique de l'icône Leaflet
@@ -54,24 +49,21 @@ const IconSetup = dynamic(
     import("leaflet").then((L) => {
       // Configurer le chemin des icônes Leaflet
       delete (L.Icon.Default.prototype as LeafletIconDefaultPrototype)
-        ._getIconUrl;
+        .getIconUrl;
 
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+      L.Icon.Default.mergeOptions({ iconRetinaUrl: "/leaflet/marker-icon-2x.png",
         iconUrl: "/leaflet/marker-icon.png",
-        shadowUrl: "/leaflet/marker-shadow.png",
-      });
+        shadowUrl: "/leaflet/marker-shadow.png" });
 
       // Composant avec un nom d'affichage
       const LeafletIconSetup = ({
-        children,
-      }: {
+        children}: {
         children: React.ReactNode;
       }) => <>{children}</>;
       LeafletIconSetup.displayName = "LeafletIconSetup";
       return LeafletIconSetup;
     }),
-  { ssr: false },
+  { ssr },
 );
 
 type AnnouncementMapProps = {
@@ -87,8 +79,7 @@ export function AnnouncementMap({
   selectedAnnouncement,
   isLoading = false,
   height = "500px",
-  onSelectAnnouncement,
-}: AnnouncementMapProps) {
+  onSelectAnnouncement}: AnnouncementMapProps) {
   const t = useTranslations("announcements");
   const { myAnnouncements, getAnnouncementTypeLabel } = useAnnouncement();
 
@@ -117,7 +108,7 @@ export function AnnouncementMap({
     const L = window.L;
 
     // Couleur en fonction du type d'annonce
-    let color = "#3B82F6"; // Bleu par défaut
+    const color = "#3B82F6"; // Bleu par défaut
 
     switch (announcement.type) {
       case "PACKAGE":
@@ -155,8 +146,7 @@ export function AnnouncementMap({
           <div class="relative z-10 text-xs font-bold">${announcement.id.slice(0, 2)}</div>
           <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-3 h-3 bg-white rotate-45"></div>
         </div>
-      `,
-    });
+      `});
   };
 
   // Fonction pour gérer le clic sur un marqueur
@@ -254,12 +244,10 @@ export function AnnouncementMap({
                     <Marker
                       position={[
                         announcement.pickupLatitude,
-                        announcement.pickupLongitude,
-                      ]}
+                        announcement.pickupLongitude]}
                       icon={icon}
                       eventHandlers={{
-                        click: () => handleMarkerClick(announcement),
-                      }}
+                        click: () => handleMarkerClick(announcement)}}
                     >
                       <Tooltip direction="top" offset={[0, -20]} opacity={0.7}>
                         <div>
@@ -311,12 +299,10 @@ export function AnnouncementMap({
                     <Marker
                       position={[
                         announcement.deliveryLatitude,
-                        announcement.deliveryLongitude,
-                      ]}
+                        announcement.deliveryLongitude]}
                       icon={icon}
                       eventHandlers={{
-                        click: () => handleMarkerClick(announcement),
-                      }}
+                        click: () => handleMarkerClick(announcement)}}
                     >
                       <Tooltip direction="top" offset={[0, -20]} opacity={0.7}>
                         <div>
@@ -369,13 +355,10 @@ export function AnnouncementMap({
                       positions={[
                         [
                           announcement.pickupLatitude,
-                          announcement.pickupLongitude,
-                        ],
+                          announcement.pickupLongitude],
                         [
                           announcement.deliveryLatitude,
-                          announcement.deliveryLongitude,
-                        ],
-                      ]}
+                          announcement.deliveryLongitude]]}
                       color={
                         selectedAnnouncement?.id === announcement.id
                           ? "#0284c7"

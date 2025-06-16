@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BoxRecommendations } from "@/components/client/storage/box-recommendations";
@@ -24,8 +23,7 @@ import {
   Package,
   Calendar,
   Settings,
-  Star,
-} from "lucide-react";
+  Star} from "lucide-react";
 import { api } from "@/trpc/react";
 
 type DashboardView =
@@ -42,11 +40,9 @@ export function ClientStorageDashboard() {
   const [searchFilters, setSearchFilters] = useState<any>({});
 
   // Récupération des données
-  const { data: warehouses } = api.warehouse.getWarehouses.useQuery({
-    includeBoxes: false,
-  });
-  const { data: myReservations } = api.storage.getMyBoxReservations.useQuery();
-  const { data: myStats } = api.storage.getMyStorageStats.useQuery();
+  const { data } = api.warehouse.getWarehouses.useQuery({ includeBoxes  });
+  const { data } = api.storage.getMyBoxReservations.useQuery();
+  const { data } = api.storage.getMyStorageStats.useQuery();
 
   const renderQuickActions = () => (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

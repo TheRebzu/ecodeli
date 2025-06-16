@@ -3,15 +3,12 @@ import { z } from "zod";
 // ===== SCHÉMAS DE RATINGS ET ÉVALUATIONS =====
 
 // Schéma pour créer une évaluation simple
-export const createReviewSchema = z.object({
-  bookingId: z.string().cuid({ message: "ID de réservation invalide" }),
+export const createReviewSchema = z.object({ bookingId: z.string().cuid({ message: "ID de réservation invalide"  }),
   rating: z.number().int().min(1).max(5),
-  comment: z.string().optional(),
-});
+  comment: z.string().optional()});
 
 // Schéma pour créer une évaluation détaillée
-export const createDetailedReviewSchema = z.object({
-  bookingId: z.string().cuid({ message: "ID de réservation invalide" }),
+export const createDetailedReviewSchema = z.object({ bookingId: z.string().cuid({ message: "ID de réservation invalide"  }),
   rating: z.number().int().min(1).max(5),
   comment: z
     .string()
@@ -30,17 +27,13 @@ export const createDetailedReviewSchema = z.object({
   punctuality: z.number().int().min(1).max(5).optional(),
   quality: z.number().int().min(1).max(5).optional(),
   communication: z.number().int().min(1).max(5).optional(),
-  valueForMoney: z.number().int().min(1).max(5).optional(),
-});
+  valueForMoney: z.number().int().min(1).max(5).optional()});
 
 // Schéma pour mettre à jour une évaluation
-export const updateReviewSchema = createDetailedReviewSchema.partial().extend({
-  id: z.string().cuid({ message: "ID d'évaluation invalide" }),
-});
+export const updateReviewSchema = createDetailedReviewSchema.partial().extend({ id: z.string().cuid({ message: "ID d'évaluation invalide"  })});
 
 // Schéma pour filtrer les évaluations
-export const reviewFilterSchema = z.object({
-  providerId: z.string().cuid().optional(),
+export const reviewFilterSchema = z.object({ providerId: z.string().cuid().optional(),
   serviceId: z.string().cuid().optional(),
   minRating: z.number().int().min(1).max(5).optional(),
   maxRating: z.number().int().min(1).max(5).optional(),
@@ -49,12 +42,10 @@ export const reviewFilterSchema = z.object({
   page: z.number().int().positive().default(1),
   limit: z.number().int().positive().max(100).default(10),
   sortBy: z.enum(["rating", "createdAt", "helpful"]).default("createdAt"),
-  sortOrder: z.enum(["asc", "desc"]).default("desc"),
-});
+  sortOrder: z.enum(["asc", "desc"]).default("desc") });
 
 // Schéma pour rechercher des prestataires par rating
-export const providerRatingSearchSchema = z.object({
-  categoryId: z.string().cuid().optional(),
+export const providerRatingSearchSchema = z.object({ categoryId: z.string().cuid().optional(),
   minRating: z.number().min(0).max(5).default(0),
   minReviews: z.number().int().min(0).default(0),
   city: z.string().optional(),
@@ -62,52 +53,40 @@ export const providerRatingSearchSchema = z.object({
   page: z.number().int().positive().default(1),
   limit: z.number().int().positive().max(50).default(10),
   sortBy: z.enum(["rating", "reviews", "badges"]).default("rating"),
-  sortOrder: z.enum(["asc", "desc"]).default("desc"),
-});
+  sortOrder: z.enum(["asc", "desc"]).default("desc") });
 
 // Schéma pour les statistiques de rating
-export const ratingStatsSchema = z.object({
-  providerId: z.string().cuid(),
+export const ratingStatsSchema = z.object({ providerId: z.string().cuid(),
   includeDistribution: z.boolean().default(true),
   includeRecentReviews: z.boolean().default(true),
-  recentReviewsLimit: z.number().int().min(1).max(50).default(10),
-});
+  recentReviewsLimit: z.number().int().min(1).max(50).default(10) });
 
 // Schéma pour marquer une évaluation comme utile
-export const markReviewHelpfulSchema = z.object({
-  reviewId: z.string().cuid({ message: "ID d'évaluation invalide" }),
-  helpful: z.boolean(),
-});
+export const markReviewHelpfulSchema = z.object({ reviewId: z.string().cuid({ message: "ID d'évaluation invalide"  }),
+  helpful: z.boolean()});
 
 // Schéma pour signaler une évaluation
-export const reportReviewSchema = z.object({
-  reviewId: z.string().cuid({ message: "ID d'évaluation invalide" }),
+export const reportReviewSchema = z.object({ reviewId: z.string().cuid({ message: "ID d'évaluation invalide"  }),
   reason: z.enum([
     "INAPPROPRIATE_CONTENT",
     "SPAM",
     "FAKE_REVIEW",
     "PERSONAL_INFORMATION",
     "OFFENSIVE_LANGUAGE",
-    "OTHER",
-  ]),
-  description: z.string().max(500).optional(),
-});
+    "OTHER"]),
+  description: z.string().max(500).optional()});
 
 // Schéma pour répondre à une évaluation (prestataire)
-export const respondToReviewSchema = z.object({
-  reviewId: z.string().cuid({ message: "ID d'évaluation invalide" }),
+export const respondToReviewSchema = z.object({ reviewId: z.string().cuid({ message: "ID d'évaluation invalide"  }),
   response: z
     .string()
     .min(10, "La réponse doit contenir au moins 10 caractères")
-    .max(500, "La réponse ne peut pas dépasser 500 caractères"),
-});
+    .max(500, "La réponse ne peut pas dépasser 500 caractères")});
 
 // Schéma pour obtenir des badges
-export const badgeCalculationSchema = z.object({
-  providerId: z.string().cuid(),
+export const badgeCalculationSchema = z.object({ providerId: z.string().cuid(),
   includeStats: z.boolean().default(true),
-  includeRequirements: z.boolean().default(false),
-});
+  includeRequirements: z.boolean().default(false) });
 
 // ===== TYPES D'EXPORT =====
 
@@ -214,12 +193,10 @@ export interface ProviderBadges {
 // ===== CONSTANTES =====
 
 export const RATING_LEVELS = {
-  EXCELLENT: { min: 4.5, label: "Excellent", color: "green" },
-  VERY_GOOD: { min: 4.0, label: "Très bien", color: "blue" },
+  EXCELLENT: { min: 4.5, label: "Excellent", color: "green" }, VERY_GOOD: { min: 4.0, label: "Très bien", color: "blue" },
   GOOD: { min: 3.5, label: "Bien", color: "yellow" },
   FAIR: { min: 3.0, label: "Correct", color: "orange" },
-  POOR: { min: 0, label: "Insuffisant", color: "red" },
-} as const;
+  POOR: { min: 0, label: "Insuffisant", color: "red" }} as const;
 
 export const BADGE_REQUIREMENTS = {
   EXCELLENCE: { minRating: 4.5, minReviews: 10 },
@@ -228,5 +205,4 @@ export const BADGE_REQUIREMENTS = {
   COMMUNICATOR: { minCommunication: 4.5, minReviews: 5 },
   RECOMMENDED: { minRecommendationRate: 90, minReviews: 10 },
   EXPERIENCED: { minBookings: 100 },
-  RELIABLE: { maxCancellationRate: 5, minBookings: 20 },
-} as const;
+  RELIABLE: { maxCancellationRate: 5, minBookings: 20 }} as const;

@@ -8,16 +8,14 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+  FormLabel} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,8 +24,7 @@ import { Search, Calendar as CalendarIcon, X } from "lucide-react";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { cn } from "@/lib/utils/common";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -39,8 +36,7 @@ interface VerificationFilterFormProps {
 
 export function VerificationFilterForm({
   currentFilters,
-  onFilterChange,
-}: VerificationFilterFormProps) {
+  onFilterChange}: VerificationFilterFormProps) {
   const t = useTranslations("admin.verification.filters");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(
     currentFilters.dateFrom || undefined,
@@ -57,21 +53,16 @@ export function VerificationFilterForm({
     sortBy: currentFilters.sortBy || "createdAt",
     sortDirection: currentFilters.sortDirection || "desc",
     role: currentFilters.role,
-    search: currentFilters.search || "",
-  };
+    search: currentFilters.search || ""};
 
   // @ts-ignore - Using any type to avoid complex type errors
-  const form = useForm({
-    defaultValues,
-  });
+  const form = useForm({ defaultValues });
 
   // @ts-ignore - Using any type to avoid complex type errors
   const handleSubmit = form.handleSubmit((data) => {
-    onFilterChange({
-      ...data,
+    onFilterChange({ ...data,
       dateFrom,
-      dateTo,
-    });
+      dateTo });
   });
 
   const handleReset = () => {
@@ -82,17 +73,14 @@ export function VerificationFilterForm({
       sortBy: "createdAt",
       sortDirection: "desc",
       search: "",
-      role: undefined,
-    };
+      role: undefined};
 
     form.reset(resetValues);
     setDateFrom(undefined);
     setDateTo(undefined);
-    onFilterChange({
-      ...resetValues,
+    onFilterChange({ ...resetValues,
       dateFrom: undefined,
-      dateTo: undefined,
-    });
+      dateTo: undefined });
   };
 
   return (
@@ -103,7 +91,7 @@ export function VerificationFilterForm({
           <FormField
             control={form.control}
             name="role"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("role")}</FormLabel>
                 <Select
@@ -154,7 +142,7 @@ export function VerificationFilterForm({
                     )}
                   >
                     {dateFrom ? (
-                      format(dateFrom, "PPP", { locale: fr })
+                      format(dateFrom, "PPP", { locale })
                     ) : (
                       <span>{t("selectDate")}</span>
                     )}
@@ -189,7 +177,7 @@ export function VerificationFilterForm({
                     )}
                   >
                     {dateTo ? (
-                      format(dateTo, "PPP", { locale: fr })
+                      format(dateTo, "PPP", { locale })
                     ) : (
                       <span>{t("selectDate")}</span>
                     )}
@@ -214,7 +202,7 @@ export function VerificationFilterForm({
           <FormField
             control={form.control}
             name="search"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("search")}</FormLabel>
                 <FormControl>

@@ -10,16 +10,14 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,8 +26,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -42,8 +39,7 @@ import {
   X,
   AlertTriangle,
   Pencil,
-  Trash2,
-} from "lucide-react";
+  Trash2} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { AnnouncementStatus, AnnouncementType } from "@prisma/client";
@@ -68,7 +64,7 @@ interface Announcement {
     name: string;
     image: string | null;
   };
-  _count: {
+  count: {
     applications: number;
     favorites: number;
   };
@@ -87,8 +83,7 @@ export function AnnouncementTable({
   isLoading,
   totalPages,
   currentPage,
-  onPageChange,
-}: AnnouncementTableProps) {
+  onPageChange}: AnnouncementTableProps) {
   const t = useTranslations("admin.announcements");
   const router = useRouter();
   const [selectedAnnouncements, setSelectedAnnouncements] = useState<string[]>(
@@ -112,8 +107,7 @@ export function AnnouncementTable({
     },
     onError: (error) => {
       toast.error(t("deleteError", { error: error.message }));
-    },
-  });
+    }});
 
   // Mutation tRPC pour la mise à jour du statut d'annonce
   const updateStatusMutation = api.announcement.updateStatus.useMutation({
@@ -126,8 +120,7 @@ export function AnnouncementTable({
       toast.error(
         getTranslation("statusUpdateError", { error: error.message }),
       );
-    },
-  });
+    }});
 
   const handleSelectAnnouncement = (announcementId: string) => {
     setSelectedAnnouncements((prev) => {
@@ -165,7 +158,7 @@ export function AnnouncementTable({
   };
 
   const handleUpdateStatus = (id: string, status: AnnouncementStatus) => {
-    updateStatusMutation.mutate({ id, status });
+    updateStatusMutation.mutate({ id, status  });
   };
 
   const handleDelete = (id: string) => {
@@ -175,7 +168,7 @@ export function AnnouncementTable({
 
   const confirmDelete = () => {
     if (announcementToDelete) {
-      deleteMutation.mutate({ id: announcementToDelete });
+      deleteMutation.mutate({ id  });
     }
   };
 
@@ -279,7 +272,7 @@ export function AnnouncementTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 5  }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell>
                     <Skeleton className="h-5 w-5" />
@@ -404,9 +397,7 @@ export function AnnouncementTable({
                         : "-"}
                   </TableCell>
                   <TableCell>
-                    {format(new Date(announcement.createdAt), "dd/MM/yyyy", {
-                      locale: fr,
-                    })}
+                    {format(new Date(announcement.createdAt), "dd/MM/yyyy", { locale })}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

@@ -5,8 +5,7 @@ import {
   UserCheck,
   UserX,
   Info,
-  MessageSquare,
-} from "lucide-react";
+  MessageSquare} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,32 +13,28 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 
 interface VerificationHistoryItem {
   id: string;
@@ -59,8 +54,7 @@ interface UserVerificationHistoryProps {
 
 export function UserVerificationHistory({
   verificationHistory,
-  isLoading,
-}: UserVerificationHistoryProps) {
+  isLoading}: UserVerificationHistoryProps) {
   if (isLoading) {
     return (
       <Card>

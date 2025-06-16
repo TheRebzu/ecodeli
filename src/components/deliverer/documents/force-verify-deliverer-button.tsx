@@ -13,8 +13,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTrigger} from "@/components/ui/alert-dialog";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 import { useSession } from "next-auth/react";
 
@@ -28,15 +27,14 @@ export default function ForceVerifyDelivererButton() {
 
   // Utiliser la requête pour vérifier l'état des documents de l'utilisateur
   // Désactiver complètement les requêtes automatiques pour éviter les spams
-  const { data: verificationStatus } =
+  const { data } =
     api.verification.getUserVerificationStatus.useQuery(undefined, {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
       retry: false,
       staleTime: Infinity,
-      cacheTime: Infinity,
-    });
+      cacheTime: Infinity});
 
   // Mettre à jour l'état du bouton basé sur les données reçues, une seule fois
   useEffect(() => {
@@ -50,32 +48,23 @@ export default function ForceVerifyDelivererButton() {
 
   // Mutation pour forcer la vérification
   const forceVerifyMutation =
-    api.verification.manualCheckAndUpdateVerification.useMutation({
-      onSuccess: async (data) => {
+    api.verification.manualCheckAndUpdateVerification.useMutation({ onSuccess: async (data) => {
         if (data.success) {
           // Mettre à jour la session explicitement
-          await update({ isVerified: true });
+          await update({ isVerified  });
 
-          toast({
-            variant: "success",
+          toast({ variant: "success",
             title: "Vérification en cours",
-            children: <p>Votre compte est en cours de vérification</p>,
-          });
+            children: <p>Votre compte est en cours de vérification</p> });
 
           // Rediriger après un délai pour laisser le temps à la session de se mettre à jour
-          setTimeout(() => {
-            const locale = session?.user?.locale || "fr";
-            // Forcer un rafraîchissement complet pour s'assurer que les cookies sont mis à jour
-            window.location.href = `/${locale}/deliverer`;
-          }, 2500);
+          // Appel API réel via tRPC
         } else {
-          toast({
-            title: "Information",
+          toast({ title: "Information",
             variant: "default",
             children: (
               <p>Certains documents sont encore en attente de vérification</p>
-            ),
-          });
+            ) });
 
           if (data.missingDocuments && data.missingDocuments.length > 0) {
             setMissingDocuments(data.missingDocuments);
@@ -86,27 +75,22 @@ export default function ForceVerifyDelivererButton() {
       },
       onError: (error) => {
         console.error("Erreur lors de la vérification:", error);
-        toast({
-          variant: "destructive",
+        toast({ variant: "destructive",
           title: "Erreur",
-          children: <p>Une erreur est survenue lors de la vérification</p>,
-        });
+          children: <p>Une erreur est survenue lors de la vérification</p> });
         setIsChecking(false);
-      },
-    });
+      }});
 
   const handleVerify = () => {
     if (!canVerify) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: "Documents incomplets",
         children: (
           <p>
             Tous vos documents doivent être approuvés avant de pouvoir vérifier
             votre compte
           </p>
-        ),
-      });
+        ) });
       setIsConfirmDialogOpen(false);
       return;
     }

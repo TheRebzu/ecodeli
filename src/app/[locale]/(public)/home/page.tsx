@@ -14,8 +14,7 @@ import {
   User,
   Sparkles,
   CheckCircle,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +23,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/common";
 import { PageProps, MetadataProps } from "@/server/auth/next-auth";
@@ -33,14 +31,12 @@ import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 export function generateMetadata(): Metadata {
   return {
     title: "Accueil | EcoDeli",
-    description: "Service de livraison collaboratif écologique",
-  };
+    description: "Service de livraison collaboratif écologique"};
 }
 
 export default async function HomePage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }) {
   // Locale est une valeur dynamique fournie par Next.js, on doit utiliser await
   const { locale } = await params;
@@ -141,30 +137,25 @@ export default async function HomePage({
                 title: "Publiez votre annonce",
                 description:
                   "Décrivez votre besoin de livraison ou le service que vous proposez",
-                icon: Package,
-              },
+                icon: Package},
               {
                 step: "2",
                 title: "Mettez-vous d'accord",
                 description:
                   "Discutez des détails et du prix avec l'autre partie",
-                icon: User,
-              },
+                icon: User},
               {
                 step: "3",
                 title: "Suivez en temps réel",
                 description:
                   "Suivez le parcours du colis ou du livreur et communiquez si besoin",
-                icon: Clock,
-              },
+                icon: Clock},
               {
                 step: "4",
                 title: "Code de confirmation",
                 description:
                   "Un code de confirmation valide la livraison et déclenche le paiement",
-                icon: CheckCircle,
-              },
-            ].map((step, index) => (
+                icon: CheckCircle}].map((step, index) => (
               <div
                 key={index}
                 className="w-full md:w-1/4 flex flex-col items-center text-center"
@@ -218,44 +209,37 @@ export default async function HomePage({
                 title: "Économique",
                 description:
                   "Réduisez vos coûts de livraison grâce à notre système d'annonces entre particuliers.",
-                color: "text-green-500",
-              },
+                color: "text-green-500"},
               {
                 icon: Leaf,
                 title: "Écologique",
                 description:
                   "Diminuez l'impact environnemental en optimisant les trajets déjà existants.",
-                color: "text-primary",
-              },
+                color: "text-primary"},
               {
                 icon: Heart,
                 title: "Social",
                 description:
                   "Créez du lien social et luttez contre l'isolement grâce à nos services à la personne.",
-                color: "text-red-500",
-              },
+                color: "text-red-500"},
               {
                 icon: Users,
                 title: "Collaboratif",
                 description:
                   "Participez à l'économie du partage et générez des revenus complémentaires.",
-                color: "text-blue-500",
-              },
+                color: "text-blue-500"},
               {
                 icon: BadgeCheck,
                 title: "Sécurisé",
                 description:
                   "Bénéficiez d'une assurance sur vos colis et d'un système de code de confirmation.",
-                color: "text-amber-500",
-              },
+                color: "text-amber-500"},
               {
                 icon: Truck,
                 title: "Flexible",
                 description:
                   "Des solutions adaptées à tous types de services: transport de colis, personnes et plus.",
-                color: "text-purple-500",
-              },
-            ].map((item, index) => (
+                color: "text-purple-500"}].map((item, index) => (
               <div
                 key={index}
                 className="flex gap-4 p-4 rounded-lg bg-background shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
@@ -294,27 +278,22 @@ export default async function HomePage({
                 icon: Package,
                 title: "Transport de colis",
                 description:
-                  "Livraison de colis de particuliers à particuliers avec prise en charge intégrale ou partielle du trajet.",
-              },
+                  "Livraison de colis de particuliers à particuliers avec prise en charge intégrale ou partielle du trajet."},
               {
                 icon: User,
                 title: "Transport de personnes",
                 description:
-                  "Accompagnez des personnes à leurs rendez-vous médicaux, à la gare ou à l'aéroport.",
-              },
+                  "Accompagnez des personnes à leurs rendez-vous médicaux, à la gare ou à l'aéroport."},
               {
                 icon: ShoppingBag,
                 title: "Services de courses",
                 description:
-                  "Faites réaliser vos courses selon une liste établie, même pour des produits spécifiques à l'étranger.",
-              },
+                  "Faites réaliser vos courses selon une liste établie, même pour des produits spécifiques à l'étranger."},
               {
                 icon: Heart,
                 title: "Services écologiques",
                 description:
-                  "Garde d'animaux, travaux ménagers ou de jardinage et autres services à la personne.",
-              },
-            ].map((service, index) => (
+                  "Garde d'animaux, travaux ménagers ou de jardinage et autres services à la personne."}].map((service, index) => (
               <Card
                 key={index}
                 className="bg-background h-full transition-all duration-300 hover:shadow-md"
@@ -368,11 +347,9 @@ export default async function HomePage({
                   "Messagerie avec les utilisateurs",
                   "Système de paiement sécurisé",
                   "Commission standard sur les transactions",
-                  "Support client par email",
-                ],
+                  "Support client par email"],
                 cta: "Commencer gratuitement",
-                popular: false,
-              },
+                popular: false},
               {
                 title: "Starter",
                 price: "9,99€",
@@ -384,11 +361,9 @@ export default async function HomePage({
                   "Système de paiement sécurisé",
                   "Commission réduite sur les transactions",
                   "Support client prioritaire",
-                  "Mise en avant des annonces",
-                ],
+                  "Mise en avant des annonces"],
                 cta: "Choisir Starter",
-                popular: true,
-              },
+                popular: true},
               {
                 title: "Premium",
                 price: "19,99€",
@@ -400,12 +375,9 @@ export default async function HomePage({
                   "Outils d'analyse et de statistiques",
                   "Support client dédié",
                   "Doubles points de fidélité",
-                  "Accès anticipé aux nouvelles fonctionnalités",
-                ],
+                  "Accès anticipé aux nouvelles fonctionnalités"],
                 cta: "Choisir Premium",
-                popular: false,
-              },
-            ].map((plan, index) => (
+                popular: false}].map((plan, index) => (
               <Card
                 key={index}
                 className={cn(
@@ -476,21 +448,17 @@ export default async function HomePage({
                 name: "Sophie M.",
                 role: "Utilisatrice",
                 comment:
-                  "J'utilise régulièrement EcoDeli pour envoyer des colis à ma famille. C'est économique et je sais que je contribue à réduire l'impact environnemental. Le système de code de confirmation est vraiment sécurisant.",
-              },
+                  "J'utilise régulièrement EcoDeli pour envoyer des colis à ma famille. C'est économique et je sais que je contribue à réduire l'impact environnemental. Le système de code de confirmation est vraiment sécurisant."},
               {
                 name: "Thomas R.",
                 role: "Livreur",
                 comment:
-                  "Je fais des livraisons sur mes trajets quotidiens et ça me permet de gagner un revenu complémentaire tout en rendant service. La plateforme est simple à utiliser et le paiement est rapide.",
-              },
+                  "Je fais des livraisons sur mes trajets quotidiens et ça me permet de gagner un revenu complémentaire tout en rendant service. La plateforme est simple à utiliser et le paiement est rapide."},
               {
                 name: "Marie L.",
                 role: "Commerçante",
                 comment:
-                  "En tant que petite commerçante, EcoDeli m'a permis de proposer un service de livraison à mes clients sans investir dans une flotte de véhicules. Le système de lâcher de chariot est parfait pour mon activité.",
-              },
-            ].map((testimonial, index) => (
+                  "En tant que petite commerçante, EcoDeli m'a permis de proposer un service de livraison à mes clients sans investir dans une flotte de véhicules. Le système de lâcher de chariot est parfait pour mon activité."}].map((testimonial, index) => (
               <Card
                 key={index}
                 className="bg-background h-full transition-all duration-300 hover:shadow-md"

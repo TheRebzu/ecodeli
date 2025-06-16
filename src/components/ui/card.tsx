@@ -82,8 +82,7 @@ export {
   CardFooter,
   CardTitle,
   CardDescription,
-  CardContent,
-};
+  CardContent};
 
 // Composant ProfileInfoCard pour l'affichage des informations de profil
 export function ProfileInfoCard({

@@ -27,8 +27,7 @@ type ProviderVerificationListProps = {
 };
 
 export function ProviderVerificationList({
-  verifications,
-}: ProviderVerificationListProps) {
+  verifications}: ProviderVerificationListProps) {
   const [activeTab, setActiveTab] = useState("pending");
 
   const pendingVerifications = verifications.filter(

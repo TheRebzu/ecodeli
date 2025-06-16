@@ -38,10 +38,8 @@ export const AuditService = {
           entityId,
           action,
           performedById,
-          changes,
-        },
-      });
-    } catch (_error) {
+          changes}});
+    } catch (error) {
       console.error("Erreur lors de la création du log d'audit:", error);
       // Ne pas échouer l'opération principale si l'audit échoue
     }
@@ -57,15 +55,10 @@ export const AuditService = {
     return db.auditLog.findMany({
       where: {
         entityType,
-        entityId,
-      },
-      include: {
-        performedBy: true,
-      },
+        entityId},
+      include: { performedBy },
       orderBy: {
-        createdAt: "desc",
-      },
-    });
+        createdAt: "desc"}});
   },
 
   /**
@@ -81,8 +74,7 @@ export const AuditService = {
     fromDate,
     toDate,
     limit = 20,
-    offset = 0,
-  }: {
+    offset = 0}: {
     entityType?: string;
     entityId?: string;
     performedById?: string;
@@ -108,17 +100,12 @@ export const AuditService = {
     const [logs, totalCount] = await Promise.all([
       db.auditLog.findMany({
         where,
-        include: {
-          performedBy: true,
-        },
+        include: { performedBy },
         orderBy: {
-          createdAt: "desc",
-        },
+          createdAt: "desc"},
         skip: offset,
-        take: limit,
-      }),
-      db.auditLog.count({ where }),
-    ]);
+        take: limit}),
+      db.auditLog.count({ where  })]);
 
     return {
       logs,
@@ -126,9 +113,7 @@ export const AuditService = {
       pagination: {
         limit,
         offset,
-        hasMore: offset + logs.length < totalCount,
-      },
-    };
+        hasMore: offset + logs.length < totalCount}};
   },
 
   /**
@@ -148,11 +133,9 @@ export const AuditService = {
       ) {
         changes[key] = {
           from: oldData[key],
-          to: newData[key],
-        };
+          to: newData[key]};
       }
     }
 
     return Object.keys(changes).length > 0 ? changes : null;
-  },
-};
+  }};

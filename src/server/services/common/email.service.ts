@@ -14,8 +14,7 @@ type EmailTemplate = {
 const sendVerificationEmailUtil = (email: string, token: string) => ({
   to: email,
   subject: "Vérification de votre compte",
-  html: `<p>Cliquez sur ce lien pour vérifier votre compte: <a href="${process.env.NEXTAUTH_URL}/verify?token=${token}">Vérifier</a></p>`,
-});
+  html: `<p>Cliquez sur ce lien pour vérifier votre compte: <a href="${process.env.NEXTAUTH_URL}/verify?token=${token}">Vérifier</a></p>`});
 
 const sendPasswordResetEmailUtil = (
   email: string,
@@ -24,14 +23,12 @@ const sendPasswordResetEmailUtil = (
 ) => ({
   to: email,
   subject: "Réinitialisation de votre mot de passe",
-  html: `<p>Bonjour ${name}, cliquez sur ce lien pour réinitialiser votre mot de passe: <a href="${process.env.NEXTAUTH_URL}/reset-password?token=${token}">Réinitialiser</a></p>`,
-});
+  html: `<p>Bonjour ${name}, cliquez sur ce lien pour réinitialiser votre mot de passe: <a href="${process.env.NEXTAUTH_URL}/reset-password?token=${token}">Réinitialiser</a></p>`});
 
 const sendWelcomeEmailUtil = (email: string, name: string) => ({
   to: email,
   subject: "Bienvenue sur EcoDeli",
-  html: `<p>Bonjour ${name}, bienvenue sur EcoDeli !</p>`,
-});
+  html: `<p>Bonjour ${name}, bienvenue sur EcoDeli !</p>`});
 
 /**
  * Service pour l'envoi d'emails avec Mailgun
@@ -49,10 +46,8 @@ export class EmailService {
 
     // Initialisation de Mailgun
     const mailgun = new Mailgun(formData);
-    this.mailgun = mailgun.client({
-      username: "api",
-      key: process.env.MAILGUN_API_KEY || "",
-    });
+    this.mailgun = mailgun.client({ username: "api",
+      key: process.env.MAILGUN_API_KEY || "" });
 
     // Pas d'avertissement même si Mailgun n'est pas configuré
     // car les emails sont bien envoyés par Nodemailer dans src/lib/email.ts
@@ -67,9 +62,9 @@ export class EmailService {
     subject: string,
     html: string,
   ): Promise<void> {
-    if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+    if (!process.env.MAILGUN_APIKEY || !process.env.MAILGUN_DOMAIN) {
       // Les emails sont réellement envoyés par Nodemailer (src/lib/email.ts)
-      // Ce message est juste un log informationnel, pas une simulation
+      
       console.log(`[EMAIL ENVOYÉ VIA NODEMAILER] À: ${to}, Sujet: ${subject}`);
       return;
     }
@@ -79,15 +74,12 @@ export class EmailService {
         from: this.fromEmail,
         to: [to],
         subject: subject,
-        html: html,
-      });
+        html: html});
       console.log(`Email envoyé avec succès à ${to}`);
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de l'envoi d'email:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de l'envoi d'email",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de l'envoi d'email" });
     }
   }
 
@@ -147,7 +139,7 @@ export class EmailService {
       // Cette méthode pourrait être implémentée pour récupérer le nom de l'utilisateur
       // depuis la base de données, mais pour l'instant, on renvoie simplement null
       return null;
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération du nom d'utilisateur:",
         error,

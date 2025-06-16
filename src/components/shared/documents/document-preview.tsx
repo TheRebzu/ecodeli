@@ -6,8 +6,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,8 +25,7 @@ import {
   Hash,
   Scale,
   Scan,
-  Shield,
-} from "lucide-react";
+  Shield} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils/common";
@@ -56,23 +54,15 @@ interface DocumentPreviewProps {
 }
 
 // Configuration des types de documents
-const DOCUMENT_LABELS: Record<string, string> = {
-  IDENTITY: "Pièce d'identité",
-  DRIVING_LICENSE: "Permis de conduire",
-  INSURANCE: "Attestation d'assurance",
-  VEHICLE_REGISTRATION: "Carte grise",
-  BACKGROUND_CHECK: "Extrait de casier judiciaire",
-  MEDICAL_CERTIFICATE: "Certificat médical",
-  BANK_DETAILS: "RIB",
-  ADDRESS_PROOF: "Justificatif de domicile",
-};
+const _DOCUMENT_LABELS: Record<string, string> = {
+  IDENTITY: "Pièce d'identité", DRIVING_LICENSE: "Permis de conduire",
+  INSURANCE: "Attestation d'assurance", VEHICLE_REGISTRATION: "Carte grise", BACKGROUND_CHECK: "Extrait de casier judiciaire", MEDICAL_CERTIFICATE: "Certificat médical", BANK_DETAILS: "RIB", ADDRESS_PROOF: "Justificatif de domicile"};
 
 export function DocumentPreview({
   document,
   onClose,
   onDownload,
-  onReplace,
-}: DocumentPreviewProps) {
+  onReplace}: DocumentPreviewProps) {
   const [imageError, setImageError] = useState(false);
 
   const getStatusIcon = (status: string) => {
@@ -238,9 +228,7 @@ export function DocumentPreview({
                     </h4>
                     <p className="text-sm text-red-700 mt-1">
                       Ce document a expiré le{" "}
-                      {format(document.expiryDate!, "dd/MM/yyyy", {
-                        locale: fr,
-                      })}
+                      {format(document.expiryDate!, "dd/MM/yyyy", { locale })}
                       . Veuillez télécharger une version mise à jour.
                     </p>
                   </div>
@@ -261,9 +249,7 @@ export function DocumentPreview({
                       </h4>
                       <p className="text-sm text-orange-700 mt-1">
                         Ce document expire le{" "}
-                        {format(document.expiryDate!, "dd/MM/yyyy", {
-                          locale: fr,
-                        })}
+                        {format(document.expiryDate!, "dd/MM/yyyy", { locale })}
                         . Pensez à le renouveler.
                       </p>
                     </div>
@@ -302,7 +288,7 @@ export function DocumentPreview({
                             size="sm"
                             className="mt-2"
                             onClick={() =>
-                              window.open(document.documentUrl, "_blank")
+                              window.open(document.documentUrl, "blank")
                             }
                           >
                             Ouvrir dans un nouvel onglet
@@ -327,7 +313,7 @@ export function DocumentPreview({
                         size="sm"
                         className="mt-2"
                         onClick={() =>
-                          window.open(document.documentUrl, "_blank")
+                          window.open(document.documentUrl, "blank")
                         }
                       >
                         Ouvrir le document
@@ -383,9 +369,7 @@ export function DocumentPreview({
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">Uploadé le:</span>
                         <span>
-                          {format(document.uploadedAt, "dd/MM/yyyy à HH:mm", {
-                            locale: fr,
-                          })}
+                          {format(document.uploadedAt, "dd/MM/yyyy à HH:mm", { locale })}
                         </span>
                       </div>
                     )}
@@ -395,9 +379,7 @@ export function DocumentPreview({
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span className="font-medium">Approuvé le:</span>
                         <span className="text-green-600">
-                          {format(document.verifiedAt, "dd/MM/yyyy à HH:mm", {
-                            locale: fr,
-                          })}
+                          {format(document.verifiedAt, "dd/MM/yyyy à HH:mm", { locale })}
                         </span>
                       </div>
                     )}
@@ -424,9 +406,7 @@ export function DocumentPreview({
                                 : "",
                           )}
                         >
-                          {format(document.expiryDate, "dd/MM/yyyy", {
-                            locale: fr,
-                          })}
+                          {format(document.expiryDate, "dd/MM/yyyy", { locale })}
                         </span>
                       </div>
                     )}

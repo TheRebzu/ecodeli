@@ -30,14 +30,11 @@ export default function ClientAnnouncementsPage() {
     fetchMyAnnouncements,
     fetchActiveAnnouncements,
     fetchAnnouncementHistory,
-    resetError,
-  } = useClientAnnouncements({
+    resetError} = useClientAnnouncements({
     initialFilter: {
       limit: 10,
       page: 1,
-      status: ["PUBLISHED", "IN_APPLICATION", "ASSIGNED", "IN_PROGRESS"],
-    },
-  });
+      status: ["PUBLISHED", "IN_APPLICATION", "ASSIGNED", "IN_PROGRESS"]}});
 
   // Charger les annonces actives ou historiques selon l'onglet, mais en évitant la boucle infinie
   useEffect(() => {
@@ -91,8 +88,7 @@ export default function ClientAnnouncementsPage() {
       requiresSignature: announcement.requiresSignature || false,
       requiresId: announcement.requiresId || false,
       isFavorite: announcement.isFavorite || false,
-      applications: announcement.applications,
-    } as Announcement;
+      applications: announcement.applications} as Announcement;
   });
 
   return (
@@ -180,9 +176,9 @@ export default function ClientAnnouncementsPage() {
 
         <TabsContent value="active" className="space-y-4">
           {isLoading ? (
-            // Placeholder de chargement
+            
             <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
+              {Array.from({ length: 3  }).map((_, i) => (
                 <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
               ))}
             </div>
@@ -219,9 +215,9 @@ export default function ClientAnnouncementsPage() {
 
         <TabsContent value="history" className="space-y-4">
           {isLoading ? (
-            // Placeholder de chargement
+            
             <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
+              {Array.from({ length: 3  }).map((_, i) => (
                 <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
               ))}
             </div>

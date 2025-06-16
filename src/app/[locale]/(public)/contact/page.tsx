@@ -6,8 +6,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   AtSign,
   Clock,
@@ -16,8 +15,7 @@ import {
   Linkedin,
   MapPin,
   Phone,
-  Twitter,
-} from "lucide-react";
+  Twitter} from "lucide-react";
 
 export default function ContactPage() {
   return (
@@ -29,8 +27,7 @@ export default function ContactPage() {
             className="absolute inset-0 bg-cover bg-center z-0"
             style={{
               backgroundImage: "url(/images/contact/contact-bg.jpg)",
-              opacity: 0.05,
-            }}
+              opacity: 0.05}}
           ></div>
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col items-center text-center space-y-4">
@@ -129,8 +126,7 @@ export default function ContactPage() {
                     {[
                       { day: "Lundi - Vendredi", hours: "9:00 - 18:00" },
                       { day: "Samedi", hours: "10:00 - 16:00" },
-                      { day: "Dimanche", hours: "Fermé" },
-                    ].map((schedule, index) => (
+                      { day: "Dimanche", hours: "Fermé" }].map((schedule, index) => (
                       <div
                         key={index}
                         className="flex justify-between items-center py-2 border-b last:border-0"
@@ -271,8 +267,7 @@ export default function ContactPage() {
                 { icon: Facebook, name: "Facebook", href: "#" },
                 { icon: Twitter, name: "Twitter", href: "#" },
                 { icon: Instagram, name: "Instagram", href: "#" },
-                { icon: Linkedin, name: "LinkedIn", href: "#" },
-              ].map((social, index) => (
+                { icon: Linkedin, name: "LinkedIn", href: "#" }].map((social, index) => (
                 <a
                   key={index}
                   href={social.href}

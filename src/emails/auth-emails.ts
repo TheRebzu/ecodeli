@@ -3,13 +3,11 @@ import nodemailer from "nodemailer";
 // Configuration du transporteur d'email (à remplacer par votre service réel)
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_SERVER_HOST,
-  port: Number(process.env.EMAIL_SERVER_PORT),
+  port: Number(process.env.EMAIL_SERVERPORT),
   auth: {
     user: process.env.EMAIL_SERVER_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD,
-  },
-  secure: process.env.NODE_ENV === "production",
-});
+    pass: process.env.EMAIL_SERVER_PASSWORD},
+  secure: process.env.NODE_ENV === "production"});
 
 /**
  * Envoie un email de vérification à l'utilisateur
@@ -37,8 +35,7 @@ export async function sendVerificationEmail(
         <p>Si vous n'avez pas demandé cette vérification, veuillez ignorer cet email.</p>
         <p>Ce lien expirera dans 24 heures.</p>
       </div>
-    `,
-  });
+    `});
 }
 
 /**
@@ -63,8 +60,7 @@ export async function sendPasswordResetEmail(
         <p>Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.</p>
         <p>Ce lien expirera dans 1 heure.</p>
       </div>
-    `,
-  });
+    `});
 }
 
 /**
@@ -85,6 +81,5 @@ export async function sendWelcomeEmail(
         <p>Cordialement,</p>
         <p>L'équipe EcoDeli</p>
       </div>
-    `,
-  });
+    `});
 }

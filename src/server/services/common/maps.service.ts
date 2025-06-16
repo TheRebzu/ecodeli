@@ -11,9 +11,7 @@ export const MapsService = {
           params: {
             origins: origin,
             destinations: destination,
-            key: GOOGLE_MAPS_API_KEY,
-          },
-        },
+            key: GOOGLE_MAPS_API_KEY}},
       );
 
       if (response.data.status === "OK") {
@@ -29,7 +27,7 @@ export const MapsService = {
       }
 
       throw new Error("Calcul de distance impossible");
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur API Google Maps:", error);
       throw new Error("Calcul de distance impossible");
     }
@@ -42,21 +40,18 @@ export const MapsService = {
         {
           params: {
             address,
-            key: GOOGLE_MAPS_API_KEY,
-          },
-        },
+            key: GOOGLE_MAPS_API_KEY}},
       );
 
       if (response.data.status === "OK") {
-        const { lat: _lat, lng: _lng } =
+        const { lat: lat, lng: lng } =
           response.data.results[0].geometry.location;
         return { lat, lng };
       }
 
       throw new Error("Géocodage impossible");
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur API Google Maps:", error);
       throw new Error("Géocodage impossible");
     }
-  },
-};
+  }};

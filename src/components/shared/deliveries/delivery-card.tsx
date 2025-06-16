@@ -1,3 +1,3 @@
-export function DeliveryCard({ delivery }) {
+export function DeliveryCard({ delivery  }) {
   return <div>Carte de livraison</div>;
 }

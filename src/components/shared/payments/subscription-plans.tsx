@@ -16,6 +16,8 @@ import {
 
 import { cn } from "@/lib/utils/common";
 import { useSubscriptionStore } from "@/store/use-subscription-store";
+import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/app/api/api";
 
 import {
   Card,
@@ -68,292 +70,47 @@ export interface SubscriptionPlan {
 }
 
 interface SubscriptionPlansProps {
-  isDemo?: boolean;
   currentPlanId?: string;
   onSelectPlan: (planId: string) => void;
   className?: string;
 }
 
 export function SubscriptionPlans({
-  isDemo = false,
   currentPlanId,
   onSelectPlan,
   className,
 }: SubscriptionPlansProps) {
-  const t = useTranslations("subscription");
-  const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">(
+  const t = useTranslations("subscriptions");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
     "monthly",
   );
+  const { toast } = useToast();
 
-  // Récupérer les plans depuis le store en mode non démo
-  const { availablePlans } = useSubscriptionStore((state) => ({
-    availablePlans: state.availablePlans,
-  }));
+  // Récupération des plans depuis le store et API
+  const { availablePlans } = useSubscriptionStore((state) => ({ availablePlans: state.availablePlans,
+   }));
 
-  // Plans d'abonnement démo
-  const demoPlans: SubscriptionPlan[] = [
-    {
-      id: "free",
-      type: "FREE",
-      name: t("plans.free.name"),
-      description: t("plans.free.description"),
-      price: {
-        monthly: 0,
-        annual: 0,
-      },
-      currency: "EUR",
-      features: [
-        {
-          id: "deliveries",
-          name: t("features.deliveries"),
-          included: true,
-          limit: "5",
-        },
-        {
-          id: "tracking",
-          name: t("features.tracking"),
-          included: true,
-        },
-        {
-          id: "reports",
-          name: t("features.reports"),
-          included: false,
-        },
-        {
-          id: "support",
-          name: t("features.support"),
-          included: true,
-          limit: t("support.basic"),
-        },
-        {
-          id: "storage",
-          name: t("features.storage"),
-          included: false,
-        },
-      ],
-      cta: t("plans.free.cta"),
-      icon: <Zap className="h-5 w-5" />,
-    },
-    {
-      id: "basic",
-      type: "BASIC",
-      name: t("plans.basic.name"),
-      description: t("plans.basic.description"),
-      price: {
-        monthly: 29,
-        annual: 290,
-      },
-      currency: "EUR",
-      features: [
-        {
-          id: "deliveries",
-          name: t("features.deliveries"),
-          included: true,
-          limit: "25",
-        },
-        {
-          id: "tracking",
-          name: t("features.tracking"),
-          included: true,
-        },
-        {
-          id: "reports",
-          name: t("features.reports"),
-          included: true,
-          limit: t("reports.basic"),
-        },
-        {
-          id: "support",
-          name: t("features.support"),
-          included: true,
-          limit: t("support.email"),
-        },
-        {
-          id: "storage",
-          name: t("features.storage"),
-          included: true,
-          limit: "5 GB",
-        },
-        {
-          id: "api",
-          name: t("features.api"),
-          included: false,
-        },
-      ],
-      cta: t("plans.basic.cta"),
-      icon: <Star className="h-5 w-5" />,
-    },
-    {
-      id: "premium",
-      type: "PREMIUM",
-      name: t("plans.premium.name"),
-      description: t("plans.premium.description"),
-      price: {
-        monthly: 79,
-        annual: 790,
-      },
-      currency: "EUR",
-      features: [
-        {
-          id: "deliveries",
-          name: t("features.deliveries"),
-          included: true,
-          limit: "100",
-        },
-        {
-          id: "tracking",
-          name: t("features.tracking"),
-          included: true,
-          highlight: true,
-        },
-        {
-          id: "reports",
-          name: t("features.reports"),
-          included: true,
-          limit: t("reports.advanced"),
-          highlight: true,
-        },
-        {
-          id: "support",
-          name: t("features.support"),
-          included: true,
-          limit: t("support.priority"),
-        },
-        {
-          id: "storage",
-          name: t("features.storage"),
-          included: true,
-          limit: "25 GB",
-        },
-        {
-          id: "api",
-          name: t("features.api"),
-          included: true,
-          limit: "1000 " + t("api.requests"),
-        },
-        {
-          id: "customization",
-          name: t("features.customization"),
-          included: true,
-          limit: t("customization.basic"),
-        },
-      ],
-      mostPopular: true,
-      cta: t("plans.premium.cta"),
-      badge: t("mostPopular"),
-      icon: <Gem className="h-5 w-5" />,
-    },
-    {
-      id: "business",
-      type: "BUSINESS",
-      name: t("plans.business.name"),
-      description: t("plans.business.description"),
-      price: {
-        monthly: 199,
-        annual: 1990,
-      },
-      currency: "EUR",
-      features: [
-        {
-          id: "deliveries",
-          name: t("features.deliveries"),
-          included: true,
-          limit: t("unlimited"),
-          highlight: true,
-        },
-        {
-          id: "tracking",
-          name: t("features.tracking"),
-          included: true,
-          highlight: true,
-        },
-        {
-          id: "reports",
-          name: t("features.reports"),
-          included: true,
-          limit: t("reports.premium"),
-          highlight: true,
-        },
-        {
-          id: "support",
-          name: t("features.support"),
-          included: true,
-          limit: t("support.dedicated"),
-          highlight: true,
-        },
-        {
-          id: "storage",
-          name: t("features.storage"),
-          included: true,
-          limit: "100 GB",
-        },
-        {
-          id: "api",
-          name: t("features.api"),
-          included: true,
-          limit: t("unlimited"),
-        },
-        {
-          id: "customization",
-          name: t("features.customization"),
-          included: true,
-          limit: t("customization.advanced"),
-        },
-        {
-          id: "integration",
-          name: t("features.integration"),
-          included: true,
-        },
-      ],
-      recommended: true,
-      cta: t("plans.business.cta"),
-      badge: t("recommended"),
-      icon: <Rocket className="h-5 w-5" />,
-    },
-    {
-      id: "enterprise",
-      type: "ENTERPRISE",
-      name: t("plans.enterprise.name"),
-      description: t("plans.enterprise.description"),
-      price: {
-        monthly: 499,
-        annual: 4990,
-      },
-      currency: "EUR",
-      features: [
-        {
-          id: "custom",
-          name: t("features.custom"),
-          included: true,
-          description: t("features.customDescription"),
-        },
-      ],
-      cta: t("plans.enterprise.cta"),
-      details: t("plans.enterprise.details"),
-      icon: <Sparkles className="h-5 w-5" />,
-    },
-  ];
+  // Requête tRPC réelle pour récupérer les plans
+  const { data: plansData, isLoading } = api.subscription.getAvailablePlans.useQuery();
+  
+  // Utiliser les plans de l'API ou ceux du store en fallback
+  const plans = plansData?.plans || availablePlans;
 
-  // Utiliser les plans démo ou réels
-  const plans = isDemo ? demoPlans : availablePlans;
-
-  // Formatage du prix
+  // Formater le prix
   const formatPrice = (amount: number, currency: string): string => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency,
-      minimumFractionDigits: amount === 0 ? 0 : 2,
+      currency: currency,
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
-  // Remise en pourcentage pour abonnement annuel
+  // Calculer la réduction annuelle
   const getAnnualDiscount = (plan: SubscriptionPlan): number => {
-    if (plan.price.monthly === 0 || plan.price.annual === 0) return 0;
-
-    const monthlyTotal = plan.price.monthly * 12;
-    const discount = ((monthlyTotal - plan.price.annual) / monthlyTotal) * 100;
-
-    return Math.round(discount);
+    const annualMonthlyPrice = plan.price.annual / 12;
+    const monthlyPrice = plan.price.monthly;
+    if (monthlyPrice === 0) return 0;
+    return Math.round(((monthlyPrice - annualMonthlyPrice) / monthlyPrice) * 100);
   };
 
   return (
@@ -371,10 +128,10 @@ export function SubscriptionPlans({
           </Label>
           <Switch
             id="billing-toggle"
-            checked={billingInterval === "annual"}
+            checked={billingCycle === "annual"}
             onCheckedChange={() =>
-              setBillingInterval(
-                billingInterval === "monthly" ? "annual" : "monthly",
+              setBillingCycle(
+                billingCycle === "monthly" ? "annual" : "monthly",
               )
             }
           />
@@ -391,18 +148,6 @@ export function SubscriptionPlans({
             </Badge>
           </Label>
         </div>
-
-        {isDemo && (
-          <div className="mt-2">
-            <Badge
-              variant="outline"
-              className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1 mx-auto"
-            >
-              <Info className="h-3.5 w-3.5 mr-1" />
-              {t("demoMode")}
-            </Badge>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
@@ -410,7 +155,7 @@ export function SubscriptionPlans({
           const isCurrentPlan = currentPlanId === plan.id;
           const discount = getAnnualDiscount(plan);
           const price =
-            billingInterval === "monthly"
+            billingCycle === "monthly"
               ? plan.price.monthly
               : plan.price.annual / 12;
 
@@ -453,7 +198,7 @@ export function SubscriptionPlans({
                       /{t("perMonth")}
                     </span>
                   </div>
-                  {billingInterval === "annual" && plan.price.monthly > 0 && (
+                  {billingCycle === "annual" && plan.price.monthly > 0 && (
                     <div className="text-sm text-muted-foreground">
                       {t("billedAnnuallyAs", {
                         amount: formatPrice(plan.price.annual, plan.currency),
@@ -500,7 +245,7 @@ export function SubscriptionPlans({
                                     "text-primary font-medium",
                                 )}
                               >
-                                ({feature.limit})
+                                ({ feature.limit })
                               </span>
                             )}
                           </div>

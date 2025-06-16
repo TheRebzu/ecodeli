@@ -26,41 +26,67 @@ interface Review {
 interface UseClientReviewsOptions {
   status?: string;
   rating?: number;
+  serviceId?: string;
+  page?: number;
+  limit?: number;
 }
 
 interface UseClientReviewsReturn {
   reviews: Review[];
+  totalReviews: number;
+  averageRating: number;
   isLoading: boolean;
   error: string | null;
+  submitReview: (review: { serviceId: string; rating: number; comment?: string }) => Promise<void>;
   refetch: () => void;
 }
 
-export function useClientReviews(
-  options: UseClientReviewsOptions = {},
-): UseClientReviewsReturn {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function useClientReviews(options: UseClientReviewsOptions = {}): UseClientReviewsReturn {
   const [error, setError] = useState<string | null>(null);
 
-  const refetch = () => {
-    setIsLoading(true);
-    setError(null);
+  // Appel tRPC réel pour récupérer les avis
+  const {
+    data: reviewsData,
+    isLoading,
+    refetch,
+  } = api.client.reviews.getClientReviews.useQuery(
+    {
+      status: options.status,
+      serviceId: options.serviceId,
+      page: options.page || 1,
+      limit: options.limit || 10,
+    },
+    {
+      onError: (err: any) => {
+        setError(err.message || "Erreur lors du chargement des avis");
+      },
+    },
+  );
 
-    // Simuler le chargement
-    setTimeout(() => {
-      setReviews([]);
-      setIsLoading(false);
-    }, 1000);
+  const submitReviewMutation = api.client.reviews.submitReview.useMutation({
+    onSuccess: () => {
+      refetch();
+    },
+    onError: (err: any) => {
+      setError(err.message || "Erreur lors de la soumission de l'avis");
+    },
+  });
+
+  const submitReview = async (review: {
+    serviceId: string;
+    rating: number;
+    comment?: string;
+  }) => {
+    await submitReviewMutation.mutateAsync(review);
   };
 
-  useEffect(() => {
-    refetch();
-  }, [options.status, options.rating]);
-
   return {
-    reviews,
+    reviews: reviewsData?.reviews || [],
+    totalReviews: reviewsData?.total || 0,
+    averageRating: reviewsData?.averageRating || 0,
     isLoading,
     error,
+    submitReview,
     refetch,
   };
 }

@@ -7,9 +7,7 @@ export const warehouseLocationsRouter = router({
   getLocations: protectedProcedure.query(async () => {
     try {
       const warehouses = await prisma.warehouse.findMany({
-        where: {
-          isActive: true,
-        },
+        where: { isActive },
         select: {
           id: true,
           name: true,
@@ -29,13 +27,11 @@ export const warehouseLocationsRouter = router({
           openingHours: true,
           accessHours: true,
           securityLevel: true,
-          averageOccupancy: true,
-        },
-        orderBy: [{ isMainHub: "desc" }, { city: "asc" }],
-      });
+          averageOccupancy: true},
+        orderBy: [{ isMainHub: "desc" }, { city: "asc" }]});
 
       return warehouses;
-    } catch (_error) {
+    } catch (error) {
       console.error("Error fetching warehouse locations:", error);
       throw new Error("Failed to fetch warehouse locations");
     }
@@ -43,13 +39,12 @@ export const warehouseLocationsRouter = router({
 
   getNearbyWarehouses: protectedProcedure
     .input(
-      z.object({
-        latitude: z.number(),
+      z.object({ latitude: z.number(),
         longitude: z.number(),
         radius: z.number().default(50), // km
-      }),
+       }),
     )
-    .query(async ({ input: _input }) => {
+    .query(async ({ input  }) => {
       try {
         // Utilise la formule de Haversine pour calculer la distance
         const warehouses = await prisma.$queryRaw`
@@ -65,7 +60,7 @@ export const warehouseLocationsRouter = router({
         `;
 
         return warehouses;
-      } catch (_error) {
+      } catch (error) {
         console.error("Error fetching nearby warehouses:", error);
         throw new Error("Failed to fetch nearby warehouses");
       }
@@ -73,42 +68,32 @@ export const warehouseLocationsRouter = router({
 
   getWarehouseById: protectedProcedure
     .input(
-      z.object({
-        id: z.string(),
-      }),
+      z.object({ id: z.string() }),
     )
-    .query(async ({ input: _input }) => {
+    .query(async ({ input  }) => {
       try {
         const warehouse = await prisma.warehouse.findUnique({
           where: {
-            id: input.id,
-          },
+            id: input.id},
           include: {
             boxes: {
               select: {
                 id: true,
                 size: true,
                 currentStatus: true,
-                pricePerDay: true,
-              },
-            },
+                pricePerDay: true}},
             activities: {
               orderBy: {
-                timestamp: "desc",
-              },
-              take: 10,
-            },
-          },
-        });
+                timestamp: "desc"},
+              take: 10}}});
 
         if (!warehouse) {
           throw new Error("Warehouse not found");
         }
 
         return warehouse;
-      } catch (_error) {
+      } catch (error) {
         console.error("Error fetching warehouse details:", error);
         throw new Error("Failed to fetch warehouse details");
       }
-    }),
-});
+    })});

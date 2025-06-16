@@ -9,8 +9,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,15 +21,13 @@ import {
   Filter,
   ArrowUpDown,
   MapPin,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -38,8 +35,7 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  PaginationPrevious} from "@/components/ui/pagination";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeliveryStatusBadge } from "@/components/shared/deliveries/delivery-status-badge";
@@ -68,14 +64,11 @@ export default function ClientDeliveriesPage() {
     error,
     refetch,
     hasActiveDeliveries,
-    pagination,
-  } = useClientDeliveries({
-    status: activeTab,
+    pagination} = useClientDeliveries({ status: activeTab,
     searchQuery,
     sortOrder,
     page: currentPage,
-    limit: itemsPerPage,
-  });
+    limit: itemsPerPage });
 
   // Filtrer selon le statut actif
   const getStatusFilter = (status: FilterStatus) => {
@@ -84,8 +77,7 @@ export default function ClientDeliveriesPage() {
         return [
           DeliveryStatus.ACCEPTED,
           DeliveryStatus.PICKED_UP,
-          DeliveryStatus.IN_TRANSIT,
-        ];
+          DeliveryStatus.IN_TRANSIT];
       case "completed":
         return [DeliveryStatus.DELIVERED, DeliveryStatus.CONFIRMED];
       case "upcoming":
@@ -101,7 +93,7 @@ export default function ClientDeliveriesPage() {
     estimatedArrival?: Date | string;
   }): boolean => {
     if (
-      delivery?.status === DeliveryStatus.IN_TRANSIT &&
+      delivery?.status === DeliveryStatus.INTRANSIT &&
       delivery?.estimatedArrival
     ) {
       const now = new Date();
@@ -153,12 +145,12 @@ export default function ClientDeliveriesPage() {
 
   // Formater une date
   const formatDate = (date: string | Date) => {
-    return format(new Date(date), "PPP", { locale: fr });
+    return format(new Date(date), "PPP", { locale });
   };
 
   // Formater l'heure
   const formatTime = (date: string | Date) => {
-    return format(new Date(date), "HH:mm", { locale: fr });
+    return format(new Date(date), "HH:mm", { locale });
   };
 
   return (
@@ -323,8 +315,7 @@ export default function ClientDeliveriesPage() {
                               {t("deliveryNumber", {
                                 number:
                                   delivery.number ||
-                                  delivery.id.substring(0, 6),
-                              })}
+                                  delivery.id.substring(0, 6)})}
                             </h3>
                             <p className="text-sm text-muted-foreground">
                               {formatDate(delivery.createdAt)}
@@ -388,9 +379,7 @@ export default function ClientDeliveriesPage() {
 
                       {pagination &&
                         pagination.totalPages > 0 &&
-                        Array.from({
-                          length: Math.min(5, pagination.totalPages),
-                        }).map((_, i) => {
+                        Array.from({ length: Math.min(5, pagination.totalPages) }).map((_, i) => {
                           // Logique pour afficher les bonnes pages en fonction de la page courante
                           let pageToShow: number;
                           if (pagination.totalPages <= 5) {

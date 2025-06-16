@@ -8,8 +8,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,8 +22,7 @@ import {
   User,
   Calendar,
   Clock,
-  AlertTriangle,
-} from "lucide-react";
+  AlertTriangle} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { api } from "@/trpc/react";
@@ -67,45 +65,35 @@ export function DocumentVerification() {
   const {
     data: documentsData,
     isLoading,
-    refetch,
-  } = api.document.getPendingDocuments.useQuery(
-    { userRole: selectedRole },
-    { refetchOnWindowFocus: false },
+    refetch} = api.document.getPendingDocuments.useQuery(
+    { userRole },
+    { refetchOnWindowFocus },
   );
 
   // Mutation pour approuver ou rejeter un document
-  const verifyDocument = api.auth.verifyDocument.useMutation({
-    onSuccess: () => {
+  const verifyDocument = api.auth.verifyDocument.useMutation({ onSuccess: () => {
       toast({
         title: t("documents.success.title"),
-        description: t("documents.success.description"),
-      });
+        description: t("documents.success.description") });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: t("documents.error.title"),
+      toast({ title: t("documents.error.title"),
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   // Gérer l'approbation d'un document
   const handleApprove = async (documentId: string) => {
-    await verifyDocument.mutateAsync({
-      documentId,
-      status: "APPROVED",
-    });
+    await verifyDocument.mutateAsync({ documentId,
+      status: "APPROVED" });
   };
 
   // Gérer le rejet d'un document
   const handleReject = async (documentId: string) => {
-    await verifyDocument.mutateAsync({
-      documentId,
+    await verifyDocument.mutateAsync({ documentId,
       status: "REJECTED",
-      notes: rejectNotes[documentId] || t("documents.defaultRejectionReason"),
-    });
+      notes: rejectNotes[documentId] || t("documents.defaultRejectionReason") });
 
     // Effacer les notes après soumission
     setRejectNotes((prev) => {
@@ -124,10 +112,8 @@ export function DocumentVerification() {
 
   // Mettre à jour les notes de rejet
   const updateRejectNotes = (documentId: string, notes: string) => {
-    setRejectNotes((prev) => ({
-      ...prev,
-      [documentId]: notes,
-    }));
+    setRejectNotes((prev) => ({ ...prev,
+      [documentId]: notes }));
   };
 
   // Obtenir les documents en attente
@@ -227,7 +213,7 @@ export function DocumentVerification() {
             <div className="flex items-center text-sm">
               <User className="h-4 w-4 mr-2 text-muted-foreground" />
               <span>
-                {document.user.name} ({document.user.email})
+                {document.user.name} ({ document.user.email })
               </span>
             </div>
 
@@ -235,7 +221,7 @@ export function DocumentVerification() {
               <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
               <span>
                 {t("documents.uploadedAt")}:{" "}
-                {format(new Date(document.uploadedAt), "PPP", { locale: fr })}
+                {format(new Date(document.uploadedAt), "PPP", { locale })}
               </span>
             </div>
 
@@ -244,7 +230,7 @@ export function DocumentVerification() {
                 <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                 <span>
                   {t("documents.expiresAt")}:{" "}
-                  {format(new Date(document.expiryDate), "PPP", { locale: fr })}
+                  {format(new Date(document.expiryDate), "PPP", { locale })}
                 </span>
               </div>
             )}
@@ -258,7 +244,7 @@ export function DocumentVerification() {
                   <FileText className="h-10 w-10 mx-auto mb-2" />
                   <a
                     href={document.fileUrl}
-                    target="_blank"
+                    target="blank"
                     rel="noopener noreferrer"
                     className="text-primary underline"
                   >

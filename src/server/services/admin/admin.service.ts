@@ -45,8 +45,7 @@ export class AdminService {
         hasDocuments,
         hasPendingVerifications,
         country,
-        city,
-      } = filters;
+        city} = filters;
 
       const skip = (page - 1) * limit;
 
@@ -58,8 +57,7 @@ export class AdminService {
         where.OR = [
           { name: { contains: search, mode: "insensitive" } },
           { email: { contains: search, mode: "insensitive" } },
-          { phoneNumber: { contains: search, mode: "insensitive" } },
-        ];
+          { phoneNumber: { contains: search, mode: "insensitive" } }];
       }
 
       // Filter by role
@@ -87,41 +85,33 @@ export class AdminService {
       // Filter by having documents
       if (hasDocuments) {
         where.documents = {
-          some: {},
-        };
+          some: {}};
       }
 
       // Filter by having pending verifications
       if (hasPendingVerifications) {
         where.submittedVerifications = {
           some: {
-            status: "PENDING",
-          },
-        };
+            status: "PENDING"}};
       }
 
       // Filter by location (via role-specific models)
       if (country || city) {
         const locationFilter: Prisma.UserWhereInput = {
-          OR: [],
-        };
+          OR: []};
 
         if (country) {
           locationFilter.OR?.push({
-            client: { country },
-          });
+            client: { country }});
           locationFilter.OR?.push({
-            merchant: { businessCountry: country },
-          });
+            merchant: { businessCountry }});
         }
 
         if (city) {
           locationFilter.OR?.push({
-            client: { city },
-          });
+            client: { city }});
           locationFilter.OR?.push({
-            merchant: { businessCity: city },
-          });
+            merchant: { businessCity }});
         }
 
         if (locationFilter.OR?.length) {
@@ -145,18 +135,15 @@ export class AdminService {
           // Sort by the most recent activity log
           orderBy = {
             activityLogs: {
-              _max: {
-                createdAt: sort.direction,
-              },
-            },
-          };
+              max: {
+                createdAt: sort.direction}}};
           break;
         default:
           orderBy.createdAt = "desc";
       }
 
       // Execute count query
-      const totalUsers = await this.prisma.user.count({ where });
+      const totalUsers = await this.prisma.user.count({ where  });
 
       // Execute main query
       const users = await this.prisma.user.findMany({
@@ -175,31 +162,22 @@ export class AdminService {
           bannedAt: true,
           banReason: true,
           image: true,
-          _count: {
+          count: {
             select: {
               documents: true,
               submittedVerifications: {
                 where: {
-                  status: "PENDING",
-                },
-              },
-            },
-          },
+                  status: "PENDING"}}}},
           activityLogs: {
             orderBy: {
-              createdAt: "desc",
-            },
-            take: 1,
-          },
-        },
+              createdAt: "desc"},
+            take: 1}},
         orderBy,
         skip,
-        take: limit,
-      });
+        take: limit});
 
       // Transform data for client
-      const transformedUsers = users.map((user) => ({
-        id: user.id,
+      const transformedUsers = users.map((user) => ({ id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -212,24 +190,20 @@ export class AdminService {
         bannedAt: user.bannedAt,
         banReason: user.banReason,
         image: user.image,
-        documentsCount: user._count.documents,
-        pendingVerificationsCount: user._count.submittedVerifications,
-        lastActivityAt: user.activityLogs[0]?.createdAt,
-      }));
+        documentsCount: user.count.documents,
+        pendingVerificationsCount: user.count.submittedVerifications,
+        lastActivityAt: user.activityLogs[0]?.createdAt }));
 
       return {
         users: transformedUsers,
         total: totalUsers,
         page,
         limit,
-        totalPages: Math.ceil(totalUsers / limit),
-      };
-    } catch (_error) {
+        totalPages: Math.ceil(totalUsers / limit)};
+    } catch (error) {
       console.error("Error retrieving users:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error retrieving users",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving users" });
     }
   }
 
@@ -241,12 +215,11 @@ export class AdminService {
     options = {
       includeDocuments: true,
       includeVerificationHistory: true,
-      includeActivityLogs: false,
-    },
+      includeActivityLogs: false},
   ) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
+        where: { id },
         include: {
           client: options.includeVerificationHistory,
           deliverer: options.includeVerificationHistory,
@@ -261,12 +234,9 @@ export class AdminService {
                   verificationStatus: true,
                   uploadedAt: true,
                   fileUrl: true,
-                  notes: true,
-                },
+                  notes: true},
                 orderBy: {
-                  uploadedAt: "desc",
-                },
-              }
+                  uploadedAt: "desc"}}
             : false,
           verificationHistory: options.includeVerificationHistory
             ? {
@@ -278,14 +248,9 @@ export class AdminService {
                   verifiedBy: {
                     select: {
                       id: true,
-                      name: true,
-                    },
-                  },
-                },
+                      name: true}}},
                 orderBy: {
-                  createdAt: "desc",
-                },
-              }
+                  createdAt: "desc"}}
             : false,
           activityLogs: options.includeActivityLogs
             ? {
@@ -294,29 +259,21 @@ export class AdminService {
                   activityType: true,
                   details: true,
                   ipAddress: true,
-                  createdAt: true,
-                },
+                  createdAt: true},
                 orderBy: {
-                  createdAt: "desc",
-                },
-                take: 50,
-              }
-            : false,
-        },
-      });
+                  createdAt: "desc"},
+                take: 50}
+            : false}});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "User not found" });
       }
 
       // Create a properly typed result object with documents field
       const result = {
         ...user,
-        documents: [] as any[],
-      };
+        documents: [] as any[]};
 
       // Transform documents to handle SELFIE documents stored as OTHER
       if ("documents" in user && Array.isArray(user.documents)) {
@@ -335,20 +292,17 @@ export class AdminService {
             // Map verificationStatus to status for frontend compatibility
             status: doc.verificationStatus,
             // If document is OTHER type but has selfie in notes, correct the type for frontend
-            type: isSelfie ? "SELFIE" : doc.type,
-          };
+            type: isSelfie ? "SELFIE" : doc.type};
         });
       }
 
       return result;
-    } catch (_error) {
+    } catch (error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error retrieving user details:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error retrieving user details",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving user details" });
     }
   }
 
@@ -360,36 +314,31 @@ export class AdminService {
     status: UserStatus,
     options: { reason?: string; notifyUser?: boolean } = {},
   ) {
-    const { reason: _reason, notifyUser = true } = options;
+    const { reason: reason, notifyUser = true } = options;
 
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true, name: true, role: true, status: true },
-      });
+        where: { id },
+        select: { email: true, name: true, role: true, status: true }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "User not found" });
       }
 
       // Don't allow updates if status is the same
       if (user.status === status) {
         return {
           success: true,
-          message: "User status is already set to " + status,
-        };
+          message: "User status is already set to " + status};
       }
 
       // Update user in a transaction to include audit trail
       const updatedUser = await this.prisma.$transaction(async (tx) => {
         // Update user status
         const updated = await tx.user.update({
-          where: { id: userId },
-          data: { status },
-        });
+          where: { id },
+          data: { status }});
 
         // We'll implement activity logging later when schema is updated
         // For now, just return the updated user
@@ -407,21 +356,17 @@ export class AdminService {
           data: {
             name: user.name || "",
             status,
-            reason: reason || "",
-          },
-          locale,
-        });
+            reason: reason || ""},
+          locale});
       }
 
       return updatedUser;
-    } catch (_error) {
+    } catch (error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error updating user status:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error updating user status",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error updating user status" });
     }
   }
 
@@ -433,50 +378,42 @@ export class AdminService {
     role: UserRole,
     options: { reason?: string; createRoleSpecificProfile?: boolean } = {},
   ) {
-    const { reason: _reason, createRoleSpecificProfile = true } = options;
+    const { reason: reason, createRoleSpecificProfile = true } = options;
 
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
+        where: { id },
         include: {
           client: true,
           deliverer: true,
           merchant: true,
           provider: true,
-          admin: true,
-        },
-      });
+          admin: true}});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "User not found" });
       }
 
       // Check if role change is allowed
       if (user.role === "ADMIN" && role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Cannot remove admin role directly",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Cannot remove admin role directly" });
       }
 
       // Don't allow updates if role is the same
       if (user.role === role) {
         return {
           success: true,
-          message: "User role is already set to " + role,
-        };
+          message: "User role is already set to " + role};
       }
 
       // Update user in a transaction
       const updatedUser = await this.prisma.$transaction(async (tx) => {
         // Update user role
         const updated = await tx.user.update({
-          where: { id: userId },
-          data: { role },
-        });
+          where: { id },
+          data: { role }});
 
         // Create role-specific profile if it doesn't exist
         if (createRoleSpecificProfile) {
@@ -485,9 +422,7 @@ export class AdminService {
               if (!user.client) {
                 await tx.client.create({
                   data: {
-                    userId,
-                  },
-                });
+                    userId}});
               }
               break;
             case "DELIVERER":
@@ -495,9 +430,7 @@ export class AdminService {
                 await tx.deliverer.create({
                   data: {
                     userId,
-                    phone: user.phoneNumber || "",
-                  },
-                });
+                    phone: user.phoneNumber || ""}});
               }
               break;
             case "MERCHANT":
@@ -507,18 +440,14 @@ export class AdminService {
                     userId,
                     companyName: user.name,
                     address: "",
-                    phone: user.phoneNumber || "",
-                  },
-                });
+                    phone: user.phoneNumber || ""}});
               }
               break;
             case "PROVIDER":
               if (!user.provider) {
                 await tx.provider.create({
                   data: {
-                    userId,
-                  },
-                });
+                    userId}});
               }
               break;
             case "ADMIN":
@@ -526,9 +455,7 @@ export class AdminService {
                 await tx.admin.create({
                   data: {
                     userId,
-                    permissions: ["users.view"],
-                  },
-                });
+                    permissions: ["users.view"]}});
               }
               break;
           }
@@ -539,22 +466,18 @@ export class AdminService {
           data: {
             userId,
             activityType: ActivityType.ROLE_CHANGE,
-            details: `Role changed from ${user.role} to ${role}${reason ? `: ${reason}` : ""}`,
-          },
-        });
+            details: `Role changed from ${user.role} to ${role}${reason ? `: ${reason}` : ""}`}});
 
         return updated;
       });
 
       return updatedUser;
-    } catch (_error) {
+    } catch (error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error updating user role:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error updating user role",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error updating user role" });
     }
   }
 
@@ -564,24 +487,17 @@ export class AdminService {
   async updateAdminPermissions(userId: string, permissions: string[]) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          admin: true,
-        },
-      });
+        where: { id },
+        include: { admin }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "User not found" });
       }
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Only administrators can have admin permissions",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Only administrators can have admin permissions" });
       }
 
       // Create or update admin profile with permissions
@@ -589,14 +505,11 @@ export class AdminService {
         await this.prisma.admin.create({
           data: {
             userId,
-            permissions,
-          },
-        });
+            permissions}});
       } else {
         await this.prisma.admin.update({
           where: { userId },
-          data: { permissions },
-        });
+          data: { permissions }});
       }
 
       // Log the activity
@@ -604,19 +517,15 @@ export class AdminService {
         data: {
           userId,
           activityType: ActivityType.PROFILE_UPDATE,
-          details: `Admin permissions updated: ${permissions.join(", ")}`,
-        },
-      });
+          details: `Admin permissions updated: ${permissions.join(", ")}`}});
 
       return { success: true, permissions };
-    } catch (_error) {
+    } catch (error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error updating admin permissions:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error updating admin permissions",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error updating admin permissions" });
     }
   }
 
@@ -626,34 +535,27 @@ export class AdminService {
   async addUserNote(userId: string, note: string) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-      });
+        where: { id }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "User not found" });
       }
 
       await this.prisma.user.update({
-        where: { id: userId },
+        where: { id },
         data: {
           notes: user.notes
             ? `${user.notes}\n\n${new Date().toISOString()}: ${note}`
-            : `${new Date().toISOString()}: ${note}`,
-        },
-      });
+            : `${new Date().toISOString()}: ${note}`}});
 
-      return { success: true };
-    } catch (_error) {
+      return { success };
+    } catch (error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error adding user note:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error adding user note",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error adding user note" });
     }
   }
 
@@ -672,19 +574,18 @@ export class AdminService {
   ) {
     try {
       const {
-        types: _types,
-        dateFrom: _dateFrom,
-        dateTo: _dateTo,
+        types: types,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
         page = 1,
-        limit = 10,
-      } = options;
+        limit = 10} = options;
       const skip = (page - 1) * limit;
 
       // Construct where conditions
       const where: Prisma.UserActivityLogWhereInput = { userId };
 
       if (types?.length) {
-        where.activityType = { in: types };
+        where.activityType = { in };
       }
 
       if (dateFrom || dateTo) {
@@ -694,7 +595,7 @@ export class AdminService {
       }
 
       // Get total count
-      const total = await this.prisma.userActivityLog.count({ where });
+      const total = await this.prisma.userActivityLog.count({ where  });
 
       // Get activity logs
       const logs = await this.prisma.userActivityLog.findMany({
@@ -704,28 +605,22 @@ export class AdminService {
           activityType: true,
           details: true,
           ipAddress: true,
-          createdAt: true,
-        },
+          createdAt: true},
         orderBy: {
-          createdAt: "desc",
-        },
+          createdAt: "desc"},
         skip,
-        take: limit,
-      });
+        take: limit});
 
       return {
         logs,
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
-      };
-    } catch (_error) {
+        totalPages: Math.ceil(total / limit)};
+    } catch (error) {
       console.error("Error retrieving user activity logs:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error retrieving user activity logs",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving user activity logs" });
     }
   }
 
@@ -741,23 +636,19 @@ export class AdminService {
   }) {
     try {
       const {
-        userId: _userId,
-        activityType: _activityType,
-        details: _details,
-        ipAddress: _ipAddress,
-        userAgent: _userAgent,
-      } = data;
+        userId: userId,
+        activityType: activityType,
+        details: details,
+        ipAddress: ipAddress,
+        userAgent: userAgent} = data;
 
       // Check if user exists
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-      });
+        where: { id }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "User not found" });
       }
 
       // Create activity log
@@ -767,19 +658,15 @@ export class AdminService {
           activityType,
           details,
           ipAddress,
-          userAgent,
-        },
-      });
+          userAgent}});
 
       return log;
-    } catch (_error) {
+    } catch (error) {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error adding user activity log:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error adding user activity log",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error adding user activity log" });
     }
   }
 
@@ -795,8 +682,7 @@ export class AdminService {
       // Get filtered users with no pagination
       const result = await this.getUsers(filters, {
         field: "name",
-        direction: "asc",
-      });
+        direction: "asc"});
       const users = result.users;
 
       // Créer l'export selon le format
@@ -809,7 +695,7 @@ export class AdminService {
         const rows = users.map((user) => {
           return fields
             .map((field) => {
-              // @ts-ignore
+              // @ts-ignore - Suppression temporaire pour compatibilité
               const value = user[field];
               if (value instanceof Date) {
                 return value.toISOString();
@@ -826,8 +712,7 @@ export class AdminService {
         return {
           data: [header, ...rows].join("\n"),
           filename: `users_export_${new Date().toISOString().slice(0, 10)}.csv`,
-          mimeType: "text/csv",
-        };
+          mimeType: "text/csv"};
       }
 
       // Implémentation réelle pour les autres formats
@@ -841,18 +726,13 @@ export class AdminService {
                 fields, // En-tête
                 ...users.map((user) =>
                   fields.map((field) => user[field] || ""),
-                ),
-              ],
-            },
-          ],
-        };
+                )]}]};
 
         return {
           data: JSON.stringify(workbookData), // En production: buffer Excel
           filename: `users_export_${new Date().toISOString().slice(0, 10)}.xlsx`,
           mimeType:
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        };
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"};
       }
 
       if (format === "pdf") {
@@ -865,26 +745,20 @@ export class AdminService {
               acc[field] = user[field];
               return acc;
             }, {} as any),
-          ),
-        };
+          )};
 
         return {
           data: JSON.stringify(pdfData), // En production: buffer PDF
           filename: `users_export_${new Date().toISOString().slice(0, 10)}.pdf`,
-          mimeType: "application/pdf",
-        };
+          mimeType: "application/pdf"};
       }
 
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Format d'export non supporté",
-      });
-    } catch (_error) {
-      console.error("Error exporting users:", _error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error exporting users",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Format d'export non supporté" });
+    } catch (error) {
+      console.error("Error exporting users:", error);
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error exporting users" });
     }
   }
 
@@ -909,35 +783,32 @@ export class AdminService {
         newUsersThisMonth,
         usersByRole,
         usersByStatus,
-        verifiedUsers,
-      ] = await Promise.all([
+        verifiedUsers] = await Promise.all([
         this.prisma.user.count(),
         this.prisma.user.count({ where: { status: "ACTIVE" } }),
-        this.prisma.user.count({ where: { createdAt: { gte: today } } }),
-        this.prisma.user.count({ where: { createdAt: { gte: oneWeekAgo } } }),
-        this.prisma.user.count({ where: { createdAt: { gte: oneMonthAgo } } }),
-        this.prisma.user.groupBy({ by: ["role"], _count: true }),
-        this.prisma.user.groupBy({ by: ["status"], _count: true }),
-        this.prisma.user.count({ where: { isVerified: true } }),
-      ]);
+        this.prisma.user.count({ where: { createdAt: { gte } } }),
+        this.prisma.user.count({ where: { createdAt: { gte } } }),
+        this.prisma.user.count({ where: { createdAt: { gte } } }),
+        this.prisma.user.groupBy({ by: ["role"], count: true  }),
+        this.prisma.user.groupBy({ by: ["status"], count: true  }),
+        this.prisma.user.count({ where: { isVerified } })]);
 
       // Transformation des données
       const roleStats = {};
       usersByRole.forEach((stat) => {
-        roleStats[stat.role] = stat._count;
+        roleStats[stat.role] = stat.count;
       });
 
       const statusStats = {};
       usersByStatus.forEach((stat) => {
-        statusStats[stat.status] = stat._count;
+        statusStats[stat.status] = stat.count;
       });
 
       // Remplacer par un tableau vide ou utiliser un autre champ comme providerCity
       const countriesStats = [
         { country: "France", count: 0 },
         { country: "Belgium", count: 0 },
-        { country: "Switzerland", count: 0 },
-      ];
+        { country: "Switzerland", count: 0 }];
 
       // Récupération des inscriptions dans le temps (derniers 6 mois)
       const sixMonthsAgo = new Date(today);
@@ -963,22 +834,16 @@ export class AdminService {
         usersByStatus: statusStats,
         usersByVerification: {
           verified: verifiedUsers,
-          unverified: totalUsers - verifiedUsers,
-        },
+          unverified: totalUsers - verifiedUsers},
         topCountries: countriesStats,
         registrationsOverTime: registrationsOverTime
-          ? registrationsOverTime.map((row: any) => ({
-              date: row.month.toISOString().split("T")[0],
-              count: Number(row.count),
-            }))
-          : [],
-      };
-    } catch (_error) {
+          ? registrationsOverTime.map((row: any) => ({ date: row.month.toISOString().split("T")[0],
+              count: Number(row.count) }))
+          : []};
+    } catch (error) {
       console.error("Error retrieving user statistics:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error retrieving user statistics",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving user statistics" });
     }
   }
 
@@ -1008,8 +873,7 @@ export class AdminService {
         includeChurnRate = true,
         includeGrowthRate = true,
         includeConversionRates = false,
-        customMetrics = [],
-      } = options;
+        customMetrics = []} = options;
 
       const now = new Date();
       let startDate: Date;
@@ -1055,22 +919,18 @@ export class AdminService {
       const [totalUsers, activeUsers, newUsers] = await Promise.all([
         this.prisma.user.count(),
         this.prisma.user.count({ where: { status: "ACTIVE" } }),
-        this.prisma.user.count({ where: { createdAt: { gte: startDate } } }),
-      ]);
+        this.prisma.user.count({ where: { createdAt: { gte } } })]);
 
       // Previous period comparison if requested
       const prevPeriodComparison = null;
       if (compareWithPrevious) {
         const [prevTotalUsers, prevActiveUsers, prevNewUsers] =
           await Promise.all([
-            this.prisma.user.count({ where: { createdAt: { lt: startDate } } }),
+            this.prisma.user.count({ where: { createdAt: { lt } } }),
             this.prisma.user.count({
-              where: { status: "ACTIVE", createdAt: { lt: startDate } },
-            }),
+              where: { status: "ACTIVE", createdAt: { lt } }}),
             this.prisma.user.count({
-              where: { createdAt: { gte: previousStartDate, lt: startDate } },
-            }),
-          ]);
+              where: { createdAt: { gte: previousStartDate, lt: startDate } }})]);
 
         prevPeriodComparison = {
           totalUsersDiff:
@@ -1084,20 +944,17 @@ export class AdminService {
           newUsersDiff:
             prevNewUsers > 0
               ? ((newUsers - prevNewUsers) / prevNewUsers) * 100
-              : 0,
-        };
+              : 0};
       }
 
       // Role breakdown
       const roleBreakdown = null;
       if (breakdownByRole) {
-        const roleStats = await this.prisma.user.groupBy({
-          by: ["role"],
-          _count: true,
-        });
+        const roleStats = await this.prisma.user.groupBy({ by: ["role"],
+          count: true });
         roleBreakdown = roleStats.reduce(
           (acc, stat) => {
-            acc[stat.role] = stat._count;
+            acc[stat.role] = stat.count;
             return acc;
           },
           {} as Record<string, number>,
@@ -1107,13 +964,11 @@ export class AdminService {
       // Status breakdown
       const statusBreakdown = null;
       if (breakdownByStatus) {
-        const statusStats = await this.prisma.user.groupBy({
-          by: ["status"],
-          _count: true,
-        });
+        const statusStats = await this.prisma.user.groupBy({ by: ["status"],
+          count: true });
         statusBreakdown = statusStats.reduce(
           (acc, stat) => {
-            acc[stat.status] = stat._count;
+            acc[stat.status] = stat.count;
             return acc;
           },
           {} as Record<string, number>,
@@ -1126,8 +981,7 @@ export class AdminService {
         countryBreakdown = {
           France: Math.floor(totalUsers * 0.6),
           Belgium: Math.floor(totalUsers * 0.25),
-          Switzerland: Math.floor(totalUsers * 0.15),
-        };
+          Switzerland: Math.floor(totalUsers * 0.15)};
       }
 
       // Retention rate calculation
@@ -1137,15 +991,12 @@ export class AdminService {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         const usersCreated30DaysAgo = await this.prisma.user.count({
-          where: { createdAt: { gte: thirtyDaysAgo, lt: startDate } },
-        });
+          where: { createdAt: { gte: thirtyDaysAgo, lt: startDate } }});
 
         const activeUsersFrom30DaysAgo = await this.prisma.user.count({
           where: {
             createdAt: { gte: thirtyDaysAgo, lt: startDate },
-            lastLoginAt: { gte: startDate },
-          },
-        });
+            lastLoginAt: { gte }}});
 
         retentionRate =
           usersCreated30DaysAgo > 0
@@ -1157,8 +1008,7 @@ export class AdminService {
       const churnRate = null;
       if (includeChurnRate) {
         const inactiveUsers = await this.prisma.user.count({
-          where: { status: "INACTIVE" },
-        });
+          where: { status: "INACTIVE" }});
         churnRate = totalUsers > 0 ? (inactiveUsers / totalUsers) * 100 : 0;
       }
 
@@ -1181,14 +1031,11 @@ export class AdminService {
         growthRate,
         period,
         startDate: startDate.toISOString(),
-        endDate: now.toISOString(),
-      };
-    } catch (_error) {
+        endDate: now.toISOString()};
+    } catch (error) {
       console.error("Error retrieving advanced user statistics:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error retrieving advanced user statistics",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving advanced user statistics" });
     }
   }
 
@@ -1209,20 +1056,16 @@ export class AdminService {
         reason,
         notifyUser = true,
         expireExistingTokens = true,
-        performedById,
-      } = options;
+        performedById} = options;
 
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, email: true, name: true, status: true, role: true },
-      });
+        where: { id },
+        select: { id: true, email: true, name: true, status: true, role: true }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Utilisateur non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Utilisateur non trouvé" });
       }
 
       // Générer un token de réinitialisation
@@ -1232,8 +1075,7 @@ export class AdminService {
       // Supprimer tous les tokens existants si nécessaire
       if (expireExistingTokens) {
         await this.prisma.passwordResetToken.deleteMany({
-          where: { userId },
-        });
+          where: { userId }});
       }
 
       // Créer un nouveau token
@@ -1244,9 +1086,7 @@ export class AdminService {
           expires,
           forced: true,
           forcedByUserId: performedById,
-          reason,
-        },
-      });
+          reason}});
 
       // Générer un lien de réinitialisation
       const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
@@ -1271,9 +1111,7 @@ export class AdminService {
                 ? "Demande de l'administrateur"
                 : "Administrator request"),
             expiresIn: "24 heures",
-            locale,
-          },
-        });
+            locale}});
       }
 
       // Ajouter une entrée dans le journal d'activité
@@ -1282,21 +1120,16 @@ export class AdminService {
           userId,
           activityType: "PASSWORD_RESET_REQUEST",
           details: `Réinitialisation forcée par un administrateur${reason ? `: ${reason}` : ""}`,
-          performedById,
-        },
-      });
+          performedById}});
 
       return {
         success: true,
-        message: "Réinitialisation du mot de passe initiée",
-      };
-    } catch (_error) {
+        message: "Réinitialisation du mot de passe initiée"};
+    } catch (error) {
       console.error("Error forcing password reset:", error);
       if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la réinitialisation du mot de passe",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la réinitialisation du mot de passe" });
     }
   }
 
@@ -1318,27 +1151,21 @@ export class AdminService {
         reason,
         notifyUsers = true,
         additionalData,
-        performedById,
-      } = options;
+        performedById} = options;
 
       if (!userIds.length) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Aucun utilisateur sélectionné pour cette action",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Aucun utilisateur sélectionné pour cette action" });
       }
 
       // Vérifier que tous les utilisateurs existent
       const users = await this.prisma.user.findMany({
-        where: { id: { in: userIds } },
-        select: { id: true, email: true, name: true, status: true, role: true },
-      });
+        where: { id: { in } },
+        select: { id: true, email: true, name: true, status: true, role: true }});
 
       if (users.length !== userIds.length) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Certains utilisateurs n'existent pas",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Certains utilisateurs n'existent pas" });
       }
 
       const results = [];
@@ -1350,8 +1177,7 @@ export class AdminService {
               this.updateUserStatus(user.id, "ACTIVE", {
                 reason,
                 notifyUser: notifyUsers,
-                performedById,
-              }),
+                performedById}),
             ),
           );
           break;
@@ -1362,8 +1188,7 @@ export class AdminService {
               this.updateUserStatus(user.id, "INACTIVE", {
                 reason,
                 notifyUser: notifyUsers,
-                performedById,
-              }),
+                performedById}),
             ),
           );
           break;
@@ -1375,8 +1200,7 @@ export class AdminService {
                 reason,
                 notifyUser: notifyUsers,
                 performedById,
-                expiresAt: additionalData?.expiresAt,
-              }),
+                expiresAt: additionalData?.expiresAt}),
             ),
           );
           break;
@@ -1388,8 +1212,7 @@ export class AdminService {
                 reason,
                 notifyUser: notifyUsers,
                 expireExistingTokens: true,
-                performedById,
-              }),
+                performedById}),
             ),
           );
           break;
@@ -1409,10 +1232,8 @@ export class AdminService {
 
         case "ADD_TAG":
           if (!additionalData?.tag) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Tag non spécifié pour cette action",
-            });
+            throw new TRPCError({ code: "BAD_REQUEST",
+              message: "Tag non spécifié pour cette action" });
           }
 
           results = await Promise.all(
@@ -1423,24 +1244,19 @@ export class AdminService {
           break;
 
         default:
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Action non prise en charge",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Action non prise en charge" });
       }
 
       return {
         success: true,
         processed: users.length,
-        results,
-      };
-    } catch (_error) {
+        results};
+    } catch (error) {
       console.error("Error performing bulk user action:", error);
       if (error instanceof TRPCError) throw error;
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de l'exécution de l'action en masse",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de l'exécution de l'action en masse" });
     }
   }
 
@@ -1450,24 +1266,20 @@ export class AdminService {
   private async addUserTag(userId: string, tag: string, performedById: string) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, tags: true },
-      });
+        where: { id },
+        select: { id: true, tags: true }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Utilisateur non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Utilisateur non trouvé" });
       }
 
       // Ajouter le tag s'il n'existe pas déjà
       const currentTags = user.tags || [];
       if (!currentTags.includes(tag)) {
         await this.prisma.user.update({
-          where: { id: userId },
-          data: { tags: [...currentTags, tag] },
-        });
+          where: { id },
+          data: { tags: [...currentTags, tag] }});
 
         // Ajouter une entrée dans le journal d'activité
         await this.prisma.userActivityLog.create({
@@ -1475,18 +1287,14 @@ export class AdminService {
             userId,
             activityType: "OTHER",
             details: `Tag ajouté: ${tag}`,
-            performedById,
-          },
-        });
+            performedById}});
       }
 
       return { success: true, userId, tag };
-    } catch (_error) {
+    } catch (error) {
       console.error("Error adding user tag:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de l'ajout du tag",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de l'ajout du tag" });
     }
   }
 
@@ -1500,20 +1308,17 @@ export class AdminService {
   ) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, email: true, name: true },
-      });
+        where: { id },
+        select: { id: true, email: true, name: true }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Utilisateur non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Utilisateur non trouvé" });
       }
 
       // Marquer l'utilisateur comme supprimé
       await this.prisma.user.update({
-        where: { id: userId },
+        where: { id },
         data: {
           status: "INACTIVE",
           isDeleted: true,
@@ -1526,10 +1331,7 @@ export class AdminService {
           phoneNumber: null,
           // Révoquer les sessions
           sessions: {
-            deleteMany: {},
-          },
-        },
-      });
+            deleteMany: {}}}});
 
       // Ajouter une entrée dans le journal d'activité
       await this.prisma.userActivityLog.create({
@@ -1537,17 +1339,13 @@ export class AdminService {
           userId,
           activityType: "OTHER",
           details: `Compte supprimé${reason ? `: ${reason}` : ""}`,
-          performedById,
-        },
-      });
+          performedById}});
 
       return { success: true, userId };
-    } catch (_error) {
+    } catch (error) {
       console.error("Error soft-deleting user:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la suppression de l'utilisateur",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la suppression de l'utilisateur" });
     }
   }
 
@@ -1562,24 +1360,20 @@ export class AdminService {
     },
   ) {
     try {
-      const { reason: _reason, performedById: _performedById } = options;
+      const { reason: reason, performedById: performedById } = options;
 
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
+        where: { id },
         select: {
           id: true,
           email: true,
           name: true,
           role: true,
-          documents: { select: { id: true } },
-        },
-      });
+          documents: { select: { id } }}});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Utilisateur non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Utilisateur non trouvé" });
       }
 
       // Enregistrer les informations de base dans les logs d'activité
@@ -1588,44 +1382,35 @@ export class AdminService {
           userId,
           activityType: "OTHER",
           details: `Suppression définitive du compte - Raison: ${reason} - Effectuée par: ${performedById}`,
-          ipAddress: "admin-action",
-        },
-      });
+          ipAddress: "admin-action"}});
 
       // Supprimer les documents associés
       if (user.documents.length > 0) {
         await this.prisma.document.deleteMany({
-          where: { userId },
-        });
+          where: { userId }});
       }
 
       // Supprimer le wallet associé à l'utilisateur (résout l'erreur de clé étrangère)
       await this.prisma.wallet.deleteMany({
-        where: { userId },
-      });
+        where: { userId }});
 
       // Supprimer toutes les transactions du wallet associées à l'utilisateur
       await this.prisma.walletTransaction.deleteMany({
-        where: { wallet: { userId } },
-      });
+        where: { wallet: { userId } }});
 
       // Supprimer les demandes de retrait associées
       await this.prisma.withdrawalRequest.deleteMany({
-        where: { wallet: { userId } },
-      });
+        where: { wallet: { userId } }});
 
       // Supprimer l'utilisateur et toutes ses données associées en cascade
       await this.prisma.user.delete({
-        where: { id: userId },
-      });
+        where: { id }});
 
       return { success: true, message: "Utilisateur définitivement supprimé" };
-    } catch (_error) {
+    } catch (error) {
       console.error("Error permanently deleting user:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la suppression définitive de l'utilisateur",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la suppression définitive de l'utilisateur" });
     }
   }
 
@@ -1639,8 +1424,7 @@ export class AdminService {
     try {
       const admin = await this.prisma.user.findUnique({
         where: { id: adminId, role: "ADMIN" },
-        select: { id: true, password: true },
-      });
+        select: { id: true, password: true }});
 
       if (!admin || !admin.password) {
         return false;
@@ -1648,7 +1432,7 @@ export class AdminService {
 
       // Vérifier le mot de passe en utilisant bcrypt
       return bcrypt.compare(password, admin.password);
-    } catch (_error) {
+    } catch (error) {
       console.error("Error verifying admin password:", error);
       return false;
     }
@@ -1670,8 +1454,7 @@ export class AdminService {
         endDate,
         granularity = "day",
         categoryFilter,
-        comparison,
-      } = filters;
+        comparison} = filters;
 
       // Rapport des revenus par période
       const revenueQuery = `
@@ -1757,14 +1540,11 @@ export class AdminService {
         timeSeriesData: revenueData,
         categoryBreakdown: categoryData,
         totals: totalsData[0],
-        comparisonData: comparisonData?.[0],
-      };
-    } catch (_error) {
+        comparisonData: comparisonData?.[0]};
+    } catch (error) {
       console.error("Error generating sales report:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error generating sales report",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error generating sales report" });
     }
   }
 
@@ -1779,11 +1559,10 @@ export class AdminService {
   }) {
     try {
       const {
-        startDate: _startDate,
-        endDate: _endDate,
+        startDate: startDate,
+        endDate: endDate,
         granularity = "day",
-        comparison: _comparison,
-      } = filters;
+        comparison: comparison} = filters;
 
       // Performance des livraisons par période
       const performanceQuery = `
@@ -1850,14 +1629,11 @@ export class AdminService {
       return {
         timeSeriesData: performanceData,
         zonePerformance: zoneData,
-        issueBreakdown: issuesData,
-      };
-    } catch (_error) {
+        issueBreakdown: issuesData};
+    } catch (error) {
       console.error("Error generating delivery performance report:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error generating delivery performance report",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error generating delivery performance report" });
     }
   }
 
@@ -1877,8 +1653,7 @@ export class AdminService {
         endDate,
         granularity = "day",
         userRoleFilter,
-        comparison,
-      } = filters;
+        comparison} = filters;
 
       // Nouvelles inscriptions par période
       const signupsQuery = `
@@ -1958,14 +1733,11 @@ export class AdminService {
         signupsTimeSeriesData: signupsData,
         activeUsersTimeSeriesData: activeUsersData,
         usersByRole: rolesData,
-        retentionRates: retentionData,
-      };
-    } catch (_error) {
+        retentionRates: retentionData};
+    } catch (error) {
       console.error("Error generating user activity report:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error generating user activity report",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error generating user activity report" });
     }
   }
 
@@ -1983,8 +1755,7 @@ export class AdminService {
         startDate,
         endDate,
         granularity = "day",
-        includeCommissions = true,
-      } = filters;
+        includeCommissions = true} = filters;
 
       // Revenus et transactions
       const revenueQuery = `
@@ -2049,14 +1820,11 @@ export class AdminService {
       return {
         revenueTimeSeriesData: revenueData,
         commissionsTimeSeriesData: commissionsData,
-        paymentMethodsBreakdown: paymentMethodsData,
-      };
-    } catch (_error) {
+        paymentMethodsBreakdown: paymentMethodsData};
+    } catch (error) {
       console.error("Error generating financial report:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error generating financial report",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Error generating financial report" });
     }
   }
 
@@ -2067,15 +1835,12 @@ export class AdminService {
     try {
       // Vérifier que l'utilisateur existe
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, name: true, email: true, status: true },
-      });
+        where: { id },
+        select: { id: true, name: true, email: true, status: true }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Utilisateur non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Utilisateur non trouvé" });
       }
 
       // Déterminer le nouveau statut
@@ -2083,19 +1848,16 @@ export class AdminService {
 
       // Mettre à jour l'utilisateur
       const updatedUser = await this.prisma.user.update({
-        where: { id: userId },
+        where: { id },
         data: {
           status: newStatus,
-          updatedAt: new Date(),
-        },
+          updatedAt: new Date()},
         select: {
           id: true,
           name: true,
           email: true,
           status: true,
-          updatedAt: true,
-        },
-      });
+          updatedAt: true}});
 
       // Envoyer une notification par email si nécessaire
       if (isActive) {
@@ -2104,34 +1866,27 @@ export class AdminService {
           subject: "Compte réactivé",
           template: "account-reactivated",
           data: {
-            userName: user.name,
-          },
-        });
+            userName: user.name}});
       } else {
         await sendEmailNotification({
           to: user.email,
           subject: "Compte désactivé",
           template: "account-deactivated",
           data: {
-            userName: user.name,
-          },
-        });
+            userName: user.name}});
       }
 
       return {
         success: true,
         user: updatedUser,
-        message: `Utilisateur ${isActive ? "activé" : "désactivé"} avec succès`,
-      };
-    } catch (_error) {
+        message: `Utilisateur ${isActive ? "activé" : "désactivé"} avec succès`};
+    } catch (error) {
       console.error("Error toggling user activation:", error);
       if (error instanceof TRPCError) {
         throw error;
       }
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la modification de l'activation utilisateur",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la modification de l'activation utilisateur" });
     }
   }
 
@@ -2142,37 +1897,29 @@ export class AdminService {
     try {
       // Vérifier que l'utilisateur existe
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, name: true, email: true, isBanned: true },
-      });
+        where: { id },
+        select: { id: true, name: true, email: true, isBanned: true }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Utilisateur non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Utilisateur non trouvé" });
       }
 
       // Vérifier la cohérence de l'action
       if (action === "BAN" && user.isBanned) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Cet utilisateur est déjà banni",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Cet utilisateur est déjà banni" });
       }
 
       if (action === "UNBAN" && !user.isBanned) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Cet utilisateur n'est pas banni",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Cet utilisateur n'est pas banni" });
       }
 
       // Mettre à jour l'utilisateur
       const updateData: any = {
         isBanned: action === "BAN",
-        updatedAt: new Date(),
-      };
+        updatedAt: new Date()};
 
       if (action === "BAN") {
         updateData.bannedAt = new Date();
@@ -2185,7 +1932,7 @@ export class AdminService {
       }
 
       const updatedUser = await this.prisma.user.update({
-        where: { id: userId },
+        where: { id },
         data: updateData,
         select: {
           id: true,
@@ -2195,9 +1942,7 @@ export class AdminService {
           bannedAt: true,
           banReason: true,
           status: true,
-          updatedAt: true,
-        },
-      });
+          updatedAt: true}});
 
       // Envoyer une notification par email
       const emailTemplate =
@@ -2211,24 +1956,19 @@ export class AdminService {
         template: emailTemplate,
         data: {
           userName: user.name,
-          reason: reason || "Aucune raison spécifiée",
-        },
-      });
+          reason: reason || "Aucune raison spécifiée"}});
 
       return {
         success: true,
         user: updatedUser,
-        message: `Utilisateur ${action === "BAN" ? "banni" : "débanni"} avec succès`,
-      };
-    } catch (_error) {
+        message: `Utilisateur ${action === "BAN" ? "banni" : "débanni"} avec succès`};
+    } catch (error) {
       console.error("Error banning/unbanning user:", error);
       if (error instanceof TRPCError) {
         throw error;
       }
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors du bannissement/débannissement de l'utilisateur",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du bannissement/débannissement de l'utilisateur" });
     }
   }
 
@@ -2249,32 +1989,26 @@ export class AdminService {
   }) {
     try {
       const {
-        userId: _userId,
-        action: _action,
-        deviceId: _deviceId,
-        deviceData: _deviceData,
-      } = input;
+        userId: userId,
+        action: action,
+        deviceId: deviceId,
+        deviceData: deviceData} = input;
 
       // Vérifier que l'utilisateur existe
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, name: true },
-      });
+        where: { id },
+        select: { id: true, name: true }});
 
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Utilisateur non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Utilisateur non trouvé" });
       }
 
       switch (action) {
         case "ADD":
           if (!deviceData) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Données d'appareil requises pour l'ajout",
-            });
+            throw new TRPCError({ code: "BAD_REQUEST",
+              message: "Données d'appareil requises pour l'ajout" });
           }
 
           const newDevice = await this.prisma.userDevice.create({
@@ -2287,103 +2021,80 @@ export class AdminService {
               ipAddress: deviceData.ipAddress,
               isActive: true,
               lastUsed: new Date(),
-              createdAt: new Date(),
-            },
-          });
+              createdAt: new Date()}});
 
           return {
             success: true,
             message: "Appareil ajouté avec succès",
-            device: newDevice,
-          };
+            device: newDevice};
 
         case "REMOVE":
           if (!deviceId) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "ID d'appareil requis pour la suppression",
-            });
+            throw new TRPCError({ code: "BAD_REQUEST",
+              message: "ID d'appareil requis pour la suppression" });
           }
 
           await this.prisma.userDevice.delete({
             where: {
               id: deviceId,
               userId, // S'assurer que l'appareil appartient à l'utilisateur
-            },
-          });
+            }});
 
           return {
             success: true,
-            message: "Appareil supprimé avec succès",
-          };
+            message: "Appareil supprimé avec succès"};
 
         case "BLOCK":
           if (!deviceId) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "ID d'appareil requis pour le blocage",
-            });
+            throw new TRPCError({ code: "BAD_REQUEST",
+              message: "ID d'appareil requis pour le blocage" });
           }
 
           await this.prisma.userDevice.update({
             where: {
               id: deviceId,
-              userId,
-            },
+              userId},
             data: {
               isActive: false,
-              blockedAt: new Date(),
-            },
-          });
+              blockedAt: new Date()}});
 
           return {
             success: true,
-            message: "Appareil bloqué avec succès",
-          };
+            message: "Appareil bloqué avec succès"};
 
         case "UPDATE":
           if (!deviceId || !deviceData) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "ID d'appareil et données requises pour la mise à jour",
-            });
+            throw new TRPCError({ code: "BAD_REQUEST",
+              message: "ID d'appareil et données requises pour la mise à jour" });
           }
 
           const updatedDevice = await this.prisma.userDevice.update({
             where: {
               id: deviceId,
-              userId,
-            },
+              userId},
             data: {
               name: deviceData.name,
               type: deviceData.type,
               userAgent: deviceData.userAgent,
               ipAddress: deviceData.ipAddress,
-              lastUsed: new Date(),
-            },
-          });
+              lastUsed: new Date()}});
 
           return {
             success: true,
             message: "Appareil mis à jour avec succès",
-            device: updatedDevice,
-          };
+            device: updatedDevice};
 
         default:
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Action non supportée",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Action non supportée" });
       }
-    } catch (_error) {
+    } catch (error) {
       console.error("Error managing user devices:", error);
       if (error instanceof TRPCError) {
         throw error;
       }
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la gestion des appareils",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la gestion des appareils" });
     }
   }
 
@@ -2404,8 +2115,7 @@ export class AdminService {
         page = 1,
         limit = 10,
         includeBlocked = false,
-        type: _type,
-      } = options;
+        type: type} = options;
       const offset = (page - 1) * limit;
 
       const whereClause: any = { userId };
@@ -2431,28 +2141,22 @@ export class AdminService {
             isActive: true,
             lastUsed: true,
             blockedAt: true,
-            createdAt: true,
-          },
+            createdAt: true},
           orderBy: { lastUsed: "desc" },
           skip: offset,
-          take: limit,
-        }),
-        this.prisma.userDevice.count({ where: whereClause }),
-      ]);
+          take: limit}),
+        this.prisma.userDevice.count({ where  })]);
 
       return {
         devices,
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
-      };
-    } catch (_error) {
+        totalPages: Math.ceil(total / limit)};
+    } catch (error) {
       console.error("Error getting user devices:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des appareils",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des appareils" });
     }
   }
 
@@ -2483,34 +2187,23 @@ export class AdminService {
                   name: true,
                   resource: true,
                   action: true,
-                  description: true,
-                },
-              }
+                  description: true}}
             : false,
-          _count: includeUserCount
+          count: includeUserCount
             ? {
-                select: {
-                  users: true,
-                },
-              }
-            : false,
-        },
-        orderBy: { name: "asc" },
-      });
+                select: { users }}
+            : false},
+        orderBy: { name: "asc" }});
 
       return {
-        groups: groups.map((group) => ({
-          ...group,
-          userCount: includeUserCount ? group._count?.users : undefined,
-          _count: undefined, // Nettoyer le champ _count
-        })),
-      };
-    } catch (_error) {
+        groups: groups.map((group) => ({ ...group,
+          userCount: includeUserCount ? group.count?.users : undefined,
+          count: undefined, // Nettoyer le champ count
+         }))};
+    } catch (error) {
       console.error("Error getting permission groups:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des groupes de permissions",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des groupes de permissions" });
     }
   }
 
@@ -2526,24 +2219,20 @@ export class AdminService {
   }) {
     try {
       const {
-        id: _id,
-        name: _name,
-        description: _description,
-        permissionIds: _permissionIds,
-        isActive = true,
-      } = input;
+        id: id,
+        name: name,
+        description: description,
+        permissionIds: permissionIds,
+        isActive = true} = input;
 
       // Vérifier que les permissions existent
       const existingPermissions = await this.prisma.permission.findMany({
-        where: { id: { in: permissionIds } },
-        select: { id: true },
-      });
+        where: { id: { in } },
+        select: { id }});
 
       if (existingPermissions.length !== permissionIds.length) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Certaines permissions n'existent pas",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Certaines permissions n'existent pas" });
       }
 
       let group;
@@ -2558,42 +2247,29 @@ export class AdminService {
             isActive,
             updatedAt: new Date(),
             permissions: {
-              set: permissionIds.map((permId) => ({ id: permId })),
-            },
-          },
+              set: permissionIds.map((permId) => ({ id  }))}},
           include: {
             permissions: {
               select: {
                 id: true,
                 name: true,
                 resource: true,
-                action: true,
-              },
-            },
-          },
-        });
+                action: true}}}});
       } else {
         // Création d'un nouveau groupe
-        group = await this.prisma.permissionGroup.create({
-          data: {
+        group = await this.prisma.permissionGroup.create({ data: {
             name,
             description,
             isActive,
             permissions: {
-              connect: permissionIds.map((permId) => ({ id: permId })),
-            },
-          },
+              connect: permissionIds.map((permId) => ({ id  }))}},
           include: {
             permissions: {
               select: {
                 id: true,
                 name: true,
                 resource: true,
-                action: true,
-              },
-            },
-          },
-        });
+                action: true}}}});
       }
 
       return {
@@ -2601,17 +2277,14 @@ export class AdminService {
         message: id
           ? "Groupe de permissions mis à jour avec succès"
           : "Groupe de permissions créé avec succès",
-        group,
-      };
-    } catch (_error) {
+        group};
+    } catch (error) {
       console.error("Error upserting permission group:", error);
       if (error instanceof TRPCError) {
         throw error;
       }
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la gestion du groupe de permissions",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la gestion du groupe de permissions" });
     }
   }
 }

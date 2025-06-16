@@ -3,18 +3,16 @@ import { dashboardService } from "@/server/services/admin/dashboard.service";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
-export const adminDashboardRouter = router({
-  /**
+export const adminDashboardRouter = router({ /**
    * Récupère les statistiques générales du dashboard
    */
   getOverviewStats: adminProcedure
     .input(
       z.object({
         startDate: z.coerce.date(),
-        endDate: z.coerce.date(),
-      }),
+        endDate: z.coerce.date() }),
     )
-    .query(async ({ input: _input }) => {
+    .query(async ({ input  }) => {
       try {
         // Utilise getDashboardData comme source pour les statistiques overview
         const dashboardData = await dashboardService.getDashboardData();
@@ -26,10 +24,8 @@ export const adminDashboardRouter = router({
           documentStats: dashboardData.documentStats,
           timeRange: {
             startDate: input.startDate,
-            endDate: input.endDate,
-          },
-        };
-      } catch (_error) {
+            endDate: input.endDate}};
+      } catch (error) {
         console.error("Erreur dans getOverviewStats:", error);
         throw error;
       }
@@ -43,7 +39,7 @@ export const adminDashboardRouter = router({
     .query(async () => {
       try {
         return await dashboardService.getDashboardData();
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur dans le router getDashboardData:", error);
         throw error;
       }
@@ -88,8 +84,8 @@ export const adminDashboardRouter = router({
    * Récupère les activités récentes
    */
   getRecentActivities: adminProcedure
-    .input(z.object({ limit: z.number().optional() }).optional())
-    .query(async ({ input: _input }) => {
+    .input(z.object({ limit: z.number().optional()  }).optional())
+    .query(async ({ input  }) => {
       const limit = input?.limit || 10;
       return await dashboardService.getRecentActivities(limit);
     }),
@@ -113,32 +109,26 @@ export const adminDashboardRouter = router({
    */
   getSalesReport: adminProcedure
     .input(
-      z.object({
-        startDate: z.date(),
+      z.object({ startDate: z.date(),
         endDate: z.date(),
         granularity: z.enum(["day", "week", "month", "quarter", "year"]),
         comparison: z.boolean().optional(),
-        categoryFilter: z.string().optional(),
-      }),
+        categoryFilter: z.string().optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que les dates sont valides
         if (input.endDate < input.startDate) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "La date de fin doit être postérieure à la date de début",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "La date de fin doit être postérieure à la date de début" });
         }
 
-        return await dashboardService.getSalesReport({
-          startDate: input.startDate,
+        return await dashboardService.getSalesReport({ startDate: input.startDate,
           endDate: input.endDate,
           granularity: input.granularity,
           comparison: input.comparison || false,
-          categoryFilter: input.categoryFilter,
-        });
-      } catch (_error) {
+          categoryFilter: input.categoryFilter });
+      } catch (error) {
         console.error("Erreur dans le rapport de ventes:", error);
         throw error;
       }
@@ -149,32 +139,26 @@ export const adminDashboardRouter = router({
    */
   getUserActivityReport: adminProcedure
     .input(
-      z.object({
-        startDate: z.date(),
+      z.object({ startDate: z.date(),
         endDate: z.date(),
         granularity: z.enum(["day", "week", "month", "quarter", "year"]),
         comparison: z.boolean().optional(),
-        userRoleFilter: z.string().optional(),
-      }),
+        userRoleFilter: z.string().optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que les dates sont valides
         if (input.endDate < input.startDate) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "La date de fin doit être postérieure à la date de début",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "La date de fin doit être postérieure à la date de début" });
         }
 
-        return await dashboardService.getUserActivityReport({
-          startDate: input.startDate,
+        return await dashboardService.getUserActivityReport({ startDate: input.startDate,
           endDate: input.endDate,
           granularity: input.granularity,
           comparison: input.comparison || false,
-          userRoleFilter: input.userRoleFilter,
-        });
-      } catch (_error) {
+          userRoleFilter: input.userRoleFilter });
+      } catch (error) {
         console.error("Erreur dans le rapport d'activité utilisateur:", error);
         throw error;
       }
@@ -185,39 +169,32 @@ export const adminDashboardRouter = router({
    */
   getDeliveryPerformanceReport: adminProcedure
     .input(
-      z.object({
-        startDate: z.date(),
+      z.object({ startDate: z.date(),
         endDate: z.date(),
         granularity: z.enum(["day", "week", "month", "quarter", "year"]),
         comparison: z.boolean().optional(),
         zoneFilter: z.string().optional(),
-        delivererFilter: z.string().optional(),
-      }),
+        delivererFilter: z.string().optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que les dates sont valides
         if (input.endDate < input.startDate) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "La date de fin doit être postérieure à la date de début",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "La date de fin doit être postérieure à la date de début" });
         }
 
-        return await dashboardService.getDeliveryPerformanceReport({
-          startDate: input.startDate,
+        return await dashboardService.getDeliveryPerformanceReport({ startDate: input.startDate,
           endDate: input.endDate,
           granularity: input.granularity,
           comparison: input.comparison || false,
           zoneFilter: input.zoneFilter,
-          delivererFilter: input.delivererFilter,
-        });
-      } catch (_error) {
+          delivererFilter: input.delivererFilter });
+      } catch (error) {
         console.error(
           "Erreur dans le rapport de performance de livraison:",
           error,
         );
         throw error;
       }
-    }),
-});
+    })});

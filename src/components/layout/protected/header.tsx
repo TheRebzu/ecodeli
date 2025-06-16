@@ -13,8 +13,7 @@ import {
   MessageSquare,
   CreditCard,
   HelpCircle,
-  Shield,
-} from "lucide-react";
+  Shield} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,8 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -61,8 +59,7 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
       CLIENT: "Client",
       DELIVERER: "Livreur",
       MERCHANT: "Commerçant",
-      PROVIDER: "Prestataire",
-    };
+      PROVIDER: "Prestataire"};
     return roleLabels[role as keyof typeof roleLabels] || role;
   };
 

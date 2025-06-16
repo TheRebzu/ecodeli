@@ -24,8 +24,7 @@ import {
   CheckCircle,
   Edit,
   Trash2,
-  Flag,
-} from "lucide-react";
+  Flag} from "lucide-react";
 
 // Types
 interface Review {
@@ -82,16 +81,14 @@ interface ReviewCardProps {
 // Composant pour afficher les étoiles
 const StarRating = ({
   rating,
-  size = "sm",
-}: {
+  size = "sm"}: {
   rating: number;
   size?: "sm" | "md" | "lg";
 }) => {
   const starSizes = {
     sm: "h-3 w-3",
     md: "h-4 w-4",
-    lg: "h-5 w-5",
-  };
+    lg: "h-5 w-5"};
 
   return (
     <div className="flex items-center gap-0.5">
@@ -119,30 +116,24 @@ const DetailedCriteria = ({ criteria }: { criteria: Review["criteria"] }) => {
     {
       key: "punctuality",
       label: t("criteria.punctuality"),
-      value: criteria.punctuality,
-    },
+      value: criteria.punctuality},
     { key: "quality", label: t("criteria.quality"), value: criteria.quality },
     {
       key: "communication",
       label: t("criteria.communication"),
-      value: criteria.communication,
-    },
+      value: criteria.communication},
     {
       key: "professionalism",
       label: t("criteria.professionalism"),
-      value: criteria.professionalism,
-    },
+      value: criteria.professionalism},
     {
       key: "valueForMoney",
       label: t("criteria.valueForMoney"),
-      value: criteria.valueForMoney,
-    },
+      value: criteria.valueForMoney},
     {
       key: "cleanliness",
       label: t("criteria.cleanliness"),
-      value: criteria.cleanliness,
-    },
-  ].filter((item) => item.value !== undefined);
+      value: criteria.cleanliness}].filter((item) => item.value !== undefined);
 
   if (criteriaList.length === 0) return null;
 
@@ -168,8 +159,7 @@ export function ReviewCard({
   onEdit,
   onDelete,
   onReport,
-  onVote,
-}: ReviewCardProps) {
+  onVote}: ReviewCardProps) {
   const t = useTranslations("reviews");
 
   const handleVoteHelpful = () => {
@@ -218,7 +208,7 @@ export function ReviewCard({
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   <span>
-                    {format(review.createdAt, "d MMM yyyy", { locale: fr })}
+                    {format(review.createdAt, "d MMM yyyy", { locale })}
                   </span>
                 </div>
               </div>
@@ -337,9 +327,7 @@ export function ReviewCard({
                   {t("providerResponse")}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {format(review.providerResponse.respondedAt, "d MMM yyyy", {
-                    locale: fr,
-                  })}
+                  {format(review.providerResponse.respondedAt, "d MMM yyyy", { locale })}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
@@ -358,8 +346,7 @@ export function ReviewCard({
                 {t("helpfulVotes", {
                   helpful: review.helpfulVotes,
                   total: review.totalVotes,
-                  percentage: helpfulPercentage,
-                })}
+                  percentage: helpfulPercentage})}
               </div>
               <div className="flex gap-2">
                 <Button

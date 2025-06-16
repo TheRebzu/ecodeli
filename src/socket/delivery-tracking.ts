@@ -9,8 +9,7 @@ export enum DeliveryTrackingEventType {
   ETA_UPDATE = "ETA_UPDATE",
   CHECKPOINT_REACHED = "CHECKPOINT_REACHED",
   ISSUE_REPORTED = "ISSUE_REPORTED",
-  ISSUE_RESOLVED = "ISSUE_RESOLVED",
-}
+  ISSUE_RESOLVED = "ISSUE_RESOLVED"}
 
 // Interface pour les mises à jour
 export interface DeliveryTrackingUpdate {
@@ -86,12 +85,10 @@ export const emitLocationUpdate = (
     timestamp: data.timestamp || new Date(),
     location: {
       type: "Point",
-      coordinates: [data.longitude, data.latitude],
-    },
+      coordinates: [data.longitude, data.latitude]},
     accuracy: data.accuracy,
     heading: data.heading,
-    speed: data.speed,
-  });
+    speed: data.speed});
 };
 
 /**
@@ -111,8 +108,7 @@ export const emitStatusUpdate = (
     timestamp: data.timestamp || new Date(),
     status: data.status,
     previousStatus: data.previousStatus,
-    notes: data.notes,
-  });
+    notes: data.notes});
 };
 
 /**
@@ -132,6 +128,5 @@ export const emitETAUpdate = (
     timestamp: data.timestamp || new Date(),
     estimatedTime: data.estimatedTime,
     distanceRemaining: data.distanceRemaining,
-    delay: data.delay,
-  });
+    delay: data.delay});
 };

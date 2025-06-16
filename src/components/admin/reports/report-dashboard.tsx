@@ -10,8 +10,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,8 +19,7 @@ import {
   FileText,
   BarChart3,
   TrendingUp,
-  Calendar,
-} from "lucide-react";
+  Calendar} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { SalesReport } from "@/components/admin/reports/sales-report";
@@ -33,15 +31,13 @@ import {
   AreaChart,
   BarChart,
   LineChart,
-  PieChart,
-} from "@/components/ui/charts";
+  PieChart} from "@/components/ui/charts";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { formatCurrency, generateChartColors } from "@/utils/document-utils";
 import {
   Table,
@@ -49,14 +45,12 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Info, MapPin } from "lucide-react";
 import {
   DeliveryPerformanceReport as DeliveryPerformanceReportType,
   SalesReport as SalesReportType,
-  UserActivityReport as UserActivityReportType,
-} from "@/types/administration/reports";
+  UserActivityReport as UserActivityReportType} from "@/types/administration/reports";
 
 interface ReportDashboardProps {
   salesReport: SalesReportType;
@@ -72,25 +66,22 @@ export function ReportDashboard({
   salesReport,
   deliveryPerformance,
   userActivity,
-  dateRange,
-}: ReportDashboardProps) {
+  dateRange}: ReportDashboardProps) {
   const t = useTranslations("admin.reports");
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("sales");
   const [granularity, setGranularity] = useState("day");
-  const [filters, setFilters] = useState({
-    startDate: format(new Date(new Date().setDate(1)), "yyyy-MM-dd"),
+  const [filters, setFilters] = useState({ startDate: format(new Date(new Date().setDate(1)), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd"),
     comparison: false,
     categoryFilter: "",
-    userRoleFilter: "",
-  });
+    userRoleFilter: "" });
 
   // Méthode pour formater les dates pour affichage
   const formatDateRange = () => {
     const startDate = new Date(filters.startDate);
     const endDate = new Date(filters.endDate);
-    return `${format(startDate, "dd MMM yyyy", { locale: fr })} - ${format(endDate, "dd MMM yyyy", { locale: fr })}`;
+    return `${format(startDate, "dd MMM yyyy", { locale })} - ${format(endDate, "dd MMM yyyy", { locale })}`;
   };
 
   // Requête pour les données de ventes
@@ -100,11 +91,9 @@ export function ReportDashboard({
       endDate: new Date(filters.endDate),
       granularity: filters.granularity as any,
       comparison: filters.comparison,
-      categoryFilter: filters.categoryFilter || undefined,
-    },
+      categoryFilter: filters.categoryFilter || undefined},
     {
-      enabled: activeTab === "sales",
-    },
+      enabled: activeTab === "sales"},
   );
 
   // Requête pour les données d'activité utilisateur
@@ -114,11 +103,9 @@ export function ReportDashboard({
       endDate: new Date(filters.endDate),
       granularity: filters.granularity as any,
       comparison: filters.comparison,
-      userRoleFilter: filters.userRoleFilter || undefined,
-    },
+      userRoleFilter: filters.userRoleFilter || undefined},
     {
-      enabled: activeTab === "user-activity",
-    },
+      enabled: activeTab === "user-activity"},
   );
 
   // Requête pour les données de performance de livraison
@@ -128,15 +115,13 @@ export function ReportDashboard({
         startDate: new Date(filters.startDate),
         endDate: new Date(filters.endDate),
         granularity: filters.granularity as any,
-        comparison: filters.comparison,
-      },
+        comparison: filters.comparison},
       {
-        enabled: activeTab === "delivery-performance",
-      },
+        enabled: activeTab === "delivery-performance"},
     );
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters  }));
   };
 
   const handleRefresh = () => {
@@ -188,12 +173,9 @@ export function ReportDashboard({
       const response = await fetch("/api/admin/reports/export-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reportType,
+        body: JSON.stringify({ reportType,
           data,
-          filters,
-        }),
-      });
+          filters })});
 
       if (response.ok) {
         const blob = await response.blob();
@@ -241,12 +223,9 @@ export function ReportDashboard({
       const response = await fetch("/api/admin/reports/export-csv", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reportType,
+        body: JSON.stringify({ reportType,
           data,
-          filters,
-        }),
-      });
+          filters })});
 
       if (response.ok) {
         const blob = await response.blob();
@@ -270,46 +249,34 @@ export function ReportDashboard({
 
   // Préparer les données pour le graphique de ventes
   const salesChartData =
-    salesReport?.timeSeriesData?.map((item) => ({
-      name: item.period,
-      value: item.value,
-    })) || [];
+    salesReport?.timeSeriesData?.map((item) => ({ name: item.period,
+      value: item.value })) || [];
 
   const prevSalesChartData =
-    salesReport?.comparisonTimeSeriesData?.map((item) => ({
-      name: item.period,
-      value: item.value,
-    })) || [];
+    salesReport?.comparisonTimeSeriesData?.map((item) => ({ name: item.period,
+      value: item.value })) || [];
 
   // Préparer les données pour le graphique de performance de livraison
   const deliveryRateData =
-    deliveryPerformance?.onTimeDeliveryRate?.map((item) => ({
-      name: item.period,
-      rate: item.rate,
-    })) || [];
+    deliveryPerformance?.onTimeDeliveryRate?.map((item) => ({ name: item.period,
+      rate: item.rate })) || [];
 
   // Préparer les données pour le graphique d'activité utilisateur
   const userSignupsData =
-    userActivity?.signupsTimeSeriesData?.map((item) => ({
-      name: item.period,
-      value: item.value,
-    })) || [];
+    userActivity?.signupsTimeSeriesData?.map((item) => ({ name: item.period,
+      value: item.value })) || [];
 
   const userLoginsData =
-    userActivity?.loginsTimeSeriesData?.map((item) => ({
-      name: item.period,
-      value: item.value,
-    })) || [];
+    userActivity?.loginsTimeSeriesData?.map((item) => ({ name: item.period,
+      value: item.value })) || [];
 
   // Préparer les couleurs pour les graphiques
   const salesByCategory = salesReport?.salesByCategory || [];
   const categoryColors = generateChartColors(salesByCategory.length);
 
-  const pieChartData = salesByCategory.map((category, index) => ({
-    name: category.name,
+  const pieChartData = salesByCategory.map((category, index) => ({ name: category.name,
     value: category.value,
-    color: categoryColors[index],
-  }));
+    color: categoryColors[index] }));
 
   // Données pour le graphique de temps moyen par zone
   const timesByZone = deliveryPerformance?.deliveryTimesByZone || [];
@@ -500,8 +467,7 @@ export function ReportDashboard({
                           <div
                             className={`h-full ${salesReport.summary.percentChange > 0 ? "bg-green-500" : "bg-red-500"}`}
                             style={{
-                              width: `${Math.min(100, Math.abs(salesReport.summary.percentChange))}%`,
-                            }}
+                              width: `${Math.min(100, Math.abs(salesReport.summary.percentChange))}%`}}
                           ></div>
                         </div>
                         <div className="flex justify-between mt-1 text-xs">
@@ -522,8 +488,7 @@ export function ReportDashboard({
                                 className="w-6 bg-primary rounded-sm"
                                 style={{
                                   height: `${(item.value / salesReport.summary.totalSales) * 100}%`,
-                                  minHeight: "4px",
-                                }}
+                                  minHeight: "4px"}}
                               ></div>
                               <span className="text-xs mt-1">
                                 {item.name.slice(-2)}
@@ -759,10 +724,8 @@ export function ReportDashboard({
                       <LineChart
                         data={userSignupsData}
                         comparisonData={userActivity.comparisonSignupsData?.map(
-                          (item) => ({
-                            name: item.period,
-                            value: item.value,
-                          }),
+                          (item) => ({ name: item.period,
+                            value: item.value }),
                         )}
                         categories={["value"]}
                         index="name"
@@ -832,8 +795,7 @@ export function ReportDashboard({
                               className="bg-primary h-1"
                               style={{
                                 width: `${Math.round((role.count / userActivity.summary.totalSignups) * 100)}%`,
-                                backgroundColor: generateChartColors(5)[index],
-                              }}
+                                backgroundColor: generateChartColors(5)[index]}}
                             />
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">

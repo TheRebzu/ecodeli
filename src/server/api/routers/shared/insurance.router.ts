@@ -7,7 +7,5 @@ export const insuranceRouter = router({
     return {
       free: { coverage: 0 },
       starter: { coverage: 115, price: 9.9 },
-      premium: { coverage: 3000, price: 19.99 },
-    };
-  }),
-});
+      premium: { coverage: 3000, price: 19.99 }};
+  })});

@@ -11,9 +11,7 @@ export const createCaller = async () => {
   try {
     // Create a context with request headers
     const headersList = headers();
-    const contextWithRequest = await createTRPCContext({
-      headers: headersList,
-    });
+    const contextWithRequest = await createTRPCContext({ headers  });
 
     return appRouter.createCaller(contextWithRequest);
   } catch {
@@ -38,7 +36,7 @@ export function api(
     transformer: superjson,
     links: [
       httpBatchLink({
-        url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/trpc`,
+        url: `${process.env.NEXT_PUBLIC_APPURL || "http://localhost:3000"}/api/trpc`,
         headers() {
           const headersList = new Map();
           // Ajouter les cookies à la requête pour maintenir la session
@@ -49,25 +47,21 @@ export function api(
             }
           }
           return Object.fromEntries(headersList);
-        },
-      }),
-    ],
-  });
+        }})]});
 }
 
 /**
  * Créer un client tRPC pour les Server Components
  */
 export function createServerComponentClient({
-  cookies,
-}: {
+  cookies}: {
   cookies: ReturnType<(typeof headers)["getAll"] | any>;
 }) {
   return createTRPCProxyClient<AppRouter>({
     transformer: superjson,
     links: [
       httpBatchLink({
-        url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/trpc`,
+        url: `${process.env.NEXT_PUBLIC_APPURL || "http://localhost:3000"}/api/trpc`,
         headers() {
           const headersList = new Map();
           // Ajouter les cookies à la requête pour maintenir la session
@@ -78,8 +72,5 @@ export function createServerComponentClient({
             }
           }
           return Object.fromEntries(headersList);
-        },
-      }),
-    ],
-  });
+        }})]});
 }

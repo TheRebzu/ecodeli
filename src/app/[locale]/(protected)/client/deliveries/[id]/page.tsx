@@ -12,8 +12,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -22,8 +21,7 @@ import {
   Phone,
   ThumbsUp,
   CheckCircle,
-  Box,
-} from "lucide-react";
+  Box} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import DeliveryTrackingPanel from "@/components/deliverer/deliveries/delivery-tracking-panel";
 import DeliveryContact from "@/components/deliverer/deliveries/delivery-contact";
@@ -54,8 +52,7 @@ export default function ClientDeliveryDetailsPage() {
     isArrivingSoon,
     canBeConfirmed,
     isCompleted,
-    isRated,
-  } = useDeliveryDetails(deliveryId);
+    isRated} = useDeliveryDetails(deliveryId);
 
   // Gérer l'ouverture du dialogue de contact
   const handleContactClick = () => {
@@ -79,20 +76,16 @@ export default function ClientDeliveryDetailsPage() {
   useEffect(() => {
     // Si l'URL contient ?confirm=success
     if (searchParams.get("confirm") === "success") {
-      toast({
-        title: t("confirmationSuccess"),
+      toast({ title: t("confirmationSuccess"),
         description: t("confirmationSuccessDescription"),
-        variant: "default",
-      });
+        variant: "default" });
     }
 
     // Si l'URL contient ?rate=success
     if (searchParams.get("rate") === "success") {
-      toast({
-        title: t("ratingSuccess"),
+      toast({ title: t("ratingSuccess"),
         description: t("ratingSuccessDescription"),
-        variant: "default",
-      });
+        variant: "default" });
     }
   }, [searchParams, toast, t]);
 
@@ -150,7 +143,7 @@ export default function ClientDeliveryDetailsPage() {
   const renderActions = () => {
     return (
       <div className="flex flex-wrap gap-3 mt-6">
-        {delivery.status === DeliveryStatus.IN_TRANSIT && (
+        {delivery.status === DeliveryStatus.INTRANSIT && (
           <Button
             variant="default"
             className="flex items-center"
@@ -208,8 +201,7 @@ export default function ClientDeliveryDetailsPage() {
             </h1>
             <p className="text-muted-foreground">
               {t("deliverySubtitle", {
-                date: new Date(delivery.createdAt).toLocaleDateString("fr-FR"),
-              })}
+                date: new Date(delivery.createdAt).toLocaleDateString("fr-FR")})}
             </p>
           </div>
         </div>

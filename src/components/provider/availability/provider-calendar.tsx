@@ -9,8 +9,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -20,15 +19,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -41,8 +38,7 @@ import {
   Trash2,
   Grid3X3,
   List,
-  Calendar as CalendarGridIcon,
-} from "lucide-react";
+  Calendar as CalendarGridIcon} from "lucide-react";
 import { formatDate, formatTime, formatDateTime } from "@/lib/i18n/formatters";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
@@ -106,8 +102,7 @@ export function ProviderCalendar() {
       },
       onError: (error) => {
         toast.error(error.message || t("availability.addFailed"));
-      },
-    },
+      }},
   );
 
   // Mutation pour supprimer une disponibilité
@@ -119,8 +114,7 @@ export function ProviderCalendar() {
       },
       onError: (error) => {
         toast.error(error.message || t("availability.deleteFailed"));
-      },
-    },
+      }},
   );
 
   // Filtrer les réservations pour la date sélectionnée
@@ -137,17 +131,15 @@ export function ProviderCalendar() {
 
   // Fonction pour ajouter une disponibilité
   const handleAddAvailability = () => {
-    createAvailabilityMutation.mutate({
-      dayOfWeek: parseInt(dayOfWeek),
+    createAvailabilityMutation.mutate({ dayOfWeek: parseInt(dayOfWeek),
       startTime,
-      endTime,
-    });
+      endTime });
   };
 
   // Fonction pour supprimer une disponibilité
   const handleDeleteAvailability = (id: string) => {
     if (confirm(t("availability.confirmDelete"))) {
-      deleteAvailabilityMutation.mutate({ id });
+      deleteAvailabilityMutation.mutate({ id  });
     }
   };
 
@@ -160,8 +152,7 @@ export function ProviderCalendar() {
       t("days.wednesday"),
       t("days.thursday"),
       t("days.friday"),
-      t("days.saturday"),
-    ];
+      t("days.saturday")];
     return days[day];
   };
 
@@ -255,8 +246,7 @@ export function ProviderCalendar() {
                   <CardDescription>
                     {bookingsForSelectedDate?.length
                       ? t("calendar.appointmentsCount", {
-                          count: bookingsForSelectedDate.length,
-                        })
+                          count: bookingsForSelectedDate.length})
                       : t("calendar.noAppointments")}
                   </CardDescription>
                 </CardHeader>

@@ -8,8 +8,7 @@ export enum AnnouncementStatus {
   ASSIGNED = "ASSIGNED",
   IN_PROGRESS = "IN_PROGRESS",
   COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-}
+  CANCELLED = "CANCELLED"}
 
 export enum AnnouncementType {
   PACKAGE = "PACKAGE",
@@ -17,15 +16,13 @@ export enum AnnouncementType {
   DOCUMENTS = "DOCUMENTS",
   MEAL = "MEAL",
   FURNITURE = "FURNITURE",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 export enum AnnouncementPriority {
   LOW = "LOW",
   MEDIUM = "MEDIUM",
   HIGH = "HIGH",
-  URGENT = "URGENT",
-}
+  URGENT = "URGENT"}
 
 // Interface pour une annonce complète
 export interface Announcement {

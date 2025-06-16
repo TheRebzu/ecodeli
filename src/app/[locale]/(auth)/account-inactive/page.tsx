@@ -11,8 +11,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Link } from "@/navigation";
 
 export default function AccountInactivePage() {
@@ -44,7 +43,7 @@ export default function AccountInactivePage() {
           <Button
             variant="destructive"
             className="w-full"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ callbackUrl: "/"  })}
           >
             <LogOut className="mr-2 h-4 w-4" />
             Se déconnecter

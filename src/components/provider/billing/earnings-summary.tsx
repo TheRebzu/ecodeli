@@ -16,8 +16,7 @@ import {
   Clock,
   Target,
   Award,
-  BarChart3,
-} from "lucide-react";
+  BarChart3} from "lucide-react";
 
 // Types
 interface EarningsSummary {

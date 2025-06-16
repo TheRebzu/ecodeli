@@ -22,8 +22,7 @@ export function AppointmentStats({ appointments }: AppointmentStatsProps) {
     total: appointments.length,
     pending: appointments.filter((apt) => apt.status === "PENDING").length,
     confirmed: appointments.filter((apt) => apt.status === "CONFIRMED").length,
-    completed: appointments.filter((apt) => apt.status === "COMPLETED").length,
-  };
+    completed: appointments.filter((apt) => apt.status === "COMPLETED").length};
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

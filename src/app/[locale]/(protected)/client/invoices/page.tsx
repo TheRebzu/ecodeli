@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
-import { FileText, RefreshCw, Download, FileDown } from "lucide-react";
+import { FileText, RefreshCw, Download, FileDown, Plus } from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { useToast } from "@/components/ui/use-toast";
@@ -25,10 +25,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function InvoicesPage() {
   const t = useTranslations("invoices");
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data } = useSession();
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Requête pour récupérer les statistiques des factures
   const { data: invoiceStatsData, isLoading: isLoadingStats } =
@@ -38,23 +40,21 @@ export default function InvoicesPage() {
   // Fonction pour télécharger une facture
   const handleDownloadInvoice = async (invoiceId: string) => {
     try {
-      setIsDownloading(true);
-
-      // Dans une implémentation réelle, appelez l'API pour télécharger la facture
-      // Simulation du téléchargement
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast({
-        variant: "default",
-        title: t("downloadStarted"),
-      });
+      // Appel API réel pour télécharger la facture
+      const response = await fetch(`/api/invoices/${invoiceId}/download`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `invoice-${invoiceId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("downloadError"),
-      });
-    } finally {
-      setIsDownloading(false);
+      console.error("Erreur lors du téléchargement:", error);
     }
   };
 
@@ -64,22 +64,36 @@ export default function InvoicesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("pageTitle")}
-          </h1>
-          <p className="text-muted-foreground">{t("pageDescription")}</p>
-        </div>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
         <Button
-          className="w-full sm:w-auto"
-          onClick={() => router.push("/client/invoices/demo")}
+          onClick={() => router.push("/client/invoices/new")}
+          className="flex items-center gap-2"
         >
-          <FileDown className="h-4 w-4 mr-2" />
-          {t("downloadAll")}
+          <Plus className="h-4 w-4" />
+          {t("newInvoice")}
         </Button>
       </div>
+
+      {/* Filtres et recherche */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Filtres existants... */}
+      </div>
+
+      {/* Liste des factures */}
+      <InvoiceList
+        invoices={displayInvoices}
+        isLoading={invoicesQuery.isLoading}
+        onView={handleViewInvoice}
+        onDownload={handleDownloadInvoice}
+        pagination={{
+          currentPage,
+          totalPages: Math.ceil((invoicesQuery.data?.total || 0) / pageSize),
+          totalItems: invoicesQuery.data?.total || 0,
+        }}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Statistiques des factures */}
       <Card>
@@ -144,11 +158,20 @@ export default function InvoicesPage() {
         </TabsList>
 
         <TabsContent value="all" className="m-0">
-          <InvoiceList
-            userId={session?.user?.id}
-            onViewInvoice={handleViewInvoice}
-            onDownloadInvoice={handleDownloadInvoice}
-          />
+          <div className="flex flex-col gap-6">
+            <InvoiceList
+              invoices={displayInvoices}
+              isLoading={invoicesQuery.isLoading}
+              onView={handleViewInvoice}
+              onDownload={handleDownloadInvoice}
+              pagination={{
+                currentPage,
+                totalPages: Math.ceil((invoicesQuery.data?.total || 0) / pageSize),
+                totalItems: invoicesQuery.data?.total || 0,
+              }}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="paid" className="m-0">

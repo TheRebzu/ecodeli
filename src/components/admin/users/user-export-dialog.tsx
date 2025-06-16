@@ -7,8 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,15 +39,13 @@ const availableFields = [
   { id: "lastActivityAt", label: "Dernière activité" },
   { id: "emailVerified", label: "Email vérifié" },
   { id: "phoneVerified", label: "Téléphone vérifié" },
-  { id: "subscriptionStatus", label: "Statut d'abonnement" },
-];
+  { id: "subscriptionStatus", label: "Statut d'abonnement" }];
 
 export function UserExportDialog({
   open,
   onOpenChange,
   onExport,
-  selectedCount,
-}: UserExportDialogProps) {
+  selectedCount}: UserExportDialogProps) {
   const [format, setFormat] = useState<"csv" | "excel" | "pdf">("csv");
   const [selectedFields, setSelectedFields] = useState<string[]>([
     "name",
@@ -56,8 +53,7 @@ export function UserExportDialog({
     "role",
     "status",
     "createdAt",
-    "lastLoginAt",
-  ]);
+    "lastLoginAt"]);
 
   const handleFieldToggle = (fieldId: string) => {
     setSelectedFields((prev) =>

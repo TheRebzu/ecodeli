@@ -29,8 +29,7 @@ export async function sendNotification(params: {
     message: params.message,
     type: params.type,
     link: params.link,
-    data: params.data,
-  });
+    data: params.data});
 }
 
 export class NotificationService {
@@ -46,9 +45,7 @@ export class NotificationService {
           message: notification.message,
           type: notification.type,
           link: notification.link,
-          data: notification.data ? JSON.stringify(notification.data) : null,
-        },
-      });
+          data: notification.data ? JSON.stringify(notification.data) : null}});
       return true;
     } catch (error) {
       console.error("Erreur lors de l'envoi de la notification:", error);
@@ -63,23 +60,16 @@ export class NotificationService {
     try {
       const users = await db.user.findMany({
         where: {
-          role,
-        },
-        select: {
-          id: true,
-        },
-      });
+          role},
+        select: { id }});
 
-      await db.notification.createMany({
-        data: users.map((user) => ({
+      await db.notification.createMany({ data: users.map((user) => ({
           userId: user.id,
           title: notification.title,
           message: notification.message,
           type: notification.type,
           link: notification.link,
-          data: notification.data ? JSON.stringify(notification.data) : null,
-        })),
-      });
+          data: notification.data ? JSON.stringify(notification.data) : null }))});
 
       return true;
     } catch (error) {
@@ -106,9 +96,8 @@ export class NotificationService {
     try {
       // Récupérer les informations sur l'utilisateur
       const user = await db.user.findUnique({
-        where: { id: userId },
-        select: { name: true, email: true },
-      });
+        where: { id },
+        select: { name: true, email: true }});
 
       if (!user) {
         throw new Error("Utilisateur non trouvé");
@@ -123,8 +112,7 @@ export class NotificationService {
         message: `${user.name} a soumis un document de type ${documentType} pour vérification.`,
         type: "DOCUMENT_SUBMISSION",
         link,
-        data: { documentId, userId, documentType },
-      });
+        data: { documentId, userId, documentType }});
     } catch (error) {
       console.error(
         "Erreur lors de l'envoi de la notification de soumission de document:",
@@ -140,12 +128,10 @@ export class NotificationService {
   static async markAsRead(notificationId: string) {
     try {
       await db.notification.update({
-        where: { id: notificationId },
+        where: { id },
         data: {
           read: true,
-          readAt: new Date(),
-        },
-      });
+          readAt: new Date()}});
       return true;
     } catch (error) {
       console.error(
@@ -163,11 +149,8 @@ export class NotificationService {
     return db.notification.findMany({
       where: {
         userId,
-        read: false,
-      },
+        read: false},
       orderBy: {
-        createdAt: "desc",
-      },
-    });
+        createdAt: "desc"}});
   }
 }

@@ -5,8 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   boxSearchSchema,
-  BoxSearchInput,
-} from "@/schemas/storage/storage.schema";
+  BoxSearchInput} from "@/schemas/storage/storage.schema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,14 +14,12 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils/common";
 import { format } from "date-fns";
@@ -32,8 +29,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslations } from "next-intl";
 import { Slider } from "@/components/ui/slider";
@@ -50,8 +46,7 @@ export function BoxSearchForm({
   onSearch,
   isSubmitting = false,
   submitText,
-  defaultValues,
-}: BoxSearchFormProps) {
+  defaultValues}: BoxSearchFormProps) {
   const t = useTranslations("storage");
   const { warehouses, isLoading: isLoadingWarehouses } = useWarehouses();
   const [priceRange, setPriceRange] = useState([0, 100]);
@@ -63,15 +58,12 @@ export function BoxSearchForm({
       startDate: new Date(),
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 jours par défaut
       features: [],
-      ...defaultValues,
-    },
-  });
+      ...defaultValues}});
 
   const features = [
     { id: "climate-controlled", label: t("features.climateControlled") },
     { id: "secure", label: t("features.secure") },
-    { id: "24h-access", label: t("features.24hAccess") },
-  ];
+    { id: "24h-access", label: t("features.24hAccess") }];
 
   // Mise à jour des champs dépendants du slider
   const handlePriceRangeChange = (values: number[]) => {
@@ -97,7 +89,7 @@ export function BoxSearchForm({
           <FormField
             control={form.control}
             name="warehouseId"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("form.warehouse")}</FormLabel>
                 <Select
@@ -130,7 +122,7 @@ export function BoxSearchForm({
           <FormField
             control={form.control}
             name="boxType"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("form.boxType")}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
@@ -172,7 +164,7 @@ export function BoxSearchForm({
           <FormField
             control={form.control}
             name="startDate"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>{t("form.startDate")}</FormLabel>
                 <Popover>
@@ -186,7 +178,7 @@ export function BoxSearchForm({
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP", { locale: fr })
+                          format(field.value, "PPP", { locale })
                         ) : (
                           <span>{t("form.pickDate")}</span>
                         )}
@@ -216,7 +208,7 @@ export function BoxSearchForm({
           <FormField
             control={form.control}
             name="endDate"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>{t("form.endDate")}</FormLabel>
                 <Popover>
@@ -230,7 +222,7 @@ export function BoxSearchForm({
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP", { locale: fr })
+                          format(field.value, "PPP", { locale })
                         ) : (
                           <span>{t("form.pickDate")}</span>
                         )}
@@ -316,7 +308,7 @@ export function BoxSearchForm({
                       key={feature.id}
                       control={form.control}
                       name="features"
-                      render={({ field }) => {
+                      render={({ field  }) => {
                         return (
                           <FormItem
                             key={feature.id}
@@ -329,8 +321,7 @@ export function BoxSearchForm({
                                   return checked
                                     ? field.onChange([
                                         ...(field.value || []),
-                                        feature.id,
-                                      ])
+                                        feature.id])
                                     : field.onChange(
                                         field.value?.filter(
                                           (value) => value !== feature.id,

@@ -10,8 +10,7 @@ import { ProviderTutorial } from "@/components/shared/onboarding/tutorials/tutor
 import { AdminTutorial } from "@/components/shared/onboarding/tutorials/tutorials/admin-tutorial";
 import {
   useMission1Onboarding,
-  useMission1AccessControl,
-} from "@/hooks/auth/use-onboarding";
+  useMission1AccessControl} from "@/hooks/auth/use-onboarding";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,8 +19,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 
 interface OnboardingControllerProps {
   autoStart?: boolean;
@@ -40,8 +38,7 @@ export function OnboardingController({
   redirectPathAfterCompletion,
   forceMission1 = false,
   blockingMode = false,
-  children,
-}: OnboardingControllerProps) {
+  children}: OnboardingControllerProps) {
   const session = useSession();
   const userRole = session.data?.user?.role?.toLowerCase() || "";
 
@@ -79,8 +76,7 @@ export function OnboardingController({
   // Définir les options pour les tutoriels
   const tutorialOptions = {
     redirectTo: redirectPathAfterCompletion,
-    onComplete: handleTutorialComplete,
-  };
+    onComplete: handleTutorialComplete};
 
   // Sélection du tutoriel en fonction du rôle
   const renderTutorial = () => {
@@ -210,8 +206,7 @@ export function OnboardingController({
 export function OnboardingTrigger({
   role,
   children,
-  variant = "standard",
-}: {
+  variant = "standard"}: {
   role?: string;
   children: React.ReactNode;
   variant?: "standard" | "mission1";
@@ -247,8 +242,7 @@ export function useAccessControl() {
   return {
     isBlocked: shouldBlockAccess,
     isLoading,
-    canAccess: !shouldBlockAccess && !isLoading,
-  };
+    canAccess: !shouldBlockAccess && !isLoading};
 }
 
 /**
@@ -256,8 +250,7 @@ export function useAccessControl() {
  */
 export function MissionProtectedContent({
   children,
-  fallback,
-}: {
+  fallback}: {
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }) {

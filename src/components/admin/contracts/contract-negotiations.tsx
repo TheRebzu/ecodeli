@@ -6,8 +6,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,8 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,8 +27,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTrigger} from "@/components/ui/alert-dialog";
 import {
   MessageSquare,
   Clock,
@@ -40,8 +37,7 @@ import {
   Calendar,
   FileText,
   ArrowRight,
-  AlertCircle,
-} from "lucide-react";
+  AlertCircle} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -102,8 +98,7 @@ export function ContractNegotiations({
   onMakeCounterProposal,
   onCompleteNegotiation,
   onCancelNegotiation,
-  isLoading,
-}: ContractNegotiationsProps) {
+  isLoading}: ContractNegotiationsProps) {
   const [selectedNegotiation, setSelectedNegotiation] =
     useState<ContractNegotiation | null>(null);
   const [counterProposal, setCounterProposal] = useState("");
@@ -151,7 +146,7 @@ export function ContractNegotiations({
   };
 
   const formatDate = (date: Date) => {
-    return format(new Date(date), "dd/MM/yyyy à HH:mm", { locale: fr });
+    return format(new Date(date), "dd/MM/yyyy à HH:mm", { locale });
   };
 
   const isExpiringSoon = (expiresAt?: Date) => {
@@ -398,9 +393,7 @@ export function ContractNegotiations({
                               </Button>
                               <Button
                                 onClick={() => {
-                                  onMakeCounterProposal(negotiation.id, {
-                                    content: counterProposal,
-                                  });
+                                  onMakeCounterProposal(negotiation.id, { content });
                                   setCounterProposal("");
                                 }}
                                 disabled={!counterProposal.trim() || isLoading}

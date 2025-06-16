@@ -24,8 +24,7 @@ interface UseClientAnnouncementsProps {
 }
 
 export function useClientAnnouncements({
-  initialFilter = { limit: 10, page: 1 },
-}: UseClientAnnouncementsProps = {}) {
+  initialFilter = { limit: 10, page: 1 }}: UseClientAnnouncementsProps = {}) {
   const router = useRouter();
   const { toast } = useToast();
   const t = useTranslations("announcements");
@@ -40,44 +39,36 @@ export function useClientAnnouncements({
   const {
     data: myAnnouncementsData,
     isLoading: isLoadingMy,
-    refetch: refetchMy,
-  } = api.client.clientAnnouncements.getMyAnnouncements.useQuery(filter);
+    refetch: refetchMy} = api.client.clientAnnouncements.getMyAnnouncements.useQuery(filter);
 
   // Récupérer mes annonces actives
   const {
     data: activeAnnouncementsData,
     isLoading: isLoadingActive,
-    refetch: refetchActive,
-  } = api.client.clientAnnouncements.getActiveAnnouncements.useQuery();
+    refetch: refetchActive} = api.client.clientAnnouncements.getActiveAnnouncements.useQuery();
 
   // Récupérer l'historique
   const {
     data: historyData,
     isLoading: isLoadingHistory,
-    refetch: refetchHistory,
-  } = api.client.clientAnnouncements.getAnnouncementHistory.useQuery();
+    refetch: refetchHistory} = api.client.clientAnnouncements.getAnnouncementHistory.useQuery();
 
   const isLoading = isLoadingMy || isLoadingActive || isLoadingHistory;
 
   // Mutations
   const deleteAnnouncementMutation =
-    api.client.clientAnnouncements.deleteAnnouncement.useMutation({
-      onSuccess: () => {
+    api.client.clientAnnouncements.deleteAnnouncement.useMutation({ onSuccess: () => {
         toast({
           title: t("deleteSuccess"),
-          description: t("announcementDeleted"),
-        });
+          description: t("announcementDeleted") });
         refetchMy();
         refetchActive();
       },
       onError: (error) => {
-        toast({
-          title: t("deleteError"),
+        toast({ title: t("deleteError"),
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   // Actions
   const fetchMyAnnouncements = useCallback(
@@ -120,7 +111,7 @@ export function useClientAnnouncements({
 
   const deleteAnnouncement = useCallback(
     async (announcementId: string) => {
-      await deleteAnnouncementMutation.mutateAsync({ announcementId });
+      await deleteAnnouncementMutation.mutateAsync({ announcementId  });
     },
     [deleteAnnouncementMutation],
   );
@@ -193,6 +184,5 @@ export function useClientAnnouncements({
     navigateToPayment,
 
     // Mutations
-    isDeleting: deleteAnnouncementMutation.isPending,
-  };
+    isDeleting: deleteAnnouncementMutation.isPending};
 }

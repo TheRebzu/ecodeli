@@ -6,8 +6,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
@@ -19,8 +18,7 @@ export function RegisterForm() {
     { id: "client", label: t("roles.client"), icon: "👤" },
     { id: "deliverer", label: t("roles.deliverer"), icon: "🚚" },
     { id: "merchant", label: t("roles.merchant"), icon: "🏪" },
-    { id: "provider", label: t("roles.provider"), icon: "🛠️" },
-  ];
+    { id: "provider", label: t("roles.provider"), icon: "🛠️" }];
 
   const handleRoleSelect = (role: string) => {
     router.push(`/register/${role}`);

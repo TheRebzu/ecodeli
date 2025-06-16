@@ -47,6 +47,7 @@ import {
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/common";
+import { api } from "@/lib/api";
 
 export interface ValidationPhoto {
   id: string;
@@ -196,42 +197,61 @@ export default function DeliveryCodeValidator({
     }
   };
 
-  // Scanner QR code (simulation)
-  const startQRScan = async () => {
-    setIsScanning(true);
+  // Fonction pour scanner le code QR
+  const handleScanQR = async () => {
     try {
-      // Simulation d'un scan QR
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Code simulé
-      const scannedCode = "ABC123";
-      setCode(scannedCode);
-      setCodeMethod("qr");
-      toast.success("QR Code scanné");
+      setIsScanning(true);
+      
+      // Utilisation de l'API réelle pour scanner le QR code
+      const result = await api.delivery.scanQRCode.mutate({ deliveryId: deliveryInfo.id,
+        method: 'qr_code'
+       });
+      
+      if (result.success) {
+        setValidationResult({ isValid: true, 
+          code: result.code 
+         });
+        onValidateCode(result.code, photos, location || undefined, signature, notes);
+      } else {
+        setValidationResult({ isValid: false, 
+          error: result.error || t("scanFailed")
+         });
+      }
     } catch (error) {
-      toast.error("Erreur lors du scan QR");
+      setValidationResult({ isValid: false, 
+        error: error instanceof Error ? error.message : t("scanError")
+       });
     } finally {
       setIsScanning(false);
     }
   };
 
-  // Scanner NFC (simulation)
-  const scanNFC = async () => {
-    if (!("NDEFReader" in window)) {
-      toast.error("NFC non supporté");
-      return;
-    }
-
+  // Fonction pour scanner via NFC
+  const handleScanNFC = async () => {
     try {
-      // Simulation NFC
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      const nfcCode = "ABC123";
-      setCode(nfcCode);
-      setCodeMethod("nfc");
-      toast.success("Code NFC lu");
+      setIsScanning(true);
+      
+      // Utilisation de l'API réelle pour scanner via NFC
+      const result = await api.delivery.scanNFC.mutate({ deliveryId: deliveryInfo.id,
+        method: 'nfc'
+       });
+      
+      if (result.success) {
+        setValidationResult({ isValid: true, 
+          code: result.code 
+         });
+        onValidateCode(result.code, photos, location || undefined, signature, notes);
+      } else {
+        setValidationResult({ isValid: false, 
+          error: result.error || t("nfcScanFailed")
+         });
+      }
     } catch (error) {
-      toast.error("Erreur NFC");
+      setValidationResult({ isValid: false, 
+        error: error instanceof Error ? error.message : t("nfcScanError")
+       });
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -638,7 +658,7 @@ export default function DeliveryCodeValidator({
                       </div>
                     </div>
                     <Button
-                      onClick={startQRScan}
+                      onClick={handleScanQR}
                       disabled={isScanning}
                       size="lg"
                     >
@@ -657,7 +677,7 @@ export default function DeliveryCodeValidator({
                     <div className="mx-auto w-32 h-32 bg-blue-50 rounded-full flex items-center justify-center">
                       <Smartphone className="h-16 w-16 text-blue-600" />
                     </div>
-                    <Button onClick={scanNFC} size="lg" variant="outline">
+                    <Button onClick={handleScanNFC} size="lg" variant="outline">
                       <Zap className="h-4 w-4 mr-2" />
                       Scanner NFC
                     </Button>

@@ -7,16 +7,14 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+  BreadcrumbSeparator} from "@/components/ui/breadcrumb";
 import { Suspense } from "react";
 import { Loader2, Home, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -34,8 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("form.title"),
-    description: t("form.description"),
-  };
+    description: t("form.description")};
 }
 
 export default async function BookPage({ searchParams }: BookPageProps) {
@@ -48,9 +45,7 @@ export default async function BookPage({ searchParams }: BookPageProps) {
   }
 
   try {
-    const service = await api.service.getServiceById.query({
-      id: serviceId,
-    });
+    const service = await api.service.getServiceById.query({ id  });
 
     // Convertir la date si fournie
     const selectedDate = date ? new Date(date) : null;

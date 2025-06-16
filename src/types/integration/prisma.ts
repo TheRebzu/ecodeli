@@ -13,23 +13,20 @@ export enum TransactionType {
   SUBSCRIPTION_FEE = "SUBSCRIPTION_FEE",
   PLATFORM_FEE = "PLATFORM_FEE",
   ADJUSTMENT = "ADJUSTMENT",
-  BONUS = "BONUS",
-}
+  BONUS = "BONUS"}
 
 export enum TransactionStatus {
   PENDING = "PENDING",
   COMPLETED = "COMPLETED",
   FAILED = "FAILED",
-  CANCELLED = "CANCELLED",
-}
+  CANCELLED = "CANCELLED"}
 
 export enum WithdrawalStatus {
   PENDING = "PENDING",
   PROCESSING = "PROCESSING",
   COMPLETED = "COMPLETED",
   FAILED = "FAILED",
-  CANCELLED = "CANCELLED",
-}
+  CANCELLED = "CANCELLED"}
 
 export enum SubscriptionStatus {
   ACTIVE = "ACTIVE",
@@ -37,22 +34,19 @@ export enum SubscriptionStatus {
   UNPAID = "UNPAID",
   CANCELLED = "CANCELLED",
   TRIAL = "TRIAL",
-  ENDED = "ENDED",
-}
+  ENDED = "ENDED"}
 
 export enum PlanType {
   FREE = "FREE",
   STARTER = "STARTER",
-  PREMIUM = "PREMIUM",
-}
+  PREMIUM = "PREMIUM"}
 
 export enum InvoiceStatus {
   DRAFT = "DRAFT",
   SENT = "SENT",
   PAID = "PAID",
   OVERDUE = "OVERDUE",
-  VOIDED = "VOIDED",
-}
+  VOIDED = "VOIDED"}
 
 // Structure des modèles
 export interface Wallet {

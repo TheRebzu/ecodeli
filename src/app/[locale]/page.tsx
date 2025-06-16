@@ -3,9 +3,8 @@ import { setRequestLocale } from "next-intl/server";
 import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 
 export default async function RootPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }) {
   // Attendre que les paramètres soient résolus avant de les utiliser
   const { locale } = await params;
@@ -18,5 +17,5 @@ export default async function RootPage({
 }
 
 export function generateStaticParams() {
-  return ["fr", "en"].map((locale) => ({ locale }));
+  return ["fr", "en"].map((locale) => ({ locale  }));
 }

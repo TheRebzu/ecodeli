@@ -12,8 +12,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,30 +26,26 @@ export default function VerificationList() {
   const [activeTab, setActiveTab] = useState<
     "PENDING" | "APPROVED" | "REJECTED"
   >("PENDING");
-  const [filters, setFilters] = useState<VerificationFilters>({
-    status: "PENDING",
+  const [filters, setFilters] = useState<VerificationFilters>({ status: "PENDING",
     page: 1,
     limit: 10,
     sortBy: "createdAt",
-    sortDirection: "desc",
-  });
+    sortDirection: "desc" });
 
   // Utiliser une date statique pour éviter les erreurs d'hydration
   const [lastUpdated, setLastUpdated] = useState("");
 
-  const [stats, setStats] = useState({
-    pending: 0,
+  const [stats, setStats] = useState({ pending: 0,
     approved: 0,
     rejected: 0,
-    total: 0,
-  });
+    total: 0 });
   const [statsLoading, setStatsLoading] = useState(false);
 
   useEffect(() => {
     // Définir la date côté client uniquement pour éviter les erreurs d'hydration
     const now = new Date();
     try {
-      const formattedDate = format(now, "PPpp", { locale: fr });
+      const formattedDate = format(now, "PPpp", { locale });
       setLastUpdated(formattedDate);
     } catch (error) {
       console.error("Error formatting date:", error);
@@ -69,8 +64,7 @@ export default function VerificationList() {
             pending: 0,
             approved: 0,
             rejected: 0,
-            total: 0,
-          },
+            total: 0},
         );
       } catch (error) {
         console.error("Erreur lors du chargement des statistiques:", error);
@@ -84,26 +78,21 @@ export default function VerificationList() {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as "PENDING" | "APPROVED" | "REJECTED");
-    setFilters((prev) => ({
-      ...prev,
+    setFilters((prev) => ({ ...prev,
       status: value as "PENDING" | "APPROVED" | "REJECTED",
-      page: 1,
-    }));
+      page: 1 }));
   };
 
   const handleFilterChange = (newFilters: Partial<VerificationFilters>) => {
-    setFilters((prev) => ({
-      ...prev,
+    setFilters((prev) => ({ ...prev,
       ...newFilters,
       page: 1, // Reset to first page on filter change
-    }));
+     }));
   };
 
   const handlePageChange = (page: number) => {
-    setFilters((prev) => ({
-      ...prev,
-      page,
-    }));
+    setFilters((prev) => ({ ...prev,
+      page }));
   };
 
   return (
@@ -189,7 +178,7 @@ export default function VerificationList() {
 
       <CardFooter className="border-t bg-muted/50 px-6 py-3">
         <p className="text-xs text-muted-foreground">
-          {lastUpdated ? t("footer.updatedAt", { date: lastUpdated }) : ""}
+          {lastUpdated ? t("footer.updatedAt", { date }) : ""}
         </p>
       </CardFooter>
     </Card>
@@ -207,15 +196,13 @@ function StatCard({ title, value, variant }: StatCardProps) {
     default: "bg-primary/10",
     success: "bg-green-500/10",
     destructive: "bg-red-500/10",
-    warning: "bg-yellow-500/10",
-  };
+    warning: "bg-yellow-500/10"};
 
   const textColors = {
     default: "text-primary",
     success: "text-green-500",
     destructive: "text-red-500",
-    warning: "text-yellow-500",
-  };
+    warning: "text-yellow-500"};
 
   return (
     <div className={`${bgColors[variant]} rounded-lg p-4`}>

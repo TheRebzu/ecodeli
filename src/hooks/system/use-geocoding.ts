@@ -5,10 +5,8 @@ export function useGeocoding() {
 
   const searchAddress = async (query: string, limit = 5) => {
     try {
-      return await utils.geocoding.searchAddress.fetch({
-        query,
-        limit,
-      });
+      return await utils.geocoding.searchAddress.fetch({ query,
+        limit });
     } catch (error) {
       console.error("Error searching address:", error);
       throw error;
@@ -17,11 +15,9 @@ export function useGeocoding() {
 
   const reverseGeocode = async (lat: number, lon: number, zoom = 18) => {
     try {
-      return await utils.geocoding.reverseGeocode.fetch({
-        lat,
+      return await utils.geocoding.reverseGeocode.fetch({ lat,
         lon,
-        zoom,
-      });
+        zoom });
     } catch (error) {
       console.error("Error reverse geocoding:", error);
       throw error;
@@ -30,6 +26,5 @@ export function useGeocoding() {
 
   return {
     searchAddress,
-    reverseGeocode,
-  };
+    reverseGeocode};
 }

@@ -8,7 +8,7 @@ import { getMessages } from "@/lib/i18n/get-messages";
 
 type Props = {
   children: React.ReactNode;
-  params: { locale: string };
+  params: { locale };
 };
 
 export default async function AuthLayout({ children, params }: Props) {

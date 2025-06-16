@@ -74,6 +74,9 @@ import {
 import { usePaymentHistory } from "@/hooks/payment/use-payment";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
 // Fonction utilitaire pour formater les dates en toute sécurité
 const safeFormatDate = (
@@ -188,7 +191,7 @@ export interface PaymentHistoryProps {
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
-  isDemo?: boolean;
+  
   showEmptyState?: boolean;
   emptyStateMessage?: string;
   showRefreshButton?: boolean;
@@ -238,60 +241,41 @@ const safeAmount = (amount: any, currency: string = "EUR") => {
 };
 
 export function PaymentHistory({
+  className,
   userId,
-  payments = [],
-  showExportButton = true,
-  showFilters = true,
-  itemsPerPage = 10,
-  className = "",
-  onViewDetails,
-  isDemo = false,
-  showEmptyState = true,
-  emptyStateMessage,
-  showRefreshButton = false,
-  onRefresh,
 }: PaymentHistoryProps) {
   const t = useTranslations("payment");
+  const { data } = useSession();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
 
-  // Utiliser notre hook personnalisé pour l'historique des paiements
-  const {
-    paymentHistory,
-    isRefreshing,
-    loadPaymentHistory,
-    filterPaymentHistory,
-    isDemoMode,
-  } = usePaymentHistory();
-
-  // États pour la pagination, le filtrage et le tri
-  const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(
-    undefined,
-  );
-  const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
-  // Utiliser notre type personnalisé
-  const [dateRange, setDateRange] = useState<CustomDateRange>({});
+  // États pour les filtres
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("3_months");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState<string[]>([]);
 
-  // Récupérer l'historique des paiements depuis l'API tRPC
+  // Utilisation de tRPC pour récupérer l'historique des paiements
   const {
-    data: apiData,
+    data: paymentData,
     isLoading,
     isError,
-    refetch,
-  } = api.payment.getPaymentHistory.useQuery(
-    {
-      page,
-      limit: itemsPerPage,
-      status: statusFilter,
-      type: typeFilter,
-      startDate: dateRange.from,
-      endDate: dateRange.to,
-    },
-    {
-      // Désactiver la requête si userId n'est pas défini
-      enabled: !!userId && !(isDemo || isDemoMode),
-    },
-  );
+    refetch
+  } = api.payment.getPaymentHistory.useQuery({ userId: userId || session?.user?.id,
+    period: selectedPeriod,
+    status: selectedStatus !== "all" ? selectedStatus : undefined,
+    type: selectedType !== "all" ? selectedType : undefined,
+    search: searchQuery || undefined,
+    page: currentPage,
+    limit: pageSize,
+   });
+
+  const payments = paymentData?.payments || [];
+  const totalCount = paymentData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   // Fonction pour déterminer le type de paiement à partir de l'objet payment
   const getPaymentType = (payment: any) => {
@@ -331,16 +315,15 @@ export function PaymentHistory({
 
   // Fonction pour réinitialiser tous les filtres
   const resetFilters = () => {
-    setStatusFilter(undefined);
-    setTypeFilter(undefined);
-    setDateRange({});
+    setSelectedStatus("all");
+    setSelectedType("all");
     setSearchQuery("");
-    setPage(1);
+    setCurrentPage(1);
   };
 
   // Fonction pour exporter les données au format CSV
   const exportToCsv = () => {
-    if (!displayData?.payments?.length) return;
+    if (!paymentData?.payments?.length) return;
 
     // Créer le contenu CSV
     const headers = [
@@ -353,7 +336,7 @@ export function PaymentHistory({
     ];
     const csvContent = [
       headers.join(","),
-      ...displayData.payments.map((payment) =>
+      ...paymentData.payments.map((payment) =>
         [
           safeFormatDate(payment.createdAt, "dd/MM/yyyy HH:mm"),
           getPaymentType(payment),
@@ -451,79 +434,6 @@ export function PaymentHistory({
     }
   };
 
-  // Fonction de rafraîchissement des données
-  const handleRefresh = async () => {
-    if (isDemo || isDemoMode) {
-      // En mode démo, utiliser notre hook personnalisé
-      await loadPaymentHistory(page, itemsPerPage);
-    } else {
-      // Sinon, rafraîchir les données via tRPC
-      await refetch();
-    }
-
-    // Callback personnalisé si fourni
-    if (onRefresh) {
-      onRefresh();
-    }
-  };
-
-  // Détermine si on est en mode démo
-  const inDemoMode = isDemo || isDemoMode;
-
-  // Générer des données de démonstration si nécessaire
-  const getDisplayData = () => {
-    // Si des données d'API existent et que nous ne sommes pas en mode démo, les utiliser
-    if (apiData && !inDemoMode) {
-      return {
-        ...apiData,
-        payments: apiData.payments.map(normalizePayment),
-      };
-    }
-
-    // Si des paiements sont passés en prop, les utiliser
-    if (payments.length > 0) {
-      return {
-        payments: payments.map(normalizePayment),
-        pagination: {
-          total: payments.length,
-          totalPages: Math.ceil(payments.length / itemsPerPage),
-          page: 1,
-          limit: itemsPerPage,
-          hasNextPage: false,
-          hasPreviousPage: false,
-        },
-      };
-    }
-
-    // En mode démo, utiliser les données de notre hook personnalisé
-    if (inDemoMode && paymentHistory) {
-      return {
-        payments: paymentHistory.data || [],
-        pagination: paymentHistory.pagination || {
-          total: 0,
-          page: page,
-          limit: itemsPerPage,
-          totalPages: 0,
-        },
-      };
-    }
-
-    // Par défaut, retourner un objet vide
-    return {
-      payments: [],
-      pagination: {
-        total: 0,
-        page: 1,
-        limit: itemsPerPage,
-        totalPages: 0,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      },
-    };
-  };
-
-  const displayData = getDisplayData();
-
   return (
     <Card className={`w-full ${className}`}>
       <CardHeader>
@@ -535,48 +445,13 @@ export function PaymentHistory({
                 {t("paymentHistoryDescription")}
               </CardDescription>
             </div>
-            {inDemoMode && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge
-                      variant="outline"
-                      className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
-                    >
-                      <Zap className="h-3 w-3" />
-                      {t("demoMode")}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("demoPaymentHistoryDescription")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
           </div>
           <div className="flex mt-2 sm:mt-0 gap-2">
-            {showRefreshButton && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isLoading || isRefreshing}
-              >
-                {isRefreshing || isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCcw className="h-4 w-4" />
-                )}
-                <span className="ml-2 sr-only sm:not-sr-only">
-                  {t("refresh")}
-                </span>
-              </Button>
-            )}
             {showExportButton && (
               <Button
                 variant="outline"
                 size="sm"
-                disabled={isLoading || !displayData?.payments?.length}
+                disabled={isLoading || !paymentData?.payments?.length}
                 onClick={exportToCsv}
               >
                 <FileDown className="mr-2 h-4 w-4" />
@@ -614,9 +489,9 @@ export function PaymentHistory({
                 )}
               </div>
               <Select
-                value={statusFilter || "ALL"}
+                value={selectedStatus || "ALL"}
                 onValueChange={(value) =>
-                  setStatusFilter(value === "ALL" ? undefined : value)
+                  setSelectedStatus(value === "ALL" ? undefined : value)
                 }
               >
                 <SelectTrigger
@@ -641,9 +516,9 @@ export function PaymentHistory({
                 </SelectContent>
               </Select>
               <Select
-                value={typeFilter || "ALL"}
+                value={selectedType || "ALL"}
                 onValueChange={(value) =>
-                  setTypeFilter(value === "ALL" ? undefined : value)
+                  setSelectedType(value === "ALL" ? undefined : value)
                 }
               >
                 <SelectTrigger
@@ -669,7 +544,6 @@ export function PaymentHistory({
               </Select>
             </div>
 
-            {/* Date range picker */}
             <div className="flex justify-between">
               <div className="flex items-center space-x-2">
                 <Popover>
@@ -680,17 +554,14 @@ export function PaymentHistory({
                       className="h-8 px-2 lg:px-3"
                     >
                       <Calendar className="mr-2 h-4 w-4" />
-                      {dateRange?.from ? (
-                        dateRange.to ? (
-                          <>
-                            {safeFormatDate(dateRange.from, "dd/MM/yyyy")} -{" "}
-                            {safeFormatDate(dateRange.to, "dd/MM/yyyy")}
-                          </>
-                        ) : (
-                          safeFormatDate(dateRange.from, "dd/MM/yyyy")
-                        )
-                      ) : (
-                        <span>{t("dateRange")}</span>
+                      {selectedPeriod && (
+                        <>
+                          {selectedPeriod.split("_").map((part, index) => (
+                            <span key={index}>
+                              {part.charAt(0).toUpperCase() + part.slice(1)}
+                            </span>
+                          ))}
+                        </>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -698,9 +569,13 @@ export function PaymentHistory({
                     <CalendarComponent
                       initialFocus
                       mode="range"
-                      defaultMonth={dateRange?.from}
-                      selected={dateRange as any}
-                      onSelect={(value) => setDateRange(value || {})}
+                      defaultMonth={new Date(selectedPeriod.split("_")[0])}
+                      selected={selectedPeriod.split("_").map(part => new Date(part))}
+                      onSelect={(value) => {
+                        if (value) {
+                          setSelectedPeriod(value.map(d => d.toISOString().split('T')[0]).join('_'));
+                        }
+                      }}
                       numberOfMonths={2}
                     />
                   </PopoverContent>
@@ -715,7 +590,6 @@ export function PaymentHistory({
           </div>
         )}
 
-        {/* État de chargement */}
         {isLoading && (
           <div className="space-y-3">
             <Skeleton className="h-8 w-full" />
@@ -725,8 +599,7 @@ export function PaymentHistory({
           </div>
         )}
 
-        {/* État d'erreur */}
-        {isError && !inDemoMode && (
+        {isError && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>{t("error")}</AlertTitle>
@@ -734,13 +607,12 @@ export function PaymentHistory({
           </Alert>
         )}
 
-        {/* Tableau avec les paiements */}
-        {!isLoading && !isError && displayData?.payments?.length > 0 && (
+        {!isLoading && !isError && paymentData?.payments?.length > 0 && (
           <div className="rounded-md border">
             <Table>
               <TableCaption>
                 {t("totalPayments", {
-                  count: displayData.pagination?.total || 0,
+                  count: totalCount,
                 })}
               </TableCaption>
               <TableHeader>
@@ -754,7 +626,7 @@ export function PaymentHistory({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {displayData.payments.map((payment) => {
+                {paymentData.payments.map((payment) => {
                   const status = safeGet(payment, "status", "PENDING");
                   const type = getPaymentType(payment);
                   const statusBadge = getStatusBadge(status as PaymentStatus);
@@ -843,10 +715,9 @@ export function PaymentHistory({
           </div>
         )}
 
-        {/* État vide */}
         {!isLoading &&
           !isError &&
-          displayData?.payments?.length === 0 &&
+          paymentData?.payments?.length === 0 &&
           showEmptyState && (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <CreditCard className="h-12 w-12 text-muted-foreground mb-3" />
@@ -854,47 +725,35 @@ export function PaymentHistory({
               <p className="text-muted-foreground max-w-md mb-6">
                 {emptyStateMessage || t("noPaymentsDescription")}
               </p>
-              {inDemoMode && (
-                <Button
-                  variant="outline"
-                  onClick={handleRefresh}
-                  disabled={isLoading || isRefreshing}
-                >
-                  <Zap className="mr-2 h-4 w-4" />
-                  {t("generateDemoPayments")}
-                </Button>
-              )}
             </div>
           )}
 
-        {/* Pagination */}
         {!isLoading &&
           !isError &&
-          displayData?.payments?.length > 0 &&
-          displayData.pagination &&
-          displayData.pagination.totalPages > 1 && (
+          paymentData?.payments?.length > 0 &&
+          totalPages > 1 && (
             <div className="mt-4 flex items-center justify-center">
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious
-                      onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={page === 1}
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
                       aria-label={t("previousPage")}
                     />
                   </PaginationItem>
 
                   {Array.from(
-                    { length: displayData.pagination.totalPages },
+                    { length },
                     (_, i) => (
                       <PaginationItem key={i + 1}>
                         <Button
-                          variant={page === i + 1 ? "default" : "outline"}
+                          variant={currentPage === i + 1 ? "default" : "outline"}
                           size="sm"
-                          onClick={() => setPage(i + 1)}
+                          onClick={() => setCurrentPage(i + 1)}
                           className="w-8 h-8"
                           aria-label={t("goToPage", { page: i + 1 })}
-                          aria-current={page === i + 1 ? "page" : undefined}
+                          aria-current={currentPage === i + 1 ? "page" : undefined}
                         >
                           {i + 1}
                         </Button>
@@ -905,11 +764,11 @@ export function PaymentHistory({
                   <PaginationItem>
                     <PaginationNext
                       onClick={() =>
-                        setPage((prev) =>
-                          Math.min(prev + 1, displayData.pagination.totalPages),
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, totalPages),
                         )
                       }
-                      disabled={page === displayData.pagination.totalPages}
+                      disabled={currentPage === totalPages}
                       aria-label={t("nextPage")}
                     />
                   </PaginationItem>

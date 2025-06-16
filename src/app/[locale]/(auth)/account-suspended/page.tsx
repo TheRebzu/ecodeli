@@ -11,8 +11,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Link } from "@/navigation";
 import { useUserBan } from "@/hooks/use-user-ban";
 import { UserBanAction } from "@/types/users/verification";
@@ -24,10 +23,8 @@ export default function AccountSuspendedPage() {
 
   const handleUnban = () => {
     if (session?.user?.id) {
-      userBan.mutate({
-        userId: session.user.id,
-        action: UserBanAction.UNBAN,
-      });
+      userBan.mutate({ userId: session.user.id,
+        action: UserBanAction.UNBAN });
     }
   };
 
@@ -81,7 +78,7 @@ export default function AccountSuspendedPage() {
           <Button
             variant="destructive"
             className="w-full"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ callbackUrl: "/"  })}
           >
             <LogOut className="mr-2 h-4 w-4" />
             Se déconnecter

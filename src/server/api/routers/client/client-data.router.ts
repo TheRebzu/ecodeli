@@ -6,24 +6,20 @@ import { TRPCError } from "@trpc/server";
  * Routeur pour les données du dashboard client
  * Fournit les statistiques et métriques pour le tableau de bord client
  */
-export const clientDataRouter = createTRPCRouter({
-  /**
+export const clientDataRouter = createTRPCRouter({ /**
    * Récupérer les statistiques du dashboard
    */
-  getDashboardStats: protectedProcedure.query(async ({ _ctx }) => {
+  getDashboardStats: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     try {
       // Récupérer le profil client
       const client = await ctx.db.client.findUnique({
-        where: { userId },
-      });
+        where: { userId }});
 
       if (!client) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Profil client introuvable",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Profil client introuvable" });
       }
 
       // Calculer les statistiques
@@ -31,27 +27,19 @@ export const clientDataRouter = createTRPCRouter({
         totalAnnouncements,
         activeDeliveries,
         completedDeliveries,
-        totalServices,
-      ] = await Promise.all([
-        _ctx.db.announcement.count({
-          where: { clientId: client.id },
-        }),
+        totalServices] = await Promise.all([
+        ctx.db.announcement.count({
+          where: { clientId: client.id }}),
         ctx.db.delivery.count({
           where: {
             clientId: client.id,
-            status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
-          },
-        }),
+            status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] }}}),
         ctx.db.delivery.count({
           where: {
             clientId: client.id,
-            status: "DELIVERED",
-          },
-        }),
+            status: "DELIVERED"}}),
         ctx.db.serviceBooking.count({
-          where: { clientId: client.id },
-        }),
-      ]);
+          where: { clientId: client.id }})]);
 
       return {
         totalAnnouncements,
@@ -65,40 +53,34 @@ export const clientDataRouter = createTRPCRouter({
                   (completedDeliveries + activeDeliveries)) *
                   100,
               )
-            : 0,
-      };
-    } catch (_error) {
+            : 0};
+    } catch (error) {
       console.error("Erreur lors du calcul des statistiques:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors du calcul des statistiques",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du calcul des statistiques" });
     }
   }),
 
   /**
    * Récupérer l'activité récente
    */
-  getRecentActivity: protectedProcedure.query(async ({ _ctx }) => {
+  getRecentActivity: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     try {
       // Récupérer le profil client
       const client = await ctx.db.client.findUnique({
-        where: { userId },
-      });
+        where: { userId }});
 
       if (!client) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Profil client introuvable",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Profil client introuvable" });
       }
 
       // Récupérer les dernières activités
       const [recentDeliveries, recentBookings, recentAnnouncements] =
         await Promise.all([
-          _ctx.db.delivery.findMany({
+          ctx.db.delivery.findMany({
             where: { clientId: client.id },
             orderBy: { createdAt: "desc" },
             take: 5,
@@ -106,9 +88,7 @@ export const clientDataRouter = createTRPCRouter({
               id: true,
               status: true,
               createdAt: true,
-              trackingCode: true,
-            },
-          }),
+              trackingCode: true}}),
           ctx.db.serviceBooking.findMany({
             where: { clientId: client.id },
             orderBy: { createdAt: "desc" },
@@ -118,12 +98,7 @@ export const clientDataRouter = createTRPCRouter({
               status: true,
               createdAt: true,
               service: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          }),
+                select: { name }}}}),
           ctx.db.announcement.findMany({
             where: { clientId: client.id },
             orderBy: { createdAt: "desc" },
@@ -132,186 +107,139 @@ export const clientDataRouter = createTRPCRouter({
               id: true,
               status: true,
               createdAt: true,
-              title: true,
-            },
-          }),
-        ]);
+              title: true}})]);
 
       return {
         recentDeliveries,
         recentBookings,
-        recentAnnouncements,
-      };
-    } catch (_error) {
+        recentAnnouncements};
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération de l'activité récente:",
         error,
       );
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération de l'activité récente",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération de l'activité récente" });
     }
   }),
 
   /**
    * Récupérer les métriques financières
    */
-  getFinancialMetrics: protectedProcedure.query(async ({ _ctx }) => {
+  getFinancialMetrics: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     try {
       // Récupérer le profil client
       const client = await ctx.db.client.findUnique({
-        where: { userId },
-      });
+        where: { userId }});
 
       if (!client) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Profil client introuvable",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Profil client introuvable" });
       }
 
       // Calculer les métriques financières
       const [totalSpent, pendingPayments, monthlySpent] = await Promise.all([
-        _ctx.db.payment.aggregate({
-          where: {
-            userId: userId,
-            status: "COMPLETED",
-          },
-          _sum: {
-            amount: true,
-          },
-        }),
         ctx.db.payment.aggregate({
           where: {
             userId: userId,
-            status: "PENDING",
-          },
-          _sum: {
-            amount: true,
-          },
-        }),
+            status: "COMPLETED"},
+          sum: { amount }}),
+        ctx.db.payment.aggregate({
+          where: {
+            userId: userId,
+            status: "PENDING"},
+          sum: { amount }}),
         ctx.db.payment.aggregate({
           where: {
             userId: userId,
             status: "COMPLETED",
             createdAt: {
-              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-            },
-          },
-          _sum: {
-            amount: true,
-          },
-        }),
-      ]);
+              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)}},
+          sum: { amount }})]);
 
       return {
-        totalSpent: totalSpent._sum.amount || 0,
-        pendingPayments: pendingPayments._sum.amount || 0,
-        monthlySpent: monthlySpent._sum.amount || 0,
+        totalSpent: totalSpent.sum.amount || 0,
+        pendingPayments: pendingPayments.sum.amount || 0,
+        monthlySpent: monthlySpent.sum.amount || 0,
         averageOrderValue:
-          totalSpent._sum.amount && totalSpent._sum.amount > 0
-            ? totalSpent._sum.amount /
+          totalSpent.sum.amount && totalSpent.sum.amount > 0
+            ? totalSpent.sum.amount /
               Math.max(
-                await _ctx.db.announcement.count({
-                  where: { clientId: client.id },
-                }),
+                await ctx.db.announcement.count({
+                  where: { clientId: client.id }}),
                 1,
               )
-            : 0,
-      };
-    } catch (_error) {
+            : 0};
+    } catch (error) {
       console.error("Erreur lors du calcul des métriques financières:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors du calcul des métriques financières",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du calcul des métriques financières" });
     }
   }),
 
   /**
    * Récupérer les éléments actifs (annonces, livraisons, réservations)
    */
-  getActiveItems: protectedProcedure.query(async ({ _ctx }) => {
+  getActiveItems: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     try {
       // Récupérer le profil client
       const client = await ctx.db.client.findUnique({
-        where: { userId },
-      });
+        where: { userId }});
 
       if (!client) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Profil client introuvable",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Profil client introuvable" });
       }
 
       // Récupérer les éléments actifs
       const [activeAnnouncements, activeDeliveries, activeBookings] =
         await Promise.all([
-          _ctx.db.announcement.findMany({
+          ctx.db.announcement.findMany({
             where: {
               clientId: client.id,
-              status: { in: ["DRAFT", "PUBLISHED", "IN_APPLICATION"] },
-            },
+              status: { in: ["DRAFT", "PUBLISHED", "IN_APPLICATION"] }},
             select: {
               id: true,
               title: true,
               status: true,
-              createdAt: true,
-            },
-            orderBy: { createdAt: "desc" },
-          }),
+              createdAt: true},
+            orderBy: { createdAt: "desc" }}),
           ctx.db.delivery.findMany({
             where: {
               clientId: client.id,
-              status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
-            },
+              status: { in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"] }},
             select: {
               id: true,
               trackingCode: true,
               status: true,
-              createdAt: true,
-            },
-            orderBy: { createdAt: "desc" },
-          }),
+              createdAt: true},
+            orderBy: { createdAt: "desc" }}),
           ctx.db.serviceBooking.findMany({
             where: {
               clientId: client.id,
-              status: { in: ["CONFIRMED", "PENDING"] },
-            },
+              status: { in: ["CONFIRMED", "PENDING"] }},
             select: {
               id: true,
               status: true,
               createdAt: true,
               service: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-            orderBy: { createdAt: "desc" },
-          }),
-        ]);
+                select: { name }}},
+            orderBy: { createdAt: "desc" }})]);
 
       return {
         activeAnnouncements,
         activeDeliveries,
-        activeBookings,
-      };
-    } catch (_error) {
+        activeBookings};
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération des éléments actifs:",
         error,
       );
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des éléments actifs",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des éléments actifs" });
     }
-  }),
-});
+  })});

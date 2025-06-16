@@ -9,27 +9,23 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  AccordionTrigger} from "@/components/ui/accordion";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import {
   Search,
   Calendar as CalendarIcon,
   X,
   Filter,
-  RotateCcw,
-} from "lucide-react";
+  RotateCcw} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AnnouncementStatus, AnnouncementType } from "@prisma/client";
@@ -52,8 +48,7 @@ interface AnnouncementFiltersProps {
 
 export function AnnouncementFilters({
   filters,
-  onFilterChange,
-}: AnnouncementFiltersProps) {
+  onFilterChange}: AnnouncementFiltersProps) {
   const t = useTranslations("admin.announcements");
   const [searchInputValue, setSearchInputValue] = useState(filters.searchTerm);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
@@ -68,28 +63,28 @@ export function AnnouncementFilters({
     name: keyof FiltersState,
     value: string | number,
   ) => {
-    onFilterChange({ [name]: value });
+    onFilterChange({ [name]: value  });
   };
 
   const handleSearch = () => {
-    onFilterChange({ searchTerm: searchInputValue });
+    onFilterChange({ searchTerm  });
   };
 
   const handleFromDateChange = (date: Date | undefined) => {
     setFromDate(date);
     if (date) {
-      onFilterChange({ startDate: date.toISOString() });
+      onFilterChange({ startDate: date.toISOString()  });
     } else {
-      onFilterChange({ startDate: "" });
+      onFilterChange({ startDate: ""  });
     }
   };
 
   const handleToDateChange = (date: Date | undefined) => {
     setToDate(date);
     if (date) {
-      onFilterChange({ endDate: date.toISOString() });
+      onFilterChange({ endDate: date.toISOString()  });
     } else {
-      onFilterChange({ endDate: "" });
+      onFilterChange({ endDate: ""  });
     }
   };
 
@@ -97,14 +92,12 @@ export function AnnouncementFilters({
     setSearchInputValue("");
     setFromDate(undefined);
     setToDate(undefined);
-    onFilterChange({
-      status: "",
+    onFilterChange({ status: "",
       type: "",
       searchTerm: "",
       startDate: "",
       endDate: "",
-      page: 1,
-    });
+      page: 1 });
   };
 
   const hasActiveFilters =
@@ -249,7 +242,7 @@ export function AnnouncementFilters({
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {fromDate ? (
-                    format(fromDate, "PPP", { locale: fr })
+                    format(fromDate, "PPP", { locale })
                   ) : (
                     <span>{t("filters.pickDate")}</span>
                   )}
@@ -279,7 +272,7 @@ export function AnnouncementFilters({
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {toDate ? (
-                    format(toDate, "PPP", { locale: fr })
+                    format(toDate, "PPP", { locale })
                   ) : (
                     <span>{t("filters.pickDate")}</span>
                   )}

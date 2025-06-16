@@ -9,8 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("list.title"),
-    description: t("list.description"),
-  };
+    description: t("list.description")};
 }
 
 export default async function ServicesPage() {

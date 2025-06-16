@@ -11,8 +11,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
 import {
@@ -22,8 +21,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -31,26 +29,21 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Upload, CheckCircle2 } from "lucide-react";
 
 // Schéma de validation
-const issueReportSchema = z.object({
-  issueType: z.string({
-    required_error: "Veuillez sélectionner un type de problème",
-  }),
+const issueReportSchema = z.object({ issueType: z.string({
+    requirederror: "Veuillez sélectionner un type de problème" }),
   description: z
     .string()
     .min(10, { message: "La description doit contenir au moins 10 caractères" })
     .max(500, {
-      message: "La description ne doit pas dépasser 500 caractères",
-    }),
+      message: "La description ne doit pas dépasser 500 caractères"}),
   needsAssistance: z.boolean().default(false),
-  contactInfo: z.string().optional(),
-});
+  contactInfo: z.string().optional()});
 
 type IssueReportFormValues = z.infer<typeof issueReportSchema>;
 
@@ -65,8 +58,7 @@ export default function DeliveryIssueReport({
   deliveryId,
   onReportSubmitted,
   onCancel,
-  className = "",
-}: DeliveryIssueReportProps) {
+  className = ""}: DeliveryIssueReportProps) {
   const t = useTranslations("deliveries.issueReport");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,9 +72,7 @@ export default function DeliveryIssueReport({
       issueType: "",
       description: "",
       needsAssistance: false,
-      contactInfo: "",
-    },
-  });
+      contactInfo: ""}});
 
   // Types de problèmes
   const issueTypes = [
@@ -93,8 +83,7 @@ export default function DeliveryIssueReport({
     { value: "TRAFFIC_DELAY", label: t("issueTypes.trafficDelay") },
     { value: "WEATHER_CONDITION", label: t("issueTypes.weatherCondition") },
     { value: "MERCHANT_DELAY", label: t("issueTypes.merchantDelay") },
-    { value: "OTHER", label: t("issueTypes.other") },
-  ];
+    { value: "OTHER", label: t("issueTypes.other") }];
 
   // Fonction pour ajouter des photos
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,8 +111,7 @@ export default function DeliveryIssueReport({
       console.log("Rapport soumis:", {
         deliveryId,
         ...data,
-        photosCount: photos.length,
-      });
+        photosCount: photos.length});
 
       setSuccess(true);
       if (onReportSubmitted) {
@@ -177,7 +165,7 @@ export default function DeliveryIssueReport({
             <FormField
               control={form.control}
               name="issueType"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("issueTypeLabel")}</FormLabel>
                   <Select
@@ -207,7 +195,7 @@ export default function DeliveryIssueReport({
             <FormField
               control={form.control}
               name="description"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("descriptionLabel")}</FormLabel>
                   <FormControl>
@@ -276,7 +264,7 @@ export default function DeliveryIssueReport({
             <FormField
               control={form.control}
               name="needsAssistance"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
@@ -299,7 +287,7 @@ export default function DeliveryIssueReport({
               <FormField
                 control={form.control}
                 name="contactInfo"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("contactInfoLabel")}</FormLabel>
                     <FormControl>

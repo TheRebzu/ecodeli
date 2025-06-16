@@ -8,8 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("title") || "Statistiques | EcoDeli Marchand",
-    description: t("description") || "Analysez les performances de votre boutique",
-  };
+    description: t("description") || "Analysez les performances de votre boutique"};
 }
 
 export default async function MerchantStatsPage() {

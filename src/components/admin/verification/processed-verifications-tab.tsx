@@ -11,8 +11,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, CheckCircle, XCircle, Clock, ClipboardList } from "lucide-react";
@@ -51,8 +50,7 @@ interface ApiResponse {
 
 export function ProcessedVerificationsTab({
   filters,
-  onPageChange,
-}: ProcessedVerificationsTabProps) {
+  onPageChange}: ProcessedVerificationsTabProps) {
   const t = useTranslations("admin.verification");
   const router = useRouter();
 
@@ -68,7 +66,7 @@ export function ProcessedVerificationsTab({
   const formatSafeDate = (date: Date | string | number | null | undefined) => {
     if (!date) return "";
     try {
-      return format(new Date(date), "PPP", { locale: fr });
+      return format(new Date(date), "PPP", { locale });
     } catch (error) {
       console.error("Error formatting date:", error);
       return "";
@@ -188,14 +186,12 @@ function StatusBadge({ status }: StatusBadgeProps) {
   const variants = {
     PENDING: "bg-yellow-500",
     APPROVED: "bg-green-500",
-    REJECTED: "bg-red-500",
-  };
+    REJECTED: "bg-red-500"};
 
   const icons = {
     PENDING: Clock,
     APPROVED: CheckCircle,
-    REJECTED: XCircle,
-  };
+    REJECTED: XCircle};
 
   const Icon = icons[status];
 
@@ -217,8 +213,7 @@ function RoleBadge({ role }: RoleBadgeProps) {
     [UserRole.CLIENT]: "bg-blue-500",
     [UserRole.DELIVERER]: "bg-green-500",
     [UserRole.MERCHANT]: "bg-orange-500",
-    [UserRole.PROVIDER]: "bg-teal-500",
-  };
+    [UserRole.PROVIDER]: "bg-teal-500"};
 
   const t = useTranslations("admin.verification.roles");
 

@@ -38,8 +38,7 @@ export function AnnouncementAddressMap({
   onCoordinatesChange,
   placeholder,
   disabled = false,
-  mapHeight = "300px",
-}: AnnouncementAddressMapProps) {
+  mapHeight = "300px"}: AnnouncementAddressMapProps) {
   const t = useTranslations("announcements");
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
@@ -73,16 +72,13 @@ export function AnnouncementAddressMap({
           zoomControl: true,
           mapTypeControl: false,
           streetViewControl: false,
-          mapTypeId: google.maps.MapTypeId.ROADMAP,
-        });
+          mapTypeId: google.maps.MapTypeId.ROADMAP});
 
         // Créer le marqueur
-        const markerInstance = new google.maps.Marker({
-          position,
+        const markerInstance = new google.maps.Marker({ position,
           map: mapInstance,
           draggable: !disabled,
-          animation: google.maps.Animation.DROP,
-        });
+          animation: google.maps.Animation.DROP });
 
         // Gérer le déplacement du marqueur
         markerInstance.addListener("dragend", () => {
@@ -148,10 +144,8 @@ export function AnnouncementAddressMap({
             return;
           }
 
-          const results = predictions.slice(0, 5).map((prediction) => ({
-            address: prediction.description,
-            placeId: prediction.place_id,
-          }));
+          const results = predictions.slice(0, 5).map((prediction) => ({ address: prediction.description,
+            placeId: prediction.place_id }));
 
           // Récupérer les coordonnées pour chaque résultat
           const resultPromises = results.map(async (result) => {
@@ -161,8 +155,7 @@ export function AnnouncementAddressMap({
               placesService.current!.getDetails(
                 {
                   placeId: result.placeId,
-                  fields: ["geometry", "formatted_address"],
-                },
+                  fields: ["geometry", "formatted_address"]},
                 (place, detailsStatus) => {
                   if (
                     detailsStatus !==
@@ -179,9 +172,7 @@ export function AnnouncementAddressMap({
                     address: place.formatted_address || result.address,
                     coordinates: {
                       lat: place.geometry.location.lat(),
-                      lng: place.geometry.location.lng(),
-                    },
-                  });
+                      lng: place.geometry.location.lng()}});
                 },
               );
             });
@@ -269,8 +260,7 @@ export function AnnouncementAddressMap({
     if (map && marker) {
       const position = {
         lat: result.coordinates.lat,
-        lng: result.coordinates.lng,
-      };
+        lng: result.coordinates.lng};
       marker.setPosition(position);
       map.panTo(position);
     }
@@ -364,7 +354,7 @@ export function AnnouncementAddressMap({
           "w-full rounded-md border border-input overflow-hidden",
           disabled && "opacity-70",
         )}
-        style={{ height: mapHeight }}
+        style={{ height }}
       />
 
       {latitude && longitude && (

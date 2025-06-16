@@ -28,23 +28,21 @@ export function useVerificationRedirect(
     allowedRoles = [],
     redirectTo,
     showToast = true,
-    locale,
-  } = options;
+    locale} = options;
 
   const { user, role, status, isVerified, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { data: session } = useSession();
+  const { data } = useSession();
 
   const verificationRequired =
     searchParams.get("verification_required") === "true";
 
-  const { data: verificationStatus } =
+  const { data } =
     api.verification.getUserVerificationStatus.useQuery(undefined, {
       enabled: !!session?.user?.id,
-      staleTime: 60 * 1000,
-    });
+      staleTime: 60 * 1000});
 
   useEffect(() => {
     // Ne rien faire pendant le chargement
@@ -83,14 +81,12 @@ export function useVerificationRedirect(
     verificationStatus,
     router,
     requireVerified,
-    locale,
-  ]);
+    locale]);
 
   return {
     isLoading: status === "loading" || isLoading,
     verificationStatus,
-    isVerified: verificationStatus?.isVerified,
-  };
+    isVerified: verificationStatus?.isVerified};
 }
 
 /**

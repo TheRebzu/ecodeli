@@ -8,8 +8,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,8 +21,7 @@ import {
   LoaderIcon,
   RefreshCcwIcon,
   Store,
-  Package,
-} from "lucide-react";
+  Package} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -33,23 +31,20 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { api } from "@/trpc/react";
 
 // Fonctions de formatage
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "EUR",
-  }).format(amount);
+    currency: "EUR"}).format(amount);
 };
 
 const formatDate = (date: Date | string) => {
@@ -57,8 +52,7 @@ const formatDate = (date: Date | string) => {
   return new Intl.DateTimeFormat("fr-FR", {
     year: "numeric",
     month: "2-digit",
-    day: "2-digit",
-  }).format(dateObj);
+    day: "2-digit"}).format(dateObj);
 };
 
 export default function AdminMerchantsPage() {
@@ -67,21 +61,17 @@ export default function AdminMerchantsPage() {
   const [activeTab, setActiveTab] = useState<string>("list");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
-  const [filters, setFilters] = useState({
-    search: "",
-    status: undefined as string | undefined,
-  });
+  const [filters, setFilters] = useState({ search: "",
+    status: undefined as string | undefined });
 
   // 🔧 FIX: Utiliser la même API que /admin/users qui fonctionne
   const {
     data: usersData,
     isLoading,
     error,
-    refetch,
-  } = api.adminUser.getUsers.useQuery({
-    page: 1,
+    refetch} = api.adminUser.getUsers.useQuery({ page: 1,
     limit: 100, // Récupérer plus d'utilisateurs pour filtrer côté client
-  });
+   });
 
   // DEBUG: Afficher les données reçues
   console.log("🔍 DEBUG MERCHANTS - usersData:", usersData);
@@ -97,7 +87,7 @@ export default function AdminMerchantsPage() {
   );
 
   // Appliquer les filtres côté frontend
-  let filteredMerchants = merchantUsers;
+  const filteredMerchants = merchantUsers;
 
   if (filters.search) {
     const searchLower = filters.search.toLowerCase();
@@ -143,16 +133,13 @@ export default function AdminMerchantsPage() {
       city: "Paris", // Données simulées
       postalCode: "75000",
       country: "France",
-      businessType: "Commerce",
-    },
+      businessType: "Commerce"},
     stats: {
       totalProducts: 0,
       totalOrders: 0,
       totalRevenue: 0,
       averageRating: 4.2,
-      lastOrderDate: null,
-    },
-  }));
+      lastOrderDate: null}}));
 
   // Statistiques des marchands
   const stats = {
@@ -169,8 +156,7 @@ export default function AdminMerchantsPage() {
         createdAt.getMonth() === now.getMonth() &&
         createdAt.getFullYear() === now.getFullYear()
       );
-    }).length,
-  };
+    }).length};
 
   // Gérer la sélection des marchands
   const handleMerchantSelection = (merchantId: string, selected: boolean) => {
@@ -191,18 +177,18 @@ export default function AdminMerchantsPage() {
 
   // Gestion des filtres
   const handleSearchChange = (search: string) => {
-    setFilters((prev) => ({ ...prev, search }));
+    setFilters((prev) => ({ ...prev, search  }));
     setCurrentPage(1);
   };
 
   const handleStatusChange = (status: string) => {
     const statusValue = status === "all" ? undefined : status;
-    setFilters((prev) => ({ ...prev, status: statusValue }));
+    setFilters((prev) => ({ ...prev, status: statusValue  }));
     setCurrentPage(1);
   };
 
   const clearFilters = () => {
-    setFilters({ search: "", status: undefined });
+    setFilters({ search: "", status: undefined  });
     setCurrentPage(1);
   };
 

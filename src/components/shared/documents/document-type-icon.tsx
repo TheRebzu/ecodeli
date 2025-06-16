@@ -10,8 +10,7 @@ import {
   BuildingIcon,
   AwardIcon,
   ShieldIcon,
-  User2Icon,
-} from "lucide-react";
+  User2Icon} from "lucide-react";
 import { DocumentTypeIconProps } from "@/components/shared/documents/document-types";
 
 /**

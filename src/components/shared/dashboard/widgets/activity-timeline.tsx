@@ -32,8 +32,7 @@ type ActivityTimelineProps = {
 
 export function ActivityTimeline({
   activities = [],
-  isLoading = false,
-}: ActivityTimelineProps) {
+  isLoading = false}: ActivityTimelineProps) {
   const t = useTranslations("dashboard.client");
   const locale = useLocale();
   const dateLocale = locale === "fr" ? fr : enUS;
@@ -45,21 +44,15 @@ export function ActivityTimeline({
   > = {
     delivery: {
       icon: <Truck className="h-4 w-4" />,
-      color: "bg-blue-100 text-blue-800",
-    },
+      color: "bg-blue-100 text-blue-800"},
     announcement: {
       icon: <Package className="h-4 w-4" />,
-      color: "bg-purple-100 text-purple-800",
-    },
+      color: "bg-purple-100 text-purple-800"},
     payment: {
       icon: <CreditCard className="h-4 w-4" />,
-      color: "bg-green-100 text-green-800",
-    },
-    box_reservation: {
+      color: "bg-green-100 text-green-800"}, box_reservation: {
       icon: <Box className="h-4 w-4" />,
-      color: "bg-amber-100 text-amber-800",
-    },
-  };
+      color: "bg-amber-100 text-amber-800"}};
 
   if (isLoading) {
     return (
@@ -140,8 +133,7 @@ export function ActivityTimeline({
               const activityDate = parseISO(activity.date);
               const formattedDate = formatDistanceToNow(activityDate, {
                 addSuffix: true,
-                locale: dateLocale,
-              });
+                locale: dateLocale});
 
               return (
                 <div key={index} className="relative pb-4">

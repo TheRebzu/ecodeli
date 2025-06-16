@@ -6,42 +6,34 @@ import {
 } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
-export const delivererAgreementsRouter = createTRPCRouter({
-  // Récupérer les contrats du livreur
-  getMyAgreements: protectedProcedure.query(async ({ ctx }) => {
-    const _user = ctx.session.user; // Préfixé avec underscore
+export const delivererAgreementsRouter = createTRPCRouter({ // Récupérer les contrats du livreur
+  getMyAgreements: protectedProcedure.query(async ({ ctx  }) => {
+    const user = ctx.session.user; // Préfixé avec underscore
 
     try {
       // TODO: Implémenter la récupération des contrats
       return [];
-    } catch (_error) {
+    } catch (error) {
       // Préfixé avec underscore
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des contrats",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des contrats" });
     }
   }),
 
   // Générer un nouveau contrat
   generateContract: protectedProcedure
     .input(
-      z.object({
-        templateId: z.string(),
-        data: z.record(z.any()),
-      }),
+      z.object({ templateId: z.string(),
+        data: z.record(z.any()) }),
     )
-    .mutation(async ({ ctx: _ctx, input: _input }) => {
+    .mutation(async ({ ctx: ctx, input: input  }) => {
       // Préfixés avec underscore
       try {
         // TODO: Implémenter la génération de contrat
-        return { success: true };
-      } catch (_error) {
+        return { success };
+      } catch (error) {
         // Préfixé avec underscore
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la génération du contrat",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la génération du contrat" });
       }
-    }),
-});
+    })});

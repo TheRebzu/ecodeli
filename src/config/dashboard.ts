@@ -17,9 +17,7 @@ export const dashboardConfig = {
     ],
     admin: [
       // Navigation sidebar admin
-    ],
-  },
-};
+    ]}};
 
 // Configuration du dashboard
 export const DelivererWalletDashboard = {
@@ -28,10 +26,8 @@ export const DelivererWalletDashboard = {
     "balance",
     "pending-payments",
     "transaction-history",
-    "withdrawal-options",
-  ],
-  layout: "grid-2x2",
-};
+    "withdrawal-options"],
+  layout: "grid-2x2"};
 
 export const ClientDashboard = {
   title: "Tableau de bord Client",
@@ -39,16 +35,13 @@ export const ClientDashboard = {
     "recent-orders",
     "active-deliveries",
     "payment-methods",
-    "favorites",
-  ],
-  layout: "grid-3x1",
-};
+    "favorites"],
+  layout: "grid-3x1"};
 
 export const MerchantDashboard = {
   title: "Tableau de bord Marchand",
   widgets: ["sales-overview", "pending-orders", "delivery-status", "analytics"],
-  layout: "grid-2x2",
-};
+  layout: "grid-2x2"};
 
 export const ProviderDashboard = {
   title: "Tableau de bord Prestataire",
@@ -56,10 +49,8 @@ export const ProviderDashboard = {
     "upcoming-appointments",
     "earnings-summary",
     "client-reviews",
-    "service-requests",
-  ],
-  layout: "grid-2x2",
-};
+    "service-requests"],
+  layout: "grid-2x2"};
 
 export const AdminDashboard = {
   title: "Tableau de bord Admin",
@@ -67,7 +58,5 @@ export const AdminDashboard = {
     "platform-overview",
     "user-statistics",
     "revenue-analytics",
-    "system-health",
-  ],
-  layout: "grid-3x2",
-};
+    "system-health"],
+  layout: "grid-3x2"};

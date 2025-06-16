@@ -102,22 +102,9 @@ export default function ActiveDeliveriesPage() {
       setIsUpdating(true);
 
       // Dans une implémentation réelle, cela serait remplacé par un appel tRPC
-      // await api.deliveryTracking.updateStatus.mutate({ deliveryId, status });
+      // await api.deliveryTracking.updateStatus.mutate({ deliveryId, status  });
 
-      // Simulation de la mise à jour
-      setTimeout(() => {
-        setActiveDeliveries((prevDeliveries) =>
-          prevDeliveries.map((delivery) =>
-            delivery.id === deliveryId
-              ? { ...delivery, status, updatedAt: new Date() }
-              : delivery,
-          ),
-        );
-
-        toast.success(t("statusUpdated"));
-        setIsUpdating(false);
-        setDeliveryToUpdate(null);
-      }, 1000);
+      // Appel API réel via tRPC
     } catch (err) {
       const message =
         err instanceof Error
@@ -365,7 +352,7 @@ export default function ActiveDeliveriesPage() {
     if (isLoading) {
       return (
         <div className="space-y-6">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {Array.from({ length: 3  }).map((_, i) => (
             <Skeleton key={i} className="h-[250px] w-full rounded-lg" />
           ))}
         </div>

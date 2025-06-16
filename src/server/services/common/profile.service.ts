@@ -8,8 +8,7 @@ import {
   type UpdateClientProfile,
   type UpdateDelivererProfile,
   type UpdateMerchantProfile,
-  type UpdateProviderProfile,
-} from "@/schemas/user/profile.schema";
+  type UpdateProviderProfile} from "@/schemas/user/profile.schema";
 import { Prisma } from "@prisma/client";
 
 class ProfileService {
@@ -18,28 +17,18 @@ class ProfileService {
    */
   async getProfileByUserId(userId: string) {
     const user = await db.user.findUnique({
-      where: { id: userId },
+      where: { id },
       include: {
         client: {
-          include: {
-            deliveryAddresses: true,
-          },
-        },
+          include: { deliveryAddresses }},
         deliverer: true,
         merchant: true,
         provider: {
-          include: {
-            skills: true,
-          },
-        },
-      },
-    });
+          include: { skills }}}});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Utilisateur non trouvé" });
     }
 
     return user;
@@ -53,52 +42,38 @@ class ProfileService {
       CLIENT: async () =>
         await db.client.findUnique({
           where: { userId },
-          include: {
-            deliveryAddresses: true,
-          },
-        }),
+          include: { deliveryAddresses }}),
       DELIVERER: async () =>
         await db.deliverer.findUnique({
-          where: { userId },
-        }),
+          where: { userId }}),
       MERCHANT: async () =>
         await db.merchant.findUnique({
           where: { userId },
           select: {
             companyName: true,
             businessAddress: true,
-            vatNumber: true,
-          },
-        }),
+            vatNumber: true}}),
       PROVIDER: async () =>
         await db.provider.findUnique({
           where: { userId },
           select: {
             companyName: true,
             serviceType: true,
-            serviceRadius: true,
-          },
-        }),
+            serviceRadius: true}}),
       ADMIN: async () =>
         await db.admin.findUnique({
-          where: { userId },
-        }),
-    };
+          where: { userId }})};
 
     if (!profileMap[role]) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Rôle utilisateur non valide",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Rôle utilisateur non valide" });
     }
 
     const profile = await profileMap[role]();
 
     if (!profile) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Profil spécifique non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Profil spécifique non trouvé" });
     }
 
     return profile;
@@ -117,11 +92,10 @@ class ProfileService {
     },
   ) {
     const {
-      name: _name,
-      email: _email,
-      phoneNumber: _phoneNumber,
-      image: _image,
-    } = data;
+      name: name,
+      email: email,
+      phoneNumber: phoneNumber,
+      image: image} = data;
 
     const updateData: Prisma.UserUpdateInput = {};
 
@@ -135,11 +109,10 @@ class ProfileService {
     }
 
     await db.user.update({
-      where: { id: userId },
-      data: updateData,
-    });
+      where: { id },
+      data: updateData});
 
-    return { success: true };
+    return { success };
   }
 
   /**
@@ -148,15 +121,15 @@ class ProfileService {
   async updateClientProfile(userId: string, data: UpdateClientProfile) {
     // Extraire les données spécifiques de l'utilisateur de base
     const {
-      name: _name,
-      email: _email,
-      phoneNumber: _phoneNumber,
-      image: _image,
+      name: name,
+      email: email,
+      phoneNumber: phoneNumber,
+      image: image,
       ...clientData
     } = data;
 
     // Extraire les adresses de livraison si présentes
-    const { deliveryAddresses: _deliveryAddresses, ...clientProfileData } =
+    const { deliveryAddresses: deliveryAddresses, ...clientProfileData } =
       clientData;
 
     try {
@@ -166,16 +139,14 @@ class ProfileService {
           name,
           email,
           phoneNumber,
-          image,
-        });
+          image});
       }
 
       // Mettre à jour le profil client
       if (Object.keys(clientProfileData).length > 0) {
         await db.client.update({
           where: { userId },
-          data: clientProfileData,
-        });
+          data: clientProfileData});
       }
 
       // Gérer les adresses si elles sont fournies
@@ -183,14 +154,11 @@ class ProfileService {
         // Récupérer le client ID
         const client = await db.client.findUnique({
           where: { userId },
-          select: { id: true },
-        });
+          select: { id }});
 
         if (!client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Client non trouvé" });
         }
 
         for (const address of deliveryAddresses) {
@@ -205,9 +173,7 @@ class ProfileService {
                 state: address.state,
                 postalCode: address.postalCode,
                 country: address.country,
-                isDefault: address.isDefault,
-              },
-            });
+                isDefault: address.isDefault}});
           } else {
             // Créer une nouvelle adresse
             await db.address.create({
@@ -219,20 +185,16 @@ class ProfileService {
                 postalCode: address.postalCode,
                 country: address.country,
                 isDefault: address.isDefault,
-                clientId: client.id,
-              },
-            });
+                clientId: client.id}});
           }
         }
       }
 
-      return { success: true };
-    } catch (_error) {
+      return { success };
+    } catch (error) {
       console.error("Erreur lors de la mise à jour du profil client:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la mise à jour du profil",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du profil" });
     }
   }
 
@@ -241,10 +203,10 @@ class ProfileService {
    */
   async updateDelivererProfile(userId: string, data: UpdateDelivererProfile) {
     const {
-      name: _name,
-      email: _email,
-      phoneNumber: _phoneNumber,
-      image: _image,
+      name: name,
+      email: email,
+      phoneNumber: phoneNumber,
+      image: image,
       ...delivererData
     } = data;
 
@@ -255,25 +217,21 @@ class ProfileService {
           name,
           email,
           phoneNumber,
-          image,
-        });
+          image});
       }
 
       // Mettre à jour le profil livreur
       if (Object.keys(delivererData).length > 0) {
         await db.deliverer.update({
           where: { userId },
-          data: delivererData,
-        });
+          data: delivererData});
       }
 
-      return { success: true };
-    } catch (_error) {
+      return { success };
+    } catch (error) {
       console.error("Erreur lors de la mise à jour du profil livreur:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la mise à jour du profil",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du profil" });
     }
   }
 
@@ -282,10 +240,10 @@ class ProfileService {
    */
   async updateMerchantProfile(userId: string, data: UpdateMerchantProfile) {
     const {
-      name: _name,
-      email: _email,
-      phoneNumber: _phoneNumber,
-      image: _image,
+      name: name,
+      email: email,
+      phoneNumber: phoneNumber,
+      image: image,
       ...merchantData
     } = data;
 
@@ -296,28 +254,24 @@ class ProfileService {
           name,
           email,
           phoneNumber,
-          image,
-        });
+          image});
       }
 
       // Mettre à jour le profil commerçant
       if (Object.keys(merchantData).length > 0) {
         await db.merchant.update({
           where: { userId },
-          data: merchantData,
-        });
+          data: merchantData});
       }
 
-      return { success: true };
-    } catch (_error) {
+      return { success };
+    } catch (error) {
       console.error(
         "Erreur lors de la mise à jour du profil commerçant:",
         error,
       );
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la mise à jour du profil",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du profil" });
     }
   }
 
@@ -326,10 +280,10 @@ class ProfileService {
    */
   async updateProviderProfile(userId: string, data: UpdateProviderProfile) {
     const {
-      name: _name,
-      email: _email,
-      phoneNumber: _phoneNumber,
-      image: _image,
+      name: name,
+      email: email,
+      phoneNumber: phoneNumber,
+      image: image,
       ...providerData
     } = data;
 
@@ -340,28 +294,24 @@ class ProfileService {
           name,
           email,
           phoneNumber,
-          image,
-        });
+          image});
       }
 
       // Mettre à jour le profil prestataire
       if (Object.keys(providerData).length > 0) {
         await db.provider.update({
           where: { userId },
-          data: providerData,
-        });
+          data: providerData});
       }
 
-      return { success: true };
-    } catch (_error) {
+      return { success };
+    } catch (error) {
       console.error(
         "Erreur lors de la mise à jour du profil prestataire:",
         error,
       );
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la mise à jour du profil",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la mise à jour du profil" });
     }
   }
 
@@ -372,41 +322,29 @@ class ProfileService {
     try {
       // Vérifier que l'adresse appartient bien au client
       const address = await db.address.findUnique({
-        where: { id: addressId },
+        where: { id },
         include: {
           client: {
-            select: {
-              userId: true,
-            },
-          },
-        },
-      });
+            select: { userId }}}});
 
       if (!address) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Adresse non trouvée",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Adresse non trouvée" });
       }
 
       if (address.client.userId !== userId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'avez pas le droit de supprimer cette adresse",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'avez pas le droit de supprimer cette adresse" });
       }
 
       await db.address.delete({
-        where: { id: addressId },
-      });
+        where: { id }});
 
-      return { success: true };
-    } catch (_error) {
+      return { success };
+    } catch (error) {
       console.error("Erreur lors de la suppression de l'adresse:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la suppression de l'adresse",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la suppression de l'adresse" });
     }
   }
 }

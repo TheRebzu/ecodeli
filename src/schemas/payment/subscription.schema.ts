@@ -15,14 +15,12 @@ export const SubscriptionStatusEnum = z.enum([
   "UNPAID",
   "CANCELLED",
   "TRIAL",
-  "ENDED",
-]);
+  "ENDED"]);
 
 /**
  * Schéma principal pour les abonnements
  */
-export const SubscriptionSchema = z.object({
-  id: z.string().cuid().optional(),
+export const SubscriptionSchema = z.object({ id: z.string().cuid().optional(),
   userId: z.string(),
   status: SubscriptionStatusEnum.default("ACTIVE"),
   planType: PlanTypeEnum,
@@ -46,23 +44,19 @@ export const SubscriptionSchema = z.object({
   previousPlanType: PlanTypeEnum.optional(),
   downgradedFrom: z.string().optional(),
   upgradedFrom: z.string().optional(),
-  planChangedAt: z.date().optional(),
-});
+  planChangedAt: z.date().optional() });
 
 /**
  * Schéma de base pour les abonnements
  */
-export const subscriptionBaseSchema = z.object({
-  userId: z.string().cuid(),
-  planType: z.nativeEnum(PlanType),
-});
+export const subscriptionBaseSchema = z.object({ userId: z.string().cuid(),
+  planType: z.nativeEnum(PlanType) });
 
 /**
  * Schéma pour la création d'un abonnement
  */
 export const subscriptionCreateSchema = z
-  .object({
-    userId: z.string().cuid("ID utilisateur invalide"),
+  .object({ userId: z.string().cuid("ID utilisateur invalide"),
     planType: z.nativeEnum(PlanType),
     startDate: z.date().default(() => new Date()),
     autoRenew: z.boolean().default(true),
@@ -71,8 +65,7 @@ export const subscriptionCreateSchema = z
     paymentMethodId: z.string().optional(),
 
     // Si un plan Custom est choisi, ces champs sont obligatoires
-    customPlanFeatures: z.record(z.any()).optional(),
-  })
+    customPlanFeatures: z.record(z.any()).optional() })
   .refine(
     (data) => {
       // Vérification que customPlanFeatures est défini si planType est CUSTOM
@@ -84,46 +77,38 @@ export const subscriptionCreateSchema = z
     {
       message:
         "Les caractéristiques du plan personnalisé sont requises pour un abonnement Custom",
-      path: ["customPlanFeatures"],
-    },
+      path: ["customPlanFeatures"]},
   );
 
 /**
  * Schéma pour la mise à jour d'un abonnement
  */
-export const updateSubscriptionSchema = z.object({
-  subscriptionId: z.string().cuid(),
+export const updateSubscriptionSchema = z.object({ subscriptionId: z.string().cuid(),
   autoRenew: z.boolean().optional(),
   planType: z.nativeEnum(PlanType).optional(),
   paymentMethodId: z.string().optional(),
   cancelAtPeriodEnd: z.boolean().optional(),
-  metadata: z.record(z.string()).optional(),
-});
+  metadata: z.record(z.string()).optional() });
 
 /**
  * Schéma pour l'annulation d'un abonnement
  */
-export const subscriptionCancelSchema = z.object({
-  subscriptionId: z.string().cuid("ID abonnement invalide"),
+export const subscriptionCancelSchema = z.object({ subscriptionId: z.string().cuid("ID abonnement invalide"),
   cancelAtPeriodEnd: z.boolean().default(true),
   reason: z.string().optional(),
   provideFeedback: z.boolean().default(false),
-  feedbackContent: z.string().optional(),
-});
+  feedbackContent: z.string().optional() });
 
 /**
  * Schéma pour la réactivation d'un abonnement
  */
-export const subscriptionReactivateSchema = z.object({
-  subscriptionId: z.string().cuid("ID abonnement invalide"),
-});
+export const subscriptionReactivateSchema = z.object({ subscriptionId: z.string().cuid("ID abonnement invalide") });
 
 /**
  * Schéma pour le changement de plan
  */
 export const subscriptionChangeSchema = z
-  .object({
-    subscriptionId: z.string().cuid("ID abonnement invalide"),
+  .object({ subscriptionId: z.string().cuid("ID abonnement invalide"),
     newPlanType: z.nativeEnum(PlanType),
     effectiveDate: z
       .date()
@@ -133,8 +118,7 @@ export const subscriptionChangeSchema = z
     keepExistingFeatures: z.boolean().default(false),
 
     // Pour les plans Custom
-    customPlanFeatures: z.record(z.any()).optional(),
-  })
+    customPlanFeatures: z.record(z.any()).optional() })
   .refine(
     (data) => {
       // Vérification que customPlanFeatures est défini si newPlanType est CUSTOM
@@ -146,58 +130,46 @@ export const subscriptionChangeSchema = z
     {
       message:
         "Les caractéristiques du plan personnalisé sont requises pour un abonnement Custom",
-      path: ["customPlanFeatures"],
-    },
+      path: ["customPlanFeatures"]},
   );
 
 /**
  * Schéma pour l'application d'un coupon
  */
-export const applyCouponSchema = z.object({
-  subscriptionId: z.string().cuid(),
-  couponCode: z.string(),
-});
+export const applyCouponSchema = z.object({ subscriptionId: z.string().cuid(),
+  couponCode: z.string() });
 
 /**
  * Schéma pour la pause d'un abonnement
  */
-export const pauseSubscriptionSchema = z.object({
-  subscriptionId: z.string().cuid(),
+export const pauseSubscriptionSchema = z.object({ subscriptionId: z.string().cuid(),
   resumeDate: z.date().optional(),
-  reason: z.string().optional(),
-});
+  reason: z.string().optional() });
 
 /**
  * Schéma pour la reprise d'un abonnement
  */
-export const resumeSubscriptionSchema = z.object({
-  subscriptionId: z.string().cuid(),
-});
+export const resumeSubscriptionSchema = z.object({ subscriptionId: z.string().cuid() });
 
 /**
  * Schéma pour récupérer les détails d'un abonnement
  */
-export const getSubscriptionSchema = z.object({
-  subscriptionId: z.string().cuid("ID abonnement invalide"),
-});
+export const getSubscriptionSchema = z.object({ subscriptionId: z.string().cuid("ID abonnement invalide") });
 
 /**
  * Schéma pour la recherche d'abonnements
  */
-export const searchSubscriptionsSchema = z.object({
-  planType: z.nativeEnum(PlanType).optional(),
+export const searchSubscriptionsSchema = z.object({ planType: z.nativeEnum(PlanType).optional(),
   status: z.nativeEnum(SubscriptionStatus).optional(),
   startDateFrom: z.date().optional(),
   startDateTo: z.date().optional(),
   page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
-});
+  limit: z.number().int().min(1).max(100).default(10) });
 
 /**
  * Schéma pour la définition des plans d'abonnement
  */
-export const subscriptionPlanSchema = z.object({
-  type: z.nativeEnum(PlanType),
+export const subscriptionPlanSchema = z.object({ type: z.nativeEnum(PlanType),
   name: z.string(),
   description: z.string(),
   priceMonthly: z.number().positive(),
@@ -210,26 +182,21 @@ export const subscriptionPlanSchema = z.object({
   insuranceAmount: z.number().min(0).optional(),
   isPriority: z.boolean().default(false),
   trialDays: z.number().int().min(0).default(0),
-  isPublic: z.boolean().default(true),
-});
+  isPublic: z.boolean().default(true) });
 
 /**
  * Schéma pour ajouter ou modifier des fonctionnalités personnalisées
  */
-export const customPlanFeaturesSchema = z.object({
-  subscriptionId: z.string().cuid(),
-  features: z.record(z.any()),
-});
+export const customPlanFeaturesSchema = z.object({ subscriptionId: z.string().cuid(),
+  features: z.record(z.any()) });
 
 /**
  * Schéma pour générer un rapport d'abonnements
  */
-export const subscriptionReportSchema = z.object({
-  startDate: z.date(),
+export const subscriptionReportSchema = z.object({ startDate: z.date(),
   endDate: z.date(),
   groupBy: z.enum(["PLAN", "STATUS", "DAY", "WEEK", "MONTH"]).default("PLAN"),
-  includeMetrics: z.boolean().default(true),
-});
+  includeMetrics: z.boolean().default(true) });
 
 /**
  * Configuration des plans d'abonnement
@@ -244,12 +211,10 @@ export const SUBSCRIPTION_PLANS = {
     features: [
       "Accès limité aux services de livraison",
       "Assurance limitée",
-      "Support client standard",
-    ],
+      "Support client standard"],
     insuranceAmount: 50,
     discountPercent: 0,
-    priority: false,
-  },
+    priority: false},
   STARTER: {
     id: "starter",
     name: "Starter",
@@ -260,12 +225,10 @@ export const SUBSCRIPTION_PLANS = {
       "Accès complet aux services de livraison",
       "Assurance jusqu'à 115€ par envoi",
       "Réduction de 5% sur les frais d'envoi",
-      "Support client prioritaire",
-    ],
+      "Support client prioritaire"],
     insuranceAmount: 115,
     discountPercent: 5,
-    priority: false,
-  },
+    priority: false},
   PREMIUM: {
     id: "premium",
     name: "Premium",
@@ -278,13 +241,10 @@ export const SUBSCRIPTION_PLANS = {
       "Réduction de 9% sur tous les frais",
       "Support client VIP",
       "Livraisons prioritaires",
-      "Accès aux promotions exclusives",
-    ],
+      "Accès aux promotions exclusives"],
     insuranceAmount: 3000,
     discountPercent: 9,
-    priority: true,
-  },
-};
+    priority: true}};
 
 // Exports des types
 export type PlanTypeEnum = z.infer<typeof PlanTypeEnum>;
@@ -318,12 +278,10 @@ export const subscriptionPlans = [
     features: [
       "Accès à la plateforme",
       "Livraisons standards",
-      "Assurance limitée (jusqu'à 115€)",
-    ],
+      "Assurance limitée (jusqu'à 115€)"],
     insuranceAmount: 115,
     discountPercent: 0,
-    isPriority: false,
-  },
+    isPriority: false},
   {
     type: "STARTER",
     name: "Starter",
@@ -333,12 +291,10 @@ export const subscriptionPlans = [
       "Tous les avantages du forfait Gratuit",
       "Assurance standard (jusqu'à 115€)",
       "Réduction de 5% sur toutes les commandes",
-      "Support client prioritaire",
-    ],
+      "Support client prioritaire"],
     insuranceAmount: 115,
     discountPercent: 5,
-    isPriority: false,
-  },
+    isPriority: false},
   {
     type: "PREMIUM",
     name: "Premium",
@@ -349,12 +305,10 @@ export const subscriptionPlans = [
       "Assurance premium (jusqu'à 3000€)",
       "Réduction de 9% sur toutes les commandes",
       "Service client ultra-prioritaire",
-      "Livraisons express illimitées",
-    ],
+      "Livraisons express illimitées"],
     insuranceAmount: 3000,
     discountPercent: 9,
-    isPriority: true,
-  },
+    isPriority: true},
   {
     type: "CUSTOM",
     name: "Sur mesure",
@@ -363,15 +317,11 @@ export const subscriptionPlans = [
     features: [
       "Fonctionnalités personnalisées",
       "Assurance sur mesure",
-      "Tarification adaptée à vos besoins",
-    ],
-    isPublic: false,
-  },
-];
+      "Tarification adaptée à vos besoins"],
+    isPublic: false}];
 
 // Schéma pour filtrer les abonnements
-export const subscriptionFilterSchema = z.object({
-  userId: z.string().cuid("ID utilisateur invalide").optional(),
+export const subscriptionFilterSchema = z.object({ userId: z.string().cuid("ID utilisateur invalide").optional(),
   planType: z.nativeEnum(PlanType).optional(),
   status: z.nativeEnum(SubscriptionStatus).optional(),
   startDateFrom: z.date().optional(),
@@ -380,15 +330,13 @@ export const subscriptionFilterSchema = z.object({
   endDateTo: z.date().optional(),
   autoRenew: z.boolean().optional(),
   page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
-});
+  limit: z.number().int().min(1).max(100).default(10) });
 
 // Schéma pour appliquer une réduction à un abonnement
-export const applyDiscountSchema = z.object({
-  subscriptionId: z.string().cuid("ID abonnement invalide"),
+export const applyDiscountSchema = z.object({ subscriptionId: z.string().cuid("ID abonnement invalide"),
   discountPercent: z.number().min(1).max(100),
   discountDurationMonths: z.number().int().min(1).max(12).optional(),
   reason: z.string().optional(),
 
   // Production uniquement - pas de mode démonstration
-});
+ });

@@ -24,8 +24,7 @@ import {
   AlertCircle,
   Eye,
   Download,
-  RefreshCcw,
-} from "lucide-react";
+  RefreshCcw} from "lucide-react";
 
 // Types
 interface Contract {
@@ -71,8 +70,7 @@ const ContractCard = ({
   contract,
   onView,
   onDownload,
-  onRenew,
-}: {
+  onRenew}: {
   contract: Contract;
   onView: (id: string) => void;
   onDownload: (id: string) => void;
@@ -176,7 +174,7 @@ const ContractCard = ({
               <span className="text-muted-foreground">{t("startDate")}:</span>
             </div>
             <p className="font-medium">
-              {format(contract.startDate, "d MMM yyyy", { locale: fr })}
+              {format(contract.startDate, "d MMM yyyy", { locale })}
             </p>
           </div>
 
@@ -187,7 +185,7 @@ const ContractCard = ({
                 <span className="text-muted-foreground">{t("endDate")}:</span>
               </div>
               <p className="font-medium">
-                {format(contract.endDate, "d MMM yyyy", { locale: fr })}
+                {format(contract.endDate, "d MMM yyyy", { locale })}
               </p>
             </div>
           )}
@@ -224,7 +222,7 @@ const ContractCard = ({
               <Clock className="h-4 w-4" />
               <span className="font-medium">{t("nextPayment")}:</span>
               <span>
-                {format(contract.nextPayment, "d MMM yyyy", { locale: fr })}
+                {format(contract.nextPayment, "d MMM yyyy", { locale })}
               </span>
             </div>
           </div>
@@ -276,8 +274,7 @@ export function ContractList({
   error,
   onView,
   onDownload,
-  onRenew,
-}: ContractListProps) {
+  onRenew}: ContractListProps) {
   const t = useTranslations("contracts");
 
   if (isLoading) {

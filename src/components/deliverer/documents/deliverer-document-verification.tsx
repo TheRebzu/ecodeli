@@ -11,8 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/trpc/react";
 import {
@@ -28,8 +27,7 @@ import {
   CheckCircle,
   XCircle,
   Camera,
-  Scan,
-} from "lucide-react";
+  Scan} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -40,8 +38,7 @@ interface DocumentVerificationProps {
 
 export default function DelivererDocumentVerification({
   delivererId,
-  onStatusChange,
-}: DocumentVerificationProps) {
+  onStatusChange}: DocumentVerificationProps) {
   const { toast } = useToast();
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [uploadingDocType, setUploadingDocType] = useState<string | null>(null);
@@ -53,55 +50,44 @@ export default function DelivererDocumentVerification({
       { refetchInterval: 30000 }, // Actualisation toutes les 30s
     );
 
-  const { data: verificationHistory } =
+  const { data } =
     api.delivery.verification.getDocumentHistory.useQuery(
       { documentId: selectedDocument?.id },
       { enabled: !!selectedDocument?.id },
     );
 
   // Mutations
-  const autoValidateMutation = api.deliverer.documents.autoValidate.useMutation(
-    {
-      onSuccess: (result) => {
+  const autoValidateMutation = api.deliverer.documents.autoValidate.useMutation({ onSuccess: (result) => {
         toast({
           title: "Validation automatique lancée",
           description:
             result.status === "APPROVED"
               ? "Document validé automatiquement !"
               : "Le document nécessite une vérification manuelle",
-          variant: result.status === "APPROVED" ? "success" : "default",
-        });
+          variant: result.status === "APPROVED" ? "success" : "default" });
         refetch();
       },
       onError: (error) => {
-        toast({
-          title: "Erreur de validation",
+        toast({ title: "Erreur de validation",
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    },
+          variant: "destructive" });
+      }},
   );
 
-  const uploadMutation = api.deliverer.documents.upload.useMutation({
-    onSuccess: () => {
+  const uploadMutation = api.deliverer.documents.upload.useMutation({ onSuccess: () => {
       toast({
         title: "Document uploadé",
         description: "Votre document a été envoyé pour vérification",
-        variant: "success",
-      });
+        variant: "success" });
       setUploadingDocType(null);
       refetch();
       onStatusChange?.("UPLOADED");
     },
     onError: (error) => {
-      toast({
-        title: "Erreur d'upload",
+      toast({ title: "Erreur d'upload",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -133,15 +119,8 @@ export default function DelivererDocumentVerification({
 
   const getDocumentTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      IDENTITY: "Pièce d'identité",
-      DRIVING_LICENSE: "Permis de conduire",
-      INSURANCE: "Attestation d'assurance",
-      VEHICLE_REGISTRATION: "Carte grise",
-      BACKGROUND_CHECK: "Extrait de casier judiciaire",
-      MEDICAL_CERTIFICATE: "Certificat médical",
-      BANK_DETAILS: "RIB",
-      ADDRESS_PROOF: "Justificatif de domicile",
-    };
+      IDENTITY: "Pièce d'identité", DRIVING_LICENSE: "Permis de conduire",
+      INSURANCE: "Attestation d'assurance", VEHICLE_REGISTRATION: "Carte grise", BACKGROUND_CHECK: "Extrait de casier judiciaire", MEDICAL_CERTIFICATE: "Certificat médical", BANK_DETAILS: "RIB", ADDRESS_PROOF: "Justificatif de domicile"};
     return labels[type] || type;
   };
 
@@ -274,12 +253,12 @@ export default function DelivererDocumentVerification({
       {/* Documents List */}
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">Tous ({documents.length})</TabsTrigger>
-          <TabsTrigger value="pending">En attente ({pendingCount})</TabsTrigger>
+          <TabsTrigger value="all">Tous ({ documents.length })</TabsTrigger>
+          <TabsTrigger value="pending">En attente ({ pendingCount })</TabsTrigger>
           <TabsTrigger value="approved">
-            Approuvés ({approvedCount})
+            Approuvés ({ approvedCount })
           </TabsTrigger>
-          <TabsTrigger value="rejected">Rejetés ({rejectedCount})</TabsTrigger>
+          <TabsTrigger value="rejected">Rejetés ({ rejectedCount })</TabsTrigger>
         </TabsList>
 
         {["all", "pending", "approved", "rejected"].map((tab) => (
@@ -329,9 +308,7 @@ export default function DelivererDocumentVerification({
                                   {format(
                                     new Date(document.uploadedAt),
                                     "dd/MM/yyyy",
-                                    {
-                                      locale: fr,
-                                    },
+                                    { locale },
                                   )}
                                 </span>
                               )}
@@ -342,9 +319,7 @@ export default function DelivererDocumentVerification({
                                     {format(
                                       new Date(document.verifiedAt),
                                       "dd/MM/yyyy",
-                                      {
-                                        locale: fr,
-                                      },
+                                      { locale },
                                     )}
                                   </span>
                                 )}
@@ -366,9 +341,7 @@ export default function DelivererDocumentVerification({
                                   {format(
                                     new Date(document.expiryDate),
                                     "dd/MM/yyyy",
-                                    {
-                                      locale: fr,
-                                    },
+                                    { locale },
                                   )}
                                 </span>
                               </div>
@@ -494,7 +467,7 @@ export default function DelivererDocumentVerification({
                                                     {format(
                                                       new Date(log.createdAt),
                                                       "dd/MM/yyyy HH:mm",
-                                                      { locale: fr },
+                                                      { locale },
                                                     )}
                                                   </div>
                                                 </div>
@@ -514,7 +487,7 @@ export default function DelivererDocumentVerification({
                               variant="outline"
                               size="sm"
                               onClick={() =>
-                                window.open(document.documentUrl, "_blank")
+                                window.open(document.documentUrl, "blank")
                               }
                             >
                               <Download className="h-4 w-4" />
@@ -527,9 +500,7 @@ export default function DelivererDocumentVerification({
                                 variant="outline"
                                 size="sm"
                                 onClick={() =>
-                                  autoValidateMutation.mutate({
-                                    documentId: document.id,
-                                  })
+                                  autoValidateMutation.mutate({ documentId: document.id })
                                 }
                                 disabled={autoValidateMutation.isPending}
                               >

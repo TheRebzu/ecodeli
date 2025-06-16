@@ -8,9 +8,8 @@ import { getTranslations } from "next-intl/server";
 // Utiliser le type correct pour les paramètres
 export async function generateMetadata({
   params,
-  searchParams,
-}: {
-  params: Promise<{ locale: string }>;
+  searchParams}: {
+  params: Promise<{ locale }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }): Promise<Metadata> {
   // Attendre la résolution des paramètres
@@ -20,20 +19,18 @@ export async function generateMetadata({
   // Vérifier si la locale est valide
   if (!["en", "fr"].includes(locale)) notFound();
 
-  const t = await getTranslations({ locale, namespace: "auth.login" });
+  const t = await getTranslations({ locale, namespace: "auth.login"  });
 
   return {
     title: t("pageTitle") || "Connexion | EcoDeli",
     description:
-      t("pageDescription") || "Connectez-vous à votre compte EcoDeli",
-  };
+      t("pageDescription") || "Connectez-vous à votre compte EcoDeli"};
 }
 
 export default async function LoginPage({
   params,
-  searchParams,
-}: {
-  params: Promise<{ locale: string }>;
+  searchParams}: {
+  params: Promise<{ locale }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   // Attendre la résolution des paramètres
@@ -52,7 +49,7 @@ export default async function LoginPage({
   }
 
   // Récupérer les traductions
-  const t = await getTranslations({ locale, namespace: "auth.login" });
+  const t = await getTranslations({ locale, namespace: "auth.login"  });
 
   return (
     <div className="max-w-md w-full">

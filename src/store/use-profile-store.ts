@@ -41,35 +41,32 @@ const initialState = {
   isAddingAddress: false,
   editingAddressId: null,
   selectedDocumentType: null,
-  profile: null,
-};
+  profile: null};
 
 export const useProfileStore = create<ProfileState>()(
   devtools(
     persist(
-      (set, get) => ({
-        ...initialState,
+      (set, get) => ({ ...initialState,
 
-        setProfileView: (view) => set({ profileView: view }),
+        setProfileView: (view) => set({ profileView  }),
 
         setIsEditingProfile: (isEditing) =>
-          set({ isEditingProfile: isEditing }),
+          set({ isEditingProfile  }),
 
-        setIsAddingAddress: (isAdding) => set({ isAddingAddress: isAdding }),
+        setIsAddingAddress: (isAdding) => set({ isAddingAddress  }),
 
         setEditingAddressId: (addressId) =>
-          set({ editingAddressId: addressId }),
+          set({ editingAddressId  }),
 
         setSelectedDocumentType: (documentType) =>
-          set({ selectedDocumentType: documentType }),
+          set({ selectedDocumentType  }),
 
         getAvailableSections: (role) => {
           // Sections disponibles par défaut pour tous les rôles
           const commonSections: ProfileState["profileView"][] = [
             "info",
             "preferences",
-            "security",
-          ];
+            "security"];
 
           // Sections spécifiques par rôle
           switch (role) {
@@ -86,15 +83,11 @@ export const useProfileStore = create<ProfileState>()(
           }
         },
 
-        reset: () => set(initialState),
-      }),
+        reset: () => set(initialState)}),
       {
         name: "profile-store",
-        partialize: (state) => ({
-          // Exclure certains états du stockage persistant
-          profileView: state.profileView,
-        }),
-      },
+        partialize: (state) => ({ // Exclure certains états du stockage persistant
+          profileView: state.profileView })},
     ),
   ),
 );

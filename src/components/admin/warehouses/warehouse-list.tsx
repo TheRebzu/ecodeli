@@ -10,16 +10,14 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Pagination } from "@/components/ui/pagination";
 import { Progress } from "@/components/ui/progress";
@@ -34,8 +32,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 export function WarehouseList() {
@@ -55,15 +52,14 @@ export function WarehouseList() {
     warehousesLoading,
     warehouseFilters,
     updateWarehouseFilters,
-    deleteWarehouse,
-  } = useWarehouse();
+    deleteWarehouse} = useWarehouse();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
   const handleSearch = () => {
-    updateWarehouseFilters({ search: searchQuery, page: 1 });
+    updateWarehouseFilters({ search: searchQuery, page: 1  });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -73,7 +69,7 @@ export function WarehouseList() {
   };
 
   const handlePageChange = (page: number) => {
-    updateWarehouseFilters({ page });
+    updateWarehouseFilters({ page  });
   };
 
   const handleCreateWarehouse = () => {
@@ -93,7 +89,7 @@ export function WarehouseList() {
     if (!warehouseToDelete) return;
 
     try {
-      await deleteWarehouse({ id: warehouseToDelete });
+      await deleteWarehouse({ id  });
       toast.success(t("deleteSuccess"));
     } catch (error) {
       console.error("Error deleting warehouse:", error);

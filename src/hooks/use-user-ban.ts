@@ -23,20 +23,17 @@ export function useUserBan() {
       toast({
         title: "Succès",
         description: `Utilisateur ${action} avec succès`,
-        variant: "default",
-      });
+        variant: "default"});
     },
     onError: (error) => {
       toast({
         title: "Erreur",
         description: `Erreur lors du bannissement : ${error.message}`,
-        variant: "destructive",
-      });
+        variant: "destructive"});
     },
     onSettled: () => {
       setIsLoading(false);
-    },
-  });
+    }});
 
   /**
    * Bannit ou débannit un utilisateur
@@ -52,11 +49,9 @@ export function useUserBan() {
    * @param reason Raison du bannissement
    */
   const banUser = (userId: string, reason: string) => {
-    mutate({
-      userId,
+    mutate({ userId,
       action: UserBanAction.BAN,
-      reason,
-    });
+      reason });
   };
 
   /**
@@ -64,10 +59,8 @@ export function useUserBan() {
    * @param userId ID de l'utilisateur
    */
   const unbanUser = (userId: string) => {
-    mutate({
-      userId,
-      action: UserBanAction.UNBAN,
-    });
+    mutate({ userId,
+      action: UserBanAction.UNBAN });
   };
 
   return {
@@ -77,6 +70,5 @@ export function useUserBan() {
     isPending: userBanMutation.isPending || isLoading,
     isError: userBanMutation.isError,
     error: userBanMutation.error,
-    isSuccess: userBanMutation.isSuccess,
-  };
+    isSuccess: userBanMutation.isSuccess};
 }

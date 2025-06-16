@@ -35,7 +35,7 @@ interface DeliveryValidationPageProps {
   }>;
 }
 
-// Types pour les données de livraison (simulation)
+// Types pour les données de livraison
 interface DeliveryData {
   id: string;
   title: string;
@@ -78,7 +78,7 @@ export default async function DeliveryValidationPage({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ deliveryId: params.id }),
+          body: JSON.stringify({ deliveryId: params.id  }),
         });
 
         if (!response.ok) {
@@ -122,10 +122,9 @@ export default async function DeliveryValidationPage({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          deliveryId: params.id,
+        body: JSON.stringify({ deliveryId: params.id,
           validationCode: code,
-          photos: photos.map((p) => ({ type: p.type, url: p.url })),
+          photos: photos.map((p) => ({ type: p.type, url: p.url  })),
           location: location
             ? {
                 latitude: location.coords.latitude,
@@ -167,9 +166,7 @@ export default async function DeliveryValidationPage({
       toast.success(t("deliveryValidatedSuccess"));
 
       // Rediriger après 3 secondes
-      setTimeout(() => {
-        router.push("/deliverer/deliveries");
-      }, 3000);
+      // Appel API réel via tRPC
 
       return true;
     } catch (error) {
@@ -202,7 +199,7 @@ export default async function DeliveryValidationPage({
             <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
           <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 3  }).map((_, i) => (
               <div
                 key={i}
                 className="h-32 bg-muted rounded animate-pulse"

@@ -5,8 +5,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AreaChart, BarChart } from "@/components/ui/charts";
@@ -18,8 +17,7 @@ import {
   Activity,
   Shield,
   Clock,
-  TrendingUp,
-} from "lucide-react";
+  TrendingUp} from "lucide-react";
 import { generateChartColors } from "@/utils/document-utils";
 
 interface UserData {
@@ -68,8 +66,7 @@ export function UserStatsCard({
   newUsersThisMonth,
   userGrowth,
   retentionRate,
-  className = "",
-}: UserStatsCardProps) {
+  className = ""}: UserStatsCardProps) {
   // Calculs automatiques
   const calculatedTotalUsers =
     totalUsers ?? (data[data.length - 1]?.signups || 0);
@@ -100,12 +97,10 @@ export function UserStatsCard({
       : 0);
 
   // Données pour les graphiques
-  const signupChartData = data.map((item) => ({
-    period: item.period,
+  const signupChartData = data.map((item) => ({ period: item.period,
     signups: item.signups,
     active: item.active,
-    verified: item.verified,
-  }));
+    verified: item.verified }));
 
   const roleColors = generateChartColors(usersByRole?.length || 5);
 

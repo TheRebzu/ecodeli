@@ -49,6 +49,5 @@ export function useAppNavigation() {
     navigateTo,
     redirectTo,
     getLocalizedUrl,
-    currentLocale,
-  };
+    currentLocale};
 }

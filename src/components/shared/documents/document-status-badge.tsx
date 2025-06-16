@@ -10,8 +10,7 @@ import { DocumentStatusBadgeProps } from "@/components/shared/documents/document
  */
 export function DocumentStatusBadge({
   status,
-  variant = "default",
-}: DocumentStatusBadgeProps) {
+  variant = "default"}: DocumentStatusBadgeProps) {
   if (!status) return null;
 
   const normalizedStatus = status.toUpperCase();
@@ -28,8 +27,7 @@ export function DocumentStatusBadge({
             />
           ),
           label: variant === "compact" ? "" : "En attente",
-          className: "bg-yellow-100 text-yellow-800 border-yellow-300",
-        };
+          className: "bg-yellow-100 text-yellow-800 border-yellow-300"};
       case "APPROVED":
         return {
           variant: "success" as const,
@@ -39,8 +37,7 @@ export function DocumentStatusBadge({
             />
           ),
           label: variant === "compact" ? "" : "Approuvé",
-          className: "bg-green-100 text-green-800 border-green-300",
-        };
+          className: "bg-green-100 text-green-800 border-green-300"};
       case "REJECTED":
         return {
           variant: "destructive" as const,
@@ -50,8 +47,7 @@ export function DocumentStatusBadge({
             />
           ),
           label: variant === "compact" ? "" : "Rejeté",
-          className: "bg-red-100 text-red-800 border-red-300",
-        };
+          className: "bg-red-100 text-red-800 border-red-300"};
       case "EXPIRED":
         return {
           variant: "warning" as const,
@@ -61,15 +57,13 @@ export function DocumentStatusBadge({
             />
           ),
           label: variant === "compact" ? "" : "Expiré",
-          className: "bg-orange-100 text-orange-800 border-orange-300",
-        };
+          className: "bg-orange-100 text-orange-800 border-orange-300"};
       default:
         return {
           variant: "outline" as const,
           icon: null,
           label: variant === "compact" ? "" : status,
-          className: "",
-        };
+          className: ""};
     }
   };
 

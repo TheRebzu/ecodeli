@@ -11,8 +11,7 @@ const navigationLabels = {
   skip: "Passer le tutoriel",
   previous: "Précédent",
   next: "Suivant",
-  finish: "Terminer",
-};
+  finish: "Terminer"};
 
 // Définition des étapes du tutoriel livreur avec traductions intégrées
 const DELIVERER_TUTORIAL_STEPS = [
@@ -24,8 +23,7 @@ const DELIVERER_TUTORIAL_STEPS = [
     title: "Bienvenue chez EcoDeli",
     description:
       "Découvrez comment livrer efficacement avec notre plateforme écologique.",
-    image: "/images/onboarding/deliverer/welcome.png",
-  },
+    image: "/images/onboarding/deliverer/welcome.png"},
   {
     id: "dashboard",
     titleKey: "steps.dashboard.title",
@@ -33,8 +31,7 @@ const DELIVERER_TUTORIAL_STEPS = [
     title: "Votre tableau de bord",
     description:
       "Consultez vos statistiques, revenus et activités récentes en un coup d'œil.",
-    image: "/images/onboarding/deliverer/dashboard.png",
-  },
+    image: "/images/onboarding/deliverer/dashboard.png"},
   {
     id: "announcements",
     titleKey: "steps.announcements.title",
@@ -42,8 +39,7 @@ const DELIVERER_TUTORIAL_STEPS = [
     title: "Annonces de livraison",
     description:
       "Parcourez les annonces disponibles et trouvez des opportunités de livraison.",
-    image: "/images/onboarding/deliverer/announcements.png",
-  },
+    image: "/images/onboarding/deliverer/announcements.png"},
   {
     id: "deliveries",
     titleKey: "steps.deliveries.title",
@@ -51,16 +47,14 @@ const DELIVERER_TUTORIAL_STEPS = [
     title: "Gestion des livraisons",
     description:
       "Suivez vos livraisons en cours, planifiez votre itinéraire et communiquez avec les clients.",
-    image: "/images/onboarding/deliverer/deliveries.png",
-  },
+    image: "/images/onboarding/deliverer/deliveries.png"},
   {
     id: "routes",
     titleKey: "steps.routes.title",
     descriptionKey: "steps.routes.description",
     title: "Création d'itinéraires",
     description: "Optimisez vos trajets et réduisez votre empreinte carbone.",
-    image: "/images/onboarding/deliverer/routes.png",
-  },
+    image: "/images/onboarding/deliverer/routes.png"},
   {
     id: "payments",
     titleKey: "steps.payments.title",
@@ -68,9 +62,7 @@ const DELIVERER_TUTORIAL_STEPS = [
     title: "Paiements et revenus",
     description:
       "Consultez votre historique de paiements et gérez vos revenus.",
-    image: "/images/onboarding/deliverer/payments.png",
-  },
-];
+    image: "/images/onboarding/deliverer/payments.png"}];
 
 type DelivererTutorialProps = {
   options?: {
@@ -87,8 +79,7 @@ export function DelivererTutorial({ options }: DelivererTutorialProps) {
     completeOnboarding,
     skipOnboarding,
     isCompleting = false,
-    setStepsConfiguration,
-  } = useOnboarding();
+    setStepsConfiguration} = useOnboarding();
 
   // Initialiser le tutoriel avec le bon nombre d'étapes
   useEffect(() => {

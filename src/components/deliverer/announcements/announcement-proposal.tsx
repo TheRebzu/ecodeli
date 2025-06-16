@@ -12,16 +12,14 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import {
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,8 +33,7 @@ import {
   Clock,
   Calendar,
   Loader2,
-  Ban,
-} from "lucide-react";
+  Ban} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -44,16 +41,14 @@ import { cn } from "@/lib/utils/common";
 import { Announcement } from "@/types/announcements/announcement";
 
 // Schéma de validation pour le formulaire de proposition
-const proposalFormSchema = z.object({
-  proposedPrice: z.number().positive("Le prix proposé doit être supérieur à 0"),
+const proposalFormSchema = z.object({ proposedPrice: z.number().positive("Le prix proposé doit être supérieur à 0"),
   estimatedDeliveryTime: z.string().datetime().optional(),
   message: z
     .string()
     .min(10, "Veuillez fournir un message d'au moins 10 caractères")
     .max(500, "Le message ne peut pas dépasser 500 caractères"),
   hasRequiredEquipment: z.boolean().default(true),
-  canPickupAtScheduledTime: z.boolean().default(true),
-});
+  canPickupAtScheduledTime: z.boolean().default(true) });
 
 type ProposalFormValues = z.infer<typeof proposalFormSchema>;
 
@@ -87,8 +82,7 @@ export function AnnouncementProposal({
   onSubmit,
   onCancel,
   isSubmitting = false,
-  error,
-}: AnnouncementProposalProps) {
+  error}: AnnouncementProposalProps) {
   const t = useTranslations("announcements");
   const [showPriceWarning, setShowPriceWarning] = useState(false);
 
@@ -102,9 +96,7 @@ export function AnnouncementProposal({
         : undefined,
       message: "",
       hasRequiredEquipment: true,
-      canPickupAtScheduledTime: true,
-    },
-  });
+      canPickupAtScheduledTime: true}});
 
   // Observer les changements de prix pour afficher des avertissements
   const proposedPrice = form.watch("proposedPrice");
@@ -126,7 +118,7 @@ export function AnnouncementProposal({
   // Formater une date pour l'affichage
   const formatDateTime = (dateTime?: string | Date) => {
     if (!dateTime) return t("notSpecified");
-    return format(new Date(dateTime), "PPpp", { locale: fr });
+    return format(new Date(dateTime), "PPpp", { locale });
   };
 
   return (
@@ -151,8 +143,7 @@ export function AnnouncementProposal({
               <span className="font-medium">
                 {suggestedPrice.toLocaleString("fr-FR", {
                   style: "currency",
-                  currency: "EUR",
-                })}
+                  currency: "EUR"})}
               </span>
               {isNegotiable && (
                 <Badge variant="outline" className="ml-2">
@@ -212,7 +203,7 @@ export function AnnouncementProposal({
             <FormField
               control={form.control}
               name="proposedPrice"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("proposedPrice")}</FormLabel>
                   <FormControl>
@@ -248,7 +239,7 @@ export function AnnouncementProposal({
             <FormField
               control={form.control}
               name="estimatedDeliveryTime"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("estimatedDeliveryTime")}</FormLabel>
                   <FormControl>
@@ -282,7 +273,7 @@ export function AnnouncementProposal({
             <FormField
               control={form.control}
               name="message"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("proposalMessage")}</FormLabel>
                   <FormControl>
@@ -304,7 +295,7 @@ export function AnnouncementProposal({
               <FormField
                 control={form.control}
                 name="hasRequiredEquipment"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
                       <FormLabel>{t("hasRequiredEquipment")}</FormLabel>
@@ -325,7 +316,7 @@ export function AnnouncementProposal({
               <FormField
                 control={form.control}
                 name="canPickupAtScheduledTime"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
                       <FormLabel>{t("canPickupAtScheduledTime")}</FormLabel>
@@ -422,8 +413,7 @@ export function ClientProposalManager({
   onAcceptProposal,
   onRejectProposal,
   onViewDetails,
-  isLoading = false,
-}: ClientProposalViewProps) {
+  isLoading = false}: ClientProposalViewProps) {
   const t = useTranslations("announcements");
   const [expandedAnnouncements, setExpandedAnnouncements] = useState<
     Set<string>
@@ -463,7 +453,7 @@ export function ClientProposalManager({
   };
 
   const formatDateTime = (dateTime: string) => {
-    return format(new Date(dateTime), "PPp", { locale: fr });
+    return format(new Date(dateTime), "PPp", { locale });
   };
 
   if (isLoading) {
@@ -546,8 +536,7 @@ export function ClientProposalManager({
                       {t("suggestedPrice")}:{" "}
                       {announcement.suggestedPrice?.toLocaleString("fr-FR", {
                         style: "currency",
-                        currency: "EUR",
-                      })}
+                        currency: "EUR"})}
                     </span>
                     <Badge
                       variant={
@@ -621,8 +610,7 @@ export function ClientProposalManager({
                         <p className="text-lg font-semibold text-green-600">
                           {proposal.proposedPrice.toLocaleString("fr-FR", {
                             style: "currency",
-                            currency: "EUR",
-                          })}
+                            currency: "EUR"})}
                         </p>
                         {proposal.compatibilityScore && (
                           <p className="text-xs text-muted-foreground">

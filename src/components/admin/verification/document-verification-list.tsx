@@ -12,16 +12,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,14 +28,12 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
@@ -52,8 +48,7 @@ import {
   ThumbsDown,
   ThumbsUp,
   RefreshCcw,
-  X,
-} from "lucide-react";
+  X} from "lucide-react";
 
 export default function DocumentVerificationList() {
   const t = useTranslations("Admin.verification");
@@ -74,33 +69,25 @@ export default function DocumentVerificationList() {
     data: documentsData,
     isLoading,
     isError,
-    refetch,
-  } = api.document.getPendingDocuments.useQuery({
-    status: activeTab,
-    userRole: activeRole !== "ALL" ? (activeRole as any) : undefined,
-  });
+    refetch} = api.document.getPendingDocuments.useQuery({ status: activeTab,
+    userRole: activeRole !== "ALL" ? (activeRole as any) : undefined });
 
   const documents = documentsData?.documents || [];
 
   // Mutation for verifying documents
-  const verifyDocument = api.auth.verifyDocument.useMutation({
-    onSuccess: () => {
+  const verifyDocument = api.auth.verifyDocument.useMutation({ onSuccess: () => {
       toast({
         title: t("documents.verifySuccess.title"),
         description: t("documents.verifySuccess.description"),
-        variant: "default",
-      });
+        variant: "default" });
       setVerificationOpen(false);
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: t("documents.verifyError.title"),
+      toast({ title: t("documents.verifyError.title"),
         description: error.message || t("documents.verifyError.description"),
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const handleViewDocument = (document: any) => {
     setSelectedDocument(document);
@@ -120,11 +107,9 @@ export default function DocumentVerificationList() {
     if (!selectedDocument) return;
 
     try {
-      await verifyDocument.mutate({
-        documentId: selectedDocument.id,
+      await verifyDocument.mutate({ documentId: selectedDocument.id,
         status: approved ? "APPROVED" : "REJECTED",
-        notes: approved ? undefined : rejectionReason,
-      });
+        notes: approved ? undefined : rejectionReason });
     } catch (error) {
       console.error("Verification error:", error);
     }
@@ -134,8 +119,7 @@ export default function DocumentVerificationList() {
     if (!date) return "-";
     return formatDistanceToNow(new Date(date), {
       addSuffix: true,
-      locale: locale === "fr" ? fr : enUS,
-    });
+      locale: locale === "fr" ? fr : enUS});
   };
 
   const getStatusBadgeProps = (status: VerificationStatus) => {
@@ -143,23 +127,19 @@ export default function DocumentVerificationList() {
       case "PENDING":
         return {
           variant: "outline" as const,
-          icon: <Clock className="mr-1 h-3 w-3" />,
-        };
+          icon: <Clock className="mr-1 h-3 w-3" />};
       case "APPROVED":
         return {
           variant: "success" as const,
-          icon: <CheckCircle className="mr-1 h-3 w-3" />,
-        };
+          icon: <CheckCircle className="mr-1 h-3 w-3" />};
       case "REJECTED":
         return {
           variant: "destructive" as const,
-          icon: <X className="mr-1 h-3 w-3" />,
-        };
+          icon: <X className="mr-1 h-3 w-3" />};
       case "EXPIRED":
         return {
           variant: "warning" as const,
-          icon: <AlertCircle className="mr-1 h-3 w-3" />,
-        };
+          icon: <AlertCircle className="mr-1 h-3 w-3" />};
       default:
         return { variant: "outline" as const, icon: null };
     }
@@ -471,7 +451,7 @@ export default function DocumentVerificationList() {
                   <div className="flex h-40 items-center justify-center bg-muted">
                     <a
                       href={selectedDocument.fileUrl}
-                      target="_blank"
+                      target="blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground"
                     >
@@ -589,7 +569,7 @@ export default function DocumentVerificationList() {
                   <span className="font-semibold">
                     {t("documents.columns.user")}:
                   </span>{" "}
-                  {selectedDocument.user?.name} ({selectedDocument.user?.email})
+                  {selectedDocument.user?.name} ({ selectedDocument.user?.email })
                 </p>
               </div>
 
@@ -657,7 +637,7 @@ function DocumentListSkeleton() {
         <div className="space-y-4">
           <Skeleton className="h-10 w-full" />
           <div className="space-y-2">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 3  }).map((_, i) => (
               <Skeleton key={i} className="h-16 w-full" />
             ))}
           </div>

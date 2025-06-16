@@ -7,8 +7,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Gestion des Annonces - EcoDeli Admin",
     description:
-      "Gérez et modérez toutes les annonces sur la plateforme EcoDeli",
-  };
+      "Gérez et modérez toutes les annonces sur la plateforme EcoDeli"};
 }
 
 export default async function AdminAnnouncementsPage() {

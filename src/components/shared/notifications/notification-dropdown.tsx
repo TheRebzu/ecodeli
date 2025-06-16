@@ -7,8 +7,7 @@ import {
   ChevronRight,
   Clock,
   FileText,
-  Trash,
-} from "lucide-react";
+  Trash} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { fr, enGB } from "date-fns/locale";
@@ -21,8 +20,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Notification } from "@prisma/client";
@@ -44,14 +42,13 @@ export function NotificationDropdown({
   const tNotif = useTranslations("notifications");
   const router = useRouter();
   const { toast } = useToast();
-  const { data: session } = useSession();
+  const { data } = useSession();
 
   // Get all notifications
   const {
     data: notificationsData,
     isLoading,
-    refetch,
-  } = api.notification.getNotifications.useQuery(
+    refetch} = api.notification.getNotifications.useQuery(
     { page: 1, limit: 10 },
     { enabled: !!session?.user.id, refetchInterval: 60000 }, // Refetch every minute
   );
@@ -68,31 +65,26 @@ export function NotificationDropdown({
     onSuccess: () => {
       refetch();
       refetchUnread();
-    },
-  });
+    }});
 
-  const markAllAsReadMutation = api.notification.markAllAsRead.useMutation({
-    onSuccess: () => {
+  const markAllAsReadMutation = api.notification.markAllAsRead.useMutation({ onSuccess: () => {
       refetch();
       refetchUnread();
       toast({
-        title: tNotif("allMarkedAsRead"),
-      });
-    },
-  });
+        title: tNotif("allMarkedAsRead") });
+    }});
 
   const deleteNotificationMutation =
     api.notification.deleteNotification.useMutation({
       onSuccess: () => {
         refetch();
         refetchUnread();
-      },
-    });
+      }});
 
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read
     if (!notification.read) {
-      await markAsReadMutation.mutateAsync({ id: notification.id });
+      await markAsReadMutation.mutateAsync({ id: notification.id  });
     }
 
     // Navigate to the link if provided
@@ -104,7 +96,7 @@ export function NotificationDropdown({
 
   const handleDeleteNotification = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    await deleteNotificationMutation.mutateAsync({ id });
+    await deleteNotificationMutation.mutateAsync({ id  });
   };
 
   const handleMarkAllAsRead = async () => {
@@ -131,8 +123,7 @@ export function NotificationDropdown({
     const localeObj = locale === "fr" ? fr : enGB;
     return formatDistanceToNow(new Date(date), {
       addSuffix: true,
-      locale: localeObj,
-    });
+      locale: localeObj});
   };
 
   return (
@@ -165,7 +156,7 @@ export function NotificationDropdown({
         <ScrollArea className="h-[320px]">
           {isLoading ? (
             <div className="p-4 space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
+              {Array.from({ length: 3  }).map((_, i) => (
                 <div key={i} className="flex gap-3">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="space-y-2 flex-1">

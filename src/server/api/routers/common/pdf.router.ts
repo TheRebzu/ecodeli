@@ -5,27 +5,22 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 // Schémas de validation pour la génération PDF
-const contractPdfSchema = z.object({
-  contractId: z.string(),
-  templateType: z.enum(["merchant", "provider", "deliverer"]).optional(),
-});
+const contractPdfSchema = z.object({ contractId: z.string(),
+  templateType: z.enum(["merchant", "provider", "deliverer"]).optional() });
 
-const invoicePdfSchema = z.object({
-  invoiceId: z.string(),
-  includePaymentDetails: z.boolean().default(true),
-});
+const invoicePdfSchema = z.object({ invoiceId: z.string(),
+  includePaymentDetails: z.boolean().default(true) });
 
-export const pdfRouter = router({
-  // Générer un PDF de contrat
+export const pdfRouter = router({ // Générer un PDF de contrat
   generateContract: protectedProcedure
     .input(contractPdfSchema)
-    .mutation(async ({ input, _ctx }) => {
+    .mutation(async ({ input, ctx  }) => {
       try {
-        const { contractId: _contractId, templateType: _templateType } = input;
+        const { contractId: contractId, templateType: templateType } = input;
 
         // Récupérer le contrat avec les informations nécessaires
         const contract = await ctx.db.contractTemplate.findUnique({
-          where: { id: contractId },
+          where: { id },
           include: {
             user: {
               select: {
@@ -36,37 +31,27 @@ export const pdfRouter = router({
                     firstName: true,
                     lastName: true,
                     phone: true,
-                    address: true,
-                  },
-                },
-              },
-            },
-          },
-        });
+                    address: true}}}}}});
 
         if (!contract) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Contrat non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Contrat non trouvé" });
         }
 
         // Vérifier que l'utilisateur a le droit d'accéder à ce contrat
         if (
-          contract.userId !== _ctx.session.user.id &&
-          _ctx.session.user.role !== "ADMIN"
+          contract.userId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
         ) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'êtes pas autorisé à accéder à ce contrat",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'êtes pas autorisé à accéder à ce contrat" });
         }
 
         // Générer le contenu HTML du contrat
         const htmlContent = generateContractHTML(contract, templateType);
 
         // Générer le nom de fichier
-        const timestamp = format(new Date(), "yyyy-MM-dd-HHmm", { locale: fr });
+        const timestamp = format(new Date(), "yyyy-MM-dd-HHmm", { locale });
         const filename = `contrat-${contract.title.replace(/\s+/g, "-")}-${timestamp}.pdf`;
 
         // En production, vous utiliseriez une librairie comme puppeteer ou jsPDF
@@ -81,28 +66,24 @@ export const pdfRouter = router({
             userName:
               contract.user.profile?.firstName +
               " " +
-              contract.user.profile?.lastName,
-          },
-        };
-      } catch (_error) {
+              contract.user.profile?.lastName}};
+      } catch (error) {
         console.error("Erreur génération PDF contrat:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la génération du PDF de contrat",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la génération du PDF de contrat" });
       }
     }),
 
   // Générer un PDF de facture
   generateInvoice: protectedProcedure
     .input(invoicePdfSchema)
-    .mutation(async ({ input, _ctx }) => {
+    .mutation(async ({ input, ctx  }) => {
       try {
-        const { invoiceId: _invoiceId, includePaymentDetails: _includePaymentDetails } = input;
+        const { invoiceId: invoiceId, includePaymentDetails: includePaymentDetails } = input;
 
         // Récupérer la facture avec tous les détails
         const invoice = await ctx.db.invoice.findUnique({
-          where: { id: invoiceId },
+          where: { id },
           include: {
             user: {
               select: {
@@ -113,45 +94,33 @@ export const pdfRouter = router({
                     firstName: true,
                     lastName: true,
                     phone: true,
-                    address: true,
-                  },
-                },
-              },
-            },
+                    address: true}}}},
             invoiceItems: true,
             subscription: {
               select: {
                 planType: true,
                 currentPeriodStart: true,
-                currentPeriodEnd: true,
-              },
-            },
-          },
-        });
+                currentPeriodEnd: true}}}});
 
         if (!invoice) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Facture non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Facture non trouvée" });
         }
 
         // Vérifier que l'utilisateur a le droit d'accéder à cette facture
         if (
-          invoice.userId !== _ctx.session.user.id &&
-          _ctx.session.user.role !== "ADMIN"
+          invoice.userId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
         ) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'êtes pas autorisé à accéder à cette facture",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'êtes pas autorisé à accéder à cette facture" });
         }
 
         // Générer le contenu HTML de la facture
         const htmlContent = generateInvoiceHTML(invoice, includePaymentDetails);
 
         // Générer le nom de fichier
-        const timestamp = format(new Date(), "yyyy-MM-dd-HHmm", { locale: fr });
+        const timestamp = format(new Date(), "yyyy-MM-dd-HHmm", { locale });
         const filename = `facture-${invoice.number}-${timestamp}.pdf`;
 
         return {
@@ -163,60 +132,49 @@ export const pdfRouter = router({
             amount: invoice.amount,
             currency: invoice.currency,
             status: invoice.status,
-            dueDate: invoice.dueDate,
-          },
-        };
-      } catch (_error) {
+            dueDate: invoice.dueDate}};
+      } catch (error) {
         console.error("Erreur génération PDF facture:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la génération du PDF de facture",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la génération du PDF de facture" });
       }
     }),
 
   // Obtenir la liste des contrats disponibles pour génération PDF
-  getAvailableContracts: protectedProcedure.query(async ({ _ctx }) => {
+  getAvailableContracts: protectedProcedure.query(async ({ ctx  }) => {
     try {
       const contracts = await ctx.db.contractTemplate.findMany({
         where: {
           OR: [
-            { userId: _ctx.session.user.id },
-            { isPublic: true },
-            ...(_ctx.session.user.role === "ADMIN" ? [{}] : []),
-          ],
-        },
+            { userId: ctx.session.user.id },
+            { isPublic },
+            ...(ctx.session.user.role === "ADMIN" ? [{}] : [])]},
         select: {
           id: true,
           title: true,
           description: true,
           createdAt: true,
           isPublic: true,
-          userId: true,
-        },
+          userId: true},
         orderBy: {
-          createdAt: "desc",
-        },
-      });
+          createdAt: "desc"}});
 
       return contracts;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur récupération contrats:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des contrats",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des contrats" });
     }
   }),
 
   // Obtenir la liste des factures disponibles pour génération PDF
-  getAvailableInvoices: protectedProcedure.query(async ({ _ctx }) => {
+  getAvailableInvoices: protectedProcedure.query(async ({ ctx  }) => {
     try {
       const invoices = await ctx.db.invoice.findMany({
         where:
-          _ctx.session.user.role === "ADMIN"
+          ctx.session.user.role === "ADMIN"
             ? {}
-            : { userId: _ctx.session.user.id },
+            : { userId: ctx.session.user.id },
         select: {
           id: true,
           number: true,
@@ -225,27 +183,21 @@ export const pdfRouter = router({
           status: true,
           issuedDate: true,
           dueDate: true,
-          paidDate: true,
-        },
+          paidDate: true},
         orderBy: {
-          issuedDate: "desc",
-        },
-      });
+          issuedDate: "desc"}});
 
       return invoices;
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur récupération factures:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des factures",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des factures" });
     }
-  }),
-});
+  })});
 
 // Fonction pour générer le HTML du contrat
 function generateContractHTML(contract: any, templateType?: string): string {
-  const today = format(new Date(), "dd MMMM yyyy", { locale: fr });
+  const today = format(new Date(), "dd MMMM yyyy", { locale });
 
   return `
 <!DOCTYPE html>
@@ -331,7 +283,7 @@ function generateContractHTML(contract: any, templateType?: string): string {
     <div class="contract-info">
         <h2>${contract.title}</h2>
         <p><strong>Référence:</strong> ${contract.id}</p>
-        <p><strong>Date de création:</strong> ${format(new Date(contract.createdAt), "dd MMMM yyyy", { locale: fr })}</p>
+        <p><strong>Date de création:</strong> ${format(new Date(contract.createdAt), "dd MMMM yyyy", { locale })}</p>
         ${contract.description ? `<p><strong>Description:</strong> ${contract.description}</p>` : ""}
     </div>
 
@@ -399,7 +351,7 @@ function generateInvoiceHTML(
   invoice: any,
   includePaymentDetails: boolean,
 ): string {
-  const today = format(new Date(), "dd MMMM yyyy", { locale: fr });
+  const today = format(new Date(), "dd MMMM yyyy", { locale });
 
   // Calculer les totaux
   const subtotal = 0;
@@ -608,7 +560,7 @@ function generateInvoiceHTML(
     <div class="payment-info">
         <h3 style="margin-top: 0;">Informations de paiement</h3>
         <p><strong>Statut:</strong> ${invoice.status}<br>
-        ${invoice.paidDate ? `<strong>Payée le:</strong> ${format(new Date(invoice.paidDate), "dd MMMM yyyy", { locale: fr })}<br>` : ""}
+        ${invoice.paidDate ? `<strong>Payée le:</strong> ${format(new Date(invoice.paidDate), "dd MMMM yyyy", { locale })}<br>` : ""}
         ${invoice.subscription ? `<strong>Abonnement:</strong> ${invoice.subscription.planType}<br>` : ""}
         <strong>Conditions de paiement:</strong> Paiement à réception<br>
         <strong>Pénalités de retard:</strong> 3 fois le taux d'intérêt légal</p>

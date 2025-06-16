@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertCircle, ArrowRight, CheckCircle } from "lucide-react";
@@ -16,8 +15,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   useAnnouncement,
-  useClientAnnouncements,
-} from "@/hooks/delivery/use-announcement";
+  useClientAnnouncements} from "@/hooks/delivery/use-announcement";
 import { AnnouncementForm } from "@/components/client/announcements/announcement-create-form";
 import { CreateAnnouncementInput } from "@/schemas/delivery/announcement.schema";
 import { toast } from "sonner";
@@ -29,7 +27,7 @@ export default function CreateAnnouncementPage() {
   useRoleProtection(["CLIENT"]);
   const t = useTranslations("announcements");
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -65,17 +63,14 @@ export default function CreateAnnouncementPage() {
 
         // Notification de succès
         toast.success(t("createSuccess"), {
-          description: t("announcementCreated"),
-        });
+          description: t("announcementCreated")});
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setError(message);
 
       // Notification d'erreur
-      toast.error(t("createError"), {
-        description: message,
-      });
+      toast.error(t("createError"), { description });
     } finally {
       setIsSubmitting(false);
     }

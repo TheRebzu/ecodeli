@@ -10,17 +10,10 @@ export const merchantBillingService = {
         where: {
           status: "ACTIVE",
           nextPaymentDate: {
-            lte: new Date(),
-          },
-        },
+            lte: new Date()}},
         include: {
           user: {
-            include: {
-              merchant: true,
-            },
-          },
-        },
-      });
+            include: { merchant }}}});
 
       const processed = 0;
       const errors = 0;
@@ -37,33 +30,28 @@ export const merchantBillingService = {
               totalAmount: subscription.priceMonthly,
               issuedDate: new Date(),
               dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
-              description: `Abonnement ${subscription.planType} - ${new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`,
-            },
-          });
+              description: `Abonnement ${subscription.planType} - ${new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`}});
 
           // Mettre à jour la prochaine date de paiement
           await db.subscription.update({
             where: { id: subscription.id },
             data: {
-              nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            },
-          });
+              nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}});
 
           processed++;
           console.log(`Facture créée pour l'abonnement ${subscription.id}`);
-        } catch (_error) {
+        } catch (error) {
           console.error(`Erreur pour l'abonnement ${subscription.id}:`, error);
           errors++;
         }
       }
 
       return { processed, errors };
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors du traitement des paiements programmés:",
         error,
       );
       return { processed: 0, errors: 1 };
     }
-  },
-};
+  }};

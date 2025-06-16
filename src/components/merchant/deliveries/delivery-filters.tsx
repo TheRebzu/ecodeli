@@ -14,20 +14,17 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+  FormLabel} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/common";
 import { format } from "date-fns";
@@ -36,20 +33,16 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const DeliveryStatus = {
   PENDING: "PENDING",
-  ASSIGNED: "ASSIGNED",
-  IN_PROGRESS: "IN_PROGRESS",
+  ASSIGNED: "ASSIGNED", IN_PROGRESS: "IN_PROGRESS",
   DELIVERED: "DELIVERED",
   COMPLETED: "COMPLETED",
   CANCELLED: "CANCELLED",
-  PROBLEM: "PROBLEM",
-} as const;
+  PROBLEM: "PROBLEM"} as const;
 
-const deliveryFilterSchema = z.object({
-  status: z.string().optional(),
+const deliveryFilterSchema = z.object({ status: z.string().optional(),
   searchTerm: z.string().optional(),
   startDate: z.date().optional(),
-  endDate: z.date().optional(),
-});
+  endDate: z.date().optional() });
 
 type DeliveryFilterValues = z.infer<typeof deliveryFilterSchema>;
 
@@ -62,8 +55,7 @@ interface DeliveryFiltersProps {
 export function DeliveryFilters({
   onFilter,
   onClear,
-  initialFilters = {},
-}: DeliveryFiltersProps) {
+  initialFilters = {}}: DeliveryFiltersProps) {
   const t = useTranslations("merchant.deliveries.filters");
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [activeFiltersCount, setActiveFiltersCount] = useState(
@@ -81,9 +73,7 @@ export function DeliveryFilters({
         : undefined,
       endDate: initialFilters.endDate
         ? new Date(initialFilters.endDate)
-        : undefined,
-    },
-  });
+        : undefined}});
 
   const handleSubmit = (values: DeliveryFilterValues) => {
     // Count active filters
@@ -98,12 +88,10 @@ export function DeliveryFilters({
   };
 
   const handleClear = () => {
-    form.reset({
-      status: "",
+    form.reset({ status: "",
       searchTerm: "",
       startDate: undefined,
-      endDate: undefined,
-    });
+      endDate: undefined });
     setActiveFiltersCount(0);
     onClear();
   };
@@ -156,7 +144,7 @@ export function DeliveryFilters({
                   <FormField
                     control={form.control}
                     name="status"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("fields.status")}</FormLabel>
                         <Select
@@ -204,7 +192,7 @@ export function DeliveryFilters({
                   <FormField
                     control={form.control}
                     name="startDate"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>{t("fields.startDate")}</FormLabel>
                         <Popover>
@@ -218,7 +206,7 @@ export function DeliveryFilters({
                                 )}
                               >
                                 {field.value ? (
-                                  format(field.value, "PPP", { locale: fr })
+                                  format(field.value, "PPP", { locale })
                                 ) : (
                                   <span>{t("fields.pickDate")}</span>
                                 )}
@@ -261,7 +249,7 @@ export function DeliveryFilters({
                   <FormField
                     control={form.control}
                     name="endDate"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>{t("fields.endDate")}</FormLabel>
                         <Popover>
@@ -275,7 +263,7 @@ export function DeliveryFilters({
                                 )}
                               >
                                 {field.value ? (
-                                  format(field.value, "PPP", { locale: fr })
+                                  format(field.value, "PPP", { locale })
                                 ) : (
                                   <span>{t("fields.pickDate")}</span>
                                 )}

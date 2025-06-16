@@ -25,7 +25,7 @@ export function Link({
   const defaultLocale = useLocale();
   const locale = localeProp || defaultLocale;
 
-  let newHref = href;
+  const newHref = href;
 
   // Gérer les chemins relatifs et absolus
   if (typeof href === "string") {
@@ -37,7 +37,7 @@ export function Link({
       const pathParts = pathname.split("/");
       pathParts.pop(); // Enlever la dernière partie
 
-      let basePath = pathParts.join("/");
+      const basePath = pathParts.join("/");
       if (!basePath.startsWith(`/${locale}`)) {
         basePath = `/${locale}${basePath}`;
       }
@@ -76,6 +76,5 @@ export function useLocalizedLinks() {
 
   return {
     getLocalizedHref,
-    t,
-  };
+    t};
 }

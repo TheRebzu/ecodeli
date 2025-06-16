@@ -9,8 +9,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -18,8 +17,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,15 +34,13 @@ import {
   X,
   Loader2,
   Calendar,
-  Info,
-} from "lucide-react";
+  Info} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/common";
 
 // Schéma de validation pour l'upload de document
-const documentUploadSchema = z.object({
-  file: z
+const documentUploadSchema = z.object({ file: z
     .instanceof(File)
     .refine(
       (file) => file.size <= 10 * 1024 * 1024, // 10MB max
@@ -58,8 +54,7 @@ const documentUploadSchema = z.object({
       "Seuls les formats JPG, PNG, WebP et PDF sont acceptés",
     ),
   expiryDate: z.string().optional(),
-  notes: z.string().optional(),
-});
+  notes: z.string().optional() });
 
 type FormValues = z.infer<typeof documentUploadSchema>;
 
@@ -76,7 +71,7 @@ interface DocumentUploadFormProps {
 }
 
 // Configuration des types de documents
-const DOCUMENT_CONFIG: Record<
+const _DOCUMENT_CONFIG: Record<
   string,
   {
     label: string;
@@ -95,10 +90,7 @@ const DOCUMENT_CONFIG: Record<
       "Document recto-verso complet",
       "Photo nette et bien éclairée",
       "Toutes les informations doivent être lisibles",
-      "Document non expiré",
-    ],
-  },
-  DRIVING_LICENSE: {
+      "Document non expiré"]}, DRIVING_LICENSE: {
     label: "Permis de conduire",
     description: "Permis de conduire en cours de validité",
     hasExpiry: true,
@@ -107,9 +99,7 @@ const DOCUMENT_CONFIG: Record<
       "Document recto-verso complet",
       "Vérifiez que la date d'expiration est visible",
       "Catégories de véhicules bien visibles",
-      "Photo d'identité claire",
-    ],
-  },
+      "Photo d'identité claire"]},
   INSURANCE: {
     label: "Attestation d'assurance",
     description: "Attestation d'assurance véhicule en cours de validité",
@@ -119,10 +109,7 @@ const DOCUMENT_CONFIG: Record<
       "Document original ou copie certifiée",
       "Vérifiez la période de validité",
       "Numéro de police visible",
-      "Coordonnées de l'assureur présentes",
-    ],
-  },
-  VEHICLE_REGISTRATION: {
+      "Coordonnées de l'assureur présentes"]}, VEHICLE_REGISTRATION: {
     label: "Carte grise",
     description: "Certificat d'immatriculation du véhicule",
     hasExpiry: false,
@@ -131,10 +118,7 @@ const DOCUMENT_CONFIG: Record<
       "Document recto-verso si applicable",
       "Numéro d'immatriculation visible",
       "Informations du propriétaire lisibles",
-      "Caractéristiques techniques du véhicule",
-    ],
-  },
-  BACKGROUND_CHECK: {
+      "Caractéristiques techniques du véhicule"]}, BACKGROUND_CHECK: {
     label: "Extrait de casier judiciaire",
     description: "Bulletin n°3 du casier judiciaire (moins de 3 mois)",
     hasExpiry: true,
@@ -143,10 +127,7 @@ const DOCUMENT_CONFIG: Record<
       "Document de moins de 3 mois",
       "Tampon officiel visible",
       "Informations personnelles complètes",
-      "Document scanné en haute qualité",
-    ],
-  },
-  MEDICAL_CERTIFICATE: {
+      "Document scanné en haute qualité"]}, MEDICAL_CERTIFICATE: {
     label: "Certificat médical",
     description: "Certificat médical d'aptitude à la conduite",
     hasExpiry: true,
@@ -155,10 +136,7 @@ const DOCUMENT_CONFIG: Record<
       "Certificat de moins d'un an",
       "Signature et tampon du médecin",
       "Mention de l'aptitude à la conduite",
-      "Coordonnées du praticien",
-    ],
-  },
-  BANK_DETAILS: {
+      "Coordonnées du praticien"]}, BANK_DETAILS: {
     label: "RIB",
     description: "Relevé d'identité bancaire",
     hasExpiry: false,
@@ -167,10 +145,7 @@ const DOCUMENT_CONFIG: Record<
       "IBAN et BIC clairement visibles",
       "Nom du titulaire identique au compte",
       "Coordonnées de la banque",
-      "Document récent et officiel",
-    ],
-  },
-  ADDRESS_PROOF: {
+      "Document récent et officiel"]}, ADDRESS_PROOF: {
     label: "Justificatif de domicile",
     description: "Facture ou document officiel de moins de 3 mois",
     hasExpiry: true,
@@ -179,18 +154,14 @@ const DOCUMENT_CONFIG: Record<
       "Document de moins de 3 mois",
       "Adresse complète visible",
       "Nom et prénom du titulaire",
-      "Organisme émetteur officiel",
-    ],
-  },
-};
+      "Organisme émetteur officiel"]}};
 
 export default function DocumentUploadForm({
   documentType,
   open,
   onOpenChange,
   onSubmit,
-  isLoading = false,
-}: DocumentUploadFormProps) {
+  isLoading = false}: DocumentUploadFormProps) {
   const t = useTranslations("documents.upload");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [preview, setPreview] = useState<string | null>(null);
@@ -203,9 +174,7 @@ export default function DocumentUploadForm({
     resolver: zodResolver(documentUploadSchema),
     defaultValues: {
       expiryDate: "",
-      notes: "",
-    },
-  });
+      notes: ""}});
 
   // Gérer la sélection de fichier
   const handleFileSelect = (file: File) => {
@@ -260,11 +229,9 @@ export default function DocumentUploadForm({
         });
       }, 100);
 
-      await onSubmit({
-        file: values.file,
+      await onSubmit({ file: values.file,
         expiryDate: values.expiryDate,
-        notes: values.notes,
-      });
+        notes: values.notes });
 
       clearInterval(interval);
       setUploadProgress(100);
@@ -329,7 +296,7 @@ export default function DocumentUploadForm({
               <Controller
                 control={form.control}
                 name="file"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Document *</FormLabel>
                     <FormControl>
@@ -478,7 +445,7 @@ export default function DocumentUploadForm({
               <Controller
                 control={form.control}
                 name="expiryDate"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
@@ -504,7 +471,7 @@ export default function DocumentUploadForm({
             <Controller
               control={form.control}
               name="notes"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>Notes additionnelles</FormLabel>
                   <FormControl>

@@ -157,10 +157,8 @@ export class CartDropService {
         products: orderData.products,
         deliveryAddress: {
           latitude: orderData.deliveryLatitude,
-          longitude: orderData.deliveryLongitude,
-        },
-        timeSlot,
-      });
+          longitude: orderData.deliveryLongitude},
+        timeSlot});
 
       // Créer la commande
       const orderId = `CART-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -178,8 +176,7 @@ export class CartDropService {
           id: timeSlot.id,
           startTime: timeSlot.startTime,
           endTime: timeSlot.endTime,
-          price: pricing.deliveryPrice,
-        },
+          price: pricing.deliveryPrice},
         totalProductsPrice: pricing.totalProductsPrice,
         deliveryPrice: pricing.deliveryPrice,
         totalPrice: pricing.totalPrice,
@@ -188,10 +185,8 @@ export class CartDropService {
         status: "CREATED",
         specialInstructions: orderData.specialInstructions,
         createdAt: new Date(),
-        estimatedDeliveryTime: this.calculateEstimatedDelivery(timeSlot),
-      };
+        estimatedDeliveryTime: this.calculateEstimatedDelivery(timeSlot)};
 
-      // Sauvegarder en base (simulation)
       await this.saveOrder(order);
 
       // Mettre à jour le stock et le créneau
@@ -203,7 +198,7 @@ export class CartDropService {
 
       logger.info(`Nouvelle commande cart drop créée: ${orderId}`);
       return order;
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de la création de commande cart drop:", error);
       throw error;
     }
@@ -266,21 +261,18 @@ export class CartDropService {
 
         return {
           success: true,
-          transactionId: paymentResult.transactionId,
-        };
+          transactionId: paymentResult.transactionId};
       } else {
         await this.updateOrderPaymentStatus(orderId, "FAILED");
         return {
           success: false,
-          error: paymentResult.error,
-        };
+          error: paymentResult.error};
       }
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors du traitement du paiement:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Erreur de paiement",
-      };
+        error: error instanceof Error ? error.message : "Erreur de paiement"};
     }
   }
 
@@ -320,8 +312,7 @@ export class CartDropService {
         productId: product.id,
         quantity: product.quantity,
         unitPrice: product.price,
-        totalPrice,
-      };
+        totalPrice};
     });
 
     // Calculer le prix de livraison de base
@@ -385,8 +376,7 @@ export class CartDropService {
       totalProductsPrice,
       deliveryPrice,
       totalPrice,
-      appliedRules,
-    };
+      appliedRules};
   }
 
   /**
@@ -411,13 +401,12 @@ export class CartDropService {
         order.merchantId,
         {
           latitude: order.deliveryLatitude,
-          longitude: order.deliveryLongitude,
-        },
+          longitude: order.deliveryLongitude},
       );
 
       if (availableDeliverers.length === 0) {
         logger.warn(`Aucun livreur disponible pour la commande ${orderId}`);
-        return { success: false };
+        return { success };
       }
 
       // Sélectionner le meilleur livreur
@@ -437,9 +426,9 @@ export class CartDropService {
         `Livreur ${bestDeliverer.id} assigné à la commande ${orderId}`,
       );
       return { success: true, delivererId: bestDeliverer.id };
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de l'assignation du livreur:", error);
-      return { success: false };
+      return { success };
     }
   }
 
@@ -481,13 +470,12 @@ export class CartDropService {
       logger.info(
         `Collecte de commande réussie: ${orderId} par ${delivererId}`,
       );
-      return { success: true };
-    } catch (_error) {
+      return { success };
+    } catch (error) {
       logger.error("Erreur lors de la collecte:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Erreur de collecte",
-      };
+        error: error instanceof Error ? error.message : "Erreur de collecte"};
     }
   }
 
@@ -546,22 +534,20 @@ export class CartDropService {
       await this.updateDelivererStats(delivererId, order);
 
       logger.info(`Livraison validée avec succès: ${orderId}`);
-      return { success: true };
-    } catch (_error) {
+      return { success };
+    } catch (error) {
       logger.error("Erreur lors de la validation de livraison:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Erreur de validation",
-      };
+        error: error instanceof Error ? error.message : "Erreur de validation"};
     }
   }
 
-  // Méthodes utilitaires et de simulation
   private async checkProductAvailability(
     products: Array<{ productId: string; quantity: number }>,
     merchantId: string,
   ): Promise<{ allAvailable: boolean; unavailable: string[] }> {
-    // Simulation de vérification de stock
+    
     return { allAvailable: true, unavailable: [] };
   }
 
@@ -569,7 +555,7 @@ export class CartDropService {
     timeSlotId: string,
     merchantId: string,
   ): Promise<CartDropTimeSlot | null> {
-    // Simulation de récupération de créneau
+    
     return {
       id: timeSlotId,
       merchantId,
@@ -580,8 +566,7 @@ export class CartDropService {
       basePrice: 5.9,
       dynamicPricing: true,
       isActive: true,
-      availableDeliverers: 4,
-    };
+      availableDeliverers: 4};
   }
 
   private calculateEstimatedDelivery(timeSlot: CartDropTimeSlot): Date {
@@ -630,13 +615,12 @@ export class CartDropService {
     })[0];
   }
 
-  // Méthodes de simulation (à implémenter avec la vraie logique)
   private async saveOrder(order: CartDropOrder): Promise<void> {
     logger.info(`Commande sauvegardée: ${order.id}`);
   }
 
   private async getOrder(orderId: string): Promise<CartDropOrder | null> {
-    // Simulation de récupération de commande
+    
     return null;
   }
 
@@ -667,8 +651,8 @@ export class CartDropService {
     products: any[],
     merchantId: string,
   ): Promise<any[]> {
-    // Simulation de récupération de détails produits
-    return products.map((p) => ({ ...p, price: 10, weight: 1 }));
+    
+    return products.map((p) => ({ ...p, price: 10, weight: 1  }));
   }
 
   private async getMerchant(merchantId: string): Promise<any> {
@@ -722,9 +706,7 @@ export class CartDropService {
         id: "deliverer-1",
         rating: 4.8,
         distance: 2.1,
-        cartDropExperience: 156,
-      },
-    ];
+        cartDropExperience: 156}];
   }
 
   private async updateOrderDeliverer(

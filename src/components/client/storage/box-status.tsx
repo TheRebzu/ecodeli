@@ -1,3 +1,3 @@
-export function BoxStatus({ status }) {
+export function BoxStatus({ status  }) {
   return <div>Statut: {status}</div>;
 }

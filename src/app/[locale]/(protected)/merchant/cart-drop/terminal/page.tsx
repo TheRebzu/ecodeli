@@ -29,29 +29,24 @@ import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 import { toast } from "sonner";
 import { CartDropTerminalInterface } from "@/components/shared/announcements/cart-drop-terminal-interface";
 
-// Types pour les produits (simulation)
+// Types pour les produits
 interface Product {
   id: string;
   name: string;
-  description?: string;
   price: number;
-  weight: number;
   category: string;
-  isFragile: boolean;
-  needsCooling: boolean;
   image?: string;
-  inStock: boolean;
   barcode?: string;
 }
 
-// Types pour les créneaux horaires (simulation)
+// Types pour les créneaux horaires
 interface TimeSlot {
   id: string;
   startTime: string;
   endTime: string;
-  available: boolean;
-  delivererCount: number;
-  price: number;
+  isAvailable: boolean;
+  maxCapacity: number;
+  currentBookings: number;
 }
 
 // Types pour les informations du commerçant
@@ -73,12 +68,11 @@ export default function CartDropTerminalPage() {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [todayStats, setTodayStats] = useState({
-    orders: 0,
+  const [todayStats, setTodayStats] = useState({ orders: 0,
     revenue: 0,
     deliveries: 0,
     avgRating: 0,
-  });
+   });
 
   // Charger les données du commerçant et de la borne
   useEffect(() => {
@@ -142,11 +136,10 @@ export default function CartDropTerminalPage() {
       });
 
       // Mettre à jour les statistiques
-      setTodayStats((prev) => ({
-        ...prev,
+      setTodayStats((prev) => ({ ...prev,
         orders: prev.orders + 1,
         revenue: prev.revenue + orderData.totalPrice,
-      }));
+       }));
 
       toast.success(t("orderCreatedSuccess", { orderId }));
       return orderId;
@@ -156,14 +149,23 @@ export default function CartDropTerminalPage() {
     }
   };
 
+  // Parser les données QR
+  const parseQRData = (qrData: string) => {
+    try {
+      return JSON.parse(qrData);
+    } catch {
+      return { type: 'unknown', data: qrData };
+    }
+  };
+
   // Identifier un client par QR code
   const handleScanQR = async (qrData: string) => {
     try {
       // Simuler l'identification par QR
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Parser les données QR (simulation)
-      const clientData = JSON.parse(qrData);
+      // Parser les données QR
+      const clientData = parseQRData(qrData);
 
       return {
         id: clientData.id || "client-qr-123",
@@ -209,7 +211,7 @@ export default function CartDropTerminalPage() {
             <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
+            {Array.from({ length: 4  }).map((_, i) => (
               <div
                 key={i}
                 className="h-24 bg-muted rounded animate-pulse"
@@ -423,7 +425,7 @@ export default function CartDropTerminalPage() {
               <div
                 key={slot.id}
                 className={`p-4 rounded-lg border ${
-                  slot.available
+                  slot.isAvailable
                     ? "border-green-200 bg-green-50"
                     : "border-red-200 bg-red-50"
                 }`}
@@ -432,13 +434,13 @@ export default function CartDropTerminalPage() {
                   <span className="font-medium">
                     {slot.startTime} - {slot.endTime}
                   </span>
-                  <Badge variant={slot.available ? "default" : "secondary"}>
-                    {slot.available ? t("available") : t("full")}
+                  <Badge variant={slot.isAvailable ? "default" : "secondary"}>
+                    {slot.isAvailable ? t("available") : t("full")}
                   </Badge>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   <p>
-                    {t("deliverers")}: {slot.delivererCount}
+                    {t("deliverers")}: {slot.currentBookings}/{slot.maxCapacity}
                   </p>
                   <p>
                     {t("price")}: {formatCurrency(slot.price)}

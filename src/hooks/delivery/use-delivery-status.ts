@@ -3,8 +3,7 @@ import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import {
   useDeliveryTrackingStore,
-  useStatusHistory,
-} from "@/store/use-delivery-tracking-store";
+  useStatusHistory} from "@/store/use-delivery-tracking-store";
 import { DeliveryStatus } from "@prisma/client";
 import { socket, emitDeliveryTrackingEvent } from "@/socket";
 
@@ -41,9 +40,7 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
 
     setIsLoadingStatuses(true);
     try {
-      const statuses = await api.delivery.getAvailableStatuses.query({
-        id: deliveryId,
-      });
+      const statuses = await api.delivery.getAvailableStatuses.query({ id  });
       setAvailableStatuses(statuses);
     } catch (error) {
       console.error(
@@ -59,8 +56,7 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
   const updateStatus = useCallback(
     async ({
       status,
-      options = {},
-    }: {
+      options = {}}: {
       status: DeliveryStatus;
       options?: StatusUpdateOptions;
     }) => {
@@ -77,15 +73,12 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
           location:
             options.latitude && options.longitude
               ? { latitude: options.latitude, longitude: options.longitude }
-              : undefined,
-        });
+              : undefined});
 
         // Mettre à jour le dernier statut
-        setLastStatusUpdate({
-          status,
+        setLastStatusUpdate({ status,
           timestamp: new Date(),
-          success: true,
-        });
+          success: true });
 
         // Message de succès
         toast.success(`Statut mis à jour: ${status}`);
@@ -130,8 +123,7 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
 
     // États
     isLoading: isLoadingStatuses,
-    isUpdating,
-  };
+    isUpdating};
 }
 
 /**
@@ -153,9 +145,7 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
     setIsLoading(true);
     setError(null);
     try {
-      const history = await api.delivery.getStatusHistory.query({
-        id: deliveryId,
-      });
+      const history = await api.delivery.getStatusHistory.query({ id  });
       setStatusHistory(history);
     } catch (err) {
       const errorObj =
@@ -198,10 +188,8 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
       );
 
       if (!exists) {
-        merged.push({
-          ...status,
-          timestamp: status.timestamp,
-        });
+        merged.push({ ...status,
+          timestamp: status.timestamp });
       }
     });
 
@@ -260,8 +248,7 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
 
     // États
     isLoading,
-    error,
-  };
+    error};
 }
 
 /**
@@ -277,7 +264,7 @@ export function useDeliveryETA(deliveryId?: string) {
 
     setIsCalculating(true);
     try {
-      const etaData = await api.delivery.calculateETA.query({ id: deliveryId });
+      const etaData = await api.delivery.calculateETA.query({ id  });
       setEta(
         etaData.estimatedDeliveryTime
           ? new Date(etaData.estimatedDeliveryTime)
@@ -297,15 +284,12 @@ export function useDeliveryETA(deliveryId?: string) {
   return {
     eta,
     isCalculating,
-    recalculate: calculateETA,
-  };
+    recalculate: calculateETA};
 }
 
 // Hook pour obtenir les détails d'une livraison
 export function useDeliveryDetails(deliveryId: string) {
-  const { data: delivery, isLoading } = api.delivery.getDetails.useQuery({
-    deliveryId,
-  });
+  const { data: delivery, isLoading } = api.delivery.getDetails.useQuery({ deliveryId });
 
   return {
     delivery,

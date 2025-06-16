@@ -4,8 +4,7 @@ import React, {
   createContext,
   useContext,
   useState,
-  type ReactNode,
-} from "react";
+  type ReactNode} from "react";
 
 // Types pour le contexte onboarding
 export interface OnboardingStep {
@@ -43,8 +42,7 @@ interface OnboardingProviderProps {
 
 export function OnboardingProvider({
   children,
-  steps = [],
-}: OnboardingProviderProps) {
+  steps = []}: OnboardingProviderProps) {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [onboardingSteps, setOnboardingSteps] =
@@ -86,7 +84,7 @@ export function OnboardingProvider({
     setIsActive(false);
     setCurrentStep(0);
     setOnboardingSteps((prev: OnboardingStep[]) =>
-      prev.map((step: OnboardingStep) => ({ ...step, completed: false })),
+      prev.map((step: OnboardingStep) => ({ ...step, completed: false  })),
     );
   };
 
@@ -99,8 +97,7 @@ export function OnboardingProvider({
     previousStep,
     completeStep,
     skipOnboarding,
-    resetOnboarding,
-  };
+    resetOnboarding};
 
   return (
     <OnboardingContext.Provider value={value}>

@@ -3,8 +3,7 @@ import UsersVerificationList from "@/components/admin/verification/users-verific
 
 export const metadata: Metadata = {
   title: "Vérification des prestataires | EcoDeli Admin",
-  description: "Vérifiez et approuvez les documents des prestataires",
-};
+  description: "Vérifiez et approuvez les documents des prestataires"};
 
 /**
  * Page d'administration pour la vérification des documents des prestataires

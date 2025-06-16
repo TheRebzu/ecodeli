@@ -15,5 +15,4 @@ export const {
   // For server-side redirects
   redirect,
   // For generating pathnames with locale
-  getPathname,
-} = createNavigation(routing);
+  getPathname} = createNavigation(routing);

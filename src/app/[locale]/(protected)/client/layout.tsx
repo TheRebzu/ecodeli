@@ -1,6 +1,7 @@
 import { ProtectedHeader } from "@/components/layout/protected/header";
 import { ProtectedFooter } from "@/components/layout/protected/footer";
 import { ClientSidebar } from "@/components/layout/sidebars/client-sidebar";
+import { MandatoryTutorialWrapper } from "@/components/client/onboarding/mandatory-tutorial-wrapper";
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -11,8 +12,7 @@ interface ClientLayoutProps {
 
 export default async function ClientLayout({
   children,
-  params,
-}: ClientLayoutProps) {
+  params}: ClientLayoutProps) {
   const { locale } = await params;
 
   return (
@@ -28,7 +28,9 @@ export default async function ClientLayout({
 
         <main className="flex-1 overflow-x-hidden bg-muted/10">
           <div className="container max-w-7xl mx-auto p-4 md:p-8">
-            {children}
+            <MandatoryTutorialWrapper requireMission1={true}>
+              {children}
+            </MandatoryTutorialWrapper>
           </div>
         </main>
       </div>

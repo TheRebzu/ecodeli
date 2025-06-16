@@ -5,8 +5,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight, Clock, FileText, Megaphone, Plus } from "lucide-react";
@@ -31,25 +30,19 @@ const announcementStatusMap: Record<
 > = {
   PENDING: {
     color: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    icon: <Clock className="h-3 w-3" />,
-  },
+    icon: <Clock className="h-3 w-3" />},
   PUBLISHED: {
     color: "bg-blue-100 text-blue-800 border-blue-300",
-    icon: <Megaphone className="h-3 w-3" />,
-  },
+    icon: <Megaphone className="h-3 w-3" />},
   ASSIGNED: {
     color: "bg-indigo-100 text-indigo-800 border-indigo-300",
-    icon: <FileText className="h-3 w-3" />,
-  },
+    icon: <FileText className="h-3 w-3" />},
   COMPLETED: {
     color: "bg-green-100 text-green-800 border-green-300",
-    icon: <FileText className="h-3 w-3" />,
-  },
+    icon: <FileText className="h-3 w-3" />},
   CANCELLED: {
     color: "bg-red-100 text-red-800 border-red-300",
-    icon: <Clock className="h-3 w-3" />,
-  },
-};
+    icon: <Clock className="h-3 w-3" />}};
 
 type Announcement = {
   id: string;
@@ -67,8 +60,7 @@ type ActiveAnnouncementsProps = {
 
 export function ActiveAnnouncements({
   announcements = [],
-  isLoading = false,
-}: ActiveAnnouncementsProps) {
+  isLoading = false}: ActiveAnnouncementsProps) {
   const t = useTranslations("dashboard.client");
   const router = useRouter();
   const locale = useLocale();
@@ -126,8 +118,7 @@ export function ActiveAnnouncements({
             const announcementDate = parseISO(announcement.createdAt);
             const formattedDate = formatDistanceToNow(announcementDate, {
               addSuffix: true,
-              locale: dateLocale,
-            });
+              locale: dateLocale});
 
             return (
               <div

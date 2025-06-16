@@ -34,8 +34,7 @@ export function TutorialOverlay({
   title,
   isMission1 = false,
   showTimer = false,
-  estimatedTime = 5,
-}: TutorialOverlayProps) {
+  estimatedTime = 5}: TutorialOverlayProps) {
   const [timeSpent, setTimeSpent] = useState(0);
 
   // Timer pour Mission 1

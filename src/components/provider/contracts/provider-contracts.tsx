@@ -8,8 +8,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,8 +22,7 @@ import {
   Edit,
   AlertCircle,
   CheckCircle,
-  XCircle,
-} from "lucide-react";
+  XCircle} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
@@ -54,21 +52,17 @@ export function ProviderContracts() {
     data: contractsData,
     isLoading,
     error,
-    refetch,
-  } = api.provider.getContracts.useQuery({
-    status: selectedTab === "all" ? undefined : selectedTab.toUpperCase(),
-  });
+    refetch} = api.provider.getContracts.useQuery({ status: selectedTab === "all" ? undefined : selectedTab.toUpperCase() });
 
   // Récupération des statistiques des contrats
-  const { data: statsData } = api.provider.getContractStats.useQuery();
+  const { data } = api.provider.getContractStats.useQuery();
 
   const contracts = contractsData?.contracts || [];
   const stats = statsData || {
     totalContracts: 0,
     activeContracts: 0,
     totalEarnings: 0,
-    pendingContracts: 0,
-  };
+    pendingContracts: 0};
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -76,14 +70,12 @@ export function ProviderContracts() {
       PENDING: { label: "En attente", variant: "secondary" as const, icon: Clock },
       DRAFT: { label: "Brouillon", variant: "outline" as const, icon: Edit },
       EXPIRED: { label: "Expiré", variant: "destructive" as const, icon: XCircle },
-      TERMINATED: { label: "Terminé", variant: "outline" as const, icon: XCircle },
-    };
+      TERMINATED: { label: "Terminé", variant: "outline" as const, icon: XCircle }};
 
     const config = statusConfig[status as keyof typeof statusConfig] || {
       label: status,
       variant: "outline" as const,
-      icon: AlertCircle,
-    };
+      icon: AlertCircle};
 
     const Icon = config.icon;
 
@@ -96,35 +88,30 @@ export function ProviderContracts() {
   };
 
   const formatDate = (date: Date | string) => {
-    return format(new Date(date), "dd MMM yyyy", { locale: fr });
+    return format(new Date(date), "dd MMM yyyy", { locale });
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const handleDownloadContract = async (contractId: string) => {
     try {
       // Ici on appellerait l'API pour télécharger le contrat
-      toast({
-        title: "Téléchargement en cours",
-        description: "Le contrat va être téléchargé...",
-      });
+      toast({ title: "Téléchargement en cours",
+        description: "Le contrat va être téléchargé..." });
     } catch (error) {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Impossible de télécharger le contrat",
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
   const handleViewContract = (contractId: string) => {
     // Navigation vers la page de détail du contrat
-    window.open(`/provider/contracts/${contractId}`, '_blank');
+    window.open(`/provider/contracts/${contractId}`, 'blank');
   };
 
   if (isLoading) {

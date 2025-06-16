@@ -12,15 +12,13 @@ import {
   Calendar,
   DollarSign,
   TrendingUp,
-  AlertTriangle,
-} from "lucide-react";
+  AlertTriangle} from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -31,15 +29,13 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 // import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { api } from "@/trpc/react";
@@ -65,21 +61,17 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
 
   // Récupérer les factures du merchant
   const { data: invoicesData, isLoading: invoicesLoading } =
-    api.invoice.getMerchantInvoices.useQuery({
-      page: currentPage,
+    api.invoice.getMerchantInvoices.useQuery({ page: currentPage,
       limit: 10,
       status: statusFilter === "ALL" ? undefined : statusFilter,
       startDate: dateRange.from,
       endDate: dateRange.to,
       invoiceType: invoiceTypeFilter,
-      sortOrder: "desc",
-    });
+      sortOrder: "desc" });
 
   // Récupérer les statistiques de facturation
   const { data: stats, isLoading: statsLoading } =
-    api.invoice.getMerchantBillingStats.useQuery({
-      period: "MONTH",
-    });
+    api.invoice.getMerchantBillingStats.useQuery({ period: "MONTH" });
 
   const invoices = invoicesData?.invoices || [];
   const pagination = invoicesData?.pagination;
@@ -89,14 +81,13 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   // Formatage des dates
   const formatDate = (date: Date | string) => {
     const dateObj = typeof date === "string" ? new Date(date) : date;
-    return format(dateObj, "dd/MM/yyyy", { locale: fr });
+    return format(dateObj, "dd/MM/yyyy", { locale });
   };
 
   // Badge de statut de facture
@@ -105,29 +96,23 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
       DRAFT: {
         variant: "secondary" as const,
         label: "Brouillon",
-        color: "text-gray-600",
-      },
+        color: "text-gray-600"},
       PENDING: {
         variant: "default" as const,
         label: "En attente",
-        color: "text-orange-600",
-      },
+        color: "text-orange-600"},
       PAID: {
         variant: "default" as const,
         label: "Payée",
-        color: "text-green-600",
-      },
+        color: "text-green-600"},
       CANCELLED: {
         variant: "destructive" as const,
         label: "Annulée",
-        color: "text-red-600",
-      },
+        color: "text-red-600"},
       REFUNDED: {
         variant: "outline" as const,
         label: "Remboursée",
-        color: "text-blue-600",
-      },
-    };
+        color: "text-blue-600"}};
 
     const config =
       statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT;
@@ -140,7 +125,7 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
 
   // Actions sur les factures
   const handleViewInvoice = (invoiceId: string) => {
-    window.open(`/merchant/invoices/${invoiceId}`, "_blank");
+    window.open(`/merchant/invoices/${invoiceId}`, "blank");
   };
 
   const handleDownloadInvoice = async (invoiceId: string) => {
@@ -314,10 +299,8 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
                     : ""
                 }
                 onChange={(e) =>
-                  setDateRange((prev) => ({
-                    ...prev,
-                    from: e.target.value ? new Date(e.target.value) : undefined,
-                  }))
+                  setDateRange((prev) => ({ ...prev,
+                    from: e.target.value ? new Date(e.target.value) : undefined }))
                 }
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
@@ -327,10 +310,8 @@ export function MerchantInvoiceList({ className }: MerchantInvoiceListProps) {
                   dateRange.to ? dateRange.to.toISOString().split("T")[0] : ""
                 }
                 onChange={(e) =>
-                  setDateRange((prev) => ({
-                    ...prev,
-                    to: e.target.value ? new Date(e.target.value) : undefined,
-                  }))
+                  setDateRange((prev) => ({ ...prev,
+                    to: e.target.value ? new Date(e.target.value) : undefined }))
                 }
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />

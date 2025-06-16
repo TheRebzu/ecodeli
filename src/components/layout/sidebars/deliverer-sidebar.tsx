@@ -32,12 +32,10 @@ import {
   AlertCircle,
   Archive,
   Users,
-  Globe,
-} from "lucide-react";
+  Globe} from "lucide-react";
 import {
   BaseSidebar,
-  type SidebarSection,
-} from "@/components/layout/sidebars/base-sidebar";
+  type SidebarSection} from "@/components/layout/sidebars/base-sidebar";
 
 interface DelivererSidebarProps {
   locale: string;
@@ -55,10 +53,7 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
           label: "Tableau de bord",
           href: `/${locale}/deliverer`,
           icon: Home,
-          badge: 2,
-        },
-      ],
-    },
+          badge: 2}]},
 
     // Section Annonces et opportunités
     {
@@ -68,10 +63,7 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
           label: "Annonces disponibles",
           href: `/${locale}/deliverer/announcements`,
           icon: Megaphone,
-          badge: 5,
-        },
-      ],
-    },
+          badge: 5}]},
 
     // Section Livraisons
     {
@@ -81,15 +73,11 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
           label: "Livraisons actives",
           href: `/${locale}/deliverer/deliveries/active`,
           icon: Package,
-          badge: 3,
-        },
+          badge: 3},
         {
           label: "Toutes les livraisons",
           href: `/${locale}/deliverer/deliveries`,
-          icon: Truck,
-        },
-      ],
-    },
+          icon: Truck}]},
 
     // Section Planning et disponibilités
     {
@@ -98,25 +86,19 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
         {
           label: "Mon planning",
           href: `/${locale}/deliverer/schedule`,
-          icon: Calendar,
-        },
+          icon: Calendar},
         {
           label: "Disponibilités",
           href: `/${locale}/deliverer/availability`,
-          icon: Clock,
-        },
+          icon: Clock},
         {
           label: "Mes trajets",
           href: `/${locale}/deliverer/my-routes`,
-          icon: Route,
-        },
+          icon: Route},
         {
           label: "Créer trajet",
           href: `/${locale}/deliverer/my-routes/create`,
-          icon: MapPin,
-        },
-      ],
-    },
+          icon: MapPin}]},
 
     // Section Documents et vérifications
     {
@@ -125,20 +107,15 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
         {
           label: "Mes documents",
           href: `/${locale}/deliverer/documents`,
-          icon: FileText,
-        },
+          icon: FileText},
         {
           label: "Contrats",
           href: `/${locale}/deliverer/contracts`,
-          icon: FileText,
-        },
+          icon: FileText},
         {
           label: "Conditions",
           href: `/${locale}/deliverer/contracts/terms`,
-          icon: Shield,
-        },
-      ],
-    },
+          icon: Shield}]},
 
     // Section Financier
     {
@@ -147,20 +124,15 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
         {
           label: "Mon portefeuille",
           href: `/${locale}/deliverer/wallet`,
-          icon: Wallet,
-        },
+          icon: Wallet},
         {
           label: "Retrait",
           href: `/${locale}/deliverer/wallet/withdrawal`,
-          icon: Download,
-        },
+          icon: Download},
         {
           label: "Paiements",
           href: `/${locale}/deliverer/payments`,
-          icon: CreditCard,
-        },
-      ],
-    },
+          icon: CreditCard}]},
 
     // Section Statistiques et performance
     {
@@ -169,20 +141,15 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
         {
           label: "Mes statistiques",
           href: `/${locale}/deliverer/stats`,
-          icon: BarChart3,
-        },
+          icon: BarChart3},
         {
           label: "Gains",
           href: `/${locale}/deliverer/stats/earnings`,
-          icon: DollarSign,
-        },
+          icon: DollarSign},
         {
           label: "Performance",
           href: `/${locale}/deliverer/stats/performance`,
-          icon: TrendingUp,
-        },
-      ],
-    },
+          icon: TrendingUp}]},
 
     // Section Communication
     {
@@ -192,16 +159,12 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
           label: "Messages",
           href: `/${locale}/deliverer/messages`,
           icon: MessageSquare,
-          badge: 2,
-        },
+          badge: 2},
         {
           label: "Notifications",
           href: `/${locale}/deliverer/notifications`,
           icon: Bell,
-          badge: notifications,
-        },
-      ],
-    },
+          badge: notifications}]},
 
     // Section Profil
     {
@@ -210,23 +173,17 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
         {
           label: "Mon profil",
           href: `/${locale}/deliverer/profile`,
-          icon: User,
-        },
-      ],
-    },
-  ];
+          icon: User}]}];
 
   const userInfo = {
     name: "Livreur EcoDeli",
     email: "deliverer@ecodeli.me",
-    avatar: "",
-  };
+    avatar: ""};
 
   const quickAction = {
     label: "Voir livraisons",
     icon: Package,
-    href: `/${locale}/deliverer/deliveries/active`,
-  };
+    href: `/${locale}/deliverer/deliveries/active`};
 
   return (
     <BaseSidebar

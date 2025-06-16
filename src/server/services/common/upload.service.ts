@@ -14,8 +14,7 @@ const ALLOWED_TYPES = {
   announcement: ["image/jpeg", "image/png", "image/webp"],
   profile: ["image/jpeg", "image/png", "image/webp"],
   service: ["image/jpeg", "image/png", "image/webp"],
-  document: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
-};
+  document: ["image/jpeg", "image/png", "image/webp", "application/pdf"]};
 
 // Tailles maximales par type (en octets)
 const MAX_FILE_SIZES = {
@@ -49,19 +48,17 @@ export class UploadService {
   static async uploadFile(input: UploadFileInput): Promise<UploadFileResult> {
     try {
       const {
-        file: _file,
-        type: _type,
-        userId: _userId,
-        description: _description,
-        metadata: _metadata,
-      } = input;
+        file: file,
+        type: type,
+        userId: userId,
+        description: description,
+        metadata: metadata} = input;
 
       // Validation du type d'upload
       if (!ALLOWED_TYPES[type]) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `Type d'upload non supporté: ${type}`,
-        });
+          message: `Type d'upload non supporté: ${type}`});
       }
 
       const fileUrl = "";
@@ -90,8 +87,7 @@ export class UploadService {
       if (!ALLOWED_TYPES[type].includes(mimeType)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `Type de fichier non autorisé pour ${type}. Types acceptés: ${ALLOWED_TYPES[type].join(", ")}`,
-        });
+          message: `Type de fichier non autorisé pour ${type}. Types acceptés: ${ALLOWED_TYPES[type].join(", ")}`});
       }
 
       // Validation de la taille
@@ -99,8 +95,7 @@ export class UploadService {
         const maxSizeMB = MAX_FILE_SIZES[type] / (1024 * 1024);
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `Fichier trop volumineux. Taille maximale: ${maxSizeMB}MB`,
-        });
+          message: `Fichier trop volumineux. Taille maximale: ${maxSizeMB}MB`});
       }
 
       // Enregistrer en base pour les documents (pas pour les photos d'annonces)
@@ -116,9 +111,7 @@ export class UploadService {
             fileSize,
             verificationStatus: VerificationStatus.PENDING,
             notes: description,
-            uploadedAt: new Date(),
-          },
-        });
+            uploadedAt: new Date()}});
         uploadId = documentRecord.id;
       }
 
@@ -133,8 +126,7 @@ export class UploadService {
         filename: fileName,
         size: fileSize,
         type: mimeType,
-        id: uploadId,
-      };
+        id: uploadId};
     } catch (error: any) {
       console.error("Erreur lors de l'upload:", error);
 
@@ -142,10 +134,8 @@ export class UploadService {
         throw error;
       }
 
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: error.message || "Erreur interne lors de l'upload",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: error.message || "Erreur interne lors de l'upload" });
     }
   }
 
@@ -161,10 +151,8 @@ export class UploadService {
     const matches = base64.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
 
     if (!matches || matches.length !== 3) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Format base64 invalide",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Format base64 invalide" });
     }
 
     const mimeType = matches[1];
@@ -176,7 +164,7 @@ export class UploadService {
     const filename = `${randomUUID()}${extension}`;
 
     // Créer le répertoire et écrire le fichier
-    const { uploadDir: _uploadDir, filepath: _filepath } = this.getFilePaths(
+    const { uploadDir: uploadDir, filepath: filepath } = this.getFilePaths(
       type,
       userId,
       filename,
@@ -188,8 +176,7 @@ export class UploadService {
       url: this.getPublicUrl(type, userId, filename),
       filename,
       mimeType,
-      size: buffer.length,
-    };
+      size: buffer.length};
   }
 
   /**
@@ -214,10 +201,8 @@ export class UploadService {
         const fs = await import("fs/promises");
         buffer = await fs.readFile(file.filepath);
       } else {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Fichier invalide: données manquantes",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Fichier invalide: données manquantes" });
       }
     } else {
       // Objet File standard
@@ -229,10 +214,8 @@ export class UploadService {
       } else if (Buffer.isBuffer(file)) {
         buffer = file;
       } else {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Format de fichier non supporté",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Format de fichier non supporté" });
       }
     }
 
@@ -241,7 +224,7 @@ export class UploadService {
     const filename = `${randomUUID()}${extension}`;
 
     // Créer le répertoire et écrire le fichier
-    const { uploadDir: _uploadDir, filepath: _filepath } = this.getFilePaths(
+    const { uploadDir: uploadDir, filepath: filepath } = this.getFilePaths(
       type,
       userId,
       filename,
@@ -253,8 +236,7 @@ export class UploadService {
       url: this.getPublicUrl(type, userId, filename),
       filename,
       mimeType,
-      size: buffer.length,
-    };
+      size: buffer.length};
   }
 
   /**
@@ -263,16 +245,14 @@ export class UploadService {
   static async deleteFile(
     fileUrl: string,
     userId: string,
-  ): Promise<{ success: boolean }> {
+  ): Promise<{ success }> {
     try {
       // Vérifier les permissions pour les documents
       const documentRecord = await db.document.findFirst({
         where: {
           fileUrl,
           userId,
-          verificationStatus: { not: VerificationStatus.REJECTED },
-        },
-      });
+          verificationStatus: { not: VerificationStatus.REJECTED }}});
 
       // Construire le chemin du fichier
       const urlPath = fileUrl.replace("/uploads/", "");
@@ -280,7 +260,7 @@ export class UploadService {
 
       // Supprimer le fichier physique
       if (existsSync(filepath)) {
-        const { _unlink: __unlink } = await import("fs/promises");
+        const { unlink } = await import("fs/promises");
         await unlink(filepath);
       }
 
@@ -288,13 +268,12 @@ export class UploadService {
       if (documentRecord) {
         await db.document.update({
           where: { id: documentRecord.id },
-          data: { verificationStatus: VerificationStatus.REJECTED },
-        });
+          data: { verificationStatus: VerificationStatus.REJECTED }});
       }
 
       console.log(`[DELETE] ${userId} deleted file ${fileUrl}`);
 
-      return { success: true };
+      return { success };
     } catch (error: any) {
       console.error("Erreur lors de la suppression:", error);
 
@@ -302,10 +281,8 @@ export class UploadService {
         throw error;
       }
 
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la suppression du fichier",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la suppression du fichier" });
     }
   }
 
@@ -328,9 +305,7 @@ export class UploadService {
           where: {
             filename,
             userId,
-            verificationStatus: { not: VerificationStatus.REJECTED },
-          },
-        });
+            verificationStatus: { not: VerificationStatus.REJECTED }}});
 
         if (documentRecord) {
           return {
@@ -339,9 +314,7 @@ export class UploadService {
             type: "document",
             metadata: {
               type: documentRecord.type,
-              notes: documentRecord.notes,
-            },
-          };
+              notes: documentRecord.notes}};
         }
       }
 
@@ -350,8 +323,7 @@ export class UploadService {
         "announcement",
         "profile",
         "service",
-        "document",
-      ];
+        "document"];
 
       for (const type of uploadTypes) {
         const filepath = path.join(
@@ -366,15 +338,14 @@ export class UploadService {
           return {
             exists: true,
             url: `/uploads/${type}/${filename}`,
-            type,
-          };
+            type};
         }
       }
 
-      return { exists: false };
+      return { exists };
     } catch (error: any) {
       console.error("Erreur lors de la récupération du fichier:", error);
-      return { exists: false };
+      return { exists };
     }
   }
 
@@ -419,7 +390,7 @@ export class UploadService {
 
   private static async ensureDirectoryExists(dir: string): Promise<void> {
     if (!existsSync(dir)) {
-      await mkdir(dir, { recursive: true });
+      await mkdir(dir, { recursive });
     }
   }
 }

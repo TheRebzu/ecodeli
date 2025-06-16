@@ -8,16 +8,14 @@ import {
   Calendar,
   MapPin,
   Building2,
-  ChevronLeft,
-} from "lucide-react";
+  ChevronLeft} from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -31,32 +29,29 @@ import { BoxDetailTabs } from "@/components/client/storage/box-detail-tabs";
 import { PageProps, MetadataProps } from "@/server/auth/next-auth";
 
 export async function generateMetadata({
-  params,
-}: {
+  params}: {
   params: Promise<{ locale: string; id: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "storage" });
+  const t = await getTranslations({ locale, namespace: "storage"  });
 
   return {
     title: t("detailPage.metaTitle"),
-    description: t("detailPage.metaDescription"),
-  };
+    description: t("detailPage.metaDescription")};
 }
 
 export default async function ReservationDetailPage({
-  params,
-}: {
+  params}: {
   params: Promise<{ id: string; locale: string }>;
 }) {
   const { id, locale } = await params;
-  const t = await getTranslations({ locale, namespace: "storage" });
+  const t = await getTranslations({ locale, namespace: "storage"  });
 
   // Récupération des données de la réservation
   const cookieStore = await cookies();
-  const api = createServerComponentClient({ cookies: cookieStore });
+  const api = createServerComponentClient({ cookies  });
   const reservation = await api.storage.getReservationById
-    .query({ id })
+    .query({ id  })
     .catch(() => null);
 
   if (!reservation) {
@@ -64,9 +59,7 @@ export default async function ReservationDetailPage({
   }
 
   // Récupération de l'historique d'utilisation
-  const usageHistory = await api.storage.getBoxUsageHistory.query({
-    reservationId: id,
-  });
+  const usageHistory = await api.storage.getBoxUsageHistory.query({ reservationId  });
 
   // Formater l'adresse du warehouse
   const warehouseAddress = `${reservation.box.warehouse.address}, ${reservation.box.warehouse.postalCode} ${reservation.box.warehouse.city}`;
@@ -88,8 +81,7 @@ export default async function ReservationDetailPage({
         <PageHeading
           title={t("detailPage.title", { boxName: reservation.box.name })}
           description={t("detailPage.warehouseSubtitle", {
-            warehouseName: reservation.box.warehouse.name,
-          })}
+            warehouseName: reservation.box.warehouse.name})}
           icon={<PackageCheck className="h-6 w-6" />}
         />
       </div>
@@ -120,9 +112,7 @@ export default async function ReservationDetailPage({
                   <div className="flex items-center gap-2 mt-1">
                     <Calendar className="h-4 w-4" />
                     <span>
-                      {format(new Date(reservation.startDate), "PPP", {
-                        locale: fr,
-                      })}
+                      {format(new Date(reservation.startDate), "PPP", { locale })}
                     </span>
                   </div>
                 </div>
@@ -134,9 +124,7 @@ export default async function ReservationDetailPage({
                   <div className="flex items-center gap-2 mt-1">
                     <Calendar className="h-4 w-4" />
                     <span>
-                      {format(new Date(reservation.endDate), "PPP", {
-                        locale: fr,
-                      })}
+                      {format(new Date(reservation.endDate), "PPP", { locale })}
                     </span>
                   </div>
                 </div>
@@ -159,8 +147,7 @@ export default async function ReservationDetailPage({
                         style: "currency",
                         currency: "EUR",
                         minimumFractionDigits: 0,
-                        maximumFractionDigits: 2,
-                      })}
+                        maximumFractionDigits: 2})}
                     </span>
                   </div>
 
@@ -240,7 +227,7 @@ export default async function ReservationDetailPage({
                 onClick={() =>
                   window.open(
                     `https://maps.google.com/?q=${warehouseAddress}`,
-                    "_blank",
+                    "blank",
                   )
                 }
               >

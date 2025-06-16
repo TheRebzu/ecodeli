@@ -8,36 +8,28 @@ import { useState } from "react";
 
 export default function DelivererVerificationsPage() {
   const t = useTranslations("admin.verification");
-  const [pendingFilters, setPendingFilters] = useState({
-    status: "PENDING",
+  const [pendingFilters, setPendingFilters] = useState({ status: "PENDING",
     page: 1,
     limit: 10,
     sortBy: "createdAt",
-    sortDirection: "desc",
-  });
+    sortDirection: "desc" });
 
-  const [processedFilters, setProcessedFilters] = useState({
-    status: "APPROVED",
+  const [processedFilters, setProcessedFilters] = useState({ status: "APPROVED",
     page: 1,
     limit: 10,
     sortBy: "createdAt",
-    sortDirection: "desc",
-  });
+    sortDirection: "desc" });
 
   // Fonction de gestion des changements de page pour les vérifications en attente
   const handlePendingPageChange = (page: number) => {
-    setPendingFilters((prev) => ({
-      ...prev,
-      page,
-    }));
+    setPendingFilters((prev) => ({ ...prev,
+      page }));
   };
 
   // Fonction de gestion des changements de page pour les vérifications traitées
   const handleProcessedPageChange = (page: number) => {
-    setProcessedFilters((prev) => ({
-      ...prev,
-      page,
-    }));
+    setProcessedFilters((prev) => ({ ...prev,
+      page }));
   };
 
   return (

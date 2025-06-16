@@ -8,16 +8,14 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { cn } from "@/lib/utils/common";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -47,32 +45,32 @@ export function ReportFilters({ filters, onFilterChange }: ReportFilterProps) {
   );
 
   const handleGranularityChange = (value: string) => {
-    onFilterChange({ granularity: value });
+    onFilterChange({ granularity  });
   };
 
   const handleComparisonChange = (checked: boolean) => {
-    onFilterChange({ comparison: checked });
+    onFilterChange({ comparison  });
   };
 
   const handleCategoryFilterChange = (value: string) => {
-    onFilterChange({ categoryFilter: value });
+    onFilterChange({ categoryFilter  });
   };
 
   const handleUserRoleFilterChange = (value: string) => {
-    onFilterChange({ userRoleFilter: value });
+    onFilterChange({ userRoleFilter  });
   };
 
   const handleFromDateChange = (date: Date | undefined) => {
     setFromDate(date);
     if (date) {
-      onFilterChange({ startDate: format(date, "yyyy-MM-dd") });
+      onFilterChange({ startDate: format(date, "yyyy-MM-dd")  });
     }
   };
 
   const handleToDateChange = (date: Date | undefined) => {
     setToDate(date);
     if (date) {
-      onFilterChange({ endDate: format(date, "yyyy-MM-dd") });
+      onFilterChange({ endDate: format(date, "yyyy-MM-dd")  });
     }
   };
 
@@ -112,10 +110,8 @@ export function ReportFilters({ filters, onFilterChange }: ReportFilterProps) {
 
     setFromDate(start);
     setToDate(end);
-    onFilterChange({
-      startDate: format(start, "yyyy-MM-dd"),
-      endDate: format(end, "yyyy-MM-dd"),
-    });
+    onFilterChange({ startDate: format(start, "yyyy-MM-dd"),
+      endDate: format(end, "yyyy-MM-dd") });
   };
 
   const resetFilters = () => {
@@ -125,14 +121,12 @@ export function ReportFilters({ filters, onFilterChange }: ReportFilterProps) {
     setFromDate(firstDayOfMonth);
     setToDate(now);
 
-    onFilterChange({
-      startDate: format(firstDayOfMonth, "yyyy-MM-dd"),
+    onFilterChange({ startDate: format(firstDayOfMonth, "yyyy-MM-dd"),
       endDate: format(now, "yyyy-MM-dd"),
       granularity: "day",
       comparison: false,
       categoryFilter: "",
-      userRoleFilter: "",
-    });
+      userRoleFilter: "" });
   };
 
   return (
@@ -152,7 +146,7 @@ export function ReportFilters({ filters, onFilterChange }: ReportFilterProps) {
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {fromDate ? (
-                    format(fromDate, "PPP", { locale: fr })
+                    format(fromDate, "PPP", { locale })
                   ) : (
                     <span>{t("filters.pickDate")}</span>
                   )}
@@ -178,7 +172,7 @@ export function ReportFilters({ filters, onFilterChange }: ReportFilterProps) {
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {toDate ? (
-                    format(toDate, "PPP", { locale: fr })
+                    format(toDate, "PPP", { locale })
                   ) : (
                     <span>{t("filters.pickDate")}</span>
                   )}

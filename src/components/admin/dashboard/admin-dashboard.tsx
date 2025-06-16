@@ -11,8 +11,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,8 +33,7 @@ import {
   Pie,
   Cell,
   AreaChart,
-  Area,
-} from "recharts";
+  Area} from "recharts";
 
 // Icons
 import {
@@ -71,8 +69,7 @@ import {
   Zap,
   AlertCircle,
   Plus,
-  Search,
-} from "lucide-react";
+  Search} from "lucide-react";
 import { toast } from "sonner";
 
 // Types
@@ -122,8 +119,7 @@ const AdminStatCard = ({
   onClick,
   color = "text-primary",
   bgColor = "bg-primary/10",
-  subtitle,
-}: {
+  subtitle}: {
   title: string;
   value: string | number;
   icon: React.ReactNode;
@@ -209,8 +205,7 @@ const AdminStatCard = ({
 // Composant d'alerte
 const AlertCard = ({
   alert,
-  onResolve,
-}: {
+  onResolve}: {
   alert: Alert;
   onResolve: (id: string) => void;
 }) => {
@@ -291,30 +286,25 @@ const AdminQuickActions = () => {
       description: "Valider les documents",
       action: () => router.push("/admin/verifications"),
       color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50",
-      badge: "5 en attente",
-    },
+      badge: "5 en attente"},
     {
       icon: <Shield className="h-5 w-5" />,
       label: "Sécurité",
       description: "Logs et audit",
       action: () => router.push("/admin/audit"),
-      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50",
-    },
+      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/50"},
     {
       icon: <Settings className="h-5 w-5" />,
       label: "Configuration",
       description: "Paramètres système",
       action: () => router.push("/admin/settings"),
-      color: "text-green-600 bg-green-100 dark:bg-green-900/50",
-    },
+      color: "text-green-600 bg-green-100 dark:bg-green-900/50"},
     {
       icon: <BarChart3 className="h-5 w-5" />,
       label: "Rapports",
       description: "Analytics avancés",
       action: () => router.push("/admin/reports"),
-      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50",
-    },
-  ];
+      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/50"}];
 
   return (
     <Card>
@@ -366,20 +356,17 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
     useState<Partial<AdminStats> | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [dateRange, setDateRange] = useState({
-    startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
-    endDate: new Date(),
-  });
+  const [dateRange, setDateRange] = useState({ startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+    endDate: new Date() });
 
   // Queries pour récupérer les données
   const {
     data: dashboardData,
     isLoading: isLoadingDashboard,
-    refetch: refetchDashboard,
-  } = api.adminDashboard.getDashboardData.useQuery();
+    refetch: refetchDashboard} = api.adminDashboard.getDashboardData.useQuery();
 
   const { data: recentActivities, isLoading: isLoadingActivities } =
-    api.adminDashboard.getRecentActivities.useQuery({ limit: 10 });
+    api.adminDashboard.getRecentActivities.useQuery({ limit: 10  });
 
   const { data: actionItems, isLoading: isLoadingActions } =
     api.adminDashboard.getActionItems.useQuery();
@@ -426,12 +413,9 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       const response = await fetch("/api/admin/export/dashboard-overview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          startDate: dateRange.startDate,
+        body: JSON.stringify({ startDate: dateRange.startDate,
           endDate: dateRange.endDate,
-          activeTab,
-        }),
-      });
+          activeTab })});
 
       if (response.ok) {
         const blob = await response.blob();
@@ -478,34 +462,31 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
     commissionEarned: dashboardData?.transactionStats?.commissionEarned || 0,
     revenueGrowth: dashboardData?.transactionStats?.growth || 0,
     platformHealth: 98,
-    systemAlerts: alerts.filter((a) => !a.isResolved).length,
-  };
+    systemAlerts: alerts.filter((a) => !a.isResolved).length};
 
   // Récupérer les données réelles depuis l'API
   const { data: analyticsData, isLoading: analyticsLoading } =
     api.admin.analytics.getDashboardOverview.useQuery();
-  const { data: alertsData } = api.admin.system.getAlerts.useQuery();
-  const { data: activityData } =
+  const { data } = api.admin.system.getAlerts.useQuery();
+  const { data } =
     api.admin.analytics.getRecentActivity.useQuery();
 
   const overviewData = {
     activityChart: analyticsData?.activityChart || [],
     alerts: alertsData?.alerts || [],
-    recentActivity: activityData?.recentActivity || [],
-  };
+    recentActivity: activityData?.recentActivity || []};
 
   // Récupérer les données réelles des différentes sections
-  const { data: deliveryAnalytics } =
+  const { data } =
     api.admin.analytics.getDeliveryStats.useQuery();
-  const { data: userAnalytics } = api.admin.analytics.getUserStats.useQuery();
-  const { data: financialAnalytics } =
+  const { data } = api.admin.analytics.getUserStats.useQuery();
+  const { data } =
     api.admin.analytics.getFinancialData.useQuery();
-  const { data: announcementAnalytics } =
+  const { data } =
     api.admin.analytics.getAnnouncementStats.useQuery();
 
   const deliveryData = {
-    statusDistribution: deliveryAnalytics?.statusDistribution || [],
-  };
+    statusDistribution: deliveryAnalytics?.statusDistribution || []};
 
   const userData = {
     signupTrend: userAnalytics?.signupTrend || [],
@@ -513,19 +494,16 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
     totalUsers: userAnalytics?.totalUsers || 0,
     pendingVerifications: userAnalytics?.pendingVerifications || 0,
     approvedVerifications: userAnalytics?.approvedVerifications || 0,
-    rejectedVerifications: userAnalytics?.rejectedVerifications || 0,
-  };
+    rejectedVerifications: userAnalytics?.rejectedVerifications || 0};
 
   const financialData = {
     revenueChart: financialAnalytics?.revenueChart || [],
     monthlyRevenue: financialAnalytics?.monthlyRevenue || 0,
     monthlyCommissions: financialAnalytics?.monthlyCommissions || 0,
-    revenueGrowth: financialAnalytics?.revenueGrowth || 0,
-  };
+    revenueGrowth: financialAnalytics?.revenueGrowth || 0};
 
   const announcementData = {
-    creationTrend: announcementAnalytics?.creationTrend || [],
-  };
+    creationTrend: announcementAnalytics?.creationTrend || []};
 
   // Fonctions utilitaires
   const generateChartColors = (length: number): string[] => {
@@ -535,16 +513,14 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
       "#f59e0b",
       "#ef4444",
       "#8b5cf6",
-      "#06b6d4",
-    ];
+      "#06b6d4"];
     return colors.slice(0, length);
   };
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(value);
+      currency: "EUR"}).format(value);
   };
 
   return (
@@ -638,8 +614,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
           icon={<Euro className="h-5 w-5" />}
           trend={{
             value: currentStats.revenueGrowth,
-            label: "vs mois dernier",
-          }}
+            label: "vs mois dernier"}}
           isLoading={isLoading}
           onClick={() => router.push("/admin/finance")}
           color="text-purple-600"
@@ -773,8 +748,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                           style={{
                             backgroundColor: generateChartColors(
                               deliveryData.statusDistribution.length,
-                            )[index],
-                          }}
+                            )[index]}}
                         />
                         <span>{status.status}</span>
                       </div>
@@ -924,8 +898,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                               width: `${(role.count / (userData.totalUsers || 1)) * 100}%`,
                               backgroundColor: generateChartColors(
                                 userData.usersByRole.length,
-                              )[index],
-                            }}
+                              )[index]}}
                           />
                         </div>
                         <Badge variant="outline">{role.count}</Badge>

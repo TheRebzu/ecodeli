@@ -1,3 +1,3 @@
-export function InvoiceDetail({ invoice }) {
+export function InvoiceDetail({ invoice  }) {
   return <div>Détail de facture</div>;
 }

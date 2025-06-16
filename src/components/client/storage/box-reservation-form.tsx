@@ -3,16 +3,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   boxReservationCreateSchema,
-  BoxReservationCreateInput,
-} from "@/schemas/storage/storage.schema";
+  BoxReservationCreateInput} from "@/schemas/storage/storage.schema";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
@@ -25,8 +23,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -43,8 +40,7 @@ import {
   Package,
   FileText,
   MapPin,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { api } from "@/trpc/react";
 
@@ -63,8 +59,7 @@ export function BoxReservationForm({
   startDate,
   endDate,
   onBack,
-  onSuccess,
-}: BoxReservationFormProps) {
+  onSuccess}: BoxReservationFormProps) {
   const t = useTranslations("storage");
   const [step, setStep] = useState<ReservationStep>("selection");
   const [selectedBox, setSelectedBox] = useState(box);
@@ -79,9 +74,7 @@ export function BoxReservationForm({
       boxId: selectedBox.id,
       startDate,
       endDate,
-      notes: "",
-    },
-  });
+      notes: ""}});
 
   // Calcul de la durée et du prix total
   const durationInDays = Math.ceil(
@@ -93,14 +86,12 @@ export function BoxReservationForm({
     createReservation.mutate(
       {
         ...data,
-        boxId: selectedBox.id,
-      },
+        boxId: selectedBox.id},
       {
         onSuccess: (result) => {
           setStep("confirmation");
           onSuccess?.(result.id);
-        },
-      },
+        }},
     );
   };
 
@@ -109,8 +100,7 @@ export function BoxReservationForm({
       "selection",
       "details",
       "payment",
-      "confirmation",
-    ];
+      "confirmation"];
     const currentIndex = steps.indexOf(step);
     if (currentIndex < steps.length - 1) {
       setStep(steps[currentIndex + 1]);
@@ -122,8 +112,7 @@ export function BoxReservationForm({
       "selection",
       "details",
       "payment",
-      "confirmation",
-    ];
+      "confirmation"];
     const currentIndex = steps.indexOf(step);
     if (currentIndex > 0) {
       setStep(steps[currentIndex - 1]);
@@ -193,165 +182,7 @@ export function BoxReservationForm({
               </CardContent>
             </Card>
 
-            {/* Calculateur de prix optimal */}
-            <OptimalPricingCalculator
-              box={selectedBox}
-              startDate={startDate}
-              endDate={endDate}
-              onPricingCalculated={setCalculatedPricing}
-            />
-
-            {/* Recommandations alternatives */}
-            <BoxRecommendations
-              filters={{
-                warehouseId: selectedBox.warehouse.id,
-                startDate,
-                endDate,
-              }}
-              onBoxSelect={(boxId) => {
-                // Dans un cas réel, il faudrait récupérer les détails de la box
-                console.log("Box alternative sélectionnée:", boxId);
-              }}
-              maxRecommendations={3}
-            />
-          </div>
-        );
-
-      case "details":
-        return (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Détails de la réservation</CardTitle>
-                <CardDescription>
-                  Période du {format(startDate, "PPP", { locale: fr })} au{" "}
-                  {format(endDate, "PPP", { locale: fr })}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      Box sélectionnée
-                    </span>
-                    <span className="font-medium">{selectedBox.name}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Durée</span>
-                    <span className="font-medium">
-                      {durationInDays} {durationInDays > 1 ? "jours" : "jour"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      Prix total
-                    </span>
-                    <span className="font-bold text-lg">{totalPrice}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("reservation.notes")}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder={t("reservation.notesPlaceholder")}
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {t("reservation.notesHelp")}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case "payment":
-        return (
-          <div className="space-y-6">
-            <Alert variant="default" className="bg-muted">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{t("reservation.paymentSimulation")}</AlertTitle>
-              <AlertDescription>
-                {t("reservation.paymentDescription")}
-              </AlertDescription>
-            </Alert>
-
-            <div className="border rounded-lg p-4 space-y-4">
-              <h3 className="font-medium">{t("reservation.paymentDetails")}</h3>
-
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span>{t("reservation.subtotal")}</span>
-                  <span>{totalPrice}€</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{t("reservation.serviceFee")}</span>
-                  <span>0€</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{t("reservation.vat")}</span>
-                  <span>{(totalPrice * 0.2).toFixed(2)}€</span>
-                </div>
-                <div className="flex justify-between font-bold pt-2 border-t">
-                  <span>{t("reservation.finalTotal")}</span>
-                  <span>{(totalPrice * 1.2).toFixed(2)}€</span>
-                </div>
-              </div>
-            </div>
-
-            <Alert variant="default">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{t("reservation.termsTitle")}</AlertTitle>
-              <AlertDescription>
-                {t("reservation.termsDescription")}
-              </AlertDescription>
-            </Alert>
-          </div>
-        );
-
-      case "confirmation":
-        return (
-          <div className="space-y-6 text-center">
-            <div className="flex justify-center">
-              <CheckCircle2 className="h-16 w-16 text-green-500" />
-            </div>
-            <h2 className="text-2xl font-bold">{t("reservation.confirmed")}</h2>
-            <p className="text-muted-foreground">
-              {t("reservation.confirmationMessage")}
-            </p>
-            <Alert>
-              <AlertTitle>{t("reservation.accessCodeTitle")}</AlertTitle>
-              <AlertDescription>
-                {t("reservation.accessCodeDescription")}
-              </AlertDescription>
-            </Alert>
-            <Button
-              onClick={() => (window.location.href = "/client/storage")}
-              className="w-full"
-            >
-              {t("reservation.viewReservations")}
-            </Button>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Indicateur de progression */}
+            {}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Réservation de box</h2>

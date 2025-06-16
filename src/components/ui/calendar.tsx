@@ -4,8 +4,7 @@ import * as React from "react";
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
-  ChevronRightIcon,
-} from "lucide-react";
+  ChevronRightIcon} from "lucide-react";
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
 
 import { cn } from "@/lib/utils/index";
@@ -30,16 +29,15 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn(
         "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
-        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
-        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
+        String.raw`rtl:**:[.rdp-button\next>svg]:rotate-180`,
+        String.raw`rtl:**:[.rdp-button\previous>svg]:rotate-180`,
         className,
       )}
       captionLayout={captionLayout}
       formatters={{
         formatMonthDropdown: (date) =>
           date.toLocaleString("default", { month: "short" }),
-        ...formatters,
-      }}
+        ...formatters}}
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
         months: cn(
@@ -50,36 +48,31 @@ function Calendar({
         nav: cn(
           "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
           defaultClassNames.nav,
-        ),
-        button_previous: cn(
-          buttonVariants({ variant: buttonVariant }),
+        ), button_previous: cn(
+          buttonVariants({ variant  }),
           "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
           defaultClassNames.button_previous,
-        ),
-        button_next: cn(
-          buttonVariants({ variant: buttonVariant }),
+        ), button_next: cn(
+          buttonVariants({ variant  }),
           "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
           defaultClassNames.button_next,
-        ),
-        month_caption: cn(
+        ), month_caption: cn(
           "flex items-center justify-center h-(--cell-size) w-full px-(--cell-size)",
           defaultClassNames.month_caption,
         ),
         dropdowns: cn(
           "w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5",
           defaultClassNames.dropdowns,
-        ),
-        dropdown_root: cn(
+        ), dropdown_root: cn(
           "relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md",
           defaultClassNames.dropdown_root,
         ),
-        dropdown: cn("absolute inset-0 opacity-0", defaultClassNames.dropdown),
-        caption_label: cn(
+        dropdown: cn("absolute inset-0 opacity-0", defaultClassNames.dropdown), caption_label: cn(
           "select-none font-medium",
           captionLayout === "label"
             ? "text-sm"
             : "rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5",
-          defaultClassNames.caption_label,
+          defaultClassNames.captionlabel,
         ),
         table: "w-full border-collapse",
         weekdays: cn("flex", defaultClassNames.weekdays),
@@ -87,25 +80,20 @@ function Calendar({
           "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
           defaultClassNames.weekday,
         ),
-        week: cn("flex w-full mt-2", defaultClassNames.week),
-        week_number_header: cn(
+        week: cn("flex w-full mt-2", defaultClassNames.week), week_number_header: cn(
           "select-none w-(--cell-size)",
           defaultClassNames.week_number_header,
-        ),
-        week_number: cn(
+        ), week_number: cn(
           "text-[0.8rem] select-none text-muted-foreground",
-          defaultClassNames.week_number,
+          defaultClassNames.weeknumber,
         ),
         day: cn(
-          "relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
+          "relative w-full h-full p-0 text-center [&:first-child[data-selected=true]button]:rounded-l-md [&:last-child[data-selected=true]button]:rounded-r-md group/day aspect-square select-none",
           defaultClassNames.day,
-        ),
-        range_start: cn(
+        ), range_start: cn(
           "rounded-l-md bg-accent",
-          defaultClassNames.range_start,
-        ),
-        range_middle: cn("rounded-none", defaultClassNames.range_middle),
-        range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
+          defaultClassNames.rangestart,
+        ), range_middle: cn("rounded-none", defaultClassNames.rangemiddle), range_end: cn("rounded-r-md bg-accent", defaultClassNames.rangeend),
         today: cn(
           "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
           defaultClassNames.today,
@@ -119,10 +107,9 @@ function Calendar({
           defaultClassNames.disabled,
         ),
         hidden: cn("invisible", defaultClassNames.hidden),
-        ...classNames,
-      }}
+        ...classNames}}
       components={{
-        Root: ({ className, rootRef, ...props }) => {
+        Root: ({ className, rootRef, ...props  }) => {
           return (
             <div
               data-slot="calendar"
@@ -132,7 +119,7 @@ function Calendar({
             />
           );
         },
-        Chevron: ({ className, orientation, ...props }) => {
+        Chevron: ({ className, orientation, ...props  }) => {
           if (orientation === "left") {
             return (
               <ChevronLeftIcon className={cn("size-4", className)} {...props} />
@@ -153,7 +140,7 @@ function Calendar({
           );
         },
         DayButton: CalendarDayButton,
-        WeekNumber: ({ children, ...props }) => {
+        WeekNumber: ({ children, ...props  }) => {
           return (
             <td {...props}>
               <div className="flex size-(--cell-size) items-center justify-center text-center">
@@ -162,8 +149,7 @@ function Calendar({
             </td>
           );
         },
-        ...components,
-      }}
+        ...components}}
       {...props}
     />
   );

@@ -13,27 +13,23 @@ import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/common";
 import { UserFilters } from "@/types/actors/admin";
 
-const filterSchema = z.object({
-  search: z.string().optional(),
+const filterSchema = z.object({ search: z.string().optional(),
   role: z.nativeEnum(UserRole).optional(),
   status: z.nativeEnum(UserStatus).optional(),
   isVerified: z.boolean().optional(),
   dateFrom: z.date().optional(),
-  dateTo: z.date().optional(),
-});
+  dateTo: z.date().optional() });
 
 interface UserFiltersProps {
   currentFilters: UserFilters;
@@ -44,8 +40,7 @@ interface UserFiltersProps {
 export function UserFiltersForm({
   currentFilters,
   onFilterChange,
-  onResetFilters,
-}: UserFiltersProps) {
+  onResetFilters}: UserFiltersProps) {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof filterSchema>>({
@@ -56,9 +51,7 @@ export function UserFiltersForm({
       status: currentFilters.status,
       isVerified: currentFilters.isVerified,
       dateFrom: currentFilters.dateFrom,
-      dateTo: currentFilters.dateTo,
-    },
-  });
+      dateTo: currentFilters.dateTo}});
 
   const hasActiveFilters =
     !!currentFilters.search ||
@@ -102,7 +95,7 @@ export function UserFiltersForm({
           <FormField
             control={form.control}
             name="search"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="flex-1 min-w-[240px]">
                 <FormControl>
                   <div className="relative">
@@ -122,7 +115,7 @@ export function UserFiltersForm({
           <FormField
             control={form.control}
             name="role"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="w-[180px]">
                 <Select
                   onValueChange={(value) => {
@@ -154,7 +147,7 @@ export function UserFiltersForm({
           <FormField
             control={form.control}
             name="status"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="w-[180px]">
                 <Select
                   onValueChange={(value) => {
@@ -186,7 +179,7 @@ export function UserFiltersForm({
           <FormField
             control={form.control}
             name="isVerified"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem className="w-[180px]">
                 <Select
                   onValueChange={(value) => {
@@ -218,7 +211,7 @@ export function UserFiltersForm({
             <FormField
               control={form.control}
               name="dateFrom"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-col">
                   <Popover>
                     <PopoverTrigger asChild>
@@ -259,7 +252,7 @@ export function UserFiltersForm({
             <FormField
               control={form.control}
               name="dateTo"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-col">
                   <Popover>
                     <PopoverTrigger asChild>

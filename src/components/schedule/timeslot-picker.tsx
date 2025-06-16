@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils/common";
 
@@ -36,8 +35,7 @@ export function TimeslotPicker({
   maxTime,
   interval = 30,
   disabled = false,
-  className,
-}: TimeslotPickerProps) {
+  className}: TimeslotPickerProps) {
   const t = useTranslations("timeslot");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -135,8 +133,7 @@ export function TimeslotInput({
   onChange,
   placeholder = "HH:MM",
   disabled = false,
-  className,
-}: Omit<TimeslotPickerProps, "mode" | "minTime" | "maxTime" | "interval">) {
+  className}: Omit<TimeslotPickerProps, "mode" | "minTime" | "maxTime" | "interval">) {
   return (
     <div className="relative">
       <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

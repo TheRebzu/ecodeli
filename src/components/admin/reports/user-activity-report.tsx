@@ -22,16 +22,14 @@ import {
   PolarRadiusAxis,
   Radar,
   AreaChart,
-  Area,
-} from "recharts";
+  Area} from "recharts";
 import {
   Users,
   UserCheck,
   Zap,
   UserPlus,
   Download,
-  FileText,
-} from "lucide-react";
+  FileText} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -86,8 +84,7 @@ export function UserActivityReport({
   isError,
   dateRange,
   onExportPdf,
-  onExportCsv,
-}: UserActivityReportProps) {
+  onExportCsv}: UserActivityReportProps) {
   const t = useTranslations("admin.reports");
 
   // Format du pourcentage pour l'affichage des changements
@@ -113,7 +110,7 @@ export function UserActivityReport({
       <div className="space-y-6">
         {/* Placeholders de chargement pour les KPIs */}
         <div className="grid gap-4 md:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
+          {Array.from({ length: 4  }).map((_, index) => (
             <Card key={index}>
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <Skeleton className="h-4 w-32" />
@@ -139,7 +136,7 @@ export function UserActivityReport({
 
         {/* Placeholders pour les graphiques secondaires */}
         <div className="grid gap-4 md:grid-cols-2">
-          {Array.from({ length: 2 }).map((_, index) => (
+          {Array.from({ length: 2  }).map((_, index) => (
             <Card key={index}>
               <CardHeader className="pb-2">
                 <Skeleton className="h-6 w-48" />
@@ -174,8 +171,7 @@ export function UserActivityReport({
     "#ffc658",
     "#ff8042",
     "#0088FE",
-    "#00C49F",
-  ];
+    "#00C49F"];
 
   // Traduire les rôles d'utilisateur
   const translateRole = (role: UserRole) => {
@@ -195,10 +191,8 @@ export function UserActivityReport({
     }
   };
 
-  const usersByRoleWithTranslation = data.usersByRole.map((item) => ({
-    ...item,
-    role: translateRole(item.role),
-  }));
+  const usersByRoleWithTranslation = data.usersByRole.map((item) => ({ ...item,
+    role: translateRole(item.role) }));
 
   return (
     <div className="space-y-6">
@@ -387,8 +381,7 @@ export function UserActivityReport({
                     <Tooltip
                       formatter={(value) => [
                         `${value}%`,
-                        t("users.retentionRate"),
-                      ]}
+                        t("users.retentionRate")]}
                     />
                     <Legend />
                     <Bar
@@ -441,8 +434,7 @@ export function UserActivityReport({
                     <Tooltip
                       formatter={(value) => [
                         `${value}`,
-                        t("users.activeUsers"),
-                      ]}
+                        t("users.activeUsers")]}
                     />
                     <Legend />
                     <Area
@@ -481,8 +473,7 @@ export function UserActivityReport({
                     <Tooltip
                       formatter={(value) => [
                         `${value}`,
-                        t("users.engagementScore"),
-                      ]}
+                        t("users.engagementScore")]}
                     />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -510,7 +501,7 @@ export function UserActivityReport({
                         fill="#8884d8"
                         dataKey="count"
                         nameKey="role"
-                        label={({ role, percent }) =>
+                        label={({ role, percent  }) =>
                           `${role}: ${(percent * 100).toFixed(0)}%`
                         }
                       >

@@ -9,8 +9,7 @@ import {
   TimelineSeparator,
   TimelineConnector,
   TimelineContent,
-  TimelineDot,
-} from "@/components/ui/timeline";
+  TimelineDot} from "@/components/ui/timeline";
 import { formatDate, formatTime } from "@/utils/document-utils";
 
 interface DeliveryTimelineProps {
@@ -22,8 +21,7 @@ interface DeliveryTimelineProps {
 export function DeliveryTimeline({
   deliveryId,
   events = [],
-  isLoading = false,
-}: DeliveryTimelineProps) {
+  isLoading = false}: DeliveryTimelineProps) {
   const t = useTranslations("deliveries");
 
   if (isLoading) {

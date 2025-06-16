@@ -16,12 +16,10 @@ interface DeliveryTimelineProps {
   limit?: number;
 }
 
-const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
-  deliveryId,
+const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({ deliveryId,
   className,
   showDetails = true,
-  limit,
-}) => {
+  limit }) => {
   // Récupérer l'historique des statuts
   const { statusHistory, isLoading, error } =
     useDeliveryStatusHistory(deliveryId);
@@ -104,7 +102,7 @@ const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
                   className="text-xs text-muted-foreground"
                   dateTime={date.toISOString()}
                 >
-                  {format(date, "PPp", { locale: fr })}
+                  {format(date, "PPp", { locale })}
                 </time>
                 {showDetails && item.notes && (
                   <p className="text-sm text-muted-foreground mt-1">

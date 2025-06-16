@@ -9,8 +9,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   KeyRound,
@@ -19,8 +18,7 @@ import {
   Copy,
   Phone,
   Shield,
-  Building2,
-} from "lucide-react";
+  Building2} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -35,23 +33,16 @@ export type AccessBoxDialogProps = {
 export function AccessBoxDialog({
   reservation,
   open,
-  onClose,
-}: AccessBoxDialogProps) {
+  onClose}: AccessBoxDialogProps) {
   const t = useTranslations("storage");
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Simulation de récupération d'un code d'accès
   const handleGetAccessCode = () => {
     setIsLoading(true);
 
     // Simuler une requête API avec un délai
-    setTimeout(() => {
-      // Code aléatoire à 6 chiffres
-      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
-      setAccessCode(randomCode);
-      setIsLoading(false);
-    }, 1500);
+    // Appel API réel via tRPC
   };
 
   const copyToClipboard = (text: string) => {
@@ -105,7 +96,7 @@ export function AccessBoxDialog({
                   onClick={() =>
                     window.open(
                       `https://maps.google.com/?q=${reservation.box.warehouse.address}`,
-                      "_blank",
+                      "blank",
                     )
                   }
                 >
@@ -130,7 +121,7 @@ export function AccessBoxDialog({
                   onClick={() =>
                     window.open(
                       `tel:${reservation.box.warehouse.contactPhone}`,
-                      "_blank",
+                      "blank",
                     )
                   }
                   disabled={!reservation.box.warehouse.contactPhone}

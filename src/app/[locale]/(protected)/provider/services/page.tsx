@@ -44,16 +44,13 @@ export default function ProviderServicesPage() {
     refetch,
     updateServiceStatus,
     deleteService,
-    duplicateService,
-  } = useProviderServices({
-    status: statusFilter !== "all" ? statusFilter : undefined,
+    duplicateService} = useProviderServices({ status: statusFilter !== "all" ? statusFilter : undefined,
     category: categoryFilter !== "all" ? categoryFilter : undefined,
     location: locationFilter !== "all" ? locationFilter : undefined,
     priceType: priceTypeFilter !== "all" ? priceTypeFilter : undefined,
     search: searchQuery || undefined,
     emergencyOnly: emergencyOnly || undefined,
-    equipmentOnly: equipmentOnly || undefined,
-  });
+    equipmentOnly: equipmentOnly || undefined });
 
   // Actions
   const handleEditService = (id: string) => {
@@ -63,35 +60,27 @@ export default function ProviderServicesPage() {
   const handleDeleteService = async (id: string) => {
     try {
       await deleteService(id);
-      toast({
-        title: t("deleteSuccess"),
-        description: t("deleteSuccessDesc"),
-      });
+      toast({ title: t("deleteSuccess"),
+        description: t("deleteSuccessDesc") });
     } catch (error) {
-      toast({
-        title: t("deleteError"),
+      toast({ title: t("deleteError"),
         description:
           error instanceof Error ? error.message : t("deleteErrorDesc"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
   const handleDuplicateService = async (id: string) => {
     try {
       const duplicated = await duplicateService(id);
-      toast({
-        title: t("duplicateSuccess"),
-        description: t("duplicateSuccessDesc"),
-      });
+      toast({ title: t("duplicateSuccess"),
+        description: t("duplicateSuccessDesc") });
       router.push(`/provider/services/${duplicated.id}/edit`);
     } catch (error) {
-      toast({
-        title: t("duplicateError"),
+      toast({ title: t("duplicateError"),
         description:
           error instanceof Error ? error.message : t("duplicateErrorDesc"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
@@ -99,17 +88,13 @@ export default function ProviderServicesPage() {
     try {
       const newStatus = active ? "ACTIVE" : "INACTIVE";
       await updateServiceStatus(id, newStatus);
-      toast({
-        title: t("statusUpdateSuccess"),
-        description: active ? t("serviceActivated") : t("serviceDeactivated"),
-      });
+      toast({ title: t("statusUpdateSuccess"),
+        description: active ? t("serviceActivated") : t("serviceDeactivated") });
     } catch (error) {
-      toast({
-        title: t("statusUpdateError"),
+      toast({ title: t("statusUpdateError"),
         description:
           error instanceof Error ? error.message : t("statusUpdateErrorDesc"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
@@ -136,8 +121,7 @@ export default function ProviderServicesPage() {
     inactive: services.filter((s) =>
       ["INACTIVE", "SUSPENDED"].includes(s.status),
     ),
-    draft: services.filter((s) => s.status === "DRAFT"),
-  };
+    draft: services.filter((s) => s.status === "DRAFT")};
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -167,17 +151,17 @@ export default function ProviderServicesPage() {
           <TabsList className="grid w-auto grid-cols-4">
             <TabsTrigger value="all" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
-              {t("allServices")} ({services.length})
+              {t("allServices")} ({ services.length })
             </TabsTrigger>
             <TabsTrigger value="active" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              {t("active")} ({filteredServicesByTab.active.length})
+              {t("active")} ({ filteredServicesByTab.active.length })
             </TabsTrigger>
             <TabsTrigger value="inactive" className="flex items-center gap-2">
-              {t("inactive")} ({filteredServicesByTab.inactive.length})
+              {t("inactive")} ({ filteredServicesByTab.inactive.length })
             </TabsTrigger>
             <TabsTrigger value="draft" className="flex items-center gap-2">
-              {t("draft")} ({filteredServicesByTab.draft.length})
+              {t("draft")} ({ filteredServicesByTab.draft.length })
             </TabsTrigger>
           </TabsList>
 

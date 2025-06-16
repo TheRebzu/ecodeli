@@ -8,8 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: t("title") || "Commandes | EcoDeli Marchand",
-    description: t("description") || "Gérez vos commandes et suivez leur statut",
-  };
+    description: t("description") || "Gérez vos commandes et suivez leur statut"};
 }
 
 export default async function MerchantOrdersPage() {

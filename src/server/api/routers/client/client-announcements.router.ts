@@ -4,8 +4,7 @@ import { TRPCError } from "@trpc/server";
 import {
   AnnouncementStatus,
   AnnouncementPriority,
-  DeliveryType,
-} from "@prisma/client";
+  DeliveryType} from "@prisma/client";
 
 /**
  * Router pour les annonces clients selon le cahier des charges EcoDeli
@@ -13,8 +12,7 @@ import {
  */
 
 // Schémas de validation
-const createAnnouncementSchema = z.object({
-  title: z.string().min(5).max(100),
+const createAnnouncementSchema = z.object({ title: z.string().min(5).max(100),
   description: z.string().min(10).max(1000),
   deliveryType: z.nativeEnum(DeliveryType),
 
@@ -37,14 +35,11 @@ const createAnnouncementSchema = z.object({
   pickupTimeSlot: z
     .object({
       start: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-      end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-    })
+      end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/) })
     .optional(),
   deliveryTimeSlot: z
-    .object({
-      start: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-      end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-    })
+    .object({ start: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+      end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/) })
     .optional(),
 
   // Détails de l'envoi
@@ -53,15 +48,13 @@ const createAnnouncementSchema = z.object({
     "MEDIUM_PACKAGE",
     "LARGE_PACKAGE",
     "FRAGILE",
-    "DOCUMENTS",
-  ]),
+    "DOCUMENTS"]),
   estimatedWeight: z.number().min(0.1).max(50), // kg
   estimatedDimensions: z
-    .object({
-      length: z.number().min(1).max(200), // cm
+    .object({ length: z.number().min(1).max(200), // cm
       width: z.number().min(1).max(200), // cm
       height: z.number().min(1).max(200), // cm
-    })
+     })
     .optional(),
 
   // Prix et options
@@ -79,21 +72,17 @@ const createAnnouncementSchema = z.object({
   // Options avancées
   allowPartialDelivery: z.boolean().default(false),
   requiresSignature: z.boolean().default(true),
-  accessCode: z.string().max(20).optional(),
-});
+  accessCode: z.string().max(20).optional()});
 
-const updateAnnouncementSchema = z.object({
-  id: z.string().cuid(),
+const updateAnnouncementSchema = z.object({ id: z.string().cuid(),
   title: z.string().min(5).max(100).optional(),
   description: z.string().min(10).max(1000).optional(),
   suggestedPrice: z.number().min(5).max(500).optional(),
   priority: z.nativeEnum(AnnouncementPriority).optional(),
   specialInstructions: z.string().max(500).optional(),
-  photos: z.array(z.string().url()).max(5).optional(),
-});
+  photos: z.array(z.string().url()).max(5).optional() });
 
-const filtersSchema = z.object({
-  status: z.array(z.nativeEnum(AnnouncementStatus)).optional(),
+const filtersSchema = z.object({ status: z.array(z.nativeEnum(AnnouncementStatus)).optional(),
   deliveryType: z.nativeEnum(DeliveryType).optional(),
   priority: z.nativeEnum(AnnouncementPriority).optional(),
   dateFrom: z.date().optional(),
@@ -101,8 +90,7 @@ const filtersSchema = z.object({
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
   limit: z.number().min(1).max(50).default(20),
-  offset: z.number().min(0).default(0),
-});
+  offset: z.number().min(0).default(0) });
 
 /**
  * @openapi
@@ -182,27 +170,22 @@ export const clientAnnouncementsRouter = router({
    */
   getMyAnnouncements: protectedProcedure
     .input(filtersSchema.optional())
-    .query(async ({ _ctx, input = {} }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input = {} }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent consulter leurs annonces",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les clients peuvent consulter leurs annonces" });
       }
 
       try {
         // Récupérer le profil client
         const client = await ctx.db.client.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil client non trouvé" });
         }
 
         // Construire les filtres
@@ -213,11 +196,9 @@ export const clientAnnouncementsRouter = router({
           ...(input.priority && { priority: input.priority }),
           ...(input.dateFrom &&
             input.dateTo && {
-              createdAt: { gte: input.dateFrom, lte: input.dateTo },
-            }),
+              createdAt: { gte: input.dateFrom, lte: input.dateTo }}),
           ...(input.minPrice && { suggestedPrice: { gte: input.minPrice } }),
-          ...(input.maxPrice && { suggestedPrice: { lte: input.maxPrice } }),
-        };
+          ...(input.maxPrice && { suggestedPrice: { lte: input.maxPrice } })};
 
         // Récupérer les annonces avec pagination
         const announcements = await ctx.db.announcement.findMany({
@@ -230,42 +211,29 @@ export const clientAnnouncementsRouter = router({
                     id: true,
                     name: true,
                     phoneNumber: true,
-                    image: true,
-                  },
-                },
-              },
-            },
+                    image: true}}}},
             proposals: {
               include: {
                 deliverer: {
                   select: {
                     id: true,
                     name: true,
-                    image: true,
-                  },
-                },
-              },
-              orderBy: { suggestedPrice: "asc" },
-            },
+                    image: true}}},
+              orderBy: { suggestedPrice: "asc" }},
             payments: {
               select: {
                 id: true,
                 amount: true,
                 status: true,
-                createdAt: true,
-              },
-            },
-          },
+                createdAt: true}}},
           orderBy: { createdAt: "desc" },
           skip: input.offset,
-          take: input.limit,
-        });
+          take: input.limit});
 
-        const totalCount = await ctx.db.announcement.count({ where });
+        const totalCount = await ctx.db.announcement.count({ where  });
 
         // Formatter les données
-        const formattedAnnouncements = announcements.map((announcement) => ({
-          ...announcement,
+        const formattedAnnouncements = announcements.map((announcement) => ({ ...announcement,
           suggestedPrice: announcement.suggestedPrice.toNumber(),
           estimatedDistance: announcement.estimatedDistance?.toNumber(),
           proposalCount: announcement.proposals.length,
@@ -274,8 +242,7 @@ export const clientAnnouncementsRouter = router({
           ),
           lowestProposal: announcement.proposals[0]?.suggestedPrice?.toNumber(),
           canEdit: ["DRAFT", "PUBLISHED"].includes(announcement.status),
-          canCancel: ["PUBLISHED", "MATCHED"].includes(announcement.status),
-        }));
+          canCancel: ["PUBLISHED", "MATCHED"].includes(announcement.status) }));
 
         return {
           success: true,
@@ -284,15 +251,11 @@ export const clientAnnouncementsRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount,
-          },
-        };
-      } catch (_error) {
+            hasMore: input.offset + input.limit < totalCount}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des annonces",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des annonces" });
       }
     }),
 
@@ -390,42 +353,33 @@ export const clientAnnouncementsRouter = router({
    */
   createAnnouncement: protectedProcedure
     .input(createAnnouncementSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent créer des annonces",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les clients peuvent créer des annonces" });
       }
 
       try {
         // Récupérer le profil client
         const client = await ctx.db.client.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil client non trouvé" });
         }
 
         // Vérifier les limites (max 10 annonces actives)
         const activeAnnouncements = await ctx.db.announcement.count({
           where: {
             clientId: client.id,
-            status: { in: ["DRAFT", "PUBLISHED", "MATCHED"] },
-          },
-        });
+            status: { in: ["DRAFT", "PUBLISHED", "MATCHED"] }}});
 
         if (activeAnnouncements >= 10) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Limite de 10 annonces actives atteinte",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Limite de 10 annonces actives atteinte" });
         }
 
         // Calculer la distance estimée si coordonnées disponibles
@@ -489,21 +443,14 @@ export const clientAnnouncementsRouter = router({
             accessCode: input.accessCode,
 
             status: "PUBLISHED", // Publier directement
-            publishedAt: new Date(),
-          },
+            publishedAt: new Date()},
           include: {
             client: {
               include: {
                 user: {
                   select: {
                     name: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-          },
-        });
+                    email: true}}}}}});
 
         // Créer le code de validation pour cette annonce
         const validationCode = generateValidationCode();
@@ -512,9 +459,7 @@ export const clientAnnouncementsRouter = router({
             announcementId: announcement.id,
             code: validationCode,
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
-            isUsed: false,
-          },
-        });
+            isUsed: false}});
 
         // TODO: Déclencher notifications aux livreurs de la zone
         // TODO: Calculer le matching automatique
@@ -525,16 +470,12 @@ export const clientAnnouncementsRouter = router({
             ...announcement,
             validationCode, // Retourner le code au client
             suggestedPrice: announcement.suggestedPrice.toNumber(),
-            estimatedDistance: announcement.estimatedDistance?.toNumber(),
-          },
-          message: "Annonce créée avec succès et publiée",
-        };
-      } catch (_error) {
+            estimatedDistance: announcement.estimatedDistance?.toNumber()},
+          message: "Annonce créée avec succès et publiée"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création de l'annonce",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de l'annonce" });
       }
     }),
 
@@ -543,62 +484,49 @@ export const clientAnnouncementsRouter = router({
    */
   updateAnnouncement: protectedProcedure
     .input(updateAnnouncementSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent modifier leurs annonces",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les clients peuvent modifier leurs annonces" });
       }
 
       try {
         // Vérifier que l'annonce appartient au client
         const client = await ctx.db.client.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil client non trouvé" });
         }
 
         const announcement = await ctx.db.announcement.findFirst({
           where: {
             id: input.id,
-            clientId: client.id,
-          },
-        });
+            clientId: client.id}});
 
         if (!announcement) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Annonce non trouvée" });
         }
 
         // Vérifier si l'annonce peut être modifiée
         if (!["DRAFT", "PUBLISHED"].includes(announcement.status)) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Cette annonce ne peut plus être modifiée",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Cette annonce ne peut plus être modifiée" });
         }
 
         // Préparer les données de mise à jour
-        const { id: _id, ...updateData } = input;
+        const { id: id, ...updateData } = input;
 
         // Mettre à jour l'annonce
         const updatedAnnouncement = await ctx.db.announcement.update({
           where: { id: input.id },
           data: {
             ...updateData,
-            updatedAt: new Date(),
-          },
-        });
+            updatedAt: new Date()}});
 
         return {
           success: true,
@@ -606,16 +534,12 @@ export const clientAnnouncementsRouter = router({
             ...updatedAnnouncement,
             suggestedPrice: updatedAnnouncement.suggestedPrice.toNumber(),
             estimatedDistance:
-              updatedAnnouncement.estimatedDistance?.toNumber(),
-          },
-          message: "Annonce mise à jour avec succès",
-        };
-      } catch (_error) {
+              updatedAnnouncement.estimatedDistance?.toNumber()},
+          message: "Annonce mise à jour avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la mise à jour",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour" });
       }
     }),
 
@@ -623,34 +547,28 @@ export const clientAnnouncementsRouter = router({
    * Obtenir les détails d'une annonce spécifique
    */
   getAnnouncementById: protectedProcedure
-    .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .input(z.object({ id: z.string().cuid()  }))
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
         const client = await ctx.db.client.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil client non trouvé" });
         }
 
         const announcement = await ctx.db.announcement.findFirst({
           where: {
             id: input.id,
-            clientId: client.id,
-          },
+            clientId: client.id},
           include: {
             deliveries: {
               include: {
@@ -659,15 +577,10 @@ export const clientAnnouncementsRouter = router({
                     id: true,
                     name: true,
                     phoneNumber: true,
-                    image: true,
-                  },
-                },
+                    image: true}},
                 trackingEvents: {
                   orderBy: { createdAt: "desc" },
-                  take: 10,
-                },
-              },
-            },
+                  take: 10}}},
             proposals: {
               include: {
                 deliverer: {
@@ -679,30 +592,18 @@ export const clientAnnouncementsRouter = router({
                       select: {
                         totalDeliveries: true,
                         averageRating: true,
-                        onTimeRate: true,
-                      },
-                    },
-                  },
-                },
-              },
-              orderBy: { suggestedPrice: "asc" },
-            },
+                        onTimeRate: true}}}}},
+              orderBy: { suggestedPrice: "asc" }},
             validationCode: {
               select: {
                 code: true,
                 expiresAt: true,
-                isUsed: true,
-              },
-            },
-            payments: true,
-          },
-        });
+                isUsed: true}},
+            payments: true}});
 
         if (!announcement) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Annonce non trouvée" });
         }
 
         return {
@@ -715,15 +616,11 @@ export const clientAnnouncementsRouter = router({
             canCancel: ["PUBLISHED", "MATCHED"].includes(announcement.status),
             hasActiveDelivery: announcement.deliveries.some((d) =>
               ["ACCEPTED", "IN_PROGRESS"].includes(d.status),
-            ),
-          },
-        };
-      } catch (_error) {
+            )}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération de l'annonce",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération de l'annonce" });
       }
     }),
 
@@ -732,56 +629,41 @@ export const clientAnnouncementsRouter = router({
    */
   cancelAnnouncement: protectedProcedure
     .input(
-      z.object({
-        id: z.string().cuid(),
-        reason: z.string().min(10).max(500),
-      }),
+      z.object({ id: z.string().cuid(),
+        reason: z.string().min(10).max(500) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent annuler leurs annonces",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les clients peuvent annuler leurs annonces" });
       }
 
       try {
         const client = await ctx.db.client.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil client non trouvé" });
         }
 
         const announcement = await ctx.db.announcement.findFirst({
           where: {
             id: input.id,
-            clientId: client.id,
-          },
-          include: {
-            deliveries: true,
-          },
-        });
+            clientId: client.id},
+          include: { deliveries }});
 
         if (!announcement) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Annonce non trouvée" });
         }
 
         // Vérifier si l'annonce peut être annulée
         if (!["PUBLISHED", "MATCHED"].includes(announcement.status)) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Cette annonce ne peut pas être annulée",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Cette annonce ne peut pas être annulée" });
         }
 
         // Vérifier s'il y a une livraison en cours
@@ -790,10 +672,8 @@ export const clientAnnouncementsRouter = router({
         );
 
         if (activeDelivery) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Impossible d'annuler: une livraison est en cours",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Impossible d'annuler: une livraison est en cours" });
         }
 
         // Annuler l'annonce
@@ -802,20 +682,15 @@ export const clientAnnouncementsRouter = router({
           data: {
             status: "CANCELLED",
             cancelledAt: new Date(),
-            cancellationReason: input.reason,
-          },
-        });
+            cancellationReason: input.reason}});
 
         // Annuler toutes les propositions en attente
         await ctx.db.deliveryProposal.updateMany({
           where: {
             announcementId: input.id,
-            status: "PENDING",
-          },
+            status: "PENDING"},
           data: {
-            status: "REJECTED",
-          },
-        });
+            status: "REJECTED"}});
 
         // TODO: Notifier les livreurs qui avaient fait des propositions
         // TODO: Rembourser les frais si applicable
@@ -823,14 +698,11 @@ export const clientAnnouncementsRouter = router({
         return {
           success: true,
           data: cancelledAnnouncement,
-          message: "Annonce annulée avec succès",
-        };
-      } catch (_error) {
+          message: "Annonce annulée avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'annulation",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'annulation" });
       }
     }),
 
@@ -839,31 +711,24 @@ export const clientAnnouncementsRouter = router({
    */
   acceptProposal: protectedProcedure
     .input(
-      z.object({
-        proposalId: z.string().cuid(),
-        notes: z.string().max(500).optional(),
-      }),
+      z.object({ proposalId: z.string().cuid(),
+        notes: z.string().max(500).optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent accepter des propositions",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les clients peuvent accepter des propositions" });
       }
 
       try {
         const client = await ctx.db.client.findUnique({
-          where: { userId: user.id },
-        });
+          where: { userId: user.id }});
 
         if (!client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Profil client non trouvé" });
         }
 
         // Récupérer la proposition avec l'annonce
@@ -875,33 +740,23 @@ export const clientAnnouncementsRouter = router({
               select: {
                 id: true,
                 name: true,
-                phoneNumber: true,
-              },
-            },
-          },
-        });
+                phoneNumber: true}}}});
 
         if (!proposal) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Proposition non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Proposition non trouvée" });
         }
 
         // Vérifier que l'annonce appartient au client
         if (proposal.announcement.clientId !== client.id) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Cette proposition ne vous appartient pas",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Cette proposition ne vous appartient pas" });
         }
 
         // Vérifier que la proposition peut être acceptée
         if (proposal.status !== "PENDING") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Cette proposition n'est plus disponible",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Cette proposition n'est plus disponible" });
         }
 
         // Transaction pour accepter la proposition
@@ -912,22 +767,17 @@ export const clientAnnouncementsRouter = router({
             data: {
               status: "ACCEPTED",
               acceptedAt: new Date(),
-              clientNotes: input.notes,
-            },
-          });
+              clientNotes: input.notes}});
 
           // Rejeter toutes les autres propositions
           await tx.deliveryProposal.updateMany({
             where: {
               announcementId: proposal.announcement.id,
               id: { not: input.proposalId },
-              status: "PENDING",
-            },
+              status: "PENDING"},
             data: {
               status: "REJECTED",
-              rejectedAt: new Date(),
-            },
-          });
+              rejectedAt: new Date()}});
 
           // Créer la livraison
           const delivery = await tx.delivery.create({
@@ -938,18 +788,14 @@ export const clientAnnouncementsRouter = router({
               status: "ACCEPTED",
               acceptedAt: new Date(),
               scheduledAt: proposal.announcement.pickupDate,
-              finalPrice: proposal.suggestedPrice,
-            },
-          });
+              finalPrice: proposal.suggestedPrice}});
 
           // Mettre à jour l'annonce
           await tx.announcement.update({
             where: { id: proposal.announcement.id },
             data: {
               status: "MATCHED",
-              matchedAt: new Date(),
-            },
-          });
+              matchedAt: new Date()}});
 
           return { acceptedProposal, delivery };
         });
@@ -960,17 +806,13 @@ export const clientAnnouncementsRouter = router({
         return {
           success: true,
           data: result,
-          message: "Proposition acceptée avec succès",
-        };
-      } catch (_error) {
+          message: "Proposition acceptée avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'acceptation de la proposition",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'acceptation de la proposition" });
       }
-    }),
-});
+    })});
 
 // Helper functions
 function calculateDistance(

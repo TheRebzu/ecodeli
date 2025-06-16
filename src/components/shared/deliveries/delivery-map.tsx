@@ -7,8 +7,7 @@ import { Home, Store, Clock, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils/common";
 import LeafletMap, {
   MapBounds,
-  MapPoint,
-} from "@/components/shared/maps/leaflet-map";
+  MapPoint} from "@/components/shared/maps/leaflet-map";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -53,15 +52,13 @@ const createCustomMarker = (color: string, size = 36) => {
     className: "",
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
-    popupAnchor: [0, -size],
-  });
+    popupAnchor: [0, -size]});
 };
 
 // Marqueurs personnalisés
 const ICONS = {
   pickup: createCustomMarker(COLORS.pickup),
-  delivery: createCustomMarker(COLORS.delivery),
-};
+  delivery: createCustomMarker(COLORS.delivery)};
 
 // Formater la durée en texte lisible
 const formatDuration = (minutes: number): string => {
@@ -90,14 +87,12 @@ const formatDistance = (meters: number): string => {
 };
 
 // Carte statique de livraison
-const DeliveryMap: React.FC<DeliveryMapProps> = ({
-  delivery,
+const DeliveryMap: React.FC<DeliveryMapProps> = ({ delivery,
   height = "300px",
   width = "100%",
   className = "",
   showInfo = true,
-  interactive = false,
-}) => {
+  interactive = false }) => {
   // Points importants
   const pickupPosition = useMemo<MapPoint | undefined>(() => {
     if (delivery.pickupLat && delivery.pickupLng) {
@@ -119,8 +114,7 @@ const DeliveryMap: React.FC<DeliveryMapProps> = ({
       // Centre entre les deux points
       return {
         lat: (pickupPosition.lat + deliveryPosition.lat) / 2,
-        lng: (pickupPosition.lng + deliveryPosition.lng) / 2,
-      };
+        lng: (pickupPosition.lng + deliveryPosition.lng) / 2};
     }
 
     if (pickupPosition) return pickupPosition;
@@ -148,8 +142,7 @@ const DeliveryMap: React.FC<DeliveryMapProps> = ({
 
     return {
       northEast: { lat: maxLat + latMargin, lng: maxLng + lngMargin },
-      southWest: { lat: minLat - latMargin, lng: minLng - lngMargin },
-    };
+      southWest: { lat: minLat - latMargin, lng: minLng - lngMargin }};
   }, [pickupPosition, deliveryPosition]);
 
   // Convertir l'itinéraire en format compatible avec Leaflet
@@ -219,8 +212,7 @@ const DeliveryMap: React.FC<DeliveryMapProps> = ({
             pathOptions={{
               color: COLORS.route,
               weight: 4,
-              opacity: 0.7,
-            }}
+              opacity: 0.7}}
           />
         )}
       </LeafletMap>

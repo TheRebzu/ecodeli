@@ -84,8 +84,8 @@ export type TrackingEvent =
 // Types pour les émissions et réceptions socket
 export interface ServerToClientEvents {
   "delivery:update": (event: TrackingEvent) => void;
-  "tracking:error": (error: { message: string }) => void;
-  "tracking:syncComplete": (data: { count: number }) => void;
+  "tracking:error": (error: { message }) => void;
+  "tracking:syncComplete": (data: { count }) => void;
 }
 
 export interface ClientToServerEvents {

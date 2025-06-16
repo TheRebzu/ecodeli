@@ -12,8 +12,7 @@ export function EmptyState({
   icon = <Package2 className="h-12 w-12 text-muted-foreground" />,
   title,
   description,
-  action,
-}: EmptyStateProps) {
+  action}: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center space-y-4 py-12 px-4 text-center">
       <div className="rounded-full bg-muted p-4">{icon}</div>

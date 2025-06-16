@@ -19,11 +19,8 @@ export default function AuditPage() {
   const { data, isLoading, error } = api.admin.audit.getAuditLogs.useQuery(
     {
       limit: PAGE_SIZE,
-      offset: (currentPage - 1) * PAGE_SIZE,
-    },
-    {
-      refetchOnWindowFocus: false,
-    },
+      offset: (currentPage - 1) * PAGE_SIZE},
+    { refetchOnWindowFocus },
   );
 
   // Gérer le changement de page
@@ -47,7 +44,7 @@ export default function AuditPage() {
           <div className="space-y-4">
             <Skeleton className="h-8 w-1/3" />
             <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 5  }).map((_, i) => (
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>

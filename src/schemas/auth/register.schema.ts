@@ -8,8 +8,7 @@ export enum UserRole {
   DELIVERER = "DELIVERER",
   MERCHANT = "MERCHANT",
   PROVIDER = "PROVIDER",
-  ADMIN = "ADMIN",
-}
+  ADMIN = "ADMIN"}
 
 /**
  * Validation du mot de passe avec règles de complexité
@@ -18,27 +17,23 @@ export const passwordSchema = z
   .string()
   .min(8, { message: "Le mot de passe doit contenir au moins 8 caractères" })
   .regex(/[a-z]/, {
-    message: "Le mot de passe doit contenir au moins une lettre minuscule",
-  })
+    message: "Le mot de passe doit contenir au moins une lettre minuscule"})
   .regex(/[A-Z]/, {
-    message: "Le mot de passe doit contenir au moins une lettre majuscule",
-  })
+    message: "Le mot de passe doit contenir au moins une lettre majuscule"})
   .regex(/[0-9]/, {
-    message: "Le mot de passe doit contenir au moins un chiffre",
-  });
+    message: "Le mot de passe doit contenir au moins un chiffre"});
 
 /**
  * Champs de base pour l'enregistrement
  */
 export const registerBaseFields = {
-  email: z.string().email({ message: "Email invalide" }),
+  email: z.string().email({ message: "Email invalide"  }),
   password: passwordSchema,
   confirmPassword: z.string(),
   name: z
     .string()
     .min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
-  phoneNumber: z.string().optional(),
-};
+  phoneNumber: z.string().optional()};
 
 /**
  * Champs d'adresse communs à plusieurs schémas
@@ -48,36 +43,29 @@ export const addressFields = {
   city: z.string().optional(),
   postalCode: z.string().optional(),
   state: z.string().optional(),
-  country: z.string().optional(),
-};
+  country: z.string().optional()};
 
 /**
  * Schéma de base pour l'enregistrement commun à tous les types d'utilisateurs
  */
 export const registerBaseSchema = z
-  .object({
-    ...registerBaseFields,
-    role: z.nativeEnum(UserRole),
-  })
+  .object({ ...registerBaseFields,
+    role: z.nativeEnum(UserRole) })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas",
-    path: ["confirmPassword"],
-  });
+    path: ["confirmPassword"]});
 
 export type RegisterBaseSchemaType = z.infer<typeof registerBaseSchema>;
 
 // Schéma pour la création d'un utilisateur par un admin
 export const adminCreateUserSchema = z
-  .object({
-    ...registerBaseFields,
+  .object({ ...registerBaseFields,
     status: z
       .enum(["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING_VERIFICATION"])
-      .default("ACTIVE"),
-  })
+      .default("ACTIVE") })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas",
-    path: ["confirmPassword"],
-  });
+    path: ["confirmPassword"]});
 
 export type AdminCreateUserSchemaType = z.infer<typeof adminCreateUserSchema>;
 

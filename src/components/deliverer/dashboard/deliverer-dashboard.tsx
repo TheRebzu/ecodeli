@@ -23,8 +23,7 @@ import {
   Bell,
   Wallet,
   Map,
-  ArrowRight,
-} from "lucide-react";
+  ArrowRight} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -42,8 +41,7 @@ const StatCard = ({
   icon,
   trend,
   isLoading = false,
-  onClick,
-}: {
+  onClick}: {
   title: string;
   value: string | number;
   icon: React.ReactNode;
@@ -114,8 +112,7 @@ const StatCard = ({
 
 const ActiveDeliveryCard = ({
   delivery,
-  onNavigate,
-}: {
+  onNavigate}: {
   delivery: any;
   onNavigate: (deliveryId: string) => void;
 }) => {
@@ -189,8 +186,7 @@ const ActiveDeliveryCard = ({
           <span>
             {formatDistanceToNow(new Date(delivery.createdAt), {
               addSuffix: true,
-              locale: fr,
-            })}
+              locale: fr})}
           </span>
           <span className="font-medium">{delivery.price}€</span>
         </div>
@@ -202,8 +198,7 @@ const ActiveDeliveryCard = ({
 // Notification urgente
 const UrgentNotification = ({
   notification,
-  onDismiss,
-}: {
+  onDismiss}: {
   notification: any;
   onDismiss: () => void;
 }) => {
@@ -224,8 +219,7 @@ const UrgentNotification = ({
             <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
               {formatDistanceToNow(new Date(notification.createdAt), {
                 addSuffix: true,
-                locale: fr,
-              })}
+                locale: fr})}
             </p>
           </div>
           <Button
@@ -332,9 +326,7 @@ const PlannedDeliveries = ({ deliveries }: { deliveries: any[] }) => {
                     <div className="flex items-center gap-2 mb-1">
                       <Clock className="h-3 w-3 text-muted-foreground" />
                       <span className="text-sm font-medium">
-                        {format(new Date(delivery.plannedDate), "HH:mm", {
-                          locale: fr,
-                        })}
+                        {format(new Date(delivery.plannedDate), "HH:mm", { locale })}
                       </span>
                       <Badge variant="outline" className="text-xs">
                         {delivery.priority === "HIGH" ? "Urgent" : "Normal"}
@@ -382,7 +374,7 @@ const PlannedDeliveries = ({ deliveries }: { deliveries: any[] }) => {
   );
 };
 
-export default function DelivererDashboard({ locale }: { locale: string }) {
+export default function DelivererDashboard({ locale }: { locale }) {
   const router = useRouter();
   const { socket } = useSocket();
   const [urgentNotifications, setUrgentNotifications] = useState<any[]>([]);
@@ -393,30 +385,26 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
   const {
     data: dashboardData,
     isLoading,
-    refetch,
-  } = api.delivery.deliverer.getMobileDashboard.useQuery();
+    refetch} = api.delivery.deliverer.getMobileDashboard.useQuery();
 
   // Récupérer le statut de vérification
-  const { data: verificationStatus } =
+  const { data } =
     api.delivery.verification.getDelivererStatus.useQuery();
 
   // Récupérer le solde du portefeuille
   const {
     balance,
     isLoading: isLoadingWallet,
-    refreshBalance,
-  } = useWalletBalance();
+    refreshBalance} = useWalletBalance();
 
   // Récupérer les notifications urgentes
-  const { data: notificationsData } =
+  const { data } =
     api.notification.getUrgentNotifications.useQuery();
 
   // Récupérer les livraisons planifiées
-  const { data: plannedDeliveries } =
-    api.delivery.deliverer.getPlannedDeliveries.useQuery({
-      date: new Date(),
-      limit: 5,
-    });
+  const { data } =
+    api.delivery.deliverer.getPlannedDeliveries.useQuery({ date: new Date(),
+      limit: 5 });
 
   const stats = dashboardData?.stats;
   const activeDeliveries = dashboardData?.activeDeliveries || [];
@@ -450,10 +438,8 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
           title: "Nouvelle annonce correspondante !",
           message: `Une nouvelle livraison de ${data.price}€ correspond à votre trajet`,
           createdAt: new Date(),
-          data,
-        },
-        ...prev,
-      ]);
+          data},
+        ...prev]);
     });
 
     // Écouter les notifications urgentes
@@ -641,7 +627,7 @@ export default function DelivererDashboard({ locale }: { locale: string }) {
                     className="w-full"
                     onClick={() => router.push("/deliverer/deliveries")}
                   >
-                    Voir toutes les livraisons ({activeDeliveries.length})
+                    Voir toutes les livraisons ({ activeDeliveries.length })
                   </Button>
                 )}
               </div>

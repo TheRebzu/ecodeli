@@ -32,12 +32,10 @@ import {
   Zap,
   Globe,
   Layers,
-  Crown,
-} from "lucide-react";
+  Crown} from "lucide-react";
 import {
   BaseSidebar,
-  type SidebarSection,
-} from "@/components/layout/sidebars/base-sidebar";
+  type SidebarSection} from "@/components/layout/sidebars/base-sidebar";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useSession } from "next-auth/react";
 
@@ -47,15 +45,14 @@ interface ClientSidebarProps {
 
 export function ClientSidebar({ locale }: ClientSidebarProps) {
   const { user } = useAuth();
-  const { data: session } = useSession();
+  const { data } = useSession();
   const [notifications] = useState(8);
 
   // Récupérer les informations de l'utilisateur connecté
   const userInfo = {
     name: session?.user?.name || user?.name || "Utilisateur",
     email: session?.user?.email || user?.email || "utilisateur@ecodeli.me",
-    avatar: user?.image || undefined,
-  };
+    avatar: user?.image || undefined};
 
   const sections: SidebarSection[] = [
     // Section principale - Dashboard
@@ -66,10 +63,7 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
           label: "Tableau de bord",
           href: `/${locale}/client`,
           icon: Home,
-          badge: 3,
-        },
-      ],
-    },
+          badge: 3}]},
 
     // Section Annonces et Services
     {
@@ -79,30 +73,23 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
           label: "Mes annonces",
           href: `/${locale}/client/announcements`,
           icon: Megaphone,
-          badge: 2,
-        },
+          badge: 2},
         {
           label: "Créer annonce",
           href: `/${locale}/client/announcements/create`,
-          icon: Megaphone,
-        },
+          icon: Megaphone},
         {
           label: "Services disponibles",
           href: `/${locale}/client/services`,
-          icon: Briefcase,
-        },
+          icon: Briefcase},
         {
           label: "Réserver service",
           href: `/${locale}/client/services/book`,
-          icon: Calendar,
-        },
+          icon: Calendar},
         {
           label: "Mes réservations",
           href: `/${locale}/client/services/bookings`,
-          icon: Calendar,
-        },
-      ],
-    },
+          icon: Calendar}]},
 
     // Section Livraisons
     {
@@ -112,10 +99,7 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
           label: "Mes livraisons",
           href: `/${locale}/client/deliveries`,
           icon: Package,
-          badge: 1,
-        },
-      ],
-    },
+          badge: 1}]},
 
     // Section Storage/Entreposage
     {
@@ -124,15 +108,11 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
         {
           label: "Mes boxes",
           href: `/${locale}/client/storage`,
-          icon: Archive,
-        },
+          icon: Archive},
         {
           label: "Rechercher box",
           href: `/${locale}/client/storage/search`,
-          icon: Search,
-        },
-      ],
-    },
+          icon: Search}]},
 
     // Section Rendez-vous
     {
@@ -141,15 +121,11 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
         {
           label: "Mes rendez-vous",
           href: `/${locale}/client/appointments`,
-          icon: Calendar,
-        },
+          icon: Calendar},
         {
           label: "Historique RDV",
           href: `/${locale}/client/appointments/history`,
-          icon: Clock,
-        },
-      ],
-    },
+          icon: Clock}]},
 
     // Section Contrats et Documents
     {
@@ -158,15 +134,11 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
         {
           label: "Mes contrats",
           href: `/${locale}/client/contracts`,
-          icon: FileText,
-        },
+          icon: FileText},
         {
           label: "Factures",
           href: `/${locale}/client/invoices`,
-          icon: Receipt,
-        },
-      ],
-    },
+          icon: Receipt}]},
 
     // Section Paiements et Facturation
     {
@@ -175,15 +147,11 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
         {
           label: "Mes paiements",
           href: `/${locale}/client/payments`,
-          icon: CreditCard,
-        },
+          icon: CreditCard},
         {
           label: "Abonnement",
           href: `/${locale}/client/subscription`,
-          icon: Crown,
-        },
-      ],
-    },
+          icon: Crown}]},
 
     // Section Évaluations
     {
@@ -192,16 +160,12 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
         {
           label: "Mes avis",
           href: `/${locale}/client/reviews`,
-          icon: Star,
-        },
+          icon: Star},
         {
           label: "Avis en attente",
           href: `/${locale}/client/reviews/pending`,
           icon: Clock,
-          badge: 2,
-        },
-      ],
-    },
+          badge: 2}]},
 
     // Section Communication
     {
@@ -211,16 +175,12 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
           label: "Messages",
           href: `/${locale}/client/messages`,
           icon: MessageSquare,
-          badge: 4,
-        },
+          badge: 4},
         {
           label: "Notifications",
           href: `/${locale}/client/notifications`,
           icon: Bell,
-          badge: notifications,
-        },
-      ],
-    },
+          badge: notifications}]},
 
     // Section Profil et Paramètres
     {
@@ -229,22 +189,16 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
         {
           label: "Mon profil",
           href: `/${locale}/client/profile`,
-          icon: User,
-        },
-      ],
-    },
-  ];
+          icon: User}]}];
 
   const quickAction = {
     label: "Nouvelle annonce",
     icon: Megaphone,
-    href: `/${locale}/client/announcements/create`,
-  };
+    href: `/${locale}/client/announcements/create`};
 
   const subscriptionInfo = {
     plan: "Premium",
-    href: `/${locale}/client/subscription`,
-  };
+    href: `/${locale}/client/subscription`};
 
   return (
     <BaseSidebar

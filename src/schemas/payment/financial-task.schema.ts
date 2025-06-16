@@ -4,48 +4,40 @@ import { z } from "zod";
 export const FinancialTaskPriority = {
   LOW: "LOW",
   MEDIUM: "MEDIUM",
-  HIGH: "HIGH",
-} as const;
+  HIGH: "HIGH"} as const;
 
 export const FinancialTaskCategory = {
   PAYMENT: "PAYMENT",
   INVOICE: "INVOICE",
   WITHDRAWAL: "WITHDRAWAL",
-  OTHER: "OTHER",
-} as const;
+  OTHER: "OTHER"} as const;
 
 // Schéma de base pour les tâches financières
-export const financialTaskBaseSchema = z.object({
-  title: z.string().min(3, "Le titre doit contenir au moins 3 caractères"),
+export const financialTaskBaseSchema = z.object({ title: z.string().min(3, "Le titre doit contenir au moins 3 caractères"),
   description: z.string().optional(),
   dueDate: z.date().optional(),
   priority: z
     .enum([
       FinancialTaskPriority.LOW,
       FinancialTaskPriority.MEDIUM,
-      FinancialTaskPriority.HIGH,
-    ])
+      FinancialTaskPriority.HIGH])
     .default(FinancialTaskPriority.MEDIUM),
   category: z
     .enum([
       FinancialTaskCategory.PAYMENT,
       FinancialTaskCategory.INVOICE,
       FinancialTaskCategory.WITHDRAWAL,
-      FinancialTaskCategory.OTHER,
-    ])
+      FinancialTaskCategory.OTHER])
     .default(FinancialTaskCategory.OTHER),
-  userId: z.string().cuid("ID utilisateur invalide"),
-});
+  userId: z.string().cuid("ID utilisateur invalide") });
 
 // Schéma pour les tâches de facturation programmées
-export const scheduledBillingTaskSchema = financialTaskBaseSchema.extend({
-  category: z
+export const scheduledBillingTaskSchema = financialTaskBaseSchema.extend({ category: z
     .enum([
       FinancialTaskCategory.PAYMENT,
       FinancialTaskCategory.INVOICE,
       FinancialTaskCategory.WITHDRAWAL,
-      FinancialTaskCategory.OTHER,
-    ])
+      FinancialTaskCategory.OTHER])
     .default(FinancialTaskCategory.INVOICE),
 
   // Paramètres spécifiques à la facturation
@@ -55,8 +47,7 @@ export const scheduledBillingTaskSchema = financialTaskBaseSchema.extend({
     .array(
       z.object({
         entityType: z.enum(["MERCHANT", "PROVIDER", "DELIVERER"]),
-        entityId: z.string().cuid("ID entité invalide"),
-      }),
+        entityId: z.string().cuid("ID entité invalide") }),
     )
     .min(1, "Au moins une entité cible est requise"),
 
@@ -75,18 +66,15 @@ export const scheduledBillingTaskSchema = financialTaskBaseSchema.extend({
 
   // Actions post-facturation
   sendEmailNotifications: z.boolean().default(true),
-  archiveCompletedInvoices: z.boolean().default(true),
-});
+  archiveCompletedInvoices: z.boolean().default(true)});
 
 // Schéma pour le traitement des paiements aux prestataires
-export const payoutProcessingSchema = financialTaskBaseSchema.extend({
-  category: z
+export const payoutProcessingSchema = financialTaskBaseSchema.extend({ category: z
     .enum([
       FinancialTaskCategory.PAYMENT,
       FinancialTaskCategory.INVOICE,
       FinancialTaskCategory.WITHDRAWAL,
-      FinancialTaskCategory.OTHER,
-    ])
+      FinancialTaskCategory.OTHER])
     .default(FinancialTaskCategory.PAYMENT),
 
   // Paramètres spécifiques au paiement
@@ -97,8 +85,7 @@ export const payoutProcessingSchema = financialTaskBaseSchema.extend({
       z.object({
         recipientType: z.enum(["MERCHANT", "PROVIDER", "DELIVERER"]),
         recipientId: z.string().cuid("ID destinataire invalide"),
-        estimatedAmount: z.number().positive().optional(),
-      }),
+        estimatedAmount: z.number().positive().optional() }),
     )
     .min(1, "Au moins un destinataire est requis"),
 
@@ -115,18 +102,15 @@ export const payoutProcessingSchema = financialTaskBaseSchema.extend({
 
   // Paramètres fiscaux
   applyTaxWithholding: z.boolean().default(false),
-  withholdingRate: z.number().min(0).max(100).optional(),
-});
+  withholdingRate: z.number().min(0).max(100).optional()});
 
 // Schéma pour la réconciliation financière
-export const financialReconciliationSchema = financialTaskBaseSchema.extend({
-  category: z.nativeEnum(FinancialTaskCategory).default("OTHER"),
+export const financialReconciliationSchema = financialTaskBaseSchema.extend({ category: z.nativeEnum(FinancialTaskCategory).default("OTHER"),
 
   // Paramètres spécifiques à la réconciliation
   reconciliationPeriod: z.object({
     startDate: z.date(),
-    endDate: z.date(),
-  }),
+    endDate: z.date() }),
   accountsToReconcile: z
     .array(z.string())
     .min(1, "Au moins un compte à réconcilier est requis"),
@@ -139,20 +123,17 @@ export const financialReconciliationSchema = financialTaskBaseSchema.extend({
         "DATE",
         "REFERENCE",
         "DESCRIPTION",
-        "TRANSACTION_TYPE",
-      ]),
+        "TRANSACTION_TYPE"]),
     )
     .default(["AMOUNT", "DATE", "REFERENCE"]),
 
   // Actions post-réconciliation
   generateDiscrepancyReport: z.boolean().default(true),
   autoResolveSmallDifferences: z.boolean().default(false),
-  smallDifferenceThreshold: z.number().positive().optional(),
-});
+  smallDifferenceThreshold: z.number().positive().optional()});
 
 // Schéma pour les tâches de rapport financier
-export const financialReportTaskSchema = financialTaskBaseSchema.extend({
-  category: z.nativeEnum(FinancialTaskCategory).default("OTHER"),
+export const financialReportTaskSchema = financialTaskBaseSchema.extend({ category: z.nativeEnum(FinancialTaskCategory).default("OTHER"),
 
   // Paramètres spécifiques au rapport
   reportType: z.enum([
@@ -162,12 +143,10 @@ export const financialReportTaskSchema = financialTaskBaseSchema.extend({
     "PROFIT_LOSS",
     "CASH_FLOW",
     "ACCOUNTS_RECEIVABLE",
-    "ACCOUNTS_PAYABLE",
-  ]),
+    "ACCOUNTS_PAYABLE"]),
   reportPeriod: z.object({
     startDate: z.date(),
-    endDate: z.date(),
-  }),
+    endDate: z.date() }),
 
   // Options de format et distribution
   fileFormat: z.enum(["PDF", "EXCEL", "CSV", "JSON"]).default("PDF"),
@@ -176,25 +155,20 @@ export const financialReportTaskSchema = financialTaskBaseSchema.extend({
   includeComparisons: z.boolean().default(false),
   comparisonPeriods: z
     .array(
-      z.object({
-        startDate: z.date(),
+      z.object({ startDate: z.date(),
         endDate: z.date(),
-        label: z.string(),
-      }),
+        label: z.string() }),
     )
-    .optional(),
-});
+    .optional()});
 
 // Schéma pour les tâches de traitement fiscal
-export const taxProcessingTaskSchema = financialTaskBaseSchema.extend({
-  category: z.nativeEnum(FinancialTaskCategory).default("OTHER"),
+export const taxProcessingTaskSchema = financialTaskBaseSchema.extend({ category: z.nativeEnum(FinancialTaskCategory).default("OTHER"),
 
   // Paramètres spécifiques au traitement fiscal
   taxType: z.enum(["VAT", "INCOME_TAX", "SALES_TAX", "WITHHOLDING_TAX"]),
   taxPeriod: z.object({
     startDate: z.date(),
-    endDate: z.date(),
-  }),
+    endDate: z.date() }),
 
   // Options de calcul
   calculationMethod: z.enum(["ACCRUAL", "CASH"]).default("ACCRUAL"),
@@ -202,36 +176,31 @@ export const taxProcessingTaskSchema = financialTaskBaseSchema.extend({
 
   // Juridictions et conformité
   jurisdiction: z.string().min(2, "Juridiction invalide"),
-  digitalServicesTax: z.boolean().default(false),
-});
+  digitalServicesTax: z.boolean().default(false)});
 
 // Schéma pour la création d'une tâche financière
-export const createFinancialTaskSchema = z.object({
-  title: z.string().min(3, "Le titre doit contenir au moins 3 caractères"),
+export const createFinancialTaskSchema = z.object({ title: z.string().min(3, "Le titre doit contenir au moins 3 caractères"),
   description: z.string().optional(),
   dueDate: z.string().datetime().optional().or(z.date().optional()),
   priority: z
     .enum([
       FinancialTaskPriority.LOW,
       FinancialTaskPriority.MEDIUM,
-      FinancialTaskPriority.HIGH,
-    ])
+      FinancialTaskPriority.HIGH])
     .default(FinancialTaskPriority.MEDIUM),
   category: z
     .enum([
       FinancialTaskCategory.PAYMENT,
       FinancialTaskCategory.INVOICE,
       FinancialTaskCategory.WITHDRAWAL,
-      FinancialTaskCategory.OTHER,
-    ])
+      FinancialTaskCategory.OTHER])
     .default(FinancialTaskCategory.OTHER),
   completed: z.boolean().default(false),
   // userId est fourni automatiquement par la procédure tRPC
-});
+ });
 
 // Schéma pour la mise à jour d'une tâche financière
-export const updateFinancialTaskSchema = z.object({
-  id: z.string().cuid("ID de tâche invalide"),
+export const updateFinancialTaskSchema = z.object({ id: z.string().cuid("ID de tâche invalide"),
   title: z
     .string()
     .min(3, "Le titre doit contenir au moins 3 caractères")
@@ -247,34 +216,26 @@ export const updateFinancialTaskSchema = z.object({
     .enum([
       FinancialTaskPriority.LOW,
       FinancialTaskPriority.MEDIUM,
-      FinancialTaskPriority.HIGH,
-    ])
+      FinancialTaskPriority.HIGH])
     .optional(),
   category: z
     .enum([
       FinancialTaskCategory.PAYMENT,
       FinancialTaskCategory.INVOICE,
       FinancialTaskCategory.WITHDRAWAL,
-      FinancialTaskCategory.OTHER,
-    ])
+      FinancialTaskCategory.OTHER])
     .optional(),
-  completed: z.boolean().optional(),
-});
+  completed: z.boolean().optional() });
 
 // Schéma pour le changement de statut d'une tâche
-export const toggleFinancialTaskSchema = z.object({
-  id: z.string().cuid("ID de tâche invalide"),
-  completed: z.boolean(),
-});
+export const toggleFinancialTaskSchema = z.object({ id: z.string().cuid("ID de tâche invalide"),
+  completed: z.boolean() });
 
 // Schéma pour la suppression d'une tâche
-export const deleteFinancialTaskSchema = z.object({
-  id: z.string().cuid("ID de tâche invalide"),
-});
+export const deleteFinancialTaskSchema = z.object({ id: z.string().cuid("ID de tâche invalide") });
 
 // Schéma pour les options de pagination et tri
-export const financialTaskListOptionsSchema = z.object({
-  page: z.number().int().positive().default(1),
+export const financialTaskListOptionsSchema = z.object({ page: z.number().int().positive().default(1),
   limit: z.number().int().positive().default(10),
   sortField: z
     .enum(["title", "dueDate", "priority", "createdAt", "category"])
@@ -287,48 +248,40 @@ export const financialTaskListOptionsSchema = z.object({
         .enum([
           FinancialTaskPriority.LOW,
           FinancialTaskPriority.MEDIUM,
-          FinancialTaskPriority.HIGH,
-        ])
+          FinancialTaskPriority.HIGH])
         .optional(),
       category: z
         .enum([
           FinancialTaskCategory.PAYMENT,
           FinancialTaskCategory.INVOICE,
           FinancialTaskCategory.WITHDRAWAL,
-          FinancialTaskCategory.OTHER,
-        ])
+          FinancialTaskCategory.OTHER])
         .optional(),
       completed: z.boolean().optional(),
       dueDateFrom: z.string().datetime().optional().or(z.date().optional()),
-      dueDateTo: z.string().datetime().optional().or(z.date().optional()),
-    })
+      dueDateTo: z.string().datetime().optional().or(z.date().optional()) })
     .optional()
-    .default({}),
-});
+    .default({})});
 
 // Schéma pour les filtres (utilisé séparément)
 export const financialTaskFiltersSchema = z
-  .object({
-    search: z.string().optional(),
+  .object({ search: z.string().optional(),
     priority: z
       .enum([
         FinancialTaskPriority.LOW,
         FinancialTaskPriority.MEDIUM,
-        FinancialTaskPriority.HIGH,
-      ])
+        FinancialTaskPriority.HIGH])
       .optional(),
     category: z
       .enum([
         FinancialTaskCategory.PAYMENT,
         FinancialTaskCategory.INVOICE,
         FinancialTaskCategory.WITHDRAWAL,
-        FinancialTaskCategory.OTHER,
-      ])
+        FinancialTaskCategory.OTHER])
       .optional(),
     completed: z.boolean().optional(),
     dueDateFrom: z.string().datetime().optional().or(z.date().optional()),
-    dueDateTo: z.string().datetime().optional().or(z.date().optional()),
-  })
+    dueDateTo: z.string().datetime().optional().or(z.date().optional()) })
   .optional()
   .default({});
 

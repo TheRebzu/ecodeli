@@ -5,40 +5,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DynamicBoxReservations,
   DynamicBoxSearchPanel,
-  DynamicBoxNotificationsPanel,
-} from "@/components/client/storage/client-wrapper";
+  DynamicBoxNotificationsPanel} from "@/components/client/storage/client-wrapper";
 import { Button } from "@/components/ui/button";
 import { redirect, notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth/next-auth";
 
 export async function generateMetadata({
-  params,
-}: {
+  params}: {
   params: Promise<{ locale?: string }>;
 }): Promise<Metadata> {
   // Attendre et extraire le paramètre locale
   const p = await params;
   const locale = p.locale || "fr";
 
-  const t = await getTranslations({ locale, namespace: "storage" });
+  const t = await getTranslations({ locale, namespace: "storage"  });
 
   return {
     title: t("dashboardPage.metaTitle"),
-    description: t("dashboardPage.metaDescription"),
-  };
+    description: t("dashboardPage.metaDescription")};
 }
 
 export default async function StorageDashboardPage({
-  params,
-}: {
+  params}: {
   params: Promise<{ locale?: string }>;
 }) {
   // Attendre et extraire le paramètre locale
   const p = await params;
   const locale = p.locale || "fr";
 
-  const t = await getTranslations({ locale, namespace: "storage" });
+  const t = await getTranslations({ locale, namespace: "storage"  });
 
   return (
     <div className="container mx-auto px-4 py-6">

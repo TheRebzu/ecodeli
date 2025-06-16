@@ -7,8 +7,7 @@ import {
   ToastTitle,
   ToastViewport,
   useToast as useToastOriginal,
-  type ToastProps,
-} from "@/components/ui/toast";
+  type ToastProps} from "@/components/ui/toast";
 
 export {
   ToastProvider,
@@ -16,8 +15,7 @@ export {
   Toast,
   ToastTitle,
   ToastDescription,
-  ToastClose,
-};
+  ToastClose};
 export { useToastOriginal as useToast };
 
 // Singleton toast pour usage global

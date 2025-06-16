@@ -101,10 +101,6 @@ interface UserStatsAdvancedProps {
 
 // Palette de couleurs pour les graphiques
 const CHART_COLORS = [
-  "#8884d8",
-  "#82ca9d",
-  "#ffc658",
-  "#ff8042",
   "#0088FE",
   "#00C49F",
   "#FFBB28",
@@ -113,48 +109,11 @@ const CHART_COLORS = [
   "#82ca9d",
 ];
 
-// Données fictives pour les graphiques de démonstration
-const demoRegistrationsData = [
-  { month: "Jan", count: 65 },
-  { month: "Fév", count: 78 },
-  { month: "Mar", count: 90 },
-  { month: "Avr", count: 81 },
-  { month: "Mai", count: 56 },
-  { month: "Juin", count: 55 },
-  { month: "Juil", count: 40 },
-];
-
-const demoRoleData = [
-  { name: "Clients", value: 400 },
-  { name: "Livreurs", value: 300 },
-  { name: "Commerçants", value: 180 },
-  { name: "Prestataires", value: 150 },
-  { name: "Admins", value: 20 },
-];
-
-const demoStatusData = [
-  { name: "Actifs", value: 650 },
-  { name: "Inactifs", value: 150 },
-  { name: "En attente", value: 100 },
-  { name: "Suspendus", value: 50 },
-];
-
-const demoRetentionData = [
-  { month: "Jan", rate: 85 },
-  { month: "Fév", rate: 82 },
-  { month: "Mar", rate: 78 },
-  { month: "Avr", rate: 80 },
-  { month: "Mai", rate: 75 },
-  { month: "Juin", rate: 80 },
-  { month: "Juil", rate: 83 },
-];
-
 export default function UserStatsAdvanced({
   initialFilters,
 }: UserStatsAdvancedProps) {
   const t = useTranslations("Admin.verification.users.stats");
-  const [filters, setFilters] = useState<StatsAdvancedFiltersProps>({
-    period: "MONTH",
+  const [filters, setFilters] = useState<StatsAdvancedFiltersProps>({ period: "MONTH",
     compareWithPrevious: true,
     breakdownByRole: true,
     breakdownByStatus: true,
@@ -163,7 +122,7 @@ export default function UserStatsAdvanced({
     includeChurnRate: false,
     includeGrowthRate: true,
     ...initialFilters,
-  });
+   });
 
   const statsQuery = api.adminUser.getUserStatsAdvanced.useQuery(filters, {
     refetchInterval: 5 * 60 * 1000, // Rafraîchir toutes les 5 minutes
@@ -188,17 +147,15 @@ export default function UserStatsAdvanced({
   };
 
   const handlePeriodChange = (value: string) => {
-    setFilters((prev) => ({
-      ...prev,
+    setFilters((prev) => ({ ...prev,
       period: value as StatsAdvancedFiltersProps["period"],
-    }));
+     }));
   };
 
   const handleToggleChange = (key: keyof StatsAdvancedFiltersProps) => {
-    setFilters((prev) => ({
-      ...prev,
+    setFilters((prev) => ({ ...prev,
       [key]: !prev[key],
-    }));
+     }));
   };
 
   const topMetricsData = useMemo(() => {
@@ -359,7 +316,7 @@ export default function UserStatsAdvanced({
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart
-                    data={stats.registrationsOverTime || demoRegistrationsData}
+                    data={stats.registrationsOverTime || []}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -417,7 +374,7 @@ export default function UserStatsAdvanced({
                           fill="#8884d8"
                           dataKey="value"
                           nameKey="name"
-                          label={({ name, percent }) =>
+                          label={({ name, percent  }) =>
                             `${name}: ${(percent * 100).toFixed(0)}%`
                           }
                         >
@@ -460,7 +417,7 @@ export default function UserStatsAdvanced({
                           fill="#82ca9d"
                           dataKey="value"
                           nameKey="name"
-                          label={({ name, percent }) =>
+                          label={({ name, percent  }) =>
                             `${name}: ${(percent * 100).toFixed(0)}%`
                           }
                         >

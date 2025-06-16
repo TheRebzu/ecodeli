@@ -16,9 +16,7 @@ export function formatDate(
     date = new Date(date);
   }
 
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: formatStyle,
-  }).format(date);
+  return new Intl.DateTimeFormat(locale, { dateStyle }).format(date);
 }
 
 /**
@@ -38,8 +36,7 @@ export function formatDateTime(
 
   return new Intl.DateTimeFormat(locale, {
     dateStyle: formatStyle,
-    timeStyle: formatStyle,
-  }).format(date);
+    timeStyle: formatStyle}).format(date);
 }
 
 /**
@@ -58,8 +55,7 @@ export function formatDateCustom(
   }
 
   return format(date, formatString, {
-    locale: localeStr === "fr" ? fr : enUS,
-  });
+    locale: localeStr === "fr" ? fr : enUS});
 }
 
 /**
@@ -68,8 +64,7 @@ export function formatDateCustom(
 export function formatPrice(price: number): string {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "EUR",
-  }).format(price);
+    currency: "EUR"}).format(price);
 }
 
 /**
@@ -102,8 +97,7 @@ export function formatCurrency(
     style: "currency",
     currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+    maximumFractionDigits: 2}).format(amount);
 }
 
 /**
@@ -116,8 +110,7 @@ export function formatPercent(value: number, locale: string = "fr-FR"): string {
   return new Intl.NumberFormat(locale, {
     style: "percent",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(value);
+    maximumFractionDigits: 2}).format(value);
 }
 
 /**
@@ -135,8 +128,7 @@ export function formatTime(
 
   return new Intl.DateTimeFormat(locale, {
     hour: "numeric",
-    minute: "numeric",
-  }).format(date);
+    minute: "numeric"}).format(date);
 }
 
 /**

@@ -10,8 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarClock, Info } from "lucide-react";
@@ -20,8 +19,7 @@ import { useBoxReservation } from "@/hooks/common/use-storage";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils/common";
 
@@ -34,8 +32,7 @@ export type ExtendReservationDialogProps = {
 export function ExtendReservationDialog({
   reservation,
   open,
-  onClose,
-}: ExtendReservationDialogProps) {
+  onClose}: ExtendReservationDialogProps) {
   const t = useTranslations("storage");
   const [newEndDate, setNewEndDate] = useState<Date | undefined>(
     reservation.endDate ? addMonths(reservation.endDate, 1) : undefined,
@@ -69,10 +66,8 @@ export function ExtendReservationDialog({
 
     setIsSubmitting(true);
     try {
-      await extendReservation({
-        reservationId: reservation.id,
-        newEndDate,
-      });
+      await extendReservation({ reservationId: reservation.id,
+        newEndDate });
       onClose();
     } catch (error) {
       console.error("Erreur lors de l'extension de la réservation:", error);
@@ -101,7 +96,7 @@ export function ExtendReservationDialog({
             <div>
               <div className="font-medium">{t("extend.currentEndDate")}</div>
               <div className="text-sm text-muted-foreground">
-                {format(reservation.endDate, "PPP", { locale: fr })}
+                {format(reservation.endDate, "PPP", { locale })}
               </div>
             </div>
           </div>
@@ -118,7 +113,7 @@ export function ExtendReservationDialog({
                   )}
                 >
                   {newEndDate ? (
-                    format(newEndDate, "PPP", { locale: fr })
+                    format(newEndDate, "PPP", { locale })
                   ) : (
                     <span>{t("extend.selectDate")}</span>
                   )}
@@ -145,8 +140,7 @@ export function ExtendReservationDialog({
                   style: "currency",
                   currency: "EUR",
                   minimumFractionDigits: 0,
-                  maximumFractionDigits: 2,
-                })}
+                  maximumFractionDigits: 2})}
               </AlertDescription>
             </Alert>
           )}

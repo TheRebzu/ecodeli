@@ -15,8 +15,7 @@ export function FormattedNumber({
   type = "decimal",
   currency,
   className = "",
-  options,
-}: FormattedNumberProps) {
+  options}: FormattedNumberProps) {
   const { formatLocalizedCurrency, formatLocalizedNumber } =
     useLocalizedFormat();
 

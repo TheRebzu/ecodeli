@@ -12,8 +12,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 
 // Icons
 import { Plus } from "lucide-react";
@@ -40,12 +39,9 @@ export default function AppointmentsPage() {
     error,
     refetch,
     cancelAppointment,
-    rescheduleAppointment,
-  } = useClientAppointments({
-    startDate: selectedDate,
+    rescheduleAppointment} = useClientAppointments({ startDate: selectedDate,
     status: statusFilter !== "all" ? statusFilter : undefined,
-    type: typeFilter !== "all" ? typeFilter : undefined,
-  });
+    type: typeFilter !== "all" ? typeFilter : undefined });
 
   // Filtrer les rendez-vous par statut
   const getFilteredAppointments = (status: string) => {

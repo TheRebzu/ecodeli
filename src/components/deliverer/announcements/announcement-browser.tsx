@@ -10,8 +10,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/trpc/react";
@@ -28,8 +27,7 @@ import {
   Eye,
   CheckCircle,
   XCircle,
-  Loader2,
-} from "lucide-react";
+  Loader2} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -44,8 +42,7 @@ const AnnouncementCard = ({
   onCancel,
   onFavoriteToggle,
   onViewDetails,
-  userApplicationStatus,
-}: {
+  userApplicationStatus}: {
   announcement: any;
   onApply: (id: string) => void;
   onCancel: (id: string) => void;
@@ -55,12 +52,8 @@ const AnnouncementCard = ({
 }) => {
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      PACKAGE: "Colis",
-      SHOPPING_CART: "Courses",
-      AIRPORT_TRANSFER: "Transfert aéroport",
-      GROCERY: "Épicerie",
-      FOREIGN_PRODUCT: "Produit étranger",
-    };
+      PACKAGE: "Colis", SHOPPING_CART: "Courses", AIRPORT_TRANSFER: "Transfert aéroport",
+      GROCERY: "Épicerie", FOREIGN_PRODUCT: "Produit étranger"};
     return labels[type] || type;
   };
 
@@ -255,8 +248,7 @@ const AnnouncementCard = ({
             Publié{" "}
             {formatDistanceToNow(new Date(announcement.createdAt), {
               addSuffix: true,
-              locale: fr,
-            })}
+              locale: fr})}
           </div>
         </div>
       </CardContent>
@@ -266,8 +258,7 @@ const AnnouncementCard = ({
 
 export default function DelivererAnnouncementList({
   view = "available",
-  onViewChange,
-}: DelivererAnnouncementListProps) {
+  onViewChange}: DelivererAnnouncementListProps) {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -278,74 +269,60 @@ export default function DelivererAnnouncementList({
   const {
     data: announcementsData,
     isLoading,
-    refetch,
-  } = api.announcement.getAll.useQuery({
-    page: currentPage,
+    refetch} = api.announcement.getAll.useQuery({ page: currentPage,
     limit: 12,
     search: searchQuery,
     type: typeFilter !== "all" ? typeFilter : undefined,
     sortBy,
     status: "PUBLISHED",
-    forDeliverer: true,
-  });
+    forDeliverer: true });
 
   // Mutations pour les actions
-  const applyMutation = api.announcement.apply.useMutation({
-    onSuccess: () => {
+  const applyMutation = api.announcement.apply.useMutation({ onSuccess: () => {
       toast({
         title: "Candidature envoyée",
         description: "Votre candidature a été envoyée avec succès",
-        variant: "success",
-      });
+        variant: "success" });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
-  const cancelMutation = api.announcement.cancelApplication.useMutation({
-    onSuccess: () => {
+  const cancelMutation = api.announcement.cancelApplication.useMutation({ onSuccess: () => {
       toast({
         title: "Candidature annulée",
         description: "Votre candidature a été annulée",
-        variant: "success",
-      });
+        variant: "success" });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const favoriteMutation = api.announcement.toggleFavorite.useMutation({
     onSuccess: () => {
       refetch();
-    },
-  });
+    }});
 
   const handleApply = (announcementId: string) => {
-    applyMutation.mutate({ announcementId });
+    applyMutation.mutate({ announcementId  });
   };
 
   const handleCancel = (announcementId: string) => {
-    cancelMutation.mutate({ announcementId });
+    cancelMutation.mutate({ announcementId  });
   };
 
   const handleFavoriteToggle = (announcementId: string) => {
-    favoriteMutation.mutate({ announcementId });
+    favoriteMutation.mutate({ announcementId  });
   };
 
   const handleViewDetails = (announcementId: string) => {
-    window.open(`/announcements/${announcementId}`, "_blank");
+    window.open(`/announcements/${announcementId}`, "blank");
   };
 
   const handleSearch = () => {

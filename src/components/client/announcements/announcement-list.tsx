@@ -12,14 +12,12 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  PaginationPrevious} from "@/components/ui/pagination";
 import { useMediaQuery } from "@/hooks/common/use-media-query";
 import {
   AnnouncementStatus,
   UserRole,
-  type Announcement,
-} from "@prisma/client";
+  type Announcement} from "@prisma/client";
 import { cn } from "@/lib/utils/common";
 import { Input } from "@/components/ui/input";
 
@@ -82,8 +80,7 @@ interface AnnouncementListProps {
   className?: string;
 }
 
-export const AnnouncementList: React.FC<AnnouncementListProps> = ({
-  announcements,
+export const AnnouncementList: React.FC<AnnouncementListProps> = ({ announcements,
   isLoading,
   userRole,
   totalCount,
@@ -100,8 +97,7 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
   emptyStateMessage,
   emptyStateAction,
   filters,
-  className,
-}) => {
+  className }) => {
   const t = useTranslations("Announcements");
   const [searchQuery, setSearchQuery] = React.useState(filters?.search || "");
   const isMobile = useMediaQuery("(max-width: 640px)");
@@ -147,7 +143,7 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
     pages.push(1);
     pages.push(null); // Ellipsis
     for (
-      let i = currentPage - Math.floor((maxVisiblePages - 4) / 2);
+      const i = currentPage - Math.floor((maxVisiblePages - 4) / 2);
       i <= currentPage + Math.ceil((maxVisiblePages - 4) / 2);
       i++
     ) {
@@ -221,7 +217,7 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({
       {/* Statut de la recherche */}
       {totalCount > 0 && (
         <div className="text-sm text-muted-foreground mb-4">
-          {t("totalResults", { count: totalCount })}
+          {t("totalResults", { count })}
         </div>
       )}
 

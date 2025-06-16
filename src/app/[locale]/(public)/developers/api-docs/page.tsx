@@ -9,8 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const SwaggerUI = dynamic(() => import("@/components/ui/swagger-ui"), {
   ssr: false,
-  loading: () => <SwaggerUILoading />,
-});
+  loading: () => <SwaggerUILoading />});
 
 function SwaggerUILoading() {
   return (
@@ -119,7 +118,7 @@ export default function APIDocsPage() {
               Exemples d'intégration dans différents langages
             </p>
             <a
-              href="/developers/examples"
+              href="/developers/docs"
               className="text-sm text-primary hover:underline"
             >
               Voir les exemples →

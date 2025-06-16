@@ -2,8 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "leaflet.heat";
 
 // Importation des marqueurs personnalisés
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -11,40 +9,32 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 // Fix pour les images de marqueurs dans Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon.src,
+delete (L.Icon.Default.prototype as any).getIconUrl;
+L.Icon.Default.mergeOptions({ iconUrl: markerIcon.src,
   iconRetinaUrl: markerIcon2x.src,
-  shadowUrl: markerShadow.src,
-});
+  shadowUrl: markerShadow.src });
 
 // Styles des marqueurs par type
-const pickupIcon = new L.Icon({
-  iconUrl: "/images/pickup-marker.png", // À remplacer par l'image réelle
+const pickupIcon = new L.Icon({ iconUrl: "/images/pickup-marker.png", // À remplacer par l'image réelle
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowUrl: markerShadow.src,
-  shadowSize: [41, 41],
-});
+  shadowSize: [41, 41] });
 
-const deliveryIcon = new L.Icon({
-  iconUrl: "/images/delivery-marker.png", // À remplacer par l'image réelle
+const deliveryIcon = new L.Icon({ iconUrl: "/images/delivery-marker.png", // À remplacer par l'image réelle
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowUrl: markerShadow.src,
-  shadowSize: [41, 41],
-});
+  shadowSize: [41, 41] });
 
-const currentIcon = new L.Icon({
-  iconUrl: "/images/current-marker.png", // À remplacer par l'image réelle
+const currentIcon = new L.Icon({ iconUrl: "/images/current-marker.png", // À remplacer par l'image réelle
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowUrl: markerShadow.src,
-  shadowSize: [41, 41],
-});
+  shadowSize: [41, 41] });
 
 // Types
 interface DeliveryMarker {
@@ -78,8 +68,7 @@ export default function MapComponent({
   heatmapPoints = [],
   bounds = null,
   selectedDeliveryId = null,
-  onMarkerClick,
-}: MapComponentProps) {
+  onMarkerClick}: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const heatLayerRef = useRef<any | null>(null);
@@ -99,8 +88,7 @@ export default function MapComponent({
       // Ajouter le fond de carte
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        attribution: "© OpenStreetMap contributors",
-      }).addTo(mapRef.current);
+        attribution: "© OpenStreetMap contributors"}).addTo(mapRef.current);
 
       // Créer le groupe de couches pour les marqueurs
       markersLayerRef.current = L.layerGroup().addTo(mapRef.current);
@@ -204,9 +192,7 @@ export default function MapComponent({
             0.6: "lime",
             0.7: "yellow",
             0.8: "orange",
-            1.0: "red",
-          },
-        })
+            1.0: "red"}})
         .addTo(mapRef.current);
     }
   }, [heatmapEnabled, heatmapPoints]);

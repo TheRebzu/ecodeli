@@ -5,22 +5,21 @@ import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
 interface Props {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "messages" });
+  const t = await getTranslations({ locale, namespace: "messages"  });
 
   return {
     title: t("pageTitle"),
-    description: t("pageDescription"),
-  };
+    description: t("pageDescription")};
 }
 
 export default async function ClientMessagesPage({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "messages" });
+  const t = await getTranslations({ locale, namespace: "messages"  });
 
   return (
     <div className="container mx-auto py-6 px-4 lg:px-8">

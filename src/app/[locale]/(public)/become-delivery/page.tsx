@@ -10,8 +10,7 @@ import {
   Leaf,
   ShieldCheck,
   Star,
-  Users,
-} from "lucide-react";
+  Users} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -24,8 +23,7 @@ export default function BecomeDeliveryPage() {
           className="w-full bg-muted/30 pt-12 pb-24 md:pt-24 md:pb-32 border-b relative overflow-hidden"
           style={{
             backgroundImage: "url(/images/become-delivery/pattern-bg.svg)",
-            backgroundSize: "cover",
-          }}
+            backgroundSize: "cover"}}
         >
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col md:flex-row gap-12 items-center">
@@ -94,39 +92,32 @@ export default function BecomeDeliveryPage() {
                   icon: Coins,
                   title: "Pouvoir d'achat",
                   description:
-                    "Gagnez un revenu complémentaire en effectuant des livraisons. Vous choisissez les missions qui correspondent à votre emploi du temps.",
-                },
+                    "Gagnez un revenu complémentaire en effectuant des livraisons. Vous choisissez les missions qui correspondent à votre emploi du temps."},
                 {
                   icon: Clock,
                   title: "Flexibilité totale",
                   description:
-                    "Travaillez quand vous le souhaitez, sans engagement. Choisissez les livraisons qui correspondent à vos trajets habituels.",
-                },
+                    "Travaillez quand vous le souhaitez, sans engagement. Choisissez les livraisons qui correspondent à vos trajets habituels."},
                 {
                   icon: Leaf,
                   title: "Impact écologique",
                   description:
-                    "Participez à la réduction de l'empreinte carbone des livraisons grâce à notre modèle de crowdshipping qui optimise les trajets existants.",
-                },
+                    "Participez à la réduction de l'empreinte carbone des livraisons grâce à notre modèle de crowdshipping qui optimise les trajets existants."},
                 {
                   icon: ShieldCheck,
                   title: "Sécurité assurée",
                   description:
-                    "Tous les colis sont assurés par notre société. Vous êtes protégés pendant vos missions de livraison.",
-                },
+                    "Tous les colis sont assurés par notre société. Vous êtes protégés pendant vos missions de livraison."},
                 {
                   icon: Users,
                   title: "Lutte contre l'isolement",
                   description:
-                    "Contribuez à créer du lien social en livrant des personnes isolées ou à mobilité réduite. Développez des relations humaines dans votre quartier.",
-                },
+                    "Contribuez à créer du lien social en livrant des personnes isolées ou à mobilité réduite. Développez des relations humaines dans votre quartier."},
                 {
                   icon: HandHeart,
                   title: "Services variés",
                   description:
-                    "Au-delà des colis, proposez des services comme le transport de personnes, les courses, ou même la garde d'animaux pendant que vous transportez le propriétaire.",
-                },
-              ].map((advantage, index) => (
+                    "Au-delà des colis, proposez des services comme le transport de personnes, les courses, ou même la garde d'animaux pendant que vous transportez le propriétaire."}].map((advantage, index) => (
                 <Card
                   key={index}
                   className="flex flex-col p-6 border bg-background"
@@ -165,27 +156,22 @@ export default function BecomeDeliveryPage() {
                   number: "01",
                   title: "Inscription",
                   description:
-                    "Créez votre compte sur notre site et complétez votre profil avec vos informations personnelles.",
-                },
+                    "Créez votre compte sur notre site et complétez votre profil avec vos informations personnelles."},
                 {
                   number: "02",
                   title: "Vérification",
                   description:
-                    "Fournissez les pièces justificatives demandées pour la validation de votre compte par EcoDeli.",
-                },
+                    "Fournissez les pièces justificatives demandées pour la validation de votre compte par EcoDeli."},
                 {
                   number: "03",
                   title: "Annonces",
                   description:
-                    "Consultez les annonces disponibles ou indiquez à l'avance les trajets que vous allez effectuer.",
-                },
+                    "Consultez les annonces disponibles ou indiquez à l'avance les trajets que vous allez effectuer."},
                 {
                   number: "04",
                   title: "Livraison et paiement",
                   description:
-                    "Effectuez la livraison, faites confirmer la réception avec un code, et recevez votre paiement immédiatement.",
-                },
-              ].map((step, index) => (
+                    "Effectuez la livraison, faites confirmer la réception avec un code, et recevez votre paiement immédiatement."}].map((step, index) => (
                 <Card key={index} className="relative p-6 border bg-background">
                   <div className="absolute -top-4 -right-4 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
                     {step.number}
@@ -229,9 +215,7 @@ export default function BecomeDeliveryPage() {
                     "Prise en charge intégrale ou partielle du trajet",
                     "Livraison aux destinataires finaux",
                     "Suivi en temps réel",
-                    "Validation par code de confirmation",
-                  ],
-                },
+                    "Validation par code de confirmation"]},
                 {
                   title: "Services à la personne",
                   features: [
@@ -240,10 +224,7 @@ export default function BecomeDeliveryPage() {
                     "Courses et achats selon liste fournie",
                     "Achat de produits spécifiques, même à l'étranger",
                     "Garde d'animaux à domicile pendant un transport",
-                    "Petits travaux ménagers ou de jardinage",
-                  ],
-                },
-              ].map((service, index) => (
+                    "Petits travaux ménagers ou de jardinage"]}].map((service, index) => (
                 <Card key={index} className="p-6 border bg-background">
                   <h3 className="text-xl font-semibold mb-4">
                     {service.title}

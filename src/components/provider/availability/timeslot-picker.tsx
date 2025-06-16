@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils/common";
 
@@ -33,8 +32,7 @@ export function TimeslotPicker({
   minTime,
   maxTime,
   disabled = false,
-  className,
-}: TimeslotPickerProps) {
+  className}: TimeslotPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   // Générer les créneaux horaires disponibles

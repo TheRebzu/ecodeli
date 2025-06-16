@@ -6,8 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { userBanSchema } from "@/schemas/user/user-ban.schema";
 import { UserBanAction } from "@/types/users/verification";
 
-export const userRouter = router({
-  getProfile: protectedProcedure.query(async ({ _ctx }) => {
+export const userRouter = router({ getProfile: protectedProcedure.query(async ({ ctx  }) => {
     // Récupération du profil utilisateur
     return {
       id: ctx.session.user.id,
@@ -20,14 +19,13 @@ export const userRouter = router({
 
   updateProfile: protectedProcedure
     .input(
-      z.object({
-        name: z.string().optional(),
+      z.object({ name: z.string().optional(),
         phone: z.string().optional(),
         address: z.string().optional(),
         // Autres champs de profil
-      }),
+       }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       // Mise à jour du profil
       return {
         id: ctx.session.user.id,
@@ -41,17 +39,15 @@ export const userRouter = router({
    */
   toggleActivation: protectedProcedure
     .input(toggleUserActivationSchema)
-    .mutation(async ({ input, _ctx }) => {
+    .mutation(async ({ input, ctx  }) => {
       // Vérification que l'utilisateur est admin
-      if (_ctx.session.user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+      if (ctx.session.user.role !== "ADMIN") {
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Accès non autorisé. Seuls les administrateurs peuvent modifier l'état des comptes.",
-        });
+            "Accès non autorisé. Seuls les administrateurs peuvent modifier l'état des comptes." });
       }
 
-      const { userId: _userId, isActive: _isActive } = input;
+      const { userId: userId, isActive: isActive } = input;
       return userService.toggleUserActivation(userId, isActive);
     }),
 
@@ -60,16 +56,15 @@ export const userRouter = router({
    */
   banOrUnban: protectedProcedure
     .input(userBanSchema)
-    .mutation(async ({ input, _ctx }) => {
-      if (_ctx.session.user.role !== "ADMIN") {
+    .mutation(async ({ input, ctx  }) => {
+      if (ctx.session.user.role !== "ADMIN") {
         throw new Error("Permission refusée : admin requis");
       }
-      const { userId: _userId, action: _action, reason: _reason } = input;
+      const { userId: userId, action: action, reason: reason } = input;
       return userService.banOrUnbanUser(
         userId,
         action as UserBanAction,
         reason,
-        _ctx.session.user.id,
+        ctx.session.user.id,
       );
-    }),
-});
+    })});

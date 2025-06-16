@@ -13,27 +13,23 @@ import {
   documentUploadSchema,
   merchantVerificationSubmitSchema,
   providerVerificationSubmitSchema,
-  verificationProcessSchema,
-} from "@/schemas/auth/verification.schema";
+  verificationProcessSchema} from "@/schemas/auth/verification.schema";
 import { getUserDocumentsWithFullStatus } from "@/utils/document-utils";
 
 const verificationService = new VerificationService();
 
-export const verificationRouter = router({
-  // Soumettre une vérification pour un marchand
+export const verificationRouter = router({ // Soumettre une vérification pour un marchand
   submitMerchantVerification: protectedProcedure
     .input(merchantVerificationSubmitSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       // Vérifier si l'utilisateur a les permissions
       if (
-        _ctx.session.user.role !== "MERCHANT" &&
-        _ctx.session.user.role !== "ADMIN"
+        ctx.session.user.role !== "MERCHANT" &&
+        ctx.session.user.role !== "ADMIN"
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Vous n'avez pas l'autorisation de soumettre cette vérification",
-        });
+            "Vous n'avez pas l'autorisation de soumettre cette vérification" });
       }
 
       return verificationService.createMerchantVerification(input);
@@ -42,17 +38,15 @@ export const verificationRouter = router({
   // Soumettre une vérification pour un prestataire
   submitProviderVerification: protectedProcedure
     .input(providerVerificationSubmitSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       // Vérifier si l'utilisateur a les permissions
       if (
-        _ctx.session.user.role !== "PROVIDER" &&
-        _ctx.session.user.role !== "ADMIN"
+        ctx.session.user.role !== "PROVIDER" &&
+        ctx.session.user.role !== "ADMIN"
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Vous n'avez pas l'autorisation de soumettre cette vérification",
-        });
+            "Vous n'avez pas l'autorisation de soumettre cette vérification" });
       }
 
       return verificationService.createProviderVerification(input);
@@ -61,7 +55,7 @@ export const verificationRouter = router({
   // Télécharger un document
   uploadDocument: protectedProcedure
     .input(documentUploadSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
       const userRole = ctx.session.user.role;
 
@@ -76,38 +70,30 @@ export const verificationRouter = router({
   // Supprimer un document
   deleteDocument: protectedProcedure
     .input(
-      z.object({
-        documentId: z.string(),
-      }),
+      z.object({ documentId: z.string() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       // Cette fonctionnalité n'est pas implémentée dans le service
       // Il faudrait l'implémenter ou utiliser documentService à la place
-      throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "Cette fonctionnalité n'est pas encore disponible",
-      });
+      throw new TRPCError({ code: "NOT_IMPLEMENTED",
+        message: "Cette fonctionnalité n'est pas encore disponible" });
     }),
 
   // Obtenir le statut de vérification d'un commerçant
   getMerchantVerificationStatus: protectedProcedure
     .input(
-      z.object({
-        merchantId: z.string().optional(),
-      }),
+      z.object({ merchantId: z.string().optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       const merchantId = input.merchantId || ctx.session.user.id;
 
       // Vérifier les permissions
       if (
-        merchantId !== _ctx.session.user.id &&
-        _ctx.session.user.role !== "ADMIN"
+        merchantId !== ctx.session.user.id &&
+        ctx.session.user.role !== "ADMIN"
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'avez pas l'autorisation de consulter ce statut",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'avez pas l'autorisation de consulter ce statut" });
       }
 
       return verificationService.getMerchantVerificationStatus(merchantId);
@@ -116,22 +102,18 @@ export const verificationRouter = router({
   // Obtenir le statut de vérification d'un prestataire
   getProviderVerificationStatus: protectedProcedure
     .input(
-      z.object({
-        providerId: z.string().optional(),
-      }),
+      z.object({ providerId: z.string().optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       const providerId = input.providerId || ctx.session.user.id;
 
       // Vérifier les permissions
       if (
-        providerId !== _ctx.session.user.id &&
-        _ctx.session.user.role !== "ADMIN"
+        providerId !== ctx.session.user.id &&
+        ctx.session.user.role !== "ADMIN"
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'avez pas l'autorisation de consulter ce statut",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'avez pas l'autorisation de consulter ce statut" });
       }
 
       return verificationService.getProviderVerificationStatus(providerId);
@@ -140,26 +122,23 @@ export const verificationRouter = router({
   // Pour les admins: traiter une vérification
   processVerification: adminProcedure
     .input(verificationProcessSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       // Récupérer le type de vérification depuis l'ID
       const verification = await verificationService.db.verification.findUnique(
         {
           where: { id: input.verificationId },
-          select: { type: true },
-        },
+          select: { type }},
       );
 
       if (!verification) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Vérification non trouvée",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Vérification non trouvée" });
       }
 
       if (verification.type === "MERCHANT") {
         return verificationService.processMerchantVerification(
           input.verificationId,
-          _ctx.session.user.id,
+          ctx.session.user.id,
           input.status,
           input.notes,
           input.rejectionReason,
@@ -167,30 +146,26 @@ export const verificationRouter = router({
       } else if (verification.type === "PROVIDER") {
         return verificationService.processProviderVerification(
           input.verificationId,
-          _ctx.session.user.id,
+          ctx.session.user.id,
           input.status,
           input.notes,
           input.rejectionReason,
         );
       } else {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Type de vérification non supporté",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Type de vérification non supporté" });
       }
     }),
 
   // Pour les admins: lister toutes les vérifications en attente
   getPendingVerifications: adminProcedure
     .input(
-      z.object({
-        userRole: z.enum(["MERCHANT", "PROVIDER", "DELIVERER"]),
+      z.object({ userRole: z.enum(["MERCHANT", "PROVIDER", "DELIVERER"]),
         limit: z.number().min(1).max(100).default(20),
-        page: z.number().min(1).default(1),
-      }),
+        page: z.number().min(1).default(1) }),
     )
-    .query(async ({ input: _input }) => {
-      const { userRole: _userRole, limit: _limit, page: _page } = input;
+    .query(async ({ input  }) => {
+      const { userRole: userRole, limit: limit, page: page } = input;
 
       try {
         // Utiliser la méthode existante documentService.getPendingDocuments
@@ -206,9 +181,7 @@ export const verificationRouter = router({
               total: 0,
               pages: 1,
               page,
-              limit,
-            },
-          };
+              limit}};
         }
 
         const totalCount = documents.length;
@@ -226,10 +199,7 @@ export const verificationRouter = router({
           documents: [
             {
               id: doc.id,
-              type: doc.type,
-            },
-          ],
-        }));
+              type: doc.type}]}));
 
         return {
           data,
@@ -237,33 +207,27 @@ export const verificationRouter = router({
             total: totalCount,
             pages: Math.ceil(totalCount / limit),
             page,
-            limit,
-          },
-        };
-      } catch (_error) {
+            limit}};
+      } catch (error) {
         console.error(
           "Erreur lors de la récupération des vérifications:",
           error,
         );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             "Une erreur est survenue lors de la récupération des vérifications: " +
-            (error instanceof Error ? error.message : String(error)),
-        });
+            (error instanceof Error ? error.message : String(error)) });
       }
     }),
 
   // Review a document (admin only)
   reviewDocument: adminProcedure
     .input(
-      z.object({
-        documentId: z.string(),
+      z.object({ documentId: z.string(),
         status: z.enum(["APPROVED", "REJECTED"]),
-        notes: z.string().optional(),
-      }),
+        notes: z.string().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const adminId = ctx.session.user.id;
 
       return await verificationService.reviewDocument(
@@ -277,25 +241,21 @@ export const verificationRouter = router({
   // Get verified and rejected documents
   getProcessedVerifications: adminProcedure
     .input(
-      z.object({
-        page: z.number().default(1),
+      z.object({ page: z.number().default(1),
         limit: z.number().default(10),
         status: z
           .enum([VerificationStatus.APPROVED, VerificationStatus.REJECTED])
-          .optional(),
-      }),
+          .optional() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { page: _page, limit: _limit, status: _status } = input;
+    .query(async ({ ctx, input: input  }) => {
+      const { page: page, limit: limit, status: status } = input;
       const skip = (page - 1) * limit;
 
       const whereClause = status
-        ? { verificationStatus: status }
+        ? { verificationStatus }
         : {
             verificationStatus: {
-              in: [VerificationStatus.APPROVED, VerificationStatus.REJECTED],
-            },
-          };
+              in: [VerificationStatus.APPROVED, VerificationStatus.REJECTED]}};
 
       // Fetch verifications
       const verifications = await verificationService.db.verification.findMany({
@@ -303,8 +263,7 @@ export const verificationRouter = router({
         skip,
         take: limit,
         orderBy: {
-          verifiedAt: "desc",
-        },
+          verifiedAt: "desc"},
         include: {
           document: true,
           submitter: {
@@ -312,23 +271,15 @@ export const verificationRouter = router({
               id: true,
               name: true,
               email: true,
-              role: true,
-            },
-          },
+              role: true}},
           verifier: {
             select: {
               id: true,
               name: true,
-              email: true,
-            },
-          },
-        },
-      });
+              email: true}}}});
 
       // Count total results
-      const totalCount = await verificationService.db.verification.count({
-        where: whereClause,
-      });
+      const totalCount = await verificationService.db.verification.count({ where  });
 
       return {
         verifications,
@@ -336,19 +287,15 @@ export const verificationRouter = router({
           total: totalCount,
           pages: Math.ceil(totalCount / limit),
           current: page,
-          perPage: limit,
-        },
-      };
+          perPage: limit}};
     }), // Vérification automatique pour les livreurs
-  verifyDelivererDocuments: protectedProcedure.mutation(async ({ _ctx }) => {
+  verifyDelivererDocuments: protectedProcedure.mutation(async ({ ctx  }) => {
     try {
       const userId = ctx.session.user.id;
 
-      if (_ctx.session.user.role !== UserRole.DELIVERER) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas un livreur",
-        });
+      if (ctx.session.user.role !== UserRole.DELIVERER) {
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas un livreur" });
       }
 
       // Vérifier et mettre à jour le statut avec la nouvelle méthode plus complète
@@ -362,26 +309,21 @@ export const verificationRouter = router({
         isVerified:
           result.wasUpdated || result.currentStatus?.isVerified === true,
         message: result.message,
-        details: result,
-      };
-    } catch (_error) {
+        details: result};
+    } catch (error) {
       console.error("Erreur lors de la vérification:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Une erreur est survenue lors de la vérification",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Une erreur est survenue lors de la vérification" });
     }
   }),
   // Vérification automatique pour les marchands
-  verifyMerchantDocuments: protectedProcedure.mutation(async ({ _ctx }) => {
+  verifyMerchantDocuments: protectedProcedure.mutation(async ({ ctx  }) => {
     try {
       const userId = ctx.session.user.id;
 
-      if (_ctx.session.user.role !== UserRole.MERCHANT) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas un marchand",
-        });
+      if (ctx.session.user.role !== UserRole.MERCHANT) {
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas un marchand" });
       }
 
       // Vérifier et mettre à jour le statut avec la nouvelle méthode plus complète
@@ -395,26 +337,21 @@ export const verificationRouter = router({
         isVerified:
           result.wasUpdated || result.currentStatus?.isVerified === true,
         message: result.message,
-        details: result,
-      };
-    } catch (_error) {
+        details: result};
+    } catch (error) {
       console.error("Erreur lors de la vérification:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Une erreur est survenue lors de la vérification",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Une erreur est survenue lors de la vérification" });
     }
   }),
   // Vérification automatique pour les prestataires
-  verifyProviderDocuments: protectedProcedure.mutation(async ({ _ctx }) => {
+  verifyProviderDocuments: protectedProcedure.mutation(async ({ ctx  }) => {
     try {
       const userId = ctx.session.user.id;
 
-      if (_ctx.session.user.role !== UserRole.PROVIDER) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas un prestataire",
-        });
+      if (ctx.session.user.role !== UserRole.PROVIDER) {
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas un prestataire" });
       }
 
       // Vérifier et mettre à jour le statut avec la nouvelle méthode plus complète
@@ -428,26 +365,21 @@ export const verificationRouter = router({
         isVerified:
           result.wasUpdated || result.currentStatus?.isVerified === true,
         message: result.message,
-        details: result,
-      };
-    } catch (_error) {
+        details: result};
+    } catch (error) {
       console.error("Erreur lors de la vérification:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Une erreur est survenue lors de la vérification",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Une erreur est survenue lors de la vérification" });
     }
   }),
 
   // Approuver un document (admin seulement)
   approveDocument: adminProcedure
     .input(
-      z.object({
-        documentId: z.string(),
-        notes: z.string().optional(),
-      }),
+      z.object({ documentId: z.string(),
+        notes: z.string().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -458,24 +390,21 @@ export const verificationRouter = router({
           VerificationStatus.APPROVED,
           input.notes,
         );
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur lors de l'approbation du document:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Une erreur est survenue lors de l'approbation du document: ${error instanceof Error ? error.message : String(error)}`,
-        });
+          message: `Une erreur est survenue lors de l'approbation du document: ${error instanceof Error ? error.message : String(error)}`});
       }
     }),
 
   // Rejeter un document (admin seulement)
   rejectDocument: adminProcedure
     .input(
-      z.object({
-        documentId: z.string(),
-        reason: z.string(),
-      }),
+      z.object({ documentId: z.string(),
+        reason: z.string() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const adminId = ctx.session.user.id;
 
@@ -486,17 +415,16 @@ export const verificationRouter = router({
           VerificationStatus.REJECTED,
           input.reason,
         );
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur lors du rejet du document:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Une erreur est survenue lors du rejet du document: ${error instanceof Error ? error.message : String(error)}`,
-        });
+          message: `Une erreur est survenue lors du rejet du document: ${error instanceof Error ? error.message : String(error)}`});
       }
     }),
 
   // Obtenir le statut de vérification d'un utilisateur (avec la nouvelle logique alignée)
-  getUserVerificationStatus: protectedProcedure.query(async ({ _ctx }) => {
+  getUserVerificationStatus: protectedProcedure.query(async ({ ctx  }) => {
     try {
       const userId = ctx.session.user.id;
       const userRole = ctx.session.user.role as UserRole;
@@ -505,21 +433,20 @@ export const verificationRouter = router({
         userId,
         userRole,
       );
-    } catch (_error) {
+    } catch (error) {
       console.error(
         "Erreur lors de la récupération du statut de vérification:",
         error,
       );
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: `Erreur lors de la récupération du statut: ${error instanceof Error ? error.message : String(error)}`,
-      });
+        message: `Erreur lors de la récupération du statut: ${error instanceof Error ? error.message : String(error)}`});
     }
   }),
 
   // Vérification manuelle et diagnostic (pour déboguer les problèmes de vérification automatique)
   manualCheckAndUpdateVerification: protectedProcedure.mutation(
-    async ({ _ctx }) => {
+    async ({ ctx  }) => {
       try {
         const userId = ctx.session.user.id;
         const userRole = ctx.session.user.role as UserRole;
@@ -532,43 +459,39 @@ export const verificationRouter = router({
           userId,
           userRole,
         );
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur lors de la vérification manuelle:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Erreur lors de la vérification manuelle: ${error instanceof Error ? error.message : String(error)}`,
-        });
+          message: `Erreur lors de la vérification manuelle: ${error instanceof Error ? error.message : String(error)}`});
       }
     },
   ),
 
   // Obtenir les documents avec leur statut effectif de façon consistante
-  getConsistentUserDocuments: protectedProcedure.query(async ({ _ctx }) => {
+  getConsistentUserDocuments: protectedProcedure.query(async ({ ctx  }) => {
     try {
       const userId = ctx.session.user.id;
       const userRole = ctx.session.user.role as UserRole;
 
       // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
       return await getUserDocumentsWithFullStatus(userId, userRole);
-    } catch (_error) {
+    } catch (error) {
       console.error("Erreur lors de la récupération des documents:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: `Erreur lors de la récupération des documents: ${error instanceof Error ? error.message : String(error)}`,
-      });
+        message: `Erreur lors de la récupération des documents: ${error instanceof Error ? error.message : String(error)}`});
     }
   }),
 
   // Vérifie et met à jour automatiquement le statut de vérification d'un livreur
   checkAndUpdateDelivererVerification: protectedProcedure.mutation(
-    async ({ _ctx }) => {
+    async ({ ctx  }) => {
       try {
         // Vérifier si l'utilisateur est un livreur
-        if (_ctx.session.user.role !== UserRole.DELIVERER) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Seuls les livreurs peuvent utiliser cette fonction",
-          });
+        if (ctx.session.user.role !== UserRole.DELIVERER) {
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Seuls les livreurs peuvent utiliser cette fonction" });
         }
 
         const userId = ctx.session.user.id;
@@ -583,31 +506,27 @@ export const verificationRouter = router({
           isVerified:
             result.wasUpdated || result.currentStatus?.isVerified === true,
           message: result.message,
-          details: result,
-        };
-      } catch (_error) {
+          details: result};
+      } catch (error) {
         console.error(
           "Erreur lors de la vérification automatique du livreur:",
           error,
         );
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Erreur lors de la vérification: ${error instanceof Error ? error.message : String(error)}`,
-        });
+          message: `Erreur lors de la vérification: ${error instanceof Error ? error.message : String(error)}`});
       }
     },
   ),
 
   // Vérifie et met à jour automatiquement le statut de vérification d'un commerçant
   checkAndUpdateMerchantVerification: protectedProcedure.mutation(
-    async ({ _ctx }) => {
+    async ({ ctx  }) => {
       try {
         // Vérifier si l'utilisateur est un commerçant
-        if (_ctx.session.user.role !== UserRole.MERCHANT) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Seuls les commerçants peuvent utiliser cette fonction",
-          });
+        if (ctx.session.user.role !== UserRole.MERCHANT) {
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Seuls les commerçants peuvent utiliser cette fonction" });
         }
 
         const userId = ctx.session.user.id;
@@ -622,31 +541,27 @@ export const verificationRouter = router({
           isVerified:
             result.wasUpdated || result.currentStatus?.isVerified === true,
           message: result.message,
-          details: result,
-        };
-      } catch (_error) {
+          details: result};
+      } catch (error) {
         console.error(
           "Erreur lors de la vérification automatique du commerçant:",
           error,
         );
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Erreur lors de la vérification: ${error instanceof Error ? error.message : String(error)}`,
-        });
+          message: `Erreur lors de la vérification: ${error instanceof Error ? error.message : String(error)}`});
       }
     },
   ),
 
   // Vérifie et met à jour automatiquement le statut de vérification d'un prestataire
   checkAndUpdateProviderVerification: protectedProcedure.mutation(
-    async ({ _ctx }) => {
+    async ({ ctx  }) => {
       try {
         // Vérifier si l'utilisateur est un prestataire
-        if (_ctx.session.user.role !== UserRole.PROVIDER) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Seuls les prestataires peuvent utiliser cette fonction",
-          });
+        if (ctx.session.user.role !== UserRole.PROVIDER) {
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Seuls les prestataires peuvent utiliser cette fonction" });
         }
 
         const userId = ctx.session.user.id;
@@ -661,18 +576,15 @@ export const verificationRouter = router({
           isVerified:
             result.wasUpdated || result.currentStatus?.isVerified === true,
           message: result.message,
-          details: result,
-        };
-      } catch (_error) {
+          details: result};
+      } catch (error) {
         console.error(
           "Erreur lors de la vérification automatique du prestataire:",
           error,
         );
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Erreur lors de la vérification: ${error instanceof Error ? error.message : String(error)}`,
-        });
+          message: `Erreur lors de la vérification: ${error instanceof Error ? error.message : String(error)}`});
       }
     },
-  ),
-});
+  )});

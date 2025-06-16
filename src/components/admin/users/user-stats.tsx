@@ -11,16 +11,14 @@ import {
   Pie,
   PieChart as RechartsPieChart,
   Cell,
-  Legend,
-} from "recharts";
+  Legend} from "recharts";
 
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+  CardDescription} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserStatsData } from "@/types/actors/admin";
 
@@ -40,41 +38,25 @@ export function UserStats({ data }: UserStatsProps) {
     ACTIVE: "#22c55e", // vert
     INACTIVE: "#94a3b8", // gris
     SUSPENDED: "#ef4444", // rouge
-    PENDING_VERIFICATION: "#f59e0b", // ambre
+    _PENDING_VERIFICATION: "#f59e0b", // ambre
 
     verified: "#10b981", // vert émeraude
     unverified: "#f59e0b", // ambre
   };
 
   // Données pour le graphique des rôles
-  const roleData = Object.entries(data.usersByRole).map(([role, count]) => ({
-    name: role,
+  const roleData = Object.entries(data.usersByRole).map(([role, count]) => ({ name: role,
     value: count,
-    color: COLORS[role as UserRole] || "#94a3b8",
-  }));
+    color: COLORS[role as UserRole] || "#94a3b8" }));
 
   // Données pour le graphique des statuts
   const statusData = Object.entries(data.usersByStatus).map(
-    ([status, count]) => ({
-      name: status,
+    ([status, count]) => ({ name: status,
       value: count,
-      color: COLORS[status as UserStatus] || "#94a3b8",
-    }),
+      color: COLORS[status as UserStatus] || "#94a3b8" }),
   );
 
   // Données pour le graphique de vérification
-  const verificationData = [
-    {
-      name: "Vérifiés",
-      value: data.usersByVerification.verified,
-      color: COLORS.verified,
-    },
-    {
-      name: "Non vérifiés",
-      value: data.usersByVerification.unverified,
-      color: COLORS.unverified,
-    },
-  ];
 
   // Données pour le graphique des inscriptions dans le temps
   const registrationsData = data.registrationsOverTime || [];
@@ -141,7 +123,7 @@ export function UserStats({ data }: UserStatsProps) {
                         outerRadius={80}
                         paddingAngle={2}
                         dataKey="value"
-                        label={({ name, percent }) =>
+                        label={({ name, percent  }) =>
                           `${name} (${(percent * 100).toFixed(0)}%)`
                         }
                         labelLine={false}
@@ -153,8 +135,7 @@ export function UserStats({ data }: UserStatsProps) {
                       <Tooltip
                         formatter={(value) => [
                           `${value} utilisateurs`,
-                          "Nombre",
-                        ]}
+                          "Nombre"]}
                       />
                       <Legend formatter={(value) => translateRole(value)} />
                     </RechartsPieChart>
@@ -182,7 +163,7 @@ export function UserStats({ data }: UserStatsProps) {
                         outerRadius={80}
                         paddingAngle={2}
                         dataKey="value"
-                        label={({ name, percent }) =>
+                        label={({ name, percent  }) =>
                           `${translateStatus(name)} (${(percent * 100).toFixed(0)}%)`
                         }
                         labelLine={false}
@@ -194,8 +175,7 @@ export function UserStats({ data }: UserStatsProps) {
                       <Tooltip
                         formatter={(value) => [
                           `${value} utilisateurs`,
-                          "Nombre",
-                        ]}
+                          "Nombre"]}
                       />
                       <Legend formatter={(value) => translateStatus(value)} />
                     </RechartsPieChart>
@@ -223,7 +203,7 @@ export function UserStats({ data }: UserStatsProps) {
                         outerRadius={80}
                         paddingAngle={2}
                         dataKey="value"
-                        label={({ name, percent }) =>
+                        label={({ name, percent  }) =>
                           `${name} (${(percent * 100).toFixed(0)}%)`
                         }
                         labelLine={false}
@@ -235,8 +215,7 @@ export function UserStats({ data }: UserStatsProps) {
                       <Tooltip
                         formatter={(value) => [
                           `${value} utilisateurs`,
-                          "Nombre",
-                        ]}
+                          "Nombre"]}
                       />
                       <Legend />
                     </RechartsPieChart>
@@ -265,8 +244,7 @@ export function UserStats({ data }: UserStatsProps) {
                       top: 20,
                       right: 30,
                       left: 20,
-                      bottom: 60,
-                    }}
+                      bottom: 60}}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
@@ -283,8 +261,7 @@ export function UserStats({ data }: UserStatsProps) {
                     <Tooltip
                       formatter={(value) => [
                         `${value} utilisateurs`,
-                        "Inscriptions",
-                      ]}
+                        "Inscriptions"]}
                       labelFormatter={(date) => {
                         const d = new Date(date);
                         return `${d.toLocaleString("fr-FR", { month: "long", year: "numeric" })}`;
@@ -317,8 +294,7 @@ export function UserStats({ data }: UserStatsProps) {
                       top: 20,
                       right: 30,
                       left: 60,
-                      bottom: 5,
-                    }}
+                      bottom: 5}}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
@@ -347,8 +323,7 @@ export function UserStats({ data }: UserStatsProps) {
 function StatCard({
   title,
   value,
-  description,
-}: {
+  description}: {
   title: string;
   value: number;
   description: string;
@@ -373,8 +348,7 @@ function translateRole(role: string): string {
     DELIVERER: "Livreurs",
     MERCHANT: "Marchands",
     PROVIDER: "Prestataires",
-    ADMIN: "Administrateurs",
-  };
+    ADMIN: "Administrateurs"};
   return translations[role] || role;
 }
 
@@ -383,8 +357,6 @@ function translateStatus(status: string): string {
   const translations: Record<string, string> = {
     ACTIVE: "Actifs",
     INACTIVE: "Inactifs",
-    SUSPENDED: "Suspendus",
-    PENDING_VERIFICATION: "En attente",
-  };
+    SUSPENDED: "Suspendus", PENDING_VERIFICATION: "En attente"};
   return translations[status] || status;
 }

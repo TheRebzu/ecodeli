@@ -30,41 +30,78 @@ interface UseClientContractsOptions {
   status?: string;
   startDate?: Date;
   endDate?: Date;
+  page?: number;
+  limit?: number;
 }
 
 interface UseClientContractsReturn {
   contracts: Contract[];
+  totalContracts: number;
   isLoading: boolean;
   error: string | null;
+  signContract: (contractId: string) => Promise<void>;
+  downloadContract: (contractId: string) => Promise<void>;
   refetch: () => void;
 }
 
-export function useClientContracts(
-  options: UseClientContractsOptions = {},
-): UseClientContractsReturn {
-  const [contracts, setContracts] = useState<Contract[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function useClientContracts(options: UseClientContractsOptions = {}) {
   const [error, setError] = useState<string | null>(null);
 
-  const refetch = () => {
-    setIsLoading(true);
-    setError(null);
+  // Appel tRPC réel pour récupérer les contrats
+  const {
+    data: contractsData,
+    isLoading,
+    refetch,
+  } = api.client.contracts.getClientContracts.useQuery(
+    {
+      status: options.status,
+      page: options.page || 1,
+      limit: options.limit || 10,
+    },
+    {
+      onError: (err: any) => {
+        setError(err.message || "Erreur lors du chargement des contrats");
+      },
+    },
+  );
 
-    // Simuler le chargement
-    setTimeout(() => {
-      setContracts([]);
-      setIsLoading(false);
-    }, 1000);
+  const signContractMutation = api.client.contracts.signContract.useMutation({
+    onSuccess: () => {
+      refetch();
+    },
+    onError: (err: any) => {
+      setError(err.message || "Erreur lors de la signature du contrat");
+    },
+  });
+
+  const downloadContractMutation = api.client.contracts.downloadContract.useMutation({
+    onError: (err: any) => {
+      setError(err.message || "Erreur lors du téléchargement du contrat");
+    },
+  });
+
+  const signContract = async (contractId: string) => {
+    await signContractMutation.mutateAsync({ contractId  });
   };
 
-  useEffect(() => {
-    refetch();
-  }, [options.status, options.startDate, options.endDate]);
+  const downloadContract = async (contractId: string) => {
+    try {
+      const result = await downloadContractMutation.mutateAsync({ contractId  });
+      if (result.downloadUrl) {
+        window.open(result.downloadUrl, 'blank');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur lors du téléchargement");
+    }
+  };
 
   return {
-    contracts,
+    contracts: contractsData?.contracts || [],
+    totalContracts: contractsData?.total || 0,
     isLoading,
     error,
+    signContract,
+    downloadContract,
     refetch,
   };
 }

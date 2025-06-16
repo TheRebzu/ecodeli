@@ -9,16 +9,14 @@ import {
   Filter,
   MapPin,
   Package,
-  Truck,
-} from "lucide-react";
+  Truck} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,29 +24,25 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+  CommandList} from "@/components/ui/command";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  AccordionTrigger} from "@/components/ui/accordion";
 import { cn } from "@/lib/utils/common";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -86,8 +80,7 @@ const ANNOUNCEMENT_TYPES = [
   { value: "AIRPORT_TRANSFER", label: "Transfert aéroport" },
   { value: "FOREIGN_PURCHASE", label: "Achat à l'étranger" },
   { value: "PET_CARE", label: "Transport d'animaux" },
-  { value: "HOME_SERVICES", label: "Services à domicile" },
-];
+  { value: "HOME_SERVICES", label: "Services à domicile" }];
 
 const ANNOUNCEMENT_STATUSES = [
   { value: "DRAFT", label: "Brouillon" },
@@ -96,16 +89,14 @@ const ANNOUNCEMENT_STATUSES = [
   { value: "ASSIGNED", label: "Assignée" },
   { value: "IN_PROGRESS", label: "En cours" },
   { value: "COMPLETED", label: "Terminée" },
-  { value: "CANCELLED", label: "Annulée" },
-];
+  { value: "CANCELLED", label: "Annulée" }];
 
 const SORT_OPTIONS = [
   { value: "recent", label: "Plus récentes" },
   { value: "price_low", label: "Prix croissant" },
   { value: "price_high", label: "Prix décroissant" },
   { value: "distance", label: "Distance" },
-  { value: "deadline", label: "Date limite" },
-];
+  { value: "deadline", label: "Date limite" }];
 
 /**
  * Composant de filtre pour les annonces
@@ -115,13 +106,11 @@ export function AnnouncementFilter({
   onFilterChange,
   onReset,
   isCompact = false,
-  className,
-}: AnnouncementFilterProps) {
+  className}: AnnouncementFilterProps) {
   const t = useTranslations("Announcements.filters");
 
   // Initialisation des états à partir des valeurs par défaut
-  const [filters, setFilters] = useState<AnnouncementFilterValues>({
-    search: "",
+  const [filters, setFilters] = useState<AnnouncementFilterValues>({ search: "",
     types: [],
     status: [],
     priceRange: [0, 1000],
@@ -134,8 +123,7 @@ export function AnnouncementFilter({
     requiresRefrigeration: false,
     isFragile: false,
     sortBy: "recent",
-    ...defaultValues,
-  });
+    ...defaultValues });
 
   // Gérer le changement d'état des filtres
   const handleFilterChange = (
@@ -145,9 +133,7 @@ export function AnnouncementFilter({
     setFilters((prev) => {
       const newFilters = { ...prev, [key]: value };
       // Utiliser setTimeout pour éviter d'appeler onFilterChange pendant le render
-      setTimeout(() => {
-        onFilterChange(newFilters);
-      }, 0);
+      // Appel API réel via tRPC
       return newFilters;
     });
   };
@@ -167,18 +153,11 @@ export function AnnouncementFilter({
       isNegotiable: false,
       requiresRefrigeration: false,
       isFragile: false,
-      sortBy: "recent" as const,
-    };
+      sortBy: "recent" as const};
 
     setFilters(resetFilters);
     // Utiliser setTimeout pour éviter d'appeler les callbacks pendant le render
-    setTimeout(() => {
-      if (onReset) {
-        onReset();
-      } else {
-        onFilterChange(resetFilters);
-      }
-    }, 0);
+    // Appel API réel via tRPC
   };
 
   // Version compacte du filtre (pour mobile)

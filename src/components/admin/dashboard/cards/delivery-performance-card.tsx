@@ -5,8 +5,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AreaChart, BarChart, PieChart } from "@/components/ui/charts";
@@ -18,8 +17,7 @@ import {
   MapPin,
   TrendingUp,
   Activity,
-  Timer,
-} from "lucide-react";
+  Timer} from "lucide-react";
 import { generateChartColors } from "@/utils/document-utils";
 
 interface DeliveryData {
@@ -69,8 +67,7 @@ export function DeliveryPerformanceCard({
   onTimePercentage,
   averageDeliveryTime,
   performanceGrowth,
-  className = "",
-}: DeliveryPerformanceCardProps) {
+  className = ""}: DeliveryPerformanceCardProps) {
   // Calculs automatiques
   const calculatedTotalDeliveries =
     totalDeliveries ?? data.reduce((sum, item) => sum + item.total, 0);
@@ -110,12 +107,10 @@ export function DeliveryPerformanceCard({
     })();
 
   // Données pour les graphiques
-  const performanceChartData = data.map((item) => ({
-    period: item.period,
+  const performanceChartData = data.map((item) => ({ period: item.period,
     onTimeRate: item.total > 0 ? (item.onTime / item.total) * 100 : 0,
     averageTime: item.averageTime,
-    total: item.total,
-  }));
+    total: item.total }));
 
   const statusData =
     data.length > 0
@@ -123,19 +118,15 @@ export function DeliveryPerformanceCard({
           {
             status: "À temps",
             count: calculatedOnTimeDeliveries,
-            color: "#22c55e",
-          },
+            color: "#22c55e"},
           {
             status: "En retard",
             count: data.reduce((sum, item) => sum + item.delayed, 0),
-            color: "#f59e0b",
-          },
+            color: "#f59e0b"},
           {
             status: "Échec",
             count: data.reduce((sum, item) => sum + item.failed, 0),
-            color: "#ef4444",
-          },
-        ]
+            color: "#ef4444"}]
       : [];
 
   const getPerformanceLevel = (percentage: number) => {
@@ -305,8 +296,7 @@ export function DeliveryPerformanceCard({
                         style={{
                           backgroundColor:
                             issue.color ||
-                            generateChartColors(issueBreakdown.length)[index],
-                        }}
+                            generateChartColors(issueBreakdown.length)[index]}}
                       />
                       <span>{issue.issueType}</span>
                     </div>

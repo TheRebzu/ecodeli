@@ -14,38 +14,29 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { useTranslations } from "next-intl";
 
 // Schéma de validation pour le formulaire de réinitialisation de mot de passe
 const resetPasswordSchema = z
-  .object({
-    password: z
+  .object({ password: z
       .string()
       .min(8, {
-        message: "Le mot de passe doit contenir au moins 8 caractères",
-      })
+        message: "Le mot de passe doit contenir au moins 8 caractères" })
       .regex(/[A-Z]/, {
-        message: "Le mot de passe doit contenir au moins une majuscule",
-      })
+        message: "Le mot de passe doit contenir au moins une majuscule"})
       .regex(/[a-z]/, {
-        message: "Le mot de passe doit contenir au moins une minuscule",
-      })
+        message: "Le mot de passe doit contenir au moins une minuscule"})
       .regex(/[0-9]/, {
-        message: "Le mot de passe doit contenir au moins un chiffre",
-      })
+        message: "Le mot de passe doit contenir au moins un chiffre"})
       .regex(/[^A-Za-z0-9]/, {
-        message: "Le mot de passe doit contenir au moins un caractère spécial",
-      }),
-    confirmPassword: z.string(),
-  })
+        message: "Le mot de passe doit contenir au moins un caractère spécial"}),
+    confirmPassword: z.string()})
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas",
-    path: ["confirmPassword"],
-  });
+    path: ["confirmPassword"]});
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
@@ -62,47 +53,36 @@ export function PasswordResetForm() {
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       password: "",
-      confirmPassword: "",
-    },
-  });
+      confirmPassword: ""}});
 
   // Mutation tRPC pour réinitialiser le mot de passe
-  const resetPassword = api.auth.resetPassword.useMutation({
-    onSuccess: () => {
+  const resetPassword = api.auth.resetPassword.useMutation({ onSuccess: () => {
       toast({
         title: t("success.title"),
         description: t("success.description"),
-        variant: "success",
-      });
+        variant: "success" });
       // Rediriger vers la page de connexion après réinitialisation réussie
       router.push("/login");
     },
     onError: (error) => {
-      toast({
-        title: t("error.title"),
+      toast({ title: t("error.title"),
         description: error.message || t("error.description"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
       setIsSubmitting(false);
-    },
-  });
+    }});
 
   // Gérer la soumission du formulaire
   const onSubmit = (data: ResetPasswordFormValues) => {
     if (!token) {
-      toast({
-        title: t("error.title"),
+      toast({ title: t("error.title"),
         description: t("error.invalidToken"),
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
     setIsSubmitting(true);
-    resetPassword.mutate({
-      token,
-      password: data.password,
-    });
+    resetPassword.mutate({ token,
+      password: data.password });
   };
 
   return (
@@ -117,7 +97,7 @@ export function PasswordResetForm() {
           <FormField
             control={form.control}
             name="password"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("password.label")}</FormLabel>
                 <FormControl>
@@ -136,7 +116,7 @@ export function PasswordResetForm() {
           <FormField
             control={form.control}
             name="confirmPassword"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("confirmPassword.label")}</FormLabel>
                 <FormControl>

@@ -14,23 +14,20 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,8 +36,7 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, Loader2Icon } from "lucide-react";
@@ -53,8 +49,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import {
   Cog,
   CheckCircle,
@@ -63,8 +58,7 @@ import {
   Trash2,
   Download,
   Lock,
-  Mail,
-} from "lucide-react";
+  Mail} from "lucide-react";
 
 interface UserBulkActionsProps {
   selectedUserIds: string[];
@@ -75,8 +69,7 @@ interface UserBulkActionsProps {
 export default function UserBulkActions({
   selectedUserIds,
   onActionComplete,
-  disabled = false,
-}: UserBulkActionsProps) {
+  disabled = false}: UserBulkActionsProps) {
   const t = useTranslations("Admin.verification.users.bulkActions");
   const { toast } = useToast();
   const router = useRouter();
@@ -95,26 +88,20 @@ export default function UserBulkActions({
   const [currentAction, setCurrentAction] = useState<string | null>(null);
 
   // Mutation tRPC pour exécuter des actions en masse
-  const bulkActionMutation = api.adminUser.bulkUserAction.useMutation({
-    onSuccess: () => {
+  const bulkActionMutation = api.adminUser.bulkUserAction.useMutation({ onSuccess: () => {
       toast({
         title: t("success.title"),
         description: t("success.description", {
-          count: selectedUserIds.length,
-        }),
-      });
+          count: selectedUserIds.length })});
       setIsDialogOpen(false);
       onActionComplete();
       resetForm();
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("error.title"),
-        description: error.message || t("error.description"),
-      });
-    },
-  });
+        description: error.message || t("error.description") });
+    }});
 
   const resetForm = () => {
     setSelectedAction("");
@@ -144,25 +131,21 @@ export default function UserBulkActions({
       needsConfirmation &&
       (!confirmationCode || confirmationCode !== "CONFIRM")
     ) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("error.confirmationRequired.title"),
-        description: t("error.confirmationRequired.description"),
-      });
+        description: t("error.confirmationRequired.description") });
       return;
     }
 
     // Exécuter l'action en masse
-    bulkActionMutation.mutate({
-      userIds: selectedUserIds,
+    bulkActionMutation.mutate({ userIds: selectedUserIds,
       action: selectedAction,
       reason,
       notifyUsers,
       additionalData:
         Object.keys(additionalData).length > 0 ? additionalData : undefined,
       scheduledFor: scheduledDate,
-      confirmationCode: needsConfirmation ? confirmationCode : undefined,
-    });
+      confirmationCode: needsConfirmation ? confirmationCode : undefined });
   };
 
   // Configuration des actions en fonction du type d'action sélectionné
@@ -230,7 +213,7 @@ export default function UserBulkActions({
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {scheduledDate ? (
-                    format(scheduledDate, "PPP", { locale: fr })
+                    format(scheduledDate, "PPP", { locale })
                   ) : (
                     <span>{t("placeholders.selectDate")}</span>
                   )}
@@ -281,8 +264,7 @@ export default function UserBulkActions({
             </p>
           </div>
         </div>
-      ),
-      FORCE_PASSWORD_RESET: (
+      ), FORCE_PASSWORD_RESET: (
         <div className="space-y-4">
           <p>{t("actions.FORCE_PASSWORD_RESET.description")}</p>
           <div className="space-y-2">
@@ -307,10 +289,8 @@ export default function UserBulkActions({
               id="expire-tokens"
               checked={additionalData.expireExistingTokens ?? true}
               onCheckedChange={(checked) =>
-                setAdditionalData({
-                  ...additionalData,
-                  expireExistingTokens: !!checked,
-                })
+                setAdditionalData({ ...additionalData,
+                  expireExistingTokens: !!checked })
               }
             />
             <Label htmlFor="expire-tokens">{t("common.expireTokens")}</Label>
@@ -320,10 +300,8 @@ export default function UserBulkActions({
               id="require-strong"
               checked={additionalData.requireStrongPassword ?? true}
               onCheckedChange={(checked) =>
-                setAdditionalData({
-                  ...additionalData,
-                  requireStrongPassword: !!checked,
-                })
+                setAdditionalData({ ...additionalData,
+                  requireStrongPassword: !!checked })
               }
             />
             <Label htmlFor="require-strong">
@@ -331,8 +309,7 @@ export default function UserBulkActions({
             </Label>
           </div>
         </div>
-      ),
-      SEND_VERIFICATION_EMAIL: (
+      ), SEND_VERIFICATION_EMAIL: (
         <div className="space-y-4">
           <p>{t("actions.SEND_VERIFICATION_EMAIL.description")}</p>
           <div className="flex items-center space-x-2">
@@ -340,10 +317,8 @@ export default function UserBulkActions({
               id="force-resend"
               checked={additionalData.forceResend ?? true}
               onCheckedChange={(checked) =>
-                setAdditionalData({
-                  ...additionalData,
-                  forceResend: !!checked,
-                })
+                setAdditionalData({ ...additionalData,
+                  forceResend: !!checked })
               }
             />
             <Label htmlFor="force-resend">{t("common.forceResend")}</Label>
@@ -393,8 +368,7 @@ export default function UserBulkActions({
             </p>
           </div>
         </div>
-      ),
-      ADD_TAG: (
+      ), ADD_TAG: (
         <div className="space-y-4">
           <p>{t("actions.ADD_TAG.description")}</p>
           <div className="space-y-2">
@@ -403,18 +377,15 @@ export default function UserBulkActions({
               id="tag"
               value={additionalData.tag || ""}
               onChange={(e) =>
-                setAdditionalData({
-                  ...additionalData,
-                  tag: e.target.value,
-                })
+                setAdditionalData({ ...additionalData,
+                  tag: e.target.value })
               }
               placeholder={t("placeholders.tag")}
               required
             />
           </div>
         </div>
-      ),
-      REMOVE_TAG: (
+      ), REMOVE_TAG: (
         <div className="space-y-4">
           <p>{t("actions.REMOVE_TAG.description")}</p>
           <div className="space-y-2">
@@ -423,18 +394,15 @@ export default function UserBulkActions({
               id="tag"
               value={additionalData.tag || ""}
               onChange={(e) =>
-                setAdditionalData({
-                  ...additionalData,
-                  tag: e.target.value,
-                })
+                setAdditionalData({ ...additionalData,
+                  tag: e.target.value })
               }
               placeholder={t("placeholders.tag")}
               required
             />
           </div>
         </div>
-      ),
-      ASSIGN_ROLE: (
+      ), ASSIGN_ROLE: (
         <div className="space-y-4">
           <p>{t("actions.ASSIGN_ROLE.description")}</p>
           <div className="space-y-2">
@@ -442,10 +410,8 @@ export default function UserBulkActions({
             <Select
               value={additionalData.role || ""}
               onValueChange={(value) =>
-                setAdditionalData({
-                  ...additionalData,
-                  role: value,
-                })
+                setAdditionalData({ ...additionalData,
+                  role: value })
               }
             >
               <SelectTrigger id="role">
@@ -475,10 +441,8 @@ export default function UserBulkActions({
               id="create-profile"
               checked={additionalData.createRoleSpecificProfile ?? true}
               onCheckedChange={(checked) =>
-                setAdditionalData({
-                  ...additionalData,
-                  createRoleSpecificProfile: !!checked,
-                })
+                setAdditionalData({ ...additionalData,
+                  createRoleSpecificProfile: !!checked })
               }
             />
             <Label htmlFor="create-profile">{t("common.createProfile")}</Label>
@@ -493,8 +457,7 @@ export default function UserBulkActions({
             />
           </div>
         </div>
-      ),
-      ASSIGN_PERMISSION: (
+      ), ASSIGN_PERMISSION: (
         <div className="space-y-4">
           <p>{t("actions.ASSIGN_PERMISSION.description")}</p>
           <div className="space-y-2">
@@ -503,10 +466,8 @@ export default function UserBulkActions({
               id="permission"
               value={additionalData.permission || ""}
               onChange={(e) =>
-                setAdditionalData({
-                  ...additionalData,
-                  permission: e.target.value,
-                })
+                setAdditionalData({ ...additionalData,
+                  permission: e.target.value })
               }
               placeholder={t("placeholders.permission")}
               required
@@ -520,10 +481,8 @@ export default function UserBulkActions({
               id="permission-group"
               value={additionalData.permissionGroup || ""}
               onChange={(e) =>
-                setAdditionalData({
-                  ...additionalData,
-                  permissionGroup: e.target.value,
-                })
+                setAdditionalData({ ...additionalData,
+                  permissionGroup: e.target.value })
               }
               placeholder={t("placeholders.permissionGroup")}
             />
@@ -540,8 +499,7 @@ export default function UserBulkActions({
             <Label htmlFor="notify-users">{t("common.notifyUsers")}</Label>
           </div>
         </div>
-      ),
-      REVOKE_PERMISSION: (
+      ), REVOKE_PERMISSION: (
         <div className="space-y-4">
           <p>{t("actions.REVOKE_PERMISSION.description")}</p>
           <div className="space-y-2">
@@ -550,10 +508,8 @@ export default function UserBulkActions({
               id="permission"
               value={additionalData.permission || ""}
               onChange={(e) =>
-                setAdditionalData({
-                  ...additionalData,
-                  permission: e.target.value,
-                })
+                setAdditionalData({ ...additionalData,
+                  permission: e.target.value })
               }
               placeholder={t("placeholders.permission")}
               required
@@ -567,10 +523,8 @@ export default function UserBulkActions({
               id="permission-group"
               value={additionalData.permissionGroup || ""}
               onChange={(e) =>
-                setAdditionalData({
-                  ...additionalData,
-                  permissionGroup: e.target.value,
-                })
+                setAdditionalData({ ...additionalData,
+                  permissionGroup: e.target.value })
               }
               placeholder={t("placeholders.permissionGroup")}
             />
@@ -584,8 +538,7 @@ export default function UserBulkActions({
             <Label htmlFor="notify-users">{t("common.notifyUsers")}</Label>
           </div>
         </div>
-      ),
-      SEND_NOTIFICATION: (
+      ), SEND_NOTIFICATION: (
         <div className="space-y-4">
           <p>{t("actions.SEND_NOTIFICATION.description")}</p>
           <div className="space-y-2">
@@ -594,10 +547,8 @@ export default function UserBulkActions({
               id="title"
               value={additionalData.title || ""}
               onChange={(e) =>
-                setAdditionalData({
-                  ...additionalData,
-                  title: e.target.value,
-                })
+                setAdditionalData({ ...additionalData,
+                  title: e.target.value })
               }
               placeholder={t("placeholders.title")}
               required
@@ -609,10 +560,8 @@ export default function UserBulkActions({
               id="message"
               value={additionalData.message || ""}
               onChange={(e) =>
-                setAdditionalData({
-                  ...additionalData,
-                  message: e.target.value,
-                })
+                setAdditionalData({ ...additionalData,
+                  message: e.target.value })
               }
               placeholder={t("placeholders.message")}
               required
@@ -625,10 +574,8 @@ export default function UserBulkActions({
             <Select
               value={additionalData.type || "INFO"}
               onValueChange={(value) =>
-                setAdditionalData({
-                  ...additionalData,
-                  type: value,
-                })
+                setAdditionalData({ ...additionalData,
+                  type: value })
               }
             >
               <SelectTrigger id="notification-type">
@@ -657,10 +604,8 @@ export default function UserBulkActions({
             <Select
               value={additionalData.channel || "EMAIL"}
               onValueChange={(value) =>
-                setAdditionalData({
-                  ...additionalData,
-                  channel: value,
-                })
+                setAdditionalData({ ...additionalData,
+                  channel: value })
               }
             >
               <SelectTrigger id="notification-channel">
@@ -677,8 +622,7 @@ export default function UserBulkActions({
             </Select>
           </div>
         </div>
-      ),
-      EXPORT_DATA: (
+      ), EXPORT_DATA: (
         <div className="space-y-4">
           <p>{t("actions.EXPORT_DATA.description")}</p>
           <div className="space-y-2">
@@ -686,10 +630,8 @@ export default function UserBulkActions({
             <Select
               value={additionalData.format || "csv"}
               onValueChange={(value) =>
-                setAdditionalData({
-                  ...additionalData,
-                  format: value,
-                })
+                setAdditionalData({ ...additionalData,
+                  format: value })
               }
             >
               <SelectTrigger id="export-format">
@@ -708,10 +650,8 @@ export default function UserBulkActions({
               id="include-headers"
               checked={additionalData.includeHeaders ?? true}
               onCheckedChange={(checked) =>
-                setAdditionalData({
-                  ...additionalData,
-                  includeHeaders: !!checked,
-                })
+                setAdditionalData({ ...additionalData,
+                  includeHeaders: !!checked })
               }
             />
             <Label htmlFor="include-headers">
@@ -723,10 +663,8 @@ export default function UserBulkActions({
               id="include-sensitive"
               checked={additionalData.includeSensitiveData ?? false}
               onCheckedChange={(checked) =>
-                setAdditionalData({
-                  ...additionalData,
-                  includeSensitiveData: !!checked,
-                })
+                setAdditionalData({ ...additionalData,
+                  includeSensitiveData: !!checked })
               }
             />
             <Label htmlFor="include-sensitive">
@@ -756,8 +694,7 @@ export default function UserBulkActions({
         <div className="space-y-4">
           <p>{t("actions.UNBAN.description")}</p>
         </div>
-      ),
-    };
+      )};
 
     return configs[selectedAction];
   };
@@ -769,11 +706,9 @@ export default function UserBulkActions({
   const executeAction = () => {
     if (!currentAction || selectedUserIds.length === 0) return;
 
-    bulkActionMutation.mutate({
-      userIds: selectedUserIds,
+    bulkActionMutation.mutate({ userIds: selectedUserIds,
       action: currentAction,
-      notifyUsers: true,
-    });
+      notifyUsers: true });
   };
 
   // Fonction pour préparer l'action
@@ -845,7 +780,7 @@ export default function UserBulkActions({
             disabled={noUsersSelected || disabled}
             className="min-w-[140px]"
           >
-            {t("button") || "Actions en masse"} ({selectedUserIds.length})
+            {t("button") || "Actions en masse"} ({ selectedUserIds.length })
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
@@ -931,8 +866,7 @@ export default function UserBulkActions({
             <AlertDialogTitle>
               {selectedAction &&
                 t(`actions.${selectedAction}.title`, {
-                  count: selectedUserIds.length,
-                })}
+                  count: selectedUserIds.length})}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {t("confirmationText", { count: selectedUserIds.length }) ||

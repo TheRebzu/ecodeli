@@ -11,8 +11,7 @@ import {
   Calendar,
   Wallet,
   Target,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 type EarningsPeriod = "day" | "week" | "month";
@@ -40,8 +39,7 @@ type DelivererEarningsSummaryProps = {
 export function DelivererEarningsSummary({
   earnings,
   isLoading = false,
-  currency = "€",
-}: DelivererEarningsSummaryProps) {
+  currency = "€"}: DelivererEarningsSummaryProps) {
   const t = useTranslations("dashboard.deliverer");
 
   if (isLoading) {
@@ -70,8 +68,7 @@ export function DelivererEarningsSummary({
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: currency === "€" ? "EUR" : "USD",
-      minimumFractionDigits: 2,
-    }).format(amount);
+      minimumFractionDigits: 2}).format(amount);
   };
 
   const formatHours = (hours: number) => {
@@ -188,8 +185,7 @@ export function DelivererEarningsSummary({
       changePercentage: 19.1,
       deliveriesCount: 6,
       hoursWorked: 4.5,
-      averagePerDelivery: 7.58,
-    },
+      averagePerDelivery: 7.58},
     week: {
       current: 287.4,
       previous: 245.8,
@@ -197,8 +193,7 @@ export function DelivererEarningsSummary({
       changePercentage: 16.9,
       deliveriesCount: 38,
       hoursWorked: 28.5,
-      averagePerDelivery: 7.56,
-    },
+      averagePerDelivery: 7.56},
     month: {
       current: 1156.8,
       previous: 1089.3,
@@ -206,9 +201,7 @@ export function DelivererEarningsSummary({
       changePercentage: 6.2,
       deliveriesCount: 152,
       hoursWorked: 118.2,
-      averagePerDelivery: 7.61,
-    },
-  };
+      averagePerDelivery: 7.61}};
 
   const earningsData = earnings || defaultEarnings;
 

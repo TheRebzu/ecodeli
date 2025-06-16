@@ -23,8 +23,7 @@ export function CalendarView({
   events = [],
   selectedDate = new Date(),
   onDateSelect,
-  onEventClick,
-}: CalendarViewProps) {
+  onEventClick}: CalendarViewProps) {
   const [date, setDate] = useState<Date | undefined>(selectedDate);
 
   return (

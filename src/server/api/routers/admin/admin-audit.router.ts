@@ -5,34 +5,29 @@ import { AuditService } from "@/server/services/admin/audit.service";
 import { UserRole } from "@prisma/client";
 
 // Schéma pour filtrer les logs d'audit
-const auditLogFilterSchema = z.object({
-  entityType: z.string().optional(),
+const auditLogFilterSchema = z.object({ entityType: z.string().optional(),
   entityId: z.string().optional(),
   performedById: z.string().optional(),
   action: z.string().optional(),
   fromDate: z.date().optional(),
   toDate: z.date().optional(),
   limit: z.number().int().min(1).max(100).default(20),
-  offset: z.number().int().min(0).default(0),
-});
+  offset: z.number().int().min(0).default(0) });
 
 /**
  * Routeur pour la gestion des logs d'audit
  * Ces endpoints sont protégés et accessibles uniquement par les administrateurs
  */
-export const auditRouter = router({
-  /**
+export const auditRouter = router({ /**
    * Récupère tous les logs d'audit avec filtres et pagination
    */
   getAuditLogs: protectedProcedure
     .input(auditLogFilterSchema)
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       // Vérifier que l'utilisateur est un administrateur
-      if (_ctx.session.user.role !== UserRole.ADMIN) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à accéder aux logs d'audit",
-        });
+      if (ctx.session.user.role !== UserRole.ADMIN) {
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à accéder aux logs d'audit" });
       }
 
       return AuditService.getAllAuditLogs(input);
@@ -43,18 +38,14 @@ export const auditRouter = router({
    */
   getEntityAuditLogs: protectedProcedure
     .input(
-      z.object({
-        entityType: z.string(),
-        entityId: z.string(),
-      }),
+      z.object({ entityType: z.string(),
+        entityId: z.string() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       // Vérifier que l'utilisateur est un administrateur
-      if (_ctx.session.user.role !== UserRole.ADMIN) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à accéder aux logs d'audit",
-        });
+      if (ctx.session.user.role !== UserRole.ADMIN) {
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à accéder aux logs d'audit" });
       }
 
       return AuditService.getAuditLogs(input.entityType, input.entityId);
@@ -65,24 +56,17 @@ export const auditRouter = router({
    */
   getRecentAnnouncementAudits: protectedProcedure
     .input(
-      z.object({
-        limit: z.number().int().min(1).max(50).default(10),
-      }),
+      z.object({ limit: z.number().int().min(1).max(50).default(10) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       // Vérifier que l'utilisateur est un administrateur
-      if (_ctx.session.user.role !== UserRole.ADMIN) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à accéder aux logs d'audit",
-        });
+      if (ctx.session.user.role !== UserRole.ADMIN) {
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à accéder aux logs d'audit" });
       }
 
       // Récupérer les derniers logs d'audit pour les annonces
-      return AuditService.getAllAuditLogs({
-        entityType: "announcement",
+      return AuditService.getAllAuditLogs({ entityType: "announcement",
         limit: input.limit,
-        offset: 0,
-      });
-    }),
-});
+        offset: 0 });
+    })});

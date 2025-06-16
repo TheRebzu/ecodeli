@@ -10,19 +10,16 @@ const SUPPORTED_LOCALES = ["fr", "en", "es", "de", "it"];
 const DEFAULT_LOCALE = "fr";
 
 // Schéma de validation pour les paramètres i18n
-const getMessagesSchema = z.object({
-  locale: z.enum(["fr", "en", "es", "de", "it"]).default("fr"),
-});
+const getMessagesSchema = z.object({ locale: z.enum(["fr", "en", "es", "de", "it"]).default("fr") });
 
-export const i18nRouter = router({
-  // Récupérer les messages de traduction pour une locale donnée
+export const i18nRouter = router({ // Récupérer les messages de traduction pour une locale donnée
   getMessages: publicProcedure
     .input(getMessagesSchema)
-    .query(async ({ input: _input }) => {
+    .query(async ({ input  }) => {
       console.log("i18n.getMessages called with input:", input);
       
       try {
-        const { _locale: __locale } = input;
+        const { locale } = input;
 
         // Chemin vers le fichier de messages
         const messagesPath = path.join(
@@ -39,8 +36,7 @@ export const i18nRouter = router({
           const result = {
             locale,
             messages: {},
-            timestamp: new Date().toISOString(),
-          };
+            timestamp: new Date().toISOString()};
           console.log("Returning empty messages:", result);
           return result;
         }
@@ -51,7 +47,7 @@ export const i18nRouter = router({
         
         try {
           messages = JSON.parse(messagesContent);
-        } catch (_parseError) {
+        } catch (parseError) {
           console.error("Erreur lors du parsing des messages:", parseError);
           messages = {};
         }
@@ -64,20 +60,18 @@ export const i18nRouter = router({
         const result = {
           locale,
           messages,
-          timestamp: new Date().toISOString(),
-        };
+          timestamp: new Date().toISOString()};
         
         console.log("Returning messages result:", { locale, hasMessages: Object.keys(messages).length > 0 });
         return result;
-      } catch (_error) {
+      } catch (error) {
         console.error("Erreur lors du chargement des messages i18n:", error);
 
         // Retourner un objet par défaut en cas d'erreur
         const fallbackResult = {
           locale: input.locale || DEFAULT_LOCALE,
           messages: {},
-          timestamp: new Date().toISOString(),
-        };
+          timestamp: new Date().toISOString()};
         console.log("Returning fallback result:", fallbackResult);
         return fallbackResult;
       }
@@ -88,24 +82,21 @@ export const i18nRouter = router({
     return {
       supportedLocales: SUPPORTED_LOCALES,
       defaultLocale: DEFAULT_LOCALE,
-      availableMessages: await getAvailableMessageFiles(),
-    };
+      availableMessages: await getAvailableMessageFiles()};
   }),
 
   // Vérifier si une locale est supportée
   isLocaleSupported: publicProcedure
-    .input(z.object({ locale: z.string() }))
-    .query(async ({ input: _input }) => {
-      const { _locale: __locale } = input;
+    .input(z.object({ locale: z.string()  }))
+    .query(async ({ input  }) => {
+      const { locale } = input;
       const isSupported = SUPPORTED_LOCALES.includes(locale);
 
       return {
         locale,
         isSupported,
-        alternative: isSupported ? null : DEFAULT_LOCALE,
-      };
-    }),
-});
+        alternative: isSupported ? null : DEFAULT_LOCALE};
+    })});
 
 // Fonction utilitaire pour obtenir les fichiers de messages disponibles
 async function getAvailableMessageFiles(): Promise<
@@ -118,7 +109,6 @@ async function getAvailableMessageFiles(): Promise<
     return {
       locale,
       exists: existsSync(filePath),
-      path: filePath,
-    };
+      path: filePath};
   });
 }

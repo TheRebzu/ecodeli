@@ -36,8 +36,7 @@ export function ReviewStats({ reviews }: ReviewStatsProps) {
     totalHelpfulVotes: reviews.reduce(
       (sum, review) => sum + review.helpfulVotes,
       0,
-    ),
-  };
+    )};
 
   // Distribution des notes (1-5 étoiles)
   const ratingDistribution = Array.from({ length: 5 }, (_, i) => {
@@ -130,7 +129,7 @@ export function ReviewStats({ reviews }: ReviewStatsProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {ratingDistribution.map(({ rating, count, percentage }) => (
+              {ratingDistribution.map(({ rating, count, percentage  }) => (
                 <div key={rating} className="flex items-center gap-4">
                   <div className="flex items-center gap-1 w-16">
                     <span className="text-sm font-medium">{rating}</span>

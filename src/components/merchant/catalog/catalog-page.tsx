@@ -17,8 +17,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 
 // Icons
 import {
@@ -34,8 +33,7 @@ import {
   Star,
   Euro,
   BarChart3,
-  Filter,
-} from "lucide-react";
+  Filter} from "lucide-react";
 
 // Types
 interface Product {
@@ -71,8 +69,7 @@ const ProductCard = ({
   product,
   onEdit,
   onDelete,
-  onView,
-}: {
+  onView}: {
   product: Product;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -197,8 +194,7 @@ const ProductCard = ({
 // Composant carte catégorie
 const CategoryCard = ({
   category,
-  onSelect,
-}: {
+  onSelect}: {
   category: Category;
   onSelect: (id: string) => void;
 }) => (
@@ -235,18 +231,15 @@ export default function CatalogPage() {
   const {
     data: products,
     isLoading: isLoadingProducts,
-    refetch: refetchProducts,
-  } = api.merchant.catalog.getProducts.useQuery({
-    search: searchQuery || undefined,
+    refetch: refetchProducts} = api.merchant.catalog.getProducts.useQuery({ search: searchQuery || undefined,
     categoryId: selectedCategory !== "all" ? selectedCategory : undefined,
     sortBy,
-    stockStatus: stockFilter !== "all" ? stockFilter : undefined,
-  });
+    stockStatus: stockFilter !== "all" ? stockFilter : undefined });
 
   const { data: categories, isLoading: isLoadingCategories } =
     api.merchant.catalog.getCategories.useQuery();
 
-  const { data: catalogStats } = api.merchant.catalog.getStats.useQuery();
+  const { data } = api.merchant.catalog.getStats.useQuery();
 
   // Actions
   const handleCreateProduct = () => {
@@ -444,10 +437,10 @@ export default function CatalogPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="products">
-            Produits ({filteredProducts?.length || 0})
+            Produits ({ filteredProducts?.length || 0 })
           </TabsTrigger>
           <TabsTrigger value="categories">
-            Catégories ({categories?.length || 0})
+            Catégories ({ categories?.length || 0 })
           </TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>

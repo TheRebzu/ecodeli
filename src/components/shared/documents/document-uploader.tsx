@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,8 +17,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
@@ -31,8 +29,7 @@ import {
   AlertCircle,
   Eye,
   FileText,
-  Image,
-} from "lucide-react";
+  Image} from "lucide-react";
 import { DocumentType, UserRole } from "@prisma/client";
 import { cn } from "@/lib/utils";
 
@@ -59,20 +56,9 @@ interface DocumentUploaderProps {
   className?: string;
 }
 
-const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
-  ID_CARD: "Carte d'identité",
-  PASSPORT: "Passeport",
-  DRIVERS_LICENSE: "Permis de conduire",
-  PROOF_OF_ADDRESS: "Justificatif de domicile",
-  VEHICLE_INSURANCE: "Assurance véhicule",
-  VEHICLE_REGISTRATION: "Carte grise",
-  BUSINESS_LICENSE: "Licence commerciale",
-  INSURANCE_CERTIFICATE: "Certificat d'assurance",
-  QUALIFICATION_CERTIFICATE: "Certificat de qualification",
-  TAX_CERTIFICATE: "Certificat fiscal",
-  BANK_STATEMENT: "Relevé bancaire",
-  OTHER: "Autre document",
-};
+const _DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = { ID_CARD: "Carte d'identité",
+  PASSPORT: "Passeport", DRIVERS_LICENSE: "Permis de conduire", PROOF_OF_ADDRESS: "Justificatif de domicile", VEHICLE_INSURANCE: "Assurance véhicule", VEHICLE_REGISTRATION: "Carte grise", BUSINESS_LICENSE: "Licence commerciale", INSURANCE_CERTIFICATE: "Certificat d'assurance", QUALIFICATION_CERTIFICATE: "Certificat de qualification", TAX_CERTIFICATE: "Certificat fiscal", BANK_STATEMENT: "Relevé bancaire",
+  OTHER: "Autre document"};
 
 export default function DocumentUploader({
   userId,
@@ -83,8 +69,7 @@ export default function DocumentUploader({
   onUploadComplete,
   showPreview = true,
   multiple = true,
-  className,
-}: DocumentUploaderProps) {
+  className}: DocumentUploaderProps) {
   const [files, setFiles] = useState<DocumentFile[]>([]);
 
   // Mutation pour l'upload de documents
@@ -98,16 +83,13 @@ export default function DocumentUploader({
                   ...file,
                   status: "success",
                   progress: 100,
-                  url: data.document.fileUrl,
-                }
+                  url: data.document.fileUrl}
               : file,
           ),
         );
 
-        toast({
-          title: "Document téléchargé",
-          description: "Le document a été téléchargé avec succès.",
-        });
+        toast({ title: "Document téléchargé",
+          description: "Le document a été téléchargé avec succès." });
       },
       onError: (error, variables) => {
         setFiles((prev) =>
@@ -117,28 +99,22 @@ export default function DocumentUploader({
                   ...file,
                   status: "error",
                   progress: 0,
-                  errorMessage: error.message,
-                }
+                  errorMessage: error.message}
               : file,
           ),
         );
 
-        toast({
-          title: "Erreur de téléchargement",
+        toast({ title: "Erreur de téléchargement",
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles: DocumentFile[] = acceptedFiles.map((file) => ({
-      id: Math.random().toString(36).substr(2, 9),
+    const newFiles: DocumentFile[] = acceptedFiles.map((file) => ({ id: Math.random().toString(36).substr(2, 9),
       file,
       type: DocumentType.OTHER,
       status: "uploading" as const,
-      progress: 0,
-    }));
+      progress: 0 }));
 
     setFiles((prev) => [...prev, ...newFiles]);
   }, []);
@@ -148,11 +124,9 @@ export default function DocumentUploader({
     accept: {
       "image/jpeg": [".jpg", ".jpeg"],
       "image/png": [".png"],
-      "application/pdf": [".pdf"],
-    },
+      "application/pdf": [".pdf"]},
     maxSize: maxSize * 1024 * 1024,
-    multiple,
-  });
+    multiple});
 
   const removeFile = (fileId: string) => {
     setFiles((prev) => prev.filter((file) => file.id !== fileId));
@@ -166,14 +140,12 @@ export default function DocumentUploader({
 
   const uploadFile = async (documentFile: DocumentFile) => {
     try {
-      await uploadDocumentMutation.mutateAsync({
-        userId,
+      await uploadDocumentMutation.mutateAsync({ userId,
         type: documentFile.type,
         file: documentFile.file,
         userRole,
         description: documentFile.description,
-        fileId: documentFile.id,
-      });
+        fileId: documentFile.id });
     } catch (error) {
       console.error("Erreur upload:", error);
     }
@@ -240,7 +212,7 @@ export default function DocumentUploader({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="font-medium">
-                Documents sélectionnés ({files.length})
+                Documents sélectionnés ({ files.length })
               </h4>
               <Button onClick={uploadAllFiles} size="sm">
                 Télécharger tout

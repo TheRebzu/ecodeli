@@ -10,8 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -35,8 +34,7 @@ export function UserExport({ currentFilters }: UserExportProps) {
     "email",
     "role",
     "status",
-    "createdAt",
-  ]);
+    "createdAt"]);
   const [isExporting, setIsExporting] = useState(false);
 
   const api = useAdminUsers();
@@ -58,8 +56,7 @@ export function UserExport({ currentFilters }: UserExportProps) {
     { key: "documentsCount", label: "Documents Count" },
     { key: "country", label: "Country" },
     { key: "city", label: "City" },
-    { key: "address", label: "Address" },
-  ];
+    { key: "address", label: "Address" }];
 
   const handleToggleField = (field: string) => {
     setSelectedFields((current) => {
@@ -81,11 +78,9 @@ export function UserExport({ currentFilters }: UserExportProps) {
 
   const exportUsers = async () => {
     if (selectedFields.length === 0) {
-      toast({
-        title: "No fields selected",
+      toast({ title: "No fields selected",
         description: "Please select at least one field to export",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
@@ -99,11 +94,10 @@ export function UserExport({ currentFilters }: UserExportProps) {
 
       // Handle the export result - this would typically be a file download
       if (result?.fileUrl) {
-        window.open(result.fileUrl, "_blank");
+        window.open(result.fileUrl, "blank");
         toast({
           title: "Export successful",
-          description: `Users exported to ${exportFormat.toUpperCase()} format successfully`,
-        });
+          description: `Users exported to ${exportFormat.toUpperCase()} format successfully`});
       } else {
         throw new Error("Export failed - no file URL returned");
       }
@@ -111,12 +105,10 @@ export function UserExport({ currentFilters }: UserExportProps) {
       setOpen(false);
     } catch (error) {
       console.error("Export error:", error);
-      toast({
-        title: "Export failed",
+      toast({ title: "Export failed",
         description:
           "There was an error exporting the users. Please try again.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
     } finally {
       setIsExporting(false);
     }

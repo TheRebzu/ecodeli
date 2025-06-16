@@ -8,8 +8,7 @@ import {
   uploadDocumentSchema,
   updateDocumentSchema,
   createVerificationSchema,
-  updateVerificationSchema,
-} from "@/schemas/common/document.schema";
+  updateVerificationSchema} from "@/schemas/common/document.schema";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
@@ -17,21 +16,18 @@ import { getUserDocumentsWithFullStatus } from "@/utils/document-utils";
 
 const documentService = new DocumentService();
 
-export const documentRouter = router({
-  /**
+export const documentRouter = router({ /**
    * Obtenir les documents de l'utilisateur connecté
    */
-  getMyDocuments: protectedProcedure.query(async ({ _ctx }) => {
+  getMyDocuments: protectedProcedure.query(async ({ ctx  }) => {
     try {
       const userId = ctx.session.user.id;
       // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
       return await getUserDocumentsWithFullStatus(userId);
     } catch (error: any) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération des documents",
-        cause: error,
-      });
+        cause: error });
     }
   }),
 
@@ -41,13 +37,11 @@ export const documentRouter = router({
   getUserDocuments: protectedProcedure
     .input(
       z
-        .object({
-          status: z.string().optional(),
-          userId: z.string().optional(),
-        })
+        .object({ status: z.string().optional(),
+          userId: z.string().optional() })
         .optional(),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       try {
         const userId = input?.userId || ctx.session.user.id;
         console.log(`Récupération des documents pour l'utilisateur ${userId}`);
@@ -65,11 +59,9 @@ export const documentRouter = router({
         return documents;
       } catch (error: any) {
         console.error("Erreur lors de la récupération des documents:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des documents",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -78,25 +70,20 @@ export const documentRouter = router({
    */
   getRequiredDocumentTypes: protectedProcedure
     .input(
-      z.object({
-        userRole: z.enum(["DELIVERER", "PROVIDER", "MERCHANT", "CLIENT"]),
-      }),
+      z.object({ userRole: z.enum(["DELIVERER", "PROVIDER", "MERCHANT", "CLIENT"]) }),
     )
-    .query(async ({ input: _input }) => {
+    .query(async ({ input  }) => {
       try {
         // Utiliser la fonction centralisée depuis document-utils
         const {
-          getRequiredDocumentTypesByRole,
-        } = require("@/utils/document-utils");
+          getRequiredDocumentTypesByRole} = // require("@/utils/document-utils");
         const types = getRequiredDocumentTypesByRole(input.userRole);
         return types;
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             "Erreur lors de la récupération des types de documents requis",
-          cause: error,
-        });
+          cause: error });
       }
     }),
   /**
@@ -105,15 +92,13 @@ export const documentRouter = router({
   getPendingDocuments: adminProcedure
     .input(
       z
-        .object({
-          status: z
+        .object({ status: z
             .enum(["PENDING", "APPROVED", "REJECTED"])
             .default("PENDING"),
-          userRole: z.enum(["DELIVERER", "PROVIDER", "MERCHANT"]).optional(),
-        })
+          userRole: z.enum(["DELIVERER", "PROVIDER", "MERCHANT"]).optional() })
         .optional(),
     )
-    .query(async ({ input: _input }) => {
+    .query(async ({ input  }) => {
       try {
         const status = input?.status || "PENDING";
         const userRole = input?.userRole;
@@ -123,11 +108,9 @@ export const documentRouter = router({
         );
         return { documents };
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des documents en attente",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -136,20 +119,16 @@ export const documentRouter = router({
    */
   updateDocumentStatus: adminProcedure
     .input(
-      z.object({
-        documentId: z.string(),
+      z.object({ documentId: z.string(),
         status: z.enum(["APPROVED", "REJECTED"]),
-        rejectionReason: z.string().optional(),
-      }),
+        rejectionReason: z.string().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
-        const { documentId: _documentId, status: _status, rejectionReason: _rejectionReason } = input;
-        if (!_ctx.session?.user?.id) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Session utilisateur non trouvée",
-          });
+        const { documentId: documentId, status: status, rejectionReason: rejectionReason } = input;
+        if (!ctx.session?.user?.id) {
+          throw new TRPCError({ code: "UNAUTHORIZED",
+            message: "Session utilisateur non trouvée" });
         }
         const adminId = ctx.session.user.id;
 
@@ -160,23 +139,18 @@ export const documentRouter = router({
             : VerificationStatus.REJECTED;
 
         // Utiliser correctement le service de document pour mettre à jour le statut
-        const document = await documentService.verifyDocument({
-          documentId,
+        const document = await documentService.verifyDocument({ documentId,
           verificationStatus,
           adminId,
-          rejectionReason,
-        });
+          rejectionReason });
 
         return {
           success: true,
-          document,
-        };
+          document};
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la mise à jour du statut du document",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -187,16 +161,14 @@ export const documentRouter = router({
    */
   uploadDocument: protectedProcedure
     .input(uploadDocumentSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         const userId = ctx.session.user.id;
 
         // Vérification des données avant envoi
         if (!input.file || !input.type) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Le fichier et le type de document sont requis",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Le fichier et le type de document sont requis" });
         }
 
         const fileUrl = "";
@@ -214,10 +186,8 @@ export const documentRouter = router({
 
           if (!matches || matches.length !== 3) {
             console.error("Format base64 invalide");
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Format de fichier base64 invalide",
-            });
+            throw new TRPCError({ code: "BAD_REQUEST",
+              message: "Format de fichier base64 invalide" });
           }
 
           // Extraire les informations du format base64
@@ -245,7 +215,7 @@ export const documentRouter = router({
             "uploads",
             userId,
           );
-          await fs.mkdir(uploadDir, { recursive: true });
+          await fs.mkdir(uploadDir, { recursive });
 
           // Chemin complet du fichier
           const filePath = path.join(uploadDir, uniqueFilename);
@@ -298,7 +268,7 @@ export const documentRouter = router({
                 "uploads",
                 userId,
               );
-              await fs.mkdir(uploadDir, { recursive: true });
+              await fs.mkdir(uploadDir, { recursive });
 
               // Destination finale
               const finalPath = path.join(uploadDir, uniqueFilename);
@@ -309,10 +279,8 @@ export const documentRouter = router({
 
               fileUrl = `/uploads/${userId}/${uniqueFilename}`;
             } else {
-              throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "Fichier invalide: chemin non trouvé",
-              });
+              throw new TRPCError({ code: "BAD_REQUEST",
+                message: "Fichier invalide: chemin non trouvé" });
             }
           } else {
             // Cas d'un objet File ou similaire (comme dans l'implémentation existante)
@@ -343,7 +311,7 @@ export const documentRouter = router({
               "uploads",
               userId,
             );
-            await fs.mkdir(uploadDir, { recursive: true });
+            await fs.mkdir(uploadDir, { recursive });
 
             // Chemin complet du fichier
             const filePath = path.join(uploadDir, uniqueFilename);
@@ -360,12 +328,12 @@ export const documentRouter = router({
                 "arrayBuffer method not available in server context",
               );
             } else if ("buffer" in input.file) {
-              fileBuffer = (input.file as { buffer: Buffer }).buffer;
+              fileBuffer = (input.file as { buffer }).buffer;
             } else if (Buffer.isBuffer(input.file)) {
               fileBuffer = input.file;
             } else if ("base64" in input.file) {
               fileBuffer = Buffer.from(
-                (input.file as { base64: string }).base64,
+                (input.file as { base64 }).base64,
                 "base64",
               );
             } else if ("data" in input.file) {
@@ -386,12 +354,10 @@ export const documentRouter = router({
                 } else {
                   throw new Error("Format de fichier non pris en charge");
                 }
-              } catch (_e) {
+              } catch (e) {
                 console.error("Erreur lors de la sérialisation du fichier:", e);
-                throw new TRPCError({
-                  code: "BAD_REQUEST",
-                  message: "Format de fichier non pris en charge",
-                });
+                throw new TRPCError({ code: "BAD_REQUEST",
+                  message: "Format de fichier non pris en charge" });
               }
             }
 
@@ -406,30 +372,25 @@ export const documentRouter = router({
               console.log(
                 `Fichier écrit avec succès: ${filePath}, taille: ${fileSize} octets`,
               );
-            } catch (_writeError) {
+            } catch (writeError) {
               console.error(
                 "Erreur lors de l'écriture du fichier:",
                 writeError,
               );
-              throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: "Erreur lors de l'enregistrement du fichier",
-              });
+              throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+                message: "Erreur lors de l'enregistrement du fichier" });
             }
           }
         } else {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Format de fichier non pris en charge",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Format de fichier non pris en charge" });
         }
 
         // Enregistrer les métadonnées dans la base de données
         // Patch: use userRole from input if provided, else from session
         const userRole = input.userRole || ctx.session.user.role;
         // Pass userRole to documentService.uploadDocument
-        const document = await documentService.uploadDocument({
-          userId,
+        const document = await documentService.uploadDocument({ userId,
           type: input.type,
           filename: fileName,
           fileUrl,
@@ -437,17 +398,14 @@ export const documentRouter = router({
           fileSize,
           notes: input.notes,
           expiryDate: input.expiryDate,
-          userRole,
-        });
+          userRole });
 
         return document;
       } catch (error: any) {
         console.error("Erreur lors du téléversement du document:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Erreur lors du téléversement du document",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
@@ -455,78 +413,65 @@ export const documentRouter = router({
    * Supprimer un document
    */
   deleteDocument: protectedProcedure
-    .input(z.object({ documentId: z.string() }))
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _documentId: __documentId } = input;
-      const { _user: __user } = ctx.session;
+    .input(z.object({ documentId: z.string()  }))
+    .mutation(async ({ ctx, input: input  }) => {
+      const { documentId } = input;
+      const { user } = ctx.session;
 
       // Vérifier que le document existe
       const document = await ctx.db.document.findUnique({
-        where: { id: documentId },
-      });
+        where: { id }});
 
       if (!document) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Document not found",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Document not found" });
       }
 
       // Vérifier que l'utilisateur a le droit de supprimer ce document
       if (document.userId !== user.id && user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You do not have permission to delete this document",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "You do not have permission to delete this document" });
       }
 
       return await ctx.db.document.delete({
-        where: { id: documentId },
-      });
+        where: { id }});
     }),
 
   // Mettre à jour un document
   updateDocument: protectedProcedure
     .input(updateDocumentSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que le document appartient à l'utilisateur
         const document = await ctx.db.document.findUnique({
-          where: { id: input.documentId },
-        });
+          where: { id: input.documentId }});
 
         if (!document) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Document non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Document non trouvé" });
         }
 
         if (
-          document.userId !== _ctx.session.user.id &&
-          _ctx.session.user.role !== "ADMIN"
+          document.userId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
         ) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'êtes pas autorisé à modifier ce document",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'êtes pas autorisé à modifier ce document" });
         }
 
         return await documentService.updateDocument(input);
       } catch (error: any) {
         console.error("Erreur lors de la mise à jour du document:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Erreur lors de la mise à jour du document",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
   // Obtenir un document par ID
   getDocumentById: protectedProcedure
-    .input(z.object({ documentId: z.string() }))
-    .query(async ({ _ctx, input: _input }) => {
+    .input(z.object({ documentId: z.string()  }))
+    .query(async ({ ctx, input: input  }) => {
       try {
         const document = await documentService.getDocumentById(
           input.documentId,
@@ -534,35 +479,29 @@ export const documentRouter = router({
 
         // Vérifier que l'utilisateur a le droit de voir ce document
         if (
-          document.userId !== _ctx.session.user.id &&
-          _ctx.session.user.role !== "ADMIN"
+          document.userId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
         ) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'êtes pas autorisé à accéder à ce document",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'êtes pas autorisé à accéder à ce document" });
         }
 
         return document;
       } catch (error: any) {
         console.error("Erreur lors de la récupération du document:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message:
             error.message || "Erreur lors de la récupération du document",
-          cause: error,
-        });
+          cause: error });
       }
     }),
 
   // Admin: Obtenir tous les documents en attente de vérification
-  getPendingVerifications: protectedProcedure.query(async ({ _ctx }) => {
+  getPendingVerifications: protectedProcedure.query(async ({ ctx  }) => {
     // Vérifier que l'utilisateur est admin
-    if (_ctx.session?.user?.role !== "ADMIN") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Accès refusé",
-      });
+    if (ctx.session?.user?.role !== "ADMIN") {
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Accès refusé" });
     }
 
     return await documentService.getPendingDocuments();
@@ -571,81 +510,65 @@ export const documentRouter = router({
   // Créer une demande de vérification pour un document
   createVerification: protectedProcedure
     .input(createVerificationSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier que le document appartient à l'utilisateur
       const document = await ctx.db.document.findUnique({
-        where: { id: input.documentId },
-      });
+        where: { id: input.documentId }});
 
       if (!document) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Document non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Document non trouvé" });
       }
 
       if (document.userId !== userId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Vous n'êtes pas autorisé à demander une vérification pour ce document",
-        });
+            "Vous n'êtes pas autorisé à demander une vérification pour ce document" });
       }
 
-      return await documentService.createVerification({
-        submitterId: userId,
+      return await documentService.createVerification({ submitterId: userId,
         documentId: input.documentId,
-        notes: input.notes,
-      });
+        notes: input.notes });
     }),
 
   // Admin: Mettre à jour une vérification
   updateVerification: protectedProcedure
     .input(updateVerificationSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       // Vérifier que l'utilisateur est admin
-      if (_ctx.session?.user?.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès refusé",
-        });
+      if (ctx.session?.user?.role !== "ADMIN") {
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès refusé" });
       }
 
-      return await documentService.updateVerification({
-        verificationId: input.verificationId,
-        verifierId: _ctx.session.user.id,
+      return await documentService.updateVerification({ verificationId: input.verificationId,
+        verifierId: ctx.session.user.id,
         status: input.status as DocumentStatus,
-        notes: input.notes,
-      });
+        notes: input.notes });
     }),
 
   // Obtenir les vérifications pour un document
   getDocumentVerifications: protectedProcedure
-    .input(z.object({ documentId: z.string() }))
-    .query(async ({ _ctx, input: _input }) => {
+    .input(z.object({ documentId: z.string()  }))
+    .query(async ({ ctx, input: input  }) => {
       // Vérifier que le document appartient à l'utilisateur ou que l'utilisateur est admin
       const document = await ctx.db.document.findUnique({
-        where: { id: input.documentId },
-      });
+        where: { id: input.documentId }});
 
       if (!document) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Document non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Document non trouvé" });
       }
 
       if (
-        document.userId !== _ctx.session.user.id &&
-        _ctx.session.user.role !== "ADMIN"
+        document.userId !== ctx.session.user.id &&
+        ctx.session.user.role !== "ADMIN"
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Vous n'êtes pas autorisé à accéder aux vérifications de ce document",
-        });
+            "Vous n'êtes pas autorisé à accéder aux vérifications de ce document" });
       }
 
       return await documentService.getDocumentVerifications(input.documentId);
@@ -655,8 +578,8 @@ export const documentRouter = router({
    * Télécharger un fichier via l'API
    */
   downloadDocument: protectedProcedure
-    .input(z.object({ filePath: z.string() }))
-    .query(async ({ _ctx, input: _input }) => {
+    .input(z.object({ filePath: z.string()  }))
+    .query(async ({ ctx, input: input  }) => {
       try {
         // Sécurité: s'assurer que le chemin est dans le répertoire uploads
         const normalizedPath = path
@@ -666,10 +589,8 @@ export const documentRouter = router({
           !normalizedPath.startsWith("uploads/") &&
           !input.filePath.startsWith("/uploads/")
         ) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Chemin non autorisé",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Chemin non autorisé" });
         }
 
         // Chemin complet du fichier sur le serveur
@@ -682,11 +603,9 @@ export const documentRouter = router({
         // Vérifier si le fichier existe
         try {
           await fs.access(fullPath);
-        } catch (_error) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Fichier non trouvé",
-          });
+        } catch (error) {
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Fichier non trouvé" });
         }
 
         // Lire le fichier
@@ -719,19 +638,15 @@ export const documentRouter = router({
           fileData: Buffer.from(fileData).toString("base64"),
           fileName: path.basename(fullPath),
           contentType,
-          size: fileData.length,
-        };
+          size: fileData.length};
       } catch (error: any) {
         if (error instanceof TRPCError) {
           throw error;
         }
 
         console.error("Erreur lors du téléchargement du fichier:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors du téléchargement du fichier",
-          cause: error,
-        });
+          cause: error });
       }
-    }),
-});
+    })});

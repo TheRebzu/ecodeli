@@ -47,9 +47,7 @@ export const welcomeEmailTemplates: TemplateSet<EmailTemplate> = {
       "Merci de vous être inscrit sur EcoDeli. Nous sommes ravis de vous compter parmi notre communauté.",
     cta: {
       text: "Accéder à mon compte",
-      url: "/dashboard",
-    },
-  },
+      url: "/dashboard"}},
   en: {
     subject: "Welcome to EcoDeli",
     title: "Welcome",
@@ -58,10 +56,7 @@ export const welcomeEmailTemplates: TemplateSet<EmailTemplate> = {
       "Thank you for signing up with EcoDeli. We are excited to have you join our community.",
     cta: {
       text: "Access my account",
-      url: "/dashboard",
-    },
-  },
-};
+      url: "/dashboard"}}};
 
 /**
  * Templates d'email de bienvenue spécifiques par rôle
@@ -79,9 +74,7 @@ export const roleSpecificWelcomeTemplates: Record<
         "Merci de vous être inscrit sur EcoDeli en tant que client. Vous pouvez maintenant profiter de nos services de livraison écologique et découvrir nos commerçants partenaires.",
       cta: {
         text: "Découvrir les services",
-        url: "/client/services",
-      },
-    },
+        url: "/client/services"}},
     en: {
       subject: "Welcome to EcoDeli",
       title: "Welcome to EcoDeli",
@@ -90,10 +83,7 @@ export const roleSpecificWelcomeTemplates: Record<
         "Thank you for signing up with EcoDeli as a client. You can now enjoy our eco-friendly delivery services and discover our merchant partners.",
       cta: {
         text: "Discover our services",
-        url: "/client/services",
-      },
-    },
-  },
+        url: "/client/services"}}},
   DELIVERER: {
     fr: {
       subject: "Bienvenue dans l'équipe EcoDeli",
@@ -103,11 +93,9 @@ export const roleSpecificWelcomeTemplates: Record<
         "Merci de vous être inscrit sur EcoDeli en tant que livreur. Pour commencer à effectuer des livraisons, vous devez compléter votre profil et soumettre les documents requis pour vérification.",
       cta: {
         text: "Compléter mon profil",
-        url: "/deliverer/documents",
-      },
+        url: "/deliverer/documents"},
       footer:
-        "Une fois vos documents approuvés, vous pourrez accéder à toutes les fonctionnalités de livreur.",
-    },
+        "Une fois vos documents approuvés, vous pourrez accéder à toutes les fonctionnalités de livreur."},
     en: {
       subject: "Welcome to the EcoDeli team",
       title: "Welcome to our delivery team",
@@ -116,12 +104,9 @@ export const roleSpecificWelcomeTemplates: Record<
         "Thank you for signing up with EcoDeli as a deliverer. To start making deliveries, you need to complete your profile and submit the required documents for verification.",
       cta: {
         text: "Complete my profile",
-        url: "/deliverer/documents",
-      },
+        url: "/deliverer/documents"},
       footer:
-        "Once your documents are approved, you will be able to access all deliverer features.",
-    },
-  },
+        "Once your documents are approved, you will be able to access all deliverer features."}},
   MERCHANT: {
     fr: {
       subject: "Bienvenue parmi nos commerçants EcoDeli",
@@ -131,11 +116,9 @@ export const roleSpecificWelcomeTemplates: Record<
         "Merci de vous être inscrit sur EcoDeli en tant que commerçant. Pour commencer à utiliser nos services de livraison écologique, veuillez compléter votre profil commercial et signer le contrat de partenariat.",
       cta: {
         text: "Compléter mon profil commercial",
-        url: "/merchant/contract",
-      },
+        url: "/merchant/contract"},
       footer:
-        "Notre équipe examinera vos informations et vous contactera pour finaliser le partenariat.",
-    },
+        "Notre équipe examinera vos informations et vous contactera pour finaliser le partenariat."},
     en: {
       subject: "Welcome to our EcoDeli merchants",
       title: "Welcome to EcoDeli, new partner",
@@ -144,12 +127,9 @@ export const roleSpecificWelcomeTemplates: Record<
         "Thank you for signing up with EcoDeli as a merchant. To start using our eco-friendly delivery services, please complete your business profile and sign the partnership contract.",
       cta: {
         text: "Complete my business profile",
-        url: "/merchant/contract",
-      },
+        url: "/merchant/contract"},
       footer:
-        "Our team will review your information and contact you to finalize the partnership.",
-    },
-  },
+        "Our team will review your information and contact you to finalize the partnership."}},
   PROVIDER: {
     fr: {
       subject: "Bienvenue parmi nos prestataires EcoDeli",
@@ -159,11 +139,9 @@ export const roleSpecificWelcomeTemplates: Record<
         "Merci de vous être inscrit sur EcoDeli en tant que prestataire de services. Pour proposer vos services sur notre plateforme, veuillez compléter votre profil professionnel et soumettre vos certifications.",
       cta: {
         text: "Compléter mon profil professionnel",
-        url: "/provider/documents",
-      },
+        url: "/provider/documents"},
       footer:
-        "Notre équipe examinera vos qualifications et vous contactera dans les plus brefs délais.",
-    },
+        "Notre équipe examinera vos qualifications et vous contactera dans les plus brefs délais."},
     en: {
       subject: "Welcome to our EcoDeli service providers",
       title: "Welcome to EcoDeli, new service provider",
@@ -172,12 +150,9 @@ export const roleSpecificWelcomeTemplates: Record<
         "Thank you for signing up with EcoDeli as a service provider. To offer your services on our platform, please complete your professional profile and submit your certifications.",
       cta: {
         text: "Complete my professional profile",
-        url: "/provider/documents",
-      },
+        url: "/provider/documents"},
       footer:
-        "Our team will review your qualifications and contact you as soon as possible.",
-    },
-  },
+        "Our team will review your qualifications and contact you as soon as possible."}},
   ADMIN: {
     fr: {
       subject: "Accès administrateur EcoDeli",
@@ -187,9 +162,7 @@ export const roleSpecificWelcomeTemplates: Record<
         "Votre compte administrateur EcoDeli a été créé. Vous avez maintenant accès au panneau d'administration pour gérer la plateforme.",
       cta: {
         text: "Accéder au panneau d'administration",
-        url: "/admin/dashboard",
-      },
-    },
+        url: "/admin/dashboard"}},
     en: {
       subject: "EcoDeli Admin Access",
       title: "Admin Access",
@@ -198,11 +171,7 @@ export const roleSpecificWelcomeTemplates: Record<
         "Your EcoDeli administrator account has been created. You now have access to the admin panel to manage the platform.",
       cta: {
         text: "Access admin panel",
-        url: "/admin/dashboard",
-      },
-    },
-  },
-};
+        url: "/admin/dashboard"}}}};
 
 /**
  * Template d'email de vérification d'adresse email
@@ -216,10 +185,8 @@ export const verificationEmailTemplates: TemplateSet<EmailTemplate> = {
       "Merci de vous être inscrit sur EcoDeli. Pour vérifier votre adresse email, veuillez cliquer sur le lien ci-dessous :",
     cta: {
       text: "Vérifier mon email",
-      url: "/verify-email",
-    },
-    footer: "Ce lien est valable pendant 24 heures.",
-  },
+      url: "/verify-email"},
+    footer: "Ce lien est valable pendant 24 heures."},
   en: {
     subject: "Verify your email address - EcoDeli",
     title: "Email verification",
@@ -228,11 +195,8 @@ export const verificationEmailTemplates: TemplateSet<EmailTemplate> = {
       "Thank you for signing up with EcoDeli. To verify your email address, please click the link below:",
     cta: {
       text: "Verify my email",
-      url: "/verify-email",
-    },
-    footer: "This link is valid for 24 hours.",
-  },
-};
+      url: "/verify-email"},
+    footer: "This link is valid for 24 hours."}};
 
 /**
  * Templates d'instructions post-vérification d'email par rôle
@@ -250,9 +214,7 @@ export const postVerificationInstructionsTemplates: Record<
         "Votre adresse email a été vérifiée avec succès. Votre compte client est maintenant actif et vous pouvez commencer à utiliser nos services de livraison écologique.",
       cta: {
         text: "Découvrir les services",
-        url: "/client/services",
-      },
-    },
+        url: "/client/services"}},
     en: {
       subject: "Your client account is activated - EcoDeli",
       title: "Your account is activated",
@@ -261,10 +223,7 @@ export const postVerificationInstructionsTemplates: Record<
         "Your email address has been successfully verified. Your client account is now active and you can start using our eco-friendly delivery services.",
       cta: {
         text: "Discover our services",
-        url: "/client/services",
-      },
-    },
-  },
+        url: "/client/services"}}},
   DELIVERER: {
     fr: {
       subject: "Prochaines étapes pour devenir livreur - EcoDeli",
@@ -274,11 +233,9 @@ export const postVerificationInstructionsTemplates: Record<
         "Votre adresse email a été vérifiée avec succès. Pour compléter votre inscription en tant que livreur, veuillez soumettre les documents requis pour vérification :",
       cta: {
         text: "Soumettre mes documents",
-        url: "/deliverer/documents",
-      },
+        url: "/deliverer/documents"},
       footer:
-        "Pièces requises : pièce d'identité, permis de conduire, attestation d'assurance, photo du véhicule.",
-    },
+        "Pièces requises : pièce d'identité, permis de conduire, attestation d'assurance, photo du véhicule."},
     en: {
       subject: "Next steps to become a deliverer - EcoDeli",
       title: "Next steps to become a deliverer",
@@ -287,12 +244,9 @@ export const postVerificationInstructionsTemplates: Record<
         "Your email address has been successfully verified. To complete your registration as a deliverer, please submit the required documents for verification:",
       cta: {
         text: "Submit my documents",
-        url: "/deliverer/documents",
-      },
+        url: "/deliverer/documents"},
       footer:
-        "Required documents: ID card, driver's license, insurance certificate, vehicle photo.",
-    },
-  },
+        "Required documents: ID card, driver's license, insurance certificate, vehicle photo."}},
   MERCHANT: {
     fr: {
       subject: "Compléter votre profil commerçant - EcoDeli",
@@ -302,11 +256,9 @@ export const postVerificationInstructionsTemplates: Record<
         "Votre adresse email a été vérifiée avec succès. Pour finaliser votre partenariat avec EcoDeli, veuillez compléter votre profil commerçant et signer le contrat de partenariat.",
       cta: {
         text: "Compléter mon profil",
-        url: "/merchant/contract",
-      },
+        url: "/merchant/contract"},
       footer:
-        "Informations requises : détails de l'entreprise, coordonnées bancaires, préférences de livraison.",
-    },
+        "Informations requises : détails de l'entreprise, coordonnées bancaires, préférences de livraison."},
     en: {
       subject: "Complete your merchant profile - EcoDeli",
       title: "Complete your merchant profile",
@@ -315,12 +267,9 @@ export const postVerificationInstructionsTemplates: Record<
         "Your email address has been successfully verified. To finalize your partnership with EcoDeli, please complete your merchant profile and sign the partnership contract.",
       cta: {
         text: "Complete my profile",
-        url: "/merchant/contract",
-      },
+        url: "/merchant/contract"},
       footer:
-        "Required information: business details, banking information, delivery preferences.",
-    },
-  },
+        "Required information: business details, banking information, delivery preferences."}},
   PROVIDER: {
     fr: {
       subject: "Compléter votre profil prestataire - EcoDeli",
@@ -330,11 +279,9 @@ export const postVerificationInstructionsTemplates: Record<
         "Votre adresse email a été vérifiée avec succès. Pour proposer vos services sur EcoDeli, veuillez compléter votre profil prestataire et soumettre vos certifications professionnelles.",
       cta: {
         text: "Compléter mon profil",
-        url: "/provider/documents",
-      },
+        url: "/provider/documents"},
       footer:
-        "Documents requis : diplômes, certifications, attestations d'expérience, détails des services proposés.",
-    },
+        "Documents requis : diplômes, certifications, attestations d'expérience, détails des services proposés."},
     en: {
       subject: "Complete your service provider profile - EcoDeli",
       title: "Complete your service provider profile",
@@ -343,12 +290,9 @@ export const postVerificationInstructionsTemplates: Record<
         "Your email address has been successfully verified. To offer your services on EcoDeli, please complete your service provider profile and submit your professional certifications.",
       cta: {
         text: "Complete my profile",
-        url: "/provider/documents",
-      },
+        url: "/provider/documents"},
       footer:
-        "Required documents: diplomas, certifications, proof of experience, details of services offered.",
-    },
-  },
+        "Required documents: diplomas, certifications, proof of experience, details of services offered."}},
   ADMIN: {
     fr: {
       subject: "Accès administrateur confirmé - EcoDeli",
@@ -358,9 +302,7 @@ export const postVerificationInstructionsTemplates: Record<
         "Votre adresse email a été vérifiée avec succès. Vous avez maintenant un accès complet au panneau d'administration EcoDeli.",
       cta: {
         text: "Accéder au panneau d'administration",
-        url: "/admin/dashboard",
-      },
-    },
+        url: "/admin/dashboard"}},
     en: {
       subject: "Admin access confirmed - EcoDeli",
       title: "Admin access confirmed",
@@ -369,11 +311,7 @@ export const postVerificationInstructionsTemplates: Record<
         "Your email address has been successfully verified. You now have full access to the EcoDeli admin panel.",
       cta: {
         text: "Access admin panel",
-        url: "/admin/dashboard",
-      },
-    },
-  },
-};
+        url: "/admin/dashboard"}}}};
 
 /**
  * Template d'email de réinitialisation de mot de passe
@@ -387,11 +325,9 @@ export const passwordResetTemplates: TemplateSet<EmailTemplate> = {
       "Vous avez demandé la réinitialisation de votre mot de passe. Pour définir un nouveau mot de passe, veuillez cliquer sur le lien ci-dessous :",
     cta: {
       text: "Réinitialiser mon mot de passe",
-      url: "/reset-password",
-    },
+      url: "/reset-password"},
     footer:
-      "Ce lien est valable pendant 1 heure. Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.",
-  },
+      "Ce lien est valable pendant 1 heure. Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email."},
   en: {
     subject: "Password reset - EcoDeli",
     title: "Password reset",
@@ -400,12 +336,9 @@ export const passwordResetTemplates: TemplateSet<EmailTemplate> = {
       "You requested a password reset. To set a new password, please click the link below:",
     cta: {
       text: "Reset my password",
-      url: "/reset-password",
-    },
+      url: "/reset-password"},
     footer:
-      "This link is valid for 1 hour. If you didn't request this reset, please ignore this email.",
-  },
-};
+      "This link is valid for 1 hour. If you didn't request this reset, please ignore this email."}};
 
 /**
  * Templates d'email pour l'approbation de document
@@ -419,9 +352,7 @@ export const documentApprovedTemplates: TemplateSet<EmailTemplate> = {
       "Votre document a été approuvé. Vous pouvez désormais accéder à toutes les fonctionnalités de votre compte.",
     cta: {
       text: "Voir mes documents",
-      url: "/documents",
-    },
-  },
+      url: "/documents"}},
   en: {
     subject: "Document approved - EcoDeli",
     title: "Document approved",
@@ -430,16 +361,13 @@ export const documentApprovedTemplates: TemplateSet<EmailTemplate> = {
       "Your document has been approved. You can now access all the features of your account.",
     cta: {
       text: "View my documents",
-      url: "/documents",
-    },
-  },
-};
+      url: "/documents"}}};
 
 /**
  * Templates d'email pour le rejet de document
  */
 export const documentRejectedTemplates: TemplateSet<
-  EmailTemplate & { reasonLabel: string }
+  EmailTemplate & { reasonLabel }
 > = {
   fr: {
     subject: "Document rejeté - EcoDeli",
@@ -449,11 +377,9 @@ export const documentRejectedTemplates: TemplateSet<
     reasonLabel: "Raison du rejet :",
     cta: {
       text: "Télécharger un nouveau document",
-      url: "/documents",
-    },
+      url: "/documents"},
     footer:
-      "Veuillez télécharger un nouveau document pour continuer le processus de vérification.",
-  },
+      "Veuillez télécharger un nouveau document pour continuer le processus de vérification."},
   en: {
     subject: "Document rejected - EcoDeli",
     title: "Document rejected",
@@ -462,12 +388,9 @@ export const documentRejectedTemplates: TemplateSet<
     reasonLabel: "Rejection reason:",
     cta: {
       text: "Upload a new document",
-      url: "/documents",
-    },
+      url: "/documents"},
     footer:
-      "Please upload a new document to continue the verification process.",
-  },
-};
+      "Please upload a new document to continue the verification process."}};
 
 /**
  * Templates pour les notifications de changement de statut de vérification
@@ -483,8 +406,7 @@ export const verificationStatusChangedTemplates: TemplateSet<
       message:
         "Nous avons bien reçu vos documents. Notre équipe les examine actuellement et vous informera dès que le processus de vérification sera terminé.",
       footer:
-        "Ce processus prend généralement entre 24 et 48 heures ouvrables.",
-    },
+        "Ce processus prend généralement entre 24 et 48 heures ouvrables."},
     APPROVED: {
       subject: "Vérification approuvée - EcoDeli",
       title: "Vérification approuvée",
@@ -493,9 +415,7 @@ export const verificationStatusChangedTemplates: TemplateSet<
         "Félicitations ! Tous vos documents ont été vérifiés et approuvés. Votre compte est maintenant complètement activé et vous pouvez accéder à toutes les fonctionnalités.",
       cta: {
         text: "Accéder à mon compte",
-        url: "/dashboard",
-      },
-    },
+        url: "/dashboard"}},
     REJECTED: {
       subject: "Vérification rejetée - EcoDeli",
       title: "Vérification rejetée",
@@ -504,10 +424,7 @@ export const verificationStatusChangedTemplates: TemplateSet<
         "Malheureusement, certains de vos documents n'ont pas pu être approuvés. Veuillez consulter les détails ci-dessous et soumettre de nouveaux documents.",
       cta: {
         text: "Soumettre de nouveaux documents",
-        url: "/documents",
-      },
-    },
-  },
+        url: "/documents"}}},
   en: {
     PENDING: {
       subject: "Documents under review - EcoDeli",
@@ -515,8 +432,7 @@ export const verificationStatusChangedTemplates: TemplateSet<
       greeting: "Hello",
       message:
         "We have received your documents. Our team is currently reviewing them and will inform you as soon as the verification process is complete.",
-      footer: "This process usually takes between 24 and 48 business hours.",
-    },
+      footer: "This process usually takes between 24 and 48 business hours."},
     APPROVED: {
       subject: "Verification approved - EcoDeli",
       title: "Verification approved",
@@ -525,9 +441,7 @@ export const verificationStatusChangedTemplates: TemplateSet<
         "Congratulations! All your documents have been verified and approved. Your account is now fully activated and you can access all features.",
       cta: {
         text: "Access my account",
-        url: "/dashboard",
-      },
-    },
+        url: "/dashboard"}},
     REJECTED: {
       subject: "Verification rejected - EcoDeli",
       title: "Verification rejected",
@@ -536,11 +450,7 @@ export const verificationStatusChangedTemplates: TemplateSet<
         "Unfortunately, some of your documents could not be approved. Please check the details below and submit new documents.",
       cta: {
         text: "Submit new documents",
-        url: "/documents",
-      },
-    },
-  },
-};
+        url: "/documents"}}}};
 
 /**
  * Templates pour les rappels de documents manquants
@@ -554,11 +464,9 @@ export const documentReminderTemplates: TemplateSet<EmailTemplate> = {
       "Nous remarquons que certains documents nécessaires à la vérification de votre compte sont toujours manquants. Pour accéder à toutes les fonctionnalités de notre plateforme, veuillez soumettre les documents manquants dès que possible.",
     cta: {
       text: "Soumettre mes documents",
-      url: "/documents",
-    },
+      url: "/documents"},
     footer:
-      "Si vous avez des questions ou besoin d'assistance, n'hésitez pas à contacter notre support.",
-  },
+      "Si vous avez des questions ou besoin d'assistance, n'hésitez pas à contacter notre support."},
   en: {
     subject: "Reminder: Missing documents - EcoDeli",
     title: "Missing documents for your account",
@@ -567,12 +475,9 @@ export const documentReminderTemplates: TemplateSet<EmailTemplate> = {
       "We notice that some documents required to verify your account are still missing. To access all the features of our platform, please submit the missing documents as soon as possible.",
     cta: {
       text: "Submit my documents",
-      url: "/documents",
-    },
+      url: "/documents"},
     footer:
-      "If you have any questions or need assistance, please don't hesitate to contact our support.",
-  },
-};
+      "If you have any questions or need assistance, please don't hesitate to contact our support."}};
 
 /**
  * Génère un email HTML responsive à partir des templates
@@ -683,10 +588,8 @@ export const emailTemplates = {
         "Nous sommes ravis de vous accueillir sur EcoDeli. Votre compte a été créé avec succès.",
       cta: {
         text: "Accéder à mon compte",
-        url: "{baseUrl}/fr/login",
-      },
-      footer: "Merci de nous faire confiance. L'équipe EcoDeli",
-    },
+        url: "{baseUrl}/fr/login"},
+      footer: "Merci de nous faire confiance. L'équipe EcoDeli"},
     en: {
       subject: "Welcome to EcoDeli!",
       title: "Welcome to EcoDeli",
@@ -695,11 +598,8 @@ export const emailTemplates = {
         "We are delighted to welcome you to EcoDeli. Your account has been successfully created.",
       cta: {
         text: "Access my account",
-        url: "{baseUrl}/en/login",
-      },
-      footer: "Thank you for your trust. The EcoDeli Team",
-    },
-  },
+        url: "{baseUrl}/en/login"},
+      footer: "Thank you for your trust. The EcoDeli Team"}},
 
   // Email de vérification
   verification: {
@@ -711,11 +611,9 @@ export const emailTemplates = {
         "Merci de vous être inscrit sur EcoDeli. Pour finaliser votre inscription, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous.",
       cta: {
         text: "Vérifier mon email",
-        url: "{verificationUrl}",
-      },
+        url: "{verificationUrl}"},
       footer:
-        "Si vous n'avez pas créé de compte sur EcoDeli, vous pouvez ignorer cet email.",
-    },
+        "Si vous n'avez pas créé de compte sur EcoDeli, vous pouvez ignorer cet email."},
     en: {
       subject: "Verify your email address",
       title: "Email verification",
@@ -724,12 +622,9 @@ export const emailTemplates = {
         "Thank you for registering on EcoDeli. To complete your registration, please verify your email address by clicking the button below.",
       cta: {
         text: "Verify my email",
-        url: "{verificationUrl}",
-      },
+        url: "{verificationUrl}"},
       footer:
-        "If you did not create an account on EcoDeli, you can ignore this email.",
-    },
-  },
+        "If you did not create an account on EcoDeli, you can ignore this email."}},
 
   // Instructions post-vérification
   postVerification: {
@@ -742,11 +637,9 @@ export const emailTemplates = {
           "Votre email a été vérifié avec succès. Pour compléter votre inscription en tant que livreur, veuillez soumettre les documents suivants pour vérification : permis de conduire, preuve d'assurance, et photo d'identité.",
         cta: {
           text: "Télécharger mes documents",
-          url: "{baseUrl}/fr/deliverer/documents",
-        },
+          url: "{baseUrl}/fr/deliverer/documents"},
         footer:
-          "Si vous avez des questions, n'hésitez pas à contacter notre équipe de support.",
-      },
+          "Si vous avez des questions, n'hésitez pas à contacter notre équipe de support."},
       en: {
         subject: "Next steps to become a deliverer",
         title: "Welcome to our deliverers team",
@@ -755,12 +648,9 @@ export const emailTemplates = {
           "Your email has been successfully verified. To complete your registration as a deliverer, please submit the following documents for verification: driver's license, proof of insurance, and ID photo.",
         cta: {
           text: "Upload my documents",
-          url: "{baseUrl}/en/deliverer/documents",
-        },
+          url: "{baseUrl}/en/deliverer/documents"},
         footer:
-          "If you have any questions, don't hesitate to contact our support team.",
-      },
-    },
+          "If you have any questions, don't hesitate to contact our support team."}},
     provider: {
       fr: {
         subject: "Prochaines étapes pour devenir prestataire",
@@ -770,11 +660,9 @@ export const emailTemplates = {
           "Votre email a été vérifié avec succès. Pour compléter votre inscription en tant que prestataire, veuillez soumettre les documents suivants pour vérification : attestation professionnelle, preuve d'assurance, et photo d'identité.",
         cta: {
           text: "Télécharger mes documents",
-          url: "{baseUrl}/fr/provider/documents",
-        },
+          url: "{baseUrl}/fr/provider/documents"},
         footer:
-          "Si vous avez des questions, n'hésitez pas à contacter notre équipe de support.",
-      },
+          "Si vous avez des questions, n'hésitez pas à contacter notre équipe de support."},
       en: {
         subject: "Next steps to become a service provider",
         title: "Welcome to our providers team",
@@ -783,12 +671,9 @@ export const emailTemplates = {
           "Your email has been successfully verified. To complete your registration as a service provider, please submit the following documents for verification: professional certification, proof of insurance, and ID photo.",
         cta: {
           text: "Upload my documents",
-          url: "{baseUrl}/en/provider/documents",
-        },
+          url: "{baseUrl}/en/provider/documents"},
         footer:
-          "If you have any questions, don't hesitate to contact our support team.",
-      },
-    },
+          "If you have any questions, don't hesitate to contact our support team."}},
     client: {
       fr: {
         subject: "Bienvenue sur EcoDeli",
@@ -798,10 +683,8 @@ export const emailTemplates = {
           "Votre email a été vérifié avec succès. Vous pouvez maintenant profiter de tous nos services de livraison écologique.",
         cta: {
           text: "Explorer les services",
-          url: "{baseUrl}/fr/client/services",
-        },
-        footer: "Merci de votre confiance. L'équipe EcoDeli",
-      },
+          url: "{baseUrl}/fr/client/services"},
+        footer: "Merci de votre confiance. L'équipe EcoDeli"},
       en: {
         subject: "Welcome to EcoDeli",
         title: "Welcome to EcoDeli",
@@ -810,11 +693,8 @@ export const emailTemplates = {
           "Your email has been successfully verified. You can now enjoy all our eco-friendly delivery services.",
         cta: {
           text: "Explore services",
-          url: "{baseUrl}/en/client/services",
-        },
-        footer: "Thank you for your trust. The EcoDeli Team",
-      },
-    },
+          url: "{baseUrl}/en/client/services"},
+        footer: "Thank you for your trust. The EcoDeli Team"}},
     merchant: {
       fr: {
         subject: "Bienvenue parmi nos commerçants",
@@ -824,10 +704,8 @@ export const emailTemplates = {
           "Votre email a été vérifié avec succès. Pour compléter votre inscription en tant que commerçant, veuillez soumettre les documents suivants pour vérification : extrait K-bis et justificatif d'identité.",
         cta: {
           text: "Télécharger mes documents",
-          url: "{baseUrl}/fr/merchant/profile",
-        },
-        footer: "Merci de votre confiance. L'équipe EcoDeli",
-      },
+          url: "{baseUrl}/fr/merchant/profile"},
+        footer: "Merci de votre confiance. L'équipe EcoDeli"},
       en: {
         subject: "Welcome to our merchants",
         title: "Welcome to EcoDeli",
@@ -836,12 +714,8 @@ export const emailTemplates = {
           "Your email has been successfully verified. To complete your registration as a merchant, please submit the following documents for verification: business registration and proof of identity.",
         cta: {
           text: "Upload my documents",
-          url: "{baseUrl}/en/merchant/profile",
-        },
-        footer: "Thank you for your trust. The EcoDeli Team",
-      },
-    },
-  },
+          url: "{baseUrl}/en/merchant/profile"},
+        footer: "Thank you for your trust. The EcoDeli Team"}}},
 
   // Email de réinitialisation de mot de passe
   passwordReset: {
@@ -853,11 +727,9 @@ export const emailTemplates = {
         "Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe.",
       cta: {
         text: "Réinitialiser mon mot de passe",
-        url: "{resetUrl}",
-      },
+        url: "{resetUrl}"},
       footer:
-        "Si vous n'avez pas demandé la réinitialisation de votre mot de passe, ignorez cet email.",
-    },
+        "Si vous n'avez pas demandé la réinitialisation de votre mot de passe, ignorez cet email."},
     en: {
       subject: "Reset your password",
       title: "Password Reset",
@@ -866,12 +738,9 @@ export const emailTemplates = {
         "You have requested to reset your password. Click the button below to create a new password.",
       cta: {
         text: "Reset my password",
-        url: "{resetUrl}",
-      },
+        url: "{resetUrl}"},
       footer:
-        "If you did not request a password reset, please ignore this email.",
-    },
-  },
+        "If you did not request a password reset, please ignore this email."}},
 
   // Email de document approuvé
   documentApproved: {
@@ -883,10 +752,8 @@ export const emailTemplates = {
         'Nous sommes heureux de vous informer que votre document "{documentName}" a été approuvé. Vous pouvez maintenant accéder à toutes les fonctionnalités associées à ce document.',
       cta: {
         text: "Voir mes documents",
-        url: "{baseUrl}/fr/documents",
-      },
-      footer: "Merci de votre confiance. L'équipe EcoDeli",
-    },
+        url: "{baseUrl}/fr/documents"},
+      footer: "Merci de votre confiance. L'équipe EcoDeli"},
     en: {
       subject: "Document approved",
       title: "Document approved",
@@ -895,11 +762,8 @@ export const emailTemplates = {
         'We are pleased to inform you that your document "{documentName}" has been approved. You can now access all features associated with this document.',
       cta: {
         text: "View my documents",
-        url: "{baseUrl}/en/documents",
-      },
-      footer: "Thank you for your trust. The EcoDeli Team",
-    },
-  },
+        url: "{baseUrl}/en/documents"},
+      footer: "Thank you for your trust. The EcoDeli Team"}},
 
   // Email de document rejeté
   documentRejected: {
@@ -911,11 +775,9 @@ export const emailTemplates = {
         'Nous regrettons de vous informer que votre document "{documentName}" a été rejeté pour la raison suivante : {reason}. Veuillez télécharger un nouveau document en suivant les instructions fournies.',
       cta: {
         text: "Télécharger un nouveau document",
-        url: "{baseUrl}/fr/documents",
-      },
+        url: "{baseUrl}/fr/documents"},
       footer:
-        "Si vous avez des questions, n'hésitez pas à contacter notre équipe de support.",
-    },
+        "Si vous avez des questions, n'hésitez pas à contacter notre équipe de support."},
     en: {
       subject: "Document rejected",
       title: "Document rejected",
@@ -924,12 +786,9 @@ export const emailTemplates = {
         'We regret to inform you that your document "{documentName}" has been rejected for the following reason: {reason}. Please upload a new document following the provided instructions.',
       cta: {
         text: "Upload a new document",
-        url: "{baseUrl}/en/documents",
-      },
+        url: "{baseUrl}/en/documents"},
       footer:
-        "If you have any questions, don't hesitate to contact our support team.",
-    },
-  },
+        "If you have any questions, don't hesitate to contact our support team."}},
 
   // Email de changement de statut de vérification
   verificationStatusChanged: {
@@ -942,10 +801,8 @@ export const emailTemplates = {
           "Nous sommes heureux de vous informer que votre compte a été vérifié et approuvé. Vous pouvez maintenant accéder à toutes les fonctionnalités de notre plateforme.",
         cta: {
           text: "Accéder à mon compte",
-          url: "{baseUrl}/fr/login",
-        },
-        footer: "Merci de votre confiance. L'équipe EcoDeli",
-      },
+          url: "{baseUrl}/fr/login"},
+        footer: "Merci de votre confiance. L'équipe EcoDeli"},
       [VerificationStatus.REJECTED]: {
         subject: "Compte non approuvé - EcoDeli",
         title: "Votre compte n'a pas été approuvé",
@@ -954,20 +811,16 @@ export const emailTemplates = {
           "Nous regrettons de vous informer que votre compte n'a pas été approuvé pour la raison suivante : {details}. Veuillez mettre à jour vos informations et soumettre à nouveau votre demande.",
         cta: {
           text: "Mettre à jour mon profil",
-          url: "{baseUrl}/fr/login",
-        },
+          url: "{baseUrl}/fr/login"},
         footer:
-          "Si vous avez des questions, n'hésitez pas à contacter notre équipe de support.",
-      },
+          "Si vous avez des questions, n'hésitez pas à contacter notre équipe de support."},
       [VerificationStatus.PENDING]: {
         subject: "Vérification en cours - EcoDeli",
         title: "Vérification de votre compte en cours",
         greeting: "Bonjour {name},",
         message:
           "Nous vous informons que votre demande de vérification est en cours de traitement. Nous vous notifierons dès que la vérification sera terminée.",
-        footer: "Merci de votre patience. L'équipe EcoDeli",
-      },
-    },
+        footer: "Merci de votre patience. L'équipe EcoDeli"}},
     en: {
       [VerificationStatus.APPROVED]: {
         subject: "Account approved - EcoDeli",
@@ -977,10 +830,8 @@ export const emailTemplates = {
           "We are pleased to inform you that your account has been verified and approved. You can now access all features of our platform.",
         cta: {
           text: "Access my account",
-          url: "{baseUrl}/en/login",
-        },
-        footer: "Thank you for your trust. The EcoDeli Team",
-      },
+          url: "{baseUrl}/en/login"},
+        footer: "Thank you for your trust. The EcoDeli Team"},
       [VerificationStatus.REJECTED]: {
         subject: "Account not approved - EcoDeli",
         title: "Your account has not been approved",
@@ -989,21 +840,16 @@ export const emailTemplates = {
           "We regret to inform you that your account has not been approved for the following reason: {details}. Please update your information and submit your request again.",
         cta: {
           text: "Update my profile",
-          url: "{baseUrl}/en/login",
-        },
+          url: "{baseUrl}/en/login"},
         footer:
-          "If you have any questions, don't hesitate to contact our support team.",
-      },
+          "If you have any questions, don't hesitate to contact our support team."},
       [VerificationStatus.PENDING]: {
         subject: "Verification in progress - EcoDeli",
         title: "Your account verification is in progress",
         greeting: "Hello {name},",
         message:
           "We inform you that your verification request is being processed. We will notify you as soon as the verification is complete.",
-        footer: "Thank you for your patience. The EcoDeli Team",
-      },
-    },
-  },
+        footer: "Thank you for your patience. The EcoDeli Team"}}},
 
   // Email de rappel pour documents manquants
   documentReminder: {
@@ -1015,11 +861,9 @@ export const emailTemplates = {
         "Nous vous rappelons que pour compléter votre profil et accéder à toutes les fonctionnalités, vous devez fournir les documents suivants : {documentsList}.",
       cta: {
         text: "Télécharger mes documents",
-        url: "{baseUrl}/fr/documents",
-      },
+        url: "{baseUrl}/fr/documents"},
       footer:
-        "Si vous avez déjà soumis ces documents, veuillez ignorer cet email. L'équipe EcoDeli",
-    },
+        "Si vous avez déjà soumis ces documents, veuillez ignorer cet email. L'équipe EcoDeli"},
     en: {
       subject: "Reminder: Missing documents to complete your profile",
       title: "Missing documents",
@@ -1028,13 +872,9 @@ export const emailTemplates = {
         "We remind you that to complete your profile and access all features, you must provide the following documents: {documentsList}.",
       cta: {
         text: "Upload my documents",
-        url: "{baseUrl}/en/documents",
-      },
+        url: "{baseUrl}/en/documents"},
       footer:
-        "If you have already submitted these documents, please ignore this email. The EcoDeli Team",
-    },
-  },
-};
+        "If you have already submitted these documents, please ignore this email. The EcoDeli Team"}}};
 
 // Fonction pour obtenir le template d'email approprié en fonction de la langue
 export const getEmailTemplate = (
@@ -1051,7 +891,7 @@ export const getPostVerificationTemplate = (
   language: SupportedLanguage = "fr",
 ): EmailTemplate => {
   const templates = emailTemplates.postVerification;
-  // @ts-ignore
+  // @ts-ignore - Suppression temporaire pour compatibilité
   const template = templates[role];
   return language === "fr" ? template.fr : template.en;
 };

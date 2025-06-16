@@ -26,5 +26,5 @@ export function createClientTranslator(
   messages: Record<string, unknown>,
   locale: string,
 ) {
-  return createTranslator({ locale, messages });
+  return createTranslator({ locale, messages  });
 }

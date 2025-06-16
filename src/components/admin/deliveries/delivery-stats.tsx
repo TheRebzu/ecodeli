@@ -12,8 +12,7 @@ import {
   Legend,
   CartesianGrid,
   LineChart,
-  Line,
-} from "recharts";
+  Line} from "recharts";
 import { Package, Truck, Check, AlertTriangle, Clock } from "lucide-react";
 
 interface StatsData {
@@ -33,21 +32,6 @@ interface DeliveryStatsProps {
 
 export function DeliveryStats({ data }: DeliveryStatsProps) {
   const t = useTranslations("admin.deliveries");
-
-  const statusDistributionData = [
-    { name: t("status.pending"), value: data.pendingCount, color: "#6366F1" },
-    {
-      name: t("status.inTransit"),
-      value: data.inTransitCount,
-      color: "#8B5CF6",
-    },
-    {
-      name: t("status.delivered"),
-      value: data.deliveredCount,
-      color: "#10B981",
-    },
-    { name: t("status.problem"), value: data.problemCount, color: "#EF4444" },
-  ];
 
   // Formatage des statistiques
   const formatTime = (hours: number) => {
@@ -157,8 +141,7 @@ export function DeliveryStats({ data }: DeliveryStatsProps) {
                   top: 20,
                   right: 30,
                   left: 20,
-                  bottom: 30,
-                }}
+                  bottom: 30}}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -190,8 +173,7 @@ export function DeliveryStats({ data }: DeliveryStatsProps) {
                     top: 20,
                     right: 30,
                     left: 20,
-                    bottom: 30,
-                  }}
+                    bottom: 30}}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />

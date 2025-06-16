@@ -16,8 +16,7 @@ import {
   addYears,
   startOfMonth,
   endOfMonth,
-  subMonths,
-} from "date-fns";
+  subMonths} from "date-fns";
 import { Decimal } from "@prisma/client/runtime/library";
 
 /**
@@ -31,8 +30,7 @@ export const SUBSCRIPTION_PLANS = {
     features: [
       "Accès de base à la plateforme",
       "Jusqu'à 5 annonces par mois",
-      "Support par email",
-    ],
+      "Support par email"],
     limits: {
       announcements: 5,
       storageGb: 1,
@@ -40,8 +38,7 @@ export const SUBSCRIPTION_PLANS = {
       supportResponseTime: 48, // heures
       commissionRate: 0.15, // 15%
     },
-    stripeId: "price_free",
-  },
+    stripeId: "price_free"},
   STARTER: {
     name: "Starter",
     description: "Pour les utilisateurs réguliers",
@@ -50,8 +47,7 @@ export const SUBSCRIPTION_PLANS = {
       "Toutes les fonctionnalités du plan gratuit",
       "Jusqu'à 20 annonces par mois",
       "Priorité normale pour les livraisons",
-      "Support prioritaire par email",
-    ],
+      "Support prioritaire par email"],
     limits: {
       announcements: 20,
       storageGb: 5,
@@ -59,8 +55,7 @@ export const SUBSCRIPTION_PLANS = {
       supportResponseTime: 24, // heures
       commissionRate: 0.15, // 15%
     },
-    stripeId: "price_starter",
-  },
+    stripeId: "price_starter"},
   PREMIUM: {
     name: "Premium",
     description: "Pour les utilisateurs intensifs",
@@ -71,8 +66,7 @@ export const SUBSCRIPTION_PLANS = {
       "Priorité élevée pour les livraisons",
       "Commissions réduites (-10%)",
       "Support client dédié",
-      "Fonctionnalités avancées de suivi",
-    ],
+      "Fonctionnalités avancées de suivi"],
     limits: {
       announcements: 999999, // illimité
       storageGb: 25,
@@ -80,8 +74,7 @@ export const SUBSCRIPTION_PLANS = {
       supportResponseTime: 12, // heures
       commissionRate: 0.135, // 13.5% (10% de réduction)
     },
-    stripeId: "price_premium",
-  },
+    stripeId: "price_premium"},
   CUSTOM: {
     name: "Sur mesure",
     description: "Contactez-nous pour une offre personnalisée",
@@ -90,8 +83,7 @@ export const SUBSCRIPTION_PLANS = {
       "Solution entièrement personnalisée",
       "Intégration avec vos systèmes existants",
       "Contrat négocié individuellement",
-      "Support dédié avec SLA garanti",
-    ],
+      "Support dédié avec SLA garanti"],
     limits: {
       announcements: 999999, // illimité
       storageGb: 100,
@@ -99,9 +91,7 @@ export const SUBSCRIPTION_PLANS = {
       supportResponseTime: 6, // heures
       commissionRate: 0.12, // 12%
     },
-    stripeId: "price_custom",
-  },
-};
+    stripeId: "price_custom"}};
 
 /**
  * Service de gestion des abonnements
@@ -111,11 +101,9 @@ export const subscriptionService = {
    * Récupère la liste des plans disponibles
    */
   async getPlans() {
-    return Object.entries(SUBSCRIPTION_PLANS).map(([key, plan]) => ({
-      id: key,
+    return Object.entries(SUBSCRIPTIONPLANS).map(([key, plan]) => ({ id: key,
       ...plan,
-      key,
-    }));
+      key }));
   },
 
   /**
@@ -131,43 +119,36 @@ export const subscriptionService = {
   async createSubscription(userId: string, planType: PlanType, options = {}) {
     // Vérifier que l'utilisateur existe
     const user = await db.user.findUnique({
-      where: { id: userId },
-    });
+      where: { id }});
 
     if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Utilisateur non trouvé" });
     }
 
     // Vérifier que le plan est valide
     const plan = this.getPlan(planType);
     if (!plan) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Plan d'abonnement invalide",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Plan d'abonnement invalide" });
     }
 
     // Vérifier si l'utilisateur a déjà un abonnement actif
     const existingSubscription = await db.subscription.findFirst({
       where: {
         userId,
-        status: { in: ["ACTIVE", "TRIALING"] },
-      },
-    });
+        status: { in: ["ACTIVE", "TRIALING"] }}});
 
     if (existingSubscription) {
       // Si l'utilisateur passe à un plan inférieur ou égal, il faut annuler l'abonnement actuel
-      if (this._isPlanDowngrade(existingSubscription.planType, planType)) {
-        await this._downgradeSubscription(existingSubscription.id, planType);
-        return await this._createSubscriptionRecord(userId, planType, options);
+      if (this.isPlanDowngrade(existingSubscription.planType, planType)) {
+        await this.downgradeSubscription(existingSubscription.id, planType);
+        return await this.createSubscriptionRecord(userId, planType, options);
       }
 
       // Si l'utilisateur passe à un plan supérieur, on met à jour l'abonnement
-      if (this._isPlanUpgrade(existingSubscription.planType, planType)) {
-        return await this._upgradeSubscription(
+      if (this.isPlanUpgrade(existingSubscription.planType, planType)) {
+        return await this.upgradeSubscription(
           existingSubscription.id,
           planType,
         );
@@ -175,15 +156,13 @@ export const subscriptionService = {
 
       // Si c'est le même plan, on ne fait rien
       if (existingSubscription.planType === planType) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Vous êtes déjà abonné à ce plan",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Vous êtes déjà abonné à ce plan" });
       }
     }
 
     // Créer un nouvel abonnement
-    return await this._createSubscriptionRecord(userId, planType, options);
+    return await this.createSubscriptionRecord(userId, planType, options);
   },
 
   /**
@@ -200,24 +179,21 @@ export const subscriptionService = {
     },
   ) {
     const subscription = await db.subscription.findUnique({
-      where: { id: subscriptionId },
-    });
+      where: { id }});
 
     if (!subscription) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Abonnement non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Abonnement non trouvé" });
     }
 
     // Si on change de plan
     if (data.planType && data.planType !== subscription.planType) {
-      if (this._isPlanUpgrade(subscription.planType, data.planType)) {
-        return await this._upgradeSubscription(subscriptionId, data.planType);
+      if (this.isPlanUpgrade(subscription.planType, data.planType)) {
+        return await this.upgradeSubscription(subscriptionId, data.planType);
       }
 
-      if (this._isPlanDowngrade(subscription.planType, data.planType)) {
-        return await this._downgradeSubscription(subscriptionId, data.planType);
+      if (this.isPlanDowngrade(subscription.planType, data.planType)) {
+        return await this.downgradeSubscription(subscriptionId, data.planType);
       }
     }
 
@@ -242,22 +218,19 @@ export const subscriptionService = {
     if (data.metadata) {
       updateData.metadata = {
         ...(subscription.metadata || {}),
-        ...data.metadata,
-      };
+        ...data.metadata};
     }
 
     if (data.customPlanFeatures && subscription.planType === "CUSTOM") {
       updateData.metadata = {
         ...(subscription.metadata || {}),
-        customPlanFeatures: data.customPlanFeatures,
-      };
+        customPlanFeatures: data.customPlanFeatures};
     }
 
     // Mettre à jour l'abonnement
     return await db.subscription.update({
-      where: { id: subscriptionId },
-      data: updateData,
-    });
+      where: { id },
+      data: updateData});
   },
 
   /**
@@ -271,15 +244,11 @@ export const subscriptionService = {
     const subscription = await db.subscription.findFirst({
       where: {
         userId,
-        status: { in: ["ACTIVE", "TRIALING"] },
-      },
-    });
+        status: { in: ["ACTIVE", "TRIALING"] }}});
 
     if (!subscription) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Aucun abonnement actif trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Aucun abonnement actif trouvé" });
     }
 
     // Annuler via Stripe si c'est un abonnement payant
@@ -299,10 +268,7 @@ export const subscriptionService = {
         cancelAtPeriodEnd: options.cancelAtPeriodEnd,
         metadata: {
           ...(subscription.metadata || {}),
-          cancellationReason: options.reason,
-        },
-      },
-    });
+          cancellationReason: options.reason}}});
   },
 
   /**
@@ -310,24 +276,18 @@ export const subscriptionService = {
    */
   async getSubscriptionDetails(subscriptionId: string) {
     const subscription = await db.subscription.findUnique({
-      where: { id: subscriptionId },
+      where: { id },
       include: {
         user: {
           select: {
             id: true,
             name: true,
             email: true,
-            role: true,
-          },
-        },
-      },
-    });
+            role: true}}}});
 
     if (!subscription) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Abonnement non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Abonnement non trouvé" });
     }
 
     // Récupérer les détails du plan
@@ -338,15 +298,12 @@ export const subscriptionService = {
       where: {
         metadata: {
           path: ["subscriptionId"],
-          equals: subscriptionId,
-        },
-      },
+          equals: subscriptionId}},
       orderBy: { createdAt: "desc" },
-      take: 5,
-    });
+      take: 5});
 
     // Calculer les avantages spécifiques au plan
-    const benefits = this._calculatePlanBenefits(
+    const benefits = this.calculatePlanBenefits(
       subscription.planType,
       subscription,
     );
@@ -356,7 +313,7 @@ export const subscriptionService = {
       subscription.currentPeriodEnd || subscription.endDate;
 
     // Informations sur le statut
-    const statusInfo = this._getSubscriptionStatusInfo(subscription);
+    const statusInfo = this.getSubscriptionStatusInfo(subscription);
 
     return {
       subscription,
@@ -364,8 +321,7 @@ export const subscriptionService = {
       invoices,
       benefits,
       nextRenewalDate,
-      statusInfo,
-    };
+      statusInfo};
   },
 
   /**
@@ -373,14 +329,11 @@ export const subscriptionService = {
    */
   async processRenewal(subscriptionId: string) {
     const subscription = await db.subscription.findUnique({
-      where: { id: subscriptionId },
-    });
+      where: { id }});
 
     if (!subscription) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Abonnement non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Abonnement non trouvé" });
     }
 
     // Vérifier que l'abonnement est actif et doit être renouvelé
@@ -389,10 +342,8 @@ export const subscriptionService = {
       !subscription.autoRenew ||
       (subscription.endDate && subscription.endDate > new Date())
     ) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cet abonnement ne peut pas être renouvelé maintenant",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Cet abonnement ne peut pas être renouvelé maintenant" });
     }
 
     const plan = this.getPlan(subscription.planType);
@@ -403,14 +354,11 @@ export const subscriptionService = {
         success: true,
         message: "Plan gratuit - aucun renouvellement nécessaire",
         subscription: await db.subscription.update({
-          where: { id: subscriptionId },
+          where: { id },
           data: {
             currentPeriodStart: new Date(),
             currentPeriodEnd: addMonths(new Date(), 1),
-            endDate: addMonths(new Date(), 1),
-          },
-        }),
-      };
+            endDate: addMonths(new Date(), 1)}})};
     }
 
     try {
@@ -432,30 +380,24 @@ export const subscriptionService = {
         invoiceId: invoice.id,
         metadata: {
           isRenewal: true,
-          planType: subscription.planType,
-        },
-      });
+          planType: subscription.planType}});
 
       // Mettre à jour la période de l'abonnement
       const updatedSubscription = await db.subscription.update({
-        where: { id: subscriptionId },
+        where: { id },
         data: {
           currentPeriodStart: new Date(),
           currentPeriodEnd: addMonths(new Date(), 1),
           endDate: addMonths(new Date(), 1),
           renewalCount: {
-            increment: 1,
-          },
-        },
-      });
+            increment: 1}}});
 
       return {
         success: true,
         message: "Abonnement renouvelé avec succès",
         subscription: updatedSubscription,
-        invoiceId: invoice.id,
-      };
-    } catch (_error) {
+        invoiceId: invoice.id};
+    } catch (error) {
       console.error(
         `Erreur lors du renouvellement de l'abonnement ${subscriptionId}:`,
         error,
@@ -463,22 +405,18 @@ export const subscriptionService = {
 
       // En cas d'échec, marquer l'abonnement comme problématique
       const updatedSubscription = await db.subscription.update({
-        where: { id: subscriptionId },
+        where: { id },
         data: {
           status: SubscriptionStatus.PAST_DUE,
           lastPaymentFailure: new Date(),
           paymentFailureCount: {
-            increment: 1,
-          },
-        },
-      });
+            increment: 1}}});
 
       return {
         success: false,
         message: "Échec du renouvellement",
         subscription: updatedSubscription,
-        error: error instanceof Error ? error.message : "Erreur inconnue",
-      };
+        error: error instanceof Error ? error.message : "Erreur inconnue"};
     }
   },
 
@@ -497,9 +435,7 @@ export const subscriptionService = {
     const subscription = await db.subscription.findFirst({
       where: {
         userId,
-        status: "ACTIVE",
-      },
-    });
+        status: "ACTIVE"}});
 
     if (!subscription) {
       // Sans abonnement, pas de remise
@@ -508,8 +444,7 @@ export const subscriptionService = {
         discountedAmount: amount,
         discountPercent: 0,
         discountAmount: 0,
-        planType: "FREE" as PlanType,
-      };
+        planType: "FREE" as PlanType};
     }
 
     const plan = this.getPlan(subscription.planType);
@@ -520,8 +455,7 @@ export const subscriptionService = {
         discountedAmount: amount,
         discountPercent: 0,
         discountAmount: 0,
-        planType: subscription.planType,
-      };
+        planType: subscription.planType};
     }
 
     // Calcul des remises en fonction du plan et du type d'opération
@@ -569,10 +503,7 @@ export const subscriptionService = {
           {
             type: options.type,
             description: `Remise ${options.type.toLowerCase()}`,
-            amount: discountAmount,
-          },
-        ],
-      };
+            amount: discountAmount}]};
     }
 
     return {
@@ -580,15 +511,14 @@ export const subscriptionService = {
       discountedAmount,
       discountPercent,
       discountAmount,
-      planType: subscription.planType,
-    };
+      planType: subscription.planType};
   },
 
   /**
    * Crée un enregistrement d'abonnement et simule le paiement en mode démo
    * @private
    */
-  async _createSubscriptionRecord(
+  async createSubscriptionRecord(
     userId: string,
     planType: PlanType,
     options = {},
@@ -616,10 +546,7 @@ export const subscriptionService = {
         metadata: {
           ...options,
           planPrice: plan.price,
-          planFeatures: plan.features,
-        },
-      },
-    });
+          planFeatures: plan.features}}});
 
     // Si c'est un plan payant, créer la facturation réelle
     if (plan.price && plan.price > 0) {
@@ -641,9 +568,7 @@ export const subscriptionService = {
         invoiceId: invoice.id,
         metadata: {
           planType,
-          subscriptionCreation: true,
-        },
-      });
+          subscriptionCreation: true}});
     }
 
     return subscription;
@@ -653,16 +578,13 @@ export const subscriptionService = {
    * Met à niveau un abonnement vers un plan supérieur
    * @private
    */
-  async _upgradeSubscription(subscriptionId: string, newPlanType: PlanType) {
+  async upgradeSubscription(subscriptionId: string, newPlanType: PlanType) {
     const subscription = await db.subscription.findUnique({
-      where: { id: subscriptionId },
-    });
+      where: { id }});
 
     if (!subscription) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Abonnement non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Abonnement non trouvé" });
     }
 
     const oldPlan = this.getPlan(subscription.planType);
@@ -673,7 +595,7 @@ export const subscriptionService = {
 
     // Mettre à jour l'abonnement
     const updatedSubscription = await db.subscription.update({
-      where: { id: subscriptionId },
+      where: { id },
       data: {
         planType: newPlanType,
         previousPlanType: subscription.planType,
@@ -687,10 +609,7 @@ export const subscriptionService = {
           limits: newPlan.limits,
           previousLimits: subscription.metadata?.limits,
           upgradedFrom: subscription.planType,
-          upgradedAt: new Date().toISOString(),
-        },
-      },
-    });
+          upgradedAt: new Date().toISOString()}}});
 
     // Si le nouveau plan est payant, créer la facturation réelle
     if (newPlan.price && newPlan.price > 0) {
@@ -702,17 +621,13 @@ export const subscriptionService = {
             description: `Mise à niveau vers l'abonnement ${newPlan.name}`,
             quantity: 1,
             unitPrice: proRataAmount > 0 ? proRataAmount : newPlan.price,
-            taxRate: 0.2,
-          },
-        ],
+            taxRate: 0.2}],
         notes: "Facturation de la mise à niveau d'abonnement",
         metadata: {
           subscriptionId,
           oldPlanType: subscription.planType,
           newPlanType,
-          isUpgrade: true,
-        },
-      });
+          isUpgrade: true}});
 
       // Initier le paiement pour la mise à niveau
       if (proRataAmount > 0 || newPlan.price > 0) {
@@ -726,9 +641,7 @@ export const subscriptionService = {
           metadata: {
             isUpgrade: true,
             oldPlanType: subscription.planType,
-            newPlanType,
-          },
-        });
+            newPlanType}});
       }
     }
 
@@ -739,23 +652,20 @@ export const subscriptionService = {
    * Rétrograde un abonnement vers un plan inférieur
    * @private
    */
-  async _downgradeSubscription(subscriptionId: string, newPlanType: PlanType) {
+  async downgradeSubscription(subscriptionId: string, newPlanType: PlanType) {
     const subscription = await db.subscription.findUnique({
-      where: { id: subscriptionId },
-    });
+      where: { id }});
 
     if (!subscription) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Abonnement non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Abonnement non trouvé" });
     }
 
     const newPlan = this.getPlan(newPlanType);
 
     // Pour la démo, on permet la rétrogradation immédiate
     return await db.subscription.update({
-      where: { id: subscriptionId },
+      where: { id },
       data: {
         status:
           newPlanType === "FREE"
@@ -776,10 +686,7 @@ export const subscriptionService = {
           previousLimits: subscription.metadata?.limits,
           downgradedFrom: subscription.planType,
           downgradedAt: new Date().toISOString(),
-          downgradedReason: "Changement de plan par l'utilisateur",
-        },
-      },
-    });
+          downgradedReason: "Changement de plan par l'utilisateur"}}});
   },
 
   /**
@@ -791,12 +698,8 @@ export const subscriptionService = {
       where: {
         status: "ACTIVE",
         autoRenew: true,
-        endDate: { lte: new Date() },
-      },
-      include: {
-        user: true,
-      },
-    });
+        endDate: { lte: new Date() }},
+      include: { user }});
 
     const renewedCount = 0;
     const failedCount = 0;
@@ -809,7 +712,7 @@ export const subscriptionService = {
             `Erreur lors du renouvellement de l'abonnement ${subscription.id}:`,
             error,
           );
-          return { success: false };
+          return { success };
         },
       );
 
@@ -824,14 +727,13 @@ export const subscriptionService = {
       success: true,
       renewals: renewedCount,
       failed: failedCount,
-      message: `${renewedCount} abonnements renouvelés, ${failedCount} échecs`,
-    };
+      message: `${renewedCount} abonnements renouvelés, ${failedCount} échecs`};
   },
 
   /**
    * Calcule les avantages du plan d'abonnement
    */
-  _calculatePlanBenefits(planType: PlanType, subscription: any) {
+  calculatePlanBenefits(planType: PlanType, subscription: any) {
     const plan = this.getPlan(planType);
     if (!plan) return null;
 
@@ -841,8 +743,7 @@ export const subscriptionService = {
     if (planType === "CUSTOM" && subscription.metadata?.customPlanFeatures) {
       return {
         ...limits,
-        ...subscription.metadata.customPlanFeatures,
-      };
+        ...subscription.metadata.customPlanFeatures};
     }
 
     return limits;
@@ -852,7 +753,7 @@ export const subscriptionService = {
    * Génère des informations sur le statut de l'abonnement
    * @private
    */
-  _getSubscriptionStatusInfo(subscription: any) {
+  getSubscriptionStatusInfo(subscription: any) {
     const now = new Date();
 
     const statusInfo = {
@@ -862,8 +763,7 @@ export const subscriptionService = {
       isActive: false,
       isPastDue: false,
       isCancelled: false,
-      isTrialing: false,
-    };
+      isTrialing: false};
 
     switch (subscription.status) {
       case "ACTIVE":
@@ -925,13 +825,12 @@ export const subscriptionService = {
    * Détermine si un changement de plan est une mise à niveau
    * @private
    */
-  _isPlanUpgrade(currentPlan: PlanType, newPlan: PlanType): boolean {
+  isPlanUpgrade(currentPlan: PlanType, newPlan: PlanType): boolean {
     const planRanking = {
       FREE: 0,
       STARTER: 1,
       PREMIUM: 2,
-      CUSTOM: 3,
-    };
+      CUSTOM: 3};
 
     return planRanking[newPlan] > planRanking[currentPlan];
   },
@@ -940,17 +839,15 @@ export const subscriptionService = {
    * Détermine si un changement de plan est une rétrogradation
    * @private
    */
-  _isPlanDowngrade(currentPlan: PlanType, newPlan: PlanType): boolean {
+  isPlanDowngrade(currentPlan: PlanType, newPlan: PlanType): boolean {
     const planRanking = {
       FREE: 0,
       STARTER: 1,
       PREMIUM: 2,
-      CUSTOM: 3,
-    };
+      CUSTOM: 3};
 
     return planRanking[newPlan] < planRanking[currentPlan];
-  },
-};
+  }};
 
 // Export des fonctions individuelles pour faciliter les tests et l'utilisation
 export const {
@@ -962,5 +859,4 @@ export const {
   getSubscriptionDetails,
   processRenewal,
   applyDiscounts,
-  processSubscriptionRenewals,
-} = subscriptionService;
+  processSubscriptionRenewals} = subscriptionService;

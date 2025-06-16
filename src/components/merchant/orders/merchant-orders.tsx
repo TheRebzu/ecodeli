@@ -8,8 +8,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,8 +18,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Package,
   Search,
@@ -34,8 +32,7 @@ import {
   RefreshCw,
   Euro,
   Calendar,
-  User,
-} from "lucide-react";
+  User} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
@@ -70,17 +67,14 @@ export function MerchantOrders() {
     data: ordersData,
     isLoading,
     error,
-    refetch,
-  } = api.merchant.getOrders.useQuery({
-    status: selectedTab === "all" ? undefined : selectedTab.toUpperCase(),
+    refetch} = api.merchant.getOrders.useQuery({ status: selectedTab === "all" ? undefined : selectedTab.toUpperCase(),
     searchTerm: searchTerm || undefined,
     paymentStatus: paymentFilter || undefined,
     page: currentPage,
-    limit: 10,
-  });
+    limit: 10 });
 
   // Récupération des statistiques des commandes
-  const { data: statsData } = api.merchant.getOrderStats.useQuery();
+  const { data } = api.merchant.getOrderStats.useQuery();
 
   const orders = ordersData?.orders || [];
   const stats = statsData || {
@@ -88,8 +82,7 @@ export function MerchantOrders() {
     pendingOrders: 0,
     confirmedOrders: 0,
     totalRevenue: 0,
-    todayOrders: 0,
-  };
+    todayOrders: 0};
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -98,14 +91,12 @@ export function MerchantOrders() {
       PREPARING: { label: "En préparation", variant: "outline" as const, icon: Package },
       READY: { label: "Prête", variant: "default" as const, icon: CheckCircle },
       DELIVERED: { label: "Livrée", variant: "outline" as const, icon: CheckCircle },
-      CANCELLED: { label: "Annulée", variant: "destructive" as const, icon: XCircle },
-    };
+      CANCELLED: { label: "Annulée", variant: "destructive" as const, icon: XCircle }};
 
     const config = statusConfig[status as keyof typeof statusConfig] || {
       label: status,
       variant: "outline" as const,
-      icon: AlertCircle,
-    };
+      icon: AlertCircle};
 
     const Icon = config.icon;
 
@@ -122,13 +113,11 @@ export function MerchantOrders() {
       PENDING: { label: "En attente", variant: "secondary" as const },
       PAID: { label: "Payé", variant: "default" as const },
       FAILED: { label: "Échec", variant: "destructive" as const },
-      REFUNDED: { label: "Remboursé", variant: "outline" as const },
-    };
+      REFUNDED: { label: "Remboursé", variant: "outline" as const }};
 
     const config = paymentConfig[status as keyof typeof paymentConfig] || {
       label: status,
-      variant: "outline" as const,
-    };
+      variant: "outline" as const};
 
     return (
       <Badge variant={config.variant} className="text-xs">
@@ -138,42 +127,35 @@ export function MerchantOrders() {
   };
 
   const formatDate = (date: Date | string) => {
-    return format(new Date(date), "dd/MM/yyyy HH:mm", { locale: fr });
+    return format(new Date(date), "dd/MM/yyyy HH:mm", { locale });
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const handleViewOrder = (orderId: string) => {
-    window.open(`/merchant/orders/${orderId}`, '_blank');
+    window.open(`/merchant/orders/${orderId}`, 'blank');
   };
 
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
     try {
-      // await api.merchant.updateOrderStatus.mutate({ orderId, status: newStatus });
-      toast({
-        title: "Statut mis à jour",
-        description: "Le statut de la commande a été modifié avec succès",
-      });
+      // await api.merchant.updateOrderStatus.mutate({ orderId, status: newStatus  });
+      toast({ title: "Statut mis à jour",
+        description: "Le statut de la commande a été modifié avec succès" });
       refetch();
     } catch (error) {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Impossible de mettre à jour le statut",
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
   const handleExportOrders = () => {
-    toast({
-      title: "Export en cours",
-      description: "Le fichier va être téléchargé...",
-    });
+    toast({ title: "Export en cours",
+      description: "Le fichier va être téléchargé..." });
   };
 
   if (isLoading) {
@@ -348,7 +330,7 @@ export function MerchantOrders() {
                               <div className="flex items-center gap-2">
                                 <User className="h-3 w-3 text-muted-foreground" />
                                 <span className="font-medium">{order.customerName}</span>
-                                <span className="text-muted-foreground">({order.customerEmail})</span>
+                                <span className="text-muted-foreground">({ order.customerEmail })</span>
                               </div>
                               <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-1">

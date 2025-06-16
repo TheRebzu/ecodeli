@@ -16,13 +16,11 @@ export async function generateMetadata(): Promise<Metadata> {
     description: t(
       "userDocuments.metadata.description",
       "View and manage user documents",
-    ),
-  };
+    )};
 }
 
 export default async function UserDocumentsPage({
-  params,
-}: UserDocumentsPageProps) {
+  params}: UserDocumentsPageProps) {
   const resolvedParams = await params;
   const { id } = resolvedParams;
 

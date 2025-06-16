@@ -12,15 +12,13 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/trpc/react";
@@ -33,8 +31,7 @@ import {
   Navigation,
   Zap,
   Star,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 
 interface RouteZone {
   latitude: number;
@@ -62,72 +59,57 @@ export default function DelivererRoutesManager() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // État du formulaire
-  const [formData, setFormData] = useState({
-    name: "",
+  const [formData, setFormData] = useState({ name: "",
     description: "",
     priority: 1,
-    zones: [] as RouteZone[],
-  });
+    zones: [] as RouteZone[] });
 
   // État pour l'ajout de zone
-  const [newZone, setNewZone] = useState({
-    latitude: "",
+  const [newZone, setNewZone] = useState({ latitude: "",
     longitude: "",
     radius: "5",
     cityName: "",
     postalCodes: "",
-    isPreferred: false,
-  });
+    isPreferred: false });
 
   // Récupérer les routes du livreur
   const { data: routes, refetch } =
     api.delivery.routes.getByDeliverer.useQuery();
 
   // Mutations
-  const createRouteMutation = api.delivery.routes.create.useMutation({
-    onSuccess: () => {
+  const createRouteMutation = api.delivery.routes.create.useMutation({ onSuccess: () => {
       toast({
         title: "Route créée",
         description: "Votre nouveau trajet a été enregistré avec succès",
-        variant: "success",
-      });
+        variant: "success" });
       setIsCreateModalOpen(false);
       resetForm();
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const resetForm = () => {
-    setFormData({
-      name: "",
+    setFormData({ name: "",
       description: "",
       priority: 1,
-      zones: [],
-    });
-    setNewZone({
-      latitude: "",
+      zones: [] });
+    setNewZone({ latitude: "",
       longitude: "",
       radius: "5",
       cityName: "",
       postalCodes: "",
-      isPreferred: false,
-    });
+      isPreferred: false });
   };
 
   const handleAddZone = () => {
     if (!newZone.latitude || !newZone.longitude) {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Latitude et longitude sont requises",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
@@ -139,56 +121,43 @@ export default function DelivererRoutesManager() {
       postalCodes: newZone.postalCodes
         ? newZone.postalCodes.split(",").map((code) => code.trim())
         : undefined,
-      isPreferred: newZone.isPreferred,
-    };
+      isPreferred: newZone.isPreferred};
 
-    setFormData((prev) => ({
-      ...prev,
-      zones: [...prev.zones, zone],
-    }));
+    setFormData((prev) => ({ ...prev,
+      zones: [...prev.zones, zone] }));
 
-    setNewZone({
-      latitude: "",
+    setNewZone({ latitude: "",
       longitude: "",
       radius: "5",
       cityName: "",
       postalCodes: "",
-      isPreferred: false,
-    });
+      isPreferred: false });
   };
 
   const handleRemoveZone = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      zones: prev.zones.filter((_, i) => i !== index),
-    }));
+    setFormData((prev) => ({ ...prev,
+      zones: prev.zones.filter((_, i) => i !== index) }));
   };
 
   const handleCreateRoute = () => {
     if (!formData.name.trim()) {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Le nom du trajet est requis",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
     if (formData.zones.length === 0) {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Au moins une zone doit être définie",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
-    createRouteMutation.mutate({
-      name: formData.name,
+    createRouteMutation.mutate({ name: formData.name,
       description: formData.description,
       priority: formData.priority,
-      zones: formData.zones,
-    });
+      zones: formData.zones });
   };
 
   const getPriorityLabel = (priority: number) => {
@@ -254,7 +223,7 @@ export default function DelivererRoutesManager() {
                     placeholder="Ex: Centre-ville Paris"
                     value={formData.name}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, name: e.target.value }))
+                      setFormData((prev) => ({ ...prev, name: e.target.value  }))
                     }
                   />
                 </div>
@@ -266,10 +235,8 @@ export default function DelivererRoutesManager() {
                     placeholder="Description optionnelle du trajet"
                     value={formData.description}
                     onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
+                      setFormData((prev) => ({ ...prev,
+                        description: e.target.value }))
                     }
                   />
                 </div>
@@ -279,10 +246,8 @@ export default function DelivererRoutesManager() {
                   <Select
                     value={formData.priority.toString()}
                     onValueChange={(value) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        priority: parseInt(value),
-                      }))
+                      setFormData((prev) => ({ ...prev,
+                        priority: parseInt(value) }))
                     }
                   >
                     <SelectTrigger>
@@ -359,10 +324,8 @@ export default function DelivererRoutesManager() {
                         placeholder="48.8566"
                         value={newZone.latitude}
                         onChange={(e) =>
-                          setNewZone((prev) => ({
-                            ...prev,
-                            latitude: e.target.value,
-                          }))
+                          setNewZone((prev) => ({ ...prev,
+                            latitude: e.target.value }))
                         }
                       />
                     </div>
@@ -375,10 +338,8 @@ export default function DelivererRoutesManager() {
                         placeholder="2.3522"
                         value={newZone.longitude}
                         onChange={(e) =>
-                          setNewZone((prev) => ({
-                            ...prev,
-                            longitude: e.target.value,
-                          }))
+                          setNewZone((prev) => ({ ...prev,
+                            longitude: e.target.value }))
                         }
                       />
                     </div>
@@ -394,10 +355,8 @@ export default function DelivererRoutesManager() {
                         max="25"
                         value={newZone.radius}
                         onChange={(e) =>
-                          setNewZone((prev) => ({
-                            ...prev,
-                            radius: e.target.value,
-                          }))
+                          setNewZone((prev) => ({ ...prev,
+                            radius: e.target.value }))
                         }
                       />
                     </div>
@@ -408,10 +367,8 @@ export default function DelivererRoutesManager() {
                         placeholder="Paris 1er"
                         value={newZone.cityName}
                         onChange={(e) =>
-                          setNewZone((prev) => ({
-                            ...prev,
-                            cityName: e.target.value,
-                          }))
+                          setNewZone((prev) => ({ ...prev,
+                            cityName: e.target.value }))
                         }
                       />
                     </div>
@@ -426,10 +383,8 @@ export default function DelivererRoutesManager() {
                       placeholder="75001, 75002, 75003"
                       value={newZone.postalCodes}
                       onChange={(e) =>
-                        setNewZone((prev) => ({
-                          ...prev,
-                          postalCodes: e.target.value,
-                        }))
+                        setNewZone((prev) => ({ ...prev,
+                          postalCodes: e.target.value }))
                       }
                     />
                   </div>
@@ -440,10 +395,8 @@ export default function DelivererRoutesManager() {
                       id="isPreferred"
                       checked={newZone.isPreferred}
                       onChange={(e) =>
-                        setNewZone((prev) => ({
-                          ...prev,
-                          isPreferred: e.target.checked,
-                        }))
+                        setNewZone((prev) => ({ ...prev,
+                          isPreferred: e.target.checked }))
                       }
                       className="rounded"
                     />
@@ -535,7 +488,7 @@ export default function DelivererRoutesManager() {
                   <div>
                     <h4 className="font-medium mb-2 flex items-center gap-2">
                       <MapPin className="h-4 w-4" />
-                      Zones couvertes ({route.zones?.length || 0})
+                      Zones couvertes ({ route.zones?.length || 0 })
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {route.zones?.map((zone: any, index: number) => (

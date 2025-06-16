@@ -11,8 +11,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
 // Icons
@@ -35,8 +34,7 @@ export function ContractFilters({
   onStatusChange,
   onTypeChange,
   onSearchChange,
-  onReset,
-}: ContractFiltersProps) {
+  onReset}: ContractFiltersProps) {
   const t = useTranslations("contracts");
 
   return (

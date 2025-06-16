@@ -8,8 +8,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,8 +22,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import {
   CheckCircle,
   XCircle,
@@ -40,8 +38,7 @@ import {
   AlertCircle,
   Edit,
   Ban,
-  UserCheck,
-} from "lucide-react";
+  UserCheck} from "lucide-react";
 import { Link } from "@/navigation";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -68,30 +65,22 @@ export default function DelivererDetailPage() {
     data: delivererData,
     isLoading,
     error,
-    refetch,
-  } = api.admin.deliverers.getById.useQuery({
-    id: delivererId,
-  });
+    refetch} = api.admin.deliverers.getById.useQuery({ id  });
 
   // Mutations pour les actions
   const updateDelivererStatusMutation =
-    api.admin.deliverers.updateStatus.useMutation({
-      onSuccess: () => {
+    api.admin.deliverers.updateStatus.useMutation({ onSuccess: () => {
         toast({
           title: "Statut mis à jour",
-          description: "Le statut du livreur a été mis à jour avec succès.",
-        });
+          description: "Le statut du livreur a été mis à jour avec succès." });
         refetch();
       },
       onError: (error) => {
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description:
             "Erreur lors de la mise à jour du statut: " + error.message,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   // Gestion des états de chargement et d'erreur
   if (isLoading) {
@@ -174,15 +163,13 @@ export default function DelivererDetailPage() {
     return new Intl.DateTimeFormat("fr-FR", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
-    }).format(dateObj);
+      year: "numeric"}).format(dateObj);
   };
 
   const formatEarnings = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const getCompletionRate = () => {
@@ -194,33 +181,27 @@ export default function DelivererDetailPage() {
 
   // Fonctions pour gérer les actions
   const handleActivateDeliverer = () => {
-    setDialogAction({
-      title: "Activer le livreur",
+    setDialogAction({ title: "Activer le livreur",
       description: "Êtes-vous sûr de vouloir activer ce livreur ?",
       action: () => {
         updateDelivererStatusMutation.mutate({
           userId: delivererId,
-          status: "ACTIVE",
-        });
+          status: "ACTIVE" });
         setIsDialogOpen(false);
-      },
-    });
+      }});
     setIsDialogOpen(true);
   };
 
   const handleSuspendDeliverer = () => {
-    setDialogAction({
-      title: "Suspendre le livreur",
+    setDialogAction({ title: "Suspendre le livreur",
       description:
         "Êtes-vous sûr de vouloir suspendre ce livreur ? Il perdra l'accès à la plateforme.",
       action: () => {
         updateDelivererStatusMutation.mutate({
           userId: delivererId,
-          status: "SUSPENDED",
-        });
+          status: "SUSPENDED" });
         setIsDialogOpen(false);
-      },
-    });
+      }});
     setIsDialogOpen(true);
   };
 

@@ -17,8 +17,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 // Import dynamique de la carte Leaflet pour éviter les erreurs côté serveur
 const MapComponent = dynamic(() => import("../../shared/maps/map-component"), {
   ssr: false,
-  loading: () => <Skeleton className="w-full h-[500px] rounded-md" />,
-});
+  loading: () => <Skeleton className="w-full h-[500px] rounded-md" />});
 
 interface Delivery {
   id: string;
@@ -90,32 +89,27 @@ export function LiveMap({ deliveries }: LiveMapProps) {
       },
       onError: (error) => {
         toast.error(t("errors.coordinatesRefresh", { error: error.message }));
-      },
-    });
+      }});
 
   // Récupération des données pour la carte thermique
   const heatmapQuery = api.delivery.getHeatmapData.useQuery(
     {
       startDate: undefined,
-      endDate: undefined,
-    },
+      endDate: undefined},
     {
       enabled: mapMode === "heatmap" || mapMode === "hybrid",
       onSuccess: (data) => {
         if (data) {
           // Transformer les données pour la carte thermique
-          const points: HeatmapPoint[] = data.map((point) => ({
-            lat: point.latitude,
+          const points: HeatmapPoint[] = data.map((point) => ({ lat: point.latitude,
             lng: point.longitude,
-            intensity: point.count / Math.max(...data.map((p) => p.count)),
-          }));
+            intensity: point.count / Math.max(...data.map((p) => p.count)) }));
           setHeatmapPoints(points);
         }
       },
       onError: (error) => {
         toast.error(t("errors.heatmapDataFetch", { error: error.message }));
-      },
-    },
+      }},
   );
 
   // Préparation des marqueurs à partir des livraisons
@@ -134,8 +128,7 @@ export function LiveMap({ deliveries }: LiveMapProps) {
             longitude: delivery.pickupLongitude,
             label: t("map.pickupPoint"),
             deliveryId: delivery.id,
-            status: delivery.status,
-          });
+            status: delivery.status});
           coordinates.push([delivery.pickupLatitude, delivery.pickupLongitude]);
         }
 
@@ -148,12 +141,10 @@ export function LiveMap({ deliveries }: LiveMapProps) {
             longitude: delivery.deliveryLongitude,
             label: t("map.deliveryPoint"),
             deliveryId: delivery.id,
-            status: delivery.status,
-          });
+            status: delivery.status});
           coordinates.push([
             delivery.deliveryLatitude,
-            delivery.deliveryLongitude,
-          ]);
+            delivery.deliveryLongitude]);
         }
 
         // Marqueur de position actuelle (si en transit)
@@ -170,12 +161,10 @@ export function LiveMap({ deliveries }: LiveMapProps) {
             longitude: delivery.currentCoordinates.longitude,
             label: `${t("map.delivererPosition")}: ${delivery.deliverer?.name || ""}`,
             deliveryId: delivery.id,
-            status: delivery.status,
-          });
+            status: delivery.status});
           coordinates.push([
             delivery.currentCoordinates.latitude,
-            delivery.currentCoordinates.longitude,
-          ]);
+            delivery.currentCoordinates.longitude]);
         }
       });
 
@@ -191,8 +180,7 @@ export function LiveMap({ deliveries }: LiveMapProps) {
         const maxLng = Math.max(...lngs);
         setBounds([
           [minLat - 0.05, minLng - 0.05],
-          [maxLat + 0.05, maxLng + 0.05],
-        ]);
+          [maxLat + 0.05, maxLng + 0.05]]);
       } else {
         setBounds(null);
       }
@@ -231,8 +219,7 @@ export function LiveMap({ deliveries }: LiveMapProps) {
             longitude: coord.longitude,
             label: `${t("map.delivererPosition")}: ${delivery.deliverer?.name || ""}`,
             deliveryId: delivery.id,
-            status: delivery.status,
-          });
+            status: delivery.status});
         }
       });
 
@@ -261,7 +248,7 @@ export function LiveMap({ deliveries }: LiveMapProps) {
         .map((d) => d.id);
 
       if (inTransitDeliveries.length > 0) {
-        refreshCoordinatesMutation.mutate({ deliveryIds: inTransitDeliveries });
+        refreshCoordinatesMutation.mutate({ deliveryIds  });
       }
     }, 30000);
   };
@@ -275,12 +262,11 @@ export function LiveMap({ deliveries }: LiveMapProps) {
 
     if (inTransitDeliveries.length > 0) {
       refreshCoordinatesMutation.mutate(
-        { deliveryIds: inTransitDeliveries },
+        { deliveryIds },
         {
           onSettled: () => {
             setIsLoading(false);
-          },
-        },
+          }},
       );
     } else {
       setIsLoading(false);

@@ -15,8 +15,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -24,8 +23,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -36,17 +34,15 @@ import {
   AlertCircle,
   Package,
   Truck,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils/common";
 import { useDeliveryRating } from "@/hooks/features/use-delivery-tracking";
 
 // Schéma de validation
-const ratingSchema = z.object({
-  rating: z
+const ratingSchema = z.object({ rating: z
     .number()
-    .min(1, { message: "Veuillez attribuer au moins une étoile" })
+    .min(1, { message: "Veuillez attribuer au moins une étoile"  })
     .max(5),
   deliverySpeed: z
     .number()
@@ -64,8 +60,7 @@ const ratingSchema = z.object({
     .string()
     .max(500, { message: "Le commentaire ne peut pas dépasser 500 caractères" })
     .optional(),
-  anonymous: z.boolean().default(false),
-});
+  anonymous: z.boolean().default(false)});
 
 type RatingFormValues = z.infer<typeof ratingSchema>;
 
@@ -90,9 +85,7 @@ export default function DeliveryRatingPage() {
       delivererProfessionalism: 0,
       packageCondition: 0,
       comment: "",
-      anonymous: false,
-    },
-  });
+      anonymous: false}});
 
   // Retourner aux détails de la livraison
   const handleCancel = () => {
@@ -106,9 +99,7 @@ export default function DeliveryRatingPage() {
       setSubmitted(true);
 
       // Rediriger après 2 secondes
-      setTimeout(() => {
-        router.push(`/client/deliveries/${deliveryId}?rate=success`);
-      }, 2000);
+      // Appel API réel via tRPC
     } catch (error) {
       console.error("Erreur lors de la soumission de l'évaluation:", error);
     }
@@ -119,8 +110,7 @@ export default function DeliveryRatingPage() {
     value,
     onChange,
     size = "default",
-    disabled = false,
-  }: {
+    disabled = false}: {
     value: number;
     onChange: (value: number) => void;
     size?: "default" | "sm" | "lg";
@@ -293,8 +283,7 @@ export default function DeliveryRatingPage() {
             {t("pageDescription", {
               date: new Date(deliveryInfo.deliveryDate).toLocaleDateString(
                 "fr-FR",
-              ),
-            })}
+              )})}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -304,7 +293,7 @@ export default function DeliveryRatingPage() {
               <FormField
                 control={form.control}
                 name="rating"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="space-y-1">
                     <FormLabel className="text-center block text-lg">
                       {t("overallRating")}
@@ -331,7 +320,7 @@ export default function DeliveryRatingPage() {
                 <FormField
                   control={form.control}
                   name="deliverySpeed"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel className="flex items-center">
@@ -354,7 +343,7 @@ export default function DeliveryRatingPage() {
                 <FormField
                   control={form.control}
                   name="delivererProfessionalism"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel className="flex items-center">
@@ -377,7 +366,7 @@ export default function DeliveryRatingPage() {
                 <FormField
                   control={form.control}
                   name="packageCondition"
-                  render={({ field }) => (
+                  render={({ field  }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel className="flex items-center">
@@ -401,7 +390,7 @@ export default function DeliveryRatingPage() {
               <FormField
                 control={form.control}
                 name="comment"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("commentLabel")}</FormLabel>
                     <FormControl>
@@ -422,7 +411,7 @@ export default function DeliveryRatingPage() {
               <FormField
                 control={form.control}
                 name="anonymous"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <input

@@ -27,8 +27,7 @@ import {
   Loader2,
   AlertCircle,
   CheckCheck,
-  Check,
-} from "lucide-react";
+  Check} from "lucide-react";
 
 // Types
 interface Message {
@@ -71,8 +70,7 @@ const ConversationList = ({
   onSelectConversation,
   searchTerm,
   onSearchChange,
-  isLoading,
-}: {
+  isLoading}: {
   conversations: Conversation[];
   selectedConversationId?: string;
   onSelectConversation: (conversationId: string) => void;
@@ -81,7 +79,7 @@ const ConversationList = ({
   isLoading: boolean;
 }) => {
   const t = useTranslations("messages");
-  const { data: session } = useSession();
+  const { data } = useSession();
 
   const filteredConversations = conversations.filter((conversation) =>
     conversation.participants.some((participant) =>
@@ -100,8 +98,7 @@ const ConversationList = ({
     if (diffInHours < 24) {
       return date.toLocaleTimeString([], {
         hour: "2-digit",
-        minute: "2-digit",
-      });
+        minute: "2-digit"});
     } else if (diffInHours < 168) {
       // 7 days
       return date.toLocaleDateString([], { weekday: "short" });
@@ -207,8 +204,7 @@ const MessageView = ({
   messages,
   onSendMessage,
   isLoading,
-  isSending,
-}: {
+  isSending}: {
   conversationId: string;
   messages: Message[];
   onSendMessage: (content: string) => void;
@@ -216,12 +212,12 @@ const MessageView = ({
   isSending: boolean;
 }) => {
   const t = useTranslations("messages");
-  const { data: session } = useSession();
+  const { data } = useSession();
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth"  });
   };
 
   useEffect(() => {
@@ -368,15 +364,13 @@ export function ClientMessaging() {
   const {
     data: conversations = [],
     isLoading: isLoadingConversations,
-    refetch: refetchConversations,
-  } = api.common.messaging.getConversations.useQuery();
+    refetch: refetchConversations} = api.common.messaging.getConversations.useQuery();
 
   // Récupérer les messages de la conversation sélectionnée
   const {
     data: messages = [],
     isLoading: isLoadingMessages,
-    refetch: refetchMessages,
-  } = api.common.messaging.getMessages.useQuery(
+    refetch: refetchMessages} = api.common.messaging.getMessages.useQuery(
     { conversationId: selectedConversationId! },
     { enabled: !!selectedConversationId },
   );
@@ -386,28 +380,24 @@ export function ClientMessaging() {
     onSuccess: () => {
       refetchMessages();
       refetchConversations();
-    },
-  });
+    }});
 
   // Mutation pour marquer comme lu
   const markAsReadMutation = api.common.messaging.markAsRead.useMutation({
     onSuccess: () => {
       refetchConversations();
-    },
-  });
+    }});
 
   const handleSelectConversation = (conversationId: string) => {
     setSelectedConversationId(conversationId);
     // Marquer comme lu
-    markAsReadMutation.mutate({ conversationId });
+    markAsReadMutation.mutate({ conversationId  });
   };
 
   const handleSendMessage = (content: string) => {
     if (selectedConversationId) {
-      sendMessageMutation.mutate({
-        conversationId: selectedConversationId,
-        content,
-      });
+      sendMessageMutation.mutate({ conversationId: selectedConversationId,
+        content });
     }
   };
 

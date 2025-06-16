@@ -8,9 +8,8 @@ import {
   useMap,
   ZoomControl,
   Marker,
-  Popup,
-} from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+  Popup} from "react-leaflet";
+
 import { cn } from "@/lib/utils/common";
 
 // Correction pour les icônes en SSR/CSR
@@ -24,7 +23,7 @@ const initializeLeafletIcons = () => {
     return { defaultIcon: undefined, markerIcons: {} };
 
   // Éviter les erreurs côté serveur en vérifiant si window est défini
-  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  delete (L.Icon.Default.prototype as any).getIconUrl;
 
   // Configuration des icônes par défaut
   const iconOptions = {
@@ -35,8 +34,7 @@ const initializeLeafletIcons = () => {
     iconAnchor: [12, 41] as [number, number],
     popupAnchor: [1, -34] as [number, number],
     tooltipAnchor: [16, -28] as [number, number],
-    shadowSize: [41, 41] as [number, number],
-  };
+    shadowSize: [41, 41] as [number, number]};
 
   // Configurer les icônes par défaut de Leaflet
   L.Icon.Default.mergeOptions(iconOptions);
@@ -47,19 +45,12 @@ const initializeLeafletIcons = () => {
   // Créer les icônes spécialisées
   const markerIcons = {
     default: defaultIcon,
-    pickup: new L.Icon({
-      ...iconOptions,
-      className: "leaflet-marker-pickup",
-    }),
-    delivery: new L.Icon({
-      ...iconOptions,
-      className: "leaflet-marker-delivery",
-    }),
-    current: new L.Icon({
-      ...iconOptions,
-      className: "leaflet-marker-current",
-    }),
-  };
+    pickup: new L.Icon({ ...iconOptions,
+      className: "leaflet-marker-pickup" }),
+    delivery: new L.Icon({ ...iconOptions,
+      className: "leaflet-marker-delivery" }),
+    current: new L.Icon({ ...iconOptions,
+      className: "leaflet-marker-current" })};
 
   return { defaultIcon, markerIcons };
 };
@@ -109,8 +100,7 @@ const MapCenterController = ({
   center,
   zoom,
   bounds,
-  animate = true,
-}: {
+  animate = true}: {
   center?: MapPoint;
   zoom?: number;
   bounds?: MapBounds;
@@ -142,8 +132,7 @@ const MapCenterController = ({
       // Vérifier que les coordonnées sont valides
       if (center.lat !== undefined && center.lng !== undefined) {
         map.setView([center.lat, center.lng], zoom || map.getZoom(), {
-          animate,
-        });
+          animate});
       }
     }
   }, [map, center, zoom, bounds, animate]);
@@ -155,8 +144,7 @@ const MapCenterController = ({
 const MapEventController = ({
   onMapReady,
   onMapClick,
-  onMoveEnd,
-}: {
+  onMoveEnd}: {
   onMapReady?: (map: L.Map) => void;
   onMapClick?: (e: L.LeafletMouseEvent) => void;
   onMoveEnd?: (center: MapPoint, zoom: number) => void;
@@ -194,7 +182,7 @@ const MapEventController = ({
           map &&
           typeof map.off === "function" &&
           (map as any)._leaflet_events &&
-          !(map as any)._removed
+          !(map as any).removed
         ) {
           Object.keys(eventHandlersRef.current).forEach((eventType) => {
             const handler = eventHandlersRef.current[eventType];
@@ -264,16 +252,14 @@ const LeafletMap = ({
   scrollWheelZoom = true,
   dragging = true,
   animate = true,
-  showZoomControl = true,
-}: LeafletMapProps) => {
+  showZoomControl = true}: LeafletMapProps) => {
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
 
   // Styles pour la carte
   const mapStyle = {
     height: typeof height === "number" ? `${height}px` : height,
-    width: typeof width === "number" ? `${width}px` : width,
-  };
+    width: typeof width === "number" ? `${width}px` : width};
 
   // Vérifier que les coordonnées du centre sont valides
   const validCenter =

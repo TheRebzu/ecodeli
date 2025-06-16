@@ -11,8 +11,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,16 +22,14 @@ import {
   Package,
   Truck,
   Leaf,
-  Shield,
-} from "lucide-react";
+  Shield} from "lucide-react";
 
 // Labels pour les boutons de navigation du tutoriel
 const navigationLabels = {
   skip: "Passer le tutoriel",
   previous: "Précédent",
   next: "Suivant",
-  finish: "Terminer Mission 1",
-};
+  finish: "Terminer Mission 1"};
 
 // Définition complète des étapes du tutoriel client Mission 1
 const CLIENT_TUTORIAL_STEPS = [
@@ -51,10 +48,7 @@ const CLIENT_TUTORIAL_STEPS = [
         "Découvrir le concept de livraison écologique",
         "Apprendre à utiliser la plateforme efficacement",
         "Comprendre notre écosystème de services",
-        "Maîtriser les bonnes pratiques environnementales",
-      ],
-    },
-  },
+        "Maîtriser les bonnes pratiques environnementales"]}},
   {
     id: "ecodeli-concept",
     title: "🌍 Le concept EcoDeli",
@@ -66,17 +60,13 @@ const CLIENT_TUTORIAL_STEPS = [
         "🚴‍♂️ Livraisons à vélo et moyens durables",
         "📦 Emballages réutilisables et consignés",
         "🌱 Réduction de l'empreinte carbone",
-        "💚 Contribution à l'économie circulaire",
-      ],
+        "💚 Contribution à l'économie circulaire"],
       impact: {
         co2Reduction: "75% de CO2 en moins",
         packaging: "90% d'emballages réutilisés",
-        localJobs: "500+ emplois locaux créés",
-      },
-    },
+        localJobs: "500+ emplois locaux créés"}},
     isMission1: true,
-    isRequired: true,
-  },
+    isRequired: true},
   {
     id: "dashboard-overview",
     title: "📊 Votre tableau de bord",
@@ -89,24 +79,18 @@ const CLIENT_TUTORIAL_STEPS = [
           title: "Statistiques personnelles",
           description:
             "Suivez vos livraisons, économies CO2, et points fidélité",
-          icon: "📈",
-        },
+          icon: "📈"},
         {
           title: "Activité récente",
           description: "Historique de vos dernières commandes et livraisons",
-          icon: "📋",
-        },
+          icon: "📋"},
         {
           title: "Actions rapides",
           description:
             "Créer une annonce, réserver un service, accéder au stockage",
-          icon: "⚡",
-        },
-      ],
-    },
+          icon: "⚡"}]},
     isMission1: true,
-    isRequired: true,
-  },
+    isRequired: true},
   {
     id: "create-announcement",
     title: "📢 Créer votre première annonce",
@@ -119,17 +103,13 @@ const CLIENT_TUTORIAL_STEPS = [
         "2. Choisissez le type de transport souhaité",
         "3. Indiquez les caractéristiques de votre colis",
         "4. Fixez votre budget et délais",
-        "5. Publiez et attendez les propositions",
-      ],
+        "5. Publiez et attendez les propositions"],
       tips: [
         "💡 Soyez précis dans vos descriptions",
         "⏰ Planifiez à l'avance pour de meilleurs tarifs",
-        "🏷️ Utilisez des tags pour faciliter la recherche",
-      ],
-    },
+        "🏷️ Utilisez des tags pour faciliter la recherche"]},
     isMission1: true,
-    isRequired: true,
-  },
+    isRequired: true},
   {
     id: "delivery-tracking",
     title: "📦 Suivi en temps réel",
@@ -141,28 +121,21 @@ const CLIENT_TUTORIAL_STEPS = [
         {
           title: "Géolocalisation temps réel",
           description: "Suivez votre livreur sur la carte",
-          icon: "🗺️",
-        },
+          icon: "🗺️"},
         {
           title: "Notifications automatiques",
           description: "Soyez alerté des étapes importantes",
-          icon: "🔔",
-        },
+          icon: "🔔"},
         {
           title: "Code de récupération",
           description: "Système sécurisé pour la remise du colis",
-          icon: "🔐",
-        },
+          icon: "🔐"},
         {
           title: "Évaluation du service",
           description: "Notez votre expérience après livraison",
-          icon: "⭐",
-        },
-      ],
-    },
+          icon: "⭐"}]},
     isMission1: true,
-    isRequired: true,
-  },
+    isRequired: true},
   {
     id: "services-ecosystem",
     title: "🛍️ L'écosystème de services",
@@ -177,33 +150,24 @@ const CLIENT_TUTORIAL_STEPS = [
           examples: [
             "Réparation électronique",
             "Couture et retouches",
-            "Réparation vélo",
-          ],
-        },
+            "Réparation vélo"]},
         {
           title: "🧽 Nettoyage écologique",
           description: "Services d'entretien responsables",
           examples: [
             "Produits biodégradables",
             "Techniques économes en eau",
-            "Équipes locales",
-          ],
-        },
+            "Équipes locales"]},
         {
           title: "🛒 Courses responsables",
           description: "Approvisionnement local et bio",
-          examples: ["Producteurs locaux", "Produits de saison", "Zero déchet"],
-        },
+          examples: ["Producteurs locaux", "Produits de saison", "Zero déchet"]},
         {
           title: "♻️ Services de recyclage",
           description: "Gestion des déchets optimisée",
-          examples: ["Tri sélectif", "Compostage", "Valorisation"],
-        },
-      ],
-    },
+          examples: ["Tri sélectif", "Compostage", "Valorisation"]}]},
     isMission1: true,
-    isRequired: true,
-  },
+    isRequired: true},
   {
     id: "storage-system",
     title: "📦 Système de stockage intelligent",
@@ -216,23 +180,18 @@ const CLIENT_TUTORIAL_STEPS = [
         "♻️ Emballages consignés et réutilisables",
         "⏰ Disponibilité 24h/7j pour plus de flexibilité",
         "💰 Économies sur les frais d'emballage",
-        "🌱 Impact environnemental réduit",
-      ],
+        "🌱 Impact environnemental réduit"],
       howItWorks: [
         "1. Réservez une boîte de la taille adaptée",
         "2. Déposez votre colis dans un point relais",
         "3. Le livreur récupère et livre avec la même boîte",
-        "4. La boîte est nettoyée et remise en circulation",
-      ],
+        "4. La boîte est nettoyée et remise en circulation"],
       stats: {
         boxes: "10,000+ boîtes en circulation",
         reuse: "50x réutilisations moyennes",
-        locations: "200+ points de collecte",
-      },
-    },
+        locations: "200+ points de collecte"}},
     isMission1: true,
-    isRequired: true,
-  },
+    isRequired: true},
   {
     id: "payment-system",
     title: "💳 Système de paiement sécurisé",
@@ -244,34 +203,26 @@ const CLIENT_TUTORIAL_STEPS = [
         {
           title: "Paiement sécurisé",
           description: "Vos fonds sont bloqués jusqu'à la livraison confirmée",
-          icon: "🔒",
-        },
+          icon: "🔒"},
         {
           title: "Tarification transparente",
           description: "Pas de frais cachés, tout est affiché clairement",
-          icon: "💎",
-        },
+          icon: "💎"},
         {
           title: "Remboursement garanti",
           description: "Protection automatique en cas de problème",
-          icon: "🛡️",
-        },
+          icon: "🛡️"},
         {
           title: "Points de fidélité",
           description: "Gagnez des EcoPoints à chaque livraison",
-          icon: "🌟",
-        },
-      ],
+          icon: "🌟"}],
       security: [
         "Chiffrement SSL 256 bits",
         "Conformité PCI DSS",
         "Audit de sécurité mensuel",
-        "Assurance couvrant 100% des transactions",
-      ],
-    },
+        "Assurance couvrant 100% des transactions"]},
     isMission1: true,
-    isRequired: true,
-  },
+    isRequired: true},
   {
     id: "environmental-impact",
     title: "🌱 Votre impact environnemental",
@@ -281,46 +232,36 @@ const CLIENT_TUTORIAL_STEPS = [
     content: {
       calculator: {
         title: "Calculateur d'impact",
-        description: "Chaque livraison EcoDeli vs livraison traditionnelle",
-      },
+        description: "Chaque livraison EcoDeli vs livraison traditionnelle"},
       metrics: [
         {
           title: "CO2 économisé",
           traditional: "2.5 kg CO2",
           ecodeli: "0.5 kg CO2",
-          saving: "80% de réduction",
-        },
+          saving: "80% de réduction"},
         {
           title: "Emballages",
           traditional: "3 emballages jetables",
           ecodeli: "1 emballage réutilisable",
-          saving: "90% de déchets en moins",
-        },
+          saving: "90% de déchets en moins"},
         {
           title: "Emploi local",
           traditional: "Automatisation",
           ecodeli: "Emploi local créé",
-          saving: "100% humain",
-        },
-      ],
+          saving: "100% humain"}],
       gamification: {
         title: "Programme EcoWarrior",
         levels: [
           "Débutant Vert",
           "Eco-Citoyen",
           "Champion Durable",
-          "EcoWarrior",
-        ],
+          "EcoWarrior"],
         rewards: [
           "Réductions exclusives",
           "Accès prioritaire",
-          "Cadeaux durables",
-        ],
-      },
-    },
+          "Cadeaux durables"]}},
     isMission1: true,
-    isRequired: true,
-  },
+    isRequired: true},
   {
     id: "mission1-complete",
     title: "🎉 Mission 1 accomplie !",
@@ -336,26 +277,20 @@ const CLIENT_TUTORIAL_STEPS = [
         "✅ Écosystème de services",
         "✅ Stockage intelligent",
         "✅ Paiements sécurisés",
-        "✅ Impact environnemental",
-      ],
+        "✅ Impact environnemental"],
       nextSteps: [
         "🚀 Créez votre première annonce",
         "🔍 Explorez les services disponibles",
         "📦 Testez le système de stockage",
-        "🌟 Gagnez vos premiers EcoPoints",
-      ],
+        "🌟 Gagnez vos premiers EcoPoints"],
       unlocked: [
         "Accès complet à la plateforme",
         "Programme de fidélité EcoWarrior",
         "Support client prioritaire",
-        "Notifications personnalisées",
-      ],
-    },
+        "Notifications personnalisées"]},
     isMission1: true,
     isRequired: true,
-    isCompletion: true,
-  },
-];
+    isCompletion: true}];
 
 type ClientTutorialProps = {
   options?: {
@@ -372,8 +307,7 @@ type ClientTutorialProps = {
 export function ClientTutorial({
   options,
   isMission1 = false,
-  mission1Hook,
-}: ClientTutorialProps) {
+  mission1Hook}: ClientTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
 
@@ -521,7 +455,7 @@ export function ClientTutorial({
 
 // Composants pour le contenu spécifique de chaque étape
 
-function WelcomeStepContent({ step }: { step: any }) {
+function WelcomeStepContent({ step }: { step }) {
   return (
     <div className="space-y-4">
       <div className="bg-green-50 p-6 rounded-lg border border-green-200">
@@ -542,7 +476,7 @@ function WelcomeStepContent({ step }: { step: any }) {
   );
 }
 
-function ConceptStepContent({ step }: { step: any }) {
+function ConceptStepContent({ step }: { step }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -585,7 +519,7 @@ function ConceptStepContent({ step }: { step: any }) {
   );
 }
 
-function DashboardStepContent({ step }: { step: any }) {
+function DashboardStepContent({ step }: { step }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {step.content.features.map((feature: any, index: number) => (
@@ -603,7 +537,7 @@ function DashboardStepContent({ step }: { step: any }) {
   );
 }
 
-function AnnouncementStepContent({ step }: { step: any }) {
+function AnnouncementStepContent({ step }: { step }) {
   return (
     <div className="space-y-6">
       <div className="bg-blue-50 p-6 rounded-lg">
@@ -635,7 +569,7 @@ function AnnouncementStepContent({ step }: { step: any }) {
   );
 }
 
-function TrackingStepContent({ step }: { step: any }) {
+function TrackingStepContent({ step }: { step }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {step.content.features.map((feature: any, index: number) => (
@@ -655,7 +589,7 @@ function TrackingStepContent({ step }: { step: any }) {
   );
 }
 
-function ServicesStepContent({ step }: { step: any }) {
+function ServicesStepContent({ step }: { step }) {
   return (
     <div className="space-y-4">
       {step.content.categories.map((category: any, index: number) => (
@@ -681,7 +615,7 @@ function ServicesStepContent({ step }: { step: any }) {
   );
 }
 
-function StorageStepContent({ step }: { step: any }) {
+function StorageStepContent({ step }: { step }) {
   return (
     <div className="space-y-6">
       <div className="bg-purple-50 p-6 rounded-lg">
@@ -732,7 +666,7 @@ function StorageStepContent({ step }: { step: any }) {
   );
 }
 
-function PaymentStepContent({ step }: { step: any }) {
+function PaymentStepContent({ step }: { step }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -768,7 +702,7 @@ function PaymentStepContent({ step }: { step: any }) {
   );
 }
 
-function EnvironmentStepContent({ step }: { step: any }) {
+function EnvironmentStepContent({ step }: { step }) {
   return (
     <div className="space-y-6">
       <div className="bg-green-50 p-6 rounded-lg">
@@ -840,7 +774,7 @@ function EnvironmentStepContent({ step }: { step: any }) {
   );
 }
 
-function CompletionStepContent({ step }: { step: any }) {
+function CompletionStepContent({ step }: { step }) {
   return (
     <div className="space-y-6 text-center">
       <div className="text-6xl mb-4">🎉</div>

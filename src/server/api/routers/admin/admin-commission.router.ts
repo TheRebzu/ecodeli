@@ -9,8 +9,7 @@ import { UserRole } from "@prisma/client";
  */
 
 // Schémas de validation
-const commissionRateSchema = z.object({
-  serviceType: z.string().min(1, "Type de service requis"),
+const commissionRateSchema = z.object({ serviceType: z.string().min(1, "Type de service requis"),
   userRole: z.nativeEnum(UserRole),
   rate: z.number().min(0).max(1, "Le taux doit être entre 0 et 1"),
   calculationType: z.enum(["PERCENTAGE", "FLAT_FEE"]).default("PERCENTAGE"),
@@ -37,17 +36,14 @@ const commissionRateSchema = z.object({
         "THURSDAY",
         "FRIDAY",
         "SATURDAY",
-        "SUNDAY",
-      ]),
+        "SUNDAY"]),
     )
     .optional(),
   // Métriques de performance
   performanceThreshold: z.number().min(0).max(100).optional(),
-  volumeThreshold: z.number().min(0).optional(),
-});
+  volumeThreshold: z.number().min(0).optional() });
 
-const commissionFiltersSchema = z.object({
-  serviceType: z.string().optional(),
+const commissionFiltersSchema = z.object({ serviceType: z.string().optional(),
   userRole: z.nativeEnum(UserRole).optional(),
   isActive: z.boolean().optional(),
   validAt: z.date().optional(),
@@ -57,30 +53,24 @@ const commissionFiltersSchema = z.object({
     .default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
   limit: z.number().min(1).max(100).default(20),
-  offset: z.number().min(0).default(0),
-});
+  offset: z.number().min(0).default(0) });
 
-const commissionStatsSchema = z.object({
-  period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
+const commissionStatsSchema = z.object({ period: z.enum(["WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
   userRole: z.nativeEnum(UserRole).optional(),
-  serviceType: z.string().optional(),
-});
+  serviceType: z.string().optional() });
 
-export const adminCommissionRouter = router({
-  /**
+export const adminCommissionRouter = router({ /**
    * Obtenir tous les taux de commission avec filtres
    */
   getCommissionRates: protectedProcedure
     .input(commissionFiltersSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent consulter les commissions",
-        });
+            "Seuls les administrateurs peuvent consulter les commissions" });
       }
 
       try {
@@ -90,8 +80,7 @@ export const adminCommissionRouter = router({
         if (input.serviceType) {
           where.serviceType = {
             contains: input.serviceType,
-            mode: "insensitive",
-          };
+            mode: "insensitive"};
         }
 
         if (input.userRole) {
@@ -107,37 +96,29 @@ export const adminCommissionRouter = router({
             { validFrom: { lte: input.validAt } },
             {
               OR: [
-                { validUntil: null },
-                { validUntil: { gte: input.validAt } },
-              ],
-            },
-          ];
+                { validUntil },
+                { validUntil: { gte: input.validAt } }]}];
         }
 
         if (input.search) {
           where.OR = [
             { serviceType: { contains: input.search, mode: "insensitive" } },
-            { description: { contains: input.search, mode: "insensitive" } },
-          ];
+            { description: { contains: input.search, mode: "insensitive" } }];
         }
 
         const orderBy: any = {};
         orderBy[input.sortBy] = input.sortOrder;
 
         const [commissions, totalCount] = await Promise.all([
-          _ctx.db.commissionRule.findMany({
+          ctx.db.commissionRule.findMany({
             where,
             orderBy,
             skip: input.offset,
             take: input.limit,
             include: {
               createdBy: {
-                select: { name: true, email: true },
-              },
-            },
-          }),
-          ctx.db.commissionRule.count({ where }),
-        ]);
+                select: { name: true, email: true }}}}),
+          ctx.db.commissionRule.count({ where  })]);
 
         return {
           success: true,
@@ -146,15 +127,11 @@ export const adminCommissionRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount,
-          },
-        };
-      } catch (_error) {
+            hasMore: input.offset + input.limit < totalCount}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des taux de commission",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des taux de commission" });
       }
     }),
 
@@ -163,15 +140,13 @@ export const adminCommissionRouter = router({
    */
   createCommissionRate: protectedProcedure
     .input(commissionRateSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent créer des taux de commission",
-        });
+            "Seuls les administrateurs peuvent créer des taux de commission" });
       }
 
       try {
@@ -183,31 +158,22 @@ export const adminCommissionRouter = router({
             isActive: true,
             validFrom: { lte: input.validFrom },
             OR: [
-              { validUntil: null },
-              { validUntil: { gte: input.validFrom } },
-            ],
-          },
-        });
+              { validUntil },
+              { validUntil: { gte: input.validFrom } }]}});
 
         if (existingRate) {
-          throw new TRPCError({
-            code: "CONFLICT",
+          throw new TRPCError({ code: "CONFLICT",
             message:
-              "Un taux de commission actif existe déjà pour cette combinaison",
-          });
+              "Un taux de commission actif existe déjà pour cette combinaison" });
         }
 
         const commissionRule = await ctx.db.commissionRule.create({
           data: {
             ...input,
-            createdById: user.id,
-          },
+            createdById: user.id},
           include: {
             createdBy: {
-              select: { name: true, email: true },
-            },
-          },
-        });
+              select: { name: true, email: true }}}});
 
         // Créer un log d'audit
         await ctx.db.auditLog.create({
@@ -220,22 +186,16 @@ export const adminCommissionRouter = router({
               serviceType: input.serviceType,
               userRole: input.userRole,
               rate: input.rate,
-              calculationType: input.calculationType,
-            },
-          },
-        });
+              calculationType: input.calculationType}}});
 
         return {
           success: true,
           data: commissionRule,
-          message: "Taux de commission créé avec succès",
-        };
-      } catch (_error) {
+          message: "Taux de commission créé avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création du taux de commission",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création du taux de commission" });
       }
     }),
 
@@ -245,48 +205,37 @@ export const adminCommissionRouter = router({
   updateCommissionRate: protectedProcedure
     .input(
       z
-        .object({
-          id: z.string().cuid(),
-        })
+        .object({ id: z.string().cuid() })
         .merge(commissionRateSchema.partial()),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent modifier les taux de commission",
-        });
+            "Seuls les administrateurs peuvent modifier les taux de commission" });
       }
 
       try {
-        const { id: _id, ...updateData } = input;
+        const { id: id, ...updateData } = input;
 
         const existingRule = await ctx.db.commissionRule.findUnique({
-          where: { id },
-        });
+          where: { id }});
 
         if (!existingRule) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Taux de commission non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Taux de commission non trouvé" });
         }
 
         const updatedRule = await ctx.db.commissionRule.update({
           where: { id },
           data: {
             ...updateData,
-            updatedAt: new Date(),
-          },
+            updatedAt: new Date()},
           include: {
             createdBy: {
-              select: { name: true, email: true },
-            },
-          },
-        });
+              select: { name: true, email: true }}}});
 
         // Créer un log d'audit
         await ctx.db.auditLog.create({
@@ -299,23 +248,16 @@ export const adminCommissionRouter = router({
               changes: updateData,
               previousValues: {
                 rate: existingRule.rate,
-                isActive: existingRule.isActive,
-              },
-            },
-          },
-        });
+                isActive: existingRule.isActive}}}});
 
         return {
           success: true,
           data: updatedRule,
-          message: "Taux de commission mis à jour avec succès",
-        };
-      } catch (_error) {
+          message: "Taux de commission mis à jour avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la mise à jour du taux de commission",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour du taux de commission" });
       }
     }),
 
@@ -324,20 +266,16 @@ export const adminCommissionRouter = router({
    */
   deactivateCommissionRate: protectedProcedure
     .input(
-      z.object({
-        id: z.string().cuid(),
-        reason: z.string().optional(),
-      }),
+      z.object({ id: z.string().cuid(),
+        reason: z.string().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent désactiver les taux de commission",
-        });
+            "Seuls les administrateurs peuvent désactiver les taux de commission" });
       }
 
       try {
@@ -348,9 +286,7 @@ export const adminCommissionRouter = router({
             validUntil: new Date(),
             description: input.reason
               ? `${input.reason} (Désactivé le ${new Date().toLocaleDateString()})`
-              : `Désactivé le ${new Date().toLocaleDateString()}`,
-          },
-        });
+              : `Désactivé le ${new Date().toLocaleDateString()}`}});
 
         // Créer un log d'audit
         await ctx.db.auditLog.create({
@@ -361,22 +297,16 @@ export const adminCommissionRouter = router({
             performedById: user.id,
             details: {
               reason: input.reason,
-              deactivatedAt: new Date(),
-            },
-          },
-        });
+              deactivatedAt: new Date()}}});
 
         return {
           success: true,
           data: updatedRule,
-          message: "Taux de commission désactivé avec succès",
-        };
-      } catch (_error) {
+          message: "Taux de commission désactivé avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la désactivation du taux de commission",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la désactivation du taux de commission" });
       }
     }),
 
@@ -385,25 +315,22 @@ export const adminCommissionRouter = router({
    */
   getCommissionStats: protectedProcedure
     .input(commissionStatsSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
-        const { startDate: _startDate, endDate: _endDate } =
+        const { startDate: startDate, endDate: endDate } =
           calculatePeriodDates(input.period);
 
         const baseWhere = {
           createdAt: { gte: startDate, lte: endDate },
           ...(input.userRole && { userRole: input.userRole }),
-          ...(input.serviceType && { serviceType: input.serviceType }),
-        };
+          ...(input.serviceType && { serviceType: input.serviceType })};
 
         const [
           totalRules,
@@ -411,37 +338,32 @@ export const adminCommissionRouter = router({
           averageRate,
           rulesByRole,
           rulesByServiceType,
-          recentChanges,
-        ] = await Promise.all([
+          recentChanges] = await Promise.all([
           // Total des règles
-          _ctx.db.commissionRule.count({ where: baseWhere }),
+          ctx.db.commissionRule.count({ where  }),
 
           // Règles actives
           ctx.db.commissionRule.count({
-            where: { ...baseWhere, isActive: true },
-          }),
+            where: { ...baseWhere, isActive: true }}),
 
           // Taux moyen
           ctx.db.commissionRule.aggregate({
             where: { ...baseWhere, isActive: true },
-            _avg: { rate: true },
-          }),
+            avg: { rate }}),
 
           // Répartition par rôle
           ctx.db.commissionRule.groupBy({
             by: ["userRole"],
             where: { ...baseWhere, isActive: true },
-            _count: true,
-            _avg: { rate: true },
-          }),
+            count: true,
+            avg: { rate }}),
 
           // Répartition par type de service
           ctx.db.commissionRule.groupBy({
             by: ["serviceType"],
             where: { ...baseWhere, isActive: true },
-            _count: true,
-            _avg: { rate: true },
-          }),
+            count: true,
+            avg: { rate }}),
 
           // Changements récents
           ctx.db.auditLog.count({
@@ -451,15 +373,9 @@ export const adminCommissionRouter = router({
                 in: [
                   "COMMISSION_RULE_CREATED",
                   "COMMISSION_RULE_UPDATED",
-                  "COMMISSION_RULE_DEACTIVATED",
-                ],
-              },
+                  "COMMISSION_RULE_DEACTIVATED"]},
               createdAt: {
-                gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-              },
-            },
-          }),
-        ]);
+                gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)}}})]);
 
         return {
           success: true,
@@ -469,28 +385,18 @@ export const adminCommissionRouter = router({
               totalRules,
               activeRules,
               inactiveRules: totalRules - activeRules,
-              averageRate: averageRate._avg.rate || 0,
-              recentChanges,
-            },
+              averageRate: averageRate.avg.rate || 0,
+              recentChanges},
             distribution: {
-              byRole: rulesByRole.map((item) => ({
-                role: item.userRole,
-                count: item._count,
-                averageRate: item._avg.rate || 0,
-              })),
-              byServiceType: rulesByServiceType.map((item) => ({
-                serviceType: item.serviceType,
-                count: item._count,
-                averageRate: item._avg.rate || 0,
-              })),
-            },
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des statistiques",
-        });
+              byRole: rulesByRole.map((item) => ({ role: item.userRole,
+                count: item.count,
+                averageRate: item.avg.rate || 0 })),
+              byServiceType: rulesByServiceType.map((item) => ({ serviceType: item.serviceType,
+                count: item.count,
+                averageRate: item.avg.rate || 0 }))}}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des statistiques" });
       }
     }),
 
@@ -499,23 +405,19 @@ export const adminCommissionRouter = router({
    */
   calculateCommission: protectedProcedure
     .input(
-      z.object({
-        serviceType: z.string(),
+      z.object({ serviceType: z.string(),
         userRole: z.nativeEnum(UserRole),
         transactionAmount: z.number().min(0),
         userId: z.string().cuid().optional(),
         geographicZone: z.string().optional(),
-        transactionDate: z.date().default(() => new Date()),
-      }),
+        transactionDate: z.date().default(() => new Date()) }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
@@ -527,36 +429,26 @@ export const adminCommissionRouter = router({
             isActive: true,
             validFrom: { lte: input.transactionDate },
             OR: [
-              { validUntil: null },
-              { validUntil: { gte: input.transactionDate } },
-            ],
+              { validUntil },
+              { validUntil: { gte: input.transactionDate } }],
             // Filtres optionnels
             ...(input.geographicZone && {
               OR: [
-                { geographicZone: null },
-                { geographicZone: input.geographicZone },
-              ],
-            }),
+                { geographicZone },
+                { geographicZone: input.geographicZone }]}),
             AND: [
               {
                 OR: [
-                  { minTransactionAmount: null },
-                  { minTransactionAmount: { lte: input.transactionAmount } },
-                ],
-              },
+                  { minTransactionAmount },
+                  { minTransactionAmount: { lte: input.transactionAmount } }]},
               {
                 OR: [
-                  { maxTransactionAmount: null },
-                  { maxTransactionAmount: { gte: input.transactionAmount } },
-                ],
-              },
-            ],
-          },
+                  { maxTransactionAmount },
+                  { maxTransactionAmount: { gte: input.transactionAmount } }]}]},
           orderBy: [
             { geographicZone: "desc" }, // Priorité aux règles géographiques spécifiques
             { createdAt: "desc" }, // Puis aux plus récentes
-          ],
-        });
+          ]});
 
         if (!applicableRule) {
           return {
@@ -565,9 +457,7 @@ export const adminCommissionRouter = router({
             data: {
               commissionAmount: 0,
               effectiveRate: 0,
-              rule: null,
-            },
-          };
+              rule: null}};
         }
 
         // Calculer la commission
@@ -609,18 +499,12 @@ export const adminCommissionRouter = router({
               serviceType: applicableRule.serviceType,
               rate: applicableRule.rate,
               calculationType: applicableRule.calculationType,
-              description: applicableRule.description,
-            },
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du calcul de la commission",
-        });
+              description: applicableRule.description}}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du calcul de la commission" });
       }
-    }),
-});
+    })});
 
 // Helper function
 function calculatePeriodDates(period: string): {

@@ -4,8 +4,7 @@ import { ContractManagement } from "@/components/admin/merchants/merchant-contra
 
 export const metadata: Metadata = {
   title: "Gestion des contrats | EcoDeli Admin",
-  description: "Gérez les contrats commerçants de la plateforme EcoDeli",
-};
+  description: "Gérez les contrats commerçants de la plateforme EcoDeli"};
 
 export default async function ContractsManagementPage() {
   const t = await getTranslations("admin.contracts");

@@ -25,8 +25,7 @@ export function AuthNavbar({
   backText = "Retour à l'accueil",
   showLanguageSwitcher = true,
   showThemeToggle = true,
-  className,
-}: AuthNavbarProps) {
+  className}: AuthNavbarProps) {
   return (
     <nav className={`flex justify-between items-center py-4 ${className}`}>
       <div className="flex items-center gap-4">

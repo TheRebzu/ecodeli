@@ -10,8 +10,7 @@ import {
   DollarSign,
   Percent,
   TrendingUp,
-  Building2,
-} from "lucide-react";
+  Building2} from "lucide-react";
 
 interface ContractsStatsProps {
   stats?: {
@@ -20,8 +19,8 @@ interface ContractsStatsProps {
     expiringSoon: number;
     draftContracts: number;
     suspendedContracts: number;
-    contractsByType: Array<{ type: string; _count: number }>;
-    contractsByCategory: Array<{ merchantCategory: string; _count: number }>;
+    contractsByType: Array<{ type: string; count: number }>;
+    contractsByCategory: Array<{ merchantCategory: string; count: number }>;
     averageCommission: number;
     totalMonthlyRevenue: number;
   };
@@ -32,7 +31,7 @@ export function ContractsStats({ stats, isLoading }: ContractsStatsProps) {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 8  }).map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <Skeleton className="h-4 w-20" />
@@ -167,8 +166,7 @@ export function ContractsStats({ stats, isLoading }: ContractsStatsProps) {
             {new Intl.NumberFormat("fr-FR", {
               style: "currency",
               currency: "EUR",
-              maximumFractionDigits: 0,
-            }).format(totalMonthlyRevenue)}
+              maximumFractionDigits: 0}).format(totalMonthlyRevenue)}
           </div>
           <p className="text-xs text-muted-foreground">Frais mensuels actifs</p>
         </CardContent>
@@ -211,7 +209,7 @@ export function ContractsStats({ stats, isLoading }: ContractsStatsProps) {
                   {type.type.toLowerCase()}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  {type._count}
+                  {type.count}
                 </span>
               </div>
             ))}

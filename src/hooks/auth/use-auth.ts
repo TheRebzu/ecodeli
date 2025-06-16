@@ -9,8 +9,7 @@ import type {
   ClientRegisterSchemaType,
   DelivererRegisterSchemaType,
   MerchantRegisterSchemaType,
-  ProviderRegisterSchemaType,
-} from "@/schemas";
+  ProviderRegisterSchemaType} from "@/schemas";
 
 export function useAuth() {
   const { data: session, status, update } = useSession();
@@ -28,8 +27,7 @@ export function useAuth() {
     api.auth.resendVerificationEmail.useMutation();
   const getSession = api.auth.getSession.useQuery(undefined, {
     enabled: status === "authenticated",
-    refetchOnWindowFocus: false,
-  });
+    refetchOnWindowFocus: false});
 
   const login = async (data: LoginSchemaType, callbackUrl = "/") => {
     try {
@@ -39,15 +37,14 @@ export function useAuth() {
       // Clear any previous sessions if there was a JWT error
       if (status === "unauthenticated") {
         // Force clear any potential corrupted cookies
-        await signOut({ redirect: false });
+        await signOut({ redirect  });
       }
 
       const response = await signIn("credentials", {
         email: data.email,
         password: data.password,
         totp: data.totp,
-        redirect: false,
-      });
+        redirect: false});
 
       if (response?.error) {
         // Check for JWT decryption errors
@@ -56,13 +53,12 @@ export function useAuth() {
           response.error.includes("JWT_SESSION_ERROR")
         ) {
           // Clear cookies and retry login once
-          await signOut({ redirect: false });
+          await signOut({ redirect  });
           const retryResponse = await signIn("credentials", {
             email: data.email,
             password: data.password,
             totp: data.totp,
-            redirect: false,
-          });
+            redirect: false});
 
           if (retryResponse?.error) {
             setError(retryResponse.error);
@@ -92,7 +88,7 @@ export function useAuth() {
   const logout = async () => {
     try {
       setIsLoading(true);
-      await signOut({ redirect: false });
+      await signOut({ redirect  });
       router.push("/");
       router.refresh();
     } catch (_) {
@@ -146,15 +142,11 @@ export function useAuth() {
 
     try {
       // Use the single register procedure with the role included in the data
-      const result = await registerMutation.mutateAsync({
-        ...data,
-        role,
-      });
+      const result = await registerMutation.mutateAsync({ ...data,
+        role });
 
-      toast({
-        title: "Inscription réussie",
-        description: "Veuillez vérifier votre email pour activer votre compte.",
-      });
+      toast({ title: "Inscription réussie",
+        description: "Veuillez vérifier votre email pour activer votre compte." });
 
       router.push("/login");
       return result;
@@ -164,11 +156,9 @@ export function useAuth() {
           ? error.message
           : "Une erreur est survenue lors de l'inscription";
       setError(errorMessage);
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: errorMessage,
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return null;
     } finally {
       setIsLoading(false);
@@ -179,12 +169,10 @@ export function useAuth() {
   const verifyUserEmail = async (token: string) => {
     try {
       setIsLoading(true);
-      const result = await verifyEmail.mutateAsync({ token });
-      toast({
-        title: "Email vérifié",
+      const result = await verifyEmail.mutateAsync({ token  });
+      toast({ title: "Email vérifié",
         description:
-          "Votre compte a été activé. Vous pouvez maintenant vous connecter.",
-      });
+          "Votre compte a été activé. Vous pouvez maintenant vous connecter." });
       return result;
     } catch (error: unknown) {
       const errorMessage =
@@ -192,11 +180,9 @@ export function useAuth() {
           ? error.message
           : "Erreur lors de la vérification de l'email";
       setError(errorMessage);
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: errorMessage || "Lien de vérification invalide ou expiré",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return null;
     } finally {
       setIsLoading(false);
@@ -207,12 +193,10 @@ export function useAuth() {
   const requestPasswordReset = async (email: string) => {
     try {
       setIsLoading(true);
-      const result = await forgotPassword.mutateAsync({ email });
-      toast({
-        title: "Email envoyé",
+      const result = await forgotPassword.mutateAsync({ email  });
+      toast({ title: "Email envoyé",
         description:
-          "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.",
-      });
+          "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé." });
       return result;
     } catch (error: unknown) {
       const errorMessage =
@@ -230,15 +214,11 @@ export function useAuth() {
   const resetUserPassword = async (token: string, password: string) => {
     try {
       setIsLoading(true);
-      const result = await resetPassword.mutateAsync({
-        token,
+      const result = await resetPassword.mutateAsync({ token,
         password,
-        confirmPassword: password,
-      });
-      toast({
-        title: "Mot de passe réinitialisé",
-        description: "Votre mot de passe a été réinitialisé avec succès.",
-      });
+        confirmPassword: password });
+      toast({ title: "Mot de passe réinitialisé",
+        description: "Votre mot de passe a été réinitialisé avec succès." });
       return result;
     } catch (error: unknown) {
       const errorMessage =
@@ -246,12 +226,10 @@ export function useAuth() {
           ? error.message
           : "Erreur lors de la réinitialisation du mot de passe";
       setError(errorMessage);
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description:
           errorMessage || "Lien de réinitialisation invalide ou expiré",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return null;
     } finally {
       setIsLoading(false);
@@ -262,12 +240,10 @@ export function useAuth() {
   const resendEmailVerification = async (email: string) => {
     try {
       setIsLoading(true);
-      const result = await resendVerificationEmail.mutateAsync({ email });
-      toast({
-        title: "Email envoyé",
+      const result = await resendVerificationEmail.mutateAsync({ email  });
+      toast({ title: "Email envoyé",
         description:
-          "Un nouveau lien de vérification a été envoyé à votre adresse email.",
-      });
+          "Un nouveau lien de vérification a été envoyé à votre adresse email." });
       return result;
     } catch (error: unknown) {
       const errorMessage =
@@ -275,11 +251,9 @@ export function useAuth() {
           ? error.message
           : "Erreur lors de l'envoi de l'email";
       setError(errorMessage);
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: errorMessage,
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return null;
     } finally {
       setIsLoading(false);
@@ -306,6 +280,5 @@ export function useAuth() {
     requestPasswordReset,
     resetPassword: resetUserPassword,
     refreshSession,
-    resendEmailVerification,
-  };
+    resendEmailVerification};
 }

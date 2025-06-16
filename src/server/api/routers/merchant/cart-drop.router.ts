@@ -9,8 +9,7 @@ import { CartDropType, CartDropStatus } from "@prisma/client";
  */
 
 // Schémas de validation
-const createCashRegisterSchema = z.object({
-  name: z.string().min(3).max(50),
+const createCashRegisterSchema = z.object({ name: z.string().min(3).max(50),
   location: z.string().min(5).max(100),
   terminalId: z.string().min(3).max(20),
   isActive: z.boolean().default(true),
@@ -19,22 +18,17 @@ const createCashRegisterSchema = z.object({
     z.object({
       name: z.string(),
       postalCodes: z.array(z.string()),
-      maxDistance: z.number().min(1).max(50),
-    }),
+      maxDistance: z.number().min(1).max(50) }),
   ),
-  operatingHours: z.object({
-    monday: z.object({ start: z.string(), end: z.string() }).optional(),
-    tuesday: z.object({ start: z.string(), end: z.string() }).optional(),
-    wednesday: z.object({ start: z.string(), end: z.string() }).optional(),
-    thursday: z.object({ start: z.string(), end: z.string() }).optional(),
-    friday: z.object({ start: z.string(), end: z.string() }).optional(),
-    saturday: z.object({ start: z.string(), end: z.string() }).optional(),
-    sunday: z.object({ start: z.string(), end: z.string() }).optional(),
-  }),
-});
+  operatingHours: z.object({ monday: z.object({ start: z.string(), end: z.string()  }).optional(),
+    tuesday: z.object({ start: z.string(), end: z.string()  }).optional(),
+    wednesday: z.object({ start: z.string(), end: z.string()  }).optional(),
+    thursday: z.object({ start: z.string(), end: z.string()  }).optional(),
+    friday: z.object({ start: z.string(), end: z.string()  }).optional(),
+    saturday: z.object({ start: z.string(), end: z.string()  }).optional(),
+    sunday: z.object({ start: z.string(), end: z.string()  }).optional()})});
 
-const createCartDropSchema = z.object({
-  cashRegisterId: z.string().cuid(),
+const createCartDropSchema = z.object({ cashRegisterId: z.string().cuid(),
   type: z.nativeEnum(CartDropType),
   customerName: z.string().min(2).max(100),
   customerPhone: z.string().min(10).max(15),
@@ -49,17 +43,14 @@ const createCartDropSchema = z.object({
         name: z.string(),
         quantity: z.number().min(1),
         price: z.number().min(0),
-        category: z.string().optional(),
-      }),
+        category: z.string().optional() }),
     )
     .min(1),
   totalAmount: z.number().min(0),
   specialInstructions: z.string().max(500).optional(),
-  isUrgent: z.boolean().default(false),
-});
+  isUrgent: z.boolean().default(false)});
 
-const cartDropFiltersSchema = z.object({
-  cashRegisterId: z.string().optional(),
+const cartDropFiltersSchema = z.object({ cashRegisterId: z.string().optional(),
   status: z.nativeEnum(CartDropStatus).optional(),
   type: z.nativeEnum(CartDropType).optional(),
   dateFrom: z.date().optional(),
@@ -67,31 +58,26 @@ const cartDropFiltersSchema = z.object({
   customerName: z.string().optional(),
   deliveryCity: z.string().optional(),
   limit: z.number().min(1).max(100).default(20),
-  offset: z.number().min(0).default(0),
-});
+  offset: z.number().min(0).default(0) });
 
-const updateCartDropStatusSchema = z.object({
-  cartDropId: z.string().cuid(),
+const updateCartDropStatusSchema = z.object({ cartDropId: z.string().cuid(),
   status: z.nativeEnum(CartDropStatus),
   notes: z.string().max(500).optional(),
   delivererId: z.string().cuid().optional(), // Pour assignation
-});
+ });
 
-export const cartDropRouter = router({
-  /**
+export const cartDropRouter = router({ /**
    * Créer une nouvelle caisse enregistreuse (Commerçant)
    */
   createCashRegister: protectedProcedure
     .input(createCashRegisterSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les commerçants peuvent créer des caisses enregistreuses",
-        });
+            "Seuls les commerçants peuvent créer des caisses enregistreuses" });
       }
 
       try {
@@ -99,20 +85,16 @@ export const cartDropRouter = router({
         const existingTerminal = await ctx.db.merchantCashRegister.findFirst({
           where: {
             merchantId: user.id,
-            terminalId: input.terminalId,
-          },
-        });
+            terminalId: input.terminalId}});
 
         if (existingTerminal) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Ce numéro de terminal existe déjà",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Ce numéro de terminal existe déjà" });
         }
 
         const {
-          deliveryZones: _deliveryZones,
-          operatingHours: _operatingHours,
+          deliveryZones: deliveryZones,
+          operatingHours: operatingHours,
           ...registerData
         } = input;
 
@@ -122,48 +104,39 @@ export const cartDropRouter = router({
             merchantId: user.id,
             operatingHours,
             isVerified: false, // Nécessite vérification admin
-          },
-        });
+          }});
 
         // Créer les zones de livraison
         if (deliveryZones.length > 0) {
-          await ctx.db.merchantDeliveryZone.createMany({
-            data: deliveryZones.map((zone) => ({
+          await ctx.db.merchantDeliveryZone.createMany({ data: deliveryZones.map((zone) => ({
               cashRegisterId: cashRegister.id,
               name: zone.name,
               postalCodes: zone.postalCodes,
               maxDistanceKm: zone.maxDistance,
-              isActive: true,
-            })),
-          });
+              isActive: true }))});
         }
 
         return {
           success: true,
           cashRegister,
           message:
-            "Caisse enregistreuse créée avec succès. Vérification en cours par nos équipes.",
-        };
-      } catch (_error) {
+            "Caisse enregistreuse créée avec succès. Vérification en cours par nos équipes."};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création de la caisse",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de la caisse" });
       }
     }),
 
   /**
    * Obtenir les caisses du commerçant
    */
-  getMyCashRegisters: protectedProcedure.query(async ({ _ctx }) => {
-    const { _user: __user } = ctx.session;
+  getMyCashRegisters: protectedProcedure.query(async ({ ctx  }) => {
+    const { user } = ctx.session;
 
     if (user.role !== "MERCHANT") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Seuls les commerçants peuvent consulter leurs caisses",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Seuls les commerçants peuvent consulter leurs caisses" });
     }
 
     try {
@@ -171,40 +144,29 @@ export const cartDropRouter = router({
         where: { merchantId: user.id },
         include: {
           deliveryZones: {
-            where: { isActive: true },
-          },
+            where: { isActive }},
           cartDrops: {
             select: {
               id: true,
               status: true,
               totalAmount: true,
-              requestedTime: true,
-            },
+              requestedTime: true},
             orderBy: { createdAt: "desc" },
-            take: 5,
-          },
+            take: 5},
           terminal: true,
-          _count: {
+          count: {
             select: {
               cartDrops: {
                 where: {
                   createdAt: {
                     gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 derniers jours
-                  },
-                },
-              },
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
+                  }}}}}},
+        orderBy: { createdAt: "desc" }});
 
       return { cashRegisters };
-    } catch (_error) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des caisses",
-      });
+    } catch (error) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des caisses" });
     }
   }),
 
@@ -213,14 +175,12 @@ export const cartDropRouter = router({
    */
   createCartDrop: protectedProcedure
     .input(createCartDropSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "MERCHANT") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les commerçants peuvent créer des lâchers de chariot",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les commerçants peuvent créer des lâchers de chariot" });
       }
 
       try {
@@ -230,20 +190,14 @@ export const cartDropRouter = router({
             id: input.cashRegisterId,
             merchantId: user.id,
             isActive: true,
-            isVerified: true,
-          },
+            isVerified: true},
           include: {
             deliveryZones: {
-              where: { isActive: true },
-            },
-          },
-        });
+              where: { isActive }}}});
 
         if (!cashRegister) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Caisse enregistreuse non trouvée ou non vérifiée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Caisse enregistreuse non trouvée ou non vérifiée" });
         }
 
         // Vérifier que l'adresse de livraison est dans une zone couverte
@@ -252,10 +206,8 @@ export const cartDropRouter = router({
         );
 
         if (!isInZone) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Adresse de livraison en dehors des zones couvertes",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Adresse de livraison en dehors des zones couvertes" });
         }
 
         // Vérifier les limites de commandes par heure
@@ -263,23 +215,19 @@ export const cartDropRouter = router({
         const recentOrders = await ctx.db.cartDrop.count({
           where: {
             cashRegisterId: input.cashRegisterId,
-            createdAt: { gte: oneHourAgo },
-            status: { notIn: ["CANCELLED", "REJECTED"] },
-          },
-        });
+            createdAt: { gte },
+            status: { notIn: ["CANCELLED", "REJECTED"] }}});
 
         if (recentOrders >= cashRegister.maxOrdersPerHour) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
+          throw new TRPCError({ code: "BAD_REQUEST",
             message:
-              "Limite d'ordres par heure atteinte. Veuillez réessayer plus tard.",
-          });
+              "Limite d'ordres par heure atteinte. Veuillez réessayer plus tard." });
         }
 
         // Générer un numéro de commande unique
         const orderNumber = `CD-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
-        const { items: _items, ...cartDropData } = input;
+        const { items: items, ...cartDropData } = input;
 
         const cartDrop = await ctx.db.cartDrop.create({
           data: {
@@ -291,17 +239,12 @@ export const cartDropRouter = router({
             estimatedDeliveryTime: calculateEstimatedDeliveryTime(
               input.requestedTime,
               input.isUrgent,
-            ),
-          },
+            )},
           include: {
             cashRegister: {
               select: {
                 name: true,
-                location: true,
-              },
-            },
-          },
-        });
+                location: true}}}});
 
         // TODO: Déclencher le système de matching pour trouver un livreur
 
@@ -310,14 +253,11 @@ export const cartDropRouter = router({
           cartDrop,
           orderNumber,
           message:
-            "Lâcher de chariot créé avec succès. Recherche d'un livreur en cours...",
-        };
-      } catch (_error) {
+            "Lâcher de chariot créé avec succès. Recherche d'un livreur en cours..."};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création du lâcher de chariot",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création du lâcher de chariot" });
       }
     }),
 
@@ -326,8 +266,8 @@ export const cartDropRouter = router({
    */
   getCartDrops: protectedProcedure
     .input(cartDropFiltersSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       try {
         const where: any = {};
@@ -341,10 +281,8 @@ export const cartDropRouter = router({
             { status: "PENDING", delivererId: null }, // Ordres disponibles
           ];
         } else if (user.role !== "ADMIN") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Accès non autorisé",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Accès non autorisé" });
         }
 
         // Autres filtres
@@ -354,14 +292,12 @@ export const cartDropRouter = router({
         if (input.customerName) {
           where.customerName = {
             contains: input.customerName,
-            mode: "insensitive",
-          };
+            mode: "insensitive"};
         }
         if (input.deliveryCity) {
           where.deliveryCity = {
             contains: input.deliveryCity,
-            mode: "insensitive",
-          };
+            mode: "insensitive"};
         }
 
         if (input.dateFrom || input.dateTo) {
@@ -376,37 +312,27 @@ export const cartDropRouter = router({
             cashRegister: {
               select: {
                 name: true,
-                location: true,
-              },
-            },
+                location: true}},
             merchant: {
               select: {
                 id: true,
                 name: true,
-                email: true,
-              },
-            },
+                email: true}},
             deliverer: {
               select: {
                 id: true,
                 name: true,
-                email: true,
-              },
-            },
+                email: true}},
             group: {
               select: {
                 id: true,
                 name: true,
-                delivererId: true,
-              },
-            },
-          },
+                delivererId: true}}},
           orderBy: { requestedTime: "desc" },
           skip: input.offset,
-          take: input.limit,
-        });
+          take: input.limit});
 
-        const totalCount = await ctx.db.cartDrop.count({ where });
+        const totalCount = await ctx.db.cartDrop.count({ where  });
 
         return {
           cartDrops,
@@ -414,15 +340,11 @@ export const cartDropRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount,
-          },
-        };
-      } catch (_error) {
+            hasMore: input.offset + input.limit < totalCount}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des lâchers de chariot",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération des lâchers de chariot" });
       }
     }),
 
@@ -431,19 +353,15 @@ export const cartDropRouter = router({
    */
   acceptCartDrop: protectedProcedure
     .input(
-      z.object({
-        cartDropId: z.string().cuid(),
-        estimatedPickupTime: z.date().optional(),
-      }),
+      z.object({ cartDropId: z.string().cuid(),
+        estimatedPickupTime: z.date().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent accepter des lâchers de chariot",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent accepter des lâchers de chariot" });
       }
 
       try {
@@ -452,24 +370,17 @@ export const cartDropRouter = router({
           where: {
             id: input.cartDropId,
             status: "PENDING",
-            delivererId: null,
-          },
+            delivererId: null},
           include: {
             cashRegister: true,
             merchant: {
               select: {
                 name: true,
-                email: true,
-              },
-            },
-          },
-        });
+                email: true}}}});
 
         if (!cartDrop) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Lâcher de chariot non trouvé ou déjà assigné",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Lâcher de chariot non trouvé ou déjà assigné" });
         }
 
         // Vérifier la disponibilité du livreur
@@ -484,15 +395,11 @@ export const cartDropRouter = router({
               lte: new Date(
                 cartDrop.requestedTime.getTime() + 2 * 60 * 60 * 1000,
               ), // +2h
-            },
-          },
-        });
+            }}});
 
         if (hasConflictingDelivery) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Vous avez déjà une livraison en cours à cette heure",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Vous avez déjà une livraison en cours à cette heure" });
         }
 
         // Accepter le lâcher
@@ -505,22 +412,18 @@ export const cartDropRouter = router({
             estimatedPickupTime:
               input.estimatedPickupTime ||
               new Date(Date.now() + 30 * 60 * 1000), // +30min
-          },
-        });
+          }});
 
         // TODO: Envoyer notifications au commerçant et au client
 
         return {
           success: true,
           cartDrop: updatedCartDrop,
-          message: "Lâcher de chariot accepté avec succès",
-        };
-      } catch (_error) {
+          message: "Lâcher de chariot accepté avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'acceptation",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'acceptation" });
       }
     }),
 
@@ -529,24 +432,20 @@ export const cartDropRouter = router({
    */
   updateStatus: protectedProcedure
     .input(updateCartDropStatusSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       try {
         // Vérifier les permissions
         const cartDrop = await ctx.db.cartDrop.findUnique({
           where: { id: input.cartDropId },
           include: {
-            merchant: { select: { id: true } },
-            deliverer: { select: { id: true } },
-          },
-        });
+            merchant: { select: { id } },
+            deliverer: { select: { id } }}});
 
         if (!cartDrop) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Lâcher de chariot non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Lâcher de chariot non trouvé" });
         }
 
         // Vérifier les permissions selon le rôle
@@ -556,10 +455,8 @@ export const cartDropRouter = router({
           user.role === "ADMIN";
 
         if (!hasPermission) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Vous n'avez pas l'autorisation de modifier ce lâcher",
-          });
+          throw new TRPCError({ code: "FORBIDDEN",
+            message: "Vous n'avez pas l'autorisation de modifier ce lâcher" });
         }
 
         // Valider les transitions de statut
@@ -568,16 +465,13 @@ export const cartDropRouter = router({
           user.role,
         );
         if (!validTransitions.includes(input.status)) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Transition de statut non autorisée",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Transition de statut non autorisée" });
         }
 
         const updateData: any = {
           status: input.status,
-          notes: input.notes,
-        };
+          notes: input.notes};
 
         // Ajouter des timestamps selon le statut
         switch (input.status) {
@@ -600,20 +494,16 @@ export const cartDropRouter = router({
 
         const updatedCartDrop = await ctx.db.cartDrop.update({
           where: { id: input.cartDropId },
-          data: updateData,
-        });
+          data: updateData});
 
         return {
           success: true,
           cartDrop: updatedCartDrop,
-          message: `Statut mis à jour vers ${input.status}`,
-        };
-      } catch (_error) {
+          message: `Statut mis à jour vers ${input.status}`};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la mise à jour du statut",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la mise à jour du statut" });
       }
     }),
 
@@ -622,21 +512,17 @@ export const cartDropRouter = router({
    */
   createCartDropGroup: protectedProcedure
     .input(
-      z.object({
-        cartDropIds: z.array(z.string().cuid()).min(2).max(10),
+      z.object({ cartDropIds: z.array(z.string().cuid()).min(2).max(10),
         name: z.string().min(3).max(50),
-        delivererId: z.string().cuid().optional(),
-      }),
+        delivererId: z.string().cuid().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (!["ADMIN", "MERCHANT"].includes(user.role)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les admins et commerçants peuvent créer des groupements",
-        });
+            "Seuls les admins et commerçants peuvent créer des groupements" });
       }
 
       try {
@@ -645,28 +531,21 @@ export const cartDropRouter = router({
           where: {
             id: { in: input.cartDropIds },
             status: "PENDING",
-            groupId: null,
-          },
-        });
+            groupId: null}});
 
         if (cartDrops.length !== input.cartDropIds.length) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Certains lâchers ne sont pas disponibles pour groupement",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Certains lâchers ne sont pas disponibles pour groupement" });
         }
 
         // Vérifier la cohérence géographique (même zone de livraison)
         const deliveryZones = [
           ...new Set(
             cartDrops.map((cd) => cd.deliveryPostalCode.substring(0, 2)),
-          ),
-        ];
+          )];
         if (deliveryZones.length > 1) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Les lâchers doivent être dans la même zone géographique",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Les lâchers doivent être dans la même zone géographique" });
         }
 
         const group = await ctx.db.cartDropGroup.create({
@@ -675,9 +554,7 @@ export const cartDropRouter = router({
             delivererId: input.delivererId,
             createdById: user.id,
             estimatedDuration: cartDrops.length * 30, // 30min par lâcher
-            totalAmount: cartDrops.reduce((sum, cd) => sum + cd.totalAmount, 0),
-          },
-        });
+            totalAmount: cartDrops.reduce((sum, cd) => sum + cd.totalAmount, 0)}});
 
         // Associer les lâchers au groupe
         await ctx.db.cartDrop.updateMany({
@@ -686,25 +563,18 @@ export const cartDropRouter = router({
             groupId: group.id,
             ...(input.delivererId && {
               delivererId: input.delivererId,
-              status: "ACCEPTED",
-            }),
-          },
-        });
+              status: "ACCEPTED"})}});
 
         return {
           success: true,
           group,
-          message: "Groupement créé avec succès",
-        };
-      } catch (_error) {
+          message: "Groupement créé avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création du groupement",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création du groupement" });
       }
-    }),
-});
+    })});
 
 // Helper functions
 function calculateEstimatedDeliveryTime(
@@ -726,23 +596,18 @@ function getValidStatusTransitions(
     PENDING: {
       MERCHANT: ["CANCELLED"],
       DELIVERER: ["ACCEPTED"],
-      ADMIN: ["ACCEPTED", "CANCELLED", "REJECTED"],
-    },
+      ADMIN: ["ACCEPTED", "CANCELLED", "REJECTED"]},
     ACCEPTED: {
       MERCHANT: ["CANCELLED"],
       DELIVERER: ["IN_PROGRESS", "CANCELLED"],
-      ADMIN: ["IN_PROGRESS", "CANCELLED", "REJECTED"],
-    },
-    IN_PROGRESS: {
+      ADMIN: ["IN_PROGRESS", "CANCELLED", "REJECTED"]}, IN_PROGRESS: {
       DELIVERER: ["COMPLETED", "CANCELLED"],
-      ADMIN: ["COMPLETED", "CANCELLED"],
-    },
+      ADMIN: ["COMPLETED", "CANCELLED"]},
     COMPLETED: {
       ADMIN: ["CANCELLED"], // Seul admin peut annuler une livraison terminée
     },
     CANCELLED: {},
-    REJECTED: {},
-  };
+    REJECTED: {}};
 
   return transitions[currentStatus]?.[userRole] || [];
 }

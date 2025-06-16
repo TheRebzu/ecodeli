@@ -9,56 +9,44 @@ import { NFCCardStatus, NFCTransactionType } from "@prisma/client";
  */
 
 // Schémas de validation
-const nfcCardSchema = z.object({
-  cardNumber: z.string().min(8).max(16),
+const nfcCardSchema = z.object({ cardNumber: z.string().min(8).max(16),
   cardType: z.enum(["STANDARD", "PREMIUM", "TEMPORARY"]).default("STANDARD"),
   expirationDate: z.date().optional(),
   delivererId: z.string().cuid(),
-  metadata: z.record(z.any()).optional(),
-});
+  metadata: z.record(z.any()).optional() });
 
-const assignCardSchema = z.object({
-  cardId: z.string().cuid(),
+const assignCardSchema = z.object({ cardId: z.string().cuid(),
   delivererId: z.string().cuid(),
-  notes: z.string().max(500).optional(),
-});
+  notes: z.string().max(500).optional() });
 
-const validateDeliverySchema = z.object({
-  cardNumber: z.string(),
+const validateDeliverySchema = z.object({ cardNumber: z.string(),
   deliveryId: z.string().cuid(),
   clientCode: z.string().min(4).max(8),
   location: z
     .object({
       latitude: z.number(),
       longitude: z.number(),
-      accuracy: z.number().optional(),
-    })
+      accuracy: z.number().optional() })
     .optional(),
-  photos: z.array(z.string().url()).max(3).optional(),
-});
+  photos: z.array(z.string().url()).max(3).optional()});
 
-const transactionFiltersSchema = z.object({
-  delivererId: z.string().optional(),
+const transactionFiltersSchema = z.object({ delivererId: z.string().optional(),
   cardId: z.string().optional(),
   type: z.nativeEnum(NFCTransactionType).optional(),
   dateFrom: z.date().optional(),
   dateTo: z.date().optional(),
   limit: z.number().min(1).max(100).default(20),
-  offset: z.number().min(0).default(0),
-});
+  offset: z.number().min(0).default(0) });
 
-export const nfcManagementRouter = router({
-  /**
+export const nfcManagementRouter = router({ /**
    * Obtenir les cartes NFC d'un livreur
    */
-  getMyCards: protectedProcedure.query(async ({ _ctx }) => {
-    const { _user: __user } = ctx.session;
+  getMyCards: protectedProcedure.query(async ({ ctx  }) => {
+    const { user } = ctx.session;
 
     if (user.role !== "DELIVERER") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Seuls les livreurs peuvent consulter leurs cartes NFC",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Seuls les livreurs peuvent consulter leurs cartes NFC" });
     }
 
     try {
@@ -67,29 +55,20 @@ export const nfcManagementRouter = router({
           assignments: {
             some: {
               delivererId: user.id,
-              isActive: true,
-            },
-          },
-        },
+              isActive: true}}},
         include: {
           assignments: {
             where: {
               delivererId: user.id,
-              isActive: true,
-            },
+              isActive: true},
             include: {
               assignedByAdmin: {
                 select: {
                   name: true,
-                  email: true,
-                },
-              },
-            },
-          },
+                  email: true}}}},
           transactions: {
             where: {
-              delivererId: user.id,
-            },
+              delivererId: user.id},
             orderBy: { createdAt: "desc" },
             take: 5,
             include: {
@@ -97,20 +76,12 @@ export const nfcManagementRouter = router({
                 select: {
                   id: true,
                   trackingCode: true,
-                  status: true,
-                },
-              },
-            },
-          },
-        },
-      });
+                  status: true}}}}}});
 
       return { cards };
-    } catch (_error) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des cartes NFC",
-      });
+    } catch (error) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des cartes NFC" });
     }
   }),
 
@@ -119,14 +90,12 @@ export const nfcManagementRouter = router({
    */
   validateDelivery: protectedProcedure
     .input(validateDeliverySchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent valider des livraisons",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent valider des livraisons" });
       }
 
       try {
@@ -138,17 +107,11 @@ export const nfcManagementRouter = router({
             assignments: {
               some: {
                 delivererId: user.id,
-                isActive: true,
-              },
-            },
-          },
-        });
+                isActive: true}}}});
 
         if (!card) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Carte NFC non trouvée ou non attribuée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Carte NFC non trouvée ou non attribuée" });
         }
 
         // Vérifier que la livraison existe et appartient au livreur
@@ -156,33 +119,24 @@ export const nfcManagementRouter = router({
           where: {
             id: input.deliveryId,
             delivererId: user.id,
-            status: { in: ["IN_PROGRESS", "DELIVERED"] },
-          },
+            status: { in: ["IN_PROGRESS", "DELIVERED"] }},
           include: {
             validationCode: true,
             client: {
               select: {
                 id: true,
                 name: true,
-                email: true,
-              },
-            },
-          },
-        });
+                email: true}}}});
 
         if (!delivery) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Livraison non trouvée ou non autorisée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Livraison non trouvée ou non autorisée" });
         }
 
         // Vérifier le code de validation client
         if (delivery.validationCode?.code !== input.clientCode) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Code de validation incorrect",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Code de validation incorrect" });
         }
 
         // Créer la transaction NFC
@@ -196,20 +150,15 @@ export const nfcManagementRouter = router({
             metadata: {
               clientCode: input.clientCode,
               photos: input.photos,
-              validatedAt: new Date().toISOString(),
-            },
-            isSuccessful: true,
-          },
-        });
+              validatedAt: new Date().toISOString()},
+            isSuccessful: true}});
 
         // Mettre à jour le statut de la livraison
         await ctx.db.delivery.update({
           where: { id: input.deliveryId },
           data: {
             status: "COMPLETED",
-            completionTime: new Date(),
-          },
-        });
+            completionTime: new Date()}});
 
         // Marquer le code de validation comme utilisé
         if (delivery.validationCode) {
@@ -217,9 +166,7 @@ export const nfcManagementRouter = router({
             where: { id: delivery.validationCode.id },
             data: {
               isUsed: true,
-              usedAt: new Date(),
-            },
-          });
+              usedAt: new Date()}});
         }
 
         // TODO: Envoyer notification au client
@@ -228,15 +175,13 @@ export const nfcManagementRouter = router({
         return {
           success: true,
           transaction,
-          message: "Livraison validée avec succès",
-        };
-      } catch (_error) {
+          message: "Livraison validée avec succès"};
+      } catch (error) {
         // Enregistrer la tentative échouée
         if (input.cardNumber) {
           try {
             const card = await ctx.db.nFCCard.findFirst({
-              where: { cardNumber: input.cardNumber },
-            });
+              where: { cardNumber: input.cardNumber }});
 
             if (card) {
               await ctx.db.nFCCardTransaction.create({
@@ -251,21 +196,16 @@ export const nfcManagementRouter = router({
                       error instanceof TRPCError
                         ? error.message
                         : "Erreur inconnue",
-                    timestamp: new Date().toISOString(),
-                  },
-                },
-              });
+                    timestamp: new Date().toISOString()}}});
             }
-          } catch (_logError) {
+          } catch (logError) {
             // Ignorer les erreurs de logging
           }
         }
 
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la validation de la livraison",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la validation de la livraison" });
       }
     }),
 
@@ -274,17 +214,15 @@ export const nfcManagementRouter = router({
    */
   getTransactionHistory: protectedProcedure
     .input(transactionFiltersSchema)
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       // Les livreurs ne peuvent voir que leurs propres transactions
       if (user.role === "DELIVERER") {
         input.delivererId = user.id;
       } else if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès non autorisé",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Accès non autorisé" });
       }
 
       try {
@@ -306,35 +244,24 @@ export const nfcManagementRouter = router({
             card: {
               select: {
                 cardNumber: true,
-                cardType: true,
-              },
-            },
+                cardType: true}},
             deliverer: {
               select: {
                 id: true,
                 name: true,
-                email: true,
-              },
-            },
+                email: true}},
             delivery: {
               select: {
                 id: true,
                 trackingCode: true,
                 status: true,
                 client: {
-                  select: {
-                    name: true,
-                  },
-                },
-              },
-            },
-          },
+                  select: { name }}}}},
           orderBy: { createdAt: "desc" },
           skip: input.offset,
-          take: input.limit,
-        });
+          take: input.limit});
 
-        const totalCount = await ctx.db.nFCCardTransaction.count({ where });
+        const totalCount = await ctx.db.nFCCardTransaction.count({ where  });
 
         return {
           transactions,
@@ -342,14 +269,10 @@ export const nfcManagementRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount,
-          },
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération de l'historique",
-        });
+            hasMore: input.offset + input.limit < totalCount}};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la récupération de l'historique" });
       }
     }),
 
@@ -358,20 +281,16 @@ export const nfcManagementRouter = router({
    */
   reportCardIssue: protectedProcedure
     .input(
-      z.object({
-        cardId: z.string().cuid(),
+      z.object({ cardId: z.string().cuid(),
         issueType: z.enum(["LOST", "STOLEN", "DAMAGED", "NOT_WORKING"]),
-        description: z.string().min(10).max(500),
-      }),
+        description: z.string().min(10).max(500) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "DELIVERER") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent signaler des problèmes",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent signaler des problèmes" });
       }
 
       try {
@@ -380,23 +299,18 @@ export const nfcManagementRouter = router({
           where: {
             cardId: input.cardId,
             delivererId: user.id,
-            isActive: true,
-          },
-        });
+            isActive: true}});
 
         if (!cardAssignment) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Carte NFC non trouvée ou non attribuée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Carte NFC non trouvée ou non attribuée" });
         }
 
         // Désactiver la carte si perdue ou volée
         if (["LOST", "STOLEN"].includes(input.issueType)) {
           await ctx.db.nFCCard.update({
             where: { id: input.cardId },
-            data: { status: "BLOCKED" },
-          });
+            data: { status: "BLOCKED" }});
 
           // Désactiver l'assignation
           await ctx.db.nFCCardAssignment.update({
@@ -404,9 +318,7 @@ export const nfcManagementRouter = router({
             data: {
               isActive: false,
               endDate: new Date(),
-              notes: `Carte ${input.issueType === "LOST" ? "perdue" : "volée"} - ${input.description}`,
-            },
-          });
+              notes: `Carte ${input.issueType === "LOST" ? "perdue" : "volée"} - ${input.description}`}});
         }
 
         // Enregistrer la transaction de signalement
@@ -419,22 +331,16 @@ export const nfcManagementRouter = router({
             metadata: {
               issueType: input.issueType,
               description: input.description,
-              reportedAt: new Date().toISOString(),
-            },
-          },
-        });
+              reportedAt: new Date().toISOString()}}});
 
         return {
           success: true,
           message:
-            "Problème signalé avec succès. Notre équipe va traiter votre demande.",
-        };
-      } catch (_error) {
+            "Problème signalé avec succès. Notre équipe va traiter votre demande."};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du signalement",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du signalement" });
       }
     }),
 
@@ -445,18 +351,15 @@ export const nfcManagementRouter = router({
    */
   createCard: adminProcedure
     .input(nfcCardSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que le numéro de carte n'existe pas déjà
         const existingCard = await ctx.db.nFCCard.findUnique({
-          where: { cardNumber: input.cardNumber },
-        });
+          where: { cardNumber: input.cardNumber }});
 
         if (existingCard) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Ce numéro de carte existe déjà",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Ce numéro de carte existe déjà" });
         }
 
         const card = await ctx.db.nFCCard.create({
@@ -465,9 +368,7 @@ export const nfcManagementRouter = router({
             cardType: input.cardType,
             expirationDate: input.expirationDate,
             status: "ACTIVE",
-            metadata: input.metadata,
-          },
-        });
+            metadata: input.metadata}});
 
         // Si un livreur est spécifié, créer l'assignation
         if (input.delivererId) {
@@ -475,24 +376,19 @@ export const nfcManagementRouter = router({
             data: {
               cardId: card.id,
               delivererId: input.delivererId,
-              adminId: _ctx.session.user.id,
+              adminId: ctx.session.user.id,
               isActive: true,
-              startDate: new Date(),
-            },
-          });
+              startDate: new Date()}});
         }
 
         return {
           success: true,
           card,
-          message: "Carte NFC créée avec succès",
-        };
-      } catch (_error) {
+          message: "Carte NFC créée avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création de la carte",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la création de la carte" });
       }
     }),
 
@@ -501,45 +397,34 @@ export const nfcManagementRouter = router({
    */
   assignCard: adminProcedure
     .input(assignCardSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // Vérifier que la carte existe et est disponible
         const card = await ctx.db.nFCCard.findUnique({
           where: { id: input.cardId },
           include: {
             assignments: {
-              where: { isActive: true },
-            },
-          },
-        });
+              where: { isActive }}}});
 
         if (!card) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Carte NFC non trouvée",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Carte NFC non trouvée" });
         }
 
         if (card.assignments.length > 0) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Cette carte est déjà attribuée à un autre livreur",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST",
+            message: "Cette carte est déjà attribuée à un autre livreur" });
         }
 
         // Vérifier que le livreur existe
         const deliverer = await ctx.db.user.findFirst({
           where: {
             id: input.delivererId,
-            role: "DELIVERER",
-          },
-        });
+            role: "DELIVERER"}});
 
         if (!deliverer) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Livreur non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Livreur non trouvé" });
         }
 
         // Créer l'assignation
@@ -547,33 +432,25 @@ export const nfcManagementRouter = router({
           data: {
             cardId: input.cardId,
             delivererId: input.delivererId,
-            adminId: _ctx.session.user.id,
+            adminId: ctx.session.user.id,
             isActive: true,
             startDate: new Date(),
-            notes: input.notes,
-          },
+            notes: input.notes},
           include: {
             card: true,
             deliverer: {
               select: {
                 name: true,
-                email: true,
-              },
-            },
-          },
-        });
+                email: true}}}});
 
         return {
           success: true,
           assignment,
-          message: "Carte attribuée avec succès",
-        };
-      } catch (_error) {
+          message: "Carte attribuée avec succès"};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'attribution",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'attribution" });
       }
     }),
 
@@ -582,12 +459,10 @@ export const nfcManagementRouter = router({
    */
   deactivateCard: adminProcedure
     .input(
-      z.object({
-        cardId: z.string().cuid(),
-        reason: z.string().min(5).max(200),
-      }),
+      z.object({ cardId: z.string().cuid(),
+        reason: z.string().min(5).max(200) }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // Désactiver la carte
         const card = await ctx.db.nFCCard.update({
@@ -595,57 +470,46 @@ export const nfcManagementRouter = router({
           data: {
             status: "INACTIVE",
             metadata: {
-              deactivatedBy: _ctx.session.user.id,
+              deactivatedBy: ctx.session.user.id,
               deactivatedAt: new Date().toISOString(),
-              reason: input.reason,
-            },
-          },
-        });
+              reason: input.reason}}});
 
         // Désactiver toutes les assignations actives
         await ctx.db.nFCCardAssignment.updateMany({
           where: {
             cardId: input.cardId,
-            isActive: true,
-          },
+            isActive: true},
           data: {
             isActive: false,
             endDate: new Date(),
-            notes: `Carte désactivée: ${input.reason}`,
-          },
-        });
+            notes: `Carte désactivée: ${input.reason}`}});
 
         return {
           success: true,
           card,
-          message: "Carte désactivée avec succès",
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la désactivation",
-        });
+          message: "Carte désactivée avec succès"};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la désactivation" });
       }
     }),
 
   /**
    * Statistiques des cartes NFC (Admin)
    */
-  getCardStats: adminProcedure.query(async ({ _ctx }) => {
+  getCardStats: adminProcedure.query(async ({ ctx  }) => {
     try {
       const [
         totalCards,
         activeCards,
         assignedCards,
         totalTransactions,
-        successfulTransactions,
-      ] = await Promise.all([
-        _ctx.db.nFCCard.count(),
+        successfulTransactions] = await Promise.all([
+        ctx.db.nFCCard.count(),
         ctx.db.nFCCard.count({ where: { status: "ACTIVE" } }),
-        ctx.db.nFCCardAssignment.count({ where: { isActive: true } }),
+        ctx.db.nFCCardAssignment.count({ where: { isActive } }),
         ctx.db.nFCCardTransaction.count(),
-        ctx.db.nFCCardTransaction.count({ where: { isSuccessful: true } }),
-      ]);
+        ctx.db.nFCCardTransaction.count({ where: { isSuccessful } })]);
 
       const successRate =
         totalTransactions > 0
@@ -657,19 +521,13 @@ export const nfcManagementRouter = router({
           total: totalCards,
           active: activeCards,
           assigned: assignedCards,
-          available: activeCards - assignedCards,
-        },
+          available: activeCards - assignedCards},
         transactions: {
           total: totalTransactions,
           successful: successfulTransactions,
-          successRate: Math.round(successRate * 100) / 100,
-        },
-      };
-    } catch (_error) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des statistiques",
-      });
+          successRate: Math.round(successRate * 100) / 100}};
+    } catch (error) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des statistiques" });
     }
-  }),
-});
+  })});

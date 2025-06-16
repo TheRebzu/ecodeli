@@ -15,9 +15,7 @@ export async function GET() {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-    });
+        "Access-Control-Allow-Headers": "Content-Type"}});
   } catch (error) {
     console.error("Error generating OpenAPI spec:", error);
 
@@ -28,8 +26,7 @@ export async function GET() {
         title: "EcoDeli API",
         version: "1.0.0",
         description:
-          "API documentation temporarily unavailable - Server error occurred",
-      },
+          "API documentation temporarily unavailable - Server error occurred"},
       paths: {
         "/api/health": {
           get: {
@@ -44,16 +41,7 @@ export async function GET() {
                     schema: {
                       type: "object",
                       properties: {
-                        status: { type: "string", example: "healthy" },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+                        status: { type: "string", example: "healthy" }}}}}}}}}},
       components: {
         schemas: {
           Error: {
@@ -63,14 +51,7 @@ export async function GET() {
                 type: "object",
                 properties: {
                   message: { type: "string" },
-                  code: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      },
-    };
+                  code: { type: "string" }}}}}}}};
 
     return NextResponse.json(fallbackSpec, {
       status: 200, // Retourner 200 avec spec minimale plutôt que 500
@@ -78,9 +59,7 @@ export async function GET() {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-    });
+        "Access-Control-Allow-Headers": "Content-Type"}});
   }
 }
 
@@ -91,8 +70,6 @@ export async function OPTIONS() {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-    },
+        "Access-Control-Allow-Headers": "Content-Type"}},
   );
 }

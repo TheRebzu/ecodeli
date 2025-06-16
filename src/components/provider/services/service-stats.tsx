@@ -16,8 +16,7 @@ import {
   Users,
   Clock,
   BarChart3,
-  Target,
-} from "lucide-react";
+  Target} from "lucide-react";
 
 // Types
 interface Service {
@@ -49,8 +48,7 @@ export function ServiceStats({ services }: ServiceStatsProps) {
     averagePrice:
       services.length > 0
         ? services.reduce((sum, s) => sum + s.price, 0) / services.length
-        : 0,
-  };
+        : 0};
 
   // Calcul du taux d'activation
   const activationRate =

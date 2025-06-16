@@ -8,8 +8,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,8 +32,7 @@ import {
   Map,
   History,
   Info,
-  RefreshCw,
-} from "lucide-react";
+  RefreshCw} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -52,8 +50,7 @@ export default function DeliveryTrackingPanel({
   onContactClick,
   showMap = true,
   showTimeline = true,
-  className = "",
-}: DeliveryTrackingPanelProps) {
+  className = ""}: DeliveryTrackingPanelProps) {
   const t = useTranslations("deliveries.tracking");
   const [activeTab, setActiveTab] = useState<string>("map");
   const [refreshing, setRefreshing] = useState(false);
@@ -85,7 +82,7 @@ export default function DeliveryTrackingPanel({
   // Formater une date
   const formatDate = (date: Date | string | null) => {
     if (!date) return t("notAvailable");
-    return format(new Date(date), "PPp", { locale: fr });
+    return format(new Date(date), "PPp", { locale });
   };
 
   // Si en chargement, afficher un indicateur
@@ -122,8 +119,7 @@ export default function DeliveryTrackingPanel({
   const isDeliveryActive = [
     DeliveryStatus.ACCEPTED,
     DeliveryStatus.PICKED_UP,
-    DeliveryStatus.IN_TRANSIT,
-  ].includes(deliveryInfo.status as DeliveryStatus);
+    DeliveryStatus.IN_TRANSIT].includes(deliveryInfo.status as DeliveryStatus);
 
   // Sections détaillées pour les informations
   const DeliveryDetailsSection = () => (

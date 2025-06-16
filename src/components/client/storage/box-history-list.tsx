@@ -12,8 +12,7 @@ import {
   Package,
   Timer,
   User,
-  X,
-} from "lucide-react";
+  X} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface BoxHistoryListProps {
@@ -112,7 +111,7 @@ export function BoxHistoryList({ history, isLoading }: BoxHistoryListProps) {
                     {getActionTypeLabel(item.actionType)}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(item.actionTime), "Pp", { locale: fr })}
+                    {format(new Date(item.actionTime), "Pp", { locale })}
                   </span>
                 </div>
                 {item.details && <p className="text-sm">{item.details}</p>}

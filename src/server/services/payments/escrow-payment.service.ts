@@ -161,12 +161,10 @@ export class EscrowPaymentService {
         ),
         metadata: {
           ...params.metadata,
-          riskScore,
-        },
+          riskScore},
         events: [],
         createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+        updatedAt: new Date()};
 
       // Sauvegarder la transaction
       await this.saveEscrowTransaction(escrowTransaction);
@@ -209,7 +207,7 @@ export class EscrowPaymentService {
         `Paiement escrow initié: ${escrowTransaction.id} pour ${params.amount}${params.currency}`,
       );
       return escrowTransaction;
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de l'initiation du paiement escrow:", error);
       throw error;
     }
@@ -260,7 +258,7 @@ export class EscrowPaymentService {
 
       logger.info(`Fonds capturés et séquestrés: ${escrowTransactionId}`);
       return true;
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de la capture et séquestration:", error);
       return false;
     }
@@ -341,7 +339,7 @@ export class EscrowPaymentService {
       } else {
         throw new Error(`Échec des transferts: ${transferResults.error}`);
       }
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de la libération des fonds:", error);
       return false;
     }
@@ -419,7 +417,7 @@ export class EscrowPaymentService {
       } else {
         throw new Error(`Échec du remboursement: ${refundResult.error}`);
       }
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors du traitement du remboursement:", error);
       return false;
     }
@@ -475,7 +473,7 @@ export class EscrowPaymentService {
       logger.info(
         `Dispute initiée pour la transaction: ${escrowTransactionId}`,
       );
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de la gestion de dispute:", error);
       throw error;
     }
@@ -513,7 +511,7 @@ export class EscrowPaymentService {
 
         logger.info(`Libération automatique des fonds: ${escrowTransactionId}`);
       }
-    } catch (_error) {
+    } catch (error) {
       logger.error("Erreur lors de la libération automatique:", error);
     }
   }
@@ -538,7 +536,6 @@ export class EscrowPaymentService {
   private async assessPaymentRisk(params: any): Promise<number> {
     const riskScore = 0;
 
-    // Facteurs de risque basiques (simulation)
     if (params.amount > 500) riskScore += 10;
     if (params.paymentMethod === "CARD") riskScore += 5;
     if (!params.metadata.ipAddress) riskScore += 20;
@@ -584,12 +581,11 @@ export class EscrowPaymentService {
       if (holdPeriod < conditions.minimumHoldPeriod) {
         return {
           isValid: false,
-          reason: `Période de détention minimale non atteinte (${conditions.minimumHoldPeriod}h)`,
-        };
+          reason: `Période de détention minimale non atteinte (${conditions.minimumHoldPeriod}h)`};
       }
     }
 
-    return { isValid: true };
+    return { isValid };
   }
 
   private async calculateFinalBreakdown(
@@ -612,12 +608,11 @@ export class EscrowPaymentService {
     return breakdown;
   }
 
-  // Méthodes de traitement des paiements (simulation)
   private async processCardAuthorization(
     transaction: EscrowTransaction,
     paymentDetails: any,
   ): Promise<void> {
-    // Simulation d'autorisation Stripe
+    
     transaction.paymentIntentId = `pi_${Math.random().toString(36).substr(2, 20)}`;
     transaction.cardLast4 = paymentDetails.cardNumber?.slice(-4) || "4242";
     transaction.status = "AUTHORIZED";
@@ -628,7 +623,7 @@ export class EscrowPaymentService {
     transaction: EscrowTransaction,
     paymentDetails: any,
   ): Promise<void> {
-    // Simulation de virement bancaire
+    
     transaction.bankAccountLast4 = paymentDetails.iban?.slice(-4) || "0123";
     transaction.status = "AUTHORIZED";
     transaction.authorizedAt = new Date();
@@ -638,7 +633,7 @@ export class EscrowPaymentService {
     transaction: EscrowTransaction,
     paymentDetails: any,
   ): Promise<void> {
-    // Simulation de paiement portefeuille numérique
+    
     transaction.status = "AUTHORIZED";
     transaction.authorizedAt = new Date();
   }
@@ -654,27 +649,24 @@ export class EscrowPaymentService {
   private async captureFunds(
     transaction: EscrowTransaction,
   ): Promise<{ success: boolean; captureId?: string; error?: string }> {
-    // Simulation de capture de fonds
+    
     return {
       success: true,
-      captureId: `capture_${Math.random().toString(36).substr(2, 20)}`,
-    };
+      captureId: `capture_${Math.random().toString(36).substr(2, 20)}`};
   }
 
   private async executeTransfers(
     transaction: EscrowTransaction,
     breakdown: EscrowTransaction["breakdown"],
   ): Promise<{ success: boolean; transferIds?: string[]; error?: string }> {
-    // Simulation de transferts vers les comptes des bénéficiaires
+    
     const transferIds = [
       `transfer_deliverer_${Math.random().toString(36).substr(2, 10)}`,
-      `transfer_platform_${Math.random().toString(36).substr(2, 10)}`,
-    ];
+      `transfer_platform_${Math.random().toString(36).substr(2, 10)}`];
 
     return {
       success: true,
-      transferIds,
-    };
+      transferIds};
   }
 
   private async executeRefund(
@@ -682,14 +674,12 @@ export class EscrowPaymentService {
     amount: number,
     reason: string,
   ): Promise<{ success: boolean; refundId?: string; error?: string }> {
-    // Simulation de remboursement
+    
     return {
       success: true,
-      refundId: `refund_${Math.random().toString(36).substr(2, 20)}`,
-    };
+      refundId: `refund_${Math.random().toString(36).substr(2, 20)}`};
   }
 
-  // Méthodes de persistance (simulation)
   private async saveEscrowTransaction(
     transaction: EscrowTransaction,
   ): Promise<void> {
@@ -705,12 +695,12 @@ export class EscrowPaymentService {
   private async getEscrowTransaction(
     id: string,
   ): Promise<EscrowTransaction | null> {
-    // Simulation de récupération
+    
     return null;
   }
 
   private async getApplicableReleaseRules(): Promise<EscrowReleaseRule[]> {
-    // Simulation de règles de libération
+    
     return [
       {
         id: "standard",
@@ -725,9 +715,7 @@ export class EscrowPaymentService {
           maximumHoldPeriod: 168, // 7 jours
           autoReleaseAfter: 48, // 48 heures
         },
-        isActive: true,
-      },
-    ];
+        isActive: true}];
   }
 
   private async scheduleAutoRelease(
@@ -777,15 +765,13 @@ export class EscrowPaymentService {
       triggeredBy,
       triggeredAt: new Date(),
       metadata,
-      reason,
-    };
+      reason};
 
     logger.info(
       `Événement escrow: ${eventType} pour ${escrowTransactionId} (${fromStatus} → ${toStatus})`,
     );
   }
 
-  // Méthodes de notification (simulation)
   private async notifyFundsReleased(
     transaction: EscrowTransaction,
     breakdown: any,

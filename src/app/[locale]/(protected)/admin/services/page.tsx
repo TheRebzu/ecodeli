@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,21 +17,18 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Search,
   Plus,
@@ -44,8 +40,7 @@ import {
   Briefcase,
   Users,
   Star,
-  MapPin,
-} from "lucide-react";
+  MapPin} from "lucide-react";
 import { Link } from "@/navigation";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -72,50 +67,37 @@ export default function AdminServicesPage() {
     data: servicesData,
     isLoading,
     error,
-    refetch,
-  } = api.admin.services.getAll.useQuery({
-    search: searchTerm,
+    refetch} = api.admin.services.getAll.useQuery({ search: searchTerm,
     status: statusFilter === "ALL" ? undefined : statusFilter,
     category: categoryFilter === "ALL" ? undefined : categoryFilter,
     page: 1,
-    limit: 50,
-  });
+    limit: 50 });
 
   // Mutations pour les actions CRUD
-  const deleteServiceMutation = api.admin.services.delete.useMutation({
-    onSuccess: () => {
+  const deleteServiceMutation = api.admin.services.delete.useMutation({ onSuccess: () => {
       toast({
         title: "Service supprimé",
-        description: "Le service a été supprimé avec succès.",
-      });
+        description: "Le service a été supprimé avec succès." });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Erreur lors de la suppression: " + error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const updateServiceStatusMutation =
-    api.admin.services.updateStatus.useMutation({
-      onSuccess: () => {
+    api.admin.services.updateStatus.useMutation({ onSuccess: () => {
         toast({
           title: "Statut mis à jour",
-          description: "Le statut du service a été mis à jour.",
-        });
+          description: "Le statut du service a été mis à jour." });
         refetch();
       },
       onError: (error) => {
-        toast({
-          title: "Erreur",
+        toast({ title: "Erreur",
           description: "Erreur lors de la mise à jour: " + error.message,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   const getStatusBadge = (status: ServiceStatus) => {
     switch (status) {
@@ -142,21 +124,19 @@ export default function AdminServicesPage() {
       CLEANING: "Nettoyage",
       MAINTENANCE: "Maintenance",
       REPAIR: "Réparation",
-      OTHER: "Autre",
-    };
+      OTHER: "Autre"};
     return labels[category] || category;
   };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(price);
+      currency: "EUR"}).format(price);
   };
 
   const handleDeleteService = (serviceId: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer ce service ?")) {
-      deleteServiceMutation.mutate({ id: serviceId });
+      deleteServiceMutation.mutate({ id  });
     }
   };
 
@@ -165,10 +145,8 @@ export default function AdminServicesPage() {
     currentStatus: ServiceStatus,
   ) => {
     const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    updateServiceStatusMutation.mutate({
-      id: serviceId,
-      status: newStatus,
-    });
+    updateServiceStatusMutation.mutate({ id: serviceId,
+      status: newStatus });
   };
 
   if (isLoading) {
@@ -328,7 +306,7 @@ export default function AdminServicesPage() {
       {/* Tableau des services */}
       <Card>
         <CardHeader>
-          <CardTitle>Liste des Services ({totalServices})</CardTitle>
+          <CardTitle>Liste des Services ({ totalServices })</CardTitle>
           <CardDescription>
             Gérez et modifiez tous les services disponibles
           </CardDescription>

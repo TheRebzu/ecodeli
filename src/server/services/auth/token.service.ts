@@ -16,9 +16,8 @@ export class TokenService {
   /**
    * Durées de validité des tokens
    */
-  private readonly TOKEN_EXPIRY = {
-    EMAIL_VERIFICATION: 24 * 60 * 60 * 1000, // 24 heures
-    PASSWORD_RESET: 1 * 60 * 60 * 1000, // 1 heure
+  private readonly TOKEN_EXPIRY = { EMAIL_VERIFICATION: 24 * 60 * 60 * 1000, // 24 heures
+    _PASSWORD_RESET: 1 * 60 * 60 * 1000, // 1 heure
   };
 
   /**
@@ -32,9 +31,7 @@ export class TokenService {
       data: {
         identifier: userId,
         token: hashedToken,
-        expires: new Date(Date.now() + this.TOKEN_EXPIRY.EMAIL_VERIFICATION),
-      },
-    });
+        expires: new Date(Date.now() + this.TOKEN_EXPIRY.EMAIL_VERIFICATION)}});
 
     return token;
   }
@@ -50,9 +47,7 @@ export class TokenService {
       data: {
         identifier: userId,
         token: hashedToken,
-        expires: new Date(Date.now() + this.TOKEN_EXPIRY.PASSWORD_RESET),
-      },
-    });
+        expires: new Date(Date.now() + this.TOKEN_EXPIRY.PASSWORD_RESET)}});
 
     return token;
   }
@@ -67,8 +62,7 @@ export class TokenService {
     console.log("DEBUG: Token haché pour recherche:", hashedToken);
 
     const verificationToken = await this.db.verificationToken.findFirst({
-      where: { token: hashedToken },
-    });
+      where: { token }});
 
     console.log(
       "DEBUG: Token trouvé dans la BD:",
@@ -78,23 +72,18 @@ export class TokenService {
     if (!verificationToken) {
       // En cas d'échec, essayer de trouver tous les tokens disponibles pour débogage
       const allTokens = await this.db.verificationToken.findMany({
-        where: { used: false },
-        take: 5,
-      });
+        where: { used },
+        take: 5});
 
       console.log(
         "DEBUG: Tokens disponibles dans la BD:",
-        allTokens.map((t) => ({
-          token: t.token.substring(0, 10) + "...",
+        allTokens.map((t) => ({ token: t.token.substring(0, 10) + "...",
           expires: t.expires,
-          type: t.type,
-        })),
+          type: t.type })),
       );
 
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Token invalide",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Token invalide" });
     }
 
     if (verificationToken.expires < new Date()) {
@@ -102,10 +91,8 @@ export class TokenService {
         "DEBUG: Token expiré, expirait le:",
         verificationToken.expires,
       );
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Token expiré",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Token expiré" });
     }
 
     return verificationToken.identifier;
@@ -118,8 +105,7 @@ export class TokenService {
     const hashedToken = this.hashToken(token);
 
     await this.db.verificationToken.delete({
-      where: { token: hashedToken },
-    });
+      where: { token }});
   }
 
   /**

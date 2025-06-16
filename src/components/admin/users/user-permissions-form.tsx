@@ -9,16 +9,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AdminPermission } from "@/types/actors/admin";
@@ -43,31 +41,24 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "users.view",
         label: "View Users",
-        description: "Can view user profiles and information",
-      },
+        description: "Can view user profiles and information"},
       {
         key: "users.create",
         label: "Create Users",
-        description: "Can create new user accounts",
-      },
+        description: "Can create new user accounts"},
       {
         key: "users.edit",
         label: "Edit Users",
-        description: "Can modify user information and settings",
-      },
+        description: "Can modify user information and settings"},
       {
         key: "users.delete",
         label: "Delete Users",
-        description: "Can delete user accounts",
-      },
+        description: "Can delete user accounts"},
       {
         key: "users.manage",
         label: "Manage All Users",
         description:
-          "Full control of all user operations (includes all user permissions above)",
-      },
-    ],
-  },
+          "Full control of all user operations (includes all user permissions above)"}]},
   {
     name: "Verification",
     description: "Permissions related to user verification procedures",
@@ -75,15 +66,11 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "verifications.view",
         label: "View Verifications",
-        description: "Can view verification requests and documents",
-      },
+        description: "Can view verification requests and documents"},
       {
         key: "verifications.approve",
         label: "Approve Verifications",
-        description: "Can approve/reject verification requests",
-      },
-    ],
-  },
+        description: "Can approve/reject verification requests"}]},
   {
     name: "Contracts & Documents",
     description: "Permissions for managing contracts and documents",
@@ -91,25 +78,19 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "contracts.view",
         label: "View Contracts",
-        description: "Can view contracts and agreements",
-      },
+        description: "Can view contracts and agreements"},
       {
         key: "contracts.manage",
         label: "Manage Contracts",
-        description: "Can create, edit, and manage contracts",
-      },
+        description: "Can create, edit, and manage contracts"},
       {
         key: "documents.view",
         label: "View Documents",
-        description: "Can view uploaded documents",
-      },
+        description: "Can view uploaded documents"},
       {
         key: "documents.manage",
         label: "Manage Documents",
-        description: "Can manage document verification and approval",
-      },
-    ],
-  },
+        description: "Can manage document verification and approval"}]},
   {
     name: "Finances",
     description: "Permissions for managing financial aspects of the platform",
@@ -117,15 +98,11 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "finances.view",
         label: "View Finances",
-        description: "Can view financial reports and transactions",
-      },
+        description: "Can view financial reports and transactions"},
       {
         key: "finances.manage",
         label: "Manage Finances",
-        description: "Can process payments and manage financial operations",
-      },
-    ],
-  },
+        description: "Can process payments and manage financial operations"}]},
   {
     name: "Service Providers",
     description: "Permissions for managing service providers",
@@ -133,15 +110,11 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "providers.view",
         label: "View Providers",
-        description: "Can view service provider accounts and services",
-      },
+        description: "Can view service provider accounts and services"},
       {
         key: "providers.manage",
         label: "Manage Providers",
-        description: "Can manage service provider operations",
-      },
-    ],
-  },
+        description: "Can manage service provider operations"}]},
   {
     name: "Merchants",
     description: "Permissions for managing merchant users",
@@ -149,15 +122,11 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "merchants.view",
         label: "View Merchants",
-        description: "Can view merchant accounts and information",
-      },
+        description: "Can view merchant accounts and information"},
       {
         key: "merchants.manage",
         label: "Manage Merchants",
-        description: "Can manage merchant operations",
-      },
-    ],
-  },
+        description: "Can manage merchant operations"}]},
   {
     name: "Deliverers",
     description: "Permissions for managing delivery personnel",
@@ -165,15 +134,11 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "deliverers.view",
         label: "View Deliverers",
-        description: "Can view deliverer accounts and information",
-      },
+        description: "Can view deliverer accounts and information"},
       {
         key: "deliverers.manage",
         label: "Manage Deliverers",
-        description: "Can manage deliverer operations",
-      },
-    ],
-  },
+        description: "Can manage deliverer operations"}]},
   {
     name: "Warehouses",
     description: "Permissions for warehouse management",
@@ -181,15 +146,11 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "warehouses.view",
         label: "View Warehouses",
-        description: "Can view warehouse data",
-      },
+        description: "Can view warehouse data"},
       {
         key: "warehouses.manage",
         label: "Manage Warehouses",
-        description: "Can manage warehouse operations",
-      },
-    ],
-  },
+        description: "Can manage warehouse operations"}]},
   {
     name: "Reports & Analytics",
     description: "Permissions for viewing and exporting reports",
@@ -197,20 +158,15 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "reports.view",
         label: "View Reports",
-        description: "Can view reports and analytics",
-      },
+        description: "Can view reports and analytics"},
       {
         key: "reports.export",
         label: "Export Reports",
-        description: "Can export reports and data",
-      },
+        description: "Can export reports and data"},
       {
         key: "analytics.view",
         label: "View Analytics",
-        description: "Can access platform analytics",
-      },
-    ],
-  },
+        description: "Can access platform analytics"}]},
   {
     name: "System",
     description: "System-level permissions",
@@ -218,21 +174,15 @@ const permissionGroups: PermissionGroup[] = [
       {
         key: "system.settings",
         label: "System Settings",
-        description: "Can modify system settings and configurations",
-      },
+        description: "Can modify system settings and configurations"},
       {
         key: "activity-logs.view",
         label: "View Activity Logs",
-        description: "Can view system and user activity logs",
-      },
+        description: "Can view system and user activity logs"},
       {
         key: "notifications.manage",
         label: "Manage Notifications",
-        description: "Can manage system notifications",
-      },
-    ],
-  },
-];
+        description: "Can manage system notifications"}]}];
 
 interface UserPermissionsFormProps {
   userId: string;
@@ -243,8 +193,7 @@ interface UserPermissionsFormProps {
 export function UserPermissionsForm({
   userId,
   userRole,
-  initialPermissions = [],
-}: UserPermissionsFormProps) {
+  initialPermissions = []}: UserPermissionsFormProps) {
   const [permissions, setPermissions] = useState<string[]>(initialPermissions);
   const [isLoading, setIsLoading] = useState(false);
   const { updateUserPermissions } = useAdminUsers();
@@ -296,29 +245,23 @@ export function UserPermissionsForm({
 
   const handleSavePermissions = async () => {
     if (!isAdmin) {
-      toast({
-        title: "Cannot set permissions",
+      toast({ title: "Cannot set permissions",
         description: "Only admin users can have permissions assigned",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
     setIsLoading(true);
     try {
       await updateUserPermissions(userId, permissions);
-      toast({
-        title: "Permissions updated",
-        description: "User permissions have been successfully updated",
-      });
+      toast({ title: "Permissions updated",
+        description: "User permissions have been successfully updated" });
     } catch (error) {
       console.error("Error updating permissions:", error);
-      toast({
-        title: "Error updating permissions",
+      toast({ title: "Error updating permissions",
         description:
           "There was an error updating the user permissions. Please try again.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -375,7 +318,7 @@ export function UserPermissionsForm({
                           toggleGroup(group, !!checked)
                         }
                         {...(isGroupIndeterminate(group)
-                          ? { indeterminate: true }
+                          ? { indeterminate }
                           : {})}
                       />
                       <Label

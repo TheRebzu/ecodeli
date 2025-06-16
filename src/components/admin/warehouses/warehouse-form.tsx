@@ -15,8 +15,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -25,22 +24,20 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { toast } from "sonner";
 import { createWarehouseSchema } from "@/schemas/storage/warehouse.schema";
 
 type FormValues = z.infer<typeof createWarehouseSchema>;
 
 type WarehouseFormProps = {
-  initialData?: FormValues & { id: string };
+  initialData?: FormValues & { id };
   isEditing?: boolean;
 };
 
 export function WarehouseForm({
   initialData,
-  isEditing = false,
-}: WarehouseFormProps) {
+  isEditing = false}: WarehouseFormProps) {
   const t = useTranslations("admin.warehouses.form");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -53,9 +50,7 @@ export function WarehouseForm({
       address: "",
       capacity: 0,
       description: "",
-      isActive: true,
-    },
-  });
+      isActive: true}});
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
@@ -66,20 +61,16 @@ export function WarehouseForm({
         await fetch(`/api/admin/warehouses/${initialData.id}`, {
           method: "PUT",
           headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
+            "Content-Type": "application/json"},
+          body: JSON.stringify(data)});
         toast.success(t("updateSuccess"));
       } else {
         // Create new warehouse
         await fetch("/api/admin/warehouses", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
+            "Content-Type": "application/json"},
+          body: JSON.stringify(data)});
         toast.success(t("createSuccess"));
       }
 
@@ -107,7 +98,7 @@ export function WarehouseForm({
               <FormField
                 control={form.control}
                 name="name"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("name")}</FormLabel>
                     <FormControl>
@@ -122,7 +113,7 @@ export function WarehouseForm({
               <FormField
                 control={form.control}
                 name="location"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("location")}</FormLabel>
                     <FormControl>
@@ -139,7 +130,7 @@ export function WarehouseForm({
               <FormField
                 control={form.control}
                 name="address"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("address")}</FormLabel>
                     <FormControl>
@@ -154,7 +145,7 @@ export function WarehouseForm({
               <FormField
                 control={form.control}
                 name="capacity"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>{t("capacity")}</FormLabel>
                     <FormControl>
@@ -175,7 +166,7 @@ export function WarehouseForm({
               <FormField
                 control={form.control}
                 name="description"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="col-span-2">
                     <FormLabel>{t("description")}</FormLabel>
                     <FormControl>
@@ -190,7 +181,7 @@ export function WarehouseForm({
               <FormField
                 control={form.control}
                 name="isActive"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">{t("status")}</FormLabel>

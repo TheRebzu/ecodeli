@@ -7,8 +7,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,8 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,8 +24,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -41,8 +38,7 @@ import {
   Calendar,
   DollarSign,
   Percent,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -74,7 +70,7 @@ interface Contract {
     firstName: string;
     lastName: string;
   };
-  _count: {
+  count: {
     amendments: number;
     negotiations: number;
     performances: number;
@@ -95,32 +91,27 @@ interface ContractsListProps {
 }
 
 const CONTRACT_STATUS_COLORS = {
-  DRAFT: "bg-gray-100 text-gray-800",
-  PENDING_SIGNATURE: "bg-blue-100 text-blue-800",
+  DRAFT: "bg-gray-100 text-gray-800", PENDING_SIGNATURE: "bg-blue-100 text-blue-800",
   ACTIVE: "bg-green-100 text-green-800",
   SUSPENDED: "bg-yellow-100 text-yellow-800",
   TERMINATED: "bg-red-100 text-red-800",
   EXPIRED: "bg-orange-100 text-orange-800",
-  CANCELLED: "bg-gray-100 text-gray-600",
-};
+  CANCELLED: "bg-gray-100 text-gray-600"};
 
 const CONTRACT_STATUS_LABELS = {
-  DRAFT: "Brouillon",
-  PENDING_SIGNATURE: "En attente",
+  DRAFT: "Brouillon", PENDING_SIGNATURE: "En attente",
   ACTIVE: "Actif",
   SUSPENDED: "Suspendu",
   TERMINATED: "Résilié",
   EXPIRED: "Expiré",
-  CANCELLED: "Annulé",
-};
+  CANCELLED: "Annulé"};
 
 const CONTRACT_TYPE_LABELS = {
   STANDARD: "Standard",
   PREMIUM: "Premium",
   PARTNER: "Partenaire",
   TRIAL: "Essai",
-  CUSTOM: "Personnalisé",
-};
+  CUSTOM: "Personnalisé"};
 
 export function ContractsList({
   contracts,
@@ -132,8 +123,7 @@ export function ContractsList({
   onDelete,
   onActivate,
   onSuspend,
-  onGeneratePdf,
-}: ContractsListProps) {
+  onGeneratePdf}: ContractsListProps) {
   const [deleteContractId, setDeleteContractId] = useState<string | null>(null);
   const [suspendContractId, setSuspendContractId] = useState<string | null>(
     null,
@@ -157,8 +147,7 @@ export function ContractsList({
     if (!amount) return "-";
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   const formatPercentage = (rate?: number) => {
@@ -186,7 +175,7 @@ export function ContractsList({
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 5  }).map((_, i) => (
               <div key={i} className="flex items-center space-x-4">
                 <Skeleton className="h-12 w-12 rounded" />
                 <div className="space-y-2 flex-1">
@@ -224,7 +213,7 @@ export function ContractsList({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Contrats ({contracts.length})
+            Contrats ({ contracts.length })
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -341,24 +330,18 @@ export function ContractsList({
                       <div className="space-y-1 text-sm">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {format(contract.createdAt, "dd/MM/yyyy", {
-                            locale: fr,
-                          })}
+                          {format(contract.createdAt, "dd/MM/yyyy", { locale })}
                         </div>
                         {contract.effectiveDate && (
                           <div className="text-xs text-muted-foreground">
                             Effectif:{" "}
-                            {format(contract.effectiveDate, "dd/MM/yyyy", {
-                              locale: fr,
-                            })}
+                            {format(contract.effectiveDate, "dd/MM/yyyy", { locale })}
                           </div>
                         )}
                         {contract.expiresAt && (
                           <div className="text-xs text-muted-foreground">
                             Expire:{" "}
-                            {format(contract.expiresAt, "dd/MM/yyyy", {
-                              locale: fr,
-                            })}
+                            {format(contract.expiresAt, "dd/MM/yyyy", { locale })}
                           </div>
                         )}
                       </div>

@@ -1,4 +1,10 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(pnpm add:*)",
+      "Bash(find:*)"
+    ]
+  },
   "allowed_tools": [
     "agent",
     "bash",
@@ -21,8 +27,5 @@
     "file_modifications": true,
     "web_access": true
   },
-  "security_level": "permissive",
-  "permissions": {
-    "allow": ["Bash(find:*)"]
-  }
+  "security_level": "permissive"
 }

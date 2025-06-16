@@ -24,11 +24,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { SubscriptionManager } from "@/components/client/payments/subscription-manager";
 import { SubscriptionPlans } from "@/components/shared/payments/subscription-plans";
+import { PaymentHistory } from "@/components/client/payments/payment-history";
 
 export default function SubscriptionPage() {
   const t = useTranslations("subscription");
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data } = useSession();
   const { toast } = useToast();
 
   // Requête pour récupérer les données de l'abonnement
@@ -42,19 +43,17 @@ export default function SubscriptionPage() {
     // Dans une implémentation réelle, rediriger vers le processus de paiement
     // ou mettre à jour l'abonnement
     if (subscription) {
-      toast({
-        variant: "default",
+      toast({ variant: "default",
         title: t("changePlanTitle"),
         description: t("changePlanDescription"),
-      });
+       });
 
       router.push(`/client/payments?plan=${planId}`);
     } else {
-      toast({
-        variant: "default",
+      toast({ variant: "default",
         title: t("selectPlanTitle"),
         description: t("selectPlanDescription"),
-      });
+       });
 
       router.push(`/client/payments?plan=${planId}`);
     }
@@ -106,7 +105,6 @@ export default function SubscriptionPage() {
               {subscription ? (
                 <SubscriptionManager
                   userId={session?.user?.id}
-                  isDemo={false}
                 />
               ) : (
                 <Card>
@@ -199,33 +197,23 @@ export default function SubscriptionPage() {
 
         <TabsContent value="plans" className="mt-6">
           <SubscriptionPlans
-            isDemo={false}
-            currentPlanId={subscription?.plan?.id}
+            currentPlan={subscription?.plan}
             onSelectPlan={handleSelectPlan}
           />
         </TabsContent>
       </Tabs>
 
-      {/* Mode démo */}
-      <Separator className="my-6" />
-      <div className="pt-2">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-amber-500" />
-              <CardTitle className="text-base">{t("demoMode")}</CardTitle>
-            </div>
-            <CardDescription>{t("demoModeDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              onClick={() => router.push("/client/subscription/demo")}
-            >
-              {t("viewDemoSubscription")}
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        <PaymentHistory
+          userId={session.user.id}
+          subscription={subscription}
+          onRefresh={async () => {
+            await Promise.all([
+              subscriptionQuery.refetch(),
+              invoicesQuery.refetch(),
+            ]);
+          }}
+        />
       </div>
     </div>
   );

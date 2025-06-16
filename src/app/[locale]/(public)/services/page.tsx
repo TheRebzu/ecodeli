@@ -27,16 +27,14 @@ import {
   Heart,
   User,
   Shield,
-  Leaf,
-} from "lucide-react";
+  Leaf} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Accordion } from "@/components/ui/accordion";
 import {
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  AccordionTrigger} from "@/components/ui/accordion";
 
 export default function ServicesPage() {
   return (
@@ -78,8 +76,7 @@ export default function ServicesPage() {
                     "Livraison aux destinataires finaux",
                     "Suivi des colis en temps réel",
                     "Assurance incluse",
-                    "Code de confirmation pour validation de livraison",
-                  ].map((feature, index) => (
+                    "Code de confirmation pour validation de livraison"].map((feature, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
                       <span>{feature}</span>
@@ -131,9 +128,7 @@ export default function ServicesPage() {
                     "Transferts aéroport",
                     "Accompagnement à des rendez-vous",
                     "Transports réguliers",
-                    "Service ponctuel ou récurrent",
-                  ],
-                },
+                    "Service ponctuel ou récurrent"]},
                 {
                   icon: ShoppingBag,
                   title: "Services de courses",
@@ -143,9 +138,7 @@ export default function ServicesPage() {
                     "Courses selon liste fournie",
                     "Achats à l'étranger",
                     "Produits spécifiques",
-                    "Livraison à domicile",
-                  ],
-                },
+                    "Livraison à domicile"]},
                 {
                   icon: Heart,
                   title: "Services écologiques",
@@ -155,10 +148,7 @@ export default function ServicesPage() {
                     "Garde d'animaux à domicile",
                     "Petits travaux ménagers",
                     "Services de jardinage",
-                    "Autres services personnalisés",
-                  ],
-                },
-              ].map((service, index) => (
+                    "Autres services personnalisés"]}].map((service, index) => (
                 <Card
                   key={index}
                   className="h-full transition-all duration-300 hover:shadow-md"
@@ -207,30 +197,25 @@ export default function ServicesPage() {
                   title: "Publiez votre annonce",
                   description:
                     "Décrivez votre besoin de service ou le service que vous proposez",
-                  icon: Package,
-                },
+                  icon: Package},
                 {
                   step: "02",
                   title: "Mettez-vous d'accord",
                   description:
                     "Discutez des détails et du prix avec l'autre partie",
-                  icon: User,
-                },
+                  icon: User},
                 {
                   step: "03",
                   title: "Suivez en temps réel",
                   description:
                     "Suivez le service en temps réel et communiquez si besoin",
-                  icon: Clock,
-                },
+                  icon: Clock},
                 {
                   step: "04",
                   title: "Code de confirmation",
                   description:
                     "Un code de confirmation valide le service et déclenche le paiement",
-                  icon: CheckCircle,
-                },
-              ].map((step, index) => (
+                  icon: CheckCircle}].map((step, index) => (
                 <div
                   key={index}
                   className="flex flex-col items-center text-center p-6 rounded-lg"
@@ -269,27 +254,22 @@ export default function ServicesPage() {
                   icon: Leaf,
                   title: "Écologique",
                   description:
-                    "Réduction de l'empreinte carbone grâce à l'optimisation des trajets existants.",
-                },
+                    "Réduction de l'empreinte carbone grâce à l'optimisation des trajets existants."},
                 {
                   icon: Shield,
                   title: "Sécurisé",
                   description:
-                    "Transactions sécurisées, assurance incluse et système de code de confirmation.",
-                },
+                    "Transactions sécurisées, assurance incluse et système de code de confirmation."},
                 {
                   icon: Clock,
                   title: "Flexible",
                   description:
-                    "Des services adaptés à vos besoins, quand vous en avez besoin.",
-                },
+                    "Des services adaptés à vos besoins, quand vous en avez besoin."},
                 {
                   icon: MapPin,
                   title: "Local",
                   description:
-                    "Soutien à l'économie locale et création de liens dans votre communauté.",
-                },
-              ].map((item, index) => (
+                    "Soutien à l'économie locale et création de liens dans votre communauté."}].map((item, index) => (
                 <Card
                   key={index}
                   className="border-none bg-background h-full transition-all duration-300 hover:shadow-md"

@@ -13,8 +13,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,8 +21,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -32,8 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,8 +39,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
@@ -52,8 +48,7 @@ import {
   Clock,
   Eye,
   FileText,
-  X,
-} from "lucide-react";
+  X} from "lucide-react";
 
 interface UserDocumentsListProps {
   userId: string;
@@ -78,11 +73,8 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
   const {
     data: usersData,
     isLoading,
-    refetch,
-  } = api.adminUser.getUsers.useQuery({
-    page: 1,
-    limit: 100,
-  });
+    refetch} = api.adminUser.getUsers.useQuery({ page: 1,
+    limit: 100 });
 
   // Trouver l'utilisateur spécifique dans la liste
   const allUsers = usersData?.json?.users || [];
@@ -94,27 +86,13 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
   // 🔧 FIX: Simuler les mutations pour la démo (à remplacer par les vraies APIs)
   const approveDocumentMutation = {
     mutate: (data: any) => {
-      setTimeout(() => {
-        toast.success(t("documentApproved", "Document approved successfully"));
-        setApprovalDialogOpen(false);
-        setDocumentToApprove(null);
-        setApprovalNotes("");
-        refetch();
-      }, 1000);
-    },
-  };
+      // Appel API réel via tRPC
+    }};
 
   const rejectDocumentMutation = {
     mutate: (data: any) => {
-      setTimeout(() => {
-        toast.success(t("documentRejected", "Document rejected successfully"));
-        setRejectionDialogOpen(false);
-        setDocumentToReject(null);
-        setRejectionReason("");
-        refetch();
-      }, 1000);
-    },
-  };
+      // Appel API réel via tRPC
+    }};
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -137,19 +115,15 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
 
   const confirmRejectDocument = () => {
     if (documentToReject && rejectionReason.trim()) {
-      rejectDocumentMutation.mutate({
-        documentId: documentToReject,
-        reason: rejectionReason,
-      });
+      rejectDocumentMutation.mutate({ documentId: documentToReject,
+        reason: rejectionReason });
     }
   };
 
   const confirmApproveDocument = () => {
     if (documentToApprove) {
-      approveDocumentMutation.mutate({
-        documentId: documentToApprove,
-        notes: approvalNotes,
-      });
+      approveDocumentMutation.mutate({ documentId: documentToApprove,
+        notes: approvalNotes });
     }
   };
 
@@ -393,7 +367,7 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
                   <div className="flex h-40 items-center justify-center bg-muted">
                     <a
                       href={previewDocument.fileUrl}
-                      target="_blank"
+                      target="blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground"
                     >

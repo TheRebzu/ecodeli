@@ -32,7 +32,7 @@ import InvoiceList, {
   Invoice,
 } from "@/components/merchant/billing/invoice-list";
 
-// Données factices de statistiques de facturation pour la démo
+// Interface pour les statistiques de facturation
 interface BillingStats {
   totalPaid: number;
   pendingPayments: number;
@@ -59,11 +59,10 @@ export default function MerchantBillingDashboard({
   const { data: billingStats, isLoading: isLoadingStats } =
     api.billing.getStats.useQuery();
   const { data: invoices, isLoading: isLoadingInvoices } =
-    api.billing.getInvoices.useQuery({
-      page: 1,
+    api.billing.getInvoices.useQuery({ page: 1,
       limit: 10,
       status: "all",
-    });
+     });
 
   if (isLoadingStats || isLoadingInvoices) {
     return (
@@ -86,7 +85,7 @@ export default function MerchantBillingDashboard({
     // Trouver l'invoice et ouvrir l'URL PDF dans un nouvel onglet
     const invoice = invoices.find((inv) => inv.id === invoiceId);
     if (invoice?.pdfUrl) {
-      window.open(invoice.pdfUrl, "_blank");
+      window.open(invoice.pdfUrl, "blank");
     } else {
       console.error("PDF URL not found for invoice:", invoiceId);
     }
@@ -100,7 +99,7 @@ export default function MerchantBillingDashboard({
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     // Dans une implémentation réelle, on utiliserait:
-    // refetchInvoices({ page, limit: pageSize });
+    // refetchInvoices({ page, limit: pageSize  });
   };
 
   return (

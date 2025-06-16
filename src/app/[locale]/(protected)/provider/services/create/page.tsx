@@ -22,8 +22,7 @@ import {
   Home,
   Settings,
   Zap,
-  AlertCircle,
-} from "lucide-react";
+  AlertCircle} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { useToast } from "@/components/ui/use-toast";
@@ -33,8 +32,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,8 +44,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -58,12 +55,10 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 
 // Schéma de validation
-const serviceFormSchema = z.object({
-  title: z
+const serviceFormSchema = z.object({ title: z
     .string()
     .min(5, "Le titre doit contenir au moins 5 caractères")
     .max(100, "Le titre ne peut pas dépasser 100 caractères"),
@@ -78,53 +73,36 @@ const serviceFormSchema = z.object({
     basePrice: z.coerce.number().min(5, "Le prix minimum est de 5€"),
     hourlyRate: z.coerce.number().optional(),
     packagePrice: z.coerce.number().optional(),
-    currency: z.string().default("EUR"),
-  }),
-  duration: z.object({
-    estimatedMinutes: z.coerce.number().min(15, "Durée minimum de 15 minutes"),
+    currency: z.string().default("EUR") }),
+  duration: z.object({ estimatedMinutes: z.coerce.number().min(15, "Durée minimum de 15 minutes"),
     maxMinutes: z.coerce.number().optional(),
-    flexible: z.boolean().default(false),
-  }),
-  location: z.object({
-    type: z.enum(["AT_HOME", "AT_PROVIDER", "REMOTE", "FLEXIBLE"]),
+    flexible: z.boolean().default(false) }),
+  location: z.object({ type: z.enum(["AT_HOME", "AT_PROVIDER", "REMOTE", "FLEXIBLE"]),
     serviceRadius: z.coerce.number().optional(),
-    address: z.string().optional(),
-  }),
-  availability: z.object({
-    daysOfWeek: z.array(z.number()).min(1, "Sélectionnez au moins un jour"),
+    address: z.string().optional() }),
+  availability: z.object({ daysOfWeek: z.array(z.number()).min(1, "Sélectionnez au moins un jour"),
     timeSlots: z
       .array(
         z.object({
           startTime: z.string(),
-          endTime: z.string(),
-        }),
+          endTime: z.string() }),
       )
       .min(1, "Ajoutez au moins un créneau horaire"),
-    advanceNotice: z.coerce.number().min(1, "Préavis minimum de 1 heure"),
-  }),
-  requirements: z.object({
-    skills: z.array(z.string()),
+    advanceNotice: z.coerce.number().min(1, "Préavis minimum de 1 heure")}),
+  requirements: z.object({ skills: z.array(z.string()),
     equipment: z.array(z.string()),
     experience: z.enum(["BEGINNER", "INTERMEDIATE", "EXPERT"]),
-    certifications: z.array(z.string()),
-  }),
-  options: z.object({
-    isActive: z.boolean().default(true),
+    certifications: z.array(z.string()) }),
+  options: z.object({ isActive: z.boolean().default(true),
     isEmergency: z.boolean().default(false),
     acceptsMultipleClients: z.boolean().default(false),
     providesEquipment: z.boolean().default(false),
-    hasInsurance: z.boolean().default(false),
-  }),
-  media: z.object({
-    photos: z.array(z.string()).max(10, "Maximum 10 photos"),
-    videos: z.array(z.string()).max(3, "Maximum 3 vidéos"),
-  }),
-  terms: z.object({
-    cancellationPolicy: z.string().min(10, "Politique d'annulation requise"),
+    hasInsurance: z.boolean().default(false) }),
+  media: z.object({ photos: z.array(z.string()).max(10, "Maximum 10 photos"),
+    videos: z.array(z.string()).max(3, "Maximum 3 vidéos") }),
+  terms: z.object({ cancellationPolicy: z.string().min(10, "Politique d'annulation requise"),
     refundPolicy: z.string().min(10, "Politique de remboursement requise"),
-    additionalTerms: z.string().optional(),
-  }),
-});
+    additionalTerms: z.string().optional() })});
 
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
 
@@ -133,40 +111,32 @@ const SERVICE_CATEGORIES = [
   {
     value: "HOME_MAINTENANCE",
     label: "Entretien de la maison",
-    icon: <Home className="h-4 w-4" />,
-  },
+    icon: <Home className="h-4 w-4" />},
   {
     value: "REPAIR",
     label: "Réparations",
-    icon: <Settings className="h-4 w-4" />,
-  },
+    icon: <Settings className="h-4 w-4" />},
   { value: "CLEANING", label: "Nettoyage", icon: <Zap className="h-4 w-4" /> },
   {
     value: "GARDENING",
     label: "Jardinage",
-    icon: <Package className="h-4 w-4" />,
-  },
+    icon: <Package className="h-4 w-4" />},
   {
     value: "PERSONAL_CARE",
     label: "Soins personnels",
-    icon: <Star className="h-4 w-4" />,
-  },
+    icon: <Star className="h-4 w-4" />},
   {
     value: "TUTORING",
     label: "Cours particuliers",
-    icon: <Star className="h-4 w-4" />,
-  },
+    icon: <Star className="h-4 w-4" />},
   {
     value: "PET_CARE",
     label: "Garde d'animaux",
-    icon: <Star className="h-4 w-4" />,
-  },
+    icon: <Star className="h-4 w-4" />},
   {
     value: "EVENTS",
     label: "Événements",
-    icon: <Calendar className="h-4 w-4" />,
-  },
-];
+    icon: <Calendar className="h-4 w-4" />}];
 
 // Jours de la semaine
 const DAYS_OF_WEEK = [
@@ -176,8 +146,7 @@ const DAYS_OF_WEEK = [
   { value: 4, label: "Jeudi" },
   { value: 5, label: "Vendredi" },
   { value: 6, label: "Samedi" },
-  { value: 0, label: "Dimanche" },
-];
+  { value: 0, label: "Dimanche" }];
 
 export default function CreateServicePage() {
   const t = useTranslations("services");
@@ -187,23 +156,18 @@ export default function CreateServicePage() {
   const [activeTab, setActiveTab] = useState("basic");
 
   // Mutation pour créer le service
-  const createServiceMutation = api.provider.services.create.useMutation({
-    onSuccess: (data) => {
+  const createServiceMutation = api.provider.services.create.useMutation({ onSuccess: (data) => {
       toast({
         title: "Service créé avec succès",
-        description: "Votre service a été ajouté à votre catalogue",
-      });
+        description: "Votre service a été ajouté à votre catalogue" });
       router.push(`/provider/services/${data.id}`);
     },
     onError: (error) => {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: "Erreur lors de la création",
-        description: error.message,
-      });
+        description: error.message });
       setIsSubmitting(false);
-    },
-  });
+    }});
 
   // Configuration du formulaire
   const form = useForm<ServiceFormValues>({
@@ -215,43 +179,33 @@ export default function CreateServicePage() {
       type: "FIXED_PRICE",
       pricing: {
         basePrice: 0,
-        currency: "EUR",
-      },
+        currency: "EUR"},
       duration: {
         estimatedMinutes: 60,
-        flexible: false,
-      },
+        flexible: false},
       location: {
-        type: "AT_HOME",
-      },
+        type: "AT_HOME"},
       availability: {
         daysOfWeek: [],
         timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
-        advanceNotice: 24,
-      },
+        advanceNotice: 24},
       requirements: {
         skills: [],
         equipment: [],
         experience: "INTERMEDIATE",
-        certifications: [],
-      },
+        certifications: []},
       options: {
         isActive: true,
         isEmergency: false,
         acceptsMultipleClients: false,
         providesEquipment: false,
-        hasInsurance: false,
-      },
+        hasInsurance: false},
       media: {
         photos: [],
-        videos: [],
-      },
+        videos: []},
       terms: {
         cancellationPolicy: "",
-        refundPolicy: "",
-      },
-    },
-  });
+        refundPolicy: ""}}});
 
   // Surveiller le type de service pour ajuster les champs
   const serviceType = form.watch("type");
@@ -272,8 +226,7 @@ export default function CreateServicePage() {
     const currentSlots = form.getValues("availability.timeSlots");
     form.setValue("availability.timeSlots", [
       ...currentSlots,
-      { startTime: "09:00", endTime: "17:00" },
-    ]);
+      { startTime: "09:00", endTime: "17:00" }]);
   };
 
   // Supprimer un créneau horaire
@@ -355,7 +308,7 @@ export default function CreateServicePage() {
                     <FormField
                       control={form.control}
                       name="title"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Titre du service</FormLabel>
                           <FormControl>
@@ -375,7 +328,7 @@ export default function CreateServicePage() {
                     <FormField
                       control={form.control}
                       name="description"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Description détaillée</FormLabel>
                           <FormControl>
@@ -398,7 +351,7 @@ export default function CreateServicePage() {
                       <FormField
                         control={form.control}
                         name="category"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem>
                             <FormLabel>Catégorie</FormLabel>
                             <FormControl>
@@ -432,7 +385,7 @@ export default function CreateServicePage() {
                       <FormField
                         control={form.control}
                         name="requirements.experience"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem>
                             <FormLabel>Niveau d'expérience</FormLabel>
                             <FormControl>
@@ -472,7 +425,7 @@ export default function CreateServicePage() {
                     <FormField
                       control={form.control}
                       name="location.type"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Type de prestation</FormLabel>
                           <FormControl>
@@ -545,7 +498,7 @@ export default function CreateServicePage() {
                       <FormField
                         control={form.control}
                         name="location.serviceRadius"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem>
                             <FormLabel>Rayon d'intervention (km)</FormLabel>
                             <FormControl>
@@ -580,7 +533,7 @@ export default function CreateServicePage() {
                     <FormField
                       control={form.control}
                       name="type"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Mode de tarification</FormLabel>
                           <FormControl>
@@ -640,7 +593,7 @@ export default function CreateServicePage() {
                       <FormField
                         control={form.control}
                         name="pricing.basePrice"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem>
                             <FormLabel>
                               {serviceType === "HOURLY_RATE"
@@ -666,7 +619,7 @@ export default function CreateServicePage() {
                       <FormField
                         control={form.control}
                         name="duration.estimatedMinutes"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem>
                             <FormLabel>Durée estimée (minutes)</FormLabel>
                             <FormControl>
@@ -691,7 +644,7 @@ export default function CreateServicePage() {
                     <FormField
                       control={form.control}
                       name="duration.flexible"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
                             <Checkbox
@@ -722,7 +675,7 @@ export default function CreateServicePage() {
                     <FormField
                       control={form.control}
                       name="availability.daysOfWeek"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Jours de disponibilité</FormLabel>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -776,7 +729,7 @@ export default function CreateServicePage() {
                             <Controller
                               control={form.control}
                               name={`availability.timeSlots.${index}.startTime`}
-                              render={({ field }) => (
+                              render={({ field  }) => (
                                 <Input
                                   type="time"
                                   {...field}
@@ -788,7 +741,7 @@ export default function CreateServicePage() {
                             <Controller
                               control={form.control}
                               name={`availability.timeSlots.${index}.endTime`}
-                              render={({ field }) => (
+                              render={({ field  }) => (
                                 <Input
                                   type="time"
                                   {...field}
@@ -814,7 +767,7 @@ export default function CreateServicePage() {
                     <FormField
                       control={form.control}
                       name="availability.advanceNotice"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Préavis minimum (heures)</FormLabel>
                           <FormControl>
@@ -847,7 +800,7 @@ export default function CreateServicePage() {
                       <FormField
                         control={form.control}
                         name="options.isEmergency"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                             <FormControl>
                               <Checkbox
@@ -868,7 +821,7 @@ export default function CreateServicePage() {
                       <FormField
                         control={form.control}
                         name="options.providesEquipment"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                             <FormControl>
                               <Checkbox
@@ -889,7 +842,7 @@ export default function CreateServicePage() {
                       <FormField
                         control={form.control}
                         name="options.hasInsurance"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                             <FormControl>
                               <Checkbox
@@ -910,7 +863,7 @@ export default function CreateServicePage() {
                       <FormField
                         control={form.control}
                         name="options.acceptsMultipleClients"
-                        render={({ field }) => (
+                        render={({ field  }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                             <FormControl>
                               <Checkbox
@@ -940,7 +893,7 @@ export default function CreateServicePage() {
                     <FormField
                       control={form.control}
                       name="terms.cancellationPolicy"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Politique d'annulation</FormLabel>
                           <FormControl>
@@ -961,7 +914,7 @@ export default function CreateServicePage() {
                     <FormField
                       control={form.control}
                       name="terms.refundPolicy"
-                      render={({ field }) => (
+                      render={({ field  }) => (
                         <FormItem>
                           <FormLabel>Politique de remboursement</FormLabel>
                           <FormControl>
@@ -1002,8 +955,7 @@ export default function CreateServicePage() {
                           "basic",
                           "pricing",
                           "availability",
-                          "details",
-                        ];
+                          "details"];
                         const currentIndex = tabs.indexOf(activeTab);
                         if (currentIndex < tabs.length - 1) {
                           setActiveTab(tabs[currentIndex + 1]);

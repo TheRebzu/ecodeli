@@ -12,8 +12,7 @@ interface DelivererLayoutProps {
 
 export default async function DelivererLayout({
   children,
-  params,
-}: DelivererLayoutProps) {
+  params}: DelivererLayoutProps) {
   // Résoudre params.locale en tant que Promise
   const resolvedParams = await params;
   const locale = resolvedParams.locale;

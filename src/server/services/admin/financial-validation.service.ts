@@ -10,24 +10,17 @@ export const financialValidationService = {
     comments?: string,
   ) {
     const withdrawalRequest = await db.withdrawalRequest.findUnique({
-      where: { id: withdrawalId },
-      include: {
-        wallet: true,
-      },
-    });
+      where: { id },
+      include: { wallet }});
 
     if (!withdrawalRequest) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Demande de retrait non trouvée",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Demande de retrait non trouvée" });
     }
 
     if (withdrawalRequest.status !== "PENDING") {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cette demande a déjà été traitée",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST",
+        message: "Cette demande a déjà été traitée" });
     }
 
     // Vérifier que l'admin a les droits nécessaires
@@ -35,16 +28,11 @@ export const financialValidationService = {
       where: {
         userId: adminId,
         permissions: {
-          has: "APPROVE_WITHDRAWALS",
-        },
-      },
-    });
+          has: "APPROVE_WITHDRAWALS"}}});
 
     if (!admin) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'avez pas les permissions nécessaires",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'avez pas les permissions nécessaires" });
     }
 
     if (approved) {
@@ -54,14 +42,10 @@ export const financialValidationService = {
         where: { id: withdrawalRequest.walletId },
         data: {
           balance: {
-            decrement: withdrawalRequest.amount,
-          },
+            decrement: withdrawalRequest.amount},
           totalWithdrawn: {
-            increment: withdrawalRequest.amount,
-          },
-          lastWithdrawalAt: new Date(),
-        },
-      });
+            increment: withdrawalRequest.amount},
+          lastWithdrawalAt: new Date()}});
 
       // Créer une transaction
       await db.walletTransaction.create({
@@ -72,17 +56,13 @@ export const financialValidationService = {
           status: "COMPLETED",
           description: "Retrait vers compte bancaire",
           withdrawalId: withdrawalRequest.id,
-          currency: withdrawalRequest.currency,
-        },
-      });
+          currency: withdrawalRequest.currency}});
 
       // Initier le transfert bancaire réel
-      const bankTransfer = await bankingService.initiateBankTransfer({
-        withdrawalRequestId: withdrawalRequest.id,
+      const bankTransfer = await bankingService.initiateBankTransfer({ withdrawalRequestId: withdrawalRequest.id,
         amount: withdrawalRequest.amount,
         currency: withdrawalRequest.currency,
-        recipientDetails: withdrawalRequest.bankDetails,
-      });
+        recipientDetails: withdrawalRequest.bankDetails });
 
       await db.bankTransfer.create({
         data: {
@@ -93,29 +73,23 @@ export const financialValidationService = {
           recipientIban: bankTransfer.recipientIban,
           initiatedAt: new Date(),
           status: "PENDING",
-          externalTransferId: bankTransfer.transferId,
-        },
-      });
+          externalTransferId: bankTransfer.transferId}});
 
       return await db.withdrawalRequest.update({
-        where: { id: withdrawalId },
+        where: { id },
         data: {
           status: "APPROVED",
           processedAt: new Date(),
           processorId: adminId,
-          processorComments: comments,
-        },
-      });
+          processorComments: comments}});
     } else {
       return await db.withdrawalRequest.update({
-        where: { id: withdrawalId },
+        where: { id },
         data: {
           status: "REJECTED",
           processedAt: new Date(),
           processorId: adminId,
-          processorComments: comments || "Rejeté par administrateur",
-        },
-      });
+          processorComments: comments || "Rejeté par administrateur"}});
     }
   },
 
@@ -137,10 +111,7 @@ export const financialValidationService = {
         performedById: data.userId,
         changes: {
           amount: data.amount,
-          description: data.description,
-        },
-      },
-    });
+          description: data.description}}});
 
     // Enregistrer également dans les logs d'activité
     await db.userActivityLog.create({
@@ -148,9 +119,7 @@ export const financialValidationService = {
         userId: data.userId,
         activityType: "OTHER",
         details: data.description || data.action,
-        ipAddress: data.ipAddress,
-      },
-    });
+        ipAddress: data.ipAddress}});
   },
 
   async validatePaymentIntegrity(transactionId: string) {
@@ -191,8 +160,7 @@ export const financialValidationService = {
       this.validatePaymentIntegrity(transactionId),
       this.validateAccountBalance(transactionId),
       this.validateComplianceRules(transactionId),
-      this.validateFraudDetection(transactionId),
-    ]);
+      this.validateFraudDetection(transactionId)]);
 
     const isValid = validationResults.every((result) => result.isValid);
     const errors = validationResults.flatMap((result) => result.errors || []);
@@ -202,13 +170,10 @@ export const financialValidationService = {
       isValid,
       errors,
       validatedAt: new Date(),
-      validatedBy: "SYSTEM",
-    });
+      validatedBy: "SYSTEM"});
 
     return {
       isValid,
       errors,
-      details: validationResults,
-    };
-  },
-};
+      details: validationResults};
+  }};

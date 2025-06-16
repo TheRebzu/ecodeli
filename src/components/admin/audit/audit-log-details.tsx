@@ -4,8 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
+  DialogClose} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
@@ -54,8 +53,7 @@ export function AuditLogDetails({ log, onClose }: AuditLogDetailsProps) {
       case "APPLICATION_STATUS_UPDATED":
         return {
           label: t("actions.applicationStatusUpdated"),
-          variant: "default",
-        };
+          variant: "default"};
       default:
         return { label: action, variant: "default" };
     }
@@ -92,7 +90,7 @@ export function AuditLogDetails({ log, onClose }: AuditLogDetailsProps) {
 
           <div className="space-y-2">
             <div className="font-semibold">{t("columns.date")}</div>
-            <div>{format(new Date(log.createdAt), "PPp", { locale: fr })}</div>
+            <div>{format(new Date(log.createdAt), "PPp", { locale })}</div>
           </div>
 
           <div className="space-y-2">

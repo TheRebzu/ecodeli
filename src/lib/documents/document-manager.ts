@@ -3,17 +3,10 @@ import { DocumentType, UserRole } from "@prisma/client";
 /**
  * Mapping des types de documents vers leur nom en français
  */
-export const documentTypeNames: Record<DocumentType, string> = {
-  ID_CARD: "Carte d'identité",
-  DRIVING_LICENSE: "Permis de conduire",
-  VEHICLE_REGISTRATION: "Carte grise",
-  INSURANCE: "Assurance",
-  QUALIFICATION_CERTIFICATE: "Certification professionnelle",
-  PROOF_OF_ADDRESS: "Justificatif de domicile",
-  BUSINESS_REGISTRATION: "Extrait K-bis",
+export const documentTypeNames: Record<DocumentType, string> = { ID_CARD: "Carte d'identité", DRIVING_LICENSE: "Permis de conduire", VEHICLE_REGISTRATION: "Carte grise",
+  INSURANCE: "Assurance", QUALIFICATION_CERTIFICATE: "Certification professionnelle", PROOF_OF_ADDRESS: "Justificatif de domicile", BUSINESS_REGISTRATION: "Extrait K-bis",
   SELFIE: "Photo de profil",
-  OTHER: "Autre document",
-};
+  OTHER: "Autre document"};
 
 /**
  * Récupère le nom affichable d'un type de document
@@ -60,23 +53,20 @@ export function getRequiredDocumentTypesByRole(
         DocumentType.ID_CARD,
         DocumentType.DRIVING_LICENSE,
         DocumentType.VEHICLE_REGISTRATION,
-        DocumentType.INSURANCE,
-      ];
+        DocumentType.INSURANCE];
     case UserRole.MERCHANT:
     case "MERCHANT":
       return [
         DocumentType.ID_CARD,
         DocumentType.BUSINESS_REGISTRATION,
-        DocumentType.PROOF_OF_ADDRESS,
-      ];
+        DocumentType.PROOF_OF_ADDRESS];
     case UserRole.PROVIDER:
     case "PROVIDER":
       return [
         DocumentType.ID_CARD,
         DocumentType.QUALIFICATION_CERTIFICATE,
         DocumentType.INSURANCE,
-        DocumentType.PROOF_OF_ADDRESS,
-      ];
+        DocumentType.PROOF_OF_ADDRESS];
     default:
       return [DocumentType.ID_CARD];
   }
@@ -89,8 +79,7 @@ import { db } from "@/server/db";
 import { UserRole } from "@prisma/client";
 import {
   seedTypeToPrismaType,
-  doesSeedTypeMatchPrismaType,
-} from "@/types/documents/document";
+  doesSeedTypeMatchPrismaType} from "@/types/documents/document";
 
 /**
  * Vérifie si un document est expiré
@@ -136,15 +125,13 @@ export const REQUIRED_DOCUMENTS_BY_ROLE: Record<UserRole, readonly string[]> = {
     "IDENTITY_CARD",
     "DRIVING_LICENSE",
     "VEHICLE_REGISTRATION",
-    "INSURANCE_CERTIFICATE",
-  ],
+    "INSURANCE_CERTIFICATE"],
   PROVIDER: [
     "IDENTITY_CARD",
     "PROFESSIONAL_DIPLOMA",
     "INSURANCE_CERTIFICATE",
     "BANK_RIB",
-    "CRIMINAL_RECORD",
-  ],
+    "CRIMINAL_RECORD"],
   MERCHANT: ["IDENTITY_CARD", "KBIS", "BANK_RIB"], // Types correspondant aux seeds
   CLIENT: ["IDENTITY_CARD"],
   ADMIN: [], // Les admins n'ont pas de documents requis
@@ -184,9 +171,7 @@ export async function areAllRequiredDocumentsApproved(
   const userDocuments = await db.document.findMany({
     where: {
       userId,
-      userRole,
-    },
-  });
+      userRole}});
 
   // Vérifier que chaque type de document requis a au moins un document effectivement approuvé
   return requiredDocumentTypes.every((requiredType: any) =>
@@ -227,17 +212,14 @@ export async function getUserDocumentVerificationStatus(
       hasRejectedDocuments: false,
       hasPendingDocuments: false,
       missingDocuments: [],
-      verificationStatus: "APPROVED",
-    };
+      verificationStatus: "APPROVED"};
   }
 
   // Récupérer TOUS les documents de l'utilisateur
   const userDocuments = await db.document.findMany({
     where: {
       userId,
-      userRole,
-    },
-  });
+      userRole}});
 
   // Analyser le statut de chaque document
   const documentStatuses = userDocuments.map((doc) =>
@@ -292,8 +274,7 @@ export async function getUserDocumentVerificationStatus(
     hasRejectedDocuments,
     hasPendingDocuments,
     missingDocuments,
-    verificationStatus,
-  };
+    verificationStatus};
 }
 
 /**
@@ -313,12 +294,10 @@ export async function updateUserVerificationStatusConsistently(
     if (isAllApproved) {
       // Mettre à jour le statut utilisateur
       await db.user.update({
-        where: { id: userId },
+        where: { id },
         data: {
           status: "ACTIVE",
-          isVerified: true,
-        },
-      });
+          isVerified: true}});
 
       // Mettre à jour le profil spécifique selon le rôle
       if (userRole === "DELIVERER") {
@@ -326,25 +305,19 @@ export async function updateUserVerificationStatusConsistently(
           where: { userId },
           data: {
             isVerified: true,
-            verificationDate: new Date(),
-          },
-        });
+            verificationDate: new Date()}});
       } else if (userRole === "PROVIDER") {
         await db.provider.update({
           where: { userId },
           data: {
             isVerified: true,
-            verificationDate: new Date(),
-          },
-        });
+            verificationDate: new Date()}});
       } else if (userRole === "MERCHANT") {
         await db.merchant.update({
           where: { userId },
           data: {
             isVerified: true,
-            verificationDate: new Date(),
-          },
-        });
+            verificationDate: new Date()}});
       }
 
       return true;
@@ -380,8 +353,7 @@ export const documentTypeMapping: Record<
   [VerificationDocumentType.VAT_REGISTRATION]: DocumentType.OTHER,
   [VerificationDocumentType.INSURANCE_CERTIFICATE]: DocumentType.INSURANCE,
   [VerificationDocumentType.PROFESSIONAL_QUALIFICATION]:
-    DocumentType.QUALIFICATION_CERTIFICATE,
-};
+    DocumentType.QUALIFICATION_CERTIFICATE};
 
 /**
  * Mapping entre les types de documents Prisma et les types de vérification
@@ -400,8 +372,7 @@ export const reverseDocumentTypeMapping: Record<
   [DocumentType.BUSINESS_REGISTRATION]:
     VerificationDocumentType.BUSINESS_REGISTRATION,
   [DocumentType.SELFIE]: VerificationDocumentType.ID_CARD,
-  [DocumentType.OTHER]: VerificationDocumentType.ID_CARD,
-};
+  [DocumentType.OTHER]: VerificationDocumentType.ID_CARD};
 
 /**
  * Convertit un VerificationDocumentType en DocumentType Prisma

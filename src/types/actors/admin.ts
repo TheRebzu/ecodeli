@@ -1,8 +1,7 @@
 import {
   User as PrismaUser,
   UserRole as PrismaUserRole,
-  UserStatus as PrismaUserStatus,
-} from "@prisma/client";
+  UserStatus as PrismaUserStatus} from "@prisma/client";
 
 // Ré-exporter les types
 export type User = PrismaUser;
@@ -31,8 +30,7 @@ export enum ActivityType {
   PERMISSION_CHANGE = "PERMISSION_CHANGE",
   SUBSCRIPTION_CHANGE = "SUBSCRIPTION_CHANGE",
   PAYMENT_METHOD_ADDED = "PAYMENT_METHOD_ADDED",
-  OTHER = "OTHER",
-}
+  OTHER = "OTHER"}
 
 export enum UserActionType {
   ACTIVATE = "ACTIVATE",
@@ -47,52 +45,45 @@ export enum UserActionType {
   ASSIGN_PERMISSION = "ASSIGN_PERMISSION",
   REVOKE_PERMISSION = "REVOKE_PERMISSION",
   SEND_NOTIFICATION = "SEND_NOTIFICATION",
-  EXPORT_DATA = "EXPORT_DATA",
-}
+  EXPORT_DATA = "EXPORT_DATA"}
 
 export enum NoteCategory {
   GENERAL = "GENERAL",
   SUPPORT = "SUPPORT",
   VERIFICATION = "VERIFICATION",
   BILLING = "BILLING",
-  SECURITY = "SECURITY",
-}
+  SECURITY = "SECURITY"}
 
 export enum NoteVisibility {
   PUBLIC = "PUBLIC",
   PRIVATE = "PRIVATE",
-  ADMIN_ONLY = "ADMIN_ONLY",
-}
+  ADMIN_ONLY = "ADMIN_ONLY"}
 
 export enum NotificationType {
   INFO = "INFO",
   SUCCESS = "SUCCESS",
   WARNING = "WARNING",
-  ERROR = "ERROR",
-}
+  ERROR = "ERROR"}
 
 export enum NotificationChannel {
   EMAIL = "EMAIL",
   PUSH = "PUSH",
   SMS = "SMS",
-  IN_APP = "IN_APP",
-}
+  IN_APP = "IN_APP"}
 
 export enum AuditLogSeverity {
   LOW = "LOW",
   MEDIUM = "MEDIUM",
   HIGH = "HIGH",
-  CRITICAL = "CRITICAL",
-}
+  CRITICAL = "CRITICAL"}
 
 export enum AuditLogStatus {
   SUCCESS = "SUCCESS",
   FAILURE = "FAILURE",
-  ATTEMPTED = "ATTEMPTED",
-}
+  ATTEMPTED = "ATTEMPTED"}
 
 export type UserWithRoleDetails = User & {
-  client?: { id: string };
+  client?: { id };
   deliverer?: {
     id: string;
     isVerified: boolean;

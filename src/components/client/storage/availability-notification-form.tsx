@@ -14,20 +14,17 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  PopoverTrigger} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -37,8 +34,7 @@ import {
   Calendar as CalendarIcon,
   BellRing,
   Mail,
-  MessageSquare,
-} from "lucide-react";
+  MessageSquare} from "lucide-react";
 import { cn } from "@/lib/utils/common";
 import { toast } from "sonner";
 
@@ -84,9 +80,7 @@ export function AvailabilityNotificationForm() {
       minSize: 2,
       emailNotifications: true,
       pushNotifications: false,
-      smsNotifications: false,
-    },
-  });
+      smsNotifications: false}});
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -100,19 +94,15 @@ export function AvailabilityNotificationForm() {
         notificationPreferences: {
           email: data.emailNotifications,
           push: data.pushNotifications,
-          sms: data.smsNotifications,
-        },
-      });
+          sms: data.smsNotifications}});
 
       form.reset();
       toast.success(t("subscription.success"), {
-        description: t("subscription.successDescription"),
-      });
+        description: t("subscription.successDescription")});
     } catch (error) {
       toast.error(t("subscription.error"), {
         description:
-          error instanceof Error ? error.message : t("errors.general"),
-      });
+          error instanceof Error ? error.message : t("errors.general")});
     }
   };
 
@@ -125,7 +115,7 @@ export function AvailabilityNotificationForm() {
             <FormField
               control={form.control}
               name="warehouseId"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("form.warehouse")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
@@ -154,7 +144,7 @@ export function AvailabilityNotificationForm() {
             <FormField
               control={form.control}
               name="boxType"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("form.boxType")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
@@ -183,7 +173,7 @@ export function AvailabilityNotificationForm() {
             <FormField
               control={form.control}
               name="startDate"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>{t("form.startDate")}</FormLabel>
                   <Popover>
@@ -197,7 +187,7 @@ export function AvailabilityNotificationForm() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP", { locale: fr })
+                            format(field.value, "PPP", { locale })
                           ) : (
                             <span>{t("form.pickDate")}</span>
                           )}
@@ -227,7 +217,7 @@ export function AvailabilityNotificationForm() {
             <FormField
               control={form.control}
               name="endDate"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>{t("form.endDate")}</FormLabel>
                   <Popover>
@@ -241,7 +231,7 @@ export function AvailabilityNotificationForm() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP", { locale: fr })
+                            format(field.value, "PPP", { locale })
                           ) : (
                             <span>{t("form.pickDate")}</span>
                           )}
@@ -273,7 +263,7 @@ export function AvailabilityNotificationForm() {
             <FormField
               control={form.control}
               name="maxPrice"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>
                     {t("form.priceRange")}: {field.value}€ {t("form.perDay")}
@@ -299,7 +289,7 @@ export function AvailabilityNotificationForm() {
             <FormField
               control={form.control}
               name="minSize"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>
                     {t("form.minSize")}: {field.value} m³
@@ -330,7 +320,7 @@ export function AvailabilityNotificationForm() {
               <FormField
                 control={form.control}
                 name="emailNotifications"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
                       <FormLabel className="flex items-center gap-2">
@@ -355,7 +345,7 @@ export function AvailabilityNotificationForm() {
               <FormField
                 control={form.control}
                 name="pushNotifications"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
                       <FormLabel className="flex items-center gap-2">
@@ -380,7 +370,7 @@ export function AvailabilityNotificationForm() {
               <FormField
                 control={form.control}
                 name="smsNotifications"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
                       <FormLabel className="flex items-center gap-2">

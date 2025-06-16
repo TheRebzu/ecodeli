@@ -32,12 +32,10 @@ import {
   Target,
   Briefcase,
   Globe,
-  Layers,
-} from "lucide-react";
+  Layers} from "lucide-react";
 import {
   BaseSidebar,
-  type SidebarSection,
-} from "@/components/layout/sidebars/base-sidebar";
+  type SidebarSection} from "@/components/layout/sidebars/base-sidebar";
 
 interface MerchantSidebarProps {
   locale: string;
@@ -55,10 +53,7 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
           label: "Tableau de bord",
           href: `/${locale}/merchant`,
           icon: Home,
-          badge: 4,
-        },
-      ],
-    },
+          badge: 4}]},
 
     // Section Annonces
     {
@@ -68,15 +63,11 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
           label: "Mes annonces",
           href: `/${locale}/merchant/announcements`,
           icon: Megaphone,
-          badge: 2,
-        },
+          badge: 2},
         {
           label: "Créer annonce",
           href: `/${locale}/merchant/announcements/create`,
-          icon: Plus,
-        },
-      ],
-    },
+          icon: Plus}]},
 
     // Section Catalogue
     {
@@ -85,15 +76,11 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
         {
           label: "Mon catalogue",
           href: `/${locale}/merchant/catalog`,
-          icon: ShoppingBag,
-        },
+          icon: ShoppingBag},
         {
           label: "Ajouter produit",
           href: `/${locale}/merchant/catalog/create`,
-          icon: Plus,
-        },
-      ],
-    },
+          icon: Plus}]},
 
     // Section Commandes et Livraisons
     {
@@ -103,15 +90,11 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
           label: "Toutes les commandes",
           href: `/${locale}/merchant/orders`,
           icon: Package,
-          badge: 3,
-        },
+          badge: 3},
         {
           label: "Livraisons",
           href: `/${locale}/merchant/deliveries`,
-          icon: Package,
-        },
-      ],
-    },
+          icon: Package}]},
 
     // Section Contrats et Documents
     {
@@ -120,25 +103,19 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
         {
           label: "Mon contrat",
           href: `/${locale}/merchant/contract`,
-          icon: FileText,
-        },
+          icon: FileText},
         {
           label: "Tous les contrats",
           href: `/${locale}/merchant/contracts`,
-          icon: FileText,
-        },
+          icon: FileText},
         {
           label: "Mes documents",
           href: `/${locale}/merchant/documents`,
-          icon: FileText,
-        },
+          icon: FileText},
         {
           label: "Vérification",
           href: `/${locale}/merchant/verification`,
-          icon: CheckCircle,
-        },
-      ],
-    },
+          icon: CheckCircle}]},
 
     // Section Finance
     {
@@ -147,15 +124,11 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
         {
           label: "Factures",
           href: `/${locale}/merchant/invoices`,
-          icon: Receipt,
-        },
+          icon: Receipt},
         {
           label: "Paiements",
           href: `/${locale}/merchant/payments`,
-          icon: CreditCard,
-        },
-      ],
-    },
+          icon: CreditCard}]},
 
     // Section Statistiques
     {
@@ -164,20 +137,15 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
         {
           label: "Mes statistiques",
           href: `/${locale}/merchant/stats`,
-          icon: BarChart3,
-        },
+          icon: BarChart3},
         {
           label: "Clients",
           href: `/${locale}/merchant/stats/customers`,
-          icon: Users,
-        },
+          icon: Users},
         {
           label: "Ventes",
           href: `/${locale}/merchant/stats/sales`,
-          icon: TrendingUp,
-        },
-      ],
-    },
+          icon: TrendingUp}]},
 
     // Section Communication
     {
@@ -187,10 +155,7 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
           label: "Messages",
           href: `/${locale}/merchant/messages`,
           icon: MessageSquare,
-          badge: 1,
-        },
-      ],
-    },
+          badge: 1}]},
 
     // Section Profil
     {
@@ -199,23 +164,17 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
         {
           label: "Mon profil",
           href: `/${locale}/merchant/profile`,
-          icon: User,
-        },
-      ],
-    },
-  ];
+          icon: User}]}];
 
   const userInfo = {
     name: "Commerçant EcoDeli",
     email: "merchant@ecodeli.me",
-    avatar: "",
-  };
+    avatar: ""};
 
   const quickAction = {
     label: "Nouvelle annonce",
     icon: Megaphone,
-    href: `/${locale}/merchant/announcements/create`,
-  };
+    href: `/${locale}/merchant/announcements/create`};
 
   return (
     <BaseSidebar

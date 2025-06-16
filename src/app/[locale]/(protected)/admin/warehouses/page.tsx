@@ -3,20 +3,16 @@ import { getTranslations } from "next-intl/server";
 import { WarehouseList } from "@/components/admin/warehouses/warehouse-list";
 
 export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
+  params}: {
+  params: Promise<{ locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({
-    locale,
-    namespace: "admin.warehouses.meta",
-  });
+  const t = await getTranslations({ locale,
+    namespace: "admin.warehouses.meta" });
 
   return {
     title: t("title"),
-    description: t("description"),
-  };
+    description: t("description")};
 }
 
 export default async function WarehousesPage() {

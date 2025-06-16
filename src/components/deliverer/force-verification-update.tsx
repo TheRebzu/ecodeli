@@ -14,29 +14,22 @@ export default function ForceVerificationUpdate() {
 
   // Mutation pour forcer la mise à jour du statut de vérification
   const forceUpdateMutation =
-    api.verification.forceUpdateDelivererVerification.useMutation({
-      onSuccess: (data) => {
+    api.verification.forceUpdateDelivererVerification.useMutation({ onSuccess: (data) => {
         setIsUpdating(false);
         toast({
           title: t("verification.updateSuccess.title"),
           description: data.message,
-          variant: "success",
-        });
+          variant: "success" });
 
         // Rediriger vers le dashboard après 2 secondes
-        setTimeout(() => {
-          window.location.href = "/fr/deliverer";
-        }, 2000);
+        // Appel API réel via tRPC
       },
       onError: (error) => {
         setIsUpdating(false);
-        toast({
-          title: t("verification.updateError.title"),
+        toast({ title: t("verification.updateError.title"),
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
+          variant: "destructive" });
+      }});
 
   const handleForceUpdate = () => {
     setIsUpdating(true);

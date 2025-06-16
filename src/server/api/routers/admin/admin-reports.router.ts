@@ -9,14 +9,12 @@ import { UserRole } from "@prisma/client";
  */
 
 // Sch�mas de validation
-const reportFiltersSchema = z.object({
-  type: z.enum([
+const reportFiltersSchema = z.object({ type: z.enum([
     "FINANCIAL",
     "OPERATIONAL",
     "USER_ACTIVITY",
     "DELIVERY_PERFORMANCE",
-    "PLATFORM_HEALTH",
-  ]),
+    "PLATFORM_HEALTH"]),
   period: z.enum(["DAY", "WEEK", "MONTH", "QUARTER", "YEAR"]).default("MONTH"),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
@@ -32,11 +30,9 @@ const reportFiltersSchema = z.object({
   includeProjections: z.boolean().default(false),
 
   // Format d'export
-  format: z.enum(["JSON", "CSV", "EXCEL", "PDF"]).default("JSON"),
-});
+  format: z.enum(["JSON", "CSV", "EXCEL", "PDF"]).default("JSON") });
 
-const customReportSchema = z.object({
-  name: z.string().min(3).max(100),
+const customReportSchema = z.object({ name: z.string().min(3).max(100),
   description: z.string().max(500).optional(),
 
   // Configuration du rapport
@@ -50,35 +46,28 @@ const customReportSchema = z.object({
 
   // Visualisation
   chartTypes: z.array(z.enum(["LINE", "BAR", "PIE", "TABLE"])),
-  includeRawData: z.boolean().default(false),
-});
+  includeRawData: z.boolean().default(false) });
 
-const reportExportSchema = z.object({
-  reportId: z.string().cuid(),
+const reportExportSchema = z.object({ reportId: z.string().cuid(),
   format: z.enum(["CSV", "EXCEL", "PDF"]),
   includeCharts: z.boolean().default(true),
   includeRawData: z.boolean().default(false),
-  compression: z.boolean().default(false),
-});
+  compression: z.boolean().default(false) });
 
-export const adminReportsRouter = router({
-  /**
+export const adminReportsRouter = router({ /**
    * G�n�rer un rapport financier d�taill�
    */
   generateFinancialReport: protectedProcedure
     .input(
       reportFiltersSchema.extend({
-        type: z.literal("FINANCIAL"),
-      }),
+        type: z.literal("FINANCIAL") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent g�n�rer des rapports",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent g�n�rer des rapports" });
       }
 
       try {
@@ -99,50 +88,41 @@ export const adminReportsRouter = router({
           transactionVolume,
           averageOrderValue,
           paymentMethods,
-          refunds,
-        ] = await Promise.all([
+          refunds] = await Promise.all([
           // Revenus totaux
-          _ctx.db.payment.aggregate({
+          ctx.db.payment.aggregate({
             where: {
               status: "COMPLETED",
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _sum: { amount: true },
-            _count: true,
-          }),
+              createdAt: { gte: startDate, lte: endDate }},
+            sum: { amount },
+            count: true}),
 
           // Commissions par r�le
           ctx.db.commission.aggregate({
             where: {
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _sum: { amount: true },
-            _count: true,
-          }),
+              createdAt: { gte: startDate, lte: endDate }},
+            sum: { amount },
+            count: true}),
 
           // Retraits effectu�s
           ctx.db.withdrawal.aggregate({
             where: {
               status: "COMPLETED",
-              processedAt: { gte: startDate, lte: endDate },
-            },
-            _sum: { amount: true },
-            _count: true,
-          }),
+              processedAt: { gte: startDate, lte: endDate }},
+            sum: { amount },
+            count: true}),
 
           // Abonnements actifs
           ctx.db.subscription.count({
             where: {
               status: "ACTIVE",
-              startDate: { lte: endDate },
-              OR: [{ endDate: null }, { endDate: { gte: startDate } }],
-            },
-          }),
+              startDate: { lte },
+              OR: [{ endDate }, { endDate: { gte } }]}}),
 
           // Volume de transactions par jour
           ctx.db.$queryRaw`
             SELECT 
-              DATE_TRUNC(${input.groupBy}, created_at) as period,
+              DATE_TRUNC(${input.groupBy}, createdat) as period,
               COUNT(*)::int as transaction_count,
               COALESCE(SUM(amount), 0)::float as total_amount,
               AVG(amount)::float as avg_amount
@@ -150,7 +130,7 @@ export const adminReportsRouter = router({
             WHERE status = 'COMPLETED'
               AND created_at >= ${startDate}
               AND created_at <= ${endDate}
-            GROUP BY DATE_TRUNC(${input.groupBy}, created_at)
+            GROUP BY DATE_TRUNC(${input.groupBy}, createdat)
             ORDER BY period ASC
           `,
 
@@ -158,34 +138,27 @@ export const adminReportsRouter = router({
           ctx.db.order.aggregate({
             where: {
               status: { in: ["COMPLETED", "DELIVERED"] },
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _avg: { totalAmount: true },
-            _sum: { totalAmount: true },
-            _count: true,
-          }),
+              createdAt: { gte: startDate, lte: endDate }},
+            avg: { totalAmount },
+            sum: { totalAmount },
+            count: true}),
 
           // R�partition par m�thode de paiement
           ctx.db.payment.groupBy({
             by: ["method"],
             where: {
               status: "COMPLETED",
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _sum: { amount: true },
-            _count: true,
-          }),
+              createdAt: { gte: startDate, lte: endDate }},
+            sum: { amount },
+            count: true}),
 
           // Remboursements
           ctx.db.refund.aggregate({
             where: {
               status: "COMPLETED",
-              processedAt: { gte: startDate, lte: endDate },
-            },
-            _sum: { amount: true },
-            _count: true,
-          }),
-        ]);
+              processedAt: { gte: startDate, lte: endDate }},
+            sum: { amount },
+            count: true})]);
 
         // Comparaison avec la p�riode pr�c�dente si demand�e
         const comparison = null;
@@ -193,25 +166,22 @@ export const adminReportsRouter = router({
           const previousRevenue = await ctx.db.payment.aggregate({
             where: {
               status: "COMPLETED",
-              createdAt: { gte: previousStartDate, lte: previousEndDate },
-            },
-            _sum: { amount: true },
-          });
+              createdAt: { gte: previousStartDate, lte: previousEndDate }},
+            sum: { amount }});
 
           comparison = {
             revenueGrowth: calculateGrowthRate(
-              revenue._sum.amount || 0,
-              previousRevenue._sum.amount || 0,
-            ),
-          };
+              revenue.sum.amount || 0,
+              previousRevenue.sum.amount || 0,
+            )};
         }
 
         // M�triques cl�s
         const netRevenue =
-          (revenue._sum.amount || 0) - (refunds._sum.amount || 0);
+          (revenue.sum.amount || 0) - (refunds.sum.amount || 0);
         const conversionRate =
-          revenue._count > 0
-            ? (revenue._count / transactionVolume.length) * 100
+          revenue.count > 0
+            ? (revenue.count / transactionVolume.length) * 100
             : 0;
 
         return {
@@ -220,48 +190,37 @@ export const adminReportsRouter = router({
             period: {
               startDate,
               endDate,
-              type: input.period,
-            },
+              type: input.period},
             overview: {
-              totalRevenue: revenue._sum.amount || 0,
+              totalRevenue: revenue.sum.amount || 0,
               netRevenue,
-              totalCommissions: commissions._sum.amount || 0,
-              totalWithdrawals: withdrawals._sum.amount || 0,
+              totalCommissions: commissions.sum.amount || 0,
+              totalWithdrawals: withdrawals.sum.amount || 0,
               activeSubscriptions,
-              transactionCount: revenue._count,
-              averageOrderValue: averageOrderValue._avg.totalAmount || 0,
+              transactionCount: revenue.count,
+              averageOrderValue: averageOrderValue.avg.totalAmount || 0,
               refundRate:
-                revenue._count > 0
-                  ? (refunds._count / revenue._count) * 100
-                  : 0,
-            },
+                revenue.count > 0
+                  ? (refunds.count / revenue.count) * 100
+                  : 0},
             breakdown: {
-              byPaymentMethod: paymentMethods.map((method) => ({
-                method: method.method,
-                amount: method._sum.amount || 0,
-                count: method._count,
-                percentage: revenue._sum.amount
-                  ? ((method._sum.amount || 0) / (revenue._sum.amount || 1)) *
+              byPaymentMethod: paymentMethods.map((method) => ({ method: method.method,
+                amount: method.sum.amount || 0,
+                count: method.count,
+                percentage: revenue.sum.amount
+                  ? ((method.sum.amount || 0) / (revenue.sum.amount || 1)) *
                     100
-                  : 0,
-              })),
-              timeline: transactionVolume,
-            },
+                  : 0 })),
+              timeline: transactionVolume},
             comparison,
-            insights: generateFinancialInsights({
-              revenue: revenue._sum.amount || 0,
+            insights: generateFinancialInsights({ revenue: revenue.sum.amount || 0,
               growth: comparison?.revenueGrowth || 0,
-              transactionCount: revenue._count,
-              averageOrder: averageOrderValue._avg.totalAmount || 0,
-            }),
-          },
-        };
-      } catch (_error) {
+              transactionCount: revenue.count,
+              averageOrder: averageOrderValue.avg.totalAmount || 0 })}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la g�n�ration du rapport financier",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la g�n�ration du rapport financier" });
       }
     }),
 
@@ -270,22 +229,18 @@ export const adminReportsRouter = router({
    */
   generateDeliveryPerformanceReport: protectedProcedure
     .input(
-      reportFiltersSchema.extend({
-        type: z.literal("DELIVERY_PERFORMANCE"),
-      }),
+      reportFiltersSchema.extend({ type: z.literal("DELIVERY_PERFORMANCE") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent g�n�rer des rapports",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent g�n�rer des rapports" });
       }
 
       try {
-        const { startDate: _startDate, endDate: _endDate } =
+        const { startDate: startDate, endDate: endDate } =
           calculateReportPeriod(input.period, input.startDate, input.endDate);
 
         const [
@@ -293,65 +248,54 @@ export const adminReportsRouter = router({
           delivererPerformance,
           geographicData,
           timeMetrics,
-          issueStats,
-        ] = await Promise.all([
+          issueStats] = await Promise.all([
           // Statistiques g�n�rales des livraisons
-          _ctx.db.delivery.aggregate({
+          ctx.db.delivery.aggregate({
             where: {
               createdAt: { gte: startDate, lte: endDate },
               ...(input.city && {
-                pickupAddress: { contains: input.city, mode: "insensitive" },
-              }),
-            },
-            _count: {
+                pickupAddress: { contains: input.city, mode: "insensitive" }})},
+            count: {
               id: true,
-              completedAt: true,
-            },
-            _avg: {
+              completedAt: true},
+            avg: {
               distance: true,
-              actualDeliveryTime: true,
-            },
-          }),
+              actualDeliveryTime: true}}),
 
           // Performance par livreur
           ctx.db.delivery.groupBy({
             by: ["delivererId"],
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              status: "DELIVERED",
-            },
-            _count: true,
-            _avg: {
+              status: "DELIVERED"},
+            count: true,
+            avg: {
               actualDeliveryTime: true,
-              customerRating: true,
-            },
-            orderBy: { _count: { id: "desc" } },
-            take: 20,
-          }),
+              customerRating: true},
+            orderBy: { count: { id: "desc" } },
+            take: 20}),
 
           // Donn�es g�ographiques
           ctx.db.delivery.groupBy({
             by: ["pickupCity", "deliveryCity"],
             where: {
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _count: true,
-            _avg: { distance: true },
-          }),
+              createdAt: { gte: startDate, lte: endDate }},
+            count: true,
+            avg: { distance }}),
 
           // M�triques temporelles
           ctx.db.$queryRaw`
             SELECT 
-              DATE_TRUNC(${input.groupBy}, created_at) as period,
+              DATE_TRUNC(${input.groupBy}, createdat) as period,
               COUNT(*)::int as total_deliveries,
               COUNT(CASE WHEN status = 'DELIVERED' THEN 1 END)::int as completed,
               COUNT(CASE WHEN status = 'CANCELLED' THEN 1 END)::int as cancelled,
-              AVG(actual_delivery_time)::float as avg_delivery_time,
-              AVG(customer_rating)::float as avg_rating
+              AVG(actual_deliverytime)::float as avg_delivery_time,
+              AVG(customerrating)::float as avg_rating
             FROM deliveries 
             WHERE created_at >= ${startDate}
               AND created_at <= ${endDate}
-            GROUP BY DATE_TRUNC(${input.groupBy}, created_at)
+            GROUP BY DATE_TRUNC(${input.groupBy}, createdat)
             ORDER BY period ASC
           `,
 
@@ -359,11 +303,8 @@ export const adminReportsRouter = router({
           ctx.db.deliveryIssue.groupBy({
             by: ["issueType"],
             where: {
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _count: true,
-          }),
-        ]);
+              createdAt: { gte: startDate, lte: endDate }},
+            count: true})]);
 
         // Enrichir les donn�es des livreurs
         const enrichedDelivererData = await Promise.all(
@@ -372,10 +313,7 @@ export const adminReportsRouter = router({
               where: { id: perf.delivererId },
               include: {
                 user: {
-                  select: { name: true, city: true },
-                },
-              },
-            });
+                  select: { name: true, city: true }}}});
 
             return {
               ...perf,
@@ -393,8 +331,8 @@ export const adminReportsRouter = router({
         });
 
         const completionRate =
-          deliveryStats._count.id > 0
-            ? (deliveryStats._count.completedAt / deliveryStats._count.id) * 100
+          deliveryStats.count.id > 0
+            ? (deliveryStats.count.completedAt / deliveryStats.count.id) * 100
             : 0;
 
         return {
@@ -402,50 +340,39 @@ export const adminReportsRouter = router({
           data: {
             period: { startDate, endDate, type: input.period },
             overview: {
-              totalDeliveries: deliveryStats._count.id,
-              completedDeliveries: deliveryStats._count.completedAt,
+              totalDeliveries: deliveryStats.count.id,
+              completedDeliveries: deliveryStats.count.completedAt,
               completionRate,
-              averageDistance: deliveryStats._avg.distance || 0,
-              averageDeliveryTime: deliveryStats._avg.actualDeliveryTime || 0,
+              averageDistance: deliveryStats.avg.distance || 0,
+              averageDeliveryTime: deliveryStats.avg.actualDeliveryTime || 0,
               totalIssues: issueStats.reduce(
-                (sum, issue) => sum + issue._count,
+                (sum, issue) => sum + issue.count,
                 0,
-              ),
-            },
+              )},
             performance: {
               topDeliverers: enrichedDelivererData.slice(0, 10),
               geographicBreakdown: geographicData.map((geo) => ({
                 route: `${geo.pickupCity} � ${geo.deliveryCity}`,
-                count: geo._count,
-                avgDistance: geo._avg.distance,
-              })),
+                count: geo.count,
+                avgDistance: geo.avg.distance})),
               timeline: timeMetrics,
-              issueBreakdown: issueStats.map((issue) => ({
-                type: issue.issueType,
-                count: issue._count,
+              issueBreakdown: issueStats.map((issue) => ({ type: issue.issueType,
+                count: issue.count,
                 percentage:
-                  deliveryStats._count.id > 0
-                    ? (issue._count / deliveryStats._count.id) * 100
-                    : 0,
-              })),
-            },
-            insights: generateDeliveryInsights({
-              completionRate,
-              avgDeliveryTime: deliveryStats._avg.actualDeliveryTime || 0,
+                  deliveryStats.count.id > 0
+                    ? (issue.count / deliveryStats.count.id) * 100
+                    : 0 }))},
+            insights: generateDeliveryInsights({ completionRate,
+              avgDeliveryTime: deliveryStats.avg.actualDeliveryTime || 0,
               issueCount: issueStats.reduce(
-                (sum, issue) => sum + issue._count,
+                (sum, issue) => sum + issue.count,
                 0,
               ),
-              totalDeliveries: deliveryStats._count.id,
-            }),
-          },
-        };
-      } catch (_error) {
+              totalDeliveries: deliveryStats.count.id })}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la g�n�ration du rapport de livraisons",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la g�n�ration du rapport de livraisons" });
       }
     }),
 
@@ -454,22 +381,18 @@ export const adminReportsRouter = router({
    */
   generateUserActivityReport: protectedProcedure
     .input(
-      reportFiltersSchema.extend({
-        type: z.literal("USER_ACTIVITY"),
-      }),
+      reportFiltersSchema.extend({ type: z.literal("USER_ACTIVITY") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent g�n�rer des rapports",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent g�n�rer des rapports" });
       }
 
       try {
-        const { startDate: _startDate, endDate: _endDate } =
+        const { startDate: startDate, endDate: endDate } =
           calculateReportPeriod(input.period, input.startDate, input.endDate);
 
         const [
@@ -479,47 +402,38 @@ export const adminReportsRouter = router({
           verificationStats,
           activityTimeline,
           retentionData,
-          engagementMetrics,
-        ] = await Promise.all([
+          engagementMetrics] = await Promise.all([
           // Nouvelles inscriptions
-          _ctx.db.user.count({
+          ctx.db.user.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
               ...(input.userRole && { role: input.userRole }),
-              ...(input.city && { city: input.city }),
-            },
-          }),
+              ...(input.city && { city: input.city })}}),
 
           // Utilisateurs actifs (ayant une activit� dans la p�riode)
           ctx.db.user.count({
             where: {
               lastActiveAt: { gte: startDate, lte: endDate },
-              ...(input.userRole && { role: input.userRole }),
-            },
-          }),
+              ...(input.userRole && { role: input.userRole })}}),
 
           // R�partition par r�le
           ctx.db.user.groupBy({
             by: ["role"],
             where: {
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _count: true,
-          }),
+              createdAt: { gte: startDate, lte: endDate }},
+            count: true}),
 
           // Statistiques de v�rification
           ctx.db.verification.groupBy({
             by: ["status"],
             where: {
-              createdAt: { gte: startDate, lte: endDate },
-            },
-            _count: true,
-          }),
+              createdAt: { gte: startDate, lte: endDate }},
+            count: true}),
 
           // Timeline d'activit�
           ctx.db.$queryRaw`
             SELECT 
-              DATE_TRUNC(${input.groupBy}, created_at) as period,
+              DATE_TRUNC(${input.groupBy}, createdat) as period,
               COUNT(*)::int as new_users,
               COUNT(CASE WHEN role = 'CLIENT' THEN 1 END)::int as new_clients,
               COUNT(CASE WHEN role = 'DELIVERER' THEN 1 END)::int as new_deliverers,
@@ -528,20 +442,20 @@ export const adminReportsRouter = router({
             FROM users 
             WHERE created_at >= ${startDate}
               AND created_at <= ${endDate}
-            GROUP BY DATE_TRUNC(${input.groupBy}, created_at)
+            GROUP BY DATE_TRUNC(${input.groupBy}, createdat)
             ORDER BY period ASC
           `,
 
           // Donn�es de r�tention (utilisateurs actifs par semaine/mois)
           ctx.db.$queryRaw`
             SELECT 
-              DATE_TRUNC('week', last_active_at) as period,
+              DATE_TRUNC('week', last_activeat) as period,
               COUNT(DISTINCT id)::int as active_users,
-              COUNT(DISTINCT CASE WHEN created_at >= ${startDate} THEN id END)::int as new_user_retention
+              COUNT(DISTINCT CASE WHEN createdat >= ${startDate} THEN id END)::int as new_user_retention
             FROM users 
             WHERE last_active_at >= ${startDate}
               AND last_active_at <= ${endDate}
-            GROUP BY DATE_TRUNC('week', last_active_at)
+            GROUP BY DATE_TRUNC('week', last_activeat)
             ORDER BY period ASC
           `,
 
@@ -550,29 +464,19 @@ export const adminReportsRouter = router({
             // Engagement clients (commandes)
             ctx.db.order.count({
               where: {
-                createdAt: { gte: startDate, lte: endDate },
-              },
-            }),
+                createdAt: { gte: startDate, lte: endDate }}}),
             // Engagement livreurs (livraisons)
             ctx.db.delivery.count({
               where: {
-                createdAt: { gte: startDate, lte: endDate },
-              },
-            }),
+                createdAt: { gte: startDate, lte: endDate }}}),
             // Engagement prestataires (services rendus)
             ctx.db.serviceBooking.count({
               where: {
-                createdAt: { gte: startDate, lte: endDate },
-              },
-            }),
+                createdAt: { gte: startDate, lte: endDate }}}),
             // Engagement commer�ants (produits ajout�s/modifi�s)
             ctx.db.product.count({
               where: {
-                createdAt: { gte: startDate, lte: endDate },
-              },
-            }),
-          ]),
-        ]);
+                createdAt: { gte: startDate, lte: endDate }}})])]);
 
         return {
           success: true,
@@ -583,54 +487,40 @@ export const adminReportsRouter = router({
               activeUsers,
               totalUsers: await ctx.db.user.count(),
               verifiedUsers: await ctx.db.user.count({
-                where: { isVerified: true },
-              }),
+                where: { isVerified }}),
               activationRate:
                 userRegistrations > 0
                   ? (activeUsers / userRegistrations) * 100
-                  : 0,
-            },
+                  : 0},
             breakdown: {
-              byRole: usersByRole.map((role) => ({
-                role: role.role,
-                count: role._count,
+              byRole: usersByRole.map((role) => ({ role: role.role,
+                count: role.count,
                 percentage:
                   userRegistrations > 0
-                    ? (role._count / userRegistrations) * 100
-                    : 0,
-              })),
-              byVerificationStatus: verificationStats.map((status) => ({
-                status: status.status,
-                count: status._count,
-              })),
+                    ? (role.count / userRegistrations) * 100
+                    : 0 })),
+              byVerificationStatus: verificationStats.map((status) => ({ status: status.status,
+                count: status.count })),
               timeline: activityTimeline,
-              retention: retentionData,
-            },
+              retention: retentionData},
             engagement: {
               clientOrders: engagementMetrics[0],
               delivererDeliveries: engagementMetrics[1],
               providerBookings: engagementMetrics[2],
-              merchantProducts: engagementMetrics[3],
-            },
-            insights: generateUserActivityInsights({
-              registrations: userRegistrations,
+              merchantProducts: engagementMetrics[3]},
+            insights: generateUserActivityInsights({ registrations: userRegistrations,
               activeUsers,
               activationRate:
                 userRegistrations > 0
                   ? (activeUsers / userRegistrations) * 100
                   : 0,
               verificationPending:
-                verificationStats.find((s) => s.status === "PENDING")?._count ||
-                0,
-            }),
-          },
-        };
-      } catch (_error) {
+                verificationStats.find((s) => s.status === "PENDING")?.count ||
+                0 })}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la g�n�ration du rapport d'activit�",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la g�n�ration du rapport d'activit�" });
       }
     }),
 
@@ -639,22 +529,18 @@ export const adminReportsRouter = router({
    */
   generatePlatformHealthReport: protectedProcedure
     .input(
-      reportFiltersSchema.extend({
-        type: z.literal("PLATFORM_HEALTH"),
-      }),
+      reportFiltersSchema.extend({ type: z.literal("PLATFORM_HEALTH") }),
     )
-    .query(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .query(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent g�n�rer des rapports",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent g�n�rer des rapports" });
       }
 
       try {
-        const { startDate: _startDate, endDate: _endDate } =
+        const { startDate: startDate, endDate: endDate } =
           calculateReportPeriod(input.period, input.startDate, input.endDate);
 
         const [
@@ -662,20 +548,17 @@ export const adminReportsRouter = router({
           performanceMetrics,
           qualityIndicators,
           securityMetrics,
-          capacityMetrics,
-        ] = await Promise.all([
+          capacityMetrics] = await Promise.all([
           // Erreurs syst�me
-          _ctx.db.errorLog.count({
+          ctx.db.errorLog.count({
             where: {
               createdAt: { gte: startDate, lte: endDate },
-              level: { in: ["ERROR", "CRITICAL"] },
-            },
-          }),
+              level: { in: ["ERROR", "CRITICAL"] }}}),
 
           // M�triques de performance (temps de r�ponse moyen, etc.)
           ctx.db.$queryRaw`
             SELECT 
-              AVG(EXTRACT(EPOCH FROM (completed_at - created_at)))::float as avg_processing_time,
+              AVG(EXTRACT(EPOCH FROM (completedat - created_at)))::float as avg_processing_time,
               COUNT(*)::int as total_operations,
               COUNT(CASE WHEN status = 'SUCCESS' THEN 1 END)::int as successful_operations
             FROM system_operations 
@@ -686,77 +569,61 @@ export const adminReportsRouter = router({
           // Indicateurs de qualit�
           Promise.all([
             // Taux de satisfaction moyen
-            _ctx.db.serviceReview.aggregate({
+            ctx.db.serviceReview.aggregate({
               where: {
-                createdAt: { gte: startDate, lte: endDate },
-              },
-              _avg: { rating: true },
-              _count: true,
-            }),
+                createdAt: { gte: startDate, lte: endDate }},
+              avg: { rating },
+              count: true}),
             // Taux de r�solution des probl�mes
             ctx.db.supportTicket.aggregate({
               where: {
-                createdAt: { gte: startDate, lte: endDate },
-              },
-              _count: {
+                createdAt: { gte: startDate, lte: endDate }},
+              count: {
                 id: true,
-                resolvedAt: true,
-              },
-            }),
-          ]),
+                resolvedAt: true}})]),
 
           // M�triques de s�curit�
           Promise.all([
             // Tentatives de connexion �chou�es
-            _ctx.db.securityLog.count({
+            ctx.db.securityLog.count({
               where: {
                 eventType: "FAILED_LOGIN",
-                createdAt: { gte: startDate, lte: endDate },
-              },
-            }),
+                createdAt: { gte: startDate, lte: endDate }}}),
             // Comptes suspendus
             ctx.db.user.count({
               where: {
                 status: "SUSPENDED",
-                updatedAt: { gte: startDate, lte: endDate },
-              },
-            }),
-          ]),
+                updatedAt: { gte: startDate, lte: endDate }}})]),
 
           // M�triques de capacit�
           Promise.all([
             // Stockage utilis�
-            _ctx.db.document.aggregate({
-              _sum: { fileSize: true },
-            }),
+            ctx.db.document.aggregate({
+              sum: { fileSize }}),
             // Pics de charge
             ctx.db.$queryRaw`
               SELECT 
-                DATE_TRUNC('hour', created_at) as hour,
+                DATE_TRUNC('hour', createdat) as hour,
                 COUNT(*)::int as requests_per_hour
               FROM api_requests 
               WHERE created_at >= ${startDate}
                 AND created_at <= ${endDate}
-              GROUP BY DATE_TRUNC('hour', created_at)
+              GROUP BY DATE_TRUNC('hour', createdat)
               ORDER BY requests_per_hour DESC
               LIMIT 10
-            `,
-          ]),
-        ]);
+            `])]);
 
         const [satisfactionData, supportData] = qualityIndicators;
         const [failedLogins, suspendedAccounts] = securityMetrics;
         const [storageData, loadPeaks] = capacityMetrics;
 
-        const healthScore = calculatePlatformHealthScore({
-          errorCount: systemErrors,
+        const healthScore = calculatePlatformHealthScore({ errorCount: systemErrors,
           successRate:
-            (performanceMetrics[0]?.successful_operations /
-              (performanceMetrics[0]?.total_operations || 1)) *
+            (performanceMetrics[0]?.successfuloperations /
+              (performanceMetrics[0]?.totaloperations || 1)) *
             100,
-          satisfaction: satisfactionData._avg.rating || 0,
-          securityIncidents: failedLogins + suspendedAccounts,
-        });
+          satisfaction: satisfactionData.avg.rating || 0,
+          securityIncidents: failedLogins + suspendedAccounts });
 
         return {
           success: true,
@@ -774,30 +641,27 @@ export const adminReportsRouter = router({
                       : "CRITICAL",
               uptime: 99.9, // TODO: Calculer le vrai uptime
               totalErrors: systemErrors,
-              avgResponseTime: performanceMetrics[0]?.avg_processing_time || 0,
-            },
+              avgResponseTime: performanceMetrics[0]?.avg_processing_time || 0},
             performance: {
               systemErrors,
               successRate: performanceMetrics[0]
-                ? (performanceMetrics[0].successful_operations /
+                ? (performanceMetrics[0].successfuloperations /
                     performanceMetrics[0].total_operations) *
                   100
                 : 100,
               averageProcessingTime:
                 performanceMetrics[0]?.avg_processing_time || 0,
-              totalOperations: performanceMetrics[0]?.total_operations || 0,
-            },
+              totalOperations: performanceMetrics[0]?.total_operations || 0},
             quality: {
-              averageSatisfaction: satisfactionData._avg.rating || 0,
-              totalReviews: satisfactionData._count,
-              supportTicketsResolved: supportData._count.resolvedAt || 0,
-              supportTicketsTotal: supportData._count.id || 0,
+              averageSatisfaction: satisfactionData.avg.rating || 0,
+              totalReviews: satisfactionData.count,
+              supportTicketsResolved: supportData.count.resolvedAt || 0,
+              supportTicketsTotal: supportData.count.id || 0,
               resolutionRate:
-                supportData._count.id > 0
-                  ? (supportData._count.resolvedAt / supportData._count.id) *
+                supportData.count.id > 0
+                  ? (supportData.count.resolvedAt / supportData.count.id) *
                     100
-                  : 0,
-            },
+                  : 0},
             security: {
               failedLoginAttempts: failedLogins,
               suspendedAccounts,
@@ -805,10 +669,9 @@ export const adminReportsRouter = router({
               threatLevel: calculateThreatLevel(
                 failedLogins,
                 suspendedAccounts,
-              ),
-            },
+              )},
             capacity: {
-              storageUsed: storageData._sum.fileSize || 0,
+              storageUsed: storageData.sum.fileSize || 0,
               peakLoad: Math.max(
                 ...loadPeaks.map((p: any) => p.requests_per_hour),
                 0,
@@ -817,22 +680,15 @@ export const adminReportsRouter = router({
                 loadPeaks.reduce(
                   (sum: number, p: any) => sum + p.requests_per_hour,
                   0,
-                ) / (loadPeaks.length || 1),
-            },
-            recommendations: generateHealthRecommendations({
-              healthScore,
+                ) / (loadPeaks.length || 1)},
+            recommendations: generateHealthRecommendations({ healthScore,
               errorCount: systemErrors,
-              satisfaction: satisfactionData._avg.rating || 0,
-              securityIncidents: failedLogins + suspendedAccounts,
-            }),
-          },
-        };
-      } catch (_error) {
+              satisfaction: satisfactionData.avg.rating || 0,
+              securityIncidents: failedLogins + suspendedAccounts })}};
+      } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la g�n�ration du rapport de sant�",
-        });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la g�n�ration du rapport de sant�" });
       }
     }),
 
@@ -841,15 +697,13 @@ export const adminReportsRouter = router({
    */
   createCustomReport: protectedProcedure
     .input(customReportSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent cr�er des rapports personnalis�s",
-        });
+            "Seuls les administrateurs peuvent cr�er des rapports personnalis�s" });
       }
 
       try {
@@ -857,20 +711,15 @@ export const adminReportsRouter = router({
           data: {
             ...input,
             createdById: user.id,
-            status: "ACTIVE",
-          },
-        });
+            status: "ACTIVE"}});
 
         return {
           success: true,
           data: report,
-          message: "Rapport personnalis� cr�� avec succ�s",
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la cr�ation du rapport",
-        });
+          message: "Rapport personnalis� cr�� avec succ�s"};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la cr�ation du rapport" });
       }
     }),
 
@@ -879,14 +728,12 @@ export const adminReportsRouter = router({
    */
   exportReport: protectedProcedure
     .input(reportExportSchema)
-    .mutation(async ({ _ctx, input: _input }) => {
-      const { _user: __user } = ctx.session;
+    .mutation(async ({ ctx, input: input  }) => {
+      const { user } = ctx.session;
 
       if (user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent exporter des rapports",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Seuls les administrateurs peuvent exporter des rapports" });
       }
 
       try {
@@ -900,9 +747,7 @@ export const adminReportsRouter = router({
             format: input.format,
             exportedById: user.id,
             fileUrl: exportUrl,
-            status: "COMPLETED",
-          },
-        });
+            status: "COMPLETED"}});
 
         return {
           success: true,
@@ -911,16 +756,12 @@ export const adminReportsRouter = router({
             format: input.format,
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
           },
-          message: "Export g�n�r� avec succ�s",
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de l'export du rapport",
-        });
+          message: "Export g�n�r� avec succ�s"};
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'export du rapport" });
       }
-    }),
-});
+    })});
 
 // Helper functions
 function calculateReportPeriod(
@@ -1004,8 +845,7 @@ function calculateReportPeriod(
     startDate: calculatedStartDate,
     endDate: calculatedEndDate,
     previousStartDate,
-    previousEndDate,
-  };
+    previousEndDate};
 }
 
 function calculateGrowthRate(current: number, previous: number): number {
@@ -1014,12 +854,12 @@ function calculateGrowthRate(current: number, previous: number): number {
 }
 
 function calculateDelivererEfficiency(performance: any): number {
-  const deliveryScore = performance._count * 0.4;
+  const deliveryScore = performance.count * 0.4;
   const timeScore =
-    (performance._avg.actualDeliveryTime || 0) > 0
-      ? (60 / (performance._avg.actualDeliveryTime || 60)) * 0.3
+    (performance.avg.actualDeliveryTime || 0) > 0
+      ? (60 / (performance.avg.actualDeliveryTime || 60)) * 0.3
       : 0;
-  const ratingScore = (performance._avg.customerRating || 0) * 0.3;
+  const ratingScore = (performance.avg.customerRating || 0) * 0.3;
 
   return Math.min(deliveryScore + timeScore + ratingScore, 100);
 }
@@ -1137,7 +977,7 @@ async function generateReportExport(input: any): Promise<string> {
       default:
         throw new Error(`Format d'export non supporté: ${input.format}`);
     }
-  } catch (_error) {
+  } catch (error) {
     console.error("Erreur lors de la génération d'export:", error);
     throw new Error("Échec de la génération d'export");
   }

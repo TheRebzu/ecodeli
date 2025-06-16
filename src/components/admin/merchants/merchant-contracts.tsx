@@ -9,8 +9,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,8 +23,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger} from "@/components/ui/dialog";
 
 // Définissez les variants disponibles pour Badge
 type BadgeVariant = "default" | "destructive" | "outline" | "secondary";
@@ -52,8 +50,7 @@ export function ContractManagement() {
       status: ContractStatus.ACTIVE,
       createdAt: new Date("2023-11-15"),
       expiresAt: new Date("2024-11-15"),
-      signedAt: new Date("2023-11-15"),
-    },
+      signedAt: new Date("2023-11-15")},
     {
       id: "2",
       title: "Contrat premium marchand",
@@ -61,8 +58,7 @@ export function ContractManagement() {
       status: ContractStatus.ACTIVE,
       createdAt: new Date("2023-10-20"),
       expiresAt: new Date("2024-10-20"),
-      signedAt: new Date("2023-10-20"),
-    },
+      signedAt: new Date("2023-10-20")},
     {
       id: "3",
       title: "Contrat partenaire privilégié",
@@ -70,8 +66,7 @@ export function ContractManagement() {
       status: ContractStatus.ACTIVE,
       createdAt: new Date("2023-09-05"),
       expiresAt: new Date("2024-09-05"),
-      signedAt: new Date("2023-09-05"),
-    },
+      signedAt: new Date("2023-09-05")},
     {
       id: "4",
       title: "Contrat standard marchand",
@@ -79,8 +74,7 @@ export function ContractManagement() {
       status: ContractStatus.PENDING_SIGNATURE,
       createdAt: new Date("2023-12-01"),
       expiresAt: null,
-      signedAt: null,
-    },
+      signedAt: null},
     {
       id: "5",
       title: "Contrat standard marchand",
@@ -88,8 +82,7 @@ export function ContractManagement() {
       status: ContractStatus.EXPIRED,
       createdAt: new Date("2022-11-15"),
       expiresAt: new Date("2023-11-15"),
-      signedAt: new Date("2022-11-15"),
-    },
+      signedAt: new Date("2022-11-15")},
     {
       id: "6",
       title: "Contrat premium marchand",
@@ -97,8 +90,7 @@ export function ContractManagement() {
       status: ContractStatus.TERMINATED,
       createdAt: new Date("2023-02-10"),
       expiresAt: new Date("2024-02-10"),
-      signedAt: new Date("2023-02-10"),
-    },
+      signedAt: new Date("2023-02-10")},
     {
       id: "7",
       title: "Contrat standard marchand",
@@ -106,28 +98,22 @@ export function ContractManagement() {
       status: ContractStatus.DRAFT,
       createdAt: new Date("2023-11-30"),
       expiresAt: null,
-      signedAt: null,
-    },
-  ];
+      signedAt: null}];
 
   // Templates de contrats simulés
   const contractTemplates = [
     {
       id: "1",
       name: "Contrat standard marchand",
-      description: "Contrat de base pour les commerçants",
-    },
+      description: "Contrat de base pour les commerçants"},
     {
       id: "2",
       name: "Contrat premium marchand",
-      description: "Contrat avec services premium pour les commerçants",
-    },
+      description: "Contrat avec services premium pour les commerçants"},
     {
       id: "3",
       name: "Contrat partenaire privilégié",
-      description: "Contrat pour les partenaires privilégiés",
-    },
-  ];
+      description: "Contrat pour les partenaires privilégiés"}];
 
   // Filtrer les contrats selon l'onglet actif et le terme de recherche
   const filteredContracts = contracts
@@ -144,8 +130,7 @@ export function ContractManagement() {
     return new Intl.DateTimeFormat("fr-FR", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
-    }).format(date);
+      year: "numeric"}).format(date);
   };
 
   // Obtenir le badge de statut
@@ -156,25 +141,19 @@ export function ContractManagement() {
     > = {
       [ContractStatus.DRAFT]: {
         variant: "secondary",
-        label: t("status.draft"),
-      },
+        label: t("status.draft")},
       [ContractStatus.PENDING_SIGNATURE]: {
         variant: "default",
-        label: t("status.pendingSignature"),
-      },
+        label: t("status.pendingSignature")},
       [ContractStatus.ACTIVE]: {
         variant: "default",
-        label: t("status.active"),
-      },
+        label: t("status.active")},
       [ContractStatus.TERMINATED]: {
         variant: "destructive",
-        label: t("status.terminated"),
-      },
+        label: t("status.terminated")},
       [ContractStatus.EXPIRED]: {
         variant: "outline",
-        label: t("status.expired"),
-      },
-    };
+        label: t("status.expired")}};
 
     const config = statusConfig[status];
     return <Badge variant={config.variant}>{config.label}</Badge>;

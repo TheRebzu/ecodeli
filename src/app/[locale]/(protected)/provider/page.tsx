@@ -4,7 +4,7 @@ import { authOptions } from "@/server/auth/next-auth";
 import ProviderDashboard from "@/components/providers/provider-dashboard";
 
 type Props = {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
 };
 
 export default async function ProviderDashboardPage({ params }: Props) {

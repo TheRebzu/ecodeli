@@ -17,21 +17,18 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 
 export default function MerchantAnnouncementsPage() {
   const t = useTranslations("merchant.announcements");
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("all");
-  const [filters, setFilters] = useState({
-    status: "",
+  const [filters, setFilters] = useState({ status: "",
     searchTerm: "",
     startDate: "",
     endDate: "",
     page: 1,
-    limit: 10,
-  });
+    limit: 10 });
 
   // Récupérer les annonces du commerçant
   const announcementsQuery = api.merchant.announcements.getAll.useQuery(
@@ -41,12 +38,10 @@ export default function MerchantAnnouncementsPage() {
       startDate: filters.startDate ? new Date(filters.startDate) : undefined,
       endDate: filters.endDate ? new Date(filters.endDate) : undefined,
       page: filters.page,
-      limit: filters.limit,
-    },
+      limit: filters.limit},
     {
       // Désactiver la revalidation automatique pour éviter trop de requêtes
-      refetchOnWindowFocus: false,
-    },
+      refetchOnWindowFocus: false},
   );
 
   // Récupérer les statistiques des annonces
@@ -71,24 +66,24 @@ export default function MerchantAnnouncementsPage() {
 
     // Mettre à jour les filtres en fonction de l'onglet sélectionné
     if (value === "all") {
-      setFilters((prev) => ({ ...prev, status: "" }));
+      setFilters((prev) => ({ ...prev, status: ""  }));
     } else if (value === "draft") {
-      setFilters((prev) => ({ ...prev, status: "DRAFT" }));
+      setFilters((prev) => ({ ...prev, status: "DRAFT"  }));
     } else if (value === "active") {
-      setFilters((prev) => ({ ...prev, status: "ACTIVE" }));
+      setFilters((prev) => ({ ...prev, status: "ACTIVE"  }));
     } else if (value === "inactive") {
-      setFilters((prev) => ({ ...prev, status: "INACTIVE" }));
+      setFilters((prev) => ({ ...prev, status: "INACTIVE"  }));
     } else if (value === "expired") {
-      setFilters((prev) => ({ ...prev, status: "EXPIRED" }));
+      setFilters((prev) => ({ ...prev, status: "EXPIRED"  }));
     }
   };
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({ ...prev, ...newFilters, page: 1  }));
   };
 
   const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setFilters((prev) => ({ ...prev, page  }));
   };
 
   return (

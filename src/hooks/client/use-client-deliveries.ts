@@ -31,9 +31,8 @@ export function useClientDeliveries({
   searchQuery = "",
   sortOrder = "desc",
   page = 1,
-  limit = 10,
-}: UseClientDeliveriesOptions) {
-  const { data: session } = useSession();
+  limit = 10}: UseClientDeliveriesOptions) {
+  const { data } = useSession();
   const [hasActiveDeliveries, setHasActiveDeliveries] = useState(false);
 
   // Convertir le status en tableau de chaînes
@@ -60,8 +59,7 @@ export function useClientDeliveries({
         page,
         limit,
         sortBy: "updatedAt",
-        sortOrder,
-      },
+        sortOrder},
       {
         enabled: !!session,
         onSuccess: (data: any) => {
@@ -78,15 +76,13 @@ export function useClientDeliveries({
               err.message || "Veuillez réessayer plus tard"
             }`,
           );
-        },
-      },
+        }},
     );
 
   // Requête pour obtenir les livraisons actives
   const activeDeliveriesQuery =
     api.deliveryTracking.getActiveDeliveries.useQuery(undefined, {
-      enabled: !!session,
-    });
+      enabled: !!session});
 
   // Vérifier s'il y a des livraisons actives
   if (
@@ -103,6 +99,5 @@ export function useClientDeliveries({
     isLoading,
     error: error ? error.message : null,
     refetch,
-    hasActiveDeliveries,
-  };
+    hasActiveDeliveries};
 }

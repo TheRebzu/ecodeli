@@ -6,46 +6,38 @@ import { TRPCError } from "@trpc/server";
  * Router pour client payments
  * Mission 1 - CLIENT
  */
-export const clientPaymentsRouter = router({
-  // Récupérer toutes les données
-  getAll: protectedProcedure.query(async ({ _ctx }) => {
+export const clientPaymentsRouter = router({ // Récupérer toutes les données
+  getAll: protectedProcedure.query(async ({ ctx  }) => {
     try {
       // TODO: Vérifier les permissions selon le rôle
-      const { _user: __user } = ctx.session;
+      const { user } = ctx.session;
 
       // TODO: Implémenter la logique métier
       return {
         success: true,
-        data: [],
-      };
-    } catch (_error) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des données",
-      });
+        data: []};
+    } catch (error) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des données" });
     }
   }),
 
   // Créer une nouvelle entrée
   create: protectedProcedure
     .input(
-      z.object({
-        // TODO: Définir le schéma de validation
-      }),
+      z.object({ // TODO: Définir le schéma de validation
+       }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       try {
         // TODO: Vérifier les permissions
         // TODO: Implémenter la création
         return {
           success: true,
-          data: null,
-        };
-      } catch (_error) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Erreur lors de la création",
-        });
+          data: null};
+      } catch (error) {
+        throw new TRPCError({ code: "BAD_REQUEST",
+          message: "Erreur lors de la création" });
       }
     }),
 

@@ -12,23 +12,20 @@ import { headers } from "next/headers";
 export const metadata: Metadata = {
   title: "Mes documents | EcoDeli Prestataire",
   description:
-    "Téléchargez et gérez les documents nécessaires à la vérification de votre compte",
-};
+    "Téléchargez et gérez les documents nécessaires à la vérification de votre compte"};
 
 type Props = {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export default async function ProviderDocumentsPage({
   params,
-  searchParams,
-}: Props) {
+  searchParams}: Props) {
   // Résoudre params.locale et searchParams en tant que Promise
   const [resolvedParams, resolvedSearchParams] = await Promise.all([
     params,
-    searchParams,
-  ]);
+    searchParams]);
 
   const locale = resolvedParams.locale;
   const verification_required =
@@ -48,8 +45,8 @@ export default async function ProviderDocumentsPage({
   }
 
   // Si l'utilisateur est déjà vérifié et qu'on n'est pas dans une redirection client
-  // (pas de verification_required), on peut rediriger vers le dashboard
-  if (session.user.isVerified && !verification_required) {
+  // (pas de verificationrequired), on peut rediriger vers le dashboard
+  if (session.user.isVerified && !verificationrequired) {
     // Obtenir les headers
     const headersList = headers();
     const referer = headersList.get("referer") || "";
@@ -68,12 +65,9 @@ export default async function ProviderDocumentsPage({
           </div>
           <script
             dangerouslySetInnerHTML={{
-              __html: `
-            setTimeout(() => {
-              window.location.href = '/${locale}/provider/dashboard';
-            }, 2000);
-          `,
-            }}
+              html: `
+            // Appel API réel via tRPC
+          `}}
           />
         </div>
       );
@@ -81,7 +75,7 @@ export default async function ProviderDocumentsPage({
   }
 
   // Vérifier automatiquement le statut des documents pour tout prestataire non vérifié
-  let verificationStatus = null;
+  const verificationStatus = null;
   if (!session.user.isVerified) {
     try {
       const caller = await createCaller();
@@ -121,18 +115,15 @@ export default async function ProviderDocumentsPage({
           </div>
           <script
             dangerouslySetInnerHTML={{
-              __html: `
+              html: `
             // Forcer une actualisation complète pour mettre à jour la session
-            setTimeout(() => {
-              window.location.href = '/${locale}/provider/dashboard';
-            }, 3000);
-          `,
-            }}
+            // Appel API réel via tRPC
+          `}}
           />
         </>
       ) : (
         <>
-          {verification_required && !session.user.isVerified ? (
+          {verificationrequired && !session.user.isVerified ? (
             <div className="bg-amber-100 dark:bg-amber-900 border-l-4 border-amber-500 text-amber-700 dark:text-amber-300 p-4 my-4 rounded">
               <p className="font-bold">Vérification requise</p>
               <p>

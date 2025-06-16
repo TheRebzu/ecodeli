@@ -8,8 +8,7 @@ import {
   Clock,
   FileText,
   Trash,
-  AlertTriangle,
-} from "lucide-react";
+  AlertTriangle} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr, enGB } from "date-fns/locale";
 import { useRouter } from "next/navigation";
@@ -21,8 +20,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -60,60 +58,45 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
   const {
     data: notificationsData,
     isLoading,
-    refetch,
-  } = api.notification.getNotifications.useQuery({
-    page: currentPage,
-    limit: itemsPerPage,
-  });
+    refetch} = api.notification.getNotifications.useQuery({ page: currentPage,
+    limit: itemsPerPage });
 
   // Get unread notifications
   const {
     data: unreadNotifications,
     isLoading: isLoadingUnread,
-    refetch: refetchUnread,
-  } = api.notification.getUnreadNotifications.useQuery(undefined, {
-    enabled: activeTab === "unread",
-  });
+    refetch: refetchUnread} = api.notification.getUnreadNotifications.useQuery(undefined, {
+    enabled: activeTab === "unread"});
 
   // Mutations
   const markAsReadMutation = api.notification.markAsRead.useMutation({
     onSuccess: () => {
       refetch();
       refetchUnread();
-    },
-  });
+    }});
 
-  const markAllAsReadMutation = api.notification.markAllAsRead.useMutation({
-    onSuccess: () => {
+  const markAllAsReadMutation = api.notification.markAllAsRead.useMutation({ onSuccess: () => {
       refetch();
       refetchUnread();
       toast({
-        title: tNotif("allMarkedAsRead"),
-      });
-    },
-  });
+        title: tNotif("allMarkedAsRead") });
+    }});
 
   const deleteNotificationMutation =
-    api.notification.deleteNotification.useMutation({
-      onSuccess: () => {
+    api.notification.deleteNotification.useMutation({ onSuccess: () => {
         refetch();
         refetchUnread();
         toast({
-          title: tNotif("notificationDeleted"),
-        });
-      },
-    });
+          title: tNotif("notificationDeleted") });
+      }});
 
   const deleteAllNotificationsMutation =
-    api.notification.deleteAllNotifications.useMutation({
-      onSuccess: () => {
+    api.notification.deleteAllNotifications.useMutation({ onSuccess: () => {
         refetch();
         refetchUnread();
         toast({
-          title: tNotif("allNotificationsDeleted"),
-        });
-      },
-    });
+          title: tNotif("allNotificationsDeleted") });
+      }});
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as "all" | "unread");
@@ -130,7 +113,7 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
     link: string | null,
   ) => {
     if (!read) {
-      await markAsReadMutation.mutateAsync({ id });
+      await markAsReadMutation.mutateAsync({ id  });
     }
 
     if (link) {
@@ -144,7 +127,7 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
 
   const handleDeleteNotification = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    await deleteNotificationMutation.mutateAsync({ id });
+    await deleteNotificationMutation.mutateAsync({ id  });
   };
 
   const handleDeleteAllNotifications = async () => {
@@ -176,8 +159,7 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
     const localeObj = locale === "fr" ? fr : enGB;
     return formatDistanceToNow(new Date(date), {
       addSuffix: true,
-      locale: localeObj,
-    });
+      locale: localeObj});
   };
 
   const renderNotificationList = (
@@ -187,7 +169,7 @@ export function NotificationCenter({ locale }: NotificationCenterProps) {
     if (isLoading) {
       return (
         <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 5  }).map((_, i) => (
             <div key={i} className="flex gap-4 p-4 border rounded-md">
               <Skeleton className="h-10 w-10 rounded-full" />
               <div className="space-y-2 flex-1">

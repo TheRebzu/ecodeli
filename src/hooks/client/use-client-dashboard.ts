@@ -13,29 +13,25 @@ export const useClientDashboard = () => {
     data: stats,
     isLoading: isLoadingStats,
     error: statsError,
-    refetch: refetchStats,
-  } = api.clientData.getDashboardStats.useQuery();
+    refetch: refetchStats} = api.clientData.getDashboardStats.useQuery();
 
   const {
     data: recentActivity,
     isLoading: isLoadingActivity,
     error: activityError,
-    refetch: refetchActivity,
-  } = api.clientData.getRecentActivity.useQuery();
+    refetch: refetchActivity} = api.clientData.getRecentActivity.useQuery();
 
   const {
     data: financialMetrics,
     isLoading: isLoadingFinancial,
     error: financialError,
-    refetch: refetchFinancial,
-  } = api.clientData.getFinancialMetrics.useQuery();
+    refetch: refetchFinancial} = api.clientData.getFinancialMetrics.useQuery();
 
   const {
     data: activeItems,
     isLoading: isLoadingActiveItems,
     error: activeItemsError,
-    refetch: refetchActiveItems,
-  } = api.clientData.getActiveItems.useQuery();
+    refetch: refetchActiveItems} = api.clientData.getActiveItems.useQuery();
 
   // Fonction pour rafraîchir toutes les données
   const refreshDashboard = useCallback(async () => {
@@ -45,18 +41,13 @@ export const useClientDashboard = () => {
         refetchStats(),
         refetchActivity(),
         refetchFinancial(),
-        refetchActiveItems(),
-      ]);
-      toast({
-        title: "Succès",
-        description: "Tableau de bord actualisé",
-      });
+        refetchActiveItems()]);
+      toast({ title: "Succès",
+        description: "Tableau de bord actualisé" });
     } catch {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: "Erreur",
-        description: "Impossible d'actualiser le tableau de bord",
-      });
+        description: "Impossible d'actualiser le tableau de bord" });
     } finally {
       setIsRefreshing(false);
     }
@@ -65,8 +56,7 @@ export const useClientDashboard = () => {
     refetchActivity,
     refetchFinancial,
     refetchActiveItems,
-    toast,
-  ]);
+    toast]);
 
   // État global de chargement
   const isLoading =
@@ -93,6 +83,5 @@ export const useClientDashboard = () => {
     hasError,
 
     // Actions
-    refreshDashboard,
-  };
+    refreshDashboard};
 };

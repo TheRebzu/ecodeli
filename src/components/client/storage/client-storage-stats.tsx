@@ -6,8 +6,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -22,8 +21,7 @@ import {
   TrendingUp,
   Clock,
   MapPin,
-  Target,
-} from "lucide-react";
+  Target} from "lucide-react";
 import { api } from "@/trpc/react";
 
 type ClientStorageStatsProps = {
@@ -33,19 +31,16 @@ type ClientStorageStatsProps = {
 
 export function ClientStorageStats({
   className = "",
-  showDetails = true,
-}: ClientStorageStatsProps) {
-  const { data: session } = useSession();
+  showDetails = true}: ClientStorageStatsProps) {
+  const { data } = useSession();
 
   // Récupération des statistiques
   const {
     data: stats,
     isLoading,
-    error,
-  } = api.storage.getMyStorageStats.useQuery(undefined, {
+    error} = api.storage.getMyStorageStats.useQuery(undefined, {
     enabled: !!session?.user?.id,
-    refetchOnWindowFocus: false,
-  });
+    refetchOnWindowFocus: false});
 
   if (!session?.user?.id) {
     return (
@@ -107,8 +102,7 @@ export function ClientStorageStats({
       return {
         level: "Intermédiaire",
         color: "text-yellow-600",
-        badge: "yellow",
-      };
+        badge: "yellow"};
     return { level: "Débutant", color: "text-gray-600", badge: "gray" };
   };
 

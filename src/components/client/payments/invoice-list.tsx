@@ -12,15 +12,13 @@ import {
   Calendar,
   DollarSign,
   TrendingUp,
-  AlertTriangle,
-} from "lucide-react";
+  AlertTriangle} from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,15 +28,13 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { api } from "@/trpc/react";
 
@@ -53,8 +49,7 @@ export function ClientInvoiceList({
   userId,
   onViewInvoice,
   onDownloadInvoice,
-  className,
-}: ClientInvoiceListProps) {
+  className}: ClientInvoiceListProps) {
   const t = useTranslations("invoices");
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -62,14 +57,12 @@ export function ClientInvoiceList({
 
   // Récupérer les factures du client
   const { data: invoicesData, isLoading: invoicesLoading } =
-    api.invoice.getMyInvoices.useQuery({
-      page: currentPage,
+    api.invoice.getMyInvoices.useQuery({ page: currentPage,
       limit: 10,
       status: statusFilter === "ALL" ? undefined : (statusFilter as any),
       startDate: dateRange.from,
       endDate: dateRange.to,
-      sortOrder: "desc",
-    });
+      sortOrder: "desc" });
 
   // Récupérer les statistiques des factures
   const { data: statsData, isLoading: statsLoading } =
@@ -84,14 +77,13 @@ export function ClientInvoiceList({
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
-    }).format(amount);
+      currency: "EUR"}).format(amount);
   };
 
   // Formatage des dates
   const formatDate = (date: Date | string) => {
     const dateObj = typeof date === "string" ? new Date(date) : date;
-    return format(dateObj, "dd/MM/yyyy", { locale: fr });
+    return format(dateObj, "dd/MM/yyyy", { locale });
   };
 
   // Badge de statut de facture
@@ -100,29 +92,23 @@ export function ClientInvoiceList({
       DRAFT: {
         variant: "secondary" as const,
         label: "Brouillon",
-        color: "text-gray-600",
-      },
+        color: "text-gray-600"},
       PENDING: {
         variant: "default" as const,
         label: "En attente",
-        color: "text-orange-600",
-      },
+        color: "text-orange-600"},
       PAID: {
         variant: "default" as const,
         label: "Payée",
-        color: "text-green-600",
-      },
+        color: "text-green-600"},
       CANCELLED: {
         variant: "destructive" as const,
         label: "Annulée",
-        color: "text-red-600",
-      },
+        color: "text-red-600"},
       REFUNDED: {
         variant: "outline" as const,
         label: "Remboursée",
-        color: "text-blue-600",
-      },
-    };
+        color: "text-blue-600"}};
 
     const config =
       statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT;
@@ -138,7 +124,7 @@ export function ClientInvoiceList({
     if (onViewInvoice) {
       onViewInvoice(invoiceId);
     } else {
-      window.open(`/client/invoices/${invoiceId}`, "_blank");
+      window.open(`/client/invoices/${invoiceId}`, "blank");
     }
   };
 
@@ -303,10 +289,8 @@ export function ClientInvoiceList({
                     : ""
                 }
                 onChange={(e) =>
-                  setDateRange((prev) => ({
-                    ...prev,
-                    from: e.target.value ? new Date(e.target.value) : undefined,
-                  }))
+                  setDateRange((prev) => ({ ...prev,
+                    from: e.target.value ? new Date(e.target.value) : undefined }))
                 }
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
@@ -316,10 +300,8 @@ export function ClientInvoiceList({
                   dateRange.to ? dateRange.to.toISOString().split("T")[0] : ""
                 }
                 onChange={(e) =>
-                  setDateRange((prev) => ({
-                    ...prev,
-                    to: e.target.value ? new Date(e.target.value) : undefined,
-                  }))
+                  setDateRange((prev) => ({ ...prev,
+                    to: e.target.value ? new Date(e.target.value) : undefined }))
                 }
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />

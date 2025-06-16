@@ -17,8 +17,7 @@ import {
   Eye,
   Calendar,
   Download,
-  Camera,
-} from "lucide-react";
+  Camera} from "lucide-react";
 import { Link } from "@/navigation";
 import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 import DocumentManager from "@/components/deliverer/documents/document-manager";
@@ -27,7 +26,7 @@ import { Progress } from "@/components/ui/progress";
 
 export default function DelivererDocumentsPage() {
   useRoleProtection(["DELIVERER"]);
-  const { data: session } = useSession();
+  const { data } = useSession();
   const t = useTranslations("documents");
 
   return (
@@ -41,8 +40,7 @@ export default function DelivererDocumentsPage() {
           </h1>
           <p className="text-muted-foreground mt-1">
             {t("description", {
-              default: "Gérez vos documents de vérification et leur statut",
-            })}
+              default: "Gérez vos documents de vérification et leur statut"})}
           </p>
         </div>
         <Button variant="outline" asChild>
@@ -61,14 +59,12 @@ export default function DelivererDocumentsPage() {
             <div className="flex flex-col space-y-2">
               <span className="font-medium">
                 {t("verification.required", {
-                  default: "Vérification requise",
-                })}
+                  default: "Vérification requise"})}
               </span>
               <span>
                 {t("verification.description", {
                   default:
-                    "Veuillez télécharger tous les documents requis pour activer votre compte livreur.",
-                })}
+                    "Veuillez télécharger tous les documents requis pour activer votre compte livreur."})}
               </span>
             </div>
           </AlertDescription>
@@ -87,8 +83,7 @@ export default function DelivererDocumentsPage() {
             <span>
               {t("verification.verified.description", {
                 default:
-                  "Votre compte est vérifié. Vous pouvez gérer vos documents ci-dessous.",
-              })}
+                  "Votre compte est vérifié. Vous pouvez gérer vos documents ci-dessous."})}
             </span>
           </AlertDescription>
         </Alert>

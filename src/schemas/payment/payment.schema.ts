@@ -6,66 +6,44 @@ export const ServiceType = {
   DELIVERY: "DELIVERY",
   SERVICE: "SERVICE",
   STORAGE: "STORAGE",
-  CUSTOM: "CUSTOM",
-} as const;
+  CUSTOM: "CUSTOM"} as const;
 
-/**
- * Schéma de base pour les paiements
- */
-export const paymentBaseSchema = z.object({
-  amount: z.number().positive("Le montant doit être positif"),
-  currency: z.string().default("EUR"),
-  description: z.string().optional(),
-  metadata: z.record(z.string()).optional(),
-});
-
-/**
- * Schéma pour la création d'un paiement (simulation)
- */
-export const createPaymentSchema = paymentBaseSchema.extend({
-  userId: z.string().cuid("ID utilisateur invalide"),
+export const createPaymentSchema = paymentBaseSchema.extend({ userId: z.string().cuid("ID utilisateur invalide"),
   isEscrow: z.boolean().optional().default(false),
   serviceType: z.enum([
     ServiceType.DELIVERY,
     ServiceType.SERVICE,
     ServiceType.STORAGE,
-    ServiceType.CUSTOM,
-  ]),
+    ServiceType.CUSTOM]),
   deliveryId: z.string().cuid("ID livraison invalide").optional(),
   serviceId: z.string().cuid("ID service invalide").optional(),
   subscriptionId: z.string().cuid("ID abonnement invalide").optional(),
   paymentMethodId: z.string().optional(),
   metadata: z.record(z.any()).optional(),
   source: z.string().optional(),
-  notes: z.string().optional(),
-});
+  notes: z.string().optional() });
 
 /**
  * Schéma pour la création d'un paiement avec conservation des fonds (escrow)
  */
-export const createEscrowPaymentSchema = paymentBaseSchema.extend({
-  userId: z.string().cuid(),
+export const createEscrowPaymentSchema = paymentBaseSchema.extend({ userId: z.string().cuid(),
   deliveryId: z.string().cuid(),
   paymentMethodId: z.string().optional(),
   releaseAfterDays: z.number().int().min(1).max(30).default(3),
-  generateReleaseCode: z.boolean().default(true),
-});
+  generateReleaseCode: z.boolean().default(true) });
 
 /**
  * Schéma pour le traitement d'un paiement
  */
-export const processPaymentSchema = z.object({
-  paymentId: z.string().cuid("ID paiement invalide"),
+export const processPaymentSchema = z.object({ paymentId: z.string().cuid("ID paiement invalide"),
   action: z.enum(["capture", "cancel", "refund", "dispute"]),
   amount: z.number().positive("Le montant doit être positif").optional(),
-  reason: z.string().optional(),
-});
+  reason: z.string().optional() });
 
 /**
  * Schéma pour filtrer les paiements
  */
-export const paymentFilterSchema = z.object({
-  userId: z.string().cuid("ID utilisateur invalide").optional(),
+export const paymentFilterSchema = z.object({ userId: z.string().cuid("ID utilisateur invalide").optional(),
   status: z.nativeEnum(PaymentStatus).optional(),
   minAmount: z.number().optional(),
   maxAmount: z.number().optional(),
@@ -76,8 +54,7 @@ export const paymentFilterSchema = z.object({
       ServiceType.DELIVERY,
       ServiceType.SERVICE,
       ServiceType.STORAGE,
-      ServiceType.CUSTOM,
-    ])
+      ServiceType.CUSTOM])
     .optional(),
   deliveryId: z.string().cuid("ID livraison invalide").optional(),
   serviceId: z.string().cuid("ID service invalide").optional(),
@@ -88,141 +65,111 @@ export const paymentFilterSchema = z.object({
     .int("La limite doit être un nombre entier")
     .min(1)
     .max(100)
-    .default(10),
-});
+    .default(10) });
 
 /**
  * Schéma pour le remboursement d'un paiement
  */
-export const refundPaymentSchema = z.object({
-  paymentId: z.string().cuid("ID paiement invalide"),
+export const refundPaymentSchema = z.object({ paymentId: z.string().cuid("ID paiement invalide"),
   amount: z.number().positive("Le montant doit être positif").optional(),
-  reason: z.string().min(3, "La raison doit contenir au moins 3 caractères"),
-});
+  reason: z.string().min(3, "La raison doit contenir au moins 3 caractères") });
 
 /**
  * Schéma pour la libération d'un paiement sous séquestre
  */
-export const releaseEscrowPaymentSchema = z.object({
-  paymentId: z.string().cuid(),
-  releaseCode: z.string().optional(),
-});
+export const releaseEscrowPaymentSchema = z.object({ paymentId: z.string().cuid(),
+  releaseCode: z.string().optional() });
 
 /**
  * Schéma pour l'annulation d'un paiement
  */
-export const cancelPaymentSchema = z.object({
-  paymentId: z.string().cuid(),
-});
+export const cancelPaymentSchema = z.object({ paymentId: z.string().cuid() });
 
 /**
  * Schéma pour la capture d'un paiement
  */
-export const capturePaymentSchema = z.object({
-  paymentIntentId: z.string(),
-  amount: z.number().positive().optional(),
-});
+export const capturePaymentSchema = z.object({ paymentIntentId: z.string(),
+  amount: z.number().positive().optional() });
 
 /**
  * Schéma pour l'historique des paiements
  */
-export const paymentHistorySchema = z.object({
-  page: z.number().int().min(1).default(1),
+export const paymentHistorySchema = z.object({ page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(10),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
   status: z.enum(["PENDING", "COMPLETED", "FAILED", "REFUNDED"]).optional(),
   type: z
     .enum(["DELIVERY", "SERVICE", "SUBSCRIPTION", "MERCHANT_FEE"])
-    .optional(),
-});
+    .optional() });
 
 /**
  * Schéma pour l'ajout d'une méthode de paiement
  */
-export const addPaymentMethodSchema = z.object({
-  paymentMethodId: z.string(),
-  setAsDefault: z.boolean().default(false),
-});
+export const addPaymentMethodSchema = z.object({ paymentMethodId: z.string(),
+  setAsDefault: z.boolean().default(false) });
 
 /**
  * Schéma pour la suppression d'une méthode de paiement
  */
-export const removePaymentMethodSchema = z.object({
-  paymentMethodId: z.string(),
-});
+export const removePaymentMethodSchema = z.object({ paymentMethodId: z.string() });
 
 /**
  * Schéma pour la création d'un intent Stripe
  */
-export const createPaymentIntentSchema = paymentBaseSchema.extend({
-  paymentMethodId: z.string().optional(),
-  returnUrl: z.string().url().optional(),
-});
+export const createPaymentIntentSchema = paymentBaseSchema.extend({ paymentMethodId: z.string().optional(),
+  returnUrl: z.string().url().optional() });
 
 /**
  * Schéma pour la validation d'un paiement par carte
  */
-export const validateCardPaymentSchema = z.object({
-  paymentIntentId: z.string(),
-  paymentMethodId: z.string(),
-});
+export const validateCardPaymentSchema = z.object({ paymentIntentId: z.string(),
+  paymentMethodId: z.string() });
 
 /**
  * Schéma pour le traitement d'un paiement récurrent
  */
-export const createRecurringPaymentSchema = paymentBaseSchema.extend({
-  userId: z.string().cuid(),
+export const createRecurringPaymentSchema = paymentBaseSchema.extend({ userId: z.string().cuid(),
   frequency: z.enum(["MONTHLY", "ANNUAL"]),
   startDate: z.date().optional(),
   paymentMethodId: z.string(),
-  metadata: z.record(z.string()).optional(),
-});
+  metadata: z.record(z.string()).optional() });
 
 /**
  * Schéma pour les rapports financiers des paiements
  */
-export const paymentReportSchema = z.object({
-  startDate: z.date(),
+export const paymentReportSchema = z.object({ startDate: z.date(),
   endDate: z.date(),
   groupBy: z.enum(["DAY", "WEEK", "MONTH"]).default("DAY"),
   status: z.enum(["PENDING", "COMPLETED", "FAILED", "REFUNDED"]).optional(),
   source: z
     .enum(["DELIVERY", "SERVICE", "SUBSCRIPTION", "MERCHANT_FEE"])
-    .optional(),
-});
+    .optional() });
 
 /**
  * Schéma pour la récupération d'un paiement
  */
-export const getPaymentSchema = z.object({
-  paymentId: z.string().cuid("ID paiement invalide"),
-});
+export const getPaymentSchema = z.object({ paymentId: z.string().cuid("ID paiement invalide") });
 
 /**
  * Schéma pour les litiges et contestations
  */
-export const createDisputeSchema = z.object({
-  paymentId: z.string().cuid(),
+export const createDisputeSchema = z.object({ paymentId: z.string().cuid(),
   reason: z.enum([
     "PRODUCT_NOT_RECEIVED",
     "PRODUCT_NOT_AS_DESCRIBED",
     "DUPLICATE",
     "FRAUDULENT",
-    "OTHER",
-  ]),
+    "OTHER"]),
   description: z.string().min(10).max(1000),
-  evidenceFiles: z.array(z.string()).optional(),
-});
+  evidenceFiles: z.array(z.string()).optional() });
 
 /**
  * Schéma pour la facturation d'un paiement
  */
-export const createInvoiceForPaymentSchema = z.object({
-  paymentId: z.string().cuid("ID paiement invalide"),
+export const createInvoiceForPaymentSchema = z.object({ paymentId: z.string().cuid("ID paiement invalide"),
   customInvoiceNumber: z.string().optional(),
-  additionalNotes: z.string().optional(),
-});
+  additionalNotes: z.string().optional() });
 
 /**
  * Export des types pour TypeScript

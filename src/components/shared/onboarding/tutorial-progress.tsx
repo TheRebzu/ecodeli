@@ -12,11 +12,10 @@ type TutorialProgressProps = {
 export function TutorialProgress({
   currentStep,
   totalSteps,
-  className,
-}: TutorialProgressProps) {
+  className}: TutorialProgressProps) {
   return (
     <div className={cn("flex space-x-2 justify-center w-full my-4", className)}>
-      {Array.from({ length: totalSteps }).map((_, index) => (
+      {Array.from({ length  }).map((_, index) => (
         <div
           key={index}
           className={cn(

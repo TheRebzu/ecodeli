@@ -10,7 +10,7 @@ export function useMessaging(conversationId?: string) {
   // Requêtes tRPC
   const conversationsQuery = api.messaging.getConversations.useQuery();
   const messagesQuery = conversationId
-    ? api.messaging.getMessages.useQuery({ conversationId })
+    ? api.messaging.getMessages.useQuery({ conversationId  })
     : { data: undefined, isLoading: false };
 
   // Mutation pour envoyer un message
@@ -44,10 +44,8 @@ export function useMessaging(conversationId?: string) {
   const sendMessage = async (content: string) => {
     if (!conversationId) return;
 
-    await sendMessageMutation.mutateAsync({
-      conversationId,
-      content,
-    });
+    await sendMessageMutation.mutateAsync({ conversationId,
+      content });
   };
 
   return {
@@ -56,6 +54,5 @@ export function useMessaging(conversationId?: string) {
     isLoadingConversations: conversationsQuery.isLoading,
     isLoadingMessages: messagesQuery.isLoading,
     sendMessage,
-    createConversation: api.messaging.createConversation.useMutation(),
-  };
+    createConversation: api.messaging.createConversation.useMutation()};
 }

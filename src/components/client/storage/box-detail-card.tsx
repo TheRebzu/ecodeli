@@ -4,8 +4,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -22,8 +21,7 @@ import {
   ShieldCheck,
   Snowflake,
   Timer,
-  Truck,
-} from "lucide-react";
+  Truck} from "lucide-react";
 
 interface BoxDetailCardProps {
   box: BoxWithWarehouse;
@@ -40,8 +38,7 @@ export function BoxDetailCard({
   startDate,
   endDate,
   showReserveButton = true,
-  compact = false,
-}: BoxDetailCardProps) {
+  compact = false}: BoxDetailCardProps) {
   const t = useTranslations("storage");
 
   const durationInDays = Math.ceil(
@@ -164,7 +161,7 @@ export function BoxDetailCard({
               <div className="text-right mt-2">
                 <div className="text-lg font-semibold">{totalPrice}€</div>
                 <p className="text-xs text-muted-foreground">
-                  {t("boxDetails.forDuration", { days: durationInDays })}
+                  {t("boxDetails.forDuration", { days })}
                 </p>
               </div>
             )}
@@ -176,8 +173,8 @@ export function BoxDetailCard({
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
               <span>
-                {format(startDate, "PPP", { locale: fr })} &mdash;{" "}
-                {format(endDate, "PPP", { locale: fr })}
+                {format(startDate, "PPP", { locale })} &mdash;{" "}
+                {format(endDate, "PPP", { locale })}
               </span>
             </div>
 
@@ -208,8 +205,7 @@ export function BoxCompactCard({
   box,
   onSelect,
   startDate,
-  endDate,
-}: BoxDetailCardProps) {
+  endDate}: BoxDetailCardProps) {
   return (
     <BoxDetailCard
       box={box}

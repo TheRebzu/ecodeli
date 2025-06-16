@@ -46,8 +46,7 @@ const initialState = {
   currentStep: 0,
   isSubmitting: false,
   isVerified: false,
-  requiredDocuments: [],
-};
+  requiredDocuments: []};
 
 export const useVerificationStore = create<VerificationState>()(
   persist(
@@ -65,60 +64,47 @@ export const useVerificationStore = create<VerificationState>()(
               progress: 100, // Document déjà uploadé
               fileName: document.fileName || "Document",
               documentType: document.documentType,
-              status: "success",
-            },
-          ],
-        })),
+              status: "success"}]})),
 
       removeDocument: (documentId) =>
-        set((state) => ({
-          pendingDocuments: state.pendingDocuments.filter(
+        set((state) => ({ pendingDocuments: state.pendingDocuments.filter(
             (doc) => doc.documentId !== documentId,
           ),
           uploadProgress: state.uploadProgress.filter(
             (progress) => progress.documentId !== documentId,
-          ),
-        })),
+          ) })),
 
       // Actions pour gérer le progrès d'upload
       updateUploadProgress: (documentId, progress) =>
         set((state) => ({
           uploadProgress: state.uploadProgress.map((item) =>
             item.documentId === documentId ? { ...item, progress } : item,
-          ),
-        })),
+          )})),
 
       setUploadStatus: (documentId, status) =>
         set((state) => ({
           uploadProgress: state.uploadProgress.map((item) =>
             item.documentId === documentId ? { ...item, status } : item,
-          ),
-        })),
+          )})),
 
       // Actions pour gérer les étapes et l'état de la vérification
-      setCurrentStep: (step) => set({ currentStep: step }),
-      setIsSubmitting: (isSubmitting) => set({ isSubmitting }),
+      setCurrentStep: (step) => set({ currentStep  }),
+      setIsSubmitting: (isSubmitting) => set({ isSubmitting  }),
       setVerificationStatus: (status) =>
-        set({
-          verificationStatus: status,
-          isVerified: status === VerificationStatus.APPROVED,
-        }),
+        set({ verificationStatus: status,
+          isVerified: status === VerificationStatus.APPROVED }),
       setRequiredDocuments: (documents) =>
-        set({ requiredDocuments: documents }),
+        set({ requiredDocuments  }),
       setRejectionInfo: (reason, notes) =>
-        set({ rejectionReason: reason, rejectionNotes: notes }),
+        set({ rejectionReason: reason, rejectionNotes: notes  }),
 
       // Réinitialiser l'état
-      reset: () => set(initialState),
-    }),
+      reset: () => set(initialState)}),
     {
       name: "verification-storage",
-      partialize: (state) => ({
-        pendingDocuments: state.pendingDocuments,
+      partialize: (state) => ({ pendingDocuments: state.pendingDocuments,
         verificationStatus: state.verificationStatus,
         isVerified: state.isVerified,
-        requiredDocuments: state.requiredDocuments,
-      }),
-    },
+        requiredDocuments: state.requiredDocuments })},
   ),
 );

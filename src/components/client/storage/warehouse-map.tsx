@@ -7,8 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Package, Clock, Euro } from "lucide-react";
@@ -17,21 +16,17 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 // Import dynamique de Leaflet pour éviter les erreurs SSR
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
-  {
-    ssr: false,
-  },
+  { ssr },
 );
 const TileLayer = dynamic(
   () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false },
+  { ssr },
 );
 const Marker = dynamic(
   () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false },
+  { ssr },
 );
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
-  ssr: false,
-});
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr });
 
 type Box = {
   id: string;
@@ -73,12 +68,10 @@ export function WarehouseMap({
   showBoxes = false,
   boxes = [],
   onBoxSelect,
-  className = "",
-}: WarehouseMapProps) {
+  className = ""}: WarehouseMapProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [mapCenter, setMapCenter] = useState<[number, number]>([
-    48.8566, 2.3522,
-  ]); // Paris par défaut
+    48.8566, 2.3522]); // Paris par défaut
 
   useEffect(() => {
     // Centrer la carte sur les entrepôts ou garder Paris par défaut

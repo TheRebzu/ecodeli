@@ -11,8 +11,7 @@ interface MerchantLayoutProps {
 
 export default async function MerchantLayout({
   children,
-  params,
-}: MerchantLayoutProps) {
+  params}: MerchantLayoutProps) {
   const { locale } = await params;
 
   return (

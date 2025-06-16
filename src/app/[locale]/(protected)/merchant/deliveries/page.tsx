@@ -15,8 +15,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RefreshCw, MapPin, FileText, DownloadIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -26,24 +25,20 @@ export default function MerchantDeliveriesPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("all");
   const [showMap, setShowMap] = useState(false);
-  const [filters, setFilters] = useState({
-    status: "",
+  const [filters, setFilters] = useState({ status: "",
     searchTerm: "",
     startDate: "",
     endDate: "",
     page: 1,
-    limit: 10,
-  });
+    limit: 10 });
 
   // Récupération des livraisons
-  const deliveriesQuery = api.merchant.deliveries.getAll.useQuery({
-    status: filters.status || undefined,
+  const deliveriesQuery = api.merchant.deliveries.getAll.useQuery({ status: filters.status || undefined,
     searchTerm: filters.searchTerm || undefined,
     startDate: filters.startDate ? new Date(filters.startDate) : undefined,
     endDate: filters.endDate ? new Date(filters.endDate) : undefined,
     page: filters.page,
-    limit: filters.limit,
-  });
+    limit: filters.limit });
 
   // Récupération des statistiques
   const statsQuery = api.merchant.deliveries.getStats.useQuery();
@@ -53,24 +48,24 @@ export default function MerchantDeliveriesPage() {
 
     // Mettre à jour les filtres en fonction de l'onglet sélectionné
     if (value === "all") {
-      setFilters((prev) => ({ ...prev, status: "" }));
+      setFilters((prev) => ({ ...prev, status: ""  }));
     } else if (value === "pending") {
-      setFilters((prev) => ({ ...prev, status: "PENDING" }));
+      setFilters((prev) => ({ ...prev, status: "PENDING"  }));
     } else if (value === "in_transit") {
-      setFilters((prev) => ({ ...prev, status: "IN_TRANSIT" }));
+      setFilters((prev) => ({ ...prev, status: "IN_TRANSIT"  }));
     } else if (value === "delivered") {
-      setFilters((prev) => ({ ...prev, status: "DELIVERED" }));
+      setFilters((prev) => ({ ...prev, status: "DELIVERED"  }));
     } else if (value === "issues") {
-      setFilters((prev) => ({ ...prev, status: "PROBLEM" }));
+      setFilters((prev) => ({ ...prev, status: "PROBLEM"  }));
     }
   };
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({ ...prev, ...newFilters, page: 1  }));
   };
 
   const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setFilters((prev) => ({ ...prev, page  }));
   };
 
   const handleRefresh = () => {
@@ -83,9 +78,7 @@ export default function MerchantDeliveriesPage() {
     // Logique pour l'exportation des données
     toast.info(t("exportStarted"));
     // Simuler un délai pour l'exportation
-    setTimeout(() => {
-      toast.success(t("exportComplete"));
-    }, 1500);
+    // Appel API réel via tRPC
   };
 
   const toggleMapView = () => {

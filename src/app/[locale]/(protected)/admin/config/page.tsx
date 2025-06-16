@@ -32,78 +32,67 @@ export default function ConfigPage() {
   const [hasChanges, setHasChanges] = useState(false);
 
   // États pour les différentes configurations
-  const [generalConfig, setGeneralConfig] = useState({
-    siteName: "EcoDeli",
+  const [generalConfig, setGeneralConfig] = useState({ siteName: "EcoDeli",
     siteDescription: "Plateforme de livraison collaborative écologique",
     maintenanceMode: false,
     registrationEnabled: true,
     maxFileUploadSize: "10", // MB
     defaultLanguage: "fr",
     timezone: "Europe/Paris"
-  });
+   });
 
-  const [emailConfig, setEmailConfig] = useState({
-    smtpHost: "smtp.gmail.com",
+  const [emailConfig, setEmailConfig] = useState({ smtpHost: "smtp.gmail.com",
     smtpPort: "587",
     smtpUser: "",
     smtpPassword: "",
     fromEmail: "noreply@ecodeli.fr",
     fromName: "EcoDeli",
     emailVerificationRequired: true
-  });
+   });
 
-  const [paymentConfig, setPaymentConfig] = useState({
-    stripePublishableKey: "",
+  const [paymentConfig, setPaymentConfig] = useState({ stripePublishableKey: "",
     stripeSecretKey: "",
     commissionRate: "15", // %
     minimumAmount: "5", // €
     autoPayoutEnabled: false,
     payoutDelay: "7" // jours
-  });
+   });
 
-  const [securityConfig, setSecurityConfig] = useState({
-    twoFactorRequired: false,
+  const [securityConfig, setSecurityConfig] = useState({ twoFactorRequired: false,
     sessionTimeout: "24", // heures
     maxLoginAttempts: "5",
     passwordMinLength: "8",
     requireEmailVerification: true,
     enableCaptcha: true
-  });
+   });
 
-  const [notificationConfig, setNotificationConfig] = useState({
-    pushNotificationsEnabled: true,
+  const [notificationConfig, setNotificationConfig] = useState({ pushNotificationsEnabled: true,
     emailNotificationsEnabled: true,
     smsNotificationsEnabled: false,
     adminAlerts: true,
     userWelcomeEmail: true,
     orderConfirmationEmail: true
-  });
+   });
 
   const handleSave = async () => {
     try {
       // Ici on sauvegarderait les configurations via l'API
-      // await api.admin.updateConfig.mutate({ ... });
+      // await api.admin.updateConfig.mutate({ ...  });
       
-      toast({
-        title: "Configuration sauvegardée",
-        description: "Les paramètres ont été mis à jour avec succès",
-      });
+      toast({ title: "Configuration sauvegardée",
+        description: "Les paramètres ont été mis à jour avec succès" });
       setHasChanges(false);
     } catch (error) {
-      toast({
-        title: "Erreur",
+      toast({ title: "Erreur",
         description: "Impossible de sauvegarder la configuration",
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
   const handleReset = () => {
     // Reset aux valeurs par défaut
-    toast({
-      title: "Configuration réinitialisée",
-      description: "Les paramètres ont été remis aux valeurs par défaut",
-    });
+    toast({ title: "Configuration réinitialisée",
+      description: "Les paramètres ont été remis aux valeurs par défaut" });
     setHasChanges(false);
   };
 
@@ -171,7 +160,7 @@ export default function ConfigPage() {
                     id="siteName"
                     value={generalConfig.siteName}
                     onChange={(e) => {
-                      setGeneralConfig({...generalConfig, siteName: e.target.value});
+                      setGeneralConfig({ ...generalConfig, siteName: e.target.value });
                       setHasChanges(true);
                     }}
                   />
@@ -179,7 +168,7 @@ export default function ConfigPage() {
                 <div className="space-y-2">
                   <Label htmlFor="defaultLanguage">Langue par défaut</Label>
                   <Select value={generalConfig.defaultLanguage} onValueChange={(value) => {
-                    setGeneralConfig({...generalConfig, defaultLanguage: value});
+                    setGeneralConfig({ ...generalConfig, defaultLanguage: value });
                     setHasChanges(true);
                   }}>
                     <SelectTrigger>
@@ -199,7 +188,7 @@ export default function ConfigPage() {
                   id="siteDescription"
                   value={generalConfig.siteDescription}
                   onChange={(e) => {
-                    setGeneralConfig({...generalConfig, siteDescription: e.target.value});
+                    setGeneralConfig({ ...generalConfig, siteDescription: e.target.value });
                     setHasChanges(true);
                   }}
                   rows={3}
@@ -219,7 +208,7 @@ export default function ConfigPage() {
                   <Switch
                     checked={generalConfig.maintenanceMode}
                     onCheckedChange={(checked) => {
-                      setGeneralConfig({...generalConfig, maintenanceMode: checked});
+                      setGeneralConfig({ ...generalConfig, maintenanceMode: checked });
                       setHasChanges(true);
                     }}
                   />
@@ -235,7 +224,7 @@ export default function ConfigPage() {
                   <Switch
                     checked={generalConfig.registrationEnabled}
                     onCheckedChange={(checked) => {
-                      setGeneralConfig({...generalConfig, registrationEnabled: checked});
+                      setGeneralConfig({ ...generalConfig, registrationEnabled: checked });
                       setHasChanges(true);
                     }}
                   />
@@ -258,7 +247,7 @@ export default function ConfigPage() {
                     id="smtpHost"
                     value={emailConfig.smtpHost}
                     onChange={(e) => {
-                      setEmailConfig({...emailConfig, smtpHost: e.target.value});
+                      setEmailConfig({ ...emailConfig, smtpHost: e.target.value });
                       setHasChanges(true);
                     }}
                   />
@@ -269,7 +258,7 @@ export default function ConfigPage() {
                     id="smtpPort"
                     value={emailConfig.smtpPort}
                     onChange={(e) => {
-                      setEmailConfig({...emailConfig, smtpPort: e.target.value});
+                      setEmailConfig({ ...emailConfig, smtpPort: e.target.value });
                       setHasChanges(true);
                     }}
                   />
@@ -281,7 +270,7 @@ export default function ConfigPage() {
                     type="email"
                     value={emailConfig.fromEmail}
                     onChange={(e) => {
-                      setEmailConfig({...emailConfig, fromEmail: e.target.value});
+                      setEmailConfig({ ...emailConfig, fromEmail: e.target.value });
                       setHasChanges(true);
                     }}
                   />
@@ -292,7 +281,7 @@ export default function ConfigPage() {
                     id="fromName"
                     value={emailConfig.fromName}
                     onChange={(e) => {
-                      setEmailConfig({...emailConfig, fromName: e.target.value});
+                      setEmailConfig({ ...emailConfig, fromName: e.target.value });
                       setHasChanges(true);
                     }}
                   />
@@ -309,7 +298,7 @@ export default function ConfigPage() {
                 <Switch
                   checked={emailConfig.emailVerificationRequired}
                   onCheckedChange={(checked) => {
-                    setEmailConfig({...emailConfig, emailVerificationRequired: checked});
+                    setEmailConfig({ ...emailConfig, emailVerificationRequired: checked });
                     setHasChanges(true);
                   }}
                 />
@@ -338,7 +327,7 @@ export default function ConfigPage() {
                     type="number"
                     value={paymentConfig.commissionRate}
                     onChange={(e) => {
-                      setPaymentConfig({...paymentConfig, commissionRate: e.target.value});
+                      setPaymentConfig({ ...paymentConfig, commissionRate: e.target.value });
                       setHasChanges(true);
                     }}
                   />
@@ -350,7 +339,7 @@ export default function ConfigPage() {
                     type="number"
                     value={paymentConfig.minimumAmount}
                     onChange={(e) => {
-                      setPaymentConfig({...paymentConfig, minimumAmount: e.target.value});
+                      setPaymentConfig({ ...paymentConfig, minimumAmount: e.target.value });
                       setHasChanges(true);
                     }}
                   />
@@ -367,7 +356,7 @@ export default function ConfigPage() {
                 <Switch
                   checked={paymentConfig.autoPayoutEnabled}
                   onCheckedChange={(checked) => {
-                    setPaymentConfig({...paymentConfig, autoPayoutEnabled: checked});
+                    setPaymentConfig({ ...paymentConfig, autoPayoutEnabled: checked });
                     setHasChanges(true);
                   }}
                 />
@@ -390,7 +379,7 @@ export default function ConfigPage() {
                     type="number"
                     value={securityConfig.sessionTimeout}
                     onChange={(e) => {
-                      setSecurityConfig({...securityConfig, sessionTimeout: e.target.value});
+                      setSecurityConfig({ ...securityConfig, sessionTimeout: e.target.value });
                       setHasChanges(true);
                     }}
                   />
@@ -402,7 +391,7 @@ export default function ConfigPage() {
                     type="number"
                     value={securityConfig.maxLoginAttempts}
                     onChange={(e) => {
-                      setSecurityConfig({...securityConfig, maxLoginAttempts: e.target.value});
+                      setSecurityConfig({ ...securityConfig, maxLoginAttempts: e.target.value });
                       setHasChanges(true);
                     }}
                   />
@@ -420,7 +409,7 @@ export default function ConfigPage() {
                   <Switch
                     checked={securityConfig.twoFactorRequired}
                     onCheckedChange={(checked) => {
-                      setSecurityConfig({...securityConfig, twoFactorRequired: checked});
+                      setSecurityConfig({ ...securityConfig, twoFactorRequired: checked });
                       setHasChanges(true);
                     }}
                   />
@@ -436,7 +425,7 @@ export default function ConfigPage() {
                   <Switch
                     checked={securityConfig.enableCaptcha}
                     onCheckedChange={(checked) => {
-                      setSecurityConfig({...securityConfig, enableCaptcha: checked});
+                      setSecurityConfig({ ...securityConfig, enableCaptcha: checked });
                       setHasChanges(true);
                     }}
                   />
@@ -463,7 +452,7 @@ export default function ConfigPage() {
                   <Switch
                     checked={notificationConfig.pushNotificationsEnabled}
                     onCheckedChange={(checked) => {
-                      setNotificationConfig({...notificationConfig, pushNotificationsEnabled: checked});
+                      setNotificationConfig({ ...notificationConfig, pushNotificationsEnabled: checked });
                       setHasChanges(true);
                     }}
                   />
@@ -479,7 +468,7 @@ export default function ConfigPage() {
                   <Switch
                     checked={notificationConfig.emailNotificationsEnabled}
                     onCheckedChange={(checked) => {
-                      setNotificationConfig({...notificationConfig, emailNotificationsEnabled: checked});
+                      setNotificationConfig({ ...notificationConfig, emailNotificationsEnabled: checked });
                       setHasChanges(true);
                     }}
                   />
@@ -495,7 +484,7 @@ export default function ConfigPage() {
                   <Switch
                     checked={notificationConfig.userWelcomeEmail}
                     onCheckedChange={(checked) => {
-                      setNotificationConfig({...notificationConfig, userWelcomeEmail: checked});
+                      setNotificationConfig({ ...notificationConfig, userWelcomeEmail: checked });
                       setHasChanges(true);
                     }}
                   />
@@ -511,7 +500,7 @@ export default function ConfigPage() {
                   <Switch
                     checked={notificationConfig.adminAlerts}
                     onCheckedChange={(checked) => {
-                      setNotificationConfig({...notificationConfig, adminAlerts: checked});
+                      setNotificationConfig({ ...notificationConfig, adminAlerts: checked });
                       setHasChanges(true);
                     }}
                   />

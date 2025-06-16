@@ -5,8 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import {
   providerRegisterSchema,
-  ProviderRegisterSchemaType,
-} from "@/schemas/provider/provider-register.schema";
+  ProviderRegisterSchemaType} from "@/schemas/provider/provider-register.schema";
 import { UserRole } from "@/schemas/auth/register.schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +14,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -24,8 +22,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,22 +32,17 @@ export default function ProviderRegisterForm() {
   const t = useTranslations("auth.register");
   const { toast } = useToast();
 
-  const registerMutation = api.auth.register.useMutation({
-    onSuccess: () => {
+  const registerMutation = api.auth.register.useMutation({ onSuccess: () => {
       toast({
         title: t("success.title"),
-        description: t("success.provider"),
-      });
+        description: t("success.provider") });
       router.push("/login?registered=true&role=provider");
     },
     onError: (error) => {
-      toast({
-        title: t("error.title"),
+      toast({ title: t("error.title"),
         description: error.message || t("error.description"),
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const form = useForm<ProviderRegisterSchemaType>({
     resolver: zodResolver(providerRegisterSchema),
@@ -70,21 +62,17 @@ export default function ProviderRegisterForm() {
       experienceYears: "",
       certifications: "",
       availability: "",
-      role: UserRole.PROVIDER,
-    },
-  });
+      role: UserRole.PROVIDER}});
 
   async function onSubmit(data: ProviderRegisterSchemaType) {
     try {
-      await registerMutation.mutateAsync({
-        email: data.email,
+      await registerMutation.mutateAsync({ email: data.email,
         password: data.password,
         name: data.name,
         role: "PROVIDER",
         phone: data.phoneNumber,
         companyName: data.companyName,
-        address: data.address,
-      });
+        address: data.address });
     } catch (error) {
       // L'erreur est déjà gérée par onError
     }
@@ -99,7 +87,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="name"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.name")}</FormLabel>
                 <FormControl>
@@ -113,7 +101,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="email"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.email")}</FormLabel>
                 <FormControl>
@@ -131,7 +119,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="phoneNumber"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.phone")}</FormLabel>
                 <FormControl>
@@ -150,7 +138,7 @@ export default function ProviderRegisterForm() {
             <FormField
               control={form.control as any}
               name="password"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("fields.password")}</FormLabel>
                   <FormControl>
@@ -168,7 +156,7 @@ export default function ProviderRegisterForm() {
             <FormField
               control={form.control as any}
               name="confirmPassword"
-              render={({ field }) => (
+              render={({ field  }) => (
                 <FormItem>
                   <FormLabel>{t("fields.confirmPassword")}</FormLabel>
                   <FormControl>
@@ -193,7 +181,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="companyName"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.companyName")}</FormLabel>
                 <FormControl>
@@ -210,7 +198,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="address"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.address")}</FormLabel>
                 <FormControl>
@@ -224,7 +212,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="city"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.city")}</FormLabel>
                 <FormControl>
@@ -238,7 +226,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="postalCode"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.postalCode")}</FormLabel>
                 <FormControl>
@@ -255,7 +243,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="serviceType"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.serviceType")}</FormLabel>
                 <Select
@@ -285,7 +273,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="services"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.services")}</FormLabel>
                 <FormControl>
@@ -304,7 +292,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="description"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.description")}</FormLabel>
                 <FormControl>
@@ -322,7 +310,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="experienceYears"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.experienceYears")}</FormLabel>
                 <FormControl>
@@ -339,7 +327,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="certifications"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.certifications")}</FormLabel>
                 <FormControl>
@@ -356,7 +344,7 @@ export default function ProviderRegisterForm() {
           <FormField
             control={form.control as any}
             name="availability"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.availability")}</FormLabel>
                 <FormControl>

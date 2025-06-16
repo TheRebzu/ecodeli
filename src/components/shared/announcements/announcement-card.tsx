@@ -12,8 +12,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, Clock, Package, Truck, Heart } from "lucide-react";
 import { cn } from "@/lib/utils/common";
@@ -62,8 +61,7 @@ type AnnouncementCardProps = {
 /**
  * Carte d'annonce pour afficher une annonce dans une liste
  */
-export const AnnouncementCard: React.FC<AnnouncementCardProps> = ({
-  id,
+export const AnnouncementCard: React.FC<AnnouncementCardProps> = ({ id,
   title,
   description,
   type,
@@ -88,8 +86,7 @@ export const AnnouncementCard: React.FC<AnnouncementCardProps> = ({
   onCancel,
   onPayNow,
   onViewDetails,
-  className,
-}) => {
+  className }) => {
   const t = useTranslations("Announcements");
 
   // Déterminer le statut à afficher
@@ -97,17 +94,14 @@ export const AnnouncementCard: React.FC<AnnouncementCardProps> = ({
     const statusStyles: Record<string, string> = {
       DRAFT: "bg-gray-200 hover:bg-gray-300 text-gray-700",
       PENDING: "bg-gray-200 hover:bg-gray-300 text-gray-700",
-      PUBLISHED: "bg-blue-100 hover:bg-blue-200 text-blue-800",
-      IN_APPLICATION: "bg-purple-100 hover:bg-purple-200 text-purple-800",
-      ASSIGNED: "bg-indigo-100 hover:bg-indigo-200 text-indigo-800",
-      IN_PROGRESS: "bg-amber-100 hover:bg-amber-200 text-amber-800",
+      PUBLISHED: "bg-blue-100 hover:bg-blue-200 text-blue-800", IN_APPLICATION: "bg-purple-100 hover:bg-purple-200 text-purple-800",
+      ASSIGNED: "bg-indigo-100 hover:bg-indigo-200 text-indigo-800", IN_PROGRESS: "bg-amber-100 hover:bg-amber-200 text-amber-800",
       DELIVERED: "bg-green-100 hover:bg-green-200 text-green-800",
       COMPLETED: "bg-emerald-100 hover:bg-emerald-200 text-emerald-800",
       CANCELLED: "bg-red-100 hover:bg-red-200 text-red-800",
       PAID: "bg-green-100 hover:bg-green-200 text-green-800",
       PROBLEM: "bg-red-100 hover:bg-red-200 text-red-800",
-      DISPUTE: "bg-red-100 hover:bg-red-200 text-red-800",
-    };
+      DISPUTE: "bg-red-100 hover:bg-red-200 text-red-800"};
 
     return (
       <Badge
@@ -202,15 +196,13 @@ export const AnnouncementCard: React.FC<AnnouncementCardProps> = ({
   // Formatage du prix
   const formattedPrice = new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "EUR",
-  }).format(price);
+    currency: "EUR"}).format(price);
 
   // Formatage des dates relatives
   const getRelativeDate = (date: Date) => {
     return formatDistance(date, new Date(), {
       addSuffix: true,
-      locale: fr,
-    });
+      locale: fr});
   };
 
   return (

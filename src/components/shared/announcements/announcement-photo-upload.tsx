@@ -11,8 +11,7 @@ import {
   X,
   Image as ImageIcon,
   AlertTriangle,
-  Eye,
-} from "lucide-react";
+  Eye} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/common";
 
@@ -41,8 +40,7 @@ export function AnnouncementPhotoUpload({
   maxPhotos = 5,
   maxFileSize = 5,
   disabled = false,
-  className,
-}: AnnouncementPhotoUploadProps) {
+  className}: AnnouncementPhotoUploadProps) {
   const [photoFiles, setPhotoFiles] = useState<PhotoFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,13 +76,11 @@ export function AnnouncementPhotoUpload({
       const id = Date.now().toString() + index;
       const preview = URL.createObjectURL(file);
 
-      newFiles.push({
-        id,
+      newFiles.push({ id,
         file,
         preview,
         isUploading: false,
-        isUploaded: false,
-      });
+        isUploaded: false });
     });
 
     if (newFiles.length > 0) {
@@ -106,7 +102,6 @@ export function AnnouncementPhotoUpload({
       ),
     );
 
-    // Simulation de l'upload avec progression
     const intervals = [10, 25, 50, 75, 90, 100];
     for (const progress of intervals) {
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -187,8 +182,7 @@ export function AnnouncementPhotoUpload({
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
+        video: { facingMode: "environment" }});
 
       // Ici on pourrait ouvrir un modal avec le flux vidéo
       // Pour simplifier, on ouvre juste le sélecteur de fichier
@@ -208,7 +202,7 @@ export function AnnouncementPhotoUpload({
   // Prévisualiser une photo
   const previewPhoto = (photoFile: PhotoFile) => {
     // Ici on pourrait ouvrir un modal avec l'image en grand
-    window.open(photoFile.preview, "_blank");
+    window.open(photoFile.preview, "blank");
   };
 
   const hasPhotos = photoFiles.length > 0;

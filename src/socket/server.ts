@@ -32,11 +32,10 @@ export async function initializeSocketServer(httpServer: any) {
       // Stocker les informations utilisateur dans le socket
       socket.user = {
         id: session.user.id,
-        role: session.user.role,
-      };
+        role: session.user.role};
 
       next();
-    } catch (_error) {
+    } catch (error) {
       next(new Error("Authentication error"));
     }
   });
@@ -49,10 +48,10 @@ export async function initializeSocketServer(httpServer: any) {
     setupUserRooms(socket);
 
     // Configuration des événements de livraison
-    const deliveryTracking = require("./delivery-tracking");
-    if (deliveryTracking) {
-      deliveryTracking(io, socket);
-    }
+    // const deliveryTracking = require("./delivery-tracking");
+    // if (deliveryTracking) {
+    //   deliveryTracking(io, socket);
+    // }
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.user.id}`);
@@ -72,7 +71,7 @@ export function getSocketServer(): Server | null {
 
 // Configurer les chambres selon le rôle de l'utilisateur
 function setupUserRooms(socket: any) {
-  const { id: _id, role: _role } = socket.user;
+  const { id: id, role: role } = socket.user;
 
   // Chambre personnelle
   socket.join(`user:${id}`);

@@ -25,8 +25,7 @@ export function PageHeader({
   description,
   breadcrumb,
   actions,
-  className,
-}: PageHeaderProps) {
+  className}: PageHeaderProps) {
   return (
     <div
       className={cn(
@@ -84,8 +83,7 @@ export function PageHeader({
 export function DashboardHeader({
   title,
   description,
-  children,
-}: {
+  children}: {
   title: string;
   description?: string;
   children?: React.ReactNode;

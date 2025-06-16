@@ -9,7 +9,7 @@ export function getBaseUrl() {
   if (typeof window !== "undefined") {
     return "";
   }
-  if (process.env.VERCEL_URL) {
+  if (process.env.VERCELURL) {
     return `https://${process.env.VERCEL_URL}`;
   }
   return "http://localhost:3000";
@@ -21,17 +21,12 @@ const links = [
     url: `${getBaseUrl()}/api/trpc`,
     headers: () => {
       return {
-        "Content-Type": "application/json",
-      };
+        "Content-Type": "application/json"};
     },
-    transformer: superjson,
-  }),
-];
+    transformer: superjson})];
 
 // Créer le client React
 export const api = createTRPCReact<AppRouter>();
 
 // Créer un client direct pour les appels en dehors de React
-export const trpcDirect = createTRPCProxyClient<AppRouter>({
-  links,
-});
+export const trpcDirect = createTRPCProxyClient<AppRouter>({ links });

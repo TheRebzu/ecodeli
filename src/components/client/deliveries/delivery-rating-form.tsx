@@ -8,8 +8,7 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ButtonWithLoading } from "@/app/[locale]/(public)/loading";
 import { Label } from "@/components/ui/label";
@@ -28,12 +27,10 @@ import {
   Clock,
   ImagePlus,
   Upload,
-  Trash2,
-} from "lucide-react";
+  Trash2} from "lucide-react";
 
 // Schéma de validation
-const ratingSchema = z.object({
-  rating: z.number().min(1, "Veuillez donner une note").max(5),
+const ratingSchema = z.object({ rating: z.number().min(1, "Veuillez donner une note").max(5),
   comment: z
     .string()
     .max(500, "Le commentaire ne peut pas dépasser 500 caractères")
@@ -41,8 +38,7 @@ const ratingSchema = z.object({
   photoUrls: z
     .array(z.string().url())
     .max(3, "Vous ne pouvez pas télécharger plus de 3 photos")
-    .optional(),
-});
+    .optional() });
 
 type RatingFormValues = z.infer<typeof ratingSchema>;
 
@@ -68,8 +64,7 @@ export default function DeliveryRatingForm({
   onSubmit,
   onCancel,
   className = "",
-  deadline,
-}: DeliveryRatingFormProps) {
+  deadline}: DeliveryRatingFormProps) {
   const t = useTranslations("deliveries.rating");
   const [showSuccess, setShowSuccess] = useState(false);
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -85,9 +80,7 @@ export default function DeliveryRatingForm({
     defaultValues: {
       rating: existingRating?.rating || 0,
       comment: existingRating?.comment || "",
-      photoUrls: existingRating?.photoUrls || [],
-    },
-  });
+      photoUrls: existingRating?.photoUrls || []}});
 
   const { handleSubmit, formState, setValue, watch } = form;
   const { errors, isSubmitting } = formState;
@@ -130,7 +123,7 @@ export default function DeliveryRatingForm({
       if (diffDays > 0) {
         setRemainingTime(t("timeLeft", { days: diffDays, hours: diffHours }));
       } else {
-        setRemainingTime(t("timeLeftHours", { hours: diffHours }));
+        setRemainingTime(t("timeLeftHours", { hours }));
       }
     };
 
@@ -153,8 +146,7 @@ export default function DeliveryRatingForm({
 
       const response = await fetch("/api/upload", {
         method: "POST",
-        body: formData,
-      });
+        body: formData});
 
       if (!response.ok) {
         throw new Error("Erreur lors du téléchargement de la photo");
@@ -187,8 +179,7 @@ export default function DeliveryRatingForm({
       // Assurez-vous que photoUrls est bien envoyé
       const formData = {
         ...data,
-        photoUrls: photos,
-      };
+        photoUrls: photos};
 
       const success = await onSubmit(formData);
       if (success) {
@@ -200,7 +191,7 @@ export default function DeliveryRatingForm({
   };
 
   // Composant d'étoile pour la notation
-  const RatingStar = ({ value }: { value: number }) => (
+  const RatingStar = ({ value }: { value }) => (
     <button
       type="button"
       onClick={() => setValue("rating", value)}
@@ -275,7 +266,7 @@ export default function DeliveryRatingForm({
         <CardTitle>{existingRating ? t("editTitle") : t("title")}</CardTitle>
         <CardDescription>
           {delivererName
-            ? t("descriptionWithName", { name: delivererName })
+            ? t("descriptionWithName", { name })
             : existingRating
               ? t("editDescription")
               : t("description")}
@@ -323,7 +314,7 @@ export default function DeliveryRatingForm({
             )}
             <p className="text-sm text-center text-muted-foreground">
               {currentRating
-                ? t("ratingDescription", { rating: currentRating })
+                ? t("ratingDescription", { rating })
                 : t("selectRating")}
             </p>
           </div>

@@ -3,8 +3,7 @@ import {
   protectedProcedure,
   clientProcedure,
   adminProcedure,
-  type Context,
-} from "@/server/api/trpc";
+  type Context} from "@/server/api/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import type { User, Client } from "@prisma/client";
@@ -39,22 +38,16 @@ interface InvoiceWithRelations {
   deliveryId: string | null;
 }
 
-export const clientRouter = router({
-  getProfile: protectedProcedure.query(async ({ _ctx }) => {
+export const clientRouter = router({ getProfile: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: {
-        client: true,
-      },
-    });
+      where: { id },
+      include: { client }});
 
     if (!user || !user.client) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Profil client non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Profil client non trouvé" });
     }
 
     return {
@@ -66,64 +59,54 @@ export const clientRouter = router({
       postalCode: user.client.postalCode,
       country: user.client.country,
       phoneNumber: user.phoneNumber,
-      createdAt: user.createdAt,
-    };
+      createdAt: user.createdAt};
   }),
 
   updateProfile: protectedProcedure
     .input(
-      z.object({
-        name: z.string().optional(),
+      z.object({ name: z.string().optional(),
         address: z.string().optional(),
         city: z.string().optional(),
         postalCode: z.string().optional(),
         country: z.string().optional(),
-        phoneNumber: z.string().optional(),
-      }),
+        phoneNumber: z.string().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un client
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
-      });
+        where: { id },
+        include: { client }});
 
       if (!user || !user.client) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à mettre à jour ce profil",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à mettre à jour ce profil" });
       }
 
       // Mise à jour des données utilisateur
-      const { name: _name, phoneNumber: _phoneNumber, ...clientData } = input;
+      const { name: name, phoneNumber: phoneNumber, ...clientData } = input;
 
       // Mise à jour des données utilisateur
       if (name || phoneNumber) {
         await ctx.db.user.update({
-          where: { id: userId },
+          where: { id },
           data: {
             name: name || undefined,
-            phoneNumber: phoneNumber || undefined,
-          },
-        });
+            phoneNumber: phoneNumber || undefined}});
       }
 
       // Mise à jour des données client
       if (Object.keys(clientData).length > 0) {
         await ctx.db.client.update({
           where: { userId },
-          data: clientData,
-        });
+          data: clientData});
       }
 
       // Récupération des données mises à jour
       const updatedUser = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
-      });
+        where: { id },
+        include: { client }});
 
       return {
         id: updatedUser?.id,
@@ -134,56 +117,43 @@ export const clientRouter = router({
         postalCode: updatedUser?.client?.postalCode,
         country: updatedUser?.client?.country,
         phoneNumber: updatedUser?.phoneNumber,
-        updated: true,
-      };
+        updated: true};
     }),
 
-  getDeliveries: protectedProcedure.query(async ({ _ctx }) => {
+  getDeliveries: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier si l'utilisateur est un client
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { client: true },
-    });
+      where: { id },
+      include: { client }});
 
     if (!user || !user.client) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à accéder à ces données",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à accéder à ces données" });
     }
 
     // Récupérer les livraisons avec les relations nécessaires
     const deliveries = await ctx.db.delivery.findMany({
       where: {
-        clientId: user.client.id,
-      },
+        clientId: user.client.id},
       include: {
         deliverer: {
           select: {
             id: true,
             name: true,
-            image: true,
-          },
-        },
+            image: true}},
         announcement: {
           select: {
             pickupAddress: true,
             deliveryAddress: true,
             pickupDate: true,
-            deliveryDate: true,
-          },
-        },
-      },
+            deliveryDate: true}}},
       orderBy: {
-        createdAt: "desc",
-      },
-    });
+        createdAt: "desc"}});
 
     // Transformer les données pour le client
-    return deliveries.map((delivery) => ({
-      id: delivery.id,
+    return deliveries.map((delivery) => ({ id: delivery.id,
       clientId: delivery.clientId,
       status: delivery.status,
       merchantName: "Inconnu", // Valeur par défaut si merchant n'est pas disponible
@@ -194,24 +164,20 @@ export const clientRouter = router({
       deliveredAt:
         delivery.status === "DELIVERED"
           ? delivery.updatedAt.toISOString()
-          : undefined,
-    }));
+          : undefined }));
   }),
 
-  getInvoices: protectedProcedure.query(async ({ _ctx }) => {
+  getInvoices: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     // Vérifier si l'utilisateur est un client
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { client: true },
-    });
+      where: { id },
+      include: { client }});
 
     if (!user || !user.client) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Vous n'êtes pas autorisé à accéder à ces données",
-      });
+      throw new TRPCError({ code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à accéder à ces données" });
     }
 
     // Récupérer les factures
@@ -220,68 +186,54 @@ export const clientRouter = router({
         userId: userId, // Utiliser userId au lieu de clientId
       },
       orderBy: {
-        createdAt: "desc",
-      },
-    });
+        createdAt: "desc"}});
 
     // Transformer les données pour le client
-    return invoices.map((invoice) => ({
-      id: invoice.id,
+    return invoices.map((invoice) => ({ id: invoice.id,
       clientId: user.client?.id || "", // Utiliser l'opérateur de coalescence nullish
       amount: invoice.amount,
       status: invoice.status,
       date: invoice.createdAt.toISOString(),
       deliveryId: null, // Pas disponible dans le modèle actuel
-    }));
+     }));
   }),
 
   bookService: protectedProcedure
     .input(
-      z.object({
-        serviceId: z.string(),
+      z.object({ serviceId: z.string(),
         providerId: z.string(),
         date: z.string(),
-        notes: z.string().optional(),
-      }),
+        notes: z.string().optional() }),
     )
-    .mutation(async ({ _ctx, input: _input }) => {
+    .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un client
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
-      });
+        where: { id },
+        include: { client }});
 
       if (!user || !user.client) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à réserver un service",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à réserver un service" });
       }
 
       // Vérifier si le service existe
       const service = await ctx.db.service.findUnique({
-        where: { id: input.serviceId },
-      });
+        where: { id: input.serviceId }});
 
       if (!service) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Service non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Service non trouvé" });
       }
 
       // Vérifier si le prestataire existe
       const provider = await ctx.db.user.findUnique({
-        where: { id: input.providerId },
-      });
+        where: { id: input.providerId }});
 
       if (!provider) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Prestataire non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Prestataire non trouvé" });
       }
 
       // Créer la réservation de service
@@ -295,9 +247,7 @@ export const clientRouter = router({
           endTime: new Date(date.getTime() + 60 * 60 * 1000), // +1 heure par défaut
           status: "PENDING",
           totalPrice: service.price,
-          notes: input.notes,
-        },
-      });
+          notes: input.notes}});
 
       return {
         id: booking.id,
@@ -308,25 +258,21 @@ export const clientRouter = router({
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
         notes: booking.notes,
-        createdAt: booking.createdAt.toISOString(),
-      };
+        createdAt: booking.createdAt.toISOString()};
     }),
 
   // Nouvelle procédure pour récupérer les statistiques du dashboard client
-  getDashboardStats: clientProcedure.query(async ({ _ctx }) => {
+  getDashboardStats: clientProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     // Récupérer l'utilisateur client avec le contexte tRPC
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { client: true },
-    });
+      where: { id },
+      include: { client }});
 
     if (!user || !user.client) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Profil client non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Profil client non trouvé" });
     }
 
     const clientId = user.client.id;
@@ -337,48 +283,38 @@ export const clientRouter = router({
       activeDeliveries,
       completedDeliveries,
       bookedServices,
-      unpaidInvoices,
-    ] = await Promise.all([
-      _ctx.db.delivery.count({ where: { clientId } }),
+      unpaidInvoices] = await Promise.all([
+      ctx.db.delivery.count({ where: { clientId } }),
       ctx.db.delivery.count({
         where: {
           clientId,
-          status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] },
-        },
-      }),
+          status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] }}}),
       ctx.db.delivery.count({
-        where: { clientId, status: "DELIVERED" },
-      }),
+        where: { clientId, status: "DELIVERED" }}),
       ctx.db.serviceBooking.count({ where: { clientId } }),
       ctx.db.invoice.count({
-        where: { userId, status: "OVERDUE" },
-      }),
-    ]);
+        where: { userId, status: "OVERDUE" }})]);
 
     return {
       totalDeliveries,
       activeDeliveries,
       completedDeliveries,
       bookedServices,
-      unpaidInvoices,
-    };
+      unpaidInvoices};
   }),
 
   // Procédure pour récupérer l'activité récente du client
-  getRecentActivity: clientProcedure.query(async ({ _ctx }) => {
+  getRecentActivity: clientProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     // Récupérer l'utilisateur client avec le contexte tRPC
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { client: true },
-    });
+      where: { id },
+      include: { client }});
 
     if (!user || !user.client) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Profil client non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Profil client non trouvé" });
     }
 
     const clientId = user.client.id;
@@ -386,33 +322,27 @@ export const clientRouter = router({
     // Activité récente simplifiée
     const [recentDeliveries, recentServices, recentInvoices] =
       await Promise.all([
-        _ctx.db.delivery.findMany({
+        ctx.db.delivery.findMany({
           where: { clientId },
           orderBy: { createdAt: "desc" },
-          take: 5,
-        }),
+          take: 5}),
         ctx.db.serviceBooking.findMany({
           where: { clientId },
           orderBy: { createdAt: "desc" },
           take: 5,
-          include: { service: true },
-        }),
+          include: { service }}),
         ctx.db.invoice.findMany({
           where: { userId },
           orderBy: { createdAt: "desc" },
-          take: 5,
-        }),
-      ]);
+          take: 5})]);
 
     // Combiner et trier toutes les activités par date
     const allActivities = [
-      ...recentDeliveries.map((delivery) => ({
-        type: "DELIVERY",
+      ...recentDeliveries.map((delivery) => ({ type: "DELIVERY",
         id: delivery.id,
         status: delivery.status,
         date: delivery.createdAt,
-        data: delivery,
-      })),
+        data: delivery })),
       ...recentServices.map((booking) => ({
         type: "SERVICE",
         id: booking.id,
@@ -420,17 +350,12 @@ export const clientRouter = router({
         date: booking.createdAt,
         data: {
           ...booking,
-          serviceName: booking.service.name,
-        },
-      })),
-      ...recentInvoices.map((invoice) => ({
-        type: "INVOICE",
+          serviceName: booking.service.name}})),
+      ...recentInvoices.map((invoice) => ({ type: "INVOICE",
         id: invoice.id,
         status: invoice.status,
         date: invoice.createdAt,
-        data: invoice,
-      })),
-    ]
+        data: invoice }))]
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .slice(0, 10);
 
@@ -438,19 +363,16 @@ export const clientRouter = router({
   }),
 
   // Procédure pour récupérer les métriques financières du client
-  getFinancialMetrics: clientProcedure.query(async ({ _ctx }) => {
+  getFinancialMetrics: clientProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     // Métriques financières simplifiées
     const [totalSpent, unpaidInvoices] = await Promise.all([
-      _ctx.db.payment.aggregate({
+      ctx.db.payment.aggregate({
         where: { userId, status: "COMPLETED" },
-        _sum: { amount: true },
-      }),
+        sum: { amount }}),
       ctx.db.invoice.findMany({
-        where: { userId, status: "OVERDUE" },
-      }),
-    ]);
+        where: { userId, status: "OVERDUE" }})]);
 
     const unpaidAmount = unpaidInvoices.reduce(
       (sum, invoice) => sum + invoice.amount.toNumber(),
@@ -458,27 +380,23 @@ export const clientRouter = router({
     );
 
     return {
-      totalSpent: totalSpent._sum.amount?.toNumber() || 0,
+      totalSpent: totalSpent.sum.amount?.toNumber() || 0,
       unpaidAmount,
-      unpaidInvoicesCount: unpaidInvoices.length,
-    };
+      unpaidInvoicesCount: unpaidInvoices.length};
   }),
 
   // Procédure pour récupérer les éléments actifs du client
-  getActiveItems: clientProcedure.query(async ({ _ctx }) => {
+  getActiveItems: clientProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     // Récupérer l'utilisateur client avec le contexte tRPC
     const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { client: true },
-    });
+      where: { id },
+      include: { client }});
 
     if (!user || !user.client) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Profil client non trouvé",
-      });
+      throw new TRPCError({ code: "NOT_FOUND",
+        message: "Profil client non trouvé" });
     }
 
     const clientId = user.client.id;
@@ -486,67 +404,53 @@ export const clientRouter = router({
     // Éléments actifs
     const [activeDeliveries, upcomingServices, pendingPayments] =
       await Promise.all([
-        _ctx.db.delivery.findMany({
+        ctx.db.delivery.findMany({
           where: {
             clientId,
-            status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] },
-          },
+            status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] }},
           include: {
-            deliverer: { select: { name: true, image: true } },
-          },
+            deliverer: { select: { name: true, image: true } }},
           orderBy: { updatedAt: "desc" },
-          take: 5,
-        }),
+          take: 5}),
         ctx.db.serviceBooking.findMany({
           where: {
             clientId,
             status: "CONFIRMED",
-            startTime: { gte: new Date() },
-          },
+            startTime: { gte: new Date() }},
           include: {
             service: true,
-            provider: { select: { name: true, image: true } },
-          },
+            provider: { select: { name: true, image: true } }},
           orderBy: { startTime: "asc" },
-          take: 5,
-        }),
+          take: 5}),
         ctx.db.invoice.findMany({
           where: { userId, status: "ISSUED" },
           orderBy: { dueDate: "asc" },
-          take: 5,
-        }),
-      ]);
+          take: 5})]);
 
     return {
       activeDeliveries,
       upcomingServices,
-      pendingPayments,
-    };
+      pendingPayments};
   }),
 
   // Procédure pour récupérer les réservations de service d'un client
   getMyClientBookings: protectedProcedure
     .input(
       z
-        .object({
-          status: z.string().optional(),
-        })
+        .object({ status: z.string().optional() })
         .optional(),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un client
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
-      });
+        where: { id },
+        include: { client }});
 
       if (!user || !user.client) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à accéder à ces données",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à accéder à ces données" });
       }
 
       const status = input?.status;
@@ -557,24 +461,19 @@ export const clientRouter = router({
   // Procédure pour récupérer les détails d'une réservation
   getBookingById: protectedProcedure
     .input(
-      z.object({
-        id: z.string().cuid(),
-      }),
+      z.object({ id: z.string().cuid() }),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 
       // Vérifier si l'utilisateur est un client
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
-      });
+        where: { id },
+        include: { client }});
 
       if (!user || !user.client) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à accéder à ces données",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à accéder à ces données" });
       }
 
       const booking = await ctx.db.serviceBooking.findUnique({
@@ -585,26 +484,18 @@ export const clientRouter = router({
             select: {
               id: true,
               name: true,
-              image: true,
-            },
-          },
-          review: true,
-        },
-      });
+              image: true}},
+          review: true}});
 
       if (!booking) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Réservation non trouvée",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Réservation non trouvée" });
       }
 
       // Vérifier que la réservation appartient au client
       if (booking.clientId !== user.client.id) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à accéder à cette réservation",
-        });
+        throw new TRPCError({ code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à accéder à cette réservation" });
       }
 
       return booking;
@@ -618,8 +509,7 @@ export const clientRouter = router({
   getAllClients: adminProcedure
     .input(
       z
-        .object({
-          page: z.number().min(1).default(1),
+        .object({ page: z.number().min(1).default(1),
           limit: z.number().min(1).max(100).default(10),
           search: z.string().optional(),
           status: z
@@ -628,25 +518,22 @@ export const clientRouter = router({
           sortBy: z
             .enum(["name", "email", "createdAt", "lastLoginAt"])
             .default("createdAt"),
-          sortDirection: z.enum(["asc", "desc"]).default("desc"),
-        })
+          sortDirection: z.enum(["asc", "desc"]).default("desc") })
         .optional()
         .default({}),
     )
-    .query(async ({ _ctx, input: _input }) => {
+    .query(async ({ ctx, input: input  }) => {
       const {
         page = 1,
         limit = 10,
         search,
         status,
         sortBy = "createdAt",
-        sortDirection = "desc",
-      } = input || {};
+        sortDirection = "desc"} = input || {};
 
       // Construire les conditions de filtrage
       const where: any = {
-        role: "CLIENT",
-      };
+        role: "CLIENT"};
 
       if (status) {
         where.status = status;
@@ -656,8 +543,7 @@ export const clientRouter = router({
         where.OR = [
           { name: { contains: search, mode: "insensitive" } },
           { email: { contains: search, mode: "insensitive" } },
-          { client: { city: { contains: search, mode: "insensitive" } } },
-        ];
+          { client: { city: { contains: search, mode: "insensitive" } } }];
       }
 
       // Calculer offset pour pagination
@@ -665,23 +551,18 @@ export const clientRouter = router({
 
       // Requête pour récupérer les clients avec pagination
       const [clients, totalCount] = await Promise.all([
-        _ctx.db.user.findMany({
+        ctx.db.user.findMany({
           where,
           include: {
             client: true,
-            _count: {
+            count: {
               select: {
                 clientAnnouncements: true,
-                documents: true,
-              },
-            },
-          },
+                documents: true}}},
           orderBy: { [sortBy]: sortDirection },
           skip: offset,
-          take: limit,
-        }),
-        ctx.db.user.count({ where }),
-      ]);
+          take: limit}),
+        ctx.db.user.count({ where  })]);
 
       // Calculer statistiques pour chaque client
       const clientsWithStats = await Promise.all(
@@ -690,19 +571,15 @@ export const clientRouter = router({
 
           // Récupérer les statistiques du client
           const [totalOrders, totalSpent, lastOrderDate] = await Promise.all([
-            _ctx.db.announcement.count({
-              where: { clientId: client.client.id },
-            }),
+            ctx.db.announcement.count({
+              where: { clientId: client.client.id }}),
             ctx.db.payment.aggregate({
               where: { userId: client.id, status: "COMPLETED" },
-              _sum: { amount: true },
-            }),
+              sum: { amount }}),
             ctx.db.announcement.findFirst({
               where: { clientId: client.client.id },
               orderBy: { createdAt: "desc" },
-              select: { createdAt: true },
-            }),
-          ]);
+              select: { createdAt }})]);
 
           return {
             id: client.id,
@@ -718,15 +595,12 @@ export const clientRouter = router({
               address: client.client.address,
               city: client.client.city,
               postalCode: client.client.postalCode,
-              country: client.client.country,
-            },
+              country: client.client.country},
             stats: {
               totalOrders,
-              totalSpent: totalSpent._sum.amount?.toNumber() || 0,
+              totalSpent: totalSpent.sum.amount?.toNumber() || 0,
               lastOrderDate: lastOrderDate?.createdAt,
-              documentsCount: client._count.documents,
-            },
-          };
+              documentsCount: client.count.documents}};
         }),
       );
 
@@ -743,15 +617,13 @@ export const clientRouter = router({
           total: totalCount,
           totalPages,
           hasNext: page < totalPages,
-          hasPrev: page > 1,
-        },
-      };
+          hasPrev: page > 1}};
     }),
 
   /**
    * Get client statistics for admin dashboard
    */
-  getClientStats: adminProcedure.query(async ({ _ctx }) => {
+  getClientStats: adminProcedure.query(async ({ ctx  }) => {
     const [
       totalClients,
       activeClients,
@@ -760,32 +632,24 @@ export const clientRouter = router({
       inactiveClients,
       newClientsThisMonth,
       totalRevenue,
-      averageOrderValue,
-    ] = await Promise.all([
-      _ctx.db.user.count({ where: { role: "CLIENT" } }),
+      averageOrderValue] = await Promise.all([
+      ctx.db.user.count({ where: { role: "CLIENT" } }),
       ctx.db.user.count({ where: { role: "CLIENT", status: "ACTIVE" } }),
       ctx.db.user.count({
-        where: { role: "CLIENT", status: "PENDING_VERIFICATION" },
-      }),
+        where: { role: "CLIENT", status: "PENDING_VERIFICATION" }}),
       ctx.db.user.count({ where: { role: "CLIENT", status: "SUSPENDED" } }),
       ctx.db.user.count({ where: { role: "CLIENT", status: "INACTIVE" } }),
       ctx.db.user.count({
         where: {
           role: "CLIENT",
           createdAt: {
-            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-          },
-        },
-      }),
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)}}}),
       ctx.db.payment.aggregate({
         where: { status: "COMPLETED" },
-        _sum: { amount: true },
-      }),
+        sum: { amount }}),
       ctx.db.payment.aggregate({
         where: { status: "COMPLETED" },
-        _avg: { amount: true },
-      }),
-    ]);
+        avg: { amount }})]);
 
     return {
       totalClients,
@@ -794,97 +658,72 @@ export const clientRouter = router({
       suspendedClients,
       inactiveClients,
       newClientsThisMonth,
-      totalRevenue: totalRevenue._sum.amount?.toNumber() || 0,
-      averageOrderValue: averageOrderValue._avg.amount?.toNumber() || 0,
-    };
+      totalRevenue: totalRevenue.sum.amount?.toNumber() || 0,
+      averageOrderValue: averageOrderValue.avg.amount?.toNumber() || 0};
   }),
 
   // Nouveaux endpoints pour le dashboard amélioré
-  services: router({
-    getUpcomingBookings: clientProcedure
+  services: router({ getUpcomingBookings: clientProcedure
       .input(
         z.object({
-          limit: z.number().min(1).max(20).default(5),
-        }),
+          limit: z.number().min(1).max(20).default(5) }),
       )
-      .query(async ({ _ctx, input: _input }) => {
+      .query(async ({ ctx, input: input  }) => {
         const userId = ctx.session.user.id;
         const user = await ctx.db.user.findUnique({
-          where: { id: userId },
-          include: { client: true },
-        });
+          where: { id },
+          include: { client }});
 
         if (!user?.client) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Client non trouvé",
-          });
+          throw new TRPCError({ code: "NOT_FOUND",
+            message: "Client non trouvé" });
         }
 
         return await ctx.db.serviceBooking.findMany({
           where: {
             clientId: user.client.id,
             startTime: { gte: new Date() },
-            status: { in: ["CONFIRMED", "PENDING"] },
-          },
+            status: { in: ["CONFIRMED", "PENDING"] }},
           include: {
             service: { select: { name: true, category: true } },
-            provider: { select: { name: true, image: true, rating: true } },
-          },
+            provider: { select: { name: true, image: true, rating: true } }},
           orderBy: { startTime: "asc" },
-          take: input.limit,
-        });
-      }),
-  }),
+          take: input.limit});
+      })}),
 
-  storage: router({
-    getActiveBoxes: clientProcedure.query(async ({ _ctx }) => {
+  storage: router({ getActiveBoxes: clientProcedure.query(async ({ ctx  }) => {
       const userId = ctx.session.user.id;
       const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
-      });
+        where: { id },
+        include: { client }});
 
       if (!user?.client) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Client non trouvé",
-        });
+        throw new TRPCError({ code: "NOT_FOUND",
+          message: "Client non trouvé" });
       }
 
       return await ctx.db.storageBoxReservation.findMany({
         where: {
           clientId: user.client.id,
           status: "ACTIVE",
-          endDate: { gte: new Date() },
-        },
+          endDate: { gte: new Date() }},
         include: {
           box: {
             include: {
-              warehouse: { select: { name: true, address: true } },
-            },
-          },
-        },
-        orderBy: { startDate: "desc" },
-      });
-    }),
-  }),
+              warehouse: { select: { name: true, address: true } }}}},
+        orderBy: { startDate: "desc" }});
+    })}),
 
-  invoices: router({
-    getRecent: clientProcedure
+  invoices: router({ getRecent: clientProcedure
       .input(
         z.object({
-          limit: z.number().min(1).max(20).default(5),
-        }),
+          limit: z.number().min(1).max(20).default(5) }),
       )
-      .query(async ({ _ctx, input: _input }) => {
+      .query(async ({ ctx, input: input  }) => {
         const userId = ctx.session.user.id;
 
         return await ctx.db.invoice.findMany({
           where: { userId },
           orderBy: { createdAt: "desc" },
-          take: input.limit,
-        });
-      }),
-  }),
-});
+          take: input.limit});
+      })})});

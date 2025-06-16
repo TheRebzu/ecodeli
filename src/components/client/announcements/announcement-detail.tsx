@@ -17,16 +17,14 @@ import {
   AlertTriangle,
   Eye,
   Star,
-  PackageOpen,
-} from "lucide-react";
+  PackageOpen} from "lucide-react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   AnnouncementStatus,
   UserRole,
-  type Announcement,
-} from "@prisma/client";
+  type Announcement} from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,23 +33,20 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   HoverCard,
   HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+  HoverCardTrigger} from "@/components/ui/hover-card";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -112,8 +107,7 @@ export function AnnouncementDetail({
   onPayNow,
   onChatWith,
   onFavoriteToggle,
-  className,
-}: AnnouncementDetailProps) {
+  className}: AnnouncementDetailProps) {
   const t = useTranslations("announcements");
   const [activeTab, setActiveTab] = useState("details");
   const [cancelReason, setCancelReason] = useState("");
@@ -198,12 +192,12 @@ export function AnnouncementDetail({
   // Formatage des dates
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return t("notSpecified");
-    return format(new Date(date), "PPP", { locale: fr });
+    return format(new Date(date), "PPP", { locale });
   };
 
   const formatDateTime = (date: Date | string | null | undefined) => {
     if (!date) return t("notSpecified");
-    return format(new Date(date), "PPp", { locale: fr });
+    return format(new Date(date), "PPp", { locale });
   };
 
   // Actions disponibles en fonction du rôle et du statut
@@ -243,8 +237,7 @@ export function AnnouncementDetail({
                 >
                   <User className="mr-2 h-4 w-4" />
                   {t("viewApplications", {
-                    count: announcement.applications.length,
-                  })}
+                    count: announcement.applications.length})}
                 </Button>
                 <Button
                   variant="outline"
@@ -460,8 +453,7 @@ export function AnnouncementDetail({
                 {role === t("client")
                   ? t("clientSince", { date: format(new Date(), "MMMM yyyy") })
                   : t("delivererSince", {
-                      date: format(new Date(), "MMMM yyyy"),
-                    })}
+                      date: format(new Date(), "MMMM yyyy")})}
               </p>
             </div>
           </div>
@@ -507,7 +499,7 @@ export function AnnouncementDetail({
                       Livreur #{application.delivererId.substring(0, 8)}
                     </CardTitle>
                     <CardDescription>
-                      {format(application.createdAt, "Pp", { locale: fr })}
+                      {format(application.createdAt, "Pp", { locale })}
                     </CardDescription>
                   </div>
                 </div>
@@ -538,8 +530,7 @@ export function AnnouncementDetail({
                     <span className="font-medium">
                       {application.proposedPrice.toLocaleString("fr-FR", {
                         style: "currency",
-                        currency: "EUR",
-                      })}
+                        currency: "EUR"})}
                     </span>
                   </div>
                 )}
@@ -601,13 +592,11 @@ export function AnnouncementDetail({
               {announcement.finalPrice
                 ? announcement.finalPrice.toLocaleString("fr-FR", {
                     style: "currency",
-                    currency: "EUR",
-                  })
+                    currency: "EUR"})
                 : announcement.suggestedPrice
                   ? announcement.suggestedPrice.toLocaleString("fr-FR", {
                       style: "currency",
-                      currency: "EUR",
-                    })
+                      currency: "EUR"})
                   : t("priceNotSet")}
             </p>
             {announcement.isNegotiable && (
@@ -640,7 +629,7 @@ export function AnnouncementDetail({
             </TabsTrigger>
             {userRole === "CLIENT" && hasApplications && (
               <TabsTrigger value="applications" className="flex-1">
-                {t("applications")} ({announcement.applications?.length || 0})
+                {t("applications")} ({ announcement.applications?.length || 0 })
               </TabsTrigger>
             )}
           </TabsList>

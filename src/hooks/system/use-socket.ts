@@ -10,7 +10,7 @@ import { useSession } from "next-auth/react";
  * avec vérification explicite de l'environnement client
  */
 export function useSocket() {
-  const { data: session } = useSession();
+  const { data } = useSession();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -23,7 +23,7 @@ export function useSocket() {
 
       // Import dynamique pour éviter les erreurs de bundling côté serveur
       import("@/socket/socket-client-browser")
-        .then(({ initializeSocket }) => {
+        .then(({ initializeSocket  }) => {
           try {
             const socketInstance = initializeSocket(token);
             setSocket(socketInstance);
@@ -53,7 +53,7 @@ export function useSocket() {
       return () => {
         // Import dynamique pour la fermeture aussi
         import("@/socket/socket-client-browser")
-          .then(({ closeSocket }) => {
+          .then(({ closeSocket  }) => {
             closeSocket();
             setSocket(null);
           })

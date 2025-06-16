@@ -5,8 +5,7 @@ import {
   BoxSearchInput,
   BoxReservationCreateInput,
   BoxReservationUpdateInput,
-  BoxAvailabilitySubscriptionInput,
-} from "@/schemas/storage/storage.schema";
+  BoxAvailabilitySubscriptionInput} from "@/schemas/storage/storage.schema";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -20,8 +19,7 @@ export const useBoxSearch = () => {
     data: boxes,
     isLoading,
     error,
-    refetch,
-  } = api.storage.findAvailableBoxes.useQuery(
+    refetch} = api.storage.findAvailableBoxes.useQuery(
     searchParams || {
       startDate: new Date(),
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 jours par défaut
@@ -29,13 +27,10 @@ export const useBoxSearch = () => {
     {
       enabled: !!searchParams,
       onError: (error) => {
-        toast({
-          title: t("search.error"),
+        toast({ title: t("search.error"),
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    },
+          variant: "destructive" });
+      }},
   );
 
   const searchBoxes = (params: BoxSearchInput) => {
@@ -48,8 +43,7 @@ export const useBoxSearch = () => {
     error,
     searchBoxes,
     refetch,
-    searchParams,
-  };
+    searchParams};
 };
 
 // Hook pour la création et la gestion des réservations de box
@@ -60,88 +54,66 @@ export const useBoxReservation = () => {
   const utils = api.useUtils();
 
   // Mutation pour créer une réservation
-  const createReservation = api.storage.createBoxReservation.useMutation({
-    onSuccess: () => {
+  const createReservation = api.storage.createBoxReservation.useMutation({ onSuccess: () => {
       toast({
         title: t("reservation.success"),
-        description: t("reservation.successDescription"),
-      });
+        description: t("reservation.successDescription") });
       // Invalider les queries pour forcer un refresh des données
       utils.storage.getMyBoxReservations.invalidate();
       router.push("/client/storage");
     },
     onError: (error) => {
-      toast({
-        title: t("reservation.error"),
+      toast({ title: t("reservation.error"),
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   // Mutation pour mettre à jour une réservation
-  const updateReservation = api.storage.updateBoxReservation.useMutation({
-    onSuccess: () => {
+  const updateReservation = api.storage.updateBoxReservation.useMutation({ onSuccess: () => {
       toast({
         title: t("reservation.updateSuccess"),
-        description: t("reservation.updateSuccessDescription"),
-      });
+        description: t("reservation.updateSuccessDescription") });
       utils.storage.getMyBoxReservations.invalidate();
     },
     onError: (error) => {
-      toast({
-        title: t("reservation.updateError"),
+      toast({ title: t("reservation.updateError"),
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   // Mutation pour prolonger une réservation
-  const extendReservation = api.storage.extendReservation.useMutation({
-    onSuccess: (data) => {
+  const extendReservation = api.storage.extendReservation.useMutation({ onSuccess: (data) => {
       toast({
         title: t("reservation.extendSuccess"),
         description: t("reservation.extendSuccessDescription", {
           days: data.additionalDays,
-          price: data.additionalPrice.toFixed(2),
-        }),
-      });
+          price: data.additionalPrice.toFixed(2) })});
       utils.storage.getMyBoxReservations.invalidate();
     },
     onError: (error) => {
-      toast({
-        title: t("reservation.extendError"),
+      toast({ title: t("reservation.extendError"),
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   // Mutation pour accéder à une box avec code
-  const accessBox = api.storage.accessBox.useMutation({
-    onSuccess: () => {
+  const accessBox = api.storage.accessBox.useMutation({ onSuccess: () => {
       toast({
         title: t("access.success"),
-        description: t("access.successDescription"),
-      });
+        description: t("access.successDescription") });
       utils.storage.getMyBoxReservations.invalidate();
     },
     onError: (error) => {
-      toast({
-        title: t("access.error"),
+      toast({ title: t("access.error"),
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   return {
     createReservation,
     updateReservation,
     extendReservation,
-    accessBox,
-  };
+    accessBox};
 };
 
 // Hook pour récupérer les réservations de l'utilisateur courant
@@ -153,17 +125,14 @@ export const useBoxReservations = (status?: string) => {
     data: reservations,
     isLoading,
     error,
-    refetch,
-  } = api.storage.getMyBoxReservations.useQuery(
-    status ? { status: status } : {},
+    refetch} = api.storage.getMyBoxReservations.useQuery(
+    status ? { status } : {},
     {
       onError: (error) => {
         console.error("Storage API Error:", error);
-        toast({
-          title: t("reservations.error"),
+        toast({ title: t("reservations.error"),
           description: error.message,
-          variant: "destructive",
-        });
+          variant: "destructive" });
       },
       onSuccess: (data) => {
         console.log(
@@ -174,16 +143,14 @@ export const useBoxReservations = (status?: string) => {
           "IsArray:",
           Array.isArray(data),
         );
-      },
-    },
+      }},
   );
 
   return {
     reservations,
     isLoading,
     error,
-    refetch,
-  };
+    refetch};
 };
 
 // Hook pour récupérer l'historique d'utilisation d'une box
@@ -194,26 +161,21 @@ export const useBoxUsageHistory = (boxId: string) => {
   const {
     data: history,
     isLoading,
-    error,
-  } = api.storage.getBoxUsageHistory.useQuery(
+    error} = api.storage.getBoxUsageHistory.useQuery(
     { boxId },
     {
       enabled: !!boxId,
       onError: (error) => {
-        toast({
-          title: t("history.error"),
+        toast({ title: t("history.error"),
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    },
+          variant: "destructive" });
+      }},
   );
 
   return {
     history,
     isLoading,
-    error,
-  };
+    error};
 };
 
 // Hook pour la gestion des abonnements aux notifications de disponibilité
@@ -224,45 +186,34 @@ export const useAvailabilitySubscription = (isActive = true) => {
 
   const getSubscriptions = api.storage.getMySubscriptions.useQuery();
 
-  const createSubscription = api.storage.subscribeToAvailability.useMutation({
-    onSuccess: () => {
+  const createSubscription = api.storage.subscribeToAvailability.useMutation({ onSuccess: () => {
       toast({
         title: t("subscription.success"),
-        description: t("subscription.successDescription"),
-      });
+        description: t("subscription.successDescription") });
       utils.storage.getMySubscriptions.invalidate();
     },
     onError: (err) => {
-      toast({
-        title: t("subscription.error"),
+      toast({ title: t("subscription.error"),
         description: err.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
-  const deleteSubscription = api.storage.deactivateSubscription.useMutation({
-    onSuccess: () => {
+  const deleteSubscription = api.storage.deactivateSubscription.useMutation({ onSuccess: () => {
       toast({
         title: t("subscription.deactivateSuccess"),
-        description: t("subscription.deactivateSuccessDescription"),
-      });
+        description: t("subscription.deactivateSuccessDescription") });
       utils.storage.getMySubscriptions.invalidate();
     },
     onError: (err) => {
-      toast({
-        title: t("subscription.deactivateError"),
+      toast({ title: t("subscription.deactivateError"),
         description: err.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   return {
     getSubscriptions,
     createSubscription,
-    deleteSubscription,
-  };
+    deleteSubscription};
 };
 
 // Hook pour récupérer les entrepôts actifs
@@ -273,22 +224,17 @@ export const useWarehouses = () => {
   const {
     data: warehouses,
     isLoading,
-    error,
-  } = api.storage.getActiveWarehouses.useQuery(undefined, {
+    error} = api.storage.getActiveWarehouses.useQuery(undefined, {
     onError: (error) => {
-      toast({
-        title: t("warehouses.error"),
+      toast({ title: t("warehouses.error"),
         description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   return {
     warehouses,
     isLoading,
-    error,
-  };
+    error};
 };
 
 // Hook pour récupérer les box d'un entrepôt
@@ -299,26 +245,21 @@ export const useWarehouseBoxes = (warehouseId: string) => {
   const {
     data: boxes,
     isLoading,
-    error,
-  } = api.storage.getWarehouseBoxes.useQuery(
+    error} = api.storage.getWarehouseBoxes.useQuery(
     { warehouseId },
     {
       enabled: !!warehouseId,
       onError: (error) => {
-        toast({
-          title: t("warehouses.boxesError"),
+        toast({ title: t("warehouses.boxesError"),
           description: error.message,
-          variant: "destructive",
-        });
-      },
-    },
+          variant: "destructive" });
+      }},
   );
 
   return {
     boxes,
     isLoading,
-    error,
-  };
+    error};
 };
 
 // Hook useLocalStorage pour le stockage local

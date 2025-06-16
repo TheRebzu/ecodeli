@@ -5,8 +5,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -14,8 +13,7 @@ import {
   Clock,
   MapPin,
   Package,
-  PartyPopper,
-} from "lucide-react";
+  PartyPopper} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -31,29 +29,20 @@ const deliveryStatusMap: Record<
 > = {
   PENDING: {
     color: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    icon: <Clock className="h-3 w-3" />,
-  },
+    icon: <Clock className="h-3 w-3" />},
   ASSIGNED: {
     color: "bg-blue-100 text-blue-800 border-blue-300",
-    icon: <Package className="h-3 w-3" />,
-  },
-  PICKED_UP: {
+    icon: <Package className="h-3 w-3" />}, PICKED_UP: {
     color: "bg-indigo-100 text-indigo-800 border-indigo-300",
-    icon: <Package className="h-3 w-3" />,
-  },
-  IN_TRANSIT: {
+    icon: <Package className="h-3 w-3" />}, IN_TRANSIT: {
     color: "bg-purple-100 text-purple-800 border-purple-300",
-    icon: <MapPin className="h-3 w-3" />,
-  },
+    icon: <MapPin className="h-3 w-3" />},
   DELIVERED: {
     color: "bg-green-100 text-green-800 border-green-300",
-    icon: <PartyPopper className="h-3 w-3" />,
-  },
+    icon: <PartyPopper className="h-3 w-3" />},
   CANCELLED: {
     color: "bg-red-100 text-red-800 border-red-300",
-    icon: <Clock className="h-3 w-3" />,
-  },
-};
+    icon: <Clock className="h-3 w-3" />}};
 
 type Delivery = {
   id: string;
@@ -77,8 +66,7 @@ type ActiveDeliveriesProps = {
 
 export function ActiveDeliveries({
   deliveries = [],
-  isLoading = false,
-}: ActiveDeliveriesProps) {
+  isLoading = false}: ActiveDeliveriesProps) {
   const t = useTranslations("dashboard.client");
   const router = useRouter();
   const locale = useLocale();
@@ -135,8 +123,7 @@ export function ActiveDeliveries({
             const deliveryDate = new Date(delivery.createdAt);
             const formattedDate = formatDistanceToNow(deliveryDate, {
               addSuffix: true,
-              locale: dateLocale,
-            });
+              locale: dateLocale});
 
             return (
               <div

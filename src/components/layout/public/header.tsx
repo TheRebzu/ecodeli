@@ -34,12 +34,9 @@ export function PublicHeader({ locale = "fr" }: PublicHeaderProps) {
       children: [
         { name: "Devenir livreur", href: `/${locale}/become-delivery` },
         { name: "Devenir commerçant", href: `/${locale}/merchant/register` },
-        { name: "Devenir prestataire", href: `/${locale}/provider/register` },
-      ],
-    },
+        { name: "Devenir prestataire", href: `/${locale}/provider/register` }]},
     { name: "À propos", href: `/${locale}/about` },
-    { name: "Contact", href: `/${locale}/contact` },
-  ];
+    { name: "Contact", href: `/${locale}/contact` }];
 
   // Rendu des liens de navigation (desktop)
   const renderNavLinks = () => (

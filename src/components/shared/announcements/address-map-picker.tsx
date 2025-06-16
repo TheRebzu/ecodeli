@@ -15,8 +15,7 @@ import {
   X,
   Loader2,
   Map,
-  AlertCircle,
-} from "lucide-react";
+  AlertCircle} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/common";
 
@@ -48,8 +47,7 @@ export function AddressMapPicker({
   longitude,
   className,
   placeholder = "Entrez une adresse...",
-  disabled = false,
-}: AddressMapPickerProps) {
+  disabled = false}: AddressMapPickerProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -85,8 +83,7 @@ export function AddressMapPicker({
         type:
           item.type === "house" || item.type === "residential"
             ? "address"
-            : "poi",
-      }));
+            : "poi"}));
     } catch (error) {
       console.error("Erreur lors de la recherche d'adresses:", error);
       return [];
@@ -125,9 +122,7 @@ export function AddressMapPicker({
       clearTimeout(searchTimeout);
     }
 
-    const timeout = setTimeout(() => {
-      searchAddresses(value);
-    }, 300);
+    const timeout = // Appel API réel via tRPC
 
     setSearchTimeout(timeout);
   };
@@ -158,8 +153,7 @@ export function AddressMapPicker({
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
             timeout: 10000,
-            maximumAge: 60000,
-          });
+            maximumAge: 60000});
         },
       );
 
@@ -170,7 +164,7 @@ export function AddressMapPicker({
 
       onAddressChange(reversedAddress);
       onCoordinatesChange(latitude, longitude);
-      setSelectedCoords({ lat: latitude, lng: longitude });
+      setSelectedCoords({ lat: latitude, lng: longitude  });
 
       toast.success("Position actuelle utilisée");
     } catch (error) {
@@ -362,7 +356,7 @@ export function AddressMapPicker({
         <Card className="h-48">
           <CardContent className="p-0 h-full">
             <div className="relative h-full bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/20 dark:to-green-950/20 rounded-lg flex items-center justify-center">
-              {/* Simulation d'une carte */}
+              {}
               <div className="text-center">
                 <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
                   <MapPin className="h-8 w-8 text-white" />
@@ -374,7 +368,7 @@ export function AddressMapPicker({
                 </p>
               </div>
 
-              {/* Grille de fond pour simulation de carte */}
+              {}
               <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10">
                 <defs>
                   <pattern

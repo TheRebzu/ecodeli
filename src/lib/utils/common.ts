@@ -14,7 +14,7 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function generateRandomCode(length: number = 6): string {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let result = "";
+  const result = "";
 
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
@@ -40,8 +40,7 @@ export function formatDate(date: string | Date): string {
     month: "long",
     day: "numeric",
     hour: "2-digit",
-    minute: "2-digit",
-  }).format(dateObj);
+    minute: "2-digit"}).format(dateObj);
 }
 
 /**
@@ -57,14 +56,12 @@ export function formatCurrency(
   if (isNaN(amount) || amount === null || amount === undefined) {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: currency,
-    }).format(0);
+      currency: currency}).format(0);
   }
 
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: currency,
-  }).format(amount);
+    currency: currency}).format(amount);
 }
 
 /**
@@ -125,6 +122,5 @@ export function formatRelativeDate(
 
   return formatDistanceToNow(dateObj, {
     addSuffix: true,
-    locale: fr,
-  });
+    locale: fr});
 }

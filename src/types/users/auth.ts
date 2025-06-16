@@ -67,5 +67,4 @@ export type {
   ClientRegisterSchemaType,
   DelivererRegisterSchemaType,
   MerchantRegisterSchemaType,
-  ProviderRegisterSchemaType,
-};
+  ProviderRegisterSchemaType};

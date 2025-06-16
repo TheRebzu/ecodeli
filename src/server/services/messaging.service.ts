@@ -19,5 +19,4 @@ export const MessagingService = {
     initialMessage?: string,
   ) {
     // Créer une nouvelle conversation
-  },
-};
+  }};

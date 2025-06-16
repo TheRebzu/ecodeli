@@ -11,8 +11,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,8 +19,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination } from "@/components/ui/pagination";
 import { Input } from "@/components/ui/input";
@@ -38,18 +36,14 @@ export default function UsersVerificationList() {
     search?: string;
     page: number;
     limit: number;
-  }>({
-    page: 1,
-    limit: 10,
-  });
+  }>({ page: 1,
+    limit: 10 });
   const [searchQuery, setSearchQuery] = useState("");
 
   // Query to fetch users
-  const { data: usersData, isLoading } = api.adminUser.getUsers.useQuery({
-    ...filters,
+  const { data: usersData, isLoading } = api.adminUser.getUsers.useQuery({ ...filters,
     sortBy: "createdAt",
-    sortDirection: "desc",
-  });
+    sortDirection: "desc" });
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -77,19 +71,17 @@ export default function UsersVerificationList() {
         break;
     }
 
-    setFilters((prev) => ({
-      ...prev,
+    setFilters((prev) => ({ ...prev,
       ...newFilters,
-      page: 1,
-    }));
+      page: 1 }));
   };
 
   const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setFilters((prev) => ({ ...prev, page  }));
   };
 
   const handleSearch = () => {
-    setFilters((prev) => ({ ...prev, search: searchQuery, page: 1 }));
+    setFilters((prev) => ({ ...prev, search: searchQuery, page: 1  }));
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {

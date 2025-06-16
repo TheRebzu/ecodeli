@@ -16,22 +16,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
+  FormDescription} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Clock, CalendarDays, Plus, X, AlertCircle } from "lucide-react";
@@ -58,8 +55,7 @@ export function AvailabilityForm({
   onSuccess,
   onCancel,
   initialData,
-  showBulkMode = true,
-}: AvailabilityFormProps) {
+  showBulkMode = true}: AvailabilityFormProps) {
   const t = useTranslations("services.availability");
   const utils = api.useUtils();
 
@@ -78,26 +74,19 @@ export function AvailabilityForm({
         { dayOfWeek: 2, startTime: "09:00", endTime: "17:00" },
         { dayOfWeek: 3, startTime: "09:00", endTime: "17:00" },
         { dayOfWeek: 4, startTime: "09:00", endTime: "17:00" },
-        { dayOfWeek: 5, startTime: "09:00", endTime: "17:00" },
-      ],
-    },
+        { dayOfWeek: 5, startTime: "09:00", endTime: "17:00" }]},
     "weekend-10-16": {
       name: t("templates.weekend"),
       description: t("templates.weekendDesc"),
       slots: [
         { dayOfWeek: 6, startTime: "10:00", endTime: "16:00" },
-        { dayOfWeek: 0, startTime: "10:00", endTime: "16:00" },
-      ],
-    },
+        { dayOfWeek: 0, startTime: "10:00", endTime: "16:00" }]},
     "full-week-8-20": {
       name: t("templates.fullWeek"),
       description: t("templates.fullWeekDesc"),
-      slots: Array.from({ length: 7 }, (_, i) => ({
-        dayOfWeek: i,
+      slots: Array.from({ length: 7 }, (_, i) => ({ dayOfWeek: i,
         startTime: "08:00",
-        endTime: "20:00",
-      })),
-    },
+        endTime: "20:00" }))},
     flexible: {
       name: t("templates.flexible"),
       description: t("templates.flexibleDesc"),
@@ -105,10 +94,7 @@ export function AvailabilityForm({
         { dayOfWeek: 1, startTime: "14:00", endTime: "18:00" },
         { dayOfWeek: 3, startTime: "14:00", endTime: "18:00" },
         { dayOfWeek: 5, startTime: "14:00", endTime: "18:00" },
-        { dayOfWeek: 6, startTime: "09:00", endTime: "12:00" },
-      ],
-    },
-  };
+        { dayOfWeek: 6, startTime: "09:00", endTime: "12:00" }]}};
 
   // Formulaire principal
   const form = useForm({
@@ -116,9 +102,7 @@ export function AvailabilityForm({
     defaultValues: {
       dayOfWeek: initialData?.dayOfWeek ?? 1,
       startTime: initialData?.startTime ?? "09:00",
-      endTime: initialData?.endTime ?? "17:00",
-    },
-  });
+      endTime: initialData?.endTime ?? "17:00"}});
 
   // Mutation pour créer une disponibilité
   const createAvailabilityMutation = api.service.createAvailability.useMutation(
@@ -131,8 +115,7 @@ export function AvailabilityForm({
       },
       onError: (error) => {
         toast.error(error.message || t("addFailed"));
-      },
-    },
+      }},
   );
 
   // Récupérer les disponibilités existantes
@@ -146,8 +129,7 @@ export function AvailabilityForm({
     { value: 4, label: t("days.thursday"), short: "Jeu" },
     { value: 5, label: t("days.friday"), short: "Ven" },
     { value: 6, label: t("days.saturday"), short: "Sam" },
-    { value: 0, label: t("days.sunday"), short: "Dim" },
-  ];
+    { value: 0, label: t("days.sunday"), short: "Dim" }];
 
   // Soumission du formulaire
   const onSubmit = async (data: any) => {
@@ -160,11 +142,9 @@ export function AvailabilityForm({
     } else if (isBulkMode && selectedDays.length > 0) {
       // Créer pour plusieurs jours
       for (const dayOfWeek of selectedDays) {
-        await createAvailabilityMutation.mutateAsync({
-          dayOfWeek,
+        await createAvailabilityMutation.mutateAsync({ dayOfWeek,
           startTime: data.startTime,
-          endTime: data.endTime,
-        });
+          endTime: data.endTime });
       }
     } else {
       // Créer une seule disponibilité
@@ -325,7 +305,7 @@ export function AvailabilityForm({
                   <FormField
                     control={form.control}
                     name="dayOfWeek"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("day")}</FormLabel>
                         <Select
@@ -370,7 +350,7 @@ export function AvailabilityForm({
                   <FormField
                     control={form.control}
                     name="startTime"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("startTime")}</FormLabel>
                         <FormControl>
@@ -389,7 +369,7 @@ export function AvailabilityForm({
                   <FormField
                     control={form.control}
                     name="endTime"
-                    render={({ field }) => (
+                    render={({ field  }) => (
                       <FormItem>
                         <FormLabel>{t("endTime")}</FormLabel>
                         <FormControl>

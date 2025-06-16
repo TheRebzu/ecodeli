@@ -22,8 +22,7 @@ import {
   Wallet,
   ReceiptText,
   Package,
-  MapPin,
-} from "lucide-react";
+  MapPin} from "lucide-react";
 
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils/common";
@@ -36,16 +35,14 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -57,34 +54,30 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  PaginationPrevious} from "@/components/ui/pagination";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  CollapsibleTrigger} from "@/components/ui/collapsible";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  TooltipTrigger} from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
 
 export default function DelivererPaymentsPage() {
   const t = useTranslations("payments");
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data } = useSession();
   const { toast } = useToast();
 
   // États pour la pagination, le filtrage et la recherche
@@ -102,8 +95,7 @@ export default function DelivererPaymentsPage() {
   const {
     data: payments,
     isLoading: isLoadingPayments,
-    refetch: refetchPayments,
-  } = api.payment.getDelivererPayments.useQuery(
+    refetch: refetchPayments} = api.payment.getDelivererPayments.useQuery(
     {
       page: currentPage,
       limit: pageSize,
@@ -111,50 +103,34 @@ export default function DelivererPaymentsPage() {
       status: statusFilter as any,
       search: searchQuery || undefined,
       startDate: startDate?.toISOString(),
-      endDate: endDate?.toISOString(),
-    },
-    {
-      keepPreviousData: true,
-    },
+      endDate: endDate?.toISOString()},
+    { keepPreviousData },
   );
 
   // Requête pour récupérer le résumé des revenus
   const {
     data: earningsSummary,
     isLoading: isLoadingEarnings,
-    refetch: refetchEarnings,
-  } = api.wallet.getWalletStats.useQuery(
+    refetch: refetchEarnings} = api.wallet.getWalletStats.useQuery(
     {
-      period: "monthly",
-    },
-    {
-      refetchOnWindowFocus: false,
-    },
+      period: "monthly"},
+    { refetchOnWindowFocus },
   );
 
   // Télécharger le relevé de paiements
   const handleDownloadStatement = async () => {
     try {
-      toast({
-        title: t("downloadStarted"),
-        description: t("paymentStatementDownloadStarted"),
-      });
+      toast({ title: t("downloadStarted"),
+        description: t("paymentStatementDownloadStarted") });
 
       // Dans une implémentation réelle, on appellerait une API pour générer
       // et télécharger le relevé des paiements
       // Simuler un délai pour la démo
-      setTimeout(() => {
-        toast({
-          title: t("downloadComplete"),
-          description: t("paymentStatementDownloadComplete"),
-        });
-      }, 2000);
+      // Appel API réel via tRPC
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("downloadError"),
-        description: typeof error === "string" ? error : t("genericError"),
-      });
+        description: typeof error === "string" ? error : t("genericError") });
     }
   };
 
@@ -163,16 +139,12 @@ export default function DelivererPaymentsPage() {
     setIsRefreshing(true);
     try {
       await Promise.all([refetchPayments(), refetchEarnings()]);
-      toast({
-        title: t("refreshSuccess"),
-        description: t("dataRefreshed"),
-      });
+      toast({ title: t("refreshSuccess"),
+        description: t("dataRefreshed") });
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast({ variant: "destructive",
         title: t("refreshError"),
-        description: typeof error === "string" ? error : t("genericError"),
-      });
+        description: typeof error === "string" ? error : t("genericError") });
     } finally {
       setIsRefreshing(false);
     }
@@ -734,9 +706,9 @@ export default function DelivererPaymentsPage() {
                       />
                     </PaginationItem>
 
-                    {Array.from({ length: Math.min(totalPages, 5) }).map(
+                    {Array.from({ length: Math.min(totalPages, 5)  }).map(
                       (_, i) => {
-                        let pageNumber = i + 1;
+                        const pageNumber = i + 1;
 
                         return (
                           <PaginationItem key={pageNumber}>

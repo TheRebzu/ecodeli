@@ -10,16 +10,14 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,8 +26,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -44,8 +41,7 @@ import {
   Truck,
   MapPin,
   MessageSquare,
-  ClipboardCheck,
-} from "lucide-react";
+  ClipboardCheck} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { DeliveryStatus } from "@prisma/client";
@@ -94,8 +90,7 @@ export function DeliveryTable({
   isLoading,
   totalPages,
   currentPage,
-  onPageChange,
-}: DeliveryTableProps) {
+  onPageChange}: DeliveryTableProps) {
   const t = useTranslations("admin.deliveries");
   const router = useRouter();
   const [selectedDeliveries, setSelectedDeliveries] = useState<string[]>([]);
@@ -118,8 +113,7 @@ export function DeliveryTable({
     },
     onError: (error) => {
       toast.error(t("statusUpdateError", { error: error.message }));
-    },
-  });
+    }});
 
   const handleSelectDelivery = (deliveryId: string) => {
     setSelectedDeliveries((prev) => {
@@ -157,7 +151,7 @@ export function DeliveryTable({
   };
 
   const handleUpdateStatus = (id: string, status: DeliveryStatus) => {
-    setDeliveryToUpdate({ id, status });
+    setDeliveryToUpdate({ id, status  });
     setConfirmDialogOpen(true);
   };
 
@@ -211,7 +205,7 @@ export function DeliveryTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 5  }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell>
                     <Skeleton className="h-5 w-5" />
@@ -313,9 +307,7 @@ export function DeliveryTable({
                     {delivery.deliverer ? delivery.deliverer.name : "-"}
                   </TableCell>
                   <TableCell>
-                    {format(new Date(delivery.createdAt), "dd/MM/yyyy", {
-                      locale: fr,
-                    })}
+                    {format(new Date(delivery.createdAt), "dd/MM/yyyy", { locale })}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

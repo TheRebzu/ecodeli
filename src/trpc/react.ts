@@ -16,15 +16,11 @@ export const trpcClient = api.createClient({
   transformer: superjson,
   links: [
     httpBatchLink({
-      url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/trpc`,
+      url: `${process.env.NEXT_PUBLIC_APPURL || "http://localhost:3000"}/api/trpc`,
       headers() {
         return {
-          "content-type": "application/json",
-        };
-      },
-    }),
-  ],
-});
+          "content-type": "application/json"};
+      }})]});
 
 // Export pour compatibilité avec le code existant
 export const trpc = api;

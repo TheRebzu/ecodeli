@@ -5,8 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import {
   clientRegisterSchema,
-  ClientRegisterSchemaType,
-} from "@/schemas/client/client-register.schema";
+  ClientRegisterSchemaType} from "@/schemas/client/client-register.schema";
 import { UserRole } from "@/schemas/auth/register.schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +14,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
@@ -28,23 +26,18 @@ export default function ClientRegisterForm() {
   const t = useTranslations("auth.register");
   const { toast } = useToast();
 
-  const registerMutation = api.auth.register.useMutation({
-    onSuccess: () => {
+  const registerMutation = api.auth.register.useMutation({ onSuccess: () => {
       toast({
         title: t("success.title"),
-        description: t("success.description"),
-      });
+        description: t("success.description") });
       // Rediriger vers la page de connexion avec un message
       router.push("/login?registered=true");
     },
     onError: (error) => {
-      toast({
-        title: t("error.title"),
+      toast({ title: t("error.title"),
         description: error.message || t("error.description"),
-        variant: "destructive",
-      });
-    },
-  });
+        variant: "destructive" });
+    }});
 
   const form = useForm<ClientRegisterSchemaType>({
     resolver: zodResolver(clientRegisterSchema),
@@ -60,20 +53,16 @@ export default function ClientRegisterForm() {
       state: "",
       country: "",
       newsletter: false,
-      role: UserRole.CLIENT,
-    },
-  });
+      role: UserRole.CLIENT}});
 
   async function onSubmit(data: ClientRegisterSchemaType) {
     try {
-      await registerMutation.mutateAsync({
-        email: data.email,
+      await registerMutation.mutateAsync({ email: data.email,
         password: data.password,
         name: data.name,
         role: "CLIENT",
         phone: data.phoneNumber,
-        address: data.address,
-      });
+        address: data.address });
     } catch (error) {
       // L'erreur est déjà gérée par onError
     }
@@ -85,7 +74,7 @@ export default function ClientRegisterForm() {
         <FormField
           control={form.control}
           name="name"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.name")}</FormLabel>
               <FormControl>
@@ -99,7 +88,7 @@ export default function ClientRegisterForm() {
         <FormField
           control={form.control}
           name="email"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.email")}</FormLabel>
               <FormControl>
@@ -117,7 +106,7 @@ export default function ClientRegisterForm() {
         <FormField
           control={form.control}
           name="phoneNumber"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.phoneNumber")}</FormLabel>
               <FormControl>
@@ -135,7 +124,7 @@ export default function ClientRegisterForm() {
         <FormField
           control={form.control}
           name="address"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.address")}</FormLabel>
               <FormControl>
@@ -150,7 +139,7 @@ export default function ClientRegisterForm() {
           <FormField
             control={form.control}
             name="city"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.city")}</FormLabel>
                 <FormControl>
@@ -164,7 +153,7 @@ export default function ClientRegisterForm() {
           <FormField
             control={form.control}
             name="postalCode"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.postalCode")}</FormLabel>
                 <FormControl>
@@ -183,7 +172,7 @@ export default function ClientRegisterForm() {
           <FormField
             control={form.control}
             name="state"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.state")}</FormLabel>
                 <FormControl>
@@ -197,7 +186,7 @@ export default function ClientRegisterForm() {
           <FormField
             control={form.control}
             name="country"
-            render={({ field }) => (
+            render={({ field  }) => (
               <FormItem>
                 <FormLabel>{t("fields.country")}</FormLabel>
                 <FormControl>
@@ -212,7 +201,7 @@ export default function ClientRegisterForm() {
         <FormField
           control={form.control}
           name="password"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.password")}</FormLabel>
               <FormControl>
@@ -230,7 +219,7 @@ export default function ClientRegisterForm() {
         <FormField
           control={form.control}
           name="confirmPassword"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem>
               <FormLabel>{t("fields.confirmPassword")}</FormLabel>
               <FormControl>
@@ -248,7 +237,7 @@ export default function ClientRegisterForm() {
         <FormField
           control={form.control}
           name="newsletter"
-          render={({ field }) => (
+          render={({ field  }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
                 <Checkbox

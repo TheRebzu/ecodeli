@@ -8,8 +8,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 
 interface Language {
   code: string;
@@ -26,19 +25,15 @@ const languages: Language[] = [
   {
     code: "fr",
     name: "Français",
-    flag: "🇫🇷",
-  },
+    flag: "🇫🇷"},
   {
     code: "en",
     name: "English",
-    flag: "🇬🇧",
-  },
+    flag: "🇬🇧"},
   {
     code: "ar",
     name: "العربية",
-    flag: "🇲🇦",
-  },
-];
+    flag: "🇲🇦"}];
 
 export function LanguageSwitcher({ locale, className }: LanguageSwitcherProps) {
   const router = useRouter();

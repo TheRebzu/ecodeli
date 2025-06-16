@@ -11,28 +11,24 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+  FormLabel} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { FilterX, Search } from "lucide-react";
 import { AnnouncementStatus } from "@/types/announcements/announcement";
 
 // Schéma de validation pour les filtres
-const filterSchema = z.object({
-  status: z.string().optional(),
+const filterSchema = z.object({ status: z.string().optional(),
   search: z.string().optional(),
   minAmount: z.string().optional(),
   maxAmount: z.string().optional(),
-  sortBy: z.string().optional(),
-});
+  sortBy: z.string().optional() });
 
 type FilterFormData = z.infer<typeof filterSchema>;
 
@@ -45,12 +41,9 @@ interface AnnouncementFilterProps {
 export function AnnouncementFilter({
   onFiltersChange,
   activeFilters = {},
-  isLoading = false,
-}: AnnouncementFilterProps) {
-  const form = useForm<FilterFormData>({
-    resolver: zodResolver(filterSchema),
-    defaultValues: activeFilters,
-  });
+  isLoading = false}: AnnouncementFilterProps) {
+  const form = useForm<FilterFormData>({ resolver: zodResolver(filterSchema),
+    defaultValues: activeFilters });
 
   const handleSubmit = (data: FilterFormData) => {
     onFiltersChange(data);
@@ -88,7 +81,7 @@ export function AnnouncementFilter({
               <FormField
                 control={form.control}
                 name="search"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Recherche</FormLabel>
                     <FormControl>
@@ -110,7 +103,7 @@ export function AnnouncementFilter({
               <FormField
                 control={form.control}
                 name="status"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Statut</FormLabel>
                     <Select
@@ -140,7 +133,7 @@ export function AnnouncementFilter({
               <FormField
                 control={form.control}
                 name="sortBy"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Trier par</FormLabel>
                     <Select
@@ -174,7 +167,7 @@ export function AnnouncementFilter({
               <FormField
                 control={form.control}
                 name="minAmount"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Montant minimum (€)</FormLabel>
                     <FormControl>
@@ -194,7 +187,7 @@ export function AnnouncementFilter({
               <FormField
                 control={form.control}
                 name="maxAmount"
-                render={({ field }) => (
+                render={({ field  }) => (
                   <FormItem>
                     <FormLabel>Montant maximum (€)</FormLabel>
                     <FormControl>

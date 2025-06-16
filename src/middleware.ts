@@ -7,15 +7,13 @@ enum UserRole {
   DELIVERER = "DELIVERER",
   MERCHANT = "MERCHANT",
   PROVIDER = "PROVIDER",
-  ADMIN = "ADMIN",
-}
+  ADMIN = "ADMIN"}
 
 enum UserStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
   SUSPENDED = "SUSPENDED",
-  PENDING_VERIFICATION = "PENDING_VERIFICATION",
-}
+  PENDING_VERIFICATION = "PENDING_VERIFICATION"}
 
 // Locales supportées par l'application
 const VALID_LOCALES = ["fr", "en"];
@@ -41,8 +39,7 @@ const publicPaths = [
   "/home",
   // Chemins de debug pour le développement
   "/debug",
-  "/test",
-];
+  "/test"];
 
 // Chemins accessibles à tous les utilisateurs authentifiés, quel que soit leur rôle
 const commonAuthenticatedPaths = [
@@ -50,16 +47,14 @@ const commonAuthenticatedPaths = [
   "/developers/api-docs",
   "/developers/api-manual",
   "/developers/api-keys",
-  "/developers/examples",
+  "/developers/docs",
   "/common/help",
-  "/common/settings",
-];
+  "/common/settings"];
 
 // Chemins spéciaux pour les états utilisateur particuliers
 const specialStatusPaths = {
   [UserStatus.SUSPENDED]: ["/account-suspended"],
-  [UserStatus.INACTIVE]: ["/account-inactive"],
-};
+  [UserStatus.INACTIVE]: ["/account-inactive"]};
 
 // Définir les chemins accessibles en fonction du rôle
 const roleBasedPaths: Record<UserRole, string[]> = {
@@ -67,8 +62,7 @@ const roleBasedPaths: Record<UserRole, string[]> = {
   DELIVERER: ["/deliverer"],
   MERCHANT: ["/merchant"],
   PROVIDER: ["/provider"],
-  ADMIN: ["/admin"],
-};
+  ADMIN: ["/admin"]};
 
 // Chemins autorisés même pour les utilisateurs non vérifiés
 const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
@@ -76,24 +70,21 @@ const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
     "/deliverer/documents",
     "/api/upload",
     "/api/trpc/document",
-    "/api/documents",
-  ], // Ajout des chemins API pour le téléchargement
+    "/api/documents"], // Ajout des chemins API pour le téléchargement
   MERCHANT: [
     "/merchant/documents",
     "/merchant/verification",
     "/merchant/profile",
     "/api/upload",
     "/api/trpc/document",
-    "/api/documents",
-  ],
+    "/api/documents"],
   PROVIDER: [
     "/provider/documents",
     "/provider/verification",
     "/provider/profile",
     "/api/upload",
     "/api/trpc/document",
-    "/api/documents",
-  ],
+    "/api/documents"],
   CLIENT: [], // Les clients n'ont pas besoin de vérification
   ADMIN: [], // Les admins n'ont pas besoin de vérification
 };
@@ -104,7 +95,7 @@ export async function middleware(request: NextRequest) {
 
     // Ignorer les fichiers statiques, API routes, et les ressources Next.js
     if (
-      pathname.startsWith("/_next") ||
+      pathname.startsWith("/next") ||
       pathname.startsWith("/api") ||
       pathname.startsWith("/static") ||
       pathname.includes(".") // fichiers avec extensions
@@ -171,10 +162,8 @@ export async function middleware(request: NextRequest) {
     }
 
     // Récupérer le token pour vérifier l'authentification
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    const token = await getToken({ req: request,
+      secret: process.env.NEXTAUTH_SECRET });
 
     // Si l'utilisateur n'est pas connecté, rediriger vers la page de connexion
     if (!token) {
@@ -267,7 +256,7 @@ export async function middleware(request: NextRequest) {
       userRole !== UserRole.CLIENT &&
       userRole !== UserRole.ADMIN &&
       !isVerified &&
-      userStatus === UserStatus.PENDING_VERIFICATION
+      userStatus === UserStatus.PENDINGVERIFICATION
     ) {
       // Vérifier si le chemin actuel est autorisé pour les utilisateurs non vérifiés
       const isAllowedPath = allowedNonVerifiedPaths[userRole].some(
@@ -331,21 +320,17 @@ export async function middleware(request: NextRequest) {
         
         if (!success) {
           return new NextResponse(
-            JSON.stringify({
-              error: 'Too many requests',
+            JSON.stringify({ error: 'Too many requests',
               limit,
               remaining,
-              reset: reset - Date.now(),
-            }),
+              reset: reset - Date.now() }),
             {
               status: 429,
               headers: {
                 'Content-Type': 'application/json',
                 'X-RateLimit-Limit': limit.toString(),
                 'X-RateLimit-Remaining': remaining.toString(),
-                'X-RateLimit-Reset': reset.toString(),
-              },
-            }
+                'X-RateLimit-Reset': reset.toString()}}
           );
         }
       } 
@@ -355,21 +340,17 @@ export async function middleware(request: NextRequest) {
         
         if (!success) {
           return new NextResponse(
-            JSON.stringify({
-              error: 'Too many requests',
+            JSON.stringify({ error: 'Too many requests',
               limit,
               remaining,
-              reset: reset - Date.now(),
-            }),
+              reset: reset - Date.now() }),
             {
               status: 429,
               headers: {
                 'Content-Type': 'application/json',
                 'X-RateLimit-Limit': limit.toString(),
                 'X-RateLimit-Remaining': remaining.toString(),
-                'X-RateLimit-Reset': reset.toString(),
-              },
-            }
+                'X-RateLimit-Reset': reset.toString()}}
           );
         }
       }
@@ -412,6 +393,4 @@ function getDashboardPathForRole(
 // Configuration du middleware pour qu'il s'exécute sur toutes les routes pertinentes
 export const config = {
   matcher: [
-    "/((?!api/trpc|api/documents|api/upload|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
-  ],
-};
+    "/((?!api/trpc|api/documents|api/upload|next/static|next/image|favicon.ico|robots.txt|sitemap.xml).*)"]};

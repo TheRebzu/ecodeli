@@ -18,8 +18,7 @@ export function DocumentCard({
   onDownload,
   showActions = true,
   showStatus = true,
-  compact = false,
-}: DocumentCardProps) {
+  compact = false}: DocumentCardProps) {
   if (!document) return null;
 
   const status = document.verificationStatus || document.status;

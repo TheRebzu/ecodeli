@@ -9,8 +9,7 @@ const DEFAULT_LABELS = {
   skip: "Passer le tutoriel",
   previous: "Précédent",
   next: "Suivant",
-  finish: "Terminer",
-};
+  finish: "Terminer"};
 
 type TutorialNavigationProps = {
   currentStep: number;
@@ -38,8 +37,7 @@ export function TutorialNavigation({
   onComplete,
   isLoading = false,
   className,
-  labels = DEFAULT_LABELS,
-}: TutorialNavigationProps) {
+  labels = DEFAULTLABELS}: TutorialNavigationProps) {
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
   const [isSkipping, setIsSkipping] = useState(false);
@@ -47,8 +45,7 @@ export function TutorialNavigation({
   // Fusionner les libellés par défaut avec ceux fournis par les props
   const mergedLabels = {
     ...DEFAULT_LABELS,
-    ...labels,
-  };
+    ...labels};
 
   const handleSkip = async () => {
     setIsSkipping(true);
