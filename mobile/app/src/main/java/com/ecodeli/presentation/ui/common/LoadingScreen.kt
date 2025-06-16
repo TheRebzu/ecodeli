@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.common
+package me.ecodeli.presentation.ui.common
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

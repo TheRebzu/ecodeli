@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.delivery
+package me.ecodeli.presentation.ui.delivery
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,11 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ecodeli.data.models.DeliveryStatus
-import com.ecodeli.presentation.ui.common.LoadingScreen
-import com.ecodeli.presentation.ui.common.NfcReaderWithState
-import com.ecodeli.presentation.ui.common.NfcState
-import com.ecodeli.presentation.viewmodels.DeliveryDetailViewModel
+import me.ecodeli.data.models.DeliveryStatus
+import me.ecodeli.presentation.ui.common.LoadingScreen
+import me.ecodeli.presentation.ui.common.NfcReaderWithState
+import me.ecodeli.presentation.ui.common.NfcState
+import me.ecodeli.presentation.viewmodels.DeliveryDetailViewModel
 
 /**
  * Écran de détail d'une livraison

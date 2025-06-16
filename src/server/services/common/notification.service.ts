@@ -1676,7 +1676,11 @@ export class NotificationService {
         total,
         unread,
         byType: byTypeMap,
-        byChannel: {}, // TODO: Implémenter selon les métadonnées
+        byChannel: await this.getChannelStatistics(
+          options.userId,
+          options.startDate,
+          options.endDate
+        ), // Implémenter selon les métadonnées
         engagement: {
           readRate: total > 0 ? ((total - unread) / total) * 100 : 0,
           clickRate:

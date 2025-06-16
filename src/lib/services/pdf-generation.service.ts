@@ -99,7 +99,7 @@ export class PDFGenerationService {
         doc.text("EcoDeli", 50, 120);
         doc.text("110 rue de Flandre", 50, 135);
         doc.text("75019 Paris, France", 50, 150);
-        doc.text("contact@ecodeli.fr", 50, 165);
+        doc.text("contact@ecodeli.me", 50, 165);
         doc.text("SIRET: 12345678901234", 50, 180);
 
         // Informations de facturation
@@ -370,7 +370,7 @@ export class PDFGenerationService {
 
     doc.fontSize(8);
     doc.text("EcoDeli - Solution de livraison collaborative", 50, bottom);
-    doc.text("www.ecodeli.fr - contact@ecodeli.fr", 50, bottom + 12);
+    doc.text("www.ecodeli.me - contact@ecodeli.me", 50, bottom + 12);
     doc.text(`Généré le ${new Date().toLocaleDateString("fr-FR")}`, 400, bottom);
   }
 

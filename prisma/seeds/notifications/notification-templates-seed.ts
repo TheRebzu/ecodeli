@@ -436,8 +436,8 @@ export async function seedNotificationTemplates(
                 variables: template.variables,
                 originalTemplate: template.type,
               }),
-              read: faker.datatype.boolean(0.3), // 30% de chances d'être lues
-              readAt: faker.datatype.boolean(0.3) ? faker.date.recent() : null,
+              read: Math.random() < 0.3, // 30% de chances d'être lues
+              readAt: Math.random() < 0.3 ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : null,
             },
           });
 

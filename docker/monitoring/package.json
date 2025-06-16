@@ -1,0 +1,10 @@
+{
+  "name": "ecodeli-monitoring",
+  "version": "1.0.0",
+  "description": "Service de monitoring pour EcoDeli",
+  "main": "index.js",
+  "dependencies": {
+    "node-cron": "^3.0.2",
+    "axios": "^1.6.0"
+  }
+}

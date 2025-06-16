@@ -1,6 +1,6 @@
-package com.ecodeli.data.api
+package me.ecodeli.data.api
 
-import com.ecodeli.data.repositories.AuthRepository
+import me.ecodeli.data.repositories.AuthRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor

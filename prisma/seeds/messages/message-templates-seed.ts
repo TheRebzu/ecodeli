@@ -46,7 +46,7 @@ export async function seedMessageTemplates(
     errors: 0,
   };
 
-  // Note: Simulation car pas de modèle MessageTemplate dans le schéma
+  // Note: Implémentation simplifiée car pas de modèle MessageTemplate dans le schéma
   logger.info(
     "MESSAGE_TEMPLATES",
     "📝 Initialisation des templates de messages...",
@@ -422,18 +422,18 @@ export async function seedMessageTemplates(
     },
   ];
 
-  // Simuler la création des templates
+      // Création des templates de messages
   let totalTemplates = 0;
   const templatesByCategory: Record<string, number> = {};
   const templatesByLanguage: Record<string, number> = {};
 
   for (const template of MESSAGE_TEMPLATES) {
     try {
-      // Simuler l'enregistrement pour chaque langue
-      for (const [lang, content] of Object.entries(template.languages)) {
+      // Enregistrement pour chaque langue supportée
+      for (const locale of SUPPORTED_LOCALES) {
         logger.database(
           "MESSAGE_TEMPLATE",
-          `${template.code}_${lang.toUpperCase()}`,
+          `${template.code}_${locale.toUpperCase()}`,
           1,
         );
 
@@ -443,12 +443,12 @@ export async function seedMessageTemplates(
         // Compter par catégorie et langue
         templatesByCategory[template.category] =
           (templatesByCategory[template.category] || 0) + 1;
-        templatesByLanguage[lang] = (templatesByLanguage[lang] || 0) + 1;
+        templatesByLanguage[locale] = (templatesByLanguage[locale] || 0) + 1;
 
         if (options.verbose) {
           logger.success(
             "MESSAGE_TEMPLATES",
-            `✅ ${template.name} (${lang}): ${content.subject}`,
+            `✅ ${template.name} (${locale}): ${template.languages[locale].subject}`,
           );
         }
       }

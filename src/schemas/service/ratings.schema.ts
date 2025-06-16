@@ -68,11 +68,11 @@ export const markReviewHelpfulSchema = z.object({ reviewId: z.string().cuid({ me
 // Schéma pour signaler une évaluation
 export const reportReviewSchema = z.object({ reviewId: z.string().cuid({ message: "ID d'évaluation invalide"  }),
   reason: z.enum([
-    "INAPPROPRIATE_CONTENT",
     "SPAM",
-    "FAKE_REVIEW",
-    "PERSONAL_INFORMATION",
-    "OFFENSIVE_LANGUAGE",
+    "ABUSIVE_LANGUAGE",
+    "INAPPROPRIATE_CONTENT",
+    "MISLEADING_INFORMATION",
+    "HARASSMENT",
     "OTHER"]),
   description: z.string().max(500).optional()});
 

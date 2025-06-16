@@ -130,8 +130,8 @@ export function useOneSignal(): OneSignalHook {
       window.OneSignal.sendSelfNotification(
         "Test EcoDeli",
         "Ceci est une notification de test!",
-        "https://ecodeli.fr",
-        "https://ecodeli.fr/icon-192x192.png",
+        "https://ecodeli.me",
+        "https://ecodeli.me/icon-192x192.png",
         {
           type: "test",
           timestamp: new Date().toISOString()}

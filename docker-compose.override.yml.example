@@ -1,0 +1,149 @@
+# =============================================================================
+# DOCKER COMPOSE OVERRIDE EXEMPLE POUR ECODELI
+# =============================================================================
+# 
+# Copier ce fichier vers docker-compose.override.yml pour personnaliser
+# la configuration Docker selon vos besoins locaux.
+# 
+# Ce fichier sera automatiquement inclus par docker-compose
+# et écrasera les paramètres du docker-compose.yml principal.
+#
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # SURCHARGES POUR L'APPLICATION WEB
+  # =============================================================================
+  ecodeli-web:
+    # Exemples de surcharges possibles :
+    
+    # Ports personnalisés
+    # ports:
+    #   - "3001:3000"
+    
+    # Variables d'environnement supplémentaires
+    # environment:
+    #   - DEBUG=*
+    #   - LOG_LEVEL=debug
+    
+    # Volumes supplémentaires pour le développement
+    # volumes:
+    #   - ./logs:/app/logs
+    #   - ./temp:/app/temp
+    
+    # Limite de ressources pour le développement
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2.0'
+    #       memory: 2G
+
+  # =============================================================================
+  # SURCHARGES POUR LA BASE DE DONNÉES
+  # =============================================================================
+  ecodeli-db:
+    # Port personnalisé pour éviter les conflits
+    # ports:
+    #   - "5433:5432"
+    
+    # Configuration PostgreSQL personnalisée
+    # command: >
+    #   postgres 
+    #   -c log_statement=all 
+    #   -c log_destination=stderr
+    #   -c log_min_duration_statement=0
+    #   -c max_connections=100
+    
+    # Volume local pour les données (développement)
+    # volumes:
+    #   - ./data/postgres:/var/lib/postgresql/data
+
+  # =============================================================================
+  # SURCHARGES POUR NGINX
+  # =============================================================================
+  ecodeli-nginx:
+    # Ports personnalisés
+    # ports:
+    #   - "8080:80"
+    #   - "8443:443"
+    
+    # Configuration personnalisée
+    # volumes:
+    #   - ./nginx-local.conf:/etc/nginx/nginx.conf:ro
+
+  # =============================================================================
+  # SERVICES SUPPLÉMENTAIRES POUR LE DÉVELOPPEMENT
+  # =============================================================================
+  
+  # Service de développement pour tester les emails
+  # mailhog:
+  #   image: mailhog/mailhog
+  #   container_name: ecodeli-mailhog
+  #   ports:
+  #     - "1025:1025"  # SMTP
+  #     - "8025:8025"  # Web UI
+  #   networks:
+  #     - ecodeli_network
+
+  # Base de données de test séparée
+  # ecodeli-test-db:
+  #   image: postgres:15-alpine
+  #   container_name: ecodeli-test-db
+  #   environment:
+  #     - POSTGRES_DB=ecodeli_test
+  #     - POSTGRES_USER=ecodeli_test
+  #     - POSTGRES_PASSWORD=test_password
+  #   ports:
+  #     - "5434:5432"
+  #   networks:
+  #     - ecodeli_network
+
+  # Redis pour les tests de cache (si nécessaire plus tard)
+  # redis-dev:
+  #   image: redis:7-alpine
+  #   container_name: ecodeli-redis-dev
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - ecodeli_network
+
+# =============================================================================
+# VOLUMES SUPPLÉMENTAIRES
+# =============================================================================
+# volumes:
+#   # Volume local pour les données de développement
+#   dev_postgres_data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       o: bind
+#       device: ./data/postgres
+
+# =============================================================================
+# RÉSEAUX SUPPLÉMENTAIRES
+# =============================================================================
+# networks:
+#   # Réseau externe pour connecter d'autres services
+#   external_network:
+#     external: true
+
+# =============================================================================
+# EXEMPLES D'UTILISATION
+# =============================================================================
+#
+# 1. Pour utiliser un port différent pour l'application :
+#    Décommenter la section ports de ecodeli-web
+#
+# 2. Pour utiliser une base de données locale :
+#    Décommenter la section volumes de ecodeli-db
+#
+# 3. Pour ajouter un service de mail de test :
+#    Décommenter la section mailhog
+#
+# 4. Pour activer les logs détaillés :
+#    Décommenter les variables d'environnement DEBUG
+#
+# 5. Pour tester avec une base séparée :
+#    Décommenter ecodeli-test-db et modifier DATABASE_URL
+#

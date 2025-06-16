@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.auth
+package me.ecodeli.presentation.ui.auth
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,7 +16,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ecodeli.presentation.viewmodels.RegisterViewModel
+import me.ecodeli.presentation.viewmodels.RegisterViewModel
 
 /**
  * Écran d'inscription

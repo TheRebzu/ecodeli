@@ -47,7 +47,7 @@ export async function seedCommunicationPreferences(
     errors: 0,
   };
 
-  // Note: Simulation car pas de modèle CommunicationPreference dans le schéma
+  // Note: Implémentation simplifiée car pas de modèle CommunicationPreference dans le schéma
   logger.info(
     "COMMUNICATION_PREFERENCES",
     "📱 Initialisation des préférences de communication...",
@@ -111,8 +111,47 @@ export async function seedCommunicationPreferences(
       // Générer des préférences selon le rôle
       const preferences = generateUserPreferences(user);
 
-      // Simuler l'enregistrement
-      logger.database("COMMUNICATION_PREFERENCE", `USER_${user.id}_PREFS`, 1);
+      // Enregistrement des préférences de communication
+      await prisma.communicationPreference.upsert({
+        where: {
+          userId: user.id,
+        },
+        update: {
+          emailEnabled: preferences.emailEnabled,
+          smsEnabled: preferences.smsEnabled,
+          pushEnabled: preferences.pushEnabled,
+          language: preferences.language,
+          timezone: preferences.timezone,
+          frequency: preferences.frequency,
+          quietHoursStart: preferences.quietHoursStart,
+          quietHoursEnd: preferences.quietHoursEnd,
+          channels: {
+            deliveryUpdates: preferences.channels.deliveryUpdates,
+            serviceReminders: preferences.channels.serviceReminders,
+            promotions: preferences.channels.promotions,
+            systemAlerts: preferences.channels.systemAlerts,
+          },
+          optOuts: preferences.optOuts,
+        },
+        create: {
+          userId: user.id,
+          emailEnabled: preferences.emailEnabled,
+          smsEnabled: preferences.smsEnabled,
+          pushEnabled: preferences.pushEnabled,
+          language: preferences.language,
+          timezone: preferences.timezone,
+          frequency: preferences.frequency,
+          quietHoursStart: preferences.quietHoursStart,
+          quietHoursEnd: preferences.quietHoursEnd,
+          channels: {
+            deliveryUpdates: preferences.channels.deliveryUpdates,
+            serviceReminders: preferences.channels.serviceReminders,
+            promotions: preferences.channels.promotions,
+            systemAlerts: preferences.channels.systemAlerts,
+          },
+          optOuts: preferences.optOuts,
+        },
+      });
 
       totalPreferences++;
       result.created++;
@@ -215,14 +254,14 @@ function generateUserPreferences(user: any): CommunicationPreferenceData {
   const timezone = getTimezoneByLanguage(language);
 
   // Canaux activés (probabilités différentes selon le rôle)
-  const emailEnabled = faker.datatype.boolean(
-    roleBasedPreferences.emailProbability,
+  const emailEnabled = Math.random() < (
+    user.role === UserRole.CLIENT ? 0.9 : 0.8
   );
-  const smsEnabled = faker.datatype.boolean(
-    roleBasedPreferences.smsProbability,
-  ); // Simplifié car phone n'est pas dans le schéma
-  const pushEnabled = faker.datatype.boolean(
-    roleBasedPreferences.pushProbability,
+  const smsEnabled = Math.random() < (
+    user.role === UserRole.DELIVERER ? 0.7 : 0.5
+  );
+  const pushEnabled = Math.random() < (
+    user.role === UserRole.DELIVERER ? 0.95 : 0.85
   );
 
   // Fréquence de notifications
@@ -231,7 +270,7 @@ function generateUserPreferences(user: any): CommunicationPreferenceData {
   ) as "IMMEDIATE" | "HOURLY" | "DAILY" | "WEEKLY";
 
   // Heures silencieuses (70% des utilisateurs)
-  const hasQuietHours = faker.datatype.boolean(0.7);
+  const hasQuietHours = Math.random() < 0.7;
   const quietHoursStart = hasQuietHours
     ? faker.helpers.arrayElement(["22:00", "23:00", "00:00"])
     : "";
@@ -428,7 +467,7 @@ function generateOptOuts(role: UserRole): string[] {
 
   const probability = optOutProbabilities[role] || 0.3;
 
-  return allNotificationTypes.filter(() => faker.datatype.boolean(probability));
+  return allNotificationTypes.filter(() => Math.random() < probability);
 }
 
 /**

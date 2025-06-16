@@ -1,48 +1,50 @@
 # =============================================================================
-# NGINX REVERSE PROXY - DOCKERFILE PRODUCTION
+# DOCKERFILE POUR NGINX REVERSE PROXY ECODELI
 # =============================================================================
 
-FROM nginx:1.25-alpine
+FROM nginx:alpine
+
+# Métadonnées
+LABEL maintainer="EcoDeli Team"
+LABEL description="Nginx reverse proxy avec SSL pour EcoDeli"
+LABEL version="2.0.0"
 
 # Installation des outils nécessaires
 RUN apk add --no-cache \
-    openssl \
     curl \
-    tzdata \
-    logrotate
-
-# Configuration du timezone
-ENV TZ=Europe/Paris
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+    openssl \
+    certbot \
+    certbot-nginx \
+    bash
 
 # Création des répertoires
-RUN mkdir -p /etc/nginx/ssl \
-    && mkdir -p /var/log/nginx \
-    && mkdir -p /var/cache/nginx \
-    && mkdir -p /var/www/uploads
+RUN mkdir -p /var/www/certbot \
+    /etc/nginx/ssl \
+    /var/log/nginx \
+    /etc/nginx/sites-available \
+    /etc/nginx/sites-enabled
 
 # Copie des configurations
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY conf.d/ /etc/nginx/conf.d/
+COPY sites/ /etc/nginx/sites-available/
 COPY ssl/ /etc/nginx/ssl/
 
-# Script de génération SSL auto-signé (développement)
-COPY scripts/generate-ssl.sh /usr/local/bin/generate-ssl.sh
+# Activation des sites
+RUN ln -sf /etc/nginx/sites-available/ecodeli.conf /etc/nginx/sites-enabled/
+
+# Script de génération de certificats SSL auto-signés pour le développement
+COPY generate-ssl.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/generate-ssl.sh
 
-# Configuration des permissions
-RUN chown -R nginx:nginx /var/cache/nginx \
-    && chown -R nginx:nginx /var/log/nginx \
-    && chown -R nginx:nginx /etc/nginx/ssl
-
-# Script d'entrypoint personnalisé
+# Script d'entrypoint
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost/health || exit 1
 
+# Exposition des ports
 EXPOSE 80 443
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

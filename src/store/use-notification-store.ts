@@ -132,7 +132,7 @@ const defaultPreferences: NotificationPreferences = {
     enabled: false,
     startTime: "22:00",
     endTime: "08:00",
-    timezone: "Europe/Paris"},
+    timezone: process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE || "Europe/Paris"},
   frequency: {
     immediate: true,
     hourly: false,

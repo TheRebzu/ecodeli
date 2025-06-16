@@ -66,8 +66,7 @@ const paymentServiceExt = {
   ...paymentService};
 
 /**
- * Routeur tRPC pour les fonctionnalités de paiement
- * Gère les paiements réels et simulés en mode démonstration
+ * Gère les paiements réels via Stripe
  */
 export const paymentRouter = router({ /**
    * Récupère la liste des paiements pour l'utilisateur connecté avec pagination

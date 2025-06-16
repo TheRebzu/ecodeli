@@ -1,11 +1,11 @@
-package com.ecodeli.presentation.viewmodels
+package me.ecodeli.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ecodeli.data.api.Result
-import com.ecodeli.data.models.Delivery
-import com.ecodeli.data.models.DeliveryStatus
-import com.ecodeli.data.repositories.DeliveryRepository
+import me.ecodeli.data.api.Result
+import me.ecodeli.data.models.Delivery
+import me.ecodeli.data.models.DeliveryStatus
+import me.ecodeli.data.repositories.DeliveryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

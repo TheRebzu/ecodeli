@@ -541,13 +541,27 @@ export const delivererRoutesRouter = router({ /**
             priceOffered: input.proposedPrice,
             acceptedAt: new Date()}});
 
+        // Calculer la capacité utilisée selon les dimensions de l'annonce
+        let capacityUsed = 1; // Capacité minimum par défaut
+        
+        if (announcement.weight) {
+          capacityUsed = Math.max(capacityUsed, Math.ceil(announcement.weight / 5)); // 5kg = 1 unité
+        }
+        
+        if (announcement.length && announcement.width && announcement.height) {
+          const volume = (announcement.length * announcement.width * announcement.height) / 1000; // en dm³
+          capacityUsed = Math.max(capacityUsed, Math.ceil(volume / 10)); // 10dm³ = 1 unité
+        }
+
         // Mettre à jour la capacité disponible
         await ctx.db.delivererPlannedRoute.update({
           where: { id: input.routeId },
           data: {
             availableCapacity: {
-              decrement: 10, // TODO: Calculer selon le volume réel
-            }}});
+              decrement: capacityUsed,
+            },
+          },
+        });
 
         return {
           success: true,

@@ -31,8 +31,8 @@
 # Moshi
 -keep class com.squareup.moshi.** { *; }
 -keep interface com.squareup.moshi.** { *; }
--keep class com.ecodeli.data.models.** { *; }
--keepclassmembers class com.ecodeli.data.models.** { *; }
+-keep class me.ecodeli.data.models.** { *; }
+-keepclassmembers class me.ecodeli.data.models.** { *; }
 -keep @com.squareup.moshi.JsonQualifier interface *
 -keepclassmembers class * {
     @com.squareup.moshi.Json <fields>;
@@ -94,8 +94,8 @@
 -keep class okhttp3.CertificatePinner$Pin { *; }
 
 # Keep our application classes
--keep class com.ecodeli.** { *; }
--keepclassmembers class com.ecodeli.** { *; }
+-keep class me.ecodeli.** { *; }
+-keepclassmembers class me.ecodeli.** { *; }
 
 # Optimization
 -optimizationpasses 5

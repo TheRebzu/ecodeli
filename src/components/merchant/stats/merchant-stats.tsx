@@ -135,6 +135,20 @@ export function MerchantStats() {
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1'];
 
+  // Générer des couleurs dynamiquement basées sur le nombre de catégories
+  const generateColors = (count: number) => {
+    const colors = [];
+    for (let i = 0; i < count; i++) {
+      const hue = (i * 137.508) % 360; // Ratio doré pour une bonne distribution
+      colors.push(`hsl(${hue}, 70%, 50%)`);
+    }
+    return colors;
+  };
+
+  const categoryColors = stats?.categories 
+    ? generateColors(stats.categories.length)
+    : COLORS;
+
   if (isLoading) {
     return <SkeletonLoader />;
   }
@@ -339,7 +353,7 @@ export function MerchantStats() {
                   dataKey="value"
                 >
                   {(stats?.categories || []).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={categoryColors[index % categoryColors.length]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
@@ -350,7 +364,7 @@ export function MerchantStats() {
                 <div key={category.name} className="flex items-center gap-2">
                   <div 
                     className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    style={{ backgroundColor: categoryColors[index % categoryColors.length] }}
                   />
                   <span className="text-sm">{category.name}</span>
                   <Badge variant="outline" className="ml-auto text-xs">

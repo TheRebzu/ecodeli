@@ -19,57 +19,113 @@ interface PlanLimits {
 export const subscriptionRouter = router({ /**
    * Récupère l'abonnement actuel de l'utilisateur
    */
-  getCurrentSubscription: protectedProcedure.query(async ({ ctx  }) => {
+  getCurrentSubscription: protectedProcedure.query(async ({ ctx }) => {
     try {
       const { user } = ctx.session;
 
       if (!user) {
-        throw new TRPCError({ code: "UNAUTHORIZED",
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
           message: "Utilisateur non authentifié",
-         });
+        });
       }
 
-      // Pour l'instant, simuler un abonnement par défaut
-      // TODO: Récupérer depuis la base de données
+      // Récupérer l'abonnement depuis la base de données
+      const subscription = await ctx.db.subscription.findFirst({
+        where: {
+          userId: user.id,
+          status: "ACTIVE",
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      const plan = (subscription?.plan as SubscriptionPlan) || "FREE";
+      
       return {
-        plan: "FREE" as SubscriptionPlan,
-        status: "ACTIVE",
-        startDate: new Date(),
-        limits: getPlanLimits("FREE"),
+        plan,
+        status: subscription?.status || "ACTIVE",
+        startDate: subscription?.startDate || new Date(),
+        endDate: subscription?.endDate,
+        limits: getPlanLimits(plan),
       };
     } catch (error: any) {
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération de l'abonnement",
         cause: error,
-       });
+      });
     }
   }),
 
   /**
    * Récupère l'utilisation mensuelle
    */
-  getMonthlyUsage: protectedProcedure.query(async ({ ctx  }) => {
+  getMonthlyUsage: protectedProcedure.query(async ({ ctx }) => {
     try {
       const { user } = ctx.session;
 
       if (!user) {
-        throw new TRPCError({ code: "UNAUTHORIZED",
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
           message: "Utilisateur non authentifié",
-         });
+        });
       }
 
-      // Pour l'instant, simuler des données d'usage
-      // TODO: Récupérer depuis la base de données
+      // Calculer l'utilisation mensuelle depuis la base de données
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const endOfMonth = new Date(startOfMonth);
+      endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+
+      // Compter les livraisons du mois
+      const deliveries = await ctx.db.delivery.count({
+        where: {
+          clientId: user.id,
+          createdAt: {
+            gte: startOfMonth,
+            lt: endOfMonth,
+          },
+        },
+      });
+
+      // Compter les livraisons prioritaires du mois
+      const priorityDeliveries = await ctx.db.delivery.count({
+        where: {
+          clientId: user.id,
+          priority: { in: ["HIGH", "URGENT"] },
+          createdAt: {
+            gte: startOfMonth,
+            lt: endOfMonth,
+          },
+        },
+      });
+
+      // Compter les réclamations d'assurance du mois
+      const insuranceClaims = await ctx.db.insuranceClaim.count({
+        where: {
+          userId: user.id,
+          createdAt: {
+            gte: startOfMonth,
+            lt: endOfMonth,
+          },
+        },
+      });
+
       return {
-        deliveries: 3,
-        priorityDeliveries: 1,
-        insuranceClaims: 0,
+        deliveries,
+        priorityDeliveries,
+        insuranceClaims,
       };
     } catch (error: any) {
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération de l'utilisation",
         cause: error,
-       });
+      });
     }
   }),
 
@@ -78,23 +134,50 @@ export const subscriptionRouter = router({ /**
    */
   changePlan: protectedProcedure
     .input(
-      z.object({ plan: z.enum(["FREE", "STARTER", "PREMIUM"]),
-       })
+      z.object({
+        plan: z.enum(["FREE", "STARTER", "PREMIUM"]),
+      })
     )
-    .mutation(async ({ ctx, input  }) => {
+    .mutation(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
 
         if (!user) {
-          throw new TRPCError({ code: "UNAUTHORIZED",
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
             message: "Utilisateur non authentifié",
-           });
+          });
         }
 
         const { plan } = input;
 
-        // Pour l'instant, simuler le changement de plan
-        // TODO: Implémenter la logique de changement avec Stripe
+        // Désactiver l'abonnement actuel
+        await ctx.db.subscription.updateMany({
+          where: {
+            userId: user.id,
+            status: "ACTIVE",
+          },
+          data: {
+            status: "CANCELLED",
+            endDate: new Date(),
+          },
+        });
+
+        // Créer un nouvel abonnement (sauf pour FREE)
+        if (plan !== "FREE") {
+          await ctx.db.subscription.create({
+            data: {
+              userId: user.id,
+              plan,
+              status: "ACTIVE",
+              startDate: new Date(),
+              // Pour un abonnement mensuel
+              endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            },
+          });
+        }
+
+        // TODO: Intégrer avec Stripe pour le paiement réel
         console.log(`Changement de plan pour l'utilisateur ${user.id} vers ${plan}`);
 
         return {
@@ -103,10 +186,11 @@ export const subscriptionRouter = router({ /**
           message: `Abonnement changé vers ${plan} avec succès`,
         };
       } catch (error: any) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors du changement d'abonnement",
           cause: error,
-         });
+        });
       }
     }),
 

@@ -48,7 +48,7 @@ export default getRequestConfig(async ({ locale  }) => {
     return {
       locale: locale as string,
       messages,
-      timeZone: "Europe/Paris",
+      timeZone: process.env.DEFAULT_TIMEZONE || "Europe/Paris",
       // Ajout de formats par défaut pour dates et nombres
       formats: {
         dateTime: {
@@ -81,7 +81,7 @@ export default getRequestConfig(async ({ locale  }) => {
     return {
       locale: locale as string,
       messages: {},
-      timeZone: "Europe/Paris"};
+      timeZone: process.env.DEFAULT_TIMEZONE || "Europe/Paris"};
   }
 });
 

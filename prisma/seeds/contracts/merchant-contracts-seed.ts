@@ -267,7 +267,7 @@ function generateSimpleContractContent(
     },
     conditions: {
       paymentTerms: "Paiement à 30 jours fin de mois",
-      exclusivityClause: faker.datatype.boolean(),
+      exclusivityClause: Math.random() < 0.5,
       territory: "Zone de livraison définie selon accord",
       qualityStandards: "Respect des standards qualité EcoDeli",
     },

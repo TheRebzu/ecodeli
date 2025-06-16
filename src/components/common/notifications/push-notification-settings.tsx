@@ -24,8 +24,13 @@ export function PushNotificationSettings() {
 
   const handleTestNotification = async () => {
     setTestLoading(true);
-    sendTestNotification();
-    setTimeout(() => setTestLoading(false), 2000);
+    try {
+      await sendTestNotification();
+    } catch (error) {
+      console.error("Erreur lors de l'envoi de la notification test:", error);
+    } finally {
+      setTestLoading(false);
+    }
   };
 
   return (

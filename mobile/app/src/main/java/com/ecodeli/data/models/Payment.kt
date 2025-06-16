@@ -1,4 +1,4 @@
-package com.ecodeli.data.models
+package me.ecodeli.data.models
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

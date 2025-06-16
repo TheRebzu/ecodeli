@@ -374,7 +374,7 @@ async function generateDocuments(config = DEFAULT_CONFIG) {
         type: documentType,
         userId,
         filename: `document_${documentType.toLowerCase()}_${index}.pdf`,
-        fileUrl: `https://storage.ecodeli.example/documents/${faker.string.uuid()}.pdf`,
+        fileUrl: `${process.env.NEXT_PUBLIC_STORAGE_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/documents/${faker.string.uuid()}.pdf`,
         mimeType: "application/pdf",
         fileSize: faker.number.int({ min: 10000, max: 5000000 }),
         uploadedAt: faker.date.between({
@@ -712,7 +712,7 @@ async function generatePayments(config = DEFAULT_CONFIG) {
 }
 
 /**
- * Générer des coordonnées de livraison pour simuler le suivi en temps réel
+ * Générer des coordonnées de livraison pour le suivi en temps réel
  */
 async function generateDeliveryCoordinates() {
   if (deliveryIds.length === 0) {

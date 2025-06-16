@@ -222,7 +222,7 @@ export async function seedProviderServices(
           description: template.description,
           price: template.price + faker.number.int({ min: -5, max: 10 }), // Variation de prix
           duration: template.duration,
-          isActive: faker.datatype.boolean(0.9), // 90% des services sont actifs
+          isActive: Math.random() < 0.9, // 90% des services sont actifs
         };
 
         const service = await prisma.service.create({

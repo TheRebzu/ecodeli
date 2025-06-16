@@ -1,4 +1,4 @@
-package com.ecodeli
+package me.ecodeli
 
 import android.app.Application
 import com.onesignal.OneSignal

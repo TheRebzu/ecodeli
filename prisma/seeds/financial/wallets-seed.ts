@@ -185,7 +185,7 @@ export async function seedWallets(
           accountType:
             user.role === UserRole.DELIVERER ? "INDIVIDUAL" : "BUSINESS",
           minimumWithdrawalAmount: 10,
-          automaticWithdrawal: faker.datatype.boolean(withdrawalFrequency),
+          automaticWithdrawal: Math.random() < withdrawalFrequency,
           withdrawalThreshold: faker.number.float({ min: 50, max: 200 }),
           withdrawalDay: faker.number.int({ min: 1, max: 28 }),
           totalEarned: totalEarned,
@@ -543,7 +543,7 @@ async function generateWalletTransactions(
       walletId,
       amount: -actualAmount, // Négatif pour les retraits
       type: TransactionType.WITHDRAWAL,
-      status: faker.datatype.boolean(0.95)
+              status: Math.random() < 0.95
         ? TransactionStatus.COMPLETED
         : TransactionStatus.PENDING,
       description: "Retrait vers compte bancaire",
@@ -554,7 +554,7 @@ async function generateWalletTransactions(
 
   // Générer d'autres transactions (frais, bonus, corrections)
   for (let i = 0; i < othersCount; i++) {
-    const isBonus = faker.datatype.boolean(0.7);
+          const isBonus = Math.random() < 0.7;
     const amount = isBonus
       ? faker.number.float({ min: 5, max: 50, fractionDigits: 2 })
       : -faker.number.float({ min: 1, max: 10, fractionDigits: 2 });

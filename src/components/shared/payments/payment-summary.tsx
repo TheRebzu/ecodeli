@@ -37,6 +37,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { usePaymentConfirmation } from "@/hooks/payment/use-payment";
+import { useLocalizedFormat } from "@/hooks/use-localized-format";
 
 // Type de variante pour Badge
 type BadgeVariant = "default" | "destructive" | "outline" | "secondary";
@@ -57,11 +58,6 @@ export interface PaymentSummaryProps {
   invoiceId?: string;
   onDownloadReceipt?: () => void;
   onViewInvoice?: () => void;
-  
-  onSimulateSuccess?: () => void;
-  onSimulateFailure?: () => void;
-  onSimulateRefund?: () => void;
-  onSimulateDispute?: () => void;
   fees?: number;
   taxes?: number;
   className?: string;
@@ -83,25 +79,15 @@ export function PaymentSummary({
   invoiceId,
   onDownloadReceipt,
   onViewInvoice,
-  
-  onSimulateSuccess,
-  onSimulateFailure,
-  onSimulateRefund,
-  onSimulateDispute,
   fees = 0,
   taxes = 0,
   className,
 }: PaymentSummaryProps) {
   const t = useTranslations("payment");
+  const { formatCurrency, formatDate } = useLocalizedFormat();
 
-  // Utiliser notre hook de confirmation de paiement (utile pour le mode démo)
-  const {
-    simulateSuccess,
-    simulateFailure,
-    simulateRefund,
-    simulateDispute,
-    isDemoMode,
-  } = usePaymentConfirmation();
+  // Hook pour la confirmation de paiement (sans mode démo)
+  const { isLoading: isConfirming } = usePaymentConfirmation();
 
   const getStatusInfo = (status: PaymentStatus) => {
     switch (status) {
@@ -163,52 +149,6 @@ export function PaymentSummary({
   };
 
   const statusInfo = getStatusInfo(status);
-
-  // Gérer les simulations en mode démo
-  const handleSimulateSuccess = async () => {
-    if (isDemoMode) {
-      try {
-        await simulateSuccess(paymentId);
-        if (onSimulateSuccess) onSimulateSuccess();
-      } catch (error) {
-        console.error("Erreur lors de la simulation de succès:", error);
-      }
-    }
-  };
-
-  const handleSimulateFailure = async () => {
-    if (isDemoMode) {
-      try {
-        await simulateFailure(paymentId);
-        if (onSimulateFailure) onSimulateFailure();
-      } catch (error) {
-        console.error("Erreur lors de la simulation d'échec:", error);
-      }
-    }
-  };
-
-  const handleSimulateRefund = async () => {
-    if (isDemoMode) {
-      try {
-        await simulateRefund(paymentId);
-        if (onSimulateRefund) onSimulateRefund();
-      } catch (error) {
-        console.error("Erreur lors de la simulation de remboursement:", error);
-      }
-    }
-  };
-
-  const handleSimulateDispute = async () => {
-    if (isDemoMode) {
-      try {
-        await simulateDispute(paymentId);
-        if (onSimulateDispute) onSimulateDispute();
-      } catch (error) {
-        console.error("Erreur lors de la simulation de litige:", error);
-      }
-    }
-  };
-
   const subtotal = amount - fees - taxes;
   const total = amount;
 
@@ -225,25 +165,6 @@ export function PaymentSummary({
             >
               {statusInfo.label}
             </Badge>
-
-            {(isDemoMode) && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge
-                      variant="outline"
-                      className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
-                    >
-                      <Zap className="h-3 w-3" />
-                      {t("demoMode")}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("demoPaymentSummaryDescription")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
           </div>
         </div>
         <CardDescription>
@@ -435,91 +356,6 @@ export function PaymentSummary({
             <Receipt className="mr-2 h-4 w-4" />
             {t("viewInvoice")}
           </Button>
-        )}
-
-        {}
-        {(isDemoMode) && status === "PENDING" && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSimulateSuccess}
-                  className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  {t("simulateSuccess")}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t("simulateSuccessDescription")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-
-        {(isDemoMode) && status === "PENDING" && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSimulateFailure}
-                  className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
-                >
-                  <XCircle className="mr-2 h-4 w-4" />
-                  {t("simulateFailure")}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t("simulateFailureDescription")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-
-        {(isDemoMode) && status === "COMPLETED" && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSimulateRefund}
-                  className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                >
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  {t("simulateRefund")}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t("simulateRefundDescription")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-
-        {(isDemoMode) && status === "COMPLETED" && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSimulateDispute}
-                  className="bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
-                >
-                  <AlertCircle className="mr-2 h-4 w-4" />
-                  {t("simulateDispute")}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t("simulateDisputeDescription")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         )}
       </CardFooter>
     </Card>

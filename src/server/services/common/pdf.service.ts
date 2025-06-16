@@ -124,8 +124,7 @@ export const PdfService = {
       .text("EcoDeli", 50, 45)
       .fontSize(10)
       .text("EcoDeli SAS", 50, 70)
-      .text("123 Rue de l'Innovation", 50, 85)
-      .text("75001 Paris, France", 50, 100)
+      .text(process.env.COMPANY_BILLING_ADDRESS || "75001 Paris, France", 50, 100)
       .text("SIRET: 123 456 789 00010", 50, 115)
       .text("TVA: FR 12 345 678 901", 50, 130)
       .moveDown();

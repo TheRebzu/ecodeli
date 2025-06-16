@@ -292,7 +292,7 @@ function generateContractHTML(contract: any, templateType?: string): string {
             <div class="party-title">EcoDeli Platform</div>
             <p>Adresse: 123 Rue de la Tech<br>
             75001 Paris, France<br>
-            Email: contact@ecodeli.fr<br>
+            Email: contact@ecodeli.me<br>
             SIRET: 123 456 789 00001</p>
         </div>
         <div class="party">
@@ -482,7 +482,7 @@ function generateInvoiceHTML(
             <div class="logo">EcoDeli</div>
             <p>123 Rue de la Tech<br>
             75001 Paris, France<br>
-            Email: facturation@ecodeli.fr<br>
+            Email: facturation@ecodeli.me<br>
             SIRET: 123 456 789 00001</p>
         </div>
         <div class="invoice-info">

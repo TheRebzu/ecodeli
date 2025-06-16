@@ -24,7 +24,7 @@ export interface DeliveryTrackingUpdate {
  * Dans une implémentation réelle, cela utiliserait Socket.IO, WebSockets, ou autre
  */
 export const emitDeliveryUpdate = (deliveryId: string, update: any) => {
-  // Journalisation pour le développement (simulée)
+  // Journalisation pour le développement et la production
   console.log(
     `[WebSocket] Émission de mise à jour pour la livraison ${deliveryId}:`,
     update,

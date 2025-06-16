@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.home
+package me.ecodeli.presentation.ui.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ecodeli.presentation.ui.common.LoadingScreen
-import com.ecodeli.presentation.viewmodels.DashboardViewModel
+import me.ecodeli.presentation.ui.common.LoadingScreen
+import me.ecodeli.presentation.viewmodels.DashboardViewModel
 
 /**
  * Écran dashboard principal

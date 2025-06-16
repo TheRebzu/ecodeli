@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.wallet
+package me.ecodeli.presentation.ui.wallet
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons

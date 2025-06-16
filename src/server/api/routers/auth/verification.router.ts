@@ -73,10 +73,11 @@ export const verificationRouter = router({ // Soumettre une vérification pour u
       z.object({ documentId: z.string() }),
     )
     .mutation(async ({ ctx, input: input  }) => {
-      // Cette fonctionnalité n'est pas implémentée dans le service
-      // Il faudrait l'implémenter ou utiliser documentService à la place
-      throw new TRPCError({ code: "NOT_IMPLEMENTED",
-        message: "Cette fonctionnalité n'est pas encore disponible" });
+      // Utiliser documentService pour supprimer le document
+      return await documentService.deleteDocument(
+        input.documentId,
+        ctx.session.user.id
+      );
     }),
 
   // Obtenir le statut de vérification d'un commerçant

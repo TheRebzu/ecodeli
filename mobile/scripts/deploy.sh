@@ -125,7 +125,7 @@ deploy_production() {
             --aab "$AAB_PATH" \
             --track "internal" \
             --json_key "play-console-key.json" \
-            --package_name "com.ecodeli"
+            --package_name "me.ecodeli"
             
         echo "✅ Production deployment successful!"
         echo "🎉 App uploaded to Google Play Console (Internal Testing track)"

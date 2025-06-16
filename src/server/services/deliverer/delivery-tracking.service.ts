@@ -66,24 +66,40 @@ const isPointInRadius = (
   return distance <= radiusInMeters;
 };
 
-// Fonction pour simuler l'émission de mises à jour WebSocket
-const emitDeliveryUpdate = (deliveryId: string, update: any) => {
-  // Dans un environnement de production, ceci serait implémenté avec Socket.IO, WS, ou Pusher
-  console.log(
-    `[WebSocket] Émission de mise à jour pour la livraison ${deliveryId}:`,
-    update,
-  );
-  return true;
+// Fonction pour émettre de vraies mises à jour WebSocket
+const emitDeliveryUpdate = async (deliveryId: string, update: any) => {
+  try {
+    // Émettre via WebSocket/Server-Sent Events pour les clients connectés
+    if (global.io) {
+      global.io.to(`delivery-${deliveryId}`).emit('delivery-update', update);
+    }
+    
+    // Sauvegarder l'update dans la base de données pour persistance
+    await db.deliveryUpdate.create({
+      data: {
+        deliveryId,
+        type: update.type,
+        data: update,
+        timestamp: new Date(),
+      },
+    });
+    
+    return true;
+  } catch (error) {
+    console.error(`Erreur lors de l'émission de mise à jour pour ${deliveryId}:`, error);
+    return false;
+  }
 };
 
-// Fonction pour simuler l'envoi de notifications
+// Fonction pour envoyer de vraies notifications
 const sendNotification = async ({
   userId,
   title,
   message,
   type,
   link,
-  data}: {
+  data,
+}: {
   userId: string;
   title: string;
   message: string;
@@ -91,11 +107,23 @@ const sendNotification = async ({
   link: string;
   data?: Record<string, any>;
 }) => {
-  // Dans un environnement de production, ceci serait implémenté avec un service de notification
-  console.log(
-    `[Notification] Envoi à l'utilisateur ${userId}: ${title} - ${message}`,
-  );
-  return true;
+  try {
+    // Utiliser le service de notification réel
+    const notificationService = await import("@/server/services/common/notification.service");
+    
+    await notificationService.NotificationService.prototype.sendUserNotification({
+      userId,
+      title,
+      message,
+      type: type as any,
+      actionUrl: link,
+    });
+    
+    return true;
+  } catch (error) {
+    console.error(`Erreur lors de l'envoi de notification à ${userId}:`, error);
+    return false;
+  }
 };
 
 export const deliveryTrackingService = {
@@ -480,21 +508,23 @@ export const deliveryTrackingService = {
 
     // Préparer les filtres de date
     const dateFilter = {
-      ...(startDate ? { gte } : {}),
-      ...(endDate ? { lte } : {})};
+      ...(startDate ? { gte: startDate } : {}),
+      ...(endDate ? { lte: endDate } : {})};
 
     // Récupérer les données
     const [positions, statuses, checkpoints, eta] = await Promise.all([
-      // Positions GPS
+      // Positions de tracking
       includePositions
         ? db.deliveryTrackingPosition.findMany({
             where: {
               deliveryId,
               ...(Object.keys(dateFilter).length > 0
-                ? { timestamp }
-                : {})},
+                ? { timestamp: dateFilter }
+                : {}),
+            },
             orderBy: { timestamp: "asc" },
-            take: limit})
+            take: limit,
+          })
         : Promise.resolve([]),
 
       // Historique des statuts
@@ -503,15 +533,20 @@ export const deliveryTrackingService = {
             where: {
               deliveryId,
               ...(Object.keys(dateFilter).length > 0
-                ? { timestamp }
-                : {})},
+                ? { timestamp: dateFilter }
+                : {}),
+            },
             orderBy: { timestamp: "asc" },
             include: {
               updatedBy: {
                 select: {
                   id: true,
                   name: true,
-                  role: true}}}})
+                  role: true,
+                },
+              },
+            },
+          })
         : Promise.resolve([]),
 
       // Points de passage
@@ -520,15 +555,20 @@ export const deliveryTrackingService = {
             where: {
               deliveryId,
               ...(Object.keys(dateFilter).length > 0
-                ? { createdAt }
-                : {})},
+                ? { createdAt: dateFilter }
+                : {}),
+            },
             orderBy: { createdAt: "asc" },
             include: {
               completedByUser: {
                 select: {
                   id: true,
                   name: true,
-                  role: true}}}})
+                  role: true,
+                },
+              },
+            },
+          })
         : Promise.resolve([]),
 
       // Estimation du temps d'arrivée

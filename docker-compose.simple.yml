@@ -1,0 +1,42 @@
+# Configuration Docker simplifiée pour EcoDeli
+services:
+  # Base de données PostgreSQL simple
+  ecodeli-db:
+    image: postgres:15-alpine
+    container_name: ecodeli-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=ecodeli
+      - POSTGRES_USER=ecodeli
+      - POSTGRES_PASSWORD=ecodeli_secure_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ecodeli_network
+    restart: unless-stopped
+
+  # Application web Next.js (sera ajoutée après)
+  # ecodeli-web:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/web/Dockerfile
+  #     target: development
+  #   container_name: ecodeli-web
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - DATABASE_URL=postgresql://ecodeli:ecodeli_secure_password@ecodeli-db:5432/ecodeli
+  #   depends_on:
+  #     - ecodeli-db
+  #   networks:
+  #     - ecodeli_network
+
+networks:
+  ecodeli_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

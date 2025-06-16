@@ -169,7 +169,7 @@ export class BillingService {
 
               // Informations légales
               companyName: "EcoDeli SAS",
-              companyAddress:
+              companyAddress: process.env.COMPANY_BILLING_ADDRESS || 
                 "123 Avenue de la République, 75011 Paris, France",
               companyVatNumber: "FR12345678901",
               companySiret: "12345678901234",
@@ -288,7 +288,7 @@ export class BillingService {
 
               // Informations légales
               companyName: "EcoDeli SAS",
-              companyAddress:
+              companyAddress: process.env.COMPANY_BILLING_ADDRESS || 
                 "123 Avenue de la République, 75011 Paris, France",
               companyVatNumber: "FR12345678901",
               companySiret: "12345678901234",

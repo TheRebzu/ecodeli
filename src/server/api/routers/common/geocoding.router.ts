@@ -20,7 +20,7 @@ export const geocodingRouter = router({ // Recherche d'adresse (géocodage)
 
         const response = await fetch(url, {
           headers: {
-            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.fr)"}});
+            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.me)"}});
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -55,7 +55,7 @@ export const geocodingRouter = router({ // Recherche d'adresse (géocodage)
 
         const response = await fetch(url, {
           headers: {
-            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.fr)"}});
+            "User-Agent": "EcoDeli/1.0 (contact@ecodeli.me)"}});
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

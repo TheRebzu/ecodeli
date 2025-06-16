@@ -91,7 +91,7 @@ export async function seedDelivererDocuments(
         userId: marieLaurent.id,
         type: DocumentType.DRIVERS_LICENSE,
         filename: "permis_conduire_marie_laurent.pdf",
-        fileUrl: `https://storage.ecodeli.fr/documents/deliverers/${marieLaurent.id}/permis_conduire_marie_laurent.pdf`,
+        fileUrl: `https://storage.ecodeli.me/documents/deliverers/${marieLaurent.id}/permis_conduire_marie_laurent.pdf`,
         fileSize: 445000, // 445KB
         mimeType: "application/pdf",
         isVerified: true,
@@ -112,7 +112,7 @@ export async function seedDelivererDocuments(
         userId: marieLaurent.id,
         type: DocumentType.VEHICLE_REGISTRATION,
         filename: "carte_grise_peugeot_208.pdf",
-        fileUrl: `https://storage.ecodeli.fr/documents/deliverers/${marieLaurent.id}/carte_grise_peugeot_208.pdf`,
+        fileUrl: `https://storage.ecodeli.me/documents/deliverers/${marieLaurent.id}/carte_grise_peugeot_208.pdf`,
         fileSize: 325000, // 325KB
         mimeType: "application/pdf",
         isVerified: true,
@@ -133,7 +133,7 @@ export async function seedDelivererDocuments(
         userId: marieLaurent.id,
         type: DocumentType.VEHICLE_INSURANCE,
         filename: "assurance_auto_marie_laurent.pdf",
-        fileUrl: `https://storage.ecodeli.fr/documents/deliverers/${marieLaurent.id}/assurance_auto_marie_laurent.pdf`,
+        fileUrl: `https://storage.ecodeli.me/documents/deliverers/${marieLaurent.id}/assurance_auto_marie_laurent.pdf`,
         fileSize: 289000, // 289KB
         mimeType: "application/pdf",
         isVerified: true,
@@ -159,7 +159,7 @@ export async function seedDelivererDocuments(
         userId: marieLaurent.id,
         type: DocumentType.DRIVERS_LICENSE,
         filename: "ancien_permis_marie_laurent.pdf",
-        fileUrl: `https://storage.ecodeli.fr/documents/deliverers/${marieLaurent.id}/ancien_permis_marie_laurent.pdf`,
+        fileUrl: `https://storage.ecodeli.me/documents/deliverers/${marieLaurent.id}/ancien_permis_marie_laurent.pdf`,
         fileSize: 245000, // 245KB
         mimeType: "application/pdf",
         isVerified: false,
@@ -330,7 +330,7 @@ export async function validateDelivererDocuments(
 
   // Vérifier la cohérence des URL de fichiers
   const invalidUrls = documents.filter(
-    (d) => !d.fileUrl || !d.fileUrl.includes("ecodeli.fr"),
+    (d) => !d.fileUrl || !d.fileUrl.includes("ecodeli.me"),
   );
 
   if (invalidUrls.length === 0) {

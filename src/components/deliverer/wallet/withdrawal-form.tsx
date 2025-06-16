@@ -270,7 +270,7 @@ export function WithdrawalForm({
                     <FormItem>
                       <FormLabel>IBAN</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="FR76 1234 5678 9012 3456 7890 123" />
+                        <Input {...field} placeholder="Ex: FR76 1234 5678 9012 3456 7890 123" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -308,7 +308,7 @@ export function WithdrawalForm({
                     <FormItem>
                       <FormLabel>{t("paypalEmail")}</FormLabel>
                       <FormControl>
-                        <Input {...field} type="email" placeholder="votre-email@example.com" />
+                        <Input {...field} type="email" placeholder="Adresse email" />
                       </FormControl>
                       <FormDescription>
                         {t("paypalEmailDescription")}

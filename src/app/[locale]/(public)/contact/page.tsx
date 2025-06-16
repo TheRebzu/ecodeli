@@ -206,7 +206,7 @@ export default function ContactPage() {
                           id="email"
                           type="email"
                           className="w-full p-2 rounded-md border border-input bg-transparent"
-                          placeholder="votre.email@exemple.com"
+                          placeholder="email@domaine.com"
                         />
                       </div>
                       <div className="space-y-2">

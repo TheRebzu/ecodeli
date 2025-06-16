@@ -172,10 +172,50 @@ export const merchantRouter = router({ // Récupération des commandes du marcha
       
       const uniqueCustomers = new Set(orders.map(order => order.customerId)).size;
       
-      // Simuler quelques métriques
-      const conversionRate = 12.5;
-      const returnRate = 2.1;
-      const averageRating = 4.7;
+      // Calculer les vraies métriques depuis la base de données
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      // Revenus du mois
+      const monthlyRevenue = await ctx.db.payment.aggregate({
+        where: {
+          userId: ctx.session.user.id,
+          status: "COMPLETED",
+          createdAt: { gte: startOfMonth },
+        },
+        _sum: { amount: true },
+      });
+
+      // Commandes de la semaine
+      const weeklyOrders = await ctx.db.announcement.count({
+        where: {
+          clientId: ctx.session.user.id,
+          createdAt: { gte: startOfWeek },
+        },
+      });
+
+      // Livraisons actives
+      const activeDeliveries = await ctx.db.delivery.count({
+        where: {
+          announcement: { clientId: ctx.session.user.id },
+          status: { in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"] },
+        },
+      });
+
+      // Taux de satisfaction basé sur les ratings
+      const ratings = await ctx.db.rating.aggregate({
+        where: {
+          targetId: ctx.session.user.id,
+          targetType: "CLIENT",
+        },
+        _avg: { rating: true },
+        _count: { rating: true },
+      });
+
+      const satisfactionRate = ratings._avg.rating 
+        ? Math.round((ratings._avg.rating / 5) * 100) 
+        : 0;
 
       // Top produits
       const productSales: Record<string, { name: string; sales: number; revenue: number }> = {};
@@ -248,13 +288,11 @@ export const merchantRouter = router({ // Récupération des commandes du marcha
           totalOrders,
           averageOrderValue,
           totalCustomers: uniqueCustomers,
-          conversionRate,
-          returnRate,
-          averageRating,
+          satisfactionRate,
           topProducts},
         trends: {
           daily,
-          monthly: [], // À implémenter si nécessaire
+                      monthly: await getMonthlyTrends(ctx.db, ctx.session.user.id),
         },
         categories};
     }),

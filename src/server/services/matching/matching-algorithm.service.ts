@@ -49,7 +49,7 @@ export class MatchingAlgorithmService {
     maxResults: number = 10
   ): Promise<DelivererMatch[]> {
     try {
-      // R�cup�rer l'annonce avec tous les d�tails
+      // Récupérer l'annonce avec tous les détails
       const announcement = await db.announcement.findUnique({
         where: { id },
         include: {
@@ -61,11 +61,11 @@ export class MatchingAlgorithmService {
 
       if (!announcement) {
         throw new TRPCError({ code: "NOT_FOUND",
-          message: "Annonce non trouv�e"
+          message: "Annonce non trouvée"
          });
       }
 
-      // D�finir les crit�res par d�faut
+      // Définir les critères par défaut
       const defaultCriteria: MatchingCriteria = {
         maxDistance: 50,
         maxDetourPercentage: 30,
@@ -81,7 +81,7 @@ export class MatchingAlgorithmService {
       // Trouver les livreurs potentiels
       const potentialDeliverers = await this.findPotentialDeliverers(announcement, defaultCriteria);
 
-      // �valuer chaque livreur
+      // Évaluer chaque livreur
       const matches: DelivererMatch[] = [];
       for (const deliverer of potentialDeliverers) {
         const match = await this.evaluateDelivererMatch(announcement, deliverer, defaultCriteria);
@@ -90,10 +90,10 @@ export class MatchingAlgorithmService {
         }
       }
 
-      // Trier par score et appliquer les priorit�s
+      // Trier par score et appliquer les priorités
       const sortedMatches = this.sortMatchesByPriority(matches, defaultCriteria);
 
-      // Retourner les meilleurs r�sultats
+      // Retourner les meilleurs résultats
       return sortedMatches.slice(0, maxResults);
     } catch (error) {
       console.error("Erreur lors du matching:", error);
@@ -105,7 +105,7 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * Trouve les livreurs potentiels selon des crit�res de base
+   * Trouve les livreurs potentiels selon des critères de base
    */
   private async findPotentialDeliverers(announcement: any, criteria: MatchingCriteria): Promise<any[]> {
     return await db.deliverer.findMany({
@@ -118,13 +118,13 @@ export class MatchingAlgorithmService {
         averageRating: {
           gte: criteria.minDelivererRating
         },
-        // Filtrage g�ographique approximatif
+        // Filtrage géographique approximatif
         ...(announcement.pickupLatitude && announcement.pickupLongitude ? {
           OR: [
             {
               user: {
                 latitude: {
-                  gte: announcement.pickupLatitude - (criteria.maxDistance / 111), // ~111km par degr�
+                  gte: announcement.pickupLatitude - (criteria.maxDistance / 111), // ~111km par degré
                   lte: announcement.pickupLatitude + (criteria.maxDistance / 111)
                 },
                 longitude: {
@@ -189,7 +189,7 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * �value la compatibilit� entre une annonce et un livreur
+   * Évalue la compatibilité entre une annonce et un livreur
    */
   private async evaluateDelivererMatch(
     announcement: any, 
@@ -197,25 +197,25 @@ export class MatchingAlgorithmService {
     criteria: MatchingCriteria
   ): Promise<DelivererMatch | null> {
     try {
-      // 1. �valuation g�ographique
+      // 1. Évaluation géographique
       const geographicEval = await this.evaluateGeographicCompatibility(announcement, deliverer, criteria);
       if (!geographicEval.isCompatible) return null;
 
-      // 2. �valuation temporelle
+      // 2. Évaluation temporelle
       const temporalEval = await this.evaluateTemporalCompatibility(announcement, deliverer, criteria);
       if (!temporalEval.isCompatible) return null;
 
-      // 3. �valuation des capacit�s
+      // 3. Évaluation des capacités
       const capacityEval = await this.evaluateCapacityCompatibility(announcement, deliverer);
       if (!capacityEval.isCompatible) return null;
 
-      // 4. �valuation du prix
+      // 4. Évaluation du prix
       const priceEval = await this.evaluatePriceCompatibility(announcement, deliverer, criteria);
 
-      // 5. �valuation de la r�putation
+      // 5. Évaluation de la réputation
       const reputationEval = await this.evaluateReputationScore(deliverer);
 
-      // 6. �valuation des pr�f�rences
+      // 6. Évaluation des préférences
       const preferenceEval = await this.evaluatePreferenceScore(announcement, deliverer);
 
       // Calculer le score global
@@ -236,7 +236,7 @@ export class MatchingAlgorithmService {
          })
       };
 
-      // Compiler les raisons de compatibilit� et les facteurs de risque
+      // Compiler les raisons de compatibilité et les facteurs de risque
       const compatibilityReasons = [
         ...geographicEval.reasons,
         ...temporalEval.reasons,
@@ -255,7 +255,7 @@ export class MatchingAlgorithmService {
         ...preferenceEval.risks || []
       ];
 
-      // D�terminer le niveau de recommandation
+      // Déterminer le niveau de recommandation
       const recommendationLevel = this.determineRecommendationLevel(matchingScore.totalScore);
 
       return {
@@ -272,13 +272,13 @@ export class MatchingAlgorithmService {
         recommendationLevel
       };
     } catch (error) {
-      console.error("Erreur lors de l'�valuation du match:", error);
+      console.error("Erreur lors de l'évaluation du match:", error);
       return null;
     }
   }
 
   /**
-   * �value la compatibilit� g�ographique
+   * Évalue la compatibilité géographique
    */
   private async evaluateGeographicCompatibility(
     announcement: any, 
@@ -293,7 +293,7 @@ export class MatchingAlgorithmService {
     const detourPercentage = 0;
     const estimatedDuration = 0;
 
-    // V�rifier si le livreur a des routes actives
+    // Vérifier si le livreur a des routes actives
     if (deliverer.routes && deliverer.routes.length > 0) {
       const bestRouteMatch = null;
       const bestScore = 0;
@@ -311,7 +311,7 @@ export class MatchingAlgorithmService {
         distance = bestRouteMatch.distance;
         detourPercentage = bestRouteMatch.detourPercentage;
         estimatedDuration = bestRouteMatch.estimatedDuration;
-        isCompatible = score >= 30; // Score minimum pour la g�ographie
+        isCompatible = score >= 30; // Score minimum pour la géographie
         
         if (isCompatible) {
           reasons.push("ROUTE_COMPATIBLE");
@@ -322,7 +322,7 @@ export class MatchingAlgorithmService {
         }
       }
     } else {
-      // �valuer la proximit� avec l'adresse du livreur
+      // Évaluer la proximité avec l'adresse du livreur
       if (deliverer.user?.latitude && deliverer.user?.longitude) {
         distance = this.calculateDistance(
           announcement.pickupLatitude,
@@ -356,7 +356,7 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * �value la compatibilit� d'une route sp�cifique
+   * Évalue la compatibilité d'une route spécifique
    */
   private evaluateRouteCompatibility(announcement: any, route: any, criteria: MatchingCriteria): any {
     // Calculer la distance originale de la route
@@ -367,7 +367,7 @@ export class MatchingAlgorithmService {
       route.arrivalLongitude
     );
 
-    // Calculer la distance avec d�tour pour inclure pickup et delivery
+    // Calculer la distance avec détour pour inclure pickup et delivery
     const detourDistance = 
       this.calculateDistance(route.departureLatitude, route.departureLongitude, announcement.pickupLatitude, announcement.pickupLongitude) +
       this.calculateDistance(announcement.pickupLatitude, announcement.pickupLongitude, announcement.deliveryLatitude, announcement.deliveryLongitude) +
@@ -379,7 +379,7 @@ export class MatchingAlgorithmService {
       return { score: 0, distance: detourDistance, detourPercentage, estimatedDuration: 0 };
     }
 
-    // Score bas� sur le d�tour (moins de d�tour = meilleur score)
+    // Score basé sur le détour (moins de détour = meilleur score)
     const score = Math.max(0, 50 - (detourPercentage / criteria.maxDetourPercentage) * 50);
     const estimatedDuration = this.estimateDeliveryTime(detourDistance);
 
@@ -392,7 +392,7 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * �value la compatibilit� temporelle
+   * Évalue la compatibilité temporelle
    */
   private async evaluateTemporalCompatibility(
     announcement: any, 
@@ -408,7 +408,7 @@ export class MatchingAlgorithmService {
       end: new Date(Date.now() + criteria.timeFlexibilityHours * 60 * 60 * 1000)
     };
 
-    // V�rifier la disponibilit� selon la date de pickup souhait�e
+    // Vérifier la disponibilité selon la date de pickup souhaitée
     if (announcement.pickupDate) {
       const pickupDate = new Date(announcement.pickupDate);
       const now = new Date();
@@ -416,17 +416,17 @@ export class MatchingAlgorithmService {
       const hoursDiff = timeDiff / (1000 * 60 * 60);
 
       if (hoursDiff < 0) {
-        // Date pass�e
+        // Date passée
         isCompatible = false;
         risks.push("PICKUP_DATE_PAST");
       } else if (hoursDiff <= criteria.timeFlexibilityHours) {
-        // Dans la fen�tre de flexibilit�
+        // Dans la fenêtre de flexibilité
         score += 20;
         reasons.push("TIMING_FLEXIBLE");
         availabilityWindow.start = pickupDate;
         availabilityWindow.end = new Date(pickupDate.getTime() + 24 * 60 * 60 * 1000);
       } else if (hoursDiff <= criteria.timeFlexibilityHours * 2) {
-        // Un peu au-del� mais acceptable
+        // Un peu au-delà mais acceptable
         score += 10;
         reasons.push("TIMING_ACCEPTABLE");
       } else {
@@ -440,7 +440,7 @@ export class MatchingAlgorithmService {
       reasons.push("FLEXIBLE_TIMING");
     }
 
-    // V�rifier l'urgence
+    // Vérifier l'urgence
     if (announcement.priority === "URGENT") {
       score += 10;
       reasons.push("URGENT_PRIORITY");
@@ -461,7 +461,7 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * �value la compatibilit� des capacit�s
+   * Évalue la compatibilité des capacités
    */
   private async evaluateCapacityCompatibility(announcement: any, deliverer: any): Promise<any> {
     const reasons = [];
@@ -469,7 +469,7 @@ export class MatchingAlgorithmService {
     const score = 50; // Score de base
     const isCompatible = true;
 
-    // V�rifier le poids
+    // Vérifier le poids
     if (announcement.weight && deliverer.vehicle?.maxWeight) {
       if (announcement.weight > deliverer.vehicle.maxWeight) {
         isCompatible = false;
@@ -489,9 +489,9 @@ export class MatchingAlgorithmService {
       }
     }
 
-    // V�rifier les dimensions
+    // Vérifier les dimensions
     if (announcement.length && announcement.width && announcement.height && deliverer.vehicle) {
-      const volume = (announcement.length * announcement.width * announcement.height) / 1000000; // m�
+      const volume = (announcement.length * announcement.width * announcement.height) / 1000000; // mé
       if (deliverer.vehicle.maxVolume && volume > deliverer.vehicle.maxVolume) {
         isCompatible = false;
         risks.push("VOLUME_EXCEEDED");
@@ -502,7 +502,7 @@ export class MatchingAlgorithmService {
       }
     }
 
-    // V�rifier les exigences sp�ciales
+    // Vérifier les exigences spéciales
     if (announcement.isFragile) {
       if (deliverer.vehicle?.hasCarefulHandling) {
         score += 10;
@@ -533,7 +533,7 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * �value la compatibilit� du prix
+   * Évalue la compatibilité du prix
    */
   private async evaluatePriceCompatibility(announcement: any, deliverer: any, criteria: MatchingCriteria): Promise<any> {
     const reasons = [];
@@ -541,11 +541,11 @@ export class MatchingAlgorithmService {
     const score = 50;
     const estimatedPrice = 0;
 
-    // Calculer le prix estim� bas� sur le profil du livreur
+    // Calculer le prix estimé basé sur le profil du livreur
     const basePrice = this.calculateBasePrice(announcement, deliverer);
     estimatedPrice = basePrice;
 
-    // Comparer avec le budget sugg�r�
+    // Comparer avec le budget suggéré
     if (announcement.suggestedPrice) {
       const priceDiff = Math.abs(estimatedPrice - announcement.suggestedPrice);
       const priceFlexibility = announcement.suggestedPrice * (criteria.priceFlexibilityPercentage / 100);
@@ -564,7 +564,7 @@ export class MatchingAlgorithmService {
       }
     }
 
-    // V�rifier si le prix est n�gociable
+    // Vérifier si le prix est négociable
     if (announcement.isNegotiable || deliverer.acceptsNegotiation) {
       score += 10;
       reasons.push("PRICE_NEGOTIABLE");
@@ -579,14 +579,14 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * �value le score de r�putation
+   * Évalue le score de réputation
    */
   private async evaluateReputationScore(deliverer: any): Promise<any> {
     const reasons = [];
     const risks = [];
     const score = 0;
 
-    // Score bas� sur la note moyenne
+    // Score basé sur la note moyenne
     if (deliverer.averageRating) {
       score = (deliverer.averageRating / 5) * 40; // Max 40 points pour la note
       
@@ -601,7 +601,7 @@ export class MatchingAlgorithmService {
       }
     }
 
-    // Score bas� sur l'exp�rience (nombre de livraisons)
+    // Score basé sur l'expérience (nombre de livraisons)
     const completedCount = deliverer.completedDeliveries?.length || 0;
     if (completedCount >= 100) {
       score += 30;
@@ -619,7 +619,7 @@ export class MatchingAlgorithmService {
       risks.push("LIMITED_EXPERIENCE");
     }
 
-    // Score bas� sur les avis r�cents
+    // Score basé sur les avis récents
     if (deliverer.reviews && deliverer.reviews.length > 0) {
       const recentReviews = deliverer.reviews.slice(0, 5);
       const avgRecentRating = recentReviews.reduce((sum: number, review: any) => sum + review.rating, 0) / recentReviews.length;
@@ -641,14 +641,14 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * �value le score de pr�f�rences
+   * Évalue le score de préférences
    */
   private async evaluatePreferenceScore(announcement: any, deliverer: any): Promise<any> {
     const reasons = [];
     const risks = [];
     const score = 50; // Score neutre
 
-    // Pr�f�rences du client bas�es sur l'historique
+    // Préférences du client basées sur l'historique
     const clientPreferences = await this.getClientPreferences(announcement.clientId);
     
     if (clientPreferences.preferredDeliverers?.includes(deliverer.id)) {
@@ -661,7 +661,7 @@ export class MatchingAlgorithmService {
       risks.push("BLACKLISTED_DELIVERER");
     }
 
-    // Pr�f�rences du livreur
+    // Préférences du livreur
     const delivererPreferences = await this.getDelivererPreferences(deliverer.id);
     
     if (delivererPreferences.preferredClients?.includes(announcement.clientId)) {
@@ -669,7 +669,7 @@ export class MatchingAlgorithmService {
       reasons.push("PREFERRED_CLIENT");
     }
 
-    // Type de livraison pr�f�r�
+    // Type de livraison préféré
     if (delivererPreferences.preferredDeliveryTypes?.includes(announcement.type)) {
       score += 10;
       reasons.push("PREFERRED_DELIVERY_TYPE");
@@ -683,15 +683,15 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * Calcule le score total pond�r�
+   * Calcule le score total pondéré
    */
   private calculateTotalScore(scores: Omit<MatchingScore, 'totalScore'>): number {
     const weights = {
-      geographic: 0.25,    // 25% - Tr�s important
+      geographic: 0.25,    // 25% - Très important
       temporal: 0.20,      // 20% - Important
       capacity: 0.20,      // 20% - Important
-      price: 0.15,         // 15% - Mod�r�ment important
-      reputation: 0.15,    // 15% - Mod�r�ment important
+      price: 0.15,         // 15% - Modérément important
+      reputation: 0.15,    // 15% - Modérément important
       preference: 0.05     // 5% - Bonus
     };
 
@@ -706,11 +706,11 @@ export class MatchingAlgorithmService {
   }
 
   /**
-   * Trie les matches selon les priorit�s
+   * Trie les matches selon les priorités
    */
   private sortMatchesByPriority(matches: DelivererMatch[], criteria: MatchingCriteria): DelivererMatch[] {
     return matches.sort((a, b) => {
-      // Priorit� 1: Score total
+      // Priorité 1: Score total
       if (criteria.prioritizeExperience) {
         const aReputation = a.matchingScore.reputationScore;
         const bReputation = b.matchingScore.reputationScore;
@@ -729,13 +729,13 @@ export class MatchingAlgorithmService {
         }
       }
 
-      // Score total par d�faut
+      // Score total par défaut
       return b.matchingScore.totalScore - a.matchingScore.totalScore;
     });
   }
 
   /**
-   * D�termine le niveau de recommandation
+   * Détermine le niveau de recommandation
    */
   private determineRecommendationLevel(score: number): "EXCELLENT" | "GOOD" | "ACCEPTABLE" | "POOR" {
     if (score >= 85) return "EXCELLENT";
@@ -744,7 +744,7 @@ export class MatchingAlgorithmService {
     return "POOR";
   }
 
-  // M�thodes utilitaires
+  // Méthodes utilitaires
   private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371; // Rayon de la Terre en km
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -771,7 +771,7 @@ export class MatchingAlgorithmService {
       announcement.deliveryLongitude
     );
 
-    const basePrice = distance * 1.2; // 1.20�/km de base
+    const basePrice = distance * 1.2; // 1.20€/km de base
 
     // Ajustements
     if (announcement.weight > 10) basePrice *= 1.2;
@@ -780,7 +780,7 @@ export class MatchingAlgorithmService {
     if (announcement.priority === "URGENT") basePrice *= 1.5;
     if (announcement.priority === "HIGH") basePrice *= 1.2;
 
-    // Ajustement selon l'exp�rience du livreur
+    // Ajustement selon l'expérience du livreur
     const experienceMultiplier = (deliverer.averageRating || 3) / 5;
     basePrice *= (0.8 + 0.4 * experienceMultiplier);
 
@@ -788,21 +788,93 @@ export class MatchingAlgorithmService {
   }
 
   private async getClientPreferences(clientId: string): Promise<any> {
-    // Simuler les pr�f�rences client - � impl�menter avec la vraie logique
-    return {
-      preferredDeliverers: [],
-      blacklistedDeliverers: [],
-      preferredVehicleTypes: []
-    };
+    try {
+      // Récupération des préférences client depuis la base de données
+      const client = await db.user.findUnique({
+        where: { id: clientId },
+        include: {
+          ratings: {
+            where: { targetType: "DELIVERER" },
+            include: { target: true }
+          }
+        }
+      });
+
+      if (!client) {
+        return {
+          preferredDeliverers: [],
+          blacklistedDeliverers: [],
+          preferredVehicleTypes: []
+        };
+      }
+
+      // Analyser les ratings pour identifier les préférences
+      const preferredDeliverers = client.ratings
+        .filter(rating => rating.rating >= 4)
+        .map(rating => rating.targetId);
+
+      const blacklistedDeliverers = client.ratings
+        .filter(rating => rating.rating <= 2)
+        .map(rating => rating.targetId);
+
+      return {
+        preferredDeliverers,
+        blacklistedDeliverers,
+        preferredVehicleTypes: []
+      };
+    } catch (error) {
+      console.error("Erreur lors de la récupération des préférences client:", error);
+      return {
+        preferredDeliverers: [],
+        blacklistedDeliverers: [],
+        preferredVehicleTypes: []
+      };
+    }
   }
 
   private async getDelivererPreferences(delivererId: string): Promise<any> {
-    // Simuler les pr�f�rences livreur - � impl�menter avec la vraie logique
-    return {
-      preferredClients: [],
-      preferredDeliveryTypes: ["PACKAGE_DELIVERY", "DOCUMENT_DELIVERY"],
-      blacklistedAreas: []
-    };
+    try {
+      // Récupération des préférences livreur depuis la base de données
+      const deliverer = await db.user.findUnique({
+        where: { id: delivererId },
+        include: {
+          ratings: {
+            where: { targetType: "CLIENT" },
+            include: { target: true }
+          }
+        }
+      });
+
+      if (!deliverer) {
+        return {
+          preferredClients: [],
+          blacklistedClients: [],
+          preferredDeliveryTypes: []
+        };
+      }
+
+      // Analyser les ratings pour identifier les préférences
+      const preferredClients = deliverer.ratings
+        .filter(rating => rating.rating >= 4)
+        .map(rating => rating.targetId);
+
+      const blacklistedClients = deliverer.ratings
+        .filter(rating => rating.rating <= 2)
+        .map(rating => rating.targetId);
+
+      return {
+        preferredClients,
+        blacklistedClients,
+        preferredDeliveryTypes: []
+      };
+    } catch (error) {
+      console.error("Erreur lors de la récupération des préférences livreur:", error);
+      return {
+        preferredClients: [],
+        blacklistedClients: [],
+        preferredDeliveryTypes: []
+      };
+    }
   }
 }
 

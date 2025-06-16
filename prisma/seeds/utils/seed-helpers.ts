@@ -264,7 +264,7 @@ export function getRandomDate(minDaysAgo: number, maxDaysAgo: number): Date {
 /**
  * Générateur de données de test cohérentes
  */
-export class TestDataGenerator {
+export class DataGenerator {
   private usedEmails = new Set<string>();
   private usedSirets = new Set<string>();
 
@@ -297,4 +297,4 @@ export class TestDataGenerator {
 /**
  * Instance globale du générateur pour cohérence entre seeds
  */
-export const testDataGenerator = new TestDataGenerator();
+export const dataGenerator = new DataGenerator();

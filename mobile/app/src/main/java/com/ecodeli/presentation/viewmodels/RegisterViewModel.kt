@@ -1,9 +1,9 @@
-package com.ecodeli.presentation.viewmodels
+package me.ecodeli.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ecodeli.data.api.Result
-import com.ecodeli.domain.usecases.auth.RegisterUseCase
+import me.ecodeli.data.api.Result
+import me.ecodeli.domain.usecases.auth.RegisterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

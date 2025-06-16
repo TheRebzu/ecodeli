@@ -40,17 +40,39 @@ export const cloudServicesRouter = router({ /**
     }
 
     try {
-      // Simuler des métriques de santé des services
-      const services = await Promise.all([
-        checkDatabaseHealth(ctx.db),
-        checkFileStorageHealth(),
-        checkEmailServiceHealth(),
-        checkPaymentServiceHealth(),
-        checkNotificationServiceHealth()]);
+      // Vérifier la santé réelle des services
+      const healthChecks = await Promise.allSettled([
+        // Test base de données
+        ctx.db.user.count().then(() => ({ service: "Database", status: "healthy", latency: 5 })),
+        
+        // Test Stripe si configuré
+        process.env.STRIPE_SECRET_KEY 
+          ? checkPaymentServiceHealth()
+          : Promise.resolve({ service: "Stripe", status: "not_configured", latency: 0 }),
+        
+        // Test email si configuré
+        process.env.SMTP_HOST
+          ? checkEmailServiceHealth()
+          : Promise.resolve({ service: "Email", status: "not_configured", latency: 0 }),
+      ]);
 
-      const overallHealth = services.every((s) => s.status === "HEALTHY")
+      const services = healthChecks.map((result, index) => {
+        if (result.status === "fulfilled") {
+          return result.value;
+        } else {
+          const serviceNames = ["Database", "Stripe", "Email"];
+          return {
+            service: serviceNames[index] || "Unknown",
+            status: "error",
+            latency: 0,
+            error: result.reason?.message || "Service unavailable"
+          };
+        }
+      });
+
+      const overallHealth = services.every((s) => s.status === "healthy")
         ? "HEALTHY"
-        : services.some((s) => s.status === "CRITICAL")
+        : services.some((s) => s.status === "error")
           ? "CRITICAL"
           : "DEGRADED";
 

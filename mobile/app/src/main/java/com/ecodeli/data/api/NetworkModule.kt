@@ -1,6 +1,6 @@
-package com.ecodeli.data.api
+package me.ecodeli.data.api
 
-import com.ecodeli.BuildConfig
+import me.ecodeli.BuildConfig
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.Rfc3339DateJsonAdapter
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory

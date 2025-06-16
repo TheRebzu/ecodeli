@@ -60,8 +60,9 @@ export async function seedPricingRules(
     errors: 0,
   };
 
-  // Note: Cette implémentation est simulée car il n'y a pas de modèles
-  // PricingRule ou Promotion dans le schéma Prisma actuel
+  // Note: Cette implémentation est simplifiée car il n'y a pas de modèles
+  // correspondants dans le schéma Prisma. Nous créerons des logs
+  // pour démontrer la fonctionnalité.
 
   logger.info(
     "PRICING_RULES",
@@ -422,7 +423,7 @@ export async function seedPricingRules(
     },
   ];
 
-  // Simuler la création des règles de tarification
+      // Création des règles de tarification
   logger.info(
     "PRICING_RULES",
     "📋 Configuration des règles de tarification...",
@@ -441,8 +442,36 @@ export async function seedPricingRules(
 
   for (const rule of allRules) {
     try {
-      // Simuler l'enregistrement de la règle
-      logger.database("PRICING_RULE", rule.name, 1);
+      // Enregistrement de la règle
+      await prisma.pricingRule.upsert({
+        where: {
+          name: rule.name,
+        },
+        update: {
+          name: rule.name,
+          type: rule.type,
+          basePrice: rule.basePrice,
+          category: rule.category,
+          zone: rule.zone,
+          conditions: rule.conditions,
+          multipliers: rule.multipliers,
+          isActive: rule.isActive,
+          validFrom: rule.validFrom,
+          validUntil: rule.validUntil,
+        },
+        create: {
+          name: rule.name,
+          type: rule.type,
+          basePrice: rule.basePrice,
+          category: rule.category,
+          zone: rule.zone,
+          conditions: rule.conditions,
+          multipliers: rule.multipliers,
+          isActive: rule.isActive,
+          validFrom: rule.validFrom,
+          validUntil: rule.validUntil,
+        },
+      });
 
       totalRules++;
       result.created++;
@@ -465,7 +494,7 @@ export async function seedPricingRules(
     }
   }
 
-  // Simuler la création des promotions
+      // Création des promotions
   logger.info("PRICING_RULES", "🎯 Configuration des promotions...");
 
   let totalPromotions = 0;
@@ -473,8 +502,50 @@ export async function seedPricingRules(
 
   for (const promotion of ACTIVE_PROMOTIONS) {
     try {
-      // Simuler l'enregistrement de la promotion
-      logger.database("PROMOTION", promotion.code, 1);
+      // Enregistrement de la promotion
+      await prisma.promotion.upsert({
+        where: {
+          code: promotion.code,
+        },
+        update: {
+          code: promotion.code,
+          name: promotion.name,
+          description: promotion.description,
+          type: promotion.type,
+          value: promotion.value,
+          minOrderAmount: promotion.minOrderAmount,
+          maxDiscount: promotion.maxDiscount,
+          usageLimit: promotion.usageLimit,
+          currentUsage: promotion.currentUsage,
+          validFrom: promotion.validFrom,
+          validUntil: promotion.validUntil,
+          targetRoles: {
+            connect: promotion.targetRoles.map((role) => ({
+              id: role,
+            })),
+          },
+          isActive: promotion.isActive,
+        },
+        create: {
+          code: promotion.code,
+          name: promotion.name,
+          description: promotion.description,
+          type: promotion.type,
+          value: promotion.value,
+          minOrderAmount: promotion.minOrderAmount,
+          maxDiscount: promotion.maxDiscount,
+          usageLimit: promotion.usageLimit,
+          currentUsage: promotion.currentUsage,
+          validFrom: promotion.validFrom,
+          validUntil: promotion.validUntil,
+          targetRoles: {
+            connect: promotion.targetRoles.map((role) => ({
+              id: role,
+            })),
+          },
+          isActive: promotion.isActive,
+        },
+      });
 
       totalPromotions++;
       result.created++;
@@ -503,7 +574,7 @@ export async function seedPricingRules(
   await generatePricingAnalysis(logger, allRules, ACTIVE_PROMOTIONS);
 
   // Simulation des calculs de tarification
-  await simulatePricingCalculations(logger, allRules);
+  await calculatePricingExamples(logger, allRules);
 
   // Analyser les promotions
   await analyzePromotions(logger, ACTIVE_PROMOTIONS);
@@ -620,47 +691,46 @@ async function generatePricingAnalysis(
 /**
  * Simule des calculs de tarification
  */
-async function simulatePricingCalculations(
+async function calculatePricingExamples(
   logger: SeedLogger,
-  rules: PricingRule[],
+  rules: any[]
 ): Promise<void> {
-  logger.info("PRICING_SIMULATION", "🧮 Simulation de calculs tarifaires...");
+  logger.info("PRICING", "💰 Calcul d'exemples de tarification...");
 
-  // Simulation livraison urgente Paris
-  const parisExpressRule = rules.find(
-    (r) => r.name === "Livraison Express Paris",
-  );
-  if (parisExpressRule) {
-    const urgentPrice =
-      parisExpressRule.basePrice * parisExpressRule.multipliers.urgentDelivery;
-    logger.info(
-      "PRICING_SIMULATION",
-      `📦 Livraison urgente Paris: ${parisExpressRule.basePrice}€ × ${parisExpressRule.multipliers.urgentDelivery} = ${urgentPrice}€`,
-    );
-  }
+  const examples = [
+    { distance: 5, weight: 2, priority: "NORMAL", vehicle: "BIKE" },
+    { distance: 15, weight: 10, priority: "HIGH", vehicle: "CAR" },
+    { distance: 25, weight: 20, priority: "URGENT", vehicle: "VAN" },
+  ];
 
-  // Simulation service plomberie urgence
-  const plumbingRule = rules.find((r) => r.name === "Plomberie Intervention");
-  if (plumbingRule) {
-    const emergencyPrice =
-      plumbingRule.basePrice * plumbingRule.multipliers.emergency;
-    logger.info(
-      "PRICING_SIMULATION",
-      `🔧 Plomberie urgence: ${plumbingRule.basePrice}€ × ${plumbingRule.multipliers.emergency} = ${emergencyPrice}€/h`,
-    );
-  }
-
-  // Simulation stockage long terme
-  const storageRule = rules.find((r) => r.name === "Box Standard Mensuel");
-  if (storageRule) {
-    const longTermPrice =
-      storageRule.basePrice *
-      storageRule.multipliers.longTermDiscount12Months *
-      30; // mensuel
-    logger.info(
-      "PRICING_SIMULATION",
-      `📦 Stockage 12 mois: ${storageRule.basePrice}€ × ${storageRule.multipliers.longTermDiscount12Months} × 30j = ${longTermPrice.toFixed(2)}€/mois`,
-    );
+  for (const example of examples) {
+    try {
+      // Calcul basé sur les règles définies
+      let basePrice = 5.00; // Prix de base
+      
+      // Règle de distance
+      const distanceRule = rules.find(r => r.type === "DISTANCE_BASED");
+      if (distanceRule && distanceRule.parameters.pricePerKm) {
+        basePrice += example.distance * distanceRule.parameters.pricePerKm;
+      }
+      
+      // Règle de poids
+      const weightRule = rules.find(r => r.type === "WEIGHT_BASED");
+      if (weightRule && example.weight > 5) {
+        basePrice += (example.weight - 5) * (weightRule.parameters.pricePerKg || 0.5);
+      }
+      
+      // Multiplicateur de priorité
+      const priorityMultipliers = { NORMAL: 1.0, HIGH: 1.3, URGENT: 1.8 };
+      const finalPrice = basePrice * (priorityMultipliers[example.priority] || 1.0);
+      
+      logger.success(
+        "PRICING",
+        `${example.distance}km, ${example.weight}kg, ${example.priority}: ${finalPrice.toFixed(2)}€`
+      );
+    } catch (error) {
+      logger.error("PRICING", `Erreur calcul ${JSON.stringify(example)}: ${error.message}`);
+    }
   }
 }
 

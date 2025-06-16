@@ -97,9 +97,13 @@ export function DeliveryNotes({
     setError(null);
 
     try {
-      // Simuler un appel API pour l'exemple
-      // Dans un cas réel, vous utiliseriez un hook ou un appel API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Appel API pour sauvegarder la note
+      await mutateAsync({
+        deliveryId,
+        note: data.content,
+        isPublic: false,
+        type: data.noteType as "PICKUP" | "DELIVERY" | "ISSUE" | "GENERAL",
+      });
 
       console.log("Note ajoutée:", {
         deliveryId,

@@ -225,7 +225,58 @@ export const delivererPlannedRoutesRouter = router({ /**
 
         // TODO: Déclencher le système de matching automatique si la route est publique
         if (input.isPublic) {
-          // Logique de matching à implémenter
+          // Implémentation de la logique de matching
+          const matchingAnnouncements = await ctx.db.announcement.findMany({
+            where: {
+              status: "PENDING",
+              pickupLatitude: { not: null },
+              pickupLongitude: { not: null },
+              deliveryLatitude: { not: null },
+              deliveryLongitude: { not: null },
+            },
+            include: {
+              client: {
+                include: {
+                  user: {
+                    select: { name: true, phone: true }
+                  }
+                }
+              }
+            }
+          });
+
+          // Filtrer les annonces qui correspondent à la route
+          const compatibleAnnouncements = matchingAnnouncements.filter(announcement => {
+            // Vérifier si l'annonce est sur le chemin de la route
+            const pickupDistance = calculateDistance(
+              input.departureLatitude!,
+              input.departureLongitude!,
+              announcement.pickupLatitude!,
+              announcement.pickupLongitude!
+            );
+            
+            const deliveryDistance = calculateDistance(
+              input.arrivalLatitude!,
+              input.arrivalLongitude!,
+              announcement.deliveryLatitude!,
+              announcement.deliveryLongitude!
+            );
+
+            // Annonce compatible si pickup et delivery sont dans un rayon raisonnable
+            return pickupDistance <= 10 && deliveryDistance <= 10; // 10km de rayon
+          });
+
+          // Fonction helper pour calculer la distance
+          function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+            const R = 6371; // Rayon de la Terre en km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+          }
         }
 
         return {

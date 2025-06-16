@@ -1692,6 +1692,24 @@ export const AnnouncementService = {
           maxPrice};
       }
 
+      // Calculer le score de satisfaction depuis les ratings réels
+      const satisfactionData = await db.rating.aggregate({
+        where: {
+          targetId: announcement.clientId,
+          targetType: "CLIENT",
+        },
+        _avg: {
+          rating: true,
+        },
+        _count: {
+          rating: true,
+        },
+      });
+
+      const satisfactionScore = satisfactionData._avg.rating 
+        ? (satisfactionData._avg.rating / 5) * 100 
+        : 0; // Convertir sur 100
+
       return {
         analysis: {
           totalDemand,

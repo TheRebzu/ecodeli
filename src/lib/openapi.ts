@@ -47,7 +47,7 @@ const options: swaggerJsdoc.Options = {
         "API documentation for EcoDeli platform - A comprehensive delivery and services platform",
       contact: {
         name: "EcoDeli API Support",
-        email: "support@ecodeli.com"},
+        email: "support@ecodeli.me"},
       license: {
         name: "Private License"}},
     servers: [
@@ -55,7 +55,7 @@ const options: swaggerJsdoc.Options = {
         url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
         description: "Development server"},
       {
-        url: "https://api.ecodeli.com",
+        url: "https://api.ecodeli.me",
         description: "Production server"}],
     components: {
       securitySchemes: {

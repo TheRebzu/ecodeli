@@ -1,4 +1,4 @@
-package com.ecodeli.utils.nfc
+package me.ecodeli.utils.nfc
 
 import android.app.Activity
 import android.nfc.NfcAdapter

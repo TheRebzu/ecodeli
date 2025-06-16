@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.common
+package me.ecodeli.presentation.ui.common
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
@@ -14,7 +14,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ecodeli.utils.nfc.ValidationResult
+import me.ecodeli.utils.nfc.ValidationResult
 
 /**
  * Composant pour la lecture NFC avec animation

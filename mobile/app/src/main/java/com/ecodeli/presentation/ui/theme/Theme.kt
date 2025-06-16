@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.theme
+package me.ecodeli.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build

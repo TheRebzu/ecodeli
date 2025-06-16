@@ -1,8 +1,8 @@
-package com.ecodeli.domain.usecases.delivery
+package me.ecodeli.domain.usecases.delivery
 
-import com.ecodeli.data.api.Result
-import com.ecodeli.data.models.Delivery
-import com.ecodeli.data.repositories.DeliveryRepository
+import me.ecodeli.data.api.Result
+import me.ecodeli.data.models.Delivery
+import me.ecodeli.data.repositories.DeliveryRepository
 import javax.inject.Inject
 
 /**

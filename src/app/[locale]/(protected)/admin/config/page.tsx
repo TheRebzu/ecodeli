@@ -45,7 +45,7 @@ export default function ConfigPage() {
     smtpPort: "587",
     smtpUser: "",
     smtpPassword: "",
-    fromEmail: "noreply@ecodeli.fr",
+    fromEmail: "noreply@ecodeli.me",
     fromName: "EcoDeli",
     emailVerificationRequired: true
    });

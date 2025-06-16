@@ -125,10 +125,10 @@ export function MainFooter({
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
                       <a
-                        href="mailto:contact@ecodeli.fr"
+                        href="mailto:contact@ecodeli.me"
                         className="hover:underline"
                       >
-                        contact@ecodeli.fr
+                        contact@ecodeli.me
                       </a>
                     </div>
                   </div>

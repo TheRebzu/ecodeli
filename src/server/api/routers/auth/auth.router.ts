@@ -65,7 +65,7 @@ export const authRouter = router({ /**
    *                 type: string
    *                 format: email
    *                 description: User's email address
-   *                 example: "user@ecodeli.fr"
+   *                 example: "user@ecodeli.me"
    *               password:
    *                 type: string
    *                 minLength: 8
@@ -75,7 +75,7 @@ export const authRouter = router({ /**
    *                 type: string
    *                 minLength: 2
    *                 description: User's full name
-   *                 example: "John Doe"
+   *                 example: "Prénom Nom"
    *               role:
    *                 type: string
    *                 enum: [CLIENT, DELIVERER, MERCHANT, PROVIDER]
@@ -164,7 +164,7 @@ export const authRouter = router({ /**
             emailVerified: null}});
 
         // Note: En attendant de corriger le modèle Prisma, nous ne créons pas les profils spécifiques
-        // pour chaque rôle. À implémenter une fois le modèle corrigé.
+        // pour chaque rôle selon les permissions définies.
 
         return {
           success: true,

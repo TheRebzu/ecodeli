@@ -1875,7 +1875,7 @@
     "aucun_service_trouv": "[IT] ) : (\r\n            /* Aucun service trouvé */",
     "acc_review_rating_0_service_reviews_leng": "[IT] acc + review.rating, 0) / service.reviews.length\r\n      : 0;\r\n\r\n  return (",
     "availabletimeslots_length_0": "[IT] ) : availableTimeSlots.length === 0 ? (",
-    "support_ecodeli_fr": "[IT] support@ecodeli.fr",
+    "support_ecodeli_fr": "[IT] support@ecodeli.me",
     "new_date_const_showaddavailability_setsh": "[IT] (new Date());\r\n  const [showAddAvailability, setShowAddAvailability] = useState(false);\r\n  const [dayOfWeek, setDayOfWeek] = useState",
     "1_lundi_par_d_faut_const_starttime_setst": "[IT] ('1'); // Lundi par défaut\r\n  const [startTime, setStartTime] = useState",
     "09_00_const_endtime_setendtime_usestate": "[IT] ('09:00');\r\n  const [endTime, setEndTime] = useState",

@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.delivery
+package me.ecodeli.presentation.ui.delivery
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,11 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ecodeli.data.models.Delivery
-import com.ecodeli.data.models.DeliveryStatus
-import com.ecodeli.presentation.ui.common.LoadingScreen
-import com.ecodeli.presentation.ui.theme.*
-import com.ecodeli.presentation.viewmodels.DeliveryListViewModel
+import me.ecodeli.data.models.Delivery
+import me.ecodeli.data.models.DeliveryStatus
+import me.ecodeli.presentation.ui.common.LoadingScreen
+import me.ecodeli.presentation.ui.theme.*
+import me.ecodeli.presentation.viewmodels.DeliveryListViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 

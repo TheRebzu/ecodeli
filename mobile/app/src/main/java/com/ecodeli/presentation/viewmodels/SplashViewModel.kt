@@ -1,8 +1,8 @@
-package com.ecodeli.presentation.ui.auth
+package me.ecodeli.presentation.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ecodeli.data.repositories.AuthRepository
+import me.ecodeli.data.repositories.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

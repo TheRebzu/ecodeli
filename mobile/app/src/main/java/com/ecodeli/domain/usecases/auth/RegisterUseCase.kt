@@ -1,10 +1,10 @@
-package com.ecodeli.domain.usecases.auth
+package me.ecodeli.domain.usecases.auth
 
-import com.ecodeli.data.api.Result
-import com.ecodeli.data.models.RegisterInput
-import com.ecodeli.data.models.RegisterOutput
-import com.ecodeli.data.models.UserRole
-import com.ecodeli.data.repositories.AuthRepository
+import me.ecodeli.data.api.Result
+import me.ecodeli.data.models.RegisterInput
+import me.ecodeli.data.models.RegisterOutput
+import me.ecodeli.data.models.UserRole
+import me.ecodeli.data.repositories.AuthRepository
 import javax.inject.Inject
 
 /**

@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.home
+package me.ecodeli.presentation.ui.home
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -15,11 +15,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.ecodeli.presentation.navigation.Routes
-import com.ecodeli.presentation.ui.delivery.DeliveryListScreen
-import com.ecodeli.presentation.ui.profile.ProfileScreen
-import com.ecodeli.presentation.ui.service.ServiceListScreen
-import com.ecodeli.presentation.ui.wallet.WalletScreen
+import me.ecodeli.presentation.navigation.Routes
+import me.ecodeli.presentation.ui.delivery.DeliveryListScreen
+import me.ecodeli.presentation.ui.profile.ProfileScreen
+import me.ecodeli.presentation.ui.service.ServiceListScreen
+import me.ecodeli.presentation.ui.wallet.WalletScreen
 
 /**
  * Écran principal avec navigation par onglets

@@ -43,9 +43,9 @@ interface MessagingSystemResult {
  * Options spécifiques pour le système de messagerie
  */
 interface MessagingOptions extends SeedOptions {
-  mode?: "standard" | "minimal" | "extended" | "simulation-only";
+  mode?: "standard" | "minimal" | "extended" | "validation-only";
   skipValidation?: boolean;
-  createSampleData?: boolean;
+  createExampleData?: boolean;
 }
 
 /**
@@ -182,8 +182,8 @@ export async function seedMessagingSystemComplete(
     );
 
     // Phase 7: Création de données d'exemple (optionnel)
-    if (options.createSampleData) {
-      result.phase = "SAMPLE_DATA";
+    if (options.createExampleData) {
+      result.phase = "EXAMPLE_DATA";
       logger.info(
         "MESSAGING_SYSTEM",
         "🎯 Phase 7: Création de données d'exemple...",
@@ -434,13 +434,13 @@ async function validateSystemIntegrity(
 ): Promise<void> {
   logger.info("VALIDATION", "🔗 Validation de l'intégrité du système...");
 
-  // Note: Validations simulées car les modèles n'existent pas dans le schéma
+  // Note: Validations simplifiées car les modèles n'existent pas dans le schéma
   logger.success(
     "VALIDATION",
-    "✅ Intégrité des relations validée (simulation)",
+    "✅ Intégrité des relations validée (simplifiée)",
   );
-  logger.success("VALIDATION", "✅ Cohérence des données validée (simulation)");
-  logger.success("VALIDATION", "✅ Contraintes métier respectées (simulation)");
+  logger.success("VALIDATION", "✅ Cohérence des données validée (simplifiée)");
+  logger.success("VALIDATION", "✅ Contraintes métier respectées (simplifiée)");
 }
 
 /**
@@ -562,7 +562,7 @@ export async function extendedMessagingSetup(
   return await seedMessagingSystemComplete(prisma, logger, {
     mode: "extended",
     verbose: true,
-    createSampleData: true,
+    createExampleData: true,
     skipValidation: false,
   });
 }

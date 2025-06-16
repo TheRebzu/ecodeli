@@ -1,4 +1,4 @@
-package com.ecodeli.data.api
+package me.ecodeli.data.api
 
 /**
  * Classe Result pour encapsuler les résultats des appels API

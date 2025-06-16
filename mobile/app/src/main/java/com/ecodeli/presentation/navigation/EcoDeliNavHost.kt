@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.navigation
+package me.ecodeli.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,13 +10,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.ecodeli.data.repositories.AuthRepository
-import com.ecodeli.presentation.ui.auth.LoginScreen
-import com.ecodeli.presentation.ui.auth.RegisterScreen
-import com.ecodeli.presentation.ui.auth.SplashScreen
-import com.ecodeli.presentation.ui.delivery.DeliveryDetailScreen
-import com.ecodeli.presentation.ui.delivery.DeliveryListScreen
-import com.ecodeli.presentation.ui.home.HomeScreen
+import me.ecodeli.data.repositories.AuthRepository
+import me.ecodeli.presentation.ui.auth.LoginScreen
+import me.ecodeli.presentation.ui.auth.RegisterScreen
+import me.ecodeli.presentation.ui.auth.SplashScreen
+import me.ecodeli.presentation.ui.delivery.DeliveryDetailScreen
+import me.ecodeli.presentation.ui.delivery.DeliveryListScreen
+import me.ecodeli.presentation.ui.home.HomeScreen
 import javax.inject.Inject
 
 /**

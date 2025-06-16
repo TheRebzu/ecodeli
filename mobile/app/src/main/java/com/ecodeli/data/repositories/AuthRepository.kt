@@ -1,13 +1,13 @@
-package com.ecodeli.data.repositories
+package me.ecodeli.data.repositories
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.ecodeli.data.api.Result
-import com.ecodeli.data.api.TrpcClient
-import com.ecodeli.data.api.TrpcRequest
-import com.ecodeli.data.models.*
+import me.ecodeli.data.api.Result
+import me.ecodeli.data.api.TrpcClient
+import me.ecodeli.data.api.TrpcRequest
+import me.ecodeli.data.models.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

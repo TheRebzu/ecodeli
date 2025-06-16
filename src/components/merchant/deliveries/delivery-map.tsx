@@ -72,9 +72,11 @@ export function DeliveryMap({
   // State for map readiness
   const [mapReady, setMapReady] = useState(false);
 
-  // Default map center (Paris)
-  const defaultCenter = [48.8566, 2.3522];
-  const defaultZoom = 5;
+  // Configuration par défaut de la carte (peut être modifiée via des variables d'environnement)
+  const defaultCenter = process.env.NEXT_PUBLIC_DEFAULT_MAP_CENTER 
+    ? JSON.parse(process.env.NEXT_PUBLIC_DEFAULT_MAP_CENTER) 
+    : [48.8566, 2.3522]; // Fallback vers Paris si non configuré
+  const defaultZoom = parseInt(process.env.NEXT_PUBLIC_DEFAULT_MAP_ZOOM || "5");
 
   // Set map as ready after component mount
   useEffect(() => {

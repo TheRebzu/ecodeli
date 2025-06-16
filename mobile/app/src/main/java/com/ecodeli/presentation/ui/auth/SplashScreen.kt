@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.auth
+package me.ecodeli.presentation.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,8 +15,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ecodeli.R
-import com.ecodeli.presentation.ui.theme.PrimaryGreen
+import me.ecodeli.R
+import me.ecodeli.presentation.ui.theme.PrimaryGreen
 import kotlinx.coroutines.delay
 
 /**

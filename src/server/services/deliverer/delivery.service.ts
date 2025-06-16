@@ -600,12 +600,14 @@ export const DeliveryService = {
         message: "Document introuvable" });
     }
 
-    const validationScore = Math.random() * 100;
+    // Calculer un score de validation basé sur des critères réels
+    let validationScore = 100; // Score de base
     const validationFlags = [];
 
     // Règles de validation basiques
     if (document.fileSize && document.fileSize > 10 * 1024 * 1024) {
       validationFlags.push("FILE_TOO_LARGE");
+      validationScore -= 30;
     }
 
     if (
@@ -613,12 +615,29 @@ export const DeliveryService = {
       !document.mimeType?.includes("pdf")
     ) {
       validationFlags.push("INVALID_FILE_TYPE");
+      validationScore -= 40;
     }
 
     // Vérification de l'expiration
     if (document.expiryDate && document.expiryDate < new Date()) {
       validationFlags.push("DOCUMENT_EXPIRED");
+      validationScore -= 50;
     }
+
+    // Vérifier la taille du fichier (trop petit peut indiquer un problème)
+    if (document.fileSize && document.fileSize < 1024) {
+      validationFlags.push("FILE_TOO_SMALL");
+      validationScore -= 20;
+    }
+
+    // Vérifier si le nom du fichier est approprié
+    if (document.fileName && document.fileName.length < 5) {
+      validationFlags.push("FILENAME_TOO_SHORT");
+      validationScore -= 10;
+    }
+
+    // Assurer que le score est entre 0 et 100
+    validationScore = Math.max(0, Math.min(100, validationScore));
 
     const autoValidated = validationScore > 80 && validationFlags.length === 0;
     const newStatus = autoValidated

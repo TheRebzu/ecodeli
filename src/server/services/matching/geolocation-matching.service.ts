@@ -482,15 +482,87 @@ export class GeolocationMatchingService {
   }
 
   private async estimateTrafficLevel(zoneId: string): Promise<"LOW" | "MEDIUM" | "HIGH"> {
-    // Simuler l'estimation du trafic bas�e sur l'heure et l'historique
-    const hour = new Date().getHours();
-    
-    if (hour >= 7 && hour <= 9 || hour >= 17 && hour <= 19) {
-      return "HIGH"; // Heures de pointe
-    } else if (hour >= 11 && hour <= 14 || hour >= 20 && hour <= 22) {
-      return "MEDIUM"; // Heures moyennement charg�es
-    } else {
-      return "LOW"; // Heures creuses
+    try {
+      // Récupérer les données de trafic historiques depuis la base de données
+      const now = new Date();
+      const hour = now.getHours();
+      const dayOfWeek = now.getDay(); // 0 = dimanche, 1 = lundi, etc.
+      
+      // Récupérer les données de livraison des 30 derniers jours pour cette zone et cette heure
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      
+      const historicalData = await this.db.delivery.findMany({
+        where: {
+          createdAt: {
+            gte: thirtyDaysAgo,
+          },
+          OR: [
+            { pickupLatitude: { not: null } },
+            { deliveryLatitude: { not: null } },
+          ],
+        },
+        select: {
+          createdAt: true,
+          actualDeliveryTime: true,
+          estimatedDeliveryTime: true,
+        },
+      });
+
+      // Filtrer par heure et jour de la semaine
+      const relevantDeliveries = historicalData.filter(delivery => {
+        const deliveryTime = new Date(delivery.createdAt);
+        const deliveryHour = deliveryTime.getHours();
+        const deliveryDay = deliveryTime.getDay();
+        
+        return Math.abs(deliveryHour - hour) <= 1 && deliveryDay === dayOfWeek;
+      });
+
+      if (relevantDeliveries.length === 0) {
+        // Fallback vers la logique simple si pas assez de données
+        if (hour >= 7 && hour <= 9 || hour >= 17 && hour <= 19) {
+          return "HIGH"; // Heures de pointe
+        } else if (hour >= 11 && hour <= 14 || hour >= 20 && hour <= 22) {
+          return "MEDIUM"; // Heures moyennement chargées
+        } else {
+          return "LOW"; // Heures creuses
+        }
+      }
+
+      // Calculer la moyenne des retards
+      const delays = relevantDeliveries
+        .filter(d => d.actualDeliveryTime && d.estimatedDeliveryTime)
+        .map(d => {
+          const actual = new Date(d.actualDeliveryTime!).getTime();
+          const estimated = new Date(d.estimatedDeliveryTime!).getTime();
+          return (actual - estimated) / (1000 * 60); // Retard en minutes
+        });
+
+      if (delays.length === 0) {
+        return "MEDIUM";
+      }
+
+      const averageDelay = delays.reduce((sum, delay) => sum + delay, 0) / delays.length;
+      const deliveryCount = relevantDeliveries.length;
+
+      // Déterminer le niveau de trafic basé sur le retard moyen et le volume
+      if (averageDelay > 15 || deliveryCount > 50) {
+        return "HIGH";
+      } else if (averageDelay > 5 || deliveryCount > 20) {
+        return "MEDIUM";
+      } else {
+        return "LOW";
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'estimation du trafic:", error);
+      // Fallback vers la logique simple
+      const hour = new Date().getHours();
+      if (hour >= 7 && hour <= 9 || hour >= 17 && hour <= 19) {
+        return "HIGH";
+      } else if (hour >= 11 && hour <= 14 || hour >= 20 && hour <= 22) {
+        return "MEDIUM";
+      } else {
+        return "LOW";
+      }
     }
   }
 
@@ -521,15 +593,77 @@ export class GeolocationMatchingService {
   }
 
   private async updatePositionCache(position: DelivererPosition): Promise<void> {
-    // Impl�menter la mise � jour du cache Redis ou en m�moire
-    
-    console.log(`Position mise � jour pour le livreur ${position.delivererId}`);
+    // Mise à jour de la position en base de données
+    try {
+      await db.deliverer.update({
+        where: { id: position.delivererId },
+        data: {
+          user: {
+            update: {
+              latitude: position.latitude,
+              longitude: position.longitude,
+              lastSeenAt: position.lastUpdate,
+            }
+          }
+        }
+      });
+
+      // Optionnel: Émettre un événement WebSocket pour les clients connectés
+      if (global.io) {
+        global.io.to(`deliverer-${position.delivererId}`).emit('position-update', {
+          latitude: position.latitude,
+          longitude: position.longitude,
+          timestamp: position.lastUpdate,
+          velocity: position.velocity,
+          heading: position.heading,
+        });
+      }
+    } catch (error) {
+      console.error(`Erreur lors de la mise à jour de position pour ${position.delivererId}:`, error);
+    }
   }
 
   private async checkZoneTransition(delivererId: string, lat: number, lng: number): Promise<void> {
-    // V�rifier si le livreur entre dans une nouvelle zone de livraison
-    // Impl�menter la logique de notification de changement de zone
-    console.log(`V�rification de transition de zone pour le livreur ${delivererId}`);
+    try {
+      // Récupérer les zones actives dans la région
+      const nearbyZones = await this.getActiveZones(lat, lng, 10);
+      
+      // Récupérer la zone actuelle du livreur
+      const deliverer = await db.deliverer.findUnique({
+        where: { id: delivererId },
+        select: { currentZone: true }
+      });
+
+      const currentZone = deliverer?.currentZone;
+      
+      // Vérifier si le livreur est entré dans une nouvelle zone
+      const newZone = nearbyZones.find(zone => {
+        const distance = this.calculateDistance(lat, lng, zone.centerLatitude, zone.centerLongitude);
+        return distance <= zone.radius;
+      });
+
+      if (newZone && newZone.id !== currentZone) {
+        // Mettre à jour la zone du livreur
+        await db.deliverer.update({
+          where: { id: delivererId },
+          data: { currentZone: newZone.id }
+        });
+
+        // Notifier le livreur du changement de zone
+        if (global.io) {
+          global.io.to(`deliverer-${delivererId}`).emit('zone-transition', {
+            previousZone: currentZone,
+            newZone: newZone.id,
+            zoneName: newZone.name,
+            timestamp: new Date(),
+          });
+        }
+
+        console.log(`Livreur ${delivererId} est entré dans la zone ${newZone.name}`);
+      }
+    } catch (error) {
+      console.error(`Erreur lors de la vérification de transition de zone pour ${delivererId}:`, error);
+    }
   }
 
   private generateHeatmapData(

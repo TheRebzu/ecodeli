@@ -120,7 +120,7 @@ function generateMarkdownDocs(spec: any): string {
   markdown += `- **Unauthenticated users:** 100 requests per hour\n\n`;
 
   markdown += `## Support\n\n`;
-  markdown += `For API support, please contact us at support@ecodeli.com\n`;
+  markdown += `For API support, please contact us at support@ecodeli.me\n`;
 
   return markdown;
 }

@@ -137,7 +137,8 @@ export const invoiceService = {
     // Déterminer les informations de facturation en fonction du rôle de l'utilisateur
     const billingInfo = {
       companyName: data.companyName || this.getBillingCompanyName(user),
-      billingAddress: data.billingAddress || this.getBillingAddress(user),
+      billingAddress: data.billingAddress || process.env.COMPANY_BILLING_ADDRESS || 
+        "123 Rue de la Plateforme, 75001 Paris, France",
       billingName: data.billingName || user.name,
       taxId: data.taxId || this.getBillingTaxId(user)};
 
@@ -993,7 +994,8 @@ export const invoiceService = {
       notes: "Facture de commission pour la période indiquée",
       invoiceType: "COMMISSION",
       companyName: "EcoDeli SAS",
-      billingAddress: "123 Rue de la Plateforme, 75001 Paris, France",
+      billingAddress: process.env.COMPANY_BILLING_ADDRESS || 
+        "123 Rue de la Plateforme, 75001 Paris, France",
       billingName: "EcoDeli SAS",
       taxId: "FR12345678900",
       metadata: {

@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.ecodeli"
+    namespace = "me.ecodeli"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.ecodeli"
+        applicationId = "me.ecodeli"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

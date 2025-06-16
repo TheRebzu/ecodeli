@@ -108,7 +108,7 @@ export async function seedVerificationHistory(
       // Si le document a été traité, créer les entrées intermédiaires
       if (verification.status !== VerificationStatus.PENDING) {
         // Déterminer si il y a eu des re-soumissions ou demandes de clarification
-        const hasResubmission = faker.datatype.boolean(0.3); // 30% de chance de re-soumission
+        const hasResubmission = Math.random() < 0.3; // 30% de chance de re-soumission
 
         if (
           hasResubmission &&

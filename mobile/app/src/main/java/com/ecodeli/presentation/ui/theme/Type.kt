@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.theme
+package me.ecodeli.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

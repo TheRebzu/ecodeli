@@ -278,7 +278,7 @@ export const userPreferencesService = {
           enabled: false,
           startTime: "22:00",
           endTime: "08:00",
-          timezone: "Europe/Paris"},
+          timezone: process.env.DEFAULT_TIMEZONE || "Europe/Paris"},
         frequency: {
           immediate: true,
           hourly: false,
@@ -310,7 +310,7 @@ export const userPreferencesService = {
         enabled: false,
         startTime: "22:00",
         endTime: "08:00",
-        timezone: generalPrefs.timeZone || "Europe/Paris"},
+        timezone: process.env.DEFAULT_TIMEZONE || "Europe/Paris"},
       frequency: notifPrefs.frequency || {
         immediate: true,
         hourly: false,

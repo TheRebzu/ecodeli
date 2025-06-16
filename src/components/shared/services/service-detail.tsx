@@ -402,7 +402,7 @@ export function ServiceDetail({ service }: ServiceDetailProps) {
               </div>
               <div className="flex items-center gap-2">
                 <MailIcon className="h-4 w-4 text-gray-500" />
-                <span>support@ecodeli.fr</span>
+                <span>support@ecodeli.me</span>
               </div>
               <p className="mt-2 text-gray-600">{t("supportHours")}</p>
             </div>

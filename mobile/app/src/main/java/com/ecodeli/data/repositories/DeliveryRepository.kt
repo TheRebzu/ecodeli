@@ -1,9 +1,9 @@
-package com.ecodeli.data.repositories
+package me.ecodeli.data.repositories
 
-import com.ecodeli.data.api.Result
-import com.ecodeli.data.api.TrpcClient
-import com.ecodeli.data.api.TrpcRequest
-import com.ecodeli.data.models.*
+import me.ecodeli.data.api.Result
+import me.ecodeli.data.api.TrpcClient
+import me.ecodeli.data.api.TrpcRequest
+import me.ecodeli.data.models.*
 import javax.inject.Inject
 import javax.inject.Singleton
 

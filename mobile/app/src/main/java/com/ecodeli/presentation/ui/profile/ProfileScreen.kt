@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.profile
+package me.ecodeli.presentation.ui.profile
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons

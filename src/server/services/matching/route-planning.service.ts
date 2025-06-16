@@ -52,7 +52,7 @@ export interface DeliveryCluster {
 
 export class RoutePlanningService {
   /**
-   * Planifie une route optimis�e pour un livreur
+   * Planifie une route optimisé pour un livreur
    */
   async planOptimalRoute(
     delivererId: string,
@@ -67,7 +67,7 @@ export class RoutePlanningService {
     } = {}
   ): Promise<OptimizedRoute> {
     try {
-      // R�cup�rer les informations du livreur et de son v�hicule
+      // Récuprer les informations du livreur et de son véhicule
       const deliverer = await db.deliverer.findUnique({
         where: { id },
         include: {
@@ -92,11 +92,11 @@ export class RoutePlanningService {
 
       if (!deliverer) {
         throw new TRPCError({ code: "NOT_FOUND",
-          message: "Livreur non trouv�"
+          message: "Livreur non trouvé"
          });
       }
 
-      // Point de d�part (position du livreur)
+      // Point de départ (position du livreur)
       const startPoint: RoutePoint = {
         id: "start",
         latitude: deliverer.user?.latitude || 0,
@@ -106,7 +106,7 @@ export class RoutePlanningService {
         serviceTime: 0
       };
 
-      // V�rifier la faisabilit� initiale
+      // Vérifier la faisabilité initiale
       const feasibilityCheck = await this.checkRouteFeasibility(
         deliveryPoints,
         constraints,
@@ -116,7 +116,7 @@ export class RoutePlanningService {
       if (!feasibilityCheck.isFeasible) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `Route non r�alisable: ${feasibilityCheck.issues.join(", ")}`
+          message: `Route non réalisable: ${feasibilityCheck.issues.join(", ")}`
         });
       }
 
@@ -128,10 +128,10 @@ export class RoutePlanningService {
         deliverer.vehicle
       );
 
-      // Calculer les m�triques de la route
+      // Calculer les métriques de la route
       const routeMetrics = this.calculateRouteMetrics(optimizedPoints);
 
-      // Calculer le score d'efficacit�
+      // Calculer le score d'efficacité
       const efficiency = this.calculateEfficiencyScore(
         optimizedPoints,
         deliveryPoints,
@@ -214,7 +214,7 @@ export class RoutePlanningService {
           }
         }
 
-        // Calculer les m�triques du cluster
+        // Calculer les métriques du cluster
         if (clusterDeliveries.length >= 2) {
           const metrics = this.calculateClusterMetrics(clusterDeliveries);
           
@@ -230,7 +230,7 @@ export class RoutePlanningService {
         }
       }
 
-      // Trier par densit� d�croissante
+      // Trier par densité décroissante
       return clusters.sort((a, b) => b.density - a.density);
     } catch (error) {
       console.error("Erreur lors de l'identification des clusters:", error);
@@ -241,7 +241,7 @@ export class RoutePlanningService {
   }
 
   /**
-   * G�n�re des routes alternatives pour une liste de livraisons
+   * Génére des routes alternatives pour une liste de livraisons
    */
   async generateAlternativeRoutes(
     delivererId: string,
@@ -251,37 +251,37 @@ export class RoutePlanningService {
     try {
       const alternatives: OptimizedRoute[] = [];
 
-      // Strat�gie 1: Optimisation par distance
+      // Stratégie 1: Optimisation par distance
       const distanceOptimized = await this.planOptimalRoute(delivererId, deliveryPoints, {
         maxDistance: 200
       });
       alternatives.push(distanceOptimized);
 
-      // Strat�gie 2: Optimisation par temps
+      // Stratégie 2: Optimisation par temps
       const timeOptimized = await this.planOptimalRoute(delivererId, deliveryPoints, {
         maxDuration: 480 // 8 heures
       });
       alternatives.push(timeOptimized);
 
-      // Strat�gie 3: Optimisation par priorit�
+      // Stratégie 3: Optimisation par priorité
       const priorityOptimized = await this.optimizeByPriority(delivererId, deliveryPoints);
       alternatives.push(priorityOptimized);
 
-      // Supprimer les doublons et trier par efficacit�
+      // Supprimer les doublons et trier par efficacité
       const uniqueAlternatives = this.removeDuplicateRoutes(alternatives);
       return uniqueAlternatives
         .sort((a, b) => b.efficiency - a.efficiency)
         .slice(0, alternativeCount);
     } catch (error) {
-      console.error("Erreur lors de la g�n�ration d'alternatives:", error);
+      console.error("Erreur lors de la génération d'alternatives:", error);
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la g�n�ration de routes alternatives"
+        message: "Erreur lors de la génération de routes alternatives"
        });
     }
   }
 
   /**
-   * Ajuste une route en temps r�el (traffic, urgences, etc.)
+   * Ajuste une route en temps réel (traffic, urgences, etc.)
    */
   async adjustRouteRealTime(
     routeId: string,
@@ -294,11 +294,11 @@ export class RoutePlanningService {
     }
   ): Promise<OptimizedRoute> {
     try {
-      // R�cup�rer la route existante
+      // Récuprer la route existante
       const existingRoute = await this.getRouteById(routeId);
       if (!existingRoute) {
         throw new TRPCError({ code: "NOT_FOUND",
-          message: "Route non trouv�e"
+          message: "Route non trouvée"
          });
       }
 
@@ -314,7 +314,7 @@ export class RoutePlanningService {
         );
       }
 
-      // Supprimer les livraisons annul�es
+      // Supprimer les livraisons annulées
       if (adjustments.cancelledDeliveries?.length) {
         adjustedPoints = adjustedPoints.filter(
           point => !adjustments.cancelledDeliveries!.includes(point.id)
@@ -329,7 +329,7 @@ export class RoutePlanningService {
         );
       }
 
-      // Recalculer la route optimis�e
+      // Recalculer la route optimisée
       const reoptimizedRoute = await this.reoptimizeFromCurrentPosition(
         existingRoute.delivererId,
         currentPosition,
@@ -343,7 +343,7 @@ export class RoutePlanningService {
 
       return reoptimizedRoute;
     } catch (error) {
-      console.error("Erreur lors de l'ajustement temps r�el:", error);
+      console.error("Erreur lors de l'ajustement temps réel:", error);
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de l'ajustement de route"
@@ -351,7 +351,7 @@ export class RoutePlanningService {
     }
   }
 
-  // M�thodes priv�es
+  // Méthodes privées
 
   private async checkRouteFeasibility(
     deliveryPoints: RoutePoint[],
@@ -361,17 +361,17 @@ export class RoutePlanningService {
     const issues: string[] = [];
     const score = 100;
 
-    // V�rifier la capacit� du v�hicule
+    // Vérifier la capacité du véhicule
     const totalWeight = deliveryPoints.reduce((sum, point) => {
       return sum + (point.requirements?.includes("HEAVY") ? 20 : 5);
     }, 0);
 
     if (vehicle?.maxWeight && totalWeight > vehicle.maxWeight) {
-      issues.push("D�passement de capacit� de poids");
+      issues.push("Dépassement de capacité de poids");
       score -= 30;
     }
 
-    // V�rifier les contraintes de distance
+    // Vérifier les contraintes de distance
     if (constraints.maxDistance) {
       const estimatedDistance = this.estimateTotalDistance(deliveryPoints);
       if (estimatedDistance > constraints.maxDistance) {
@@ -380,10 +380,10 @@ export class RoutePlanningService {
       }
     }
 
-    // V�rifier les fen�tres temporelles
+    // Vérifier les fenêtres temporelles
     const timeWindowConflicts = this.checkTimeWindowConflicts(deliveryPoints);
     if (timeWindowConflicts > 0) {
-      issues.push(`${timeWindowConflicts} conflits de cr�neaux horaires`);
+      issues.push(`${timeWindowConflicts} conflits de créneaux horaires`);
       score -= timeWindowConflicts * 10;
     }
 
@@ -406,8 +406,8 @@ export class RoutePlanningService {
     distanceFromPrevious: number;
     durationFromPrevious: number;
   }>> {
-    // Algorithme d'optimisation de route (version simplifi�e)
-    // En production, utiliser des algorithmes plus sophistiqu�s comme OR-Tools
+    // Algorithme d'optimisation de route (version simplifiée)
+    // En production, utiliser des algorithmes plus sophistiqués comme OR-Tools
 
     const allPoints = [startPoint, ...deliveryPoints];
     const optimizedOrder = await this.geneticAlgorithmOptimization(allPoints, constraints);
@@ -425,7 +425,7 @@ export class RoutePlanningService {
       );
 
       const duration = index === 0 ? 0 : this.estimateTravelTime(distance, vehicle);
-      const serviceTime = point.serviceTime || 10; // 10 minutes par d�faut
+      const serviceTime = point.serviceTime || 10; // 10 minutes par défaut
 
       currentTime = new Date(currentTime.getTime() + duration * 60 * 1000);
       const arrivalTime = new Date(currentTime);
@@ -445,30 +445,30 @@ export class RoutePlanningService {
       };
     });
 
-    return result.slice(1); // Exclure le point de d�part
+    return result.slice(1); // Exclure le point de départ
   }
 
   private async geneticAlgorithmOptimization(
     points: RoutePoint[],
     constraints: any
   ): Promise<RoutePoint[]> {
-    // Impl�mentation simplifi�e d'un algorithme g�n�tique
-    // Pour une version plus robuste, utiliser des librairies sp�cialis�es
+    // Implémentation simplifiée d'un algorithme génétique
+    // Pour une version plus robuste, utiliser des librairies spécialisées
 
     const populationSize = 50;
     const generations = 100;
     const mutationRate = 0.1;
 
-    // G�n�rer la population initiale
+    // Générer la population initiale
     const population = this.generateInitialPopulation(points, populationSize);
 
     for (let gen = 0; gen < generations; gen++) {
-      // �valuer la fitness de chaque individu
+      // Évaluer la fitness de chaque individu
       const evaluatedPopulation = population.map(individual => ({ route: individual,
         fitness: this.calculateRouteFitness(individual, constraints)
        }));
 
-      // S�lection des meilleurs
+      // Sélection des meilleurs
       evaluatedPopulation.sort((a, b) => b.fitness - a.fitness);
       const survivors = evaluatedPopulation.slice(0, populationSize / 2);
 
@@ -514,25 +514,25 @@ export class RoutePlanningService {
     originalPoints: RoutePoint[],
     metrics: any
   ): number {
-    // Score bas� sur plusieurs facteurs
+    // Score basé sur plusieurs facteurs
     const score = 100;
 
-    // P�nalit� pour la distance totale
+    // Pénalité pour la distance totale
     const avgDistance = metrics.totalDistance / Math.max(optimizedPoints.length, 1);
     if (avgDistance > 20) score -= 20;
 
-    // Bonus pour le respect des priorit�s
+    // Bonus pour le respect des priorités
     const priorityScore = this.calculatePriorityScore(optimizedPoints);
     score += priorityScore * 0.2;
 
-    // P�nalit� pour les violations de fen�tres temporelles
+    // Pénalité pour les violations de fenêtres temporelles
     const timeViolations = this.countTimeWindowViolations(optimizedPoints);
     score -= timeViolations * 15;
 
     return Math.max(0, Math.min(100, score));
   }
 
-  // M�thodes utilitaires simplifi�es
+  // Méthodes utilitaires simplifiées
 
   private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371;
@@ -551,7 +551,7 @@ export class RoutePlanningService {
   }
 
   private estimateTotalDistance(points: RoutePoint[]): number {
-    // Estimation approximative bas�e sur la distance moyenne entre points
+    // Estimation approximative basée sur la distance moyenne entre points
     if (points.length <= 1) return 0;
     
     const avgDistance = 10; // km en moyenne entre points
@@ -570,7 +570,7 @@ export class RoutePlanningService {
 
     for (let i = 0; i < size; i++) {
       const shuffled = [...deliveryPoints];
-      // M�langer en pr�servant partiellement les priorit�s
+      // Mélanger en préservant partiellement les priorités
       for (let j = shuffled.length - 1; j > 0; j--) {
         const k = Math.floor(Math.random() * (j + 1));
         [shuffled[j], shuffled[k]] = [shuffled[k], shuffled[j]];
@@ -595,10 +595,10 @@ export class RoutePlanningService {
       );
     }
 
-    // P�naliser les longues distances
+    // Pénaliser les longues distances
     fitness -= totalDistance * 2;
 
-    // Bonus pour les points prioritaires trait�s t�t
+    // Bonus pour les points prioritaires traités tôt
     route.forEach((point, index) => {
       if (point.priority >= 4 && index <= route.length / 3) {
         fitness += 50;
@@ -609,8 +609,8 @@ export class RoutePlanningService {
   }
 
   private crossover(parent1: RoutePoint[], parent2: RoutePoint[]): RoutePoint[] {
-    // Crossover ordonn� simple
-    const start = 1; // Pr�server le point de d�part
+    // Crossover ordonné simple
+    const start = 1; // Préserver le point de départ
     const crossoverPoint = Math.floor(Math.random() * (parent1.length - start)) + start;
     
     const child = [...parent1.slice(0, crossoverPoint)];
@@ -623,7 +623,7 @@ export class RoutePlanningService {
     const mutated = [...route];
     if (mutated.length <= 2) return mutated;
 
-    // �changer deux points al�atoires (sauf le point de d�part)
+    // Échanger deux points aléatoires (sauf le point de départ)
     const idx1 = Math.floor(Math.random() * (mutated.length - 1)) + 1;
     const idx2 = Math.floor(Math.random() * (mutated.length - 1)) + 1;
     
@@ -659,19 +659,19 @@ export class RoutePlanningService {
   }
 
   private calculateOptimalTimeSlots(deliveries: any[]): string[] {
-    // Analyser les cr�neaux horaires pr�f�r�s
+    // Analyser les créneaux horaires préférés
     const timeSlots = ["09:00-12:00", "12:00-14:00", "14:00-17:00", "17:00-19:00"];
-    return timeSlots.slice(0, 2); // Retourner les 2 premiers cr�neaux pour simplifier
+    return timeSlots.slice(0, 2); // Retourner les 2 premiers créneaux pour simplifier
   }
 
   private async optimizeByPriority(delivererId: string, points: RoutePoint[]): Promise<OptimizedRoute> {
-    // Trier par priorit� d�croissante
+    // Trier par priorité décroissante
     const sortedPoints = [...points].sort((a, b) => b.priority - a.priority);
     return this.planOptimalRoute(delivererId, sortedPoints);
   }
 
   private removeDuplicateRoutes(routes: OptimizedRoute[]): OptimizedRoute[] {
-    // Simplification: supprimer les routes avec le m�me ordre de points
+    // Simplification: supprimer les routes avec le même ordre de points
     const seen = new Set<string>();
     return routes.filter(route => {
       const signature = route.points.map(p => p.id).join(',');
@@ -682,7 +682,7 @@ export class RoutePlanningService {
   }
 
   private calculatePriorityScore(points: any[]): number {
-    // Score bas� sur l'ordre des priorit�s
+    // Score basé sur l'ordre des priorités
     const score = 0;
     points.forEach((point, index) => {
       if (point.priority >= 4 && index < points.length / 2) {
@@ -697,25 +697,162 @@ export class RoutePlanningService {
     return 0; // Pour simplifier
   }
 
-  // M�thodes simul�es (� impl�menter)
+  // Méthodes implémentées
   private async getRouteById(routeId: string): Promise<OptimizedRoute | null> {
-    // Simuler la r�cup�ration d'une route
-    return null;
+    try {
+      const route = await this.db.delivererPlannedRoute.findUnique({
+        where: { id: routeId },
+        include: {
+          deliverer: true,
+          announcements: {
+            include: {
+              announcement: true,
+            },
+          },
+        },
+      });
+
+      if (!route) return null;
+
+      // Convertir la route en format OptimizedRoute
+      const points: Array<RoutePoint & {
+        order: number;
+        estimatedArrival: Date;
+        estimatedDeparture: Date;
+        distanceFromPrevious: number;
+        durationFromPrevious: number;
+      }> = route.announcements.map((item, index) => ({
+        id: item.announcement.id,
+        latitude: item.announcement.pickupLatitude || 0,
+        longitude: item.announcement.pickupLongitude || 0,
+        type: "PICKUP" as const,
+        priority: item.announcement.priority === "HIGH" ? 5 : 3,
+        order: index + 1,
+        estimatedArrival: new Date(Date.now() + index * 30 * 60 * 1000),
+        estimatedDeparture: new Date(Date.now() + (index * 30 + 15) * 60 * 1000),
+        distanceFromPrevious: index === 0 ? 0 : 5,
+        durationFromPrevious: index === 0 ? 0 : 15,
+      }));
+
+      return {
+        id: route.id,
+        delivererId: route.delivererId,
+        points,
+        totalDistance: route.totalDistance || 0,
+        totalDuration: route.estimatedDuration || 0,
+        totalServiceTime: points.length * 15,
+        efficiency: 0.8,
+        feasibilityScore: 0.9,
+        constraints: {
+          maxDistance: route.maxDistance,
+          maxDuration: route.maxDuration,
+          timeWindows: true,
+        },
+      };
+    } catch (error) {
+      console.error("Erreur lors de la récupération de la route:", error);
+      return null;
+    }
   }
 
   private async insertUrgentDelivery(points: any[], urgentDelivery: RoutePoint, currentPos: any): Promise<any[]> {
-    // Ins�rer la livraison urgente au meilleur endroit
-    return [urgentDelivery, ...points];
+    // Trouver la meilleure position pour insérer la livraison urgente
+    let bestIndex = 1; // Après le point de départ
+    let minAdditionalDistance = Infinity;
+
+    for (let i = 1; i <= points.length; i++) {
+      const prevPoint = i === 0 ? currentPos : points[i - 1];
+      const nextPoint = i < points.length ? points[i] : null;
+
+      let additionalDistance = 0;
+      
+      // Distance du point précédent vers la livraison urgente
+      additionalDistance += this.calculateDistance(
+        prevPoint.latitude,
+        prevPoint.longitude,
+        urgentDelivery.latitude,
+        urgentDelivery.longitude
+      );
+
+      // Distance de la livraison urgente vers le point suivant
+      if (nextPoint) {
+        additionalDistance += this.calculateDistance(
+          urgentDelivery.latitude,
+          urgentDelivery.longitude,
+          nextPoint.latitude,
+          nextPoint.longitude
+        );
+        
+        // Soustraire la distance originale entre prev et next
+        additionalDistance -= this.calculateDistance(
+          prevPoint.latitude,
+          prevPoint.longitude,
+          nextPoint.latitude,
+          nextPoint.longitude
+        );
+      }
+
+      if (additionalDistance < minAdditionalDistance) {
+        minAdditionalDistance = additionalDistance;
+        bestIndex = i;
+      }
+    }
+
+    // Insérer la livraison urgente à la meilleure position
+    const result = [...points];
+    result.splice(bestIndex, 0, urgentDelivery);
+    return result;
   }
 
   private async avoidRoadBlocks(points: any[], roadBlocks: any[]): Promise<any[]> {
-    // Simuler l'�vitement des blocages
-    return points;
+    if (!roadBlocks || roadBlocks.length === 0) return points;
+
+    const adjustedPoints = [...points];
+
+    for (const block of roadBlocks) {
+      for (let i = 0; i < adjustedPoints.length; i++) {
+        const point = adjustedPoints[i];
+        
+        // Vérifier si le point est dans la zone de blocage
+        const distanceToBlock = this.calculateDistance(
+          point.latitude,
+          point.longitude,
+          block.latitude,
+          block.longitude
+        );
+
+        if (distanceToBlock <= (block.radius / 1000)) { // Convertir en km
+          // Déplacer le point en dehors de la zone de blocage
+          const angle = Math.random() * 2 * Math.PI;
+          const offsetDistance = (block.radius / 1000) + 0.5; // Ajouter 500m de marge
+          
+          adjustedPoints[i] = {
+            ...point,
+            latitude: point.latitude + (offsetDistance / 111) * Math.cos(angle),
+            longitude: point.longitude + (offsetDistance / (111 * Math.cos(point.latitude * Math.PI / 180))) * Math.sin(angle),
+          };
+        }
+      }
+    }
+
+    return adjustedPoints;
   }
 
   private async reoptimizeFromCurrentPosition(delivererId: string, currentPos: any, points: any[]): Promise<OptimizedRoute> {
-    // Simuler la r�optimisation
-    return this.planOptimalRoute(delivererId, points);
+    // Recalculer la route optimale depuis la position actuelle
+    const newStartPoint: RoutePoint = {
+      id: "current-position",
+      latitude: currentPos.latitude,
+      longitude: currentPos.longitude,
+      type: "WAYPOINT",
+      priority: 5,
+    };
+
+    // Filtrer les points non encore visités
+    const remainingPoints = points.filter(p => !p.completed);
+
+    // Planifier une nouvelle route optimale
+    return this.planOptimalRoute(delivererId, [newStartPoint, ...remainingPoints]);
   }
 
   private applyTrafficDelays(route: OptimizedRoute, delays: any[]): void {

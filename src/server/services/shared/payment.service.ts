@@ -17,6 +17,7 @@ import { createCommission } from "@/server/services/admin/commission.service";
 import { addDays } from "@/lib/utils/date";
 import { invoiceService } from "@/server/services/shared/invoice.service";
 import { commissionService } from "@/server/services/admin/commission.service";
+import Stripe from "stripe";
 
 /**
  * Service de gestion des paiements
@@ -534,7 +535,7 @@ export const paymentService = {
   }};
 
 /**
- * Crée un paiement simulé en mode démonstration
+ * Crée un paiement réel via Stripe
  */
 export async function createPayment(
   input: CreatePaymentInput,
@@ -731,11 +732,12 @@ export async function processPaymentIntent(input: {
   return {
     clientSecret: paymentIntent.client_secret!,
     paymentIntentId: paymentIntent.id,
-    status: updatedPayment?.status || "unknown"};
+    status: updatedPayment?.status || "unknown",
+  };
 }
 
 /**
- * Confirme un paiement simulé
+ * Confirme un paiement réel via Stripe
  */
 export async function confirmPayment(paymentId: string): Promise<Payment> {
   // Récupérer le paiement
@@ -779,7 +781,7 @@ export async function confirmPayment(paymentId: string): Promise<Payment> {
 }
 
 /**
- * Rembourse un paiement simulé
+ * Rembourse un paiement réel via Stripe
  */
 export async function refundPayment(input: {
   paymentId: string;
@@ -805,11 +807,39 @@ export async function refundPayment(input: {
   const refundAmount = amount || payment.amount;
   const refundId = `ref_${randomUUID().replace(/-/g, "")}`;
 
-  // TODO: Implémenter le remboursement réel via Stripe
+  // Implémenter le remboursement réel via Stripe
+  let stripeRefund: any = null;
+  
+  if (payment.stripePaymentIntentId) {
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: "2024-12-18.acacia",
+      });
+      
+      stripeRefund = await stripe.refunds.create({
+        payment_intent: payment.stripePaymentIntentId,
+        amount: Math.round(refundAmount * 100), // Convertir en centimes
+        reason: reason === "duplicate" ? "duplicate" : "requested_by_customer",
+        metadata: {
+          original_payment_id: payment.id,
+          refund_reason: reason || "Remboursement demandé",
+        },
+      });
+    } catch (stripeError) {
+      logger.error("Erreur lors du remboursement Stripe:", stripeError);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Erreur lors du remboursement: ${stripeError instanceof Error ? stripeError.message : "Erreur inconnue"}`,
+      });
+    }
+  }
+
   // Vérifier que le paiement peut être remboursé
   if (payment.status === PaymentStatus.REFUNDED) {
-    throw new TRPCError({ code: "BAD_REQUEST",
-      message: "Ce paiement a déjà été remboursé" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Ce paiement a déjà été remboursé",
+    });
   }
 
   // Mettre à jour le paiement avec les informations de remboursement

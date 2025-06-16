@@ -81,7 +81,7 @@ export default function ManualAPIDocsPage() {
                       <pre className="bg-muted p-3 rounded text-sm overflow-x-auto">
                         {`// Body
 {
-  "email": "user@ecodeli.fr",
+  "email": "user@ecodeli.me",
   "password": "password123",
   "csrfToken": "csrf_token_here"
 }
@@ -107,7 +107,7 @@ export default function ManualAPIDocsPage() {
 {
   "user": {
     "id": "user_id",
-    "email": "user@ecodeli.fr",
+    "email": "user@ecodeli.me",
     "name": "John Doe",
     "role": "CLIENT",
     "isVerified": true
@@ -385,7 +385,7 @@ Content-Type: application/json
     "limit": 50,
     "role": "CLIENT",
     "status": "ACTIVE",
-    "search": "john@ecodeli.fr"
+    "search": "john@ecodeli.me"
   }
 }`}
                   </pre>

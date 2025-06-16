@@ -222,8 +222,9 @@ export async function withRetry<T>(
 
       if (attempt === maxRetries) break;
 
-      // Attendre avant le prochain essai
-      await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+      // Backoff exponentiel réel pour les tentatives de retry
+      const backoffDelay = Math.min(delayMs * Math.pow(2, attempt - 1), 30000); // Max 30 secondes
+      await new Promise((resolve) => setTimeout(resolve, backoffDelay));
     }
   }
 

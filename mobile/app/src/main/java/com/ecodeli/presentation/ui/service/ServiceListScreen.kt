@@ -1,4 +1,4 @@
-package com.ecodeli.presentation.ui.service
+package me.ecodeli.presentation.ui.service
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.ecodeli.data.models.Service
+import me.ecodeli.data.models.Service
 
 /**
  * Écran de liste des services (version basique)

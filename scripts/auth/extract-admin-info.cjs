@@ -16,7 +16,7 @@ console.log("   ✅ Gère automatiquement les différents mots de passe admin");
 console.log("\n👤 2. UTILISATEURS ADMIN DISPONIBLES DANS LES SEEDS :");
 const adminUsers = [
   {
-    email: "jp.dubois@ecodeli.fr",
+    email: "jp.dubois@ecodeli.me",
     name: "Jean-Pierre Dubois",
     department: "Direction Générale",
     role: "Super Admin",
@@ -24,7 +24,7 @@ const adminUsers = [
     status: "ACTIVE",
   },
   {
-    email: "mc.rousseau@ecodeli.fr",
+    email: "mc.rousseau@ecodeli.me",
     name: "Marie-Claire Rousseau",
     department: "Direction Technique",
     role: "Super Admin",
@@ -32,7 +32,7 @@ const adminUsers = [
     status: "ACTIVE",
   },
   {
-    email: "sophie.admin@ecodeli.fr",
+    email: "sophie.admin@ecodeli.me",
     name: "Sophie Admin",
     department: "Administration Générale",
     role: "Admin Support",
@@ -40,7 +40,7 @@ const adminUsers = [
     status: "ACTIVE",
   },
   {
-    email: "t.moreau@ecodeli.fr",
+    email: "t.moreau@ecodeli.me",
     name: "Thomas Moreau",
     department: "Vérifications",
     role: "Admin Vérifications",
@@ -48,7 +48,7 @@ const adminUsers = [
     status: "ACTIVE",
   },
   {
-    email: "l.durand@ecodeli.fr",
+    email: "l.durand@ecodeli.me",
     name: "Laurent Durand",
     department: "Direction Financière",
     role: "Admin Financier",
@@ -56,7 +56,7 @@ const adminUsers = [
     status: "ACTIVE",
   },
   {
-    email: "i.blanc@ecodeli.fr",
+    email: "i.blanc@ecodeli.me",
     name: "Isabelle Blanc",
     department: "Comptabilité",
     role: "Admin Comptabilité",
@@ -85,12 +85,12 @@ console.log(
 console.log("\n   A) Avec le script d'extraction (recommandé) :");
 console.log("      # Pour le super admin principal :");
 console.log(
-  "      node scripts/auth/extract-client-session.cjs jp.dubois@ecodeli.fr",
+  "      node scripts/auth/extract-client-session.cjs jp.dubois@ecodeli.me",
 );
 console.log("");
 console.log("      # Pour l'admin support :");
 console.log(
-  "      node scripts/auth/extract-client-session.cjs sophie.admin@ecodeli.fr",
+  "      node scripts/auth/extract-client-session.cjs sophie.admin@ecodeli.me",
 );
 console.log("");
 console.log(
@@ -103,7 +103,7 @@ console.log("      node scripts/auth/extract-admin-session.cjs");
 console.log("");
 console.log("      # Ou spécifier un admin :");
 console.log(
-  "      node scripts/auth/extract-admin-session.cjs jp.dubois@ecodeli.fr",
+  "      node scripts/auth/extract-admin-session.cjs jp.dubois@ecodeli.me",
 );
 
 console.log(
@@ -111,7 +111,7 @@ console.log(
 );
 console.log("      1. Lancer l'application : pnpm dev");
 console.log("      2. Se connecter via l'interface web avec :");
-console.log("         - Email: jp.dubois@ecodeli.fr");
+console.log("         - Email: jp.dubois@ecodeli.me");
 console.log("         - Mot de passe: SuperAdmin2024!");
 console.log("      3. Copier les cookies depuis les DevTools du navigateur");
 console.log("      4. Utiliser : next-auth.session-token=VALUE_FROM_BROWSER");
@@ -149,7 +149,7 @@ console.log(
 console.log(
   "   📁 Script admin dédié : scripts/auth/extract-admin-session.cjs",
 );
-console.log("   👤 Email admin principal : jp.dubois@ecodeli.fr");
+console.log("   👤 Email admin principal : jp.dubois@ecodeli.me");
 console.log("   🔐 Mot de passe : SuperAdmin2024!");
 console.log(
   "   🎯 Recommandation : Utiliser le script d'extraction automatique",

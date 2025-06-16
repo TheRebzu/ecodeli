@@ -72,7 +72,7 @@ export async function seedAdminUsers(
     // === SUPER ADMINISTRATEURS ===
     {
       name: "Jean-Pierre Dubois",
-      email: "jp.dubois@ecodeli.fr",
+      email: "jp.dubois@ecodeli.me",
       password: "SuperAdmin2024!",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
@@ -109,7 +109,7 @@ export async function seedAdminUsers(
     },
     {
       name: "Marie-Claire Rousseau",
-      email: "mc.rousseau@ecodeli.fr",
+      email: "mc.rousseau@ecodeli.me",
       password: "SuperAdmin2024!",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
@@ -146,7 +146,7 @@ export async function seedAdminUsers(
     },
     {
       name: "Alexandre Martin",
-      email: "a.martin@ecodeli.fr",
+      email: "a.martin@ecodeli.me",
       password: "SuperAdmin2024!",
       role: UserRole.ADMIN,
       status: UserStatus.INACTIVE, // En congés
@@ -184,7 +184,7 @@ export async function seedAdminUsers(
     // === ADMINISTRATEURS SUPPORT ===
     {
       name: "Sophie Admin",
-      email: "sophie.admin@ecodeli.fr",
+      email: "sophie.admin@ecodeli.me",
       password: "AdminPass2024!",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
@@ -222,7 +222,7 @@ export async function seedAdminUsers(
     },
     {
       name: "Thomas Moreau",
-      email: "t.moreau@ecodeli.fr",
+      email: "t.moreau@ecodeli.me",
       password: "SupportAdmin2024!",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
@@ -256,7 +256,7 @@ export async function seedAdminUsers(
     },
     {
       name: "Émilie Petit",
-      email: "e.petit@ecodeli.fr",
+      email: "e.petit@ecodeli.me",
       password: "SupportAdmin2024!",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
@@ -290,7 +290,7 @@ export async function seedAdminUsers(
     },
     {
       name: "Nicolas Garnier",
-      email: "n.garnier@ecodeli.fr",
+      email: "n.garnier@ecodeli.me",
       password: "SupportAdmin2024!",
       role: UserRole.ADMIN,
       status: UserStatus.SUSPENDED, // Incident de sécurité
@@ -324,7 +324,7 @@ export async function seedAdminUsers(
     },
     {
       name: "Camille Roux",
-      email: "c.roux@ecodeli.fr",
+      email: "c.roux@ecodeli.me",
       password: "SupportAdmin2024!",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
@@ -359,7 +359,7 @@ export async function seedAdminUsers(
     // === ADMINISTRATEURS FINANCIERS ===
     {
       name: "Laurent Durand",
-      email: "l.durand@ecodeli.fr",
+      email: "l.durand@ecodeli.me",
       password: "FinanceAdmin2024!",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
@@ -395,7 +395,7 @@ export async function seedAdminUsers(
     },
     {
       name: "Isabelle Blanc",
-      email: "i.blanc@ecodeli.fr",
+      email: "i.blanc@ecodeli.me",
       password: "FinanceAdmin2024!",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,

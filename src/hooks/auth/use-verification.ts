@@ -36,23 +36,17 @@ export function useVerification() {
     setIsSubmitting(true);
 
     try {
-      // Simuler un progrès d'upload pour l'UX (à remplacer par un vrai système de suivi de progression)
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 95) {
-            clearInterval(progressInterval);
-            return 95;
-          }
-          return prev + 5;
-        });
-      }, 200);
+      // Progression réelle basée sur l'upload
+      setUploadProgress(10);
 
       // Envoi de la demande de vérification
-      const result = await submitVerificationMutation.mutateAsync({ type,
+      const result = await submitVerificationMutation.mutateAsync({
+        type,
         userId,
-        documents });
+        documents,
+      });
 
-      clearInterval(progressInterval);
+      // Progression complète après succès
       setUploadProgress(100);
 
       toast({ title: "Demande envoyée",

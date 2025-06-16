@@ -70,15 +70,15 @@ export const delivererAdminService = {
       ).length;
       const totalDeliveries = deliverer.delivererDeliveries.length;
 
-      // Récupérer toutes les notes des livraisons
-      const allRatings = deliverer.delivererDeliveries
-        .flatMap((d) => d.ratings)
-        .map((r) => r.rating);
-      const averageRating =
-        allRatings.length > 0
-          ? allRatings.reduce((sum, rating) => sum + rating, 0) /
-            allRatings.length
-          : 0;
+      // Calculer la vraie moyenne des ratings depuis la base de données
+      const ratingStats = await db.rating.aggregate({
+        where: { targetId: deliverer.id, targetType: "DELIVERER" },
+        _avg: { rating: true },
+        _count: { rating: true },
+      });
+
+      const averageRating = ratingStats._avg.rating || 0;
+      const totalRatings = ratingStats._count.rating || 0;
 
       let verificationStatus: "PENDING" | "APPROVED" | "REJECTED" = "PENDING";
       if (deliverer.isVerified) {
@@ -112,10 +112,12 @@ export const delivererAdminService = {
         totalDeliveries,
         completedDeliveries,
         rating: averageRating,
+        totalRatings,
         earnings: deliverer.wallet?.balance || 0,
         hasVehicle: false,
         vehicleType: undefined,
-        preferredZones: []};
+        preferredZones: [],
+        cancelledDeliveries: 0};
     });
 
     return {

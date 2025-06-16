@@ -656,7 +656,12 @@ export class CartDropService {
   }
 
   private async getMerchant(merchantId: string): Promise<any> {
-    return { latitude: 48.8566, longitude: 2.3522 };
+    // Coordonnées par défaut configurable (peut être Paris ou selon la zone)
+    const defaultCoordinates = process.env.DEFAULT_COORDINATES
+      ? JSON.parse(process.env.DEFAULT_COORDINATES)
+      : { latitude: 48.8566, longitude: 2.3522 }; // Fallback vers Paris
+
+    return defaultCoordinates;
   }
 
   private async getPricingRules(merchantId: string): Promise<PricingRule[]> {

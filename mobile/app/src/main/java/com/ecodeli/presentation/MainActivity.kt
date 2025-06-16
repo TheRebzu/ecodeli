@@ -1,4 +1,4 @@
-package com.ecodeli.presentation
+package me.ecodeli.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
-import com.ecodeli.presentation.navigation.EcoDeliNavHost
-import com.ecodeli.presentation.ui.theme.EcoDeliTheme
+import me.ecodeli.presentation.navigation.EcoDeliNavHost
+import me.ecodeli.presentation.ui.theme.EcoDeliTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
