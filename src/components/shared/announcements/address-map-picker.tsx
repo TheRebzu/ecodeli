@@ -122,7 +122,9 @@ export function AddressMapPicker({
       clearTimeout(searchTimeout);
     }
 
-    const timeout = // Appel API réel via tRPC
+    const timeout = setTimeout(() => {
+      searchAddresses(value);
+    }, 300);
 
     setSearchTimeout(timeout);
   };

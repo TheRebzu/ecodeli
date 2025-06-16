@@ -35,7 +35,7 @@ export function useServiceBooking({
   };
 
   // Rechercher les créneaux disponibles
-  const availableTimeSlotsQuery = api.service.getAvailableTimeSlots.useQuery(
+  const availableTimeSlotsQuery = api.clientServices.getAvailableTimeSlots.useQuery(
     {
       serviceId: serviceId || "",
       providerId: providerId || "",
@@ -45,13 +45,13 @@ export function useServiceBooking({
   );
 
   // Détails du service
-  const serviceQuery = api.service.getServiceById.useQuery(
+  const serviceQuery = api.clientServices.getServiceById.useQuery(
     { id: serviceId || "" },
     { enabled: Boolean(serviceId) },
   );
 
   // Mutations
-  const createBookingMutation = api.service.createBooking.useMutation({
+  const createBookingMutation = api.clientServices.createBooking.useMutation({
     onSuccess: (data) => {
       toast.success(t("form.bookingSuccess"));
       utils.clientData.getMyClientBookings.invalidate();
@@ -64,7 +64,7 @@ export function useServiceBooking({
     }});
 
   const updateBookingStatusMutation =
-    api.service.updateBookingStatus.useMutation({
+    api.clientServices.updateBookingStatus.useMutation({
       onSuccess: () => {
         toast.success(t("manage.cancelled"));
         utils.clientData.getMyClientBookings.invalidate();
@@ -77,7 +77,7 @@ export function useServiceBooking({
         );
       }});
 
-  const rescheduleBookingMutation = api.service.rescheduleBooking.useMutation({
+  const rescheduleBookingMutation = api.clientServices.rescheduleBooking.useMutation({
     onSuccess: () => {
       toast.success("Réservation reprogrammée avec succès");
       utils.clientData.getMyClientBookings.invalidate();
@@ -90,11 +90,10 @@ export function useServiceBooking({
       );
     }});
 
-  const createReviewMutation = api.service.createReview.useMutation({
+  const createReviewMutation = api.clientServices.createReview.useMutation({
     onSuccess: () => {
       toast.success(t("review.reviewSuccess"));
-      utils.service.getServiceReviews.invalidate();
-      utils.service.getProviderReviews.invalidate();
+      utils.clientServices.getServiceById.invalidate();
       utils.clientData.getBookingById.invalidate();
       router.refresh();
     },

@@ -74,6 +74,9 @@ import { clientAnnouncementsRouter } from "./routers/client/client-announcements
 import { clientTutorialRouter } from "./routers/client/client-tutorial.router";
 import { clientPersonalServicesRouter } from "./routers/client/client-personal-services.router";
 import { clientDataRouter } from "./routers/client/client-data.router";
+import { clientContractsRouter } from "./routers/client/client-contracts.router";
+import { clientAppointmentsRouter } from "./routers/client/client-appointments.router";
+import { clientServicesRouter } from "./routers/client/client-services.router";
 
 // Financial router (using admin financial)
 import { financialRouter } from "./routers/admin/admin-financial.router";
@@ -134,6 +137,9 @@ export const appRouter = router({ // Auth
   clientTutorial: clientTutorialRouter,
   clientPersonalServices: clientPersonalServicesRouter,
   clientData: clientDataRouter,
+  clientContracts: clientContractsRouter,
+  clientAppointments: clientAppointmentsRouter,
+  clientServices: clientServicesRouter,
 
   // Deliverer
   deliverer: delivererRouter,

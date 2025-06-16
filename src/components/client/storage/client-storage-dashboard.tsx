@@ -40,9 +40,9 @@ export function ClientStorageDashboard() {
   const [searchFilters, setSearchFilters] = useState<any>({});
 
   // Récupération des données
-  const { data } = api.warehouse.getWarehouses.useQuery({ includeBoxes  });
-  const { data } = api.storage.getMyBoxReservations.useQuery();
-  const { data } = api.storage.getMyStorageStats.useQuery();
+  const { data: warehouses } = api.warehouse.getWarehouses.useQuery({ includeBoxes: false });
+  const { data: myReservations } = api.storage.getMyBoxReservations.useQuery();
+  const { data: myStats } = api.storage.getMyStorageStats.useQuery();
 
   const renderQuickActions = () => (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

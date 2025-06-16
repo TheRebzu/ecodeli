@@ -9,6 +9,7 @@ export * from "./client-appointments.router";
 export * from "./client-booking.router";
 export * from "./client-boxes.router";
 export * from "./client-cart-drop.router";
+export * from "./client-contracts.router";
 export * from "./client-data.router";
 export * from "./client-international-purchase.router";
 export * from "./client-payments.router";

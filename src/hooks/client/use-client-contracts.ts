@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { api } from "@/lib/api";
+import { api } from "@/trpc/react";
 
 // Types
 interface Contract {
@@ -41,6 +41,7 @@ interface UseClientContractsReturn {
   error: string | null;
   signContract: (contractId: string) => Promise<void>;
   downloadContract: (contractId: string) => Promise<void>;
+  renewContract: (contractId: string) => Promise<void>;
   refetch: () => void;
 }
 
@@ -52,7 +53,7 @@ export function useClientContracts(options: UseClientContractsOptions = {}) {
     data: contractsData,
     isLoading,
     refetch,
-  } = api.client.contracts.getClientContracts.useQuery(
+  } = api.clientContracts.getClientContracts.useQuery(
     {
       status: options.status,
       page: options.page || 1,
@@ -65,7 +66,7 @@ export function useClientContracts(options: UseClientContractsOptions = {}) {
     },
   );
 
-  const signContractMutation = api.client.contracts.signContract.useMutation({
+  const signContractMutation = api.clientContracts.signContract.useMutation({
     onSuccess: () => {
       refetch();
     },
@@ -74,14 +75,27 @@ export function useClientContracts(options: UseClientContractsOptions = {}) {
     },
   });
 
-  const downloadContractMutation = api.client.contracts.downloadContract.useMutation({
+  const downloadContractMutation = api.clientContracts.downloadContract.useMutation({
     onError: (err: any) => {
       setError(err.message || "Erreur lors du téléchargement du contrat");
     },
   });
 
+  const renewContractMutation = api.clientContracts.renewContract.useMutation({
+    onSuccess: () => {
+      refetch();
+    },
+    onError: (err: any) => {
+      setError(err.message || "Erreur lors du renouvellement du contrat");
+    },
+  });
+
   const signContract = async (contractId: string) => {
-    await signContractMutation.mutateAsync({ contractId  });
+    await signContractMutation.mutateAsync({ contractId, acceptedTerms: true });
+  };
+
+  const renewContract = async (contractId: string) => {
+    await renewContractMutation.mutateAsync({ contractId });
   };
 
   const downloadContract = async (contractId: string) => {
@@ -102,6 +116,7 @@ export function useClientContracts(options: UseClientContractsOptions = {}) {
     error,
     signContract,
     downloadContract,
+    renewContract,
     refetch,
   };
 }

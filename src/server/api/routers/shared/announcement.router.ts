@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   router,
   protectedProcedure,
+  publicProcedure,
   verifiedDelivererProcedure} from "@/server/api/trpc";
 import { AnnouncementService } from "@/server/services/shared/announcement.service";
 import {

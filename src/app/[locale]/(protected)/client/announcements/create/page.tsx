@@ -70,7 +70,7 @@ export default function CreateAnnouncementPage() {
       setError(message);
 
       // Notification d'erreur
-      toast.error(t("createError"), { description });
+      toast.error(t("createError"), { description: message });
     } finally {
       setIsSubmitting(false);
     }
