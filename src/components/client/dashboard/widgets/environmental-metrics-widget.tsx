@@ -1,54 +1,68 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Leaf,
-  TreePine,
-  Recycle,
-  TrendingUp,
-  TrendingDown,
+import { Progress } from "@/components/ui/progress";
+import { 
+  Leaf, 
+  Recycle, 
+  Zap, 
+  Droplets, 
+  TreePine, 
   Award,
+  TrendingUp,
+  RefreshCw,
+  AlertCircle,
   Target,
-  Calendar,
-  BarChart3,
-  Zap,
-  Globe,
-  Heart,
+  BarChart3
 } from "lucide-react";
-import { cn } from "@/lib/utils/common";
+import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 
 interface EnvironmentalMetrics {
-  co2Saved: number;
-  co2Goal: number;
-  packagingReused: number;
-  totalDeliveries: number;
-  ecoScore: number;
-  currentLevel: string;
-  nextLevel: string;
-  pointsToNextLevel: number;
-  monthlyProgress: Array<{
-    month: string;
-    co2Saved: number;
-    deliveries: number;
-  }>;
+  co2Saved: {
+    current: number;
+    monthly: number;
+    yearly: number;
+    goal: number;
+    unit: "kg";
+  };
+  ecoScore: {
+    current: number;
+    level: string;
+    nextLevel: string;
+    pointsToNext: number;
+    maxPoints: number;
+  };
+  recyclingRate: {
+    percentage: number;
+    itemsCount: number;
+    goal: number;
+  };
+  energySaved: {
+    current: number;
+    unit: "kWh";
+    equivalent: string;
+  };
+  waterSaved: {
+    current: number;
+    unit: "L";
+    equivalent: string;
+  };
   achievements: Array<{
     id: string;
     title: string;
     description: string;
-    unlockedAt: Date;
     icon: string;
+    earnedAt: Date;
+    category: "eco" | "delivery" | "service";
   }>;
-  comparisonData: {
-    traditionalCo2: number;
-    ecoDeliCo2: number;
-    savings: number;
-    savingsPercentage: number;
+  trends: {
+    co2Trend: Array<{ period: string; value: number }>;
+    scoreTrend: Array<{ period: string; value: number }>;
   };
 }
 
@@ -57,82 +71,128 @@ interface EnvironmentalMetricsWidgetProps {
 }
 
 export function EnvironmentalMetricsWidget({ className }: EnvironmentalMetricsWidgetProps) {
-  const [activeTab, setActiveTab] = useState("overview");
-  
-  // Récupérer les métriques environnementales
-  const { 
-    data: metrics, 
-    isLoading,
-    error 
-  } = api.client.getEnvironmentalMetrics.useQuery();
+  const [timeframe, setTimeframe] = useState<"week" | "month" | "year">("month");
 
-  // Données simulées en attendant l'API
-  const mockMetrics: EnvironmentalMetrics = {
-    co2Saved: 47.5,
-    co2Goal: 100,
-    packagingReused: 23,
-    totalDeliveries: 15,
-    ecoScore: 875,
-    currentLevel: "Eco-Citoyen",
-    nextLevel: "Champion Durable",
-    pointsToNextLevel: 125,
-    monthlyProgress: [
-      { month: "Jan", co2Saved: 12.3, deliveries: 4 },
-      { month: "Fév", co2Saved: 18.7, deliveries: 6 },
-      { month: "Mar", co2Saved: 16.5, deliveries: 5 },
-    ],
-    achievements: [
-      {
-        id: "1",
-        title: "Premier pas",
-        description: "Première livraison écologique",
-        unlockedAt: new Date("2024-01-15"),
-        icon: "🌱",
-      },
-      {
-        id: "2", 
-        title: "Eco-Warrior",
-        description: "10 livraisons éco-responsables",
-        unlockedAt: new Date("2024-02-20"),
-        icon: "🏆",
-      },
-    ],
-    comparisonData: {
-      traditionalCo2: 120,
-      ecoDeliCo2: 47.5,
-      savings: 72.5,
-      savingsPercentage: 60.4,
+  // Récupération des vraies données environnementales depuis l'API
+  const { data: metrics, isLoading, error, refetch } = useQuery({
+    queryKey: ["client-environmental-metrics", timeframe],
+    queryFn: async () => {
+      const response = await api.client.dashboard.getEnvironmentalMetrics.query({
+        timeframe
+      });
+      return response;
     },
+    refetchInterval: 300000, // Actualise toutes les 5 minutes
+    staleTime: 60000, // Données périmées après 1 minute
+  });
+
+  const getEcoLevelColor = (level: string) => {
+    switch (level.toLowerCase()) {
+      case "débutant":
+        return "text-gray-600 bg-gray-100";
+      case "eco-conscient":
+        return "text-green-600 bg-green-100";
+      case "eco-citoyen":
+        return "text-blue-600 bg-blue-100";
+      case "eco-héros":
+        return "text-purple-600 bg-purple-100";
+      case "eco-champion":
+        return "text-yellow-600 bg-yellow-100";
+      default:
+        return "text-gray-600 bg-gray-100";
+    }
   };
 
-  const activeMetrics = metrics || mockMetrics;
-  const co2Progress = (activeMetrics.co2Saved / activeMetrics.co2Goal) * 100;
-  const levelProgress = ((1000 - activeMetrics.pointsToNextLevel) / 1000) * 100;
-
-  const getEcoScoreColor = (score: number) => {
-    if (score >= 800) return "text-green-600";
-    if (score >= 600) return "text-yellow-600";
-    return "text-orange-600";
+  const formatNumber = (value: number, decimals = 1) => {
+    return value.toLocaleString("fr-FR", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
   };
 
-  const getEcoScoreBadge = (level: string) => {
-    const colors = {
-      "Débutant Vert": "bg-green-100 text-green-800",
-      "Eco-Citoyen": "bg-blue-100 text-blue-800", 
-      "Champion Durable": "bg-purple-100 text-purple-800",
-      "EcoWarrior": "bg-yellow-100 text-yellow-800",
-    };
-    return colors[level as keyof typeof colors] || "bg-gray-100 text-gray-800";
-  };
+  const timeframeOptions = [
+    { value: "week", label: "Semaine" },
+    { value: "month", label: "Mois" },
+    { value: "year", label: "Année" },
+  ];
 
   if (isLoading) {
     return (
       <Card className={className}>
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-            <div className="h-32 bg-slate-200 rounded"></div>
-            <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Leaf className="w-5 h-5" />
+            Métriques environnementales
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+                  <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                </div>
+                <div className="h-2 bg-slate-200 rounded w-full"></div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Leaf className="w-5 h-5" />
+            Métriques environnementales
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500 opacity-50" />
+            <p className="text-sm text-red-600 mb-2">
+              Erreur lors du chargement des métriques
+            </p>
+            <p className="text-xs text-gray-500 mb-4">
+              Impossible de récupérer les données environnementales
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="text-xs"
+            >
+              <RefreshCw className="w-3 h-3 mr-1" />
+              Réessayer
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!metrics) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Leaf className="w-5 h-5" />
+            Métriques environnementales
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <TreePine className="w-12 h-12 mx-auto mb-4 text-gray-400 opacity-50" />
+            <p className="text-sm text-gray-500 mb-2">
+              Aucune donnée environnementale disponible
+            </p>
+            <p className="text-xs text-gray-400">
+              Commencez à utiliser nos services pour voir votre impact écologique
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -140,211 +200,258 @@ export function EnvironmentalMetricsWidget({ className }: EnvironmentalMetricsWi
   }
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950">
-        <CardTitle className="flex items-center gap-2">
-          <Globe className="h-5 w-5 text-green-600" />
-          Impact Environnemental
-          <Badge variant="secondary" className="ml-auto">
-            <Heart className="h-3 w-3 mr-1" />
-            {activeMetrics.ecoScore} pts
-          </Badge>
-        </CardTitle>
+    <Card className={className}>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Leaf className="w-5 h-5 text-green-600" />
+            Métriques environnementales
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="h-8 w-8 p-0"
+          >
+            <RefreshCw className={cn("h-3 w-3", isLoading && "animate-spin")} />
+          </Button>
+        </div>
+
+        {/* Sélecteur de période */}
+        <div className="flex gap-1 mt-3">
+          {timeframeOptions.map((option) => (
+            <Button
+              key={option.value}
+              variant={timeframe === option.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTimeframe(option.value as any)}
+              className="text-xs"
+            >
+              {option.label}
+            </Button>
+          ))}
+        </div>
       </CardHeader>
 
-      <CardContent className="p-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value="progress">Progression</TabsTrigger>
-            <TabsTrigger value="achievements">Succès</TabsTrigger>
-          </TabsList>
-
-          <div className="p-6">
-            <TabsContent value="overview" className="space-y-6 mt-0">
-              {/* Niveau actuel et progression */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold">Niveau actuel</h3>
-                    <Badge className={getEcoScoreBadge(activeMetrics.currentLevel)}>
-                      {activeMetrics.currentLevel}
-                    </Badge>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Prochain niveau</div>
-                    <div className="font-medium">{activeMetrics.nextLevel}</div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progression vers {activeMetrics.nextLevel}</span>
-                    <span>{activeMetrics.pointsToNextLevel} pts restants</span>
-                  </div>
-                  <Progress value={levelProgress} className="h-2" />
-                </div>
-              </div>
-
-              {/* Métriques principales */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Leaf className="h-4 w-4" />
-                    CO2 économisé
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold text-green-600">
-                        {activeMetrics.co2Saved}
-                      </span>
-                      <span className="text-sm text-muted-foreground">kg</span>
-                    </div>
-                    <Progress value={co2Progress} className="h-2" />
-                    <div className="text-xs text-muted-foreground">
-                      Objectif: {activeMetrics.co2Goal}kg
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Recycle className="h-4 w-4" />
-                    Emballages réutilisés
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold text-blue-600">
-                        {activeMetrics.packagingReused}
-                      </span>
-                      <span className="text-sm text-muted-foreground">unités</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Sur {activeMetrics.totalDeliveries} livraisons
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comparaison traditionnelle vs EcoDeli */}
-              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
-                <h4 className="font-medium mb-3 flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Impact vs livraison traditionnelle
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Livraison traditionnelle</span>
-                    <span className="text-red-600 font-medium">
-                      {activeMetrics.comparisonData.traditionalCo2}kg CO2
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Avec EcoDeli</span>
-                    <span className="text-green-600 font-medium">
-                      {activeMetrics.comparisonData.ecoDeliCo2}kg CO2
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Économie réalisée</span>
-                      <div className="flex items-center gap-2">
-                        <TrendingDown className="h-4 w-4 text-green-600" />
-                        <span className="text-green-600 font-bold">
-                          -{activeMetrics.comparisonData.savingsPercentage}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="progress" className="space-y-6 mt-0">
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Évolution mensuelle
-                </h3>
-                
-                <div className="space-y-3">
-                  {activeMetrics.monthlyProgress.map((month, index) => (
-                    <div key={month.month} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                      <div>
-                        <div className="font-medium">{month.month}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {month.deliveries} livraisons
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-green-600">
-                          {month.co2Saved}kg CO2
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          économisés
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Target className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium">Objectif du mois</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-2">
-                    Économiser 25kg de CO2 supplémentaires
-                  </div>
-                  <Progress value={65} className="h-2" />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    65% de l'objectif atteint
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="achievements" className="space-y-6 mt-0">
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Award className="h-4 w-4" />
-                  Succès débloqués
-                </h3>
-                
-                <div className="space-y-3">
-                  {activeMetrics.achievements.map((achievement) => (
-                    <div key={achievement.id} className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
-                      <div className="text-2xl">{achievement.icon}</div>
-                      <div className="flex-1">
-                        <div className="font-medium">{achievement.title}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {achievement.description}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Débloqué le {achievement.unlockedAt.toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="h-4 w-4 text-purple-600" />
-                    <span className="font-medium">Prochain succès</span>
-                  </div>
-                  <div className="text-sm mb-2">
-                    <strong>Eco-Master</strong> - Économiser 100kg de CO2
-                  </div>
-                  <Progress value={47} className="h-2" />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    47/100kg - Plus que 53kg !
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
+      <CardContent className="space-y-6">
+        {/* EcoScore principal */}
+        <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Award className="w-5 h-5 text-green-600" />
+            <h3 className="font-semibold text-green-800 dark:text-green-200">
+              Niveau EcoScore
+            </h3>
           </div>
-        </Tabs>
+          <div className="text-3xl font-bold text-green-600 mb-1">
+            {formatNumber(metrics.ecoScore.current, 0)}
+          </div>
+          <Badge className={cn("mb-3", getEcoLevelColor(metrics.ecoScore.level))}>
+            {metrics.ecoScore.level}
+          </Badge>
+          
+          {/* Progression vers le niveau suivant */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                Vers {metrics.ecoScore.nextLevel}
+              </span>
+              <span className="font-medium">
+                {metrics.ecoScore.pointsToNext} points restants
+              </span>
+            </div>
+            <Progress 
+              value={(metrics.ecoScore.current / metrics.ecoScore.maxPoints) * 100} 
+              className="h-2"
+            />
+          </div>
+        </div>
+
+        {/* Métriques principales */}
+        <div className="grid grid-cols-1 gap-4">
+          {/* CO2 économisé */}
+          <div className="p-4 border rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Leaf className="w-4 h-4 text-green-600" />
+                <span className="font-medium">CO2 économisé</span>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-green-600">
+                  {formatNumber(metrics.co2Saved.current)} {metrics.co2Saved.unit}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  ce {timeframe === "week" ? "semaine" : timeframe === "month" ? "mois" : "année"}
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  Objectif {timeframe === "month" ? "mensuel" : "annuel"}
+                </span>
+                <span className="font-medium">
+                  {formatNumber(metrics.co2Saved.goal)} {metrics.co2Saved.unit}
+                </span>
+              </div>
+              <Progress 
+                value={(metrics.co2Saved.current / metrics.co2Saved.goal) * 100} 
+                className="h-2"
+              />
+            </div>
+          </div>
+
+          {/* Taux de recyclage */}
+          <div className="p-4 border rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Recycle className="w-4 h-4 text-blue-600" />
+                <span className="font-medium">Recyclage</span>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-blue-600">
+                  {formatNumber(metrics.recyclingRate.percentage, 0)}%
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {metrics.recyclingRate.itemsCount} articles
+                </div>
+              </div>
+            </div>
+            
+            <Progress 
+              value={metrics.recyclingRate.percentage} 
+              className="h-2"
+            />
+          </div>
+
+          {/* Énergie économisée */}
+          <div className="p-4 border rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-yellow-600" />
+                <span className="font-medium">Énergie économisée</span>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-yellow-600">
+                  {formatNumber(metrics.energySaved.current)} {metrics.energySaved.unit}
+                </div>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {metrics.energySaved.equivalent}
+            </div>
+          </div>
+
+          {/* Eau économisée */}
+          <div className="p-4 border rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Droplets className="w-4 h-4 text-cyan-600" />
+                <span className="font-medium">Eau économisée</span>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-cyan-600">
+                  {formatNumber(metrics.waterSaved.current)} {metrics.waterSaved.unit}
+                </div>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {metrics.waterSaved.equivalent}
+            </div>
+          </div>
+        </div>
+
+        {/* Tendances */}
+        {metrics.trends && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium text-sm">Tendances</span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              {metrics.trends.co2Trend && metrics.trends.co2Trend.length > 0 && (
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <div className="text-xs text-muted-foreground mb-2">CO2 économisé</div>
+                  <div className="flex items-end gap-1 h-8">
+                    {metrics.trends.co2Trend.map((point, index) => {
+                      const maxValue = Math.max(...metrics.trends.co2Trend.map(p => p.value));
+                      const height = (point.value / maxValue) * 100;
+                      
+                      return (
+                        <div
+                          key={point.period}
+                          className="flex-1 bg-green-200 rounded-sm relative"
+                          style={{ height: `${Math.max(height, 10)}%` }}
+                        >
+                          <div
+                            className="absolute bottom-0 left-0 right-0 bg-green-600 rounded-sm"
+                            style={{ height: `${height}%` }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {metrics.trends.scoreTrend && metrics.trends.scoreTrend.length > 0 && (
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <div className="text-xs text-muted-foreground mb-2">EcoScore</div>
+                  <div className="flex items-end gap-1 h-8">
+                    {metrics.trends.scoreTrend.map((point, index) => {
+                      const maxValue = Math.max(...metrics.trends.scoreTrend.map(p => p.value));
+                      const height = (point.value / maxValue) * 100;
+                      
+                      return (
+                        <div
+                          key={point.period}
+                          className="flex-1 bg-blue-200 rounded-sm relative"
+                          style={{ height: `${Math.max(height, 10)}%` }}
+                        >
+                          <div
+                            className="absolute bottom-0 left-0 right-0 bg-blue-600 rounded-sm"
+                            style={{ height: `${height}%` }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Réalisations récentes */}
+        {metrics.achievements && metrics.achievements.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Award className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium text-sm">Réalisations récentes</span>
+            </div>
+            
+            <div className="space-y-2">
+              {metrics.achievements.slice(0, 3).map((achievement) => (
+                <div
+                  key={achievement.id}
+                  className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg"
+                >
+                  <div className="text-lg">{achievement.icon}</div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium">{achievement.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {achievement.description}
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {achievement.category}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

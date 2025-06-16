@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { DeliverersStats } from "@/components/admin/deliverers/deliverers-stats";
@@ -18,8 +19,38 @@ import {
   FileBarChart,
   RefreshCw,
   MessageCircle,
-  MapPin} from "lucide-react";
+  MapPin,
+  Truck,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Mail,
+  Phone,
+  Star,
+  Package
+} from "lucide-react";
 import { api } from "@/trpc/react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+
+interface Deliverer {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  address: string;
+  city: string;
+  status: "pending" | "approved" | "rejected" | "suspended";
+  vehicleType: string;
+  licenseNumber?: string;
+  rating: number;
+  totalDeliveries: number;
+  createdAt: Date;
+  lastActivity?: Date;
+  monthlyEarnings: number;
+  isAvailable: boolean;
+}
 
 export default function AdminDeliverersPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -130,6 +161,71 @@ export default function AdminDeliverersPage() {
       default:
         return safeDeliverersData.deliverers;
     }
+  };
+
+  const getStatusColor = (status: Deliverer["status"]) => {
+    switch (status) {
+      case "approved":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "rejected":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      case "suspended":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+    }
+  };
+
+  const getStatusLabel = (status: Deliverer["status"]) => {
+    switch (status) {
+      case "approved":
+        return "Approuvé";
+      case "pending":
+        return "En attente";
+      case "rejected":
+        return "Rejeté";
+      case "suspended":
+        return "Suspendu";
+      default:
+        return "Inconnu";
+    }
+  };
+
+  const getStatusIcon = (status: Deliverer["status"]) => {
+    switch (status) {
+      case "approved":
+        return CheckCircle;
+      case "pending":
+        return Clock;
+      case "rejected":
+      case "suspended":
+        return AlertCircle;
+      default:
+        return AlertCircle;
+    }
+  };
+
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={cn(
+              "w-3 h-3",
+              star <= rating 
+                ? "fill-yellow-400 text-yellow-400" 
+                : "text-gray-300"
+            )}
+          />
+        ))}
+        <span className="text-xs ml-1 text-muted-foreground">
+          ({rating.toFixed(1)})
+        </span>
+      </div>
+    );
   };
 
   return (

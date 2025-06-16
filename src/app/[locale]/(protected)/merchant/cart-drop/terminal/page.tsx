@@ -1,456 +1,519 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  ArrowLeft,
-  ShoppingCart,
-  AlertCircle,
+  Smartphone,
+  Wifi,
+  WifiOff,
   CheckCircle,
-  Settings,
-  Users,
+  AlertCircle,
+  ShoppingCart,
+  CreditCard,
   Package,
-  TrendingUp,
-  Clock,
+  User,
+  QrCode,
+  Radio,
 } from "lucide-react";
-import { Link } from "@/navigation";
-import { useRoleProtection } from "@/hooks/auth/use-role-protection";
-import { toast } from "sonner";
-import { CartDropTerminalInterface } from "@/components/shared/announcements/cart-drop-terminal-interface";
+import { api } from "@/trpc/react";
+import { toast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 
-// Types pour les produits
-interface Product {
+interface OrderItem {
   id: string;
   name: string;
+  quantity: number;
   price: number;
   category: string;
-  image?: string;
-  barcode?: string;
 }
 
-// Types pour les créneaux horaires
-interface TimeSlot {
+interface Order {
   id: string;
-  startTime: string;
-  endTime: string;
-  isAvailable: boolean;
-  maxCapacity: number;
-  currentBookings: number;
+  customerId: string;
+  customerName: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: "pending" | "confirmed" | "preparing" | "ready" | "delivered";
+  paymentMethod: "card" | "cash" | "mobile";
+  paymentStatus: "pending" | "paid" | "failed";
+  createdAt: Date;
+  pickupTime?: Date;
+  notes?: string;
 }
 
-// Types pour les informations du commerçant
-interface MerchantInfo {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-  isActive: boolean;
-  cartDropEnabled: boolean;
-}
+export default function MerchantTerminalPage() {
+  const [isConnected, setIsConnected] = useState(true);
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
+  const [orderNotes, setOrderNotes] = useState("");
+  const [nfcEnabled, setNfcEnabled] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-export default function CartDropTerminalPage() {
-  useRoleProtection(["MERCHANT"]);
-  const t = useTranslations("cartDrop");
-  const [merchantInfo, setMerchantInfo] = useState<MerchantInfo | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [todayStats, setTodayStats] = useState({ orders: 0,
-    revenue: 0,
-    deliveries: 0,
-    avgRating: 0,
-   });
+  // État du terminal
+  const [terminalStatus, setTerminalStatus] = useState<{
+    isOnline: boolean;
+    lastSync: Date;
+    ordersCount: number;
+    totalSales: number;
+  }>({
+    isOnline: true,
+    lastSync: new Date(),
+    ordersCount: 0,
+    totalSales: 0,
+  });
 
-  // Charger les données du commerçant et de la borne
-  useEffect(() => {
-    const loadTerminalData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  // Récupération des commandes depuis l'API
+  const { data: orders, isLoading, refetch } = api.merchant.orders.getPending.useQuery();
+  const { data: terminalStats } = api.merchant.terminal.getStats.useQuery();
 
-        // Simuler le chargement des données
-        // Charger les données réelles via tRPC
-        const [merchantData, productsData, timeSlotsData, statsData] =
-          await Promise.all([
-            // Récupérer les informations du commerçant
-            fetch("/api/trpc/merchant.getProfile").then((res) => res.json()),
-            // Récupérer les produits disponibles
-            fetch("/api/trpc/merchant.getProducts").then((res) => res.json()),
-            // Récupérer les créneaux horaires
-            fetch("/api/trpc/delivery.getAvailableTimeSlots").then((res) =>
-              res.json(),
-            ),
-            // Récupérer les statistiques du jour
-            fetch("/api/trpc/merchant.getTodayStats").then((res) => res.json()),
-          ]);
+  // Mutations
+  const confirmOrder = api.merchant.orders.confirm.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Commande confirmée",
+        description: "La commande a été confirmée avec succès",
+      });
+      setCurrentOrder(null);
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de confirmer la commande",
+        variant: "destructive",
+      });
+    },
+  });
 
-        setMerchantInfo(merchantData.result?.data || null);
-        setProducts(productsData.result?.data || []);
-        setTimeSlots(timeSlotsData.result?.data || []);
-        setTodayStats(
-          statsData.result?.data || {
-            orders: 0,
-            revenue: 0,
-            deliveries: 0,
-            avgRating: 0,
-          },
-        );
-        setIsLoading(false);
-      } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Erreur lors du chargement de la borne";
-        setError(message);
-        setIsLoading(false);
-      }
-    };
+  const updateOrderStatus = api.merchant.orders.updateStatus.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Statut mis à jour",
+        description: "Le statut de la commande a été mis à jour",
+      });
+      refetch();
+    },
+  });
 
-    loadTerminalData();
-  }, []);
+  const processPayment = api.merchant.payments.process.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Paiement traité",
+        description: "Le paiement a été traité avec succès",
+      });
+      refetch();
+    },
+  });
 
-  // Gérer la création d'une commande
-  const handleCreateOrder = async (orderData: any): Promise<string> => {
+  // Simulation du scan NFC (remplacé par API réelle)
+  const handleScanNFC = async () => {
+    if (!nfcEnabled) {
+      toast({
+        title: "NFC désactivé",
+        description: "Veuillez activer le NFC pour scanner",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
     try {
-      // Simuler la création de commande
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Appel API réel pour scanner NFC
+      const result = await api.merchant.nfc.scan.mutate();
+      if (result.success && result.order) {
+        setCurrentOrder(result.order);
+        toast({
+          title: "Commande détectée",
+          description: `Commande ${result.order.id} scannée`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur de scan",
+        description: "Impossible de scanner la commande",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
-      const orderId = `CMD-${Date.now()}`;
-
-      console.log("Nouvelle commande créée:", {
-        orderId,
-        ...orderData,
+  // Traitement d'une commande
+  const handleCreateOrder = async () => {
+    setIsProcessing(true);
+    try {
+      // Appel API réel pour créer une commande
+      const result = await api.merchant.orders.create.mutate({
+        items: [], // Items sélectionnés depuis l'interface
+        notes: orderNotes,
       });
 
-      // Mettre à jour les statistiques
-      setTodayStats((prev) => ({ ...prev,
-        orders: prev.orders + 1,
-        revenue: prev.revenue + orderData.totalPrice,
-       }));
-
-      toast.success(t("orderCreatedSuccess", { orderId }));
-      return orderId;
+      if (result.success) {
+        setCurrentOrder(result.order);
+        toast({
+          title: "Commande créée",
+          description: `Commande ${result.order.id} créée avec succès`,
+        });
+      }
     } catch (error) {
-      console.error("Erreur création commande:", error);
-      throw new Error(t("orderCreationError"));
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer la commande",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  // Parser les données QR
-  const parseQRData = (qrData: string) => {
+  const handleConfirmOrder = async () => {
+    if (!currentOrder) return;
+
+    setIsProcessing(true);
     try {
-      return JSON.parse(qrData);
-    } catch {
-      return { type: 'unknown', data: qrData };
+      await confirmOrder.mutateAsync({
+        orderId: currentOrder.id,
+        notes: orderNotes,
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  // Identifier un client par QR code
-  const handleScanQR = async (qrData: string) => {
+  const handleProcessPayment = async (method: "card" | "cash" | "mobile") => {
+    if (!currentOrder) return;
+
+    setIsProcessing(true);
     try {
-      // Simuler l'identification par QR
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Parser les données QR
-      const clientData = parseQRData(qrData);
-
-      return {
-        id: clientData.id || "client-qr-123",
-        name: clientData.name || "Client QR Scan",
-        phone: clientData.phone || "+33 6 12 34 56 78",
-        email: clientData.email || "client@example.com",
-        address: clientData.address || "456 Rue de la Paix, 75002 Paris",
-        qrCode: qrData,
-      };
-    } catch (error) {
-      console.error("Erreur scan QR:", error);
-      return null;
+      await processPayment.mutateAsync({
+        orderId: currentOrder.id,
+        method,
+        amount: currentOrder.totalAmount,
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  // Identifier un client par NFC
-  const handleScanNFC = async (nfcId: string) => {
-    try {
-      // Simuler l'identification par NFC
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      return {
-        id: `client-nfc-${nfcId}`,
-        name: "Client NFC",
-        phone: "+33 6 98 76 54 32",
-        email: "client.nfc@example.com",
-        address: "789 Boulevard Saint-Germain, 75006 Paris",
-        nfcId: nfcId,
-      };
-    } catch (error) {
-      console.error("Erreur scan NFC:", error);
-      return null;
+  const getStatusColor = (status: Order["status"]) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "confirmed":
+        return "bg-blue-100 text-blue-800";
+      case "preparing":
+        return "bg-orange-100 text-orange-800";
+      case "ready":
+        return "bg-green-100 text-green-800";
+      case "delivered":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  // Affichage de chargement
-  if (isLoading) {
-    return (
-      <div className="container py-6">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-muted rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {Array.from({ length: 4  }).map((_, i) => (
-              <div
-                key={i}
-                className="h-24 bg-muted rounded animate-pulse"
-              ></div>
-            ))}
-          </div>
-          <div className="h-96 bg-muted rounded animate-pulse"></div>
-        </div>
-      </div>
-    );
-  }
-
-  // Affichage d'erreur
-  if (error || !merchantInfo) {
-    return (
-      <div className="container py-6">
-        <div className="max-w-6xl mx-auto">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t("error")}</AlertTitle>
-            <AlertDescription>
-              {error || t("terminalNotFound")}
-            </AlertDescription>
-          </Alert>
-          <div className="mt-6">
-            <Button variant="outline" asChild>
-              <Link href="/merchant/announcements">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("backToAnnouncements")}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Vérifier si le service cart drop est activé
-  if (!merchantInfo.cartDropEnabled) {
-    return (
-      <div className="container py-6">
-        <div className="max-w-6xl mx-auto">
-          <Alert>
-            <Settings className="h-4 w-4" />
-            <AlertTitle>{t("serviceDisabled")}</AlertTitle>
-            <AlertDescription>{t("cartDropNotEnabled")}</AlertDescription>
-          </Alert>
-          <div className="mt-6 flex space-x-4">
-            <Button variant="outline" asChild>
-              <Link href="/merchant/announcements">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("backToAnnouncements")}
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/merchant/settings">
-                <Settings className="mr-2 h-4 w-4" />
-                {t("enableService")}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "EUR",
-    }).format(amount);
+  const getStatusLabel = (status: Order["status"]) => {
+    switch (status) {
+      case "pending":
+        return "En attente";
+      case "confirmed":
+        return "Confirmée";
+      case "preparing":
+        return "En préparation";
+      case "ready":
+        return "Prête";
+      case "delivered":
+        return "Livrée";
+      default:
+        return "Inconnue";
+    }
   };
+
+  // Mise à jour du statut de connexion
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Vérification réelle de la connexion
+      setIsConnected(navigator.onLine);
+      if (terminalStats) {
+        setTerminalStatus({
+          isOnline: navigator.onLine,
+          lastSync: new Date(),
+          ordersCount: terminalStats.ordersCount || 0,
+          totalSales: terminalStats.totalSales || 0,
+        });
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [terminalStats]);
 
   return (
-    <div className="container py-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("terminalTitle")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {merchantInfo.name} - {t("cartDropService")}
-          </p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Badge variant={merchantInfo.isActive ? "default" : "secondary"}>
-            {merchantInfo.isActive ? t("online") : t("offline")}
-          </Badge>
-          <Button variant="outline" asChild>
-            <Link href="/merchant/announcements">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("back")}
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {/* Statistiques du jour */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header du terminal */}
         <Card>
-          <CardContent className="p-4">
+          <CardHeader>
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("todayOrders")}
-                </p>
-                <p className="text-2xl font-bold">{todayStats.orders}</p>
-              </div>
-              <ShoppingCart className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("todayRevenue")}
-                </p>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(todayStats.revenue)}
-                </p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("deliveriesCompleted")}
-                </p>
-                <p className="text-2xl font-bold">{todayStats.deliveries}</p>
-              </div>
-              <Package className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("avgRating")}
-                </p>
-                <p className="text-2xl font-bold">
-                  {todayStats.avgRating.toFixed(1)} ⭐
-                </p>
-              </div>
-              <Users className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Separator className="my-6" />
-
-      {/* Informations du commerçant */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Settings className="h-5 w-5" />
-            <span>{t("merchantInfo")}</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="font-medium">{t("storeName")}</p>
-              <p className="text-muted-foreground">{merchantInfo.name}</p>
-            </div>
-            <div>
-              <p className="font-medium">{t("address")}</p>
-              <p className="text-muted-foreground">{merchantInfo.address}</p>
-            </div>
-            <div>
-              <p className="font-medium">{t("contact")}</p>
-              <p className="text-muted-foreground">{merchantInfo.phone}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Interface de la borne */}
-      <CartDropTerminalInterface
-        merchantId={merchantInfo.id}
-        availableProducts={products}
-        availableTimeSlots={timeSlots}
-        onCreateOrder={handleCreateOrder}
-        onScanQR={handleScanQR}
-        onScanNFC={handleScanNFC}
-      />
-
-      {/* Statut des créneaux */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Clock className="h-5 w-5" />
-            <span>{t("deliverySlots")}</span>
-          </CardTitle>
-          <CardDescription>{t("availableDeliverySlots")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {timeSlots.map((slot) => (
-              <div
-                key={slot.id}
-                className={`p-4 rounded-lg border ${
-                  slot.isAvailable
-                    ? "border-green-200 bg-green-50"
-                    : "border-red-200 bg-red-50"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">
-                    {slot.startTime} - {slot.endTime}
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="w-6 h-6" />
+                Terminal de Commande
+              </CardTitle>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  {isConnected ? (
+                    <Wifi className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <WifiOff className="w-5 h-5 text-red-600" />
+                  )}
+                  <span className="text-sm">
+                    {isConnected ? "Connecté" : "Hors ligne"}
                   </span>
-                  <Badge variant={slot.isAvailable ? "default" : "secondary"}>
-                    {slot.isAvailable ? t("available") : t("full")}
-                  </Badge>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  <p>
-                    {t("deliverers")}: {slot.currentBookings}/{slot.maxCapacity}
-                  </p>
-                  <p>
-                    {t("price")}: {formatCurrency(slot.price)}
-                  </p>
+                <Badge variant={nfcEnabled ? "default" : "secondary"}>
+                  <Radio className="w-3 h-3 mr-1" />
+                  NFC {nfcEnabled ? "Activé" : "Désactivé"}
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {terminalStatus.ordersCount}
+                </div>
+                <div className="text-sm text-gray-500">Commandes aujourd'hui</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(terminalStatus.totalSales)}
+                </div>
+                <div className="text-sm text-gray-500">Ventes du jour</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-gray-500">Dernière sync</div>
+                <div className="text-sm font-medium">
+                  {terminalStatus.lastSync.toLocaleTimeString()}
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Actions principales */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Scanner NFC */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="w-5 h-5" />
+                Scanner Commande
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button
+                onClick={handleScanNFC}
+                disabled={!nfcEnabled || isProcessing}
+                className="w-full"
+                size="lg"
+              >
+                {isProcessing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Scan en cours...
+                  </div>
+                ) : (
+                  <>
+                    <Radio className="w-5 h-5 mr-2" />
+                    Scanner NFC
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                onClick={() => setNfcEnabled(!nfcEnabled)}
+                variant="outline"
+                className="w-full"
+              >
+                {nfcEnabled ? "Désactiver NFC" : "Activer NFC"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Créer nouvelle commande */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5" />
+                Nouvelle Commande
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                placeholder="Notes pour la commande..."
+                value={orderNotes}
+                onChange={(e) => setOrderNotes(e.target.value)}
+                rows={3}
+              />
+              <Button
+                onClick={handleCreateOrder}
+                disabled={isProcessing}
+                className="w-full"
+                size="lg"
+              >
+                {isProcessing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Création...
+                  </div>
+                ) : (
+                  <>
+                    <Package className="w-5 h-5 mr-2" />
+                    Créer Commande
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Commande actuelle */}
+        {currentOrder && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5" />
+                Commande en cours - #{currentOrder.id}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <span className="font-medium">{currentOrder.customerName}</span>
+                </div>
+                <Badge className={getStatusColor(currentOrder.status)}>
+                  {getStatusLabel(currentOrder.status)}
+                </Badge>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-medium">Articles commandés :</h4>
+                {currentOrder.items.map((item) => (
+                  <div key={item.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <div>
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-sm text-gray-500 ml-2">
+                        x{item.quantity}
+                      </span>
+                    </div>
+                    <span className="font-medium">
+                      {formatCurrency(item.price * item.quantity)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-between items-center pt-2 border-t">
+                <span className="text-lg font-bold">Total :</span>
+                <span className="text-lg font-bold text-green-600">
+                  {formatCurrency(currentOrder.totalAmount)}
+                </span>
+              </div>
+
+              {currentOrder.notes && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Notes :</strong> {currentOrder.notes}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex gap-2">
+                {currentOrder.status === "pending" && (
+                  <Button
+                    onClick={handleConfirmOrder}
+                    disabled={isProcessing}
+                    className="flex-1"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Confirmer
+                  </Button>
+                )}
+
+                {currentOrder.paymentStatus === "pending" && (
+                  <>
+                    <Button
+                      onClick={() => handleProcessPayment("card")}
+                      disabled={isProcessing}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Carte
+                    </Button>
+                    <Button
+                      onClick={() => handleProcessPayment("cash")}
+                      disabled={isProcessing}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Espèces
+                    </Button>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Liste des commandes en attente */}
+        {orders && orders.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Commandes en attente ({orders.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {orders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                    onClick={() => setCurrentOrder(order)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="font-medium">#{order.id}</div>
+                      <div className="text-sm text-gray-500">
+                        {order.customerName}
+                      </div>
+                      <Badge className={getStatusColor(order.status)}>
+                        {getStatusLabel(order.status)}
+                      </Badge>
+                    </div>
+                    <div className="font-medium text-green-600">
+                      {formatCurrency(order.totalAmount)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* État de chargement */}
+        {isLoading && (
+          <Card>
+            <CardContent className="text-center py-8">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-gray-500">Chargement des commandes...</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

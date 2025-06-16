@@ -1,12 +1,10 @@
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { api } from "@/trpc/react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -26,65 +23,43 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
-  Loader2,
-  AlertCircle,
-  ArrowLeftCircle,
-  CreditCard,
-  Check,
-  DollarSign,
-  AlertTriangle,
-  ArrowUpRight,
-  Wallet,
-  Zap,
-  Bank,
-  Info,
-  RotateCw,
-  Building2,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { formatCurrency } from "@/utils/document-utils";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/components/ui/use-toast";
-import { useWallet } from "@/hooks/payment/use-wallet";
-import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  ArrowUpRight,
+  Building2,
+  CreditCard,
+  Info,
+  Wallet,
+  AlertTriangle,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { api } from "@/trpc/react";
+import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 
 // Schéma de validation pour le formulaire de retrait
-const withdrawalSchema = z.object({ amount: z
-    .string()
-    .min(1, { message: "Le montant est requis"  })
-    .refine((val) => !isNaN(parseFloat(val)), {
-      message: "Le montant doit être un nombre valide",
-    })
-    .refine((val) => parseFloat(val) > 0, {
-      message: "Le montant doit être supérieur à 0",
-    }),
-  bankDetails: z.object({ accountName: z
-      .string()
-      .min(1, { message: "Le nom du titulaire du compte est requis"  }),
-    iban: z
-      .string()
-      .min(15, { message: "IBAN invalide" })
-      .max(34, { message: "IBAN invalide" }),
-    bic: z
-      .string()
-      .min(8, { message: "BIC/SWIFT invalide" })
-      .max(11, { message: "BIC/SWIFT invalide" }),
+const withdrawalSchema = z.object({
+  amount: z
+    .number()
+    .min(10, "Le montant minimum de retrait est de 10€")
+    .max(5000, "Le montant maximum de retrait est de 5000€"),
+  method: z.enum(["bank_transfer", "paypal"], {
+    required_error: "Veuillez sélectionner une méthode de retrait",
   }),
+  bankDetails: z.object({
+    accountName: z.string().min(2, "Le nom du titulaire est requis"),
+    iban: z.string().min(15, "L'IBAN doit contenir au moins 15 caractères"),
+    bic: z.string().min(8, "Le BIC doit contenir au moins 8 caractères"),
+  }).optional(),
   description: z.string().optional(),
 });
 
@@ -102,7 +77,6 @@ interface WithdrawalFormProps {
     bic: string;
   } | null;
   onCancel?: () => void;
-  
 }
 
 export function WithdrawalForm({
@@ -113,23 +87,18 @@ export function WithdrawalForm({
   isLoading = false,
   savedBankDetails = null,
   onCancel,
-  
 }: WithdrawalFormProps) {
+  const t = useTranslations("Wallet.withdrawal");
   const router = useRouter();
   const { toast } = useToast();
-  const t = useTranslations("wallet");
-  const [status, setStatus] = useState<
-    "idle" | "processing" | "success" | "error"
-  >("idle");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [processingStep, setProcessingStep] = useState<string | null>(null);
-  const [selectedMethod, setSelectedMethod] = useState<'bank_transfer' | 'paypal'>('bank_transfer');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<"bank_transfer" | "paypal">("bank_transfer");
 
   const form = useForm<WithdrawalFormValues>({
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
-      amount: "",
+      amount: 0,
+      method: "bank_transfer",
       bankDetails: savedBankDetails || {
         accountName: "",
         iban: "",
@@ -139,63 +108,25 @@ export function WithdrawalForm({
     },
   });
 
-  // Simulation du traitement pour le mode démo
-  const simulateProcessing = async () => {
-    if (!isDemo) return;
-
-    setStatus("processing");
-    setProcessingStep(t("validatingAmount"));
-    setProgress(10);
-
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setProgress(30);
-    setProcessingStep(t("checkingAccount"));
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setProgress(60);
-    setProcessingStep(t("preparingTransaction"));
-
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setProgress(90);
-    setProcessingStep(t("finalizingWithdrawal"));
-
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setProgress(100);
-  };
-
   const handleSubmit = async (data: WithdrawalFormValues) => {
     try {
       setIsSubmitting(true);
       
-      // Appel API réel pour traiter le retrait
-      const result = await api.wallet.requestWithdrawal.mutate({
-        amount: data.amount,
-        method: selectedMethod,
-        bankDetails: selectedMethod === 'bank_transfer' ? {
-          iban: data.bankDetails.iban,
-          bic: data.bankDetails.bic,
-          accountHolderName: data.bankDetails.accountName,
-        } : undefined,
-        paypalEmail: selectedMethod === 'paypal' ? data.bankDetails.accountName : undefined,
+      // Appel API réel pour traiter le retrait - pas de simulation
+      await onSubmit(data);
+      
+      toast({
+        title: t("withdrawalRequested"),
+        description: t("withdrawalProcessingMessage"),
       });
-
-      if (result.success) {
-        toast({ title: t("withdrawalRequested"),
-          description: t("withdrawalProcessingMessage"),
-         });
-        onSubmit(data);
-        form.reset();
-      } else {
-        toast({ variant: "destructive",
-          title: t("error"),
-          description: result.error || t("withdrawalFailed"),
-         });
-      }
+      
+      form.reset();
     } catch (error) {
-      toast({ variant: "destructive",
+      toast({
+        variant: "destructive",
         title: t("error"),
         description: error instanceof Error ? error.message : t("unknownError"),
-       });
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -211,7 +142,7 @@ export function WithdrawalForm({
 
   // Préremplit avec le montant maximum
   const setMaxAmount = () => {
-    form.setValue("amount", walletBalance.toString());
+    form.setValue("amount", walletBalance);
   };
 
   return (
@@ -232,7 +163,7 @@ export function WithdrawalForm({
             <FormField
               control={form.control}
               name="amount"
-              render={({ field  }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("amount")}</FormLabel>
                   <FormControl>
@@ -243,17 +174,28 @@ export function WithdrawalForm({
                       <Input
                         {...field}
                         type="number"
-                        min="10"
+                        min={minimumAmount}
                         max={walletBalance}
                         step="0.01"
                         placeholder="0.00"
                         className="pl-8"
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-xs"
+                        onClick={setMaxAmount}
+                      >
+                        Max
+                      </Button>
                     </div>
                   </FormControl>
                   <FormDescription>
-                    {t("availableBalance")}: {formatCurrency(walletBalance, "EUR")}
+                    {t("availableBalance")}: {formatCurrency(walletBalance, currency)}
+                    <br />
+                    {t("minimumAmount")}: {formatCurrency(minimumAmount, currency)}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -264,10 +206,16 @@ export function WithdrawalForm({
             <FormField
               control={form.control}
               name="method"
-              render={({ field  }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("withdrawalMethod")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setSelectedMethod(value as "bank_transfer" | "paypal");
+                    }} 
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t("selectMethod")} />
@@ -295,13 +243,30 @@ export function WithdrawalForm({
 
             {/* Détails bancaires pour virement */}
             {selectedMethod === "bank_transfer" && (
-              <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-                <h4 className="font-medium">{t("bankDetails")}</h4>
+              <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  {t("bankDetails")}
+                </h4>
                 
                 <FormField
                   control={form.control}
+                  name="bankDetails.accountName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("accountHolderName")}</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nom du titulaire du compte" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="bankDetails.iban"
-                  render={({ field  }) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>IBAN</FormLabel>
                       <FormControl>
@@ -315,7 +280,7 @@ export function WithdrawalForm({
                 <FormField
                   control={form.control}
                   name="bankDetails.bic"
-                  render={({ field  }) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>BIC/SWIFT</FormLabel>
                       <FormControl>
@@ -325,16 +290,29 @@ export function WithdrawalForm({
                     </FormItem>
                   )}
                 />
+              </div>
+            )}
 
+            {/* Détails PayPal */}
+            {selectedMethod === "paypal" && (
+              <div className="space-y-4 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                <h4 className="font-medium flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  PayPal
+                </h4>
+                
                 <FormField
                   control={form.control}
                   name="bankDetails.accountName"
-                  render={({ field  }) => (
+                  render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("accountHolderName")}</FormLabel>
+                      <FormLabel>{t("paypalEmail")}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t("fullName")} />
+                        <Input {...field} type="email" placeholder="votre-email@example.com" />
                       </FormControl>
+                      <FormDescription>
+                        {t("paypalEmailDescription")}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -342,52 +320,96 @@ export function WithdrawalForm({
               </div>
             )}
 
-            {/* Email PayPal */}
-            {selectedMethod === "paypal" && (
-              <FormField
-                control={form.control}
-                name="bankDetails.accountName"
-                render={({ field  }) => (
-                  <FormItem>
-                    <FormLabel>{t("paypalEmail")}</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="email" placeholder="email@example.com" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            {/* Description optionnelle */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("description")} ({t("optional")})</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder={t("descriptionPlaceholder")}
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            {/* Boutons d'action */}
-            <div className="flex gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isSubmitting}
-                className="flex-1"
-              >
-                {t("cancel")}
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting || !form.formState.isValid}
-                className="flex-1"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("processing")}
-                  </>
-                ) : (
-                  t("requestWithdrawal")
-                )}
-              </Button>
-            </div>
+            {/* Avertissement sur les délais */}
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                {t("processingTimeWarning")}
+              </AlertDescription>
+            </Alert>
+
+            {/* Validation finale et résumé */}
+            {form.watch("amount") > 0 && (
+              <div className="p-4 bg-primary/10 rounded-lg">
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <Wallet className="h-4 w-4" />
+                  {t("withdrawalSummary")}
+                </h4>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>{t("amount")}:</span>
+                    <span className="font-medium">
+                      {formatCurrency(form.watch("amount"), currency)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t("method")}:</span>
+                    <span className="font-medium">
+                      {selectedMethod === "bank_transfer" ? t("bankTransfer") : "PayPal"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t("fees")}:</span>
+                    <span className="font-medium text-green-600">
+                      {t("free")}
+                    </span>
+                  </div>
+                  <hr className="my-2" />
+                  <div className="flex justify-between font-medium">
+                    <span>{t("totalToReceive")}:</span>
+                    <span>{formatCurrency(form.watch("amount"), currency)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </Form>
       </CardContent>
+      
+      <CardFooter className="flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCancel}
+          disabled={isSubmitting}
+          className="flex-1"
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          onClick={form.handleSubmit(handleSubmit)}
+          disabled={isSubmitting || !form.formState.isValid || form.watch("amount") < minimumAmount}
+          className="flex-1"
+        >
+          {isSubmitting ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              {t("processing")}
+            </div>
+          ) : (
+            t("requestWithdrawal")
+          )}
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

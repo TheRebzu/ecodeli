@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -49,140 +50,16 @@ interface DashboardStatsWidgetProps {
 export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
   const [timeframe, setTimeframe] = useState<"week" | "month" | "year">("month");
 
-  // Récupérer les statistiques du dashboard
-  const {
-    data: stats,
-    isLoading,
-    refetch,
-  } = api.client.getDashboardStats.useQuery(
-    { timeframe },
-    { 
-      refetchInterval: 60000, // Actualise chaque minute
-      staleTime: 30000, // Considère les données comme périmées après 30s
-    }
-  );
-
-  // Données simulées en attendant l'API
-  const mockStats: DashboardStat[] = [
-    {
-      id: "deliveries",
-      title: "Livraisons",
-      value: 15,
-      previousValue: 12,
-      change: 25,
-      changeType: "increase",
-      trend: [
-        { period: "S1", value: 3 },
-        { period: "S2", value: 5 },
-        { period: "S3", value: 4 },
-        { period: "S4", value: 3 },
-      ],
-      unit: "livraisons",
-      goal: 20,
-      icon: Package,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-950",
-      description: "Ce mois-ci",
+  // Récupération des vraies données depuis l'API
+  const { data: stats, isLoading, error } = useQuery({
+    queryKey: ["client-dashboard-stats", timeframe],
+    queryFn: async () => {
+      const response = await api.client.dashboard.getStats.query({ timeframe });
+      return response;
     },
-    {
-      id: "spent",
-      title: "Dépenses",
-      value: 127.50,
-      previousValue: 145.20,
-      change: -12.2,
-      changeType: "decrease",
-      trend: [
-        { period: "S1", value: 45 },
-        { period: "S2", value: 32 },
-        { period: "S3", value: 28 },
-        { period: "S4", value: 22.5 },
-      ],
-      unit: "€",
-      icon: Euro,
-      color: "text-green-600",
-      bgColor: "bg-green-50 dark:bg-green-950",
-      description: "Économies réalisées",
-    },
-    {
-      id: "co2_saved",
-      title: "CO2 économisé",
-      value: 47.5,
-      previousValue: 32.1,
-      change: 48,
-      changeType: "increase",
-      trend: [
-        { period: "S1", value: 8.5 },
-        { period: "S2", value: 12.3 },
-        { period: "S3", value: 14.2 },
-        { period: "S4", value: 12.5 },
-      ],
-      unit: "kg",
-      goal: 100,
-      icon: Leaf,
-      color: "text-green-600",
-      bgColor: "bg-green-50 dark:bg-green-950",
-      description: "Impact environnemental",
-    },
-    {
-      id: "eco_score",
-      title: "EcoScore",
-      value: 875,
-      previousValue: 720,
-      change: 21.5,
-      changeType: "increase",
-      trend: [
-        { period: "S1", value: 720 },
-        { period: "S2", value: 780 },
-        { period: "S3", value: 820 },
-        { period: "S4", value: 875 },
-      ],
-      unit: "points",
-      goal: 1000,
-      icon: Award,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50 dark:bg-yellow-950",
-      description: "Niveau Eco-Citoyen",
-    },
-    {
-      id: "services",
-      title: "Services utilisés",
-      value: 8,
-      previousValue: 5,
-      change: 60,
-      changeType: "increase",
-      trend: [
-        { period: "S1", value: 2 },
-        { period: "S2", value: 3 },
-        { period: "S3", value: 2 },
-        { period: "S4", value: 1 },
-      ],
-      unit: "services",
-      icon: Calendar,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-950",
-      description: "Prestations réservées",
-    },
-    {
-      id: "avg_delivery_time",
-      title: "Temps moyen",
-      value: "1h 23min",
-      previousValue: "1h 45min",
-      change: -21,
-      changeType: "decrease",
-      trend: [
-        { period: "S1", value: 120 },
-        { period: "S2", value: 95 },
-        { period: "S3", value: 88 },
-        { period: "S4", value: 83 },
-      ],
-      icon: Clock,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50 dark:bg-orange-950",
-      description: "Livraison plus rapide",
-    },
-  ];
-
-  const currentStats = stats || mockStats;
+    refetchInterval: 60000, // Actualise chaque minute
+    staleTime: 30000, // Considère les données comme périmées après 30s
+  });
 
   const getChangeIcon = (changeType: DashboardStat["changeType"]) => {
     switch (changeType) {
@@ -242,6 +119,41 @@ export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
     );
   }
 
+  if (error) {
+    return (
+      <div className={cn("space-y-6", className)}>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center text-red-600">
+              <p className="text-sm">Erreur lors du chargement des statistiques</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Veuillez vérifier votre connexion et réessayer
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!stats || stats.length === 0) {
+    return (
+      <div className={cn("space-y-6", className)}>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center text-gray-500">
+              <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-sm">Aucune donnée disponible</p>
+              <p className="text-xs mt-1">
+                Les statistiques apparaîtront après vos premières activités
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("space-y-6", className)}>
       {/* Sélecteur de période */}
@@ -261,98 +173,81 @@ export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
         </div>
       </div>
 
-      {/* Grille de statistiques */}
+      {/* Grille des statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {currentStats.map((stat) => {
-          const Icon = stat.icon;
+        {stats.map((stat) => {
           const ChangeIcon = getChangeIcon(stat.changeType);
-          const progress = typeof stat.value === "number" ? calculateProgress(stat.value, stat.goal) : 0;
+          const changeColor = getChangeColor(stat.changeType);
+          const IconComponent = stat.icon;
+          const progress = calculateProgress(
+            typeof stat.value === "number" ? stat.value : 0,
+            stat.goal
+          );
 
           return (
-            <Card key={stat.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <CardContent className="p-0">
-                {/* En-tête coloré */}
-                <div className={cn("p-4", stat.bgColor)}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {stat.title}
-                      </p>
-                      <p className="text-2xl font-bold">
-                        {formatValue(stat.value, stat.unit)}
-                      </p>
-                    </div>
-                    <div className={cn("p-3 rounded-full bg-background/50", stat.color)}>
-                      <Icon className="h-6 w-6" />
-                    </div>
+            <Card key={stat.id} className="overflow-hidden">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between space-y-0 pb-2">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {stat.title}
+                  </p>
+                  <div className={cn("p-2 rounded-lg", stat.bgColor)}>
+                    <IconComponent className={cn("h-4 w-4", stat.color)} />
                   </div>
-
-                  {/* Changement par rapport à la période précédente */}
+                </div>
+                
+                <div className="flex items-baseline justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">
+                      {formatValue(stat.value, stat.unit)}
+                    </div>
+                    {stat.description && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {stat.description}
+                      </p>
+                    )}
+                  </div>
+                  
                   {stat.change !== undefined && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <ChangeIcon className={cn("h-4 w-4", getChangeColor(stat.changeType))} />
-                      <span className={cn("text-sm font-medium", getChangeColor(stat.changeType))}>
-                        {stat.changeType === "decrease" ? "" : "+"}{stat.change}%
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        vs période précédente
+                    <div className={cn("flex items-center space-x-1", changeColor)}>
+                      <ChangeIcon className="h-3 w-3" />
+                      <span className="text-xs font-medium">
+                        {Math.abs(stat.change)}%
                       </span>
                     </div>
                   )}
                 </div>
 
-                {/* Contenu principal */}
-                <div className="p-4 space-y-4">
-                  {/* Description */}
-                  {stat.description && (
-                    <p className="text-xs text-muted-foreground">
-                      {stat.description}
-                    </p>
-                  )}
-
-                  {/* Progression vers l'objectif */}
-                  {stat.goal && typeof stat.value === "number" && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span>Objectif: {formatValue(stat.goal, stat.unit)}</span>
-                        <span>{progress.toFixed(0)}%</span>
-                      </div>
-                      <Progress value={progress} className="h-2" />
+                {/* Barre de progression pour les objectifs */}
+                {stat.goal && typeof stat.value === "number" && (
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Objectif</span>
+                      <span className="font-medium">
+                        {formatValue(stat.goal, stat.unit)}
+                      </span>
                     </div>
-                  )}
-
-                  {/* Mini graphique de tendance */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Tendance</span>
-                      <BarChart3 className="h-3 w-3" />
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                      />
                     </div>
-                    <div className="flex items-end gap-1 h-8">
-                      {stat.trend.map((point, index) => {
-                        const maxValue = Math.max(...stat.trend.map(p => p.value));
-                        const height = (point.value / maxValue) * 100;
-                        
-                        return (
-                          <div
-                            key={point.period}
-                            className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-sm relative"
-                            style={{ height: `${Math.max(height, 10)}%` }}
-                          >
-                            <div
-                              className={cn("absolute bottom-0 left-0 right-0 rounded-sm", stat.color.replace("text-", "bg-"))}
-                              style={{ height: `${height}%` }}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      {stat.trend.map((point) => (
-                        <span key={point.period}>{point.period}</span>
-                      ))}
+                    <div className="text-xs text-muted-foreground">
+                      {progress.toFixed(0)}% de l'objectif atteint
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* Tendance simplifiée */}
+                {stat.trend && stat.trend.length > 0 && (
+                  <div className="mt-4 flex items-center space-x-2">
+                    <TrendingUp className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      Tendance sur {stat.trend.length} périodes
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
