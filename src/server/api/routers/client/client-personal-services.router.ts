@@ -475,13 +475,81 @@ export const clientPersonalServicesRouter = router({ /**
           return { acceptedProposal, booking };
         });
 
-        // TODO: Envoyer notifications
-        // TODO: Créer le processus de paiement
+        // Envoyer notifications
+        const notifications = [];
+        
+        // Notification au prestataire accepté
+        const providerNotification = await ctx.db.notification.create({
+          data: {
+            type: 'SERVICE_PROPOSAL_ACCEPTED',
+            title: 'Votre proposition a été acceptée',
+            message: `Votre proposition de service "${result.acceptedProposal.title}" a été acceptée par le client`,
+            userId: result.acceptedProposal.providerId,
+            metadata: {
+              proposalId: result.acceptedProposal.id,
+              bookingId: result.booking.id,
+              serviceDate: result.booking.scheduledDate?.toISOString(),
+              clientId: client.id
+            }
+          }
+        });
+        notifications.push(providerNotification);
+        
+        // Notifications aux autres prestataires (rejet)
+        const rejectedProposals = await ctx.db.personalServiceProposal.findMany({
+          where: {
+            serviceRequestId: input.proposalId,
+            status: 'REJECTED'
+          },
+          include: { provider: true }
+        });
+        
+        for (const rejectedProposal of rejectedProposals) {
+          const rejectionNotification = await ctx.db.notification.create({
+            data: {
+              type: 'SERVICE_PROPOSAL_REJECTED',
+              title: 'Proposition non retenue',
+              message: `Votre proposition pour "${rejectedProposal.title}" n'a pas été retenue cette fois`,
+              userId: rejectedProposal.providerId,
+              metadata: {
+                proposalId: rejectedProposal.id,
+                serviceRequestId: rejectedProposal.serviceRequestId
+              }
+            }
+          });
+          notifications.push(rejectionNotification);
+        }
+        
+        // Créer le processus de paiement
+        if (result.acceptedProposal.proposedPrice > 0) {
+          const payment = await ctx.db.payment.create({
+            data: {
+              amount: result.acceptedProposal.proposedPrice,
+              currency: 'EUR',
+              status: 'PENDING',
+              type: 'SERVICE_PAYMENT',
+              clientId: client.id,
+              providerId: result.acceptedProposal.providerId,
+              metadata: {
+                bookingId: result.booking.id,
+                proposalId: result.acceptedProposal.id,
+                serviceType: result.acceptedProposal.serviceType,
+                scheduledDate: result.booking.scheduledDate?.toISOString()
+              }
+            }
+          });
+          
+          // En production: créer PaymentIntent Stripe
+          console.log(`Paiement de ${result.acceptedProposal.proposedPrice}€ créé pour le service ${result.booking.id}`);
+        }
 
         return {
           success: true,
           data: result,
-          message: "Proposition acceptée avec succès"};
+          message: "Proposition acceptée avec succès",
+          notificationsSent: notifications.length,
+          paymentCreated: result.acceptedProposal.proposedPrice > 0
+        };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",

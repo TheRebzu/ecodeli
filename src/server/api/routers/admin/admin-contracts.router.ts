@@ -357,14 +357,60 @@ export const adminContractsRouter = createTRPCRouter({ // Récupérer tous les c
           message: "Contrat non trouvé" });
       }
 
-      // TODO: Intégrer avec un service de génération PDF
-      const fileUrl = `/api/pdf/contract/${contract.id}`;
+      // Générer le PDF du contrat via le service dédié
+      try {
+        const pdfResult = await ctx.procedures.pdfGenerator.generateContractPDF({
+          contractId: contract.id,
+          includeSignatures: true,
+          format: "A4",
+          language: "fr",
+        });
 
-      await ctx.db.contract.update({
-        where: { id: input.id },
-        data: { fileUrl }});
+        if (!pdfResult.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Erreur lors de la génération du PDF",
+          });
+        }
 
-      return { fileUrl };
+        const fileUrl = pdfResult.data.downloadUrl;
+
+        // Mettre à jour le contrat avec l'URL du PDF
+        await ctx.db.contract.update({
+          where: { id: input.id },
+          data: { 
+            fileUrl,
+            pdfGeneratedAt: new Date(),
+          },
+        });
+
+        // Créer une notification pour le commerçant
+        await ctx.db.notification.create({
+          data: {
+            userId: contract.merchantId,
+            type: "CONTRACT_PDF_GENERATED",
+            title: "PDF de contrat généré",
+            message: `Le PDF de votre contrat ${contract.contractNumber} est disponible`,
+            data: {
+              contractId: contract.id,
+              contractNumber: contract.contractNumber,
+              fileUrl,
+            },
+          },
+        });
+
+        return { 
+          fileUrl,
+          documentId: pdfResult.data.documentId,
+          fileName: pdfResult.data.fileName,
+        };
+      } catch (error) {
+        console.error("Erreur lors de la génération PDF du contrat:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la génération du PDF",
+        });
+      }
     }),
 
   // Templates de contrats

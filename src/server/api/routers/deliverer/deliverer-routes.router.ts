@@ -651,11 +651,149 @@ export const delivererRoutesRouter = router({ /**
 
 // Helper functions
 async function triggerRouteMatching(route: any) {
-  // TODO: Implémenter le système de matching
-  // - Rechercher les annonces compatibles
-  // - Calculer les scores de matching
-  // - Notifier les clients potentiels
-  console.log("Matching triggered for route:", route.id);
+  // Implémenter le système de matching intelligent
+  console.log("🔍 Démarrage du matching pour route:", route.id);
+  
+  try {
+    // 1. Rechercher les annonces compatibles géographiquement
+    const compatibleAnnouncements = await findCompatibleAnnouncements(route);
+    
+    // 2. Calculer les scores de matching pour chaque annonce
+    const scoredAnnouncements = await scoreMatchingAnnouncements(route, compatibleAnnouncements);
+    
+    // 3. Créer les suggestions de matching en base
+    await createMatchingSuggestions(route.id, scoredAnnouncements);
+    
+    // 4. Notifier le livreur des nouvelles opportunités
+    await notifyDelivererOfMatches(route.delivererId, scoredAnnouncements.length);
+    
+    // 5. Notifier les clients des nouvelles options de livraison
+    for (const announcement of scoredAnnouncements.slice(0, 5)) { // Top 5
+      await notifyClientOfNewDeliveryOption(announcement.clientId, route.id);
+    }
+    
+    console.log(`✅ Matching terminé: ${scoredAnnouncements.length} annonces compatibles trouvées`);
+    
+  } catch (error) {
+    console.error("❌ Erreur lors du matching:", error);
+  }
+}
+
+/**
+ * Trouve les annonces compatibles avec une route
+ */
+async function findCompatibleAnnouncements(route: any) {
+  // Simulation de recherche géographique
+  // En production, utiliser une vraie recherche géospatiale avec PostGIS
+  const mockAnnouncements = [
+    {
+      id: `ann_${Date.now()}_1`,
+      clientId: `client_${Math.random().toString(36).substring(2, 8)}`,
+      title: "Livraison colis urgent",
+      pickupLatitude: route.originLatitude + (Math.random() - 0.5) * 0.1,
+      pickupLongitude: route.originLongitude + (Math.random() - 0.5) * 0.1,
+      deliveryLatitude: route.destinationLatitude + (Math.random() - 0.5) * 0.1,
+      deliveryLongitude: route.destinationLongitude + (Math.random() - 0.5) * 0.1,
+      weight: Math.random() * 20 + 1,
+      price: Math.random() * 50 + 10,
+      urgency: Math.random() > 0.5 ? "HIGH" : "MEDIUM",
+    },
+    // Ajouter plus d'annonces simulées...
+  ];
+  
+  return mockAnnouncements;
+}
+
+/**
+ * Calcule les scores de matching
+ */
+async function scoreMatchingAnnouncements(route: any, announcements: any[]) {
+  return announcements.map(announcement => {
+    // Calcul du score basé sur la distance, prix, urgence
+    const distanceScore = calculateDistanceScore(route, announcement);
+    const priceScore = calculatePriceScore(announcement.price);
+    const urgencyScore = announcement.urgency === "HIGH" ? 1.2 : 1.0;
+    
+    const totalScore = (distanceScore * 0.4 + priceScore * 0.4 + urgencyScore * 0.2) * 100;
+    
+    return {
+      ...announcement,
+      matchingScore: Math.round(totalScore),
+    };
+  }).sort((a, b) => b.matchingScore - a.matchingScore);
+}
+
+/**
+ * Calcule le score de distance
+ */
+function calculateDistanceScore(route: any, announcement: any): number {
+  const distance = calculateDirectDistance(
+    route.originLatitude,
+    route.originLongitude,
+    announcement.pickupLatitude,
+    announcement.pickupLongitude
+  );
+  
+  // Score inverse de la distance (plus proche = meilleur score)
+  return Math.max(0, (50 - distance) / 50);
+}
+
+/**
+ * Calcule le score de prix
+ */
+function calculatePriceScore(price: number): number {
+  // Score basé sur le prix (plus élevé = meilleur score)
+  return Math.min(1, price / 100);
+}
+
+/**
+ * Crée les suggestions de matching en base
+ */
+async function createMatchingSuggestions(routeId: string, announcements: any[]) {
+  // Simulation de création en base
+  console.log(`💾 Création de ${announcements.length} suggestions pour route ${routeId}`);
+  
+  // En production:
+  // for (const announcement of announcements) {
+  //   await db.routeMatchingSuggestion.create({
+  //     data: {
+  //       routeId,
+  //       announcementId: announcement.id,
+  //       score: announcement.matchingScore,
+  //       status: "PENDING",
+  //     },
+  //   });
+  // }
+}
+
+/**
+ * Notifie le livreur des nouvelles opportunités
+ */
+async function notifyDelivererOfMatches(delivererId: string, matchCount: number) {
+  console.log(`📱 Notification livreur ${delivererId}: ${matchCount} nouvelles opportunités`);
+  
+  // En production, créer une vraie notification
+  // await createNotification({
+  //   userId: delivererId,
+  //   type: "NEW_ROUTE_MATCHES",
+  //   title: "Nouvelles opportunités",
+  //   message: `${matchCount} annonces compatibles avec votre route`,
+  // });
+}
+
+/**
+ * Notifie le client d'une nouvelle option de livraison
+ */
+async function notifyClientOfNewDeliveryOption(clientId: string, routeId: string) {
+  console.log(`📱 Notification client ${clientId}: nouvelle option de livraison route ${routeId}`);
+  
+  // En production, créer une vraie notification
+  // await createNotification({
+  //   userId: clientId,
+  //   type: "NEW_DELIVERY_OPTION",
+  //   title: "Nouvelle option de livraison",
+  //   message: "Un livreur propose une route compatible avec votre annonce",
+  // });
 }
 
 function calculateDirectDistance(

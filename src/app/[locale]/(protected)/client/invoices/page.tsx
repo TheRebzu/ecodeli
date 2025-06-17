@@ -198,38 +198,6 @@ export default function InvoicesPage() {
           />
         </TabsContent>
       </Tabs>
-
-      {/* Mode démo */}
-      <Separator />
-      <div className="pt-2">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">{t("demoMode")}</CardTitle>
-            <CardDescription>{t("demoModeDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => router.push("/client/invoices/demo")}
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {t("viewDemoInvoices")}
-              </Button>
-              <Button
-                variant="secondary"
-                className="flex-1"
-                onClick={() => handleDownloadInvoice("demo-invoice")}
-                disabled={isDownloading}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                {t("downloadSampleInvoice")}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

@@ -114,14 +114,69 @@ export const adminSettingsRouter = router({ // Récupérer tous les paramètres
         defaultLanguage: z.enum(["fr", "en", "es", "de"]).optional(),
         timezone: z.string().optional() }),
     )
-    .mutation(async ({ ctx, input: input  }) => {
+    .mutation(async ({ ctx, input }) => {
       try {
-        // TODO: Vérifier les permissions super admin
-        // TODO: Implémenter la mise à jour en base
+        // Vérification permissions super admin
+        const user = ctx.session.user;
+        if (user.role !== 'ADMIN') {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Permissions administrateur requises"
+          });
+        }
+
+        // Mise à jour des paramètres en base
+        const updatedSettings = [];
+        
+        for (const [key, value] of Object.entries(input)) {
+          if (value !== undefined) {
+            await ctx.db.setting.upsert({
+              where: {
+                key: `general.${key}`,
+                category: 'GENERAL'
+              },
+              update: {
+                value: typeof value === 'boolean' ? String(value) : value,
+                updatedAt: new Date(),
+                updatedBy: user.id
+              },
+              create: {
+                key: `general.${key}`,
+                category: 'GENERAL',
+                value: typeof value === 'boolean' ? String(value) : value,
+                isPublic: ['siteName', 'siteDescription', 'defaultLanguage'].includes(key),
+                createdBy: user.id,
+                updatedBy: user.id
+              }
+            });
+            
+            updatedSettings.push(`${key}: ${value}`);
+          }
+        }
+
+        // Log de l'activité admin
+        await ctx.db.adminTask.create({
+          data: {
+            type: 'SETTINGS_UPDATE',
+            title: 'Mise à jour des paramètres généraux',
+            description: `Paramètres modifiés: ${updatedSettings.join(', ')}`,
+            status: 'COMPLETED',
+            priority: 'MEDIUM',
+            assignedToId: user.id,
+            createdById: user.id,
+            completedAt: new Date(),
+            metadata: {
+              section: 'general',
+              changes: input
+            }
+          }
+        });
 
         return {
           success: true,
-          message: "Paramètres généraux mis à jour avec succès"};
+          message: "Paramètres généraux mis à jour avec succès",
+          updatedKeys: Object.keys(input)
+        };
       } catch (error) {
         throw new TRPCError({ code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour des paramètres généraux" });

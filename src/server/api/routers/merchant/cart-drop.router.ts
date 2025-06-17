@@ -414,12 +414,57 @@ export const cartDropRouter = router({ /**
               new Date(Date.now() + 30 * 60 * 1000), // +30min
           }});
 
-        // TODO: Envoyer notifications au commerçant et au client
+        // Envoyer notifications au commerçant et au client
+        const notifications = [];
+        
+        // Notification au commerçant
+        if (updatedCartDrop.merchantId) {
+          const merchantNotification = await ctx.db.notification.create({
+            data: {
+              type: 'CART_DROP_ACCEPTED',
+              title: 'Lâcher de chariot accepté',
+              message: `Votre lâcher de chariot #${updatedCartDrop.id} a été accepté par un livreur`,
+              userId: updatedCartDrop.merchantId,
+              metadata: {
+                cartDropId: updatedCartDrop.id,
+                delivererId: user.id,
+                estimatedPickupTime: updatedCartDrop.estimatedPickupTime
+              }
+            }
+          });
+          notifications.push(merchantNotification);
+        }
+        
+        // Notification au client final (si différent du commerçant)
+        if (updatedCartDrop.clientId && updatedCartDrop.clientId !== updatedCartDrop.merchantId) {
+          const clientNotification = await ctx.db.notification.create({
+            data: {
+              type: 'CART_DROP_ACCEPTED',
+              title: 'Votre livraison a été acceptée',
+              message: `Un livreur a accepté votre livraison. Récupération prévue à ${updatedCartDrop.estimatedPickupTime?.toLocaleTimeString()}`,
+              userId: updatedCartDrop.clientId,
+              metadata: {
+                cartDropId: updatedCartDrop.id,
+                delivererId: user.id,
+                estimatedPickupTime: updatedCartDrop.estimatedPickupTime
+              }
+            }
+          });
+          notifications.push(clientNotification);
+        }
+        
+        // Notification push (simulation OneSignal)
+        if (updatedCartDrop.merchantId) {
+          // En production: intégration OneSignal
+          console.log(`Push notification envoyée au commerçant ${updatedCartDrop.merchantId}`);
+        }
 
         return {
           success: true,
           cartDrop: updatedCartDrop,
-          message: "Lâcher de chariot accepté avec succès"};
+          message: "Lâcher de chariot accepté avec succès",
+          notificationsSent: notifications.length
+        };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",

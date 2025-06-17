@@ -119,7 +119,45 @@ export const delivererDocumentsRouter = router({ /**
         // Mettre � jour le statut de v�rification du livreur
         await updateDelivererVerificationStatus(user.id, ctx.db);
 
-        // TODO: Envoyer notification aux admins pour r�vision
+        // Envoyer notification aux admins pour révision
+        await ctx.db.notification.create({
+          data: {
+            userId: "admin-team", // Système de notification pour les admins
+            type: "DOCUMENT_SUBMITTED",
+            title: "Nouveau document soumis",
+            message: `${user.name} a soumis un document ${input.type} pour vérification`,
+            data: {
+              documentId: document.id,
+              userId: user.id,
+              userName: user.name,
+              documentType: input.type,
+              fileName: input.fileName,
+              submittedAt: new Date().toISOString(),
+            },
+          },
+        });
+
+        // Créer une tâche d'examen pour les administrateurs
+        await ctx.db.adminTask.create({
+          data: {
+            type: "DOCUMENT_REVIEW",
+            priority: "MEDIUM",
+            title: `Révision document - ${user.name}`,
+            description: `Document ${input.type} soumis par ${user.name} en attente de révision`,
+            assigneeRole: "ADMIN",
+            referenceId: document.id,
+            referenceType: "DOCUMENT",
+            status: "PENDING",
+            metadata: {
+              documentId: document.id,
+              documentType: input.type,
+              userId: user.id,
+              userName: user.name,
+            },
+          },
+        });
+
+        console.log(`📋 Notification admin créée pour document ${document.id} de ${user.name}`);
 
         return {
           success: true,

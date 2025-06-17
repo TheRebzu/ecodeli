@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { playerId } = body;
+    const { playerId, role } = body;
 
     if (!playerId) {
       return NextResponse.json(
@@ -28,21 +28,39 @@ export async function POST(req: NextRequest) {
       where: { id: session.user.id },
       data: {
         pushNotificationId: playerId,
-        pushNotificationsEnabled: true}});
+        pushNotificationsEnabled: true,
+        lastActiveAt: new Date()
+      }
+    });
 
-    // Enregistrer dans l'historique des notifications
+    // Enregistrer dans l'historique des notifications avec plus de détails
     await db.notificationPreference.upsert({
       where: { userId: session.user.id },
       update: {
         push: true,
         pushPlayerId: playerId,
-        updatedAt: new Date()},
+        updatedAt: new Date(),
+        pushProvider: "ONESIGNAL",
+        deviceInfo: JSON.stringify({
+          role: role || session.user.role,
+          subscriptionDate: new Date().toISOString(),
+          platform: "web"
+        })
+      },
       create: {
         userId: session.user.id,
         email: true,
         sms: false,
         push: true,
-        pushPlayerId: playerId}});
+        pushPlayerId: playerId,
+        pushProvider: "ONESIGNAL",
+        deviceInfo: JSON.stringify({
+          role: role || session.user.role,
+          subscriptionDate: new Date().toISOString(),
+          platform: "web"
+        })
+      }
+    });
 
     return NextResponse.json({ success: true,
       message: "Push notifications enabled successfully" });

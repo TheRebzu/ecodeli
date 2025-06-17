@@ -19,13 +19,15 @@ RUN pnpm install
 COPY next.config.ts ./
 COPY postcss.config.mjs ./
 COPY tsconfig.json ./
-COPY tailwind.config.* ./
 
 # Copie du dossier prisma
 COPY prisma ./prisma/
 
 # Copie du code source
 COPY src ./src/
+
+# Copie des dossiers publics
+COPY public ./public/
 
 # Génération du client Prisma
 RUN pnpm prisma generate

@@ -37,9 +37,10 @@ services:
       - NEXTAUTH_URL=http://localhost:3000
       - NEXTAUTH_SECRET=ecodeli-2024-super-secret-key-for-development
     volumes:
-      - .:/app
+      - .:/app:delegated
       - /app/node_modules
       - /app/.next
+      - /app/.pnpm-store
     depends_on:
       ecodeli-db:
         condition: service_healthy

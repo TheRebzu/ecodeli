@@ -38,6 +38,7 @@ import {
 import { toast } from "sonner";
 import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 import { UserRole } from "@prisma/client";
+import { api } from "@/trpc/react";
 
 // Définition précise du type d'application pour l'annonce
 interface DelivererApplication {
@@ -77,6 +78,60 @@ export default function AnnouncementDetailsPage() {
     error,
     deleteAnnouncement,
     isDeleting} = useAnnouncement();
+
+  // Mutations tRPC pour les actions sur les propositions
+  const acceptProposalMutation = api.clientAnnouncements.acceptProposal.useMutation({
+    onSuccess: () => {
+      toast.success(t("proposalAcceptedSuccess"));
+      fetchAnnouncementById(params.id as string);
+    },
+    onError: (error) => {
+      toast.error(error.message || t("proposalAcceptError"));
+    },
+  });
+
+  const rejectProposalMutation = api.clientAnnouncements.rejectProposal.useMutation({
+    onSuccess: () => {
+      toast.success(t("proposalRejectedSuccess"));
+      fetchAnnouncementById(params.id as string);
+    },
+    onError: (error) => {
+      toast.error(error.message || t("proposalRejectError"));
+    },
+  });
+
+  // Fonctions pour gérer les propositions
+  const handleAcceptProposal = async (proposalId: string) => {
+    try {
+      await acceptProposalMutation.mutateAsync({
+        announcementId: params.id as string,
+        proposalId,
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'acceptation de la proposition:", error);
+    }
+  };
+
+  const handleRejectProposal = async (proposalId: string) => {
+    try {
+      await rejectProposalMutation.mutateAsync({
+        announcementId: params.id as string,
+        proposalId,
+      });
+    } catch (error) {
+      console.error("Erreur lors du rejet de la proposition:", error);
+    }
+  };
+
+  const handleSendMessageToDeliverer = (delivererId: string) => {
+    // Rediriger vers la page de messagerie avec le livreur
+    router.push(`/client/messages?delivererId=${delivererId}&announcementId=${params.id}`);
+  };
+
+  const handleViewDelivererProfile = (delivererId: string) => {
+    // Rediriger vers le profil du livreur
+    router.push(`/client/deliverers/${delivererId}?announcementId=${params.id}`);
+  };
 
   // Récupérer les détails de l'annonce
   useEffect(() => {
@@ -271,20 +326,10 @@ export default function AnnouncementDetailsPage() {
                   proposals={formattedProposals}
                   announcementTitle={currentAnnouncement.title}
                   suggestedPrice={currentAnnouncement.suggestedPrice || 0}
-                  onAccept={(proposalId) => {
-                    // Implémenter ultérieurement
-                    return Promise.resolve();
-                  }}
-                  onReject={(proposalId) => {
-                    // Implémenter ultérieurement
-                    return Promise.resolve();
-                  }}
-                  onSendMessage={(delivererId) => {
-                    // Implémenter ultérieurement
-                  }}
-                  onViewDelivererProfile={(delivererId) => {
-                    // Implémenter ultérieurement
-                  }}
+                  onAccept={handleAcceptProposal}
+                  onReject={handleRejectProposal}
+                  onSendMessage={handleSendMessageToDeliverer}
+                  onViewDelivererProfile={handleViewDelivererProfile}
                   onProposalAccepted={() =>
                     fetchAnnouncementById(params.id as string)
                   }

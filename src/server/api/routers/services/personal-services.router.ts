@@ -309,7 +309,24 @@ export const personalServicesRouter = router({ /**
                     name: true,
                     email: true}}}}}});
 
-        // TODO: Envoyer notification au prestataire
+        // Envoyer notification au prestataire
+        await ctx.db.notification.create({
+          data: {
+            userId: booking.service.provider.id,
+            type: "SERVICE_BOOKING_REQUEST",
+            title: "Nouvelle demande de réservation",
+            message: `${user.name || "Un client"} souhaite réserver votre service "${booking.service.title}" pour le ${new Date(booking.requestedDateTime).toLocaleDateString()}`,
+            data: {
+              bookingId: booking.id,
+              serviceId: booking.serviceId,
+              clientId: user.id,
+              requestedDate: booking.requestedDateTime,
+              estimatedPrice: finalPrice,
+            },
+          },
+        });
+
+        console.log(`🔔 Notification envoyée au prestataire ${booking.service.provider.name} pour la réservation ${booking.id}`);
 
         return {
           success: true,

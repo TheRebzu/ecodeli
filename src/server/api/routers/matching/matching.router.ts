@@ -1011,9 +1011,101 @@ export const matchingRouter = router({ /**
     })});
 
 // Helper functions
-async function triggerMatchingProcess(criteriaId: string) {
-  // TODO: Implémenter le processus de matching asynchrone
-  console.log("Matching process triggered for criteria:", criteriaId);
+async function triggerMatchingProcess(criteriaId: string, db: any) {
+  // Processus de matching asynchrone complet
+  try {
+    console.log("🔄 Démarrage du processus de matching pour:", criteriaId);
+
+    // Récupérer les critères de matching
+    const criteria = await db.matchingCriteria.findUnique({
+      where: { id: criteriaId },
+      include: {
+        announcement: {
+          include: {
+            client: { select: { name: true, id: true } },
+          },
+        },
+      },
+    });
+
+    if (!criteria) {
+      console.error("❌ Critères de matching non trouvés:", criteriaId);
+      return;
+    }
+
+    // Mettre à jour le statut à "en cours"
+    await db.matchingCriteria.update({
+      where: { id: criteriaId },
+      data: { 
+        status: "PROCESSING",
+        processingStartedAt: new Date(),
+      },
+    });
+
+    // Exécuter le processus de matching
+    const matchingResults = await performMatching(
+      criteria.announcement,
+      criteria,
+      db
+    );
+
+    console.log(`✅ Matching terminé: ${matchingResults.length} résultats trouvés`);
+
+    // Mettre à jour le statut final
+    await db.matchingCriteria.update({
+      where: { id: criteriaId },
+      data: {
+        status: matchingResults.length > 0 ? "COMPLETED" : "NO_RESULTS",
+        processingCompletedAt: new Date(),
+        resultsCount: matchingResults.length,
+      },
+    });
+
+    // Notifier le client si des résultats ont été trouvés
+    if (matchingResults.length > 0 && criteria.announcement.clientId) {
+      await db.notification.create({
+        data: {
+          userId: criteria.announcement.clientId,
+          type: "MATCHING_RESULTS_AVAILABLE",
+          title: "Livreurs trouvés !",
+          message: `Nous avons trouvé ${matchingResults.length} livreur(s) disponible(s) pour votre annonce "${criteria.announcement.title}"`,
+          data: {
+            announcementId: criteria.announcement.id,
+            matchingCriteriaId: criteriaId,
+            resultsCount: matchingResults.length,
+            bestScore: Math.max(...matchingResults.map(r => r.overallScore)),
+          },
+        },
+      });
+    }
+
+    // Planifier l'expiration automatique des résultats
+    setTimeout(async () => {
+      await db.matchingResult.updateMany({
+        where: {
+          criteriaId,
+          status: "SUGGESTED",
+          expiresAt: { lte: new Date() },
+        },
+        data: { status: "EXPIRED" },
+      });
+    }, 24 * 60 * 60 * 1000); // 24 heures
+
+    console.log(`🎯 Processus de matching complété pour l'annonce: ${criteria.announcement.title}`);
+
+  } catch (error) {
+    console.error("❌ Erreur lors du processus de matching:", error);
+    
+    // Marquer comme échoué
+    await db.matchingCriteria.update({
+      where: { id: criteriaId },
+      data: {
+        status: "FAILED",
+        processingCompletedAt: new Date(),
+        errorDetails: error instanceof Error ? error.message : "Erreur inconnue",
+      },
+    });
+  }
 }
 
 async function performMatching(announcement: any, criteria: any, db: any) {

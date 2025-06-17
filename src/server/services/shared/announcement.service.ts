@@ -1692,23 +1692,25 @@ export const AnnouncementService = {
           maxPrice};
       }
 
-      // Calculer le score de satisfaction depuis les ratings réels
-      const satisfactionData = await db.rating.aggregate({
+      // Calculer le score de satisfaction basé sur les ratings des livraisons
+      const clientRatings = await db.rating.findMany({
         where: {
-          targetId: announcement.clientId,
-          targetType: "CLIENT",
+          delivery: {
+            clientId,
+            status: "COMPLETED",
+          },
+          ratingType: "DELIVERY",
         },
-        _avg: {
-          rating: true,
-        },
-        _count: {
+        select: {
           rating: true,
         },
       });
 
-      const satisfactionScore = satisfactionData._avg.rating 
-        ? (satisfactionData._avg.rating / 5) * 100 
-        : 0; // Convertir sur 100
+      const satisfactionScore = clientRatings.length > 0
+        ? Math.round(
+            (clientRatings.reduce((sum, r) => sum + r.rating, 0) / clientRatings.length) * 20
+          ) // Convertir de 0-5 vers 0-100
+        : 0;
 
       return {
         analysis: {
@@ -2168,7 +2170,7 @@ export const AnnouncementService = {
         totalProposals,
         averageProposalsPerAnnouncement:
           Math.round(averageProposalsPerAnnouncement * 10) / 10,
-        satisfactionScore: 0, // TODO: Implémenter système de satisfaction
+        satisfactionScore,
       };
     } catch (error) {
       console.error(

@@ -206,12 +206,13 @@ export const deliveryTrackingRouter = router({ // Récupération des détails d'
 
   // Procedure pour obtenir les informations de tracking (compatible avec la carte)
   getTrackingInfo: protectedProcedure
-    .input(z.object({ deliveryId: z.string()  }))
-    .query(async ({ ctx, input  }) => {
+    .input(z.object({ deliveryId: z.string() }))
+    .query(async ({ ctx, input }) => {
       if (!ctx.session?.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED",
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
           message: "Vous devez être connecté pour accéder à ces données",
-         });
+        });
       }
 
       try {
@@ -251,9 +252,10 @@ export const deliveryTrackingRouter = router({ // Récupération des détails d'
         });
 
         if (!delivery) {
-          throw new TRPCError({ code: "NOT_FOUND",
+          throw new TRPCError({
+            code: "NOT_FOUND",
             message: "Livraison non trouvée",
-           });
+          });
         }
 
         return {
@@ -275,10 +277,330 @@ export const deliveryTrackingRouter = router({ // Récupération des détails d'
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la récupération des informations de tracking",
           cause: error,
-         });
+        });
+      }
+    }),
+
+  // Nouvelle méthode pour envoyer un message au client
+  sendMessageToClient: protectedProcedure
+    .input(
+      z.object({
+        deliveryId: z.string(),
+        subject: z.string(),
+        message: z.string(),
+        preferredContact: z.enum(["app", "phone", "either"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Vous devez être connecté pour envoyer un message",
+        });
+      }
+
+      if (ctx.session.user.role !== UserRole.DELIVERER) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent envoyer des messages",
+        });
+      }
+
+      try {
+        // Vérifier que le livreur est bien assigné à cette livraison
+        const delivery = await ctx.db.delivery.findFirst({
+          where: {
+            id: input.deliveryId,
+            delivererId: ctx.session.user.id,
+          },
+          include: {
+            client: true,
+          },
+        });
+
+        if (!delivery) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Livraison non trouvée ou non assignée",
+          });
+        }
+
+        // Créer le message de communication
+        const message = await ctx.db.deliveryMessage.create({
+          data: {
+            deliveryId: input.deliveryId,
+            senderId: ctx.session.user.id,
+            recipientId: delivery.clientId,
+            subject: input.subject,
+            message: input.message,
+            preferredContact: input.preferredContact,
+            timestamp: new Date(),
+          },
+        });
+
+        // Envoyer une notification si nécessaire
+        // (implémentation des notifications à ajouter selon les besoins)
+
+        return {
+          success: true,
+          messageId: message.id,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'envoi du message",
+          cause: error,
+        });
+      }
+    }),
+
+  // Nouvelle méthode pour initier un appel
+  initiateCall: protectedProcedure
+    .input(
+      z.object({
+        deliveryId: z.string(),
+        callType: z.enum(["deliverer_to_client", "client_to_deliverer"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Vous devez être connecté pour initier un appel",
+        });
+      }
+
+      try {
+        // Vérifier l'accès à la livraison
+        const delivery = await ctx.db.delivery.findFirst({
+          where: {
+            id: input.deliveryId,
+            OR: [
+              { delivererId: ctx.session.user.id },
+              { clientId: ctx.session.user.id },
+            ],
+          },
+          include: {
+            client: true,
+            deliverer: true,
+          },
+        });
+
+        if (!delivery) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Livraison non trouvée",
+          });
+        }
+
+        // Enregistrer l'appel dans l'historique
+        const callLog = await ctx.db.deliveryCallLog.create({
+          data: {
+            deliveryId: input.deliveryId,
+            callerId: ctx.session.user.id,
+            recipientId:
+              input.callType === "deliverer_to_client"
+                ? delivery.clientId
+                : delivery.delivererId!,
+            callType: input.callType,
+            timestamp: new Date(),
+          },
+        });
+
+        return {
+          success: true,
+          callLogId: callLog.id,
+          phoneNumber:
+            input.callType === "deliverer_to_client"
+              ? delivery.client.phoneNumber
+              : delivery.deliverer?.phoneNumber,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de l'initiation de l'appel",
+          cause: error,
+        });
+      }
+    }),
+
+  // Nouvelle méthode pour confirmer une livraison
+  confirmDelivery: protectedProcedure
+    .input(
+      z.object({
+        deliveryId: z.string(),
+        confirmationCode: z.string(),
+        recipientName: z.string(),
+        safeLocation: z.boolean().optional(),
+        safeLocationDetails: z.string().optional(),
+        notes: z.string().optional(),
+        photos: z.array(z.string()).optional(),
+        location: z
+          .object({
+            latitude: z.number(),
+            longitude: z.number(),
+          })
+          .optional(),
+        timestamp: z.date(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Vous devez être connecté pour confirmer une livraison",
+        });
+      }
+
+      if (ctx.session.user.role !== UserRole.DELIVERER) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les livreurs peuvent confirmer une livraison",
+        });
+      }
+
+      try {
+        // Vérifier que le livreur est bien assigné à cette livraison
+        const delivery = await ctx.db.delivery.findFirst({
+          where: {
+            id: input.deliveryId,
+            delivererId: ctx.session.user.id,
+            status: "IN_TRANSIT",
+          },
+        });
+
+        if (!delivery) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Livraison non trouvée ou non en transit",
+          });
+        }
+
+        // Confirmer la livraison
+        const confirmedDelivery = await ctx.db.delivery.update({
+          where: { id: input.deliveryId },
+          data: {
+            status: "DELIVERED",
+            confirmationCode: input.confirmationCode,
+            recipientName: input.recipientName,
+            deliveryNotes: input.notes,
+            deliveredAt: input.timestamp,
+            deliveryLatitude: input.location?.latitude,
+            deliveryLongitude: input.location?.longitude,
+          },
+        });
+
+        // Enregistrer les détails de confirmation
+        await ctx.db.deliveryConfirmation.create({
+          data: {
+            deliveryId: input.deliveryId,
+            confirmationCode: input.confirmationCode,
+            recipientName: input.recipientName,
+            safeLocation: input.safeLocation ?? false,
+            safeLocationDetails: input.safeLocationDetails,
+            notes: input.notes,
+            photos: input.photos,
+            confirmedAt: input.timestamp,
+            confirmedBy: ctx.session.user.id,
+          },
+        });
+
+        return {
+          success: true,
+          deliveryId: confirmedDelivery.id,
+          status: confirmedDelivery.status,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la confirmation de livraison",
+          cause: error,
+        });
+      }
+    }),
+
+  // Nouvelle méthode pour signaler un incident
+  reportIssue: protectedProcedure
+    .input(
+      z.object({
+        deliveryId: z.string(),
+        issueType: z.string(),
+        description: z.string(),
+        needsAssistance: z.boolean(),
+        contactInfo: z.string().optional(),
+        photos: z.array(z.string()).optional(),
+        timestamp: z.date(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Vous devez être connecté pour signaler un incident",
+        });
+      }
+
+      try {
+        // Vérifier l'accès à la livraison
+        const delivery = await ctx.db.delivery.findFirst({
+          where: {
+            id: input.deliveryId,
+            OR: [
+              { delivererId: ctx.session.user.id },
+              { clientId: ctx.session.user.id },
+            ],
+          },
+        });
+
+        if (!delivery) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Livraison non trouvée",
+          });
+        }
+
+        // Créer le rapport d'incident
+        const issueReport = await ctx.db.deliveryIssue.create({
+          data: {
+            deliveryId: input.deliveryId,
+            reportedBy: ctx.session.user.id,
+            issueType: input.issueType,
+            description: input.description,
+            needsAssistance: input.needsAssistance,
+            contactInfo: input.contactInfo,
+            photos: input.photos,
+            reportedAt: input.timestamp,
+            status: "REPORTED",
+          },
+        });
+
+        // Mettre à jour le statut de la livraison si nécessaire
+        if (input.needsAssistance) {
+          await ctx.db.delivery.update({
+            where: { id: input.deliveryId },
+            data: { status: "ISSUE_REPORTED" },
+          });
+        }
+
+        return {
+          success: true,
+          issueId: issueReport.id,
+          needsAssistance: input.needsAssistance,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors du signalement d'incident",
+          cause: error,
+        });
       }
     }),
 });

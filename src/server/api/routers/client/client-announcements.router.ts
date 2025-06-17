@@ -692,8 +692,57 @@ export const clientAnnouncementsRouter = router({
           data: {
             status: "REJECTED"}});
 
-        // TODO: Notifier les livreurs qui avaient fait des propositions
-        // TODO: Rembourser les frais si applicable
+        // Notifier les livreurs qui avaient fait des propositions
+        const rejectedProposals = await ctx.db.deliveryProposal.findMany({
+          where: {
+            announcementId: input.id,
+            status: "REJECTED",
+          },
+          include: {
+            deliverer: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+
+        // Créer des notifications pour chaque livreur
+        for (const proposal of rejectedProposals) {
+          await ctx.db.notification.create({
+            data: {
+              userId: proposal.deliverer.id,
+              type: "ANNOUNCEMENT_CANCELLED",
+              title: "Annonce annulée",
+              message: `L'annonce pour laquelle vous aviez fait une proposition a été annulée par le client`,
+              data: {
+                announcementId: input.id,
+                proposalId: proposal.id,
+                reason: input.reason,
+              },
+            },
+          });
+        }
+
+        // Traitement des remboursements si applicable
+        const existingPayments = await ctx.db.payment.findMany({
+          where: {
+            announcementId: input.id,
+            status: "COMPLETED",
+          },
+        });
+
+        for (const payment of existingPayments) {
+          // Créer une demande de remboursement automatique
+          await ctx.db.refund.create({
+            data: {
+              paymentId: payment.id,
+              clientId: user.id,
+              amount: payment.amount,
+              reason: `Remboursement automatique - Annulation d'annonce: ${input.reason}`,
+              status: "PENDING",
+              type: "AUTOMATIC",
+            },
+          });
+        }
 
         return {
           success: true,
@@ -800,8 +849,64 @@ export const clientAnnouncementsRouter = router({
           return { acceptedProposal, delivery };
         });
 
-        // TODO: Envoyer notifications au livreur accepté et aux autres
-        // TODO: Créer le processus de paiement
+        // Envoyer notification au livreur accepté
+        await ctx.db.notification.create({
+          data: {
+            userId: proposal.delivererId,
+            type: "PROPOSAL_ACCEPTED",
+            title: "Proposition acceptée !",
+            message: `Votre proposition pour la livraison a été acceptée par ${user.name}`,
+            data: {
+              proposalId: input.proposalId,
+              announcementId: proposal.announcement.id,
+              deliveryId: result.delivery.id,
+              clientNotes: input.notes,
+            },
+          },
+        });
+
+        // Notifier les autres livreurs du rejet
+        const otherProposals = await ctx.db.deliveryProposal.findMany({
+          where: {
+            announcementId: proposal.announcement.id,
+            id: { not: input.proposalId },
+            status: "REJECTED",
+          },
+          include: {
+            deliverer: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+
+        for (const otherProposal of otherProposals) {
+          await ctx.db.notification.create({
+            data: {
+              userId: otherProposal.deliverer.id,
+              type: "PROPOSAL_REJECTED",
+              title: "Proposition non retenue",
+              message: `Votre proposition pour cette livraison n'a pas été retenue`,
+              data: {
+                proposalId: otherProposal.id,
+                announcementId: proposal.announcement.id,
+              },
+            },
+          });
+        }
+
+        // Créer l'intent de paiement pour la livraison
+        const paymentIntent = await ctx.db.paymentIntent.create({
+          data: {
+            clientId: client.id,
+            deliveryId: result.delivery.id,
+            amount: proposal.suggestedPrice,
+            currency: "EUR",
+            status: "PENDING",
+            description: `Paiement pour livraison - ${proposal.announcement.title}`,
+          },
+        });
+
+        console.log(`💳 Intent de paiement créé pour la livraison: ${paymentIntent.id}`);
 
         return {
           success: true,

@@ -6,8 +6,6 @@
 // Exports des fichiers locaux
 export { default as DashboardShell } from "./dashboard-shell";
 export * from "./dashboard-shell";
-export { default as LayoutDemo } from ".";
-export * from ".";
 export { default as NavBar } from "./nav-bar";
 export * from "./nav-bar";
 export { default as PageTitle } from "./page-title";

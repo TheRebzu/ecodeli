@@ -33,6 +33,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Upload, CheckCircle2 } from "lucide-react";
+import { api } from "@/trpc/react";
 
 // Schéma de validation
 const issueReportSchema = z.object({ issueType: z.string({
@@ -64,6 +65,22 @@ export default function DeliveryIssueReport({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
+
+  // Mutation tRPC pour signaler un incident
+  const reportIssueMutation = api.deliveryTracking.reportIssue.useMutation({
+    onSuccess: () => {
+      setSuccess(true);
+      if (onReportSubmitted) {
+        onReportSubmitted();
+      }
+    },
+    onError: (error) => {
+      setError(error.message || t("errorSubmitting"));
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
+    },
+  });
 
   // Initialiser le formulaire
   const form = useForm<IssueReportFormValues>({
@@ -104,24 +121,21 @@ export default function DeliveryIssueReport({
     setError(null);
 
     try {
-      // Simuler un appel API pour l'exemple
-      // Dans un cas réel, vous utiliseriez un hook ou un appel API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      console.log("Rapport soumis:", {
+      // Appel tRPC réel pour soumettre le rapport d'incident
+      await reportIssueMutation.mutateAsync({
         deliveryId,
-        ...data,
-        photosCount: photos.length});
+        issueType: data.issueType,
+        description: data.description,
+        needsAssistance: data.needsAssistance,
+        contactInfo: data.contactInfo,
+        photos: photos.map(photo => photo.name), // Noms des fichiers uploadés
+        timestamp: new Date(),
+      });
 
-      setSuccess(true);
-      if (onReportSubmitted) {
-        onReportSubmitted();
-      }
+      console.log("Rapport d'incident soumis avec succès pour:", deliveryId);
     } catch (err) {
       console.error("Erreur lors de la soumission du rapport:", err);
-      setError(t("errorSubmitting"));
-    } finally {
-      setIsSubmitting(false);
+      // L'erreur est déjà gérée par onError de la mutation
     }
   };
 

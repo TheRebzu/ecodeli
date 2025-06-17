@@ -217,20 +217,52 @@ export const adminServicesRouter = router({ // Récupérer les statistiques des 
     )
     .mutation(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Vérifier les permissions
-        // TODO: Implémenter la création en base
+        // Vérifier les permissions admin
+        if (ctx.session.user.role !== "ADMIN") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les administrateurs peuvent créer des services",
+          });
+        }
 
-        const newService = {
-          id: Math.random().toString(36).substr(2, 9),
-          ...input,
-          status: "DRAFT" as const,
-          rating: 0,
-          createdAt: new Date(),
-          updatedAt: new Date()};
+        // Créer le service en base de données
+        const newService = await ctx.db.platformService.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            category: input.category,
+            basePrice: input.price,
+            status: "DRAFT",
+            features: input.features || [],
+            requirements: input.requirements || [],
+            createdById: ctx.session.user.id,
+          },
+          include: {
+            createdBy: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+
+        // Créer une notification pour les autres admins
+        await ctx.db.notification.create({
+          data: {
+            userId: "admin-team", // Notification pour l'équipe admin
+            type: "SERVICE_CREATED",
+            title: "Nouveau service créé",
+            message: `${ctx.session.user.name} a créé le service "${input.name}"`,
+            data: {
+              serviceId: newService.id,
+              serviceName: input.name,
+              category: input.category,
+            },
+          },
+        });
 
         return {
           success: true,
-          service: newService};
+          service: newService,
+        };
       } catch (error) {
         throw new TRPCError({ code: "BAD_REQUEST",
           message: "Erreur lors de la création du service" });
@@ -250,11 +282,36 @@ export const adminServicesRouter = router({ // Récupérer les statistiques des 
     )
     .mutation(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Implémenter la mise à jour en base
+        // Vérifier les permissions admin
+        if (ctx.session.user.role !== "ADMIN") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les administrateurs peuvent modifier des services",
+          });
+        }
+
+        // Mettre à jour le service en base de données
+        const updatedService = await ctx.db.platformService.update({
+          where: { id: input.id },
+          data: {
+            ...(input.name && { name: input.name }),
+            ...(input.description && { description: input.description }),
+            ...(input.category && { category: input.category }),
+            ...(input.price && { basePrice: input.price }),
+            updatedAt: new Date(),
+          },
+          include: {
+            createdBy: {
+              select: { id: true, name: true },
+            },
+          },
+        });
 
         return {
           success: true,
-          message: "Service mis à jour avec succès"};
+          service: updatedService,
+          message: "Service mis à jour avec succès",
+        };
       } catch (error) {
         throw new TRPCError({ code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour du service" });

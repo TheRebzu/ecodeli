@@ -39,6 +39,7 @@ import {
   Send,
   ChevronRight} from "lucide-react";
 import { cn } from "@/lib/utils/common";
+import { api } from "@/trpc/react";
 
 // Schéma de validation
 const contactSchema = z.object({ subject: z.string({
@@ -48,7 +49,7 @@ const contactSchema = z.object({ subject: z.string({
     .min(5, { message: "Le message doit contenir au moins 5 caractères" })
     .max(500, { message: "Le message ne doit pas dépasser 500 caractères" }),
   preferredContact: z.enum(["app", "phone", "either"], {
-    requirederror: "Veuillez sélectionner une méthode de contact préférée"})});
+    required_error: "Veuillez sélectionner une méthode de contact préférée"})});
 
 type ContactFormValues = z.infer<typeof contactSchema>;
 
@@ -73,6 +74,28 @@ export default function DeliveryContact({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Mutations tRPC pour les actions de contact
+  const sendMessageMutation = api.deliveryTracking.sendMessageToClient.useMutation({
+    onSuccess: () => {
+      setShowSuccess(true);
+    },
+    onError: (error) => {
+      setError(error.message || "Erreur lors de l'envoi du message");
+    },
+  });
+
+  const initiateCallMutation = api.deliveryTracking.initiateCall.useMutation({
+    onSuccess: () => {
+      // Rediriger vers le téléphone après confirmation du système
+      if (delivererPhone) {
+        window.location.href = `tel:${delivererPhone}`;
+      }
+    },
+    onError: (error) => {
+      setError(error.message || "Erreur lors de l'appel");
+    },
+  });
+
   // Fonctions pour l'envoi de message et appel
   const sendMessage = async (data: {
     subject: string;
@@ -82,9 +105,12 @@ export default function DeliveryContact({
     setIsLoading(true);
     setError(null);
     try {
-      // Simuler l'envoi du message
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Message sent:", data);
+      await sendMessageMutation.mutateAsync({
+        deliveryId,
+        subject: data.subject,
+        message: data.message,
+        preferredContact: data.preferredContact,
+      });
     } catch (err) {
       setError("Erreur lors de l'envoi du message");
       throw err;
@@ -97,9 +123,10 @@ export default function DeliveryContact({
     setIsLoading(true);
     setError(null);
     try {
-      // Simuler l'appel
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      console.log("Call initiated");
+      await initiateCallMutation.mutateAsync({
+        deliveryId,
+        callType: "deliverer_to_client",
+      });
     } catch (err) {
       setError("Erreur lors de l'appel");
       throw err;

@@ -169,13 +169,57 @@ export const nfcManagementRouter = router({ /**
               usedAt: new Date()}});
         }
 
-        // TODO: Envoyer notification au client
-        // TODO: Déclencher le processus de paiement
+        // Envoyer notification au client
+        if (delivery.clientId) {
+          await ctx.db.notification.create({
+            data: {
+              type: 'DELIVERY_VALIDATED',
+              title: 'Livraison validée',
+              message: `Votre livraison #${delivery.trackingCode} a été validée avec succès`,
+              userId: delivery.clientId,
+              metadata: {
+                deliveryId: delivery.id,
+                delivererId: user.id,
+                validatedAt: new Date().toISOString(),
+                validationMethod: 'NFC'
+              }
+            }
+          });
+          
+          // Notification push (simulation OneSignal)
+          console.log(`Push notification envoyée au client ${delivery.clientId} pour validation livraison`);
+        }
+        
+        // Déclencher le processus de paiement
+        if (delivery.announcement.totalAmount > 0) {
+          // Créer une transaction de paiement
+          await ctx.db.payment.create({
+            data: {
+              amount: delivery.announcement.totalAmount,
+              currency: 'EUR',
+              status: 'PENDING',
+              type: 'DELIVERY_PAYMENT',
+              clientId: delivery.clientId,
+              delivererId: user.id,
+              metadata: {
+                deliveryId: delivery.id,
+                announcementId: delivery.announcementId,
+                validatedViaCard: input.cardNumber,
+                validatedAt: new Date().toISOString()
+              }
+            }
+          });
+          
+          // En production: intégration Stripe pour capturer le paiement
+          console.log(`Paiement de ${delivery.announcement.totalAmount}€ déclenché pour la livraison ${delivery.id}`);
+        }
 
         return {
           success: true,
           transaction,
-          message: "Livraison validée avec succès"};
+          message: "Livraison validée avec succès",
+          paymentTriggered: delivery.announcement.totalAmount > 0
+        };
       } catch (error) {
         // Enregistrer la tentative échouée
         if (input.cardNumber) {

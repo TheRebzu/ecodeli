@@ -35,6 +35,7 @@ import {
   Package} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DeliveryStatus } from "@/types/delivery/delivery";
+import { api } from "@/trpc/react";
 
 // Schéma de validation
 const confirmationSchema = z.object({ confirmationCode: z
@@ -107,6 +108,22 @@ export default function DeliveryConfirmation({
   // Observer les changements sur safeLocation
   const watchSafeLocation = form.watch("safeLocation");
 
+  // Mutation tRPC pour confirmer la livraison
+  const confirmDeliveryMutation = api.deliveryTracking.confirmDelivery.useMutation({
+    onSuccess: () => {
+      setSuccess(true);
+      if (onConfirmed) {
+        onConfirmed();
+      }
+    },
+    onError: (error) => {
+      setError(error.message || t("errorSubmitting"));
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
+    },
+  });
+
   // Fonction pour ajouter des photos
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -141,26 +158,23 @@ export default function DeliveryConfirmation({
     setError(null);
 
     try {
-      // Simuler un appel API pour l'exemple
-      // Dans un cas réel, vous utiliseriez un hook ou un appel API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      console.log("Livraison confirmée:", {
+      // Appel tRPC réel pour confirmer la livraison
+      await confirmDeliveryMutation.mutateAsync({
         deliveryId,
-        ...data,
-        photosCount: photos.length,
+        confirmationCode: data.confirmationCode,
+        recipientName: data.recipientName,
+        safeLocation: data.safeLocation,
+        safeLocationDetails: data.safeLocationDetails,
+        notes: data.notes,
+        photos: photos.map(photo => photo.name), // Noms des fichiers uploadés
         location: useCurrentLocation ? currentLocation : null,
-        timestamp: new Date()});
+        timestamp: new Date(),
+      });
 
-      setSuccess(true);
-      if (onConfirmed) {
-        onConfirmed();
-      }
+      console.log("Livraison confirmée avec succès pour:", deliveryId);
     } catch (err) {
       console.error("Erreur lors de la confirmation de livraison:", err);
-      setError(t("errorSubmitting"));
-    } finally {
-      setIsSubmitting(false);
+      // L'erreur est déjà gérée par onError de la mutation
     }
   };
 

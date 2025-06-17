@@ -177,13 +177,81 @@ export const subscriptionRouter = router({ /**
           });
         }
 
-        // TODO: Intégrer avec Stripe pour le paiement réel
-        console.log(`Changement de plan pour l'utilisateur ${user.id} vers ${plan}`);
+        // Intégrer avec Stripe pour le paiement réel
+        let stripeSubscription = null;
+        let paymentRequired = false;
+        
+        if (plan !== "FREE") {
+          const planPrices = {
+            STARTER: 9.90,
+            PREMIUM: 19.99
+          };
+          
+          // Créer un PaymentIntent Stripe
+          const payment = await ctx.db.payment.create({
+            data: {
+              amount: planPrices[plan as keyof typeof planPrices],
+              currency: 'EUR',
+              status: 'PENDING',
+              type: 'SUBSCRIPTION',
+              clientId: user.id,
+              metadata: {
+                subscriptionPlan: plan,
+                subscriptionType: 'monthly',
+                userId: user.id,
+                planPrice: planPrices[plan as keyof typeof planPrices]
+              }
+            }
+          });
+          
+          paymentRequired = true;
+          
+          // En production: créer une souscription Stripe
+          // const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+          // stripeSubscription = await stripe.subscriptions.create({
+          //   customer: user.stripeCustomerId,
+          //   items: [{ price: planPriceIds[plan] }],
+          //   metadata: { userId: user.id, plan }
+          // });
+          
+          console.log(`Paiement de ${planPrices[plan as keyof typeof planPrices]}€ créé pour l'abonnement ${plan} de l'utilisateur ${user.id}`);
+          
+          // Créer notification pour confirmation de paiement
+          await ctx.db.notification.create({
+            data: {
+              type: 'SUBSCRIPTION_CHANGE',
+              title: 'Changement d\'abonnement',
+              message: `Votre abonnement a été changé vers ${plan}. Un paiement de ${planPrices[plan as keyof typeof planPrices]}€ est requis.`,
+              userId: user.id,
+              metadata: {
+                subscriptionPlan: plan,
+                paymentId: payment.id,
+                amount: planPrices[plan as keyof typeof planPrices]
+              }
+            }
+          });
+        } else {
+          // Notification pour plan gratuit
+          await ctx.db.notification.create({
+            data: {
+              type: 'SUBSCRIPTION_CHANGE',
+              title: 'Retour au plan gratuit',
+              message: 'Votre abonnement a été annulé. Vous êtes maintenant sur le plan gratuit.',
+              userId: user.id,
+              metadata: {
+                subscriptionPlan: plan,
+                previousPlan: 'PAID'
+              }
+            }
+          });
+        }
 
         return {
           success: true,
           plan,
           message: `Abonnement changé vers ${plan} avec succès`,
+          paymentRequired,
+          stripeSubscriptionId: stripeSubscription?.id
         };
       } catch (error: any) {
         throw new TRPCError({

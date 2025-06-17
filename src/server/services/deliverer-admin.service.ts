@@ -138,30 +138,106 @@ export const delivererAdminService = {
         verifiedDeliverers,
         pendingVerification,
         suspendedDeliverers,
-        deliveryStats] = await Promise.all([
+        deliveryStats,
+        ratingStats,
+        walletStats,
+      ] = await Promise.all([
         db.user.count({
-          where: { role: UserRole.DELIVERER }}),
-        db.user.count({
-          where: {
-            role: UserRole.DELIVERER,
-            status: UserStatus.ACTIVE}}),
-        db.user.count({
-          where: {
-            role: UserRole.DELIVERER,
-            isVerified: true}}),
+          where: { role: UserRole.DELIVERER },
+        }),
         db.user.count({
           where: {
             role: UserRole.DELIVERER,
-            isVerified: false}}),
+            status: UserStatus.ACTIVE,
+          },
+        }),
         db.user.count({
           where: {
             role: UserRole.DELIVERER,
-            status: UserStatus.SUSPENDED}}),
+            isVerified: true,
+          },
+        }),
+        db.user.count({
+          where: {
+            role: UserRole.DELIVERER,
+            isVerified: false,
+          },
+        }),
+        db.user.count({
+          where: {
+            role: UserRole.DELIVERER,
+            status: UserStatus.SUSPENDED,
+          },
+        }),
         db.delivery.aggregate({
-          count: { id },
+          _count: { id: true },
           where: {
             deliverer: {
-              role: UserRole.DELIVERER}}})]);
+              role: UserRole.DELIVERER,
+            },
+          },
+        }),
+        // Calculer la vraie moyenne des ratings pour tous les livreurs
+        db.rating.aggregate({
+          _avg: { rating: true },
+          _count: { rating: true },
+          where: {
+            targetType: "DELIVERER",
+            deliverer: {
+              role: UserRole.DELIVERER,
+            },
+          },
+        }),
+        // Calculer la moyenne des gains
+        db.wallet.aggregate({
+          _avg: { balance: true },
+          where: {
+            user: {
+              role: UserRole.DELIVERER,
+            },
+          },
+        }),
+      ]);
+
+      // Calculer les livreurs avec véhicule
+      const vehicledDeliverers = await db.user.count({
+        where: {
+          role: UserRole.DELIVERER,
+          deliverer: {
+            vehicleType: { not: null },
+          },
+        },
+      });
+
+      // Récupérer les top performers (livreurs avec les meilleures notes)
+      const topPerformers = await db.user.findMany({
+        where: { role: UserRole.DELIVERER },
+        include: {
+          _count: {
+            select: { receivedRatings: true },
+          },
+          receivedRatings: {
+            select: { rating: true },
+          },
+        },
+        take: 5,
+      });
+
+      const topPerformersFormatted = topPerformers
+        .map((deliverer) => {
+          const avgRating =
+            deliverer.receivedRatings.length > 0
+              ? deliverer.receivedRatings.reduce((sum, r) => sum + r.rating, 0) /
+                deliverer.receivedRatings.length
+              : 0;
+          return {
+            id: deliverer.id,
+            name: deliverer.name,
+            rating: avgRating,
+            totalRatings: deliverer.receivedRatings.length,
+          };
+        })
+        .sort((a, b) => b.rating - a.rating);
 
       const result = {
         totalDeliverers,
@@ -169,13 +245,14 @@ export const delivererAdminService = {
         verifiedDeliverers,
         pendingVerification,
         suspendedDeliverers,
-        averageRating: 4.5, // TODO: Calculer la vraie moyenne des ratings
-        totalDeliveries: deliveryStats.count.id || 0,
-        averageEarnings: 850,
-        vehicledDeliverers: 0,
-        topPerformers: [],
-        growthRate: 12.5,
-        activeZones: 25};
+        averageRating: ratingStats._avg.rating || 0,
+        totalDeliveries: deliveryStats._count.id || 0,
+        averageEarnings: walletStats._avg.balance || 0,
+        vehicledDeliverers,
+        topPerformers: topPerformersFormatted,
+        growthRate: 12.5, // Garder temporairement hardcodé (nécessite historique)
+        activeZones: 25, // Garder temporairement hardcodé (nécessite géolocalisation)
+      };
 
       console.log("📊 Stats livreurs:", result);
       return result;
@@ -188,13 +265,14 @@ export const delivererAdminService = {
         verifiedDeliverers: 0,
         pendingVerification: 0,
         suspendedDeliverers: 0,
-        averageRating: 4.5,
+        averageRating: 0,
         totalDeliveries: 0,
-        averageEarnings: 850,
+        averageEarnings: 0,
         vehicledDeliverers: 0,
         topPerformers: [],
-        growthRate: 12.5,
-        activeZones: 25};
+        growthRate: 0,
+        activeZones: 0,
+      };
     }
   },
 

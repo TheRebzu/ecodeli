@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { WebSocketStatus } from "@/components/shared/real-time-notifications";
 
 interface ProtectedFooterProps {
   locale: string;
@@ -15,6 +16,7 @@ export function ProtectedFooter({ locale }: ProtectedFooterProps) {
       <div className="container flex h-12 items-center justify-between text-sm text-muted-foreground">
         <div className="flex items-center space-x-4">
           <p>© {currentYear} EcoDeli. Tous droits réservés.</p>
+          <WebSocketStatus />
         </div>
 
         <div className="flex items-center space-x-4">

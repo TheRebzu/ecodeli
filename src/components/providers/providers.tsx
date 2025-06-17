@@ -4,6 +4,8 @@ import { ReactNode } from "react";
 import { TRPCProvider } from "@/components/providers/trpc-provider";
 import ThemeProvider from "@/components/providers/theme-provider";
 import { SessionProvider } from "next-auth/react";
+import { SocketProvider } from "@/components/providers/socket-provider";
+import { OneSignalProvider } from "@/components/providers/onesignal-provider";
 import { Toaster } from "@/components/ui/toaster";
 
 interface ProvidersProps {
@@ -21,8 +23,12 @@ export function Providers({ children, session }: ProvidersProps) {
         disableTransitionOnChange
       >
         <TRPCProvider>
-          {children}
-          <Toaster />
+          <SocketProvider>
+            <OneSignalProvider>
+              {children}
+              <Toaster />
+            </OneSignalProvider>
+          </SocketProvider>
         </TRPCProvider>
       </ThemeProvider>
     </SessionProvider>
