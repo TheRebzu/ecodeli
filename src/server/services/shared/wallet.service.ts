@@ -339,8 +339,9 @@ export const walletService = {
     const estimatedArrival = addDays(new Date(), baseDelay);
 
     return await db.$transaction(async (tx: any) => {
-      // Générer une référence unique
-      const reference = `WD-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+      // Générer une référence unique sécurisée
+      const { randomUUID } = await import('crypto');
+      const reference = `WD-${Date.now()}-${randomUUID().substring(0, 8).toUpperCase()}`;
 
       // Créer la demande de retrait
       const withdrawalRequest = await tx.withdrawalRequest.create({
@@ -430,7 +431,7 @@ export const walletService = {
           transferMethod: withdrawal.preferredMethod || "SEPA",
           transferReference:
             transferReference ||
-            `TRANSFER-${Math.random().toString(36).substring(2, 10)}`}});
+            `TRANSFER-${Date.now()}-${(await import('crypto')).randomUUID().substring(0, 8).toUpperCase()}`}});
 
       // Mettre à jour le statut de la demande
       return await db.withdrawalRequest.update({

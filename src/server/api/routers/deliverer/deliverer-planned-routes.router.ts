@@ -469,9 +469,11 @@ export const delivererPlannedRoutesRouter = router({ /**
     )
     .query(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Implémenter la recherche géospatiale avancée
-        // Pour l'instant, recherche basique par ville et temps
-        const routes = await ctx.db.delivererPlannedRoute.findMany({
+        // Recherche géospatiale avancée implémentée avec calculs de distance et scoring
+        console.log(`🔍 Recherche géospatiale avancée - Départ: ${input.departureLatitude}, ${input.departureLongitude}`);
+        
+        // Récupérer toutes les routes publiques dans la fenêtre temporelle
+        const allRoutes = await ctx.db.delivererPlannedRoute.findMany({
           where: {
             isPublic: true,
             status: "PUBLISHED",
@@ -479,17 +481,94 @@ export const delivererPlannedRoutesRouter = router({ /**
               gte: new Date(input.departureTime.getTime() - 2 * 60 * 60 * 1000), // -2h
               lte: new Date(input.departureTime.getTime() + 4 * 60 * 60 * 1000), // +4h
             },
-            availableCapacity: { gt: 0 }},
+            availableCapacity: { gt: 0 },
+            // Filtrage géographique préliminaire (zone étendue)
+            departureLatitude: {
+              gte: input.departureLatitude - 0.5, // ~55km de rayon
+              lte: input.departureLatitude + 0.5
+            },
+            departureLongitude: {
+              gte: input.departureLongitude - 0.5,
+              lte: input.departureLongitude + 0.5
+            }
+          },
           include: {
             deliverer: {
               select: {
                 id: true,
                 name: true,
-                image: true}}},
-          take: input.limit,
-          orderBy: { departureTime: "asc" }});
+                image: true,
+                delivererStats: {
+                  select: {
+                    averageRating: true,
+                    totalDeliveries: true,
+                    onTimeRate: true
+                  }
+                }
+              }
+            }
+          }
+        });
 
-        return { routes };
+        console.log(`📊 ${allRoutes.length} routes trouvées dans la zone temporelle`);
+
+        // Analyser chaque route avec scoring géospatial avancé
+        const scoredRoutes = [];
+        
+        for (const route of allRoutes) {
+          // Calcul de la compatibilité géographique
+          const compatibility = await calculateAdvancedRouteCompatibility({
+            route,
+            requestedPickup: {
+              lat: input.departureLatitude,
+              lng: input.departureLongitude
+            },
+            requestedDelivery: {
+              lat: input.deliveryLatitude,
+              lng: input.deliveryLongitude
+            },
+            maxDetourKm: input.maxDetourKm,
+            requestedTime: input.departureTime
+          });
+
+          if (compatibility.isCompatible) {
+            scoredRoutes.push({
+              ...route,
+              compatibility: {
+                score: compatibility.overallScore,
+                detourDistance: compatibility.detourDistance,
+                timeCompatibility: compatibility.timeCompatibility,
+                priceEstimate: compatibility.estimatedPrice,
+                estimatedDuration: compatibility.estimatedDuration,
+                carbonSavings: compatibility.carbonSavings
+              }
+            });
+          }
+        }
+
+        // Trier par score de compatibilité décroissant
+        const sortedRoutes = scoredRoutes
+          .sort((a, b) => b.compatibility.score - a.compatibility.score)
+          .slice(0, input.limit);
+
+        console.log(`✅ ${sortedRoutes.length} routes compatibles trouvées (score moyen: ${
+          sortedRoutes.length > 0 
+            ? Math.round(sortedRoutes.reduce((sum, r) => sum + r.compatibility.score, 0) / sortedRoutes.length)
+            : 0
+        }%)`);
+
+        return { 
+          routes: sortedRoutes,
+          searchMetadata: {
+            totalAnalyzed: allRoutes.length,
+            totalCompatible: sortedRoutes.length,
+            averageScore: sortedRoutes.length > 0 
+              ? Math.round(sortedRoutes.reduce((sum, r) => sum + r.compatibility.score, 0) / sortedRoutes.length)
+              : 0,
+            searchRadius: '~55km',
+            detourLimit: `${input.maxDetourKm}km`
+          }
+        };
       } catch (error) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la recherche de routes" });
@@ -853,5 +932,141 @@ async function notifyClientOfNewDeliveryOption(
     
   } catch (error) {
     console.error('Erreur lors de la notification du client:', error);
+  }
+}
+
+/**
+ * Calcule la compatibilité avancée entre une route et une demande de livraison
+ * Analyse géospatiale, temporelle et économique complète
+ */
+async function calculateAdvancedRouteCompatibility(params: {
+  route: any;
+  requestedPickup: { lat: number; lng: number };
+  requestedDelivery: { lat: number; lng: number };
+  maxDetourKm: number;
+  requestedTime: Date;
+}): Promise<{
+  isCompatible: boolean;
+  overallScore: number;
+  detourDistance: number;
+  timeCompatibility: number;
+  estimatedPrice: number;
+  estimatedDuration: number;
+  carbonSavings: number;
+}> {
+  try {
+    const { route, requestedPickup, requestedDelivery, maxDetourKm, requestedTime } = params;
+    
+    // 1. Analyse géospatiale - Calcul du détour nécessaire
+    const originalDistance = calculateDistance(
+      route.departureLatitude,
+      route.departureLongitude,
+      route.arrivalLatitude,
+      route.arrivalLongitude
+    );
+    
+    // Distance avec détour
+    const detourDistance1 = calculateDistance(
+      route.departureLatitude,
+      route.departureLongitude,
+      requestedPickup.lat,
+      requestedPickup.lng
+    );
+    
+    const detourDistance2 = calculateDistance(
+      requestedPickup.lat,
+      requestedPickup.lng,
+      requestedDelivery.lat,
+      requestedDelivery.lng
+    );
+    
+    const detourDistance3 = calculateDistance(
+      requestedDelivery.lat,
+      requestedDelivery.lng,
+      route.arrivalLatitude,
+      route.arrivalLongitude
+    );
+    
+    const totalDetourDistance = detourDistance1 + detourDistance2 + detourDistance3;
+    const detourAmount = totalDetourDistance - originalDistance;
+    
+    // Vérification du détour maximum
+    if (detourAmount > maxDetourKm) {
+      return {
+        isCompatible: false,
+        overallScore: 0,
+        detourDistance: detourAmount,
+        timeCompatibility: 0,
+        estimatedPrice: 0,
+        estimatedDuration: 0,
+        carbonSavings: 0
+      };
+    }
+    
+    // 2. Score géographique (plus le détour est faible, meilleur est le score)
+    const geographicScore = Math.max(0, (maxDetourKm - detourAmount) / maxDetourKm * 100);
+    
+    // 3. Analyse temporelle
+    const routeTime = new Date(route.departureTime);
+    const timeDifferenceMs = Math.abs(routeTime.getTime() - requestedTime.getTime());
+    const timeDifferenceHours = timeDifferenceMs / (1000 * 60 * 60);
+    
+    // Score temporel (max 6h de différence acceptable)
+    const timeCompatibility = Math.max(0, (6 - timeDifferenceHours) / 6 * 100);
+    
+    // 4. Calcul du prix estimé basé sur la distance et le détour
+    const basePrice = 3.50; // Prix de base
+    const pricePerKm = 1.20; // Prix par km
+    const detourSurcharge = detourAmount * 0.80; // Surcharge détour
+    const estimatedPrice = basePrice + (detourDistance2 * pricePerKm) + detourSurcharge;
+    
+    // 5. Estimation de la durée (vitesse moyenne 50 km/h)
+    const estimatedDuration = Math.round((totalDetourDistance / 50) * 60); // en minutes
+    
+    // 6. Calcul des économies carbone (vs 2 trajets séparés)
+    const separateTripsDistance = detourDistance1 + detourDistance2 + detourDistance3;
+    const carbonSavingsKm = Math.max(0, separateTripsDistance - totalDetourDistance);
+    const carbonSavings = carbonSavingsKm * 0.12; // 120g CO2/km économisés
+    
+    // 7. Score de fiabilité du livreur
+    const delivererStats = route.deliverer.delivererStats;
+    const reliabilityScore = delivererStats ? (
+      (delivererStats.averageRating || 3) / 5 * 30 +
+      Math.min(30, (delivererStats.totalDeliveries || 0) / 10) +
+      (delivererStats.onTimeRate || 0.8) * 40
+    ) : 50; // Score neutre si pas de stats
+    
+    // 8. Score global pondéré
+    const overallScore = Math.round(
+      geographicScore * 0.35 +      // 35% - Proximité géographique
+      timeCompatibility * 0.25 +    // 25% - Compatibilité temporelle
+      reliabilityScore * 0.20 +     // 20% - Fiabilité du livreur
+      Math.min(100, carbonSavings * 10) * 0.10 + // 10% - Impact écologique
+      (route.availableCapacity / (route.maxCapacity || 5)) * 100 * 0.10 // 10% - Capacité disponible
+    );
+    
+    console.log(`📊 Compatibilité calculée - Score: ${overallScore}%, Détour: ${detourAmount.toFixed(1)}km, Prix: ${estimatedPrice.toFixed(2)}€`);
+    
+    return {
+      isCompatible: overallScore >= 40, // Seuil minimum de 40%
+      overallScore,
+      detourDistance: Math.round(detourAmount * 100) / 100,
+      timeCompatibility: Math.round(timeCompatibility),
+      estimatedPrice: Math.round(estimatedPrice * 100) / 100,
+      estimatedDuration,
+      carbonSavings: Math.round(carbonSavings * 100) / 100
+    };
+    
+  } catch (error) {
+    console.error('❌ Erreur lors du calcul de compatibilité:', error);
+    return {
+      isCompatible: false,
+      overallScore: 0,
+      detourDistance: 0,
+      timeCompatibility: 0,
+      estimatedPrice: 0,
+      estimatedDuration: 0,
+      carbonSavings: 0
+    };
   }
 }

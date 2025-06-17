@@ -610,9 +610,9 @@ export async function createPayment(
 
   // Si c'est un paiement de livraison et qu'il est mis en séquestre, générer un code de libération
   if (isEscrow && deliveryId) {
-    const escrowReleaseCode = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
+    const { SecureCodeGeneratorService } = await import("./secure-code-generator.service");
+    const codeGenerator = new SecureCodeGeneratorService();
+    const escrowReleaseCode = codeGenerator.generateEscrowReleaseCode();
 
     await db.payment.update({
       where: { id: payment.id },

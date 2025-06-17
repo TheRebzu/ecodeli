@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { AdminPermissionService } from "@/server/services/admin/admin-permissions.service";
 
 /**
  * Router pour les logs système admin
@@ -29,8 +30,14 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
     )
     .query(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Vérifier les permissions admin
+        // Vérifier les permissions admin
         const { user } = ctx.session;
+        const permissionService = new AdminPermissionService(ctx.db);
+        await permissionService.requireAdminPermissions(
+          user.id,
+          ["audit.view"],
+          "Vous devez avoir les permissions d'audit pour consulter les logs système"
+        );
 
         // Récupérer les logs depuis la base de données
         const whereClause: any = {};
@@ -60,7 +67,7 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
         }
 
         // Compter le total pour la pagination
-        const total = await ctx.db.systemLog.count({ where  });
+        const total = await ctx.db.systemLog.count({ where: whereClause });
 
         // Récupérer les logs avec pagination
         const logs = await ctx.db.systemLog.findMany({
@@ -152,27 +159,27 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
         // Compter le total des logs
         const totalLogs = await ctx.db.systemLog.count({
           where: {
-            timestamp: { gte }}});
+            timestamp: { gte: startDate }}});
 
         // Statistiques par niveau
         const byLevel = await ctx.db.systemLog.groupBy({
           by: ["level"],
           where: {
-            timestamp: { gte }},
-          count: { id }});
+            timestamp: { gte: startDate }},
+          _count: { id: true }});
 
         // Statistiques par catégorie
         const byCategory = await ctx.db.systemLog.groupBy({
           by: ["category"],
           where: {
-            timestamp: { gte }},
-          count: { id }});
+            timestamp: { gte: startDate }},
+          _count: { id: true }});
 
         // Erreurs récentes
         const recentErrors = await ctx.db.systemLog.findMany({
           where: {
             level: "ERROR",
-            timestamp: { gte }},
+            timestamp: { gte: startDate }},
           orderBy: {
             timestamp: "desc"},
           take: 5,
@@ -184,21 +191,21 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
         const hourlyTrends = await ctx.db.systemLog.groupBy({
           by: ["timestamp"],
           where: {
-            timestamp: { gte }},
-          count: { id }});
+            timestamp: { gte: startDate }},
+          _count: { id: true }});
 
         const stats = {
           totalLogs,
           byLevel: byLevel.reduce(
             (acc, item) => {
-              acc[item.level] = item.count.id;
+              acc[item.level] = item._count.id;
               return acc;
             },
             {} as Record<string, number>,
           ),
           byCategory: byCategory.reduce(
             (acc, item) => {
-              acc[item.category] = item.count.id;
+              acc[item.category] = item._count.id;
               return acc;
             },
             {} as Record<string, number>,
@@ -209,7 +216,7 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
            })),
           trends: {
             hourly: hourlyTrends.map((trend, index) => ({ hour: index,
-              count: trend.count.id }))}};
+              count: trend._count.id }))}};
 
         return stats;
       } catch (error) {
@@ -226,19 +233,28 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
     )
     .mutation(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Vérifier les permissions super admin
-        // TODO: Implémenter le nettoyage en base
+        // Vérifier les permissions super admin pour le nettoyage
+        const { user } = ctx.session;
+        const permissionService = new AdminPermissionService(ctx.db);
+        
+        const canCleanup = await permissionService.checkLogCleanupPermissions(user.id);
+        if (!canCleanup) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les super administrateurs peuvent nettoyer les logs système"
+          });
+        }
 
         // Supprimer les logs selon les critères
         const whereClause: any = {
-          createdAt: {
+          timestamp: {
             lt: input.olderThan}};
 
         if (input.level) {
           whereClause.level = input.level;
         }
 
-        const deletedCount = await ctx.db.systemLog.deleteMany({ where  });
+        const deletedCount = await ctx.db.systemLog.deleteMany({ where: whereClause });
 
         return {
           success: true,

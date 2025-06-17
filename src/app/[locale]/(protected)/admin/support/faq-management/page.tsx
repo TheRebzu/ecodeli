@@ -15,9 +15,26 @@ export default function FAQManagementPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Gestion FAQ - En cours de développement
-        </p>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h3 className="font-semibold mb-2">Questions fréquentes</h3>
+              <p className="text-muted-foreground">Gérer les questions et réponses</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="font-semibold mb-2">Catégories</h3>
+              <p className="text-muted-foreground">Organiser par catégorie</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="font-semibold mb-2">Statistiques</h3>
+              <p className="text-muted-foreground">Analyser les consultations</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="font-semibold mb-2">Publication</h3>
+              <p className="text-muted-foreground">Publier ou masquer</p>
+            </Card>
+          </div>
+        </div>
       </Card>
     </div>
   );

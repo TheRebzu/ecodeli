@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { ContractFormModal } from "@/components/admin/contracts/contract-form-modal";
 
 export default function EditTemplatePage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function EditTemplatePage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Modifier le modèle - En cours de développement
-        </p>
+        <ContractFormModal />
       </Card>
     </div>
   );

@@ -195,18 +195,54 @@ export function AnnouncementForm({
 export default AnnouncementForm;
 
 // Export ajouté automatiquement
-import { Form } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Composants de formulaires de profil
 export function ClientProfileForm({ children, ...props }: any) {
   return (
     <Card>
       <CardContent>
-        <Form {...props}>
+        <div className="space-y-4">
+          <div className="text-lg font-semibold mb-4">Profil Client</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Prénom</label>
+              <input
+                type="text"
+                placeholder="Votre prénom"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Nom</label>
+              <input
+                type="text"
+                placeholder="Votre nom"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Email</label>
+            <input
+              type="email"
+              placeholder="votre@email.com"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Téléphone</label>
+            <input
+              type="tel"
+              placeholder="+33 6 12 34 56 78"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
           {children}
-          {/* TODO: Implémenter le formulaire client */}
-        </Form>
+        </div>
       </CardContent>
     </Card>
   );
@@ -216,10 +252,28 @@ export function DelivererProfileForm({ children, ...props }: any) {
   return (
     <Card>
       <CardContent>
-        <Form {...props}>
+        <div className="space-y-4">
+          <div className="text-lg font-semibold mb-4">Profil Livreur</div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Type de véhicule</label>
+            <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Sélectionnez votre véhicule</option>
+              <option value="bike">Vélo</option>
+              <option value="scooter">Scooter</option>
+              <option value="motorcycle">Moto</option>
+              <option value="car">Voiture</option>
+              <option value="van">Camionnette</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Zones de travail</label>
+            <textarea
+              placeholder="Listez vos zones de livraison (ex: Paris 1er, 2ème, 3ème...)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-24"
+            />
+          </div>
           {children}
-          {/* TODO: Implémenter le formulaire livreur */}
-        </Form>
+        </div>
       </CardContent>
     </Card>
   );
@@ -229,10 +283,38 @@ export function MerchantProfileForm({ children, ...props }: any) {
   return (
     <Card>
       <CardContent>
-        <Form {...props}>
+        <div className="space-y-4">
+          <div className="text-lg font-semibold mb-4">Profil Commerçant</div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Nom de l'entreprise</label>
+            <input
+              type="text"
+              placeholder="Nom de votre commerce"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">SIRET</label>
+              <input
+                type="text"
+                placeholder="123 456 789 01234"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Catégorie</label>
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Type de commerce</option>
+                <option value="restaurant">Restaurant</option>
+                <option value="grocery">Épicerie</option>
+                <option value="pharmacy">Pharmacie</option>
+                <option value="electronics">Électronique</option>
+              </select>
+            </div>
+          </div>
           {children}
-          {/* TODO: Implémenter le formulaire marchand */}
-        </Form>
+        </div>
       </CardContent>
     </Card>
   );
@@ -242,10 +324,27 @@ export function MerchantVerificationForm({ children, ...props }: any) {
   return (
     <Card>
       <CardContent>
-        <Form {...props}>
+        <div className="space-y-4">
+          <div className="text-lg font-semibold mb-4">Vérification Commerçant</div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Extrait Kbis (moins de 3 mois)</label>
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-sm text-gray-600 mt-1">Document officiel prouvant l'existence de votre entreprise</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Pièce d'identité du gérant</label>
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
           {children}
-          {/* TODO: Implémenter le formulaire de vérification marchand */}
-        </Form>
+        </div>
       </CardContent>
     </Card>
   );
@@ -255,10 +354,35 @@ export function ProviderVerificationForm({ children, ...props }: any) {
   return (
     <Card>
       <CardContent>
-        <Form {...props}>
+        <div className="space-y-4">
+          <div className="text-lg font-semibold mb-4">Vérification Prestataire</div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Pièce d'identité</label>
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Certificat professionnel</label>
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-sm text-gray-600 mt-1">Diplôme ou certification prouvant vos compétences</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Assurance responsabilité civile</label>
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
           {children}
-          {/* TODO: Implémenter le formulaire de vérification prestataire */}
-        </Form>
+        </div>
       </CardContent>
     </Card>
   );

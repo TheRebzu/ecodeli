@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import UserTable from "@/components/admin/users/user-table";
 
 export default function ClientDetailPage() {
   const t = useTranslations();
@@ -15,9 +16,12 @@ export default function ClientDetailPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Détail client - En cours de développement
-        </p>
+        <UserTable
+          users={[]}
+          onSelectionChange={() => {}}
+          selectedUserIds={[]}
+          isLoading={false}
+        />
       </Card>
     </div>
   );

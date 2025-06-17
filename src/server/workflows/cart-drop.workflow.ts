@@ -8,6 +8,7 @@ import { logger } from "@/lib/utils/logger";
 import {
   CartDropService,
   CartDropOrder} from "../services/matching/cart-drop.service";
+import { TaskSchedulerService } from "../services/shared/task-scheduler.service";
 
 export type CartDropStatus =
   | "CREATED"
@@ -49,12 +50,15 @@ export interface CartDropWorkflowConfig {
 
 export class CartDropWorkflow {
   private cartDropService: CartDropService;
+  private taskScheduler: TaskSchedulerService;
 
   constructor(
     private prisma: PrismaClient,
     private config: CartDropWorkflowConfig,
   ) {
     this.cartDropService = new CartDropService(prisma);
+    this.taskScheduler = TaskSchedulerService.getInstance(prisma);
+    this.taskScheduler.start();
   }
 
   /**
@@ -577,10 +581,8 @@ export class CartDropWorkflow {
   }
 
   private async triggerOrderPreparation(orderId: string): Promise<void> {
-    // Délai de préparation basé sur la configuration
-    setTimeout(async () => {
-      await this.handlePreparationStarted(orderId, "MERCHANT_STAFF");
-    }, 1000);
+    // Démarrer immédiatement la préparation au lieu d'attendre
+    await this.handlePreparationStarted(orderId, "MERCHANT_STAFF");
   }
 
   private async triggerDelivererAssignment(orderId: string): Promise<void> {
@@ -596,10 +598,8 @@ export class CartDropWorkflow {
     orderId: string,
     delivererId: string,
   ): Promise<void> {
-    // Déclencher le début de livraison
-    setTimeout(async () => {
-      await this.handleDeliveryStarted(orderId, delivererId);
-    }, 1000);
+    // Démarrer immédiatement la livraison au lieu d'attendre
+    await this.handleDeliveryStarted(orderId, delivererId);
   }
 
   private async completeOrder(orderId: string): Promise<void> {
@@ -614,52 +614,56 @@ export class CartDropWorkflow {
     await this.updateOrderStatus(orderId, "COMPLETED");
   }
 
-  // Méthodes de timeout et planification
+  // Méthodes de timeout et planification avec le TaskScheduler
   private async schedulePaymentTimeout(orderId: string): Promise<void> {
-    setTimeout(
-      async () => {
-        const status = await this.getOrderStatus(orderId);
-        if (status === "PAYMENT_PENDING") {
-          await this.handlePaymentFailure(orderId, "Timeout de paiement");
+    await this.taskScheduler.schedulePaymentTimeout(
+      orderId,
+      this.config.paymentTimeoutMinutes,
+      {
+        metadata: { 
+          failureReason: "Timeout de paiement",
+          scheduledBy: "WORKFLOW"
         }
-      },
-      this.config.paymentTimeoutMinutes * 60 * 1000,
+      }
     );
   }
 
   private async schedulePreparationTimeout(orderId: string): Promise<void> {
-    setTimeout(
-      async () => {
-        const status = await this.getOrderStatus(orderId);
-        if (status === "PREPARING") {
-          await this.handlePreparationDelay(orderId);
+    await this.taskScheduler.schedulePreparationTimeout(
+      orderId,
+      this.config.preparationTimeMinutes,
+      {
+        metadata: { 
+          alertType: "PREPARATION_DELAY",
+          scheduledBy: "WORKFLOW" 
         }
-      },
-      this.config.preparationTimeMinutes * 60 * 1000,
+      }
     );
   }
 
   private async schedulePickupTimeout(orderId: string): Promise<void> {
-    setTimeout(
-      async () => {
-        const status = await this.getOrderStatus(orderId);
-        if (status === "ASSIGNED") {
-          await this.handlePickupTimeout(orderId);
+    await this.taskScheduler.schedulePickupTimeout(
+      orderId,
+      this.config.pickupTimeoutMinutes,
+      {
+        metadata: { 
+          action: "REASSIGN_DELIVERER",
+          scheduledBy: "WORKFLOW" 
         }
-      },
-      this.config.pickupTimeoutMinutes * 60 * 1000,
+      }
     );
   }
 
   private async scheduleDeliveryTimeout(orderId: string): Promise<void> {
-    setTimeout(
-      async () => {
-        const status = await this.getOrderStatus(orderId);
-        if (status === "IN_DELIVERY") {
-          await this.handleDeliveryTimeout(orderId);
+    await this.taskScheduler.scheduleDeliveryTimeout(
+      orderId,
+      this.config.deliveryTimeoutMinutes,
+      {
+        metadata: { 
+          action: "ESCALATE_ISSUE",
+          scheduledBy: "WORKFLOW" 
         }
-      },
-      this.config.deliveryTimeoutMinutes * 60 * 1000,
+      }
     );
   }
 
@@ -723,24 +727,98 @@ export class CartDropWorkflow {
     orderId: string,
     code: string,
   ): Promise<boolean> {
-    
-    return code === "PICKUP123";
+    try {
+      // Récupérer le code de collecte généré pour cette commande
+      const orderDetails = await this.prisma.$queryRaw`
+        SELECT pickup_code FROM cart_drop_orders 
+        WHERE id = ${orderId}
+      `;
+      
+      if (Array.isArray(orderDetails) && orderDetails.length > 0) {
+        const expectedCode = (orderDetails[0] as any).pickup_code;
+        return code === expectedCode;
+      }
+      
+      return false;
+    } catch (error) {
+      logger.error("Erreur validation code collecte:", error);
+      return false;
+    }
   }
 
   private async validateDeliveryCode(
     orderId: string,
     code: string,
   ): Promise<boolean> {
-    
-    return code === "DELIV456";
+    try {
+      // Récupérer le code de livraison généré pour cette commande
+      const orderDetails = await this.prisma.$queryRaw`
+        SELECT delivery_code FROM cart_drop_orders 
+        WHERE id = ${orderId}
+      `;
+      
+      if (Array.isArray(orderDetails) && orderDetails.length > 0) {
+        const expectedCode = (orderDetails[0] as any).delivery_code;
+        return code === expectedCode;
+      }
+      
+      return false;
+    } catch (error) {
+      logger.error("Erreur validation code livraison:", error);
+      return false;
+    }
   }
 
   private async validateDeliveryLocation(
     orderId: string,
     location: { latitude: number; longitude: number },
   ): Promise<boolean> {
-    
-    return true; // Dans la vraie implémentation, vérifier la distance
+    try {
+      // Récupérer l'adresse de livraison de la commande
+      const orderDetails = await this.prisma.$queryRaw`
+        SELECT delivery_latitude, delivery_longitude FROM cart_drop_orders 
+        WHERE id = ${orderId}
+      `;
+      
+      if (Array.isArray(orderDetails) && orderDetails.length > 0) {
+        const expectedLocation = orderDetails[0] as any;
+        
+        // Calculer la distance entre la position actuelle et l'adresse de livraison
+        const distance = this.calculateDistance(
+          location.latitude,
+          location.longitude,
+          expectedLocation.delivery_latitude,
+          expectedLocation.delivery_longitude
+        );
+        
+        // Accepter si la distance est inférieure à 100 mètres
+        return distance <= 0.1; // 0.1 km = 100 mètres
+      }
+      
+      return false;
+    } catch (error) {
+      logger.error("Erreur validation localisation livraison:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Calcule la distance entre deux points GPS en kilomètres
+   */
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = this.degreesToRadians(lat2 - lat1);
+    const dLon = this.degreesToRadians(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.degreesToRadians(lat1)) * Math.cos(this.degreesToRadians(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  private degreesToRadians(degrees: number): number {
+    return degrees * (Math.PI / 180);
   }
 
   private async releaseReservedStock(orderId: string): Promise<void> {

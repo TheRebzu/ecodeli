@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import ProductManager from "@/components/merchant/catalog/product-manager";
 
 export default function EditProductPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function EditProductPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Modifier produit - En cours de développement
-        </p>
+        <ProductManager />
       </Card>
     </div>
   );

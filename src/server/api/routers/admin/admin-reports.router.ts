@@ -985,19 +985,15 @@ async function generateCSVExport(
       row.map(cell => `"${cell}"`).join(',')
     ).join('\n');
     
-    // Sauvegarder le fichier (simulation stockage cloud)
-    const exportDir = process.env.EXPORT_DIR || './exports';
-    const filePath = path.join(exportDir, fileName);
-    
-    // Créer le dossier s'il n'existe pas
-    await fs.mkdir(exportDir, { recursive: true });
-    
-    // Écrire le fichier CSV
-    await fs.writeFile(filePath, csvContent, 'utf8');
-    
-    // Retourner l'URL de téléchargement
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    return `${baseUrl}/api/exports/download/${fileName}`;
+            // Utiliser le service d'export réel
+        const exportDir = process.env.EXPORT_DIR || './exports';
+        await exportGeneratorService.ensureExportDir();
+        
+        const filePath = path.join(exportDir, fileName);
+        await fs.writeFile(filePath, csvContent, 'utf8');
+        
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        return `${baseUrl}/api/exports/download/${fileName}`;
     
   } catch (error) {
     console.error('Erreur génération CSV:', error);

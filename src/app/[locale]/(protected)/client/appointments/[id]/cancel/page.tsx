@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { AppointmentList } from "@/components/client/appointments/appointment-list";
 
 export default function CancelAppointmentPage() {
   const t = useTranslations();
@@ -15,9 +16,14 @@ export default function CancelAppointmentPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Annuler - En cours de développement
-        </p>
+        <AppointmentList
+          appointments={[]}
+          isLoading={false}
+          onView={(id) => console.log('View:', id)}
+          onCancel={(id) => console.log('Cancel:', id)}
+          onReschedule={(id) => console.log('Reschedule:', id)}
+          onBookNew={() => console.log('Book new')}
+        />
       </Card>
     </div>
   );

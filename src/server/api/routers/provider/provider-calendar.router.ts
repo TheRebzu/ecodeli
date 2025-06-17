@@ -452,13 +452,31 @@ export const providerCalendarRouter = router({ /**
             message: "Disponibilité non trouvée" });
         }
 
-        // Vérifier s'il y a des réservations futures liées
+        // Vérifier s'il y a des réservations futures liées à cette disponibilité
         const futureBookings = await ctx.db.serviceBooking.count({
           where: {
             providerId: provider.id,
-            scheduledAt: { gte: new Date() },
+            scheduledAt: { 
+              gte: new Date(),
+              // Vérifier les réservations dans la plage horaire de la disponibilité
+              ...(availability.type === "ONE_TIME" && availability.specificDate ? {
+                gte: new Date(availability.specificDate.toDateString()),
+                lt: new Date(availability.specificDate.getTime() + 24 * 60 * 60 * 1000)
+              } : {})
+            },
             status: { in: ["PENDING", "CONFIRMED"] },
-            // TODO: Ajouter la logique pour vérifier si la réservation est dans cette disponibilité
+            // Vérifier que la réservation tombe dans les créneaux de cette disponibilité
+            AND: [
+              // Créer une condition pour vérifier si l'heure de la réservation chevauche avec les créneaux
+              {
+                OR: availability.timeSlots?.map((slot: any) => ({
+                  scheduledAt: {
+                    gte: new Date(`${availability.specificDate?.toDateString() || new Date().toDateString()} ${slot.startTime}`),
+                    lte: new Date(`${availability.specificDate?.toDateString() || new Date().toDateString()} ${slot.endTime}`)
+                  }
+                })) || []
+              }
+            ]
           }});
 
         if (futureBookings > 0) {

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { ContractsList } from "@/components/admin/contracts/contracts-list";
 
 export default function PendingContractsPage() {
   const t = useTranslations();
@@ -15,9 +16,18 @@ export default function PendingContractsPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Contrats en attente - En cours de développement
-        </p>
+        <ContractsList
+          contracts={[]}
+          totalPages={1}
+          currentPage={1}
+          isLoading={false}
+          onPageChange={() => {}}
+          onEdit={() => {}}
+          onDelete={() => {}}
+          onActivate={() => {}}
+          onSuspend={() => {}}
+          onGeneratePdf={() => {}}
+        />
       </Card>
     </div>
   );

@@ -220,11 +220,21 @@ export const cloudServicesRouter = createTRPCRouter({
 
 async function checkDatabaseStatus() {
   try {
-    await db.user.count();
+    const startTime = Date.now();
+    
+    // Test de performance réelle avec plusieurs requêtes
+    await Promise.all([
+      db.user.count(),
+      db.announcement.count(),
+      db.delivery.count()
+    ]);
+    
+    const responseTime = Date.now() - startTime;
+    
     return {
       status: 'healthy' as const,
       message: 'Base de données accessible',
-      responseTime: Math.floor(Math.random() * 50 + 10)
+      responseTime: Math.round(responseTime)
     };
   } catch (error) {
     return {

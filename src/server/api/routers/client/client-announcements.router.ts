@@ -942,8 +942,23 @@ function calculateDistance(
   return R * c; // Distance en km
 }
 
+/**
+ * Génère un code de validation sécurisé et unique
+ * Utilise crypto.randomBytes pour une meilleure sécurité
+ */
 function generateValidationCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  try {
+    const crypto = require('crypto');
+    // Générer 4 bytes aléatoires et les convertir en hex
+    const randomBytes = crypto.randomBytes(4);
+    return randomBytes.toString('hex').toUpperCase();
+  } catch (error) {
+    // Fallback si crypto n'est pas disponible
+    console.warn('⚠️ Crypto non disponible, utilisation du fallback');
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 4);
+    return `${timestamp}${random}`.substring(0, 8).toUpperCase();
+  }
 }
 
 /**

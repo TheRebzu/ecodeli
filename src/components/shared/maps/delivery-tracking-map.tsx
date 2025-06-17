@@ -1,29 +1,31 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState, useRef } from "react";
+import { MapContainer as LeafletMapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import { Icon, LatLngBounds } from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useSocket } from "@/hooks/system/use-socket";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
+import { useSocket } from "@/hooks/use-socket";
 import {
   MapPin,
   Navigation,
   Truck,
   Clock,
-  Phone,
-  MessageCircle,
   Route,
   Maximize2,
   Minimize2,
-  RefreshCw,
-  AlertTriangle,
-  Target,
-  Navigation2} from "lucide-react";
-import { cn } from "@/lib/utils/common";
+  RotateCcw,
+  Zap,
+} from "lucide-react";
 
+// Import des styles Leaflet
+import "leaflet/dist/leaflet.css";
+
+// Interface pour les positions de livraison
 interface DeliveryLocation {
   lat: number;
   lng: number;
@@ -32,6 +34,7 @@ interface DeliveryLocation {
   timestamp?: Date;
 }
 
+// Interface pour les propriétés du composant
 interface DeliveryTrackingMapProps {
   deliveryId: string;
   height?: string | number;
@@ -41,6 +44,7 @@ interface DeliveryTrackingMapProps {
   className?: string;
 }
 
+// Interface pour la position actuelle
 interface DeliveryPosition {
   deliveryId: string;
   position: {
@@ -53,158 +57,43 @@ interface DeliveryPosition {
   timestamp: Date;
 }
 
-// Composant simulé de carte (à remplacer par une vraie intégration de carte)
-const MapContainer = ({
-  locations,
-  currentPosition,
-  onLocationClick,
-  height = "100%",
-  autoCenter = false}: {
-  locations: DeliveryLocation[];
-  currentPosition?: DeliveryPosition;
-  onLocationClick?: (location: DeliveryLocation) => void;
-  height?: string | number;
-  autoCenter?: boolean;
-}) => {
-  const [isSimulating, setIsSimulating] = useState(false);
-
-  useEffect(() => {
-    if (currentPosition && !isSimulating) {
-      setIsSimulating(true);
-      const timer = setTimeout(() => setIsSimulating(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentPosition, isSimulating]);
-
-  return (
-    <div
-      className="relative bg-muted/20 rounded-lg border flex items-center justify-center overflow-hidden"
-      style={{ height }}
-    >
-      {/* Fond de carte stylisé */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/20 dark:to-green-950/20" />
-
-      {/* Éléments de la carte */}
-      <div className="relative w-full h-full p-4">
-        {/* Points de livraison */}
-        <div className="absolute top-4 left-4 space-y-2">
-          {locations.map((location, index) => (
-            <div
-              key={index}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-lg backdrop-blur-sm cursor-pointer transition-all hover:scale-105",
-                location.type === "pickup" &&
-                  "bg-blue-100/80 dark:bg-blue-900/50",
-                location.type === "delivery" &&
-                  "bg-green-100/80 dark:bg-green-900/50",
-                location.type === "current" &&
-                  "bg-red-100/80 dark:bg-red-900/50",
-              )}
-              onClick={() => onLocationClick?.(location)}
-            >
-              {location.type === "pickup" && (
-                <MapPin className="h-4 w-4 text-blue-600" />
-              )}
-              {location.type === "delivery" && (
-                <Navigation className="h-4 w-4 text-green-600" />
-              )}
-              {location.type === "current" && (
-                <Truck className="h-4 w-4 text-red-600" />
-              )}
-              <span className="text-xs font-medium">
-                {location.type === "pickup" && "Récupération"}
-                {location.type === "delivery" && "Livraison"}
-                {location.type === "current" && "Position actuelle"}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Position actuelle du livreur (animée) */}
-        {currentPosition && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div
-              className={cn(
-                "relative flex items-center justify-center w-8 h-8 bg-red-500 rounded-full border-2 border-white shadow-lg transition-all duration-300",
-                isSimulating && "animate-pulse scale-110",
-              )}
-            >
-              <Truck className="h-4 w-4 text-white" />
-
-              {/* Cercle de précision */}
-              <div className="absolute inset-0 border-2 border-red-300 rounded-full animate-ping opacity-75" />
-            </div>
-
-            {/* Vitesse */}
-            {currentPosition.speed && (
-              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                {Math.round(currentPosition.speed)} km/h
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Trajet (ligne pointillée) */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none">
-          <defs>
-            <pattern
-              id="dashed"
-              patternUnits="userSpaceOnUse"
-              width="8"
-              height="8"
-            >
-              <line
-                x1="0"
-                y1="4"
-                x2="8"
-                y2="4"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeDasharray="3,3"
-              />
-            </pattern>
-          </defs>
-          <path
-            d="M 20,50 Q 150,20 280,50 Q 350,80 400,120"
-            fill="none"
-            stroke="url(#dashed)"
-            strokeWidth="2"
-            className="text-primary opacity-60"
-          />
-        </svg>
-
-        {/* Légende */}
-        <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-gray-900/90 rounded-lg p-3 space-y-1 text-xs backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full" />
-            <span>Point de récupération</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full" />
-            <span>Point de livraison</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full" />
-            <span>Position actuelle</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+// Configuration des icônes Leaflet personnalisées
+const createCustomIcon = (color: string, iconClass: string) => {
+  return new Icon({
+    iconUrl: `data:image/svg+xml;base64,${btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}">
+        <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
+        <path d="M12 2v20M2 12h20" stroke="white" stroke-width="1"/>
+      </svg>
+    `)}`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12],
+  });
 };
 
+// Icônes personnalisées pour chaque type de point
+const icons = {
+  pickup: createCustomIcon("#3B82F6", "pickup"),
+  delivery: createCustomIcon("#10B981", "delivery"),
+  current: createCustomIcon("#EF4444", "current"),
+};
+
+// Composant principal de la carte de livraison
 export default function DeliveryTrackingMap({
   deliveryId,
   height = "400px",
   showControls = true,
   showEta = true,
   autoCenter = true,
-  className}: DeliveryTrackingMapProps) {
+  className
+}: DeliveryTrackingMapProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedLocation, setSelectedLocation] =
-    useState<DeliveryLocation | null>(null);
-  const [currentPosition, setCurrentPosition] =
-    useState<DeliveryPosition | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<DeliveryLocation | null>(null);
+  const [currentPosition, setCurrentPosition] = useState<DeliveryPosition | null>(null);
+  const [mapBounds, setMapBounds] = useState<LatLngBounds | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const mapRef = useRef<any>(null);
   const { socket } = useSocket();
 
   // Récupération des données de livraison
@@ -226,6 +115,11 @@ export default function DeliveryTrackingMap({
     const handlePositionUpdate = (data: DeliveryPosition) => {
       if (data.deliveryId === deliveryId) {
         setCurrentPosition(data);
+        
+        // Centrer la carte sur la nouvelle position si autoCenter est activé
+        if (autoCenter && mapRef.current && data.position) {
+          mapRef.current.setView([data.position.lat, data.position.lng], 14);
+        }
       }
     };
 
@@ -244,19 +138,16 @@ export default function DeliveryTrackingMap({
       socket.off("delivery:status:update", handleDeliveryStatusUpdate);
       socket.emit("delivery:leave_tracking", { deliveryId });
     };
-  }, [socket, deliveryId, refetch]);
+  }, [socket, deliveryId, refetch, autoCenter]);
 
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Route className="h-5 w-5" />
-            Suivi en temps réel
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="w-full" style={{ height }} />
+      <Card className={cn("w-full", className)}>
+        <CardContent className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Chargement de la carte...</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -264,54 +155,66 @@ export default function DeliveryTrackingMap({
 
   if (!delivery) {
     return (
-      <Alert variant="destructive" className={className}>
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          Impossible de charger les informations de suivi pour cette livraison.
-          <Button
-            variant="link"
-            className="p-0 h-auto ml-2"
-            onClick={() => refetch()}
-          >
-            <RefreshCw className="h-3 w-3 mr-1" />
-            Réessayer
-          </Button>
-        </AlertDescription>
-      </Alert>
+      <Card className={cn("w-full", className)}>
+        <CardContent className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Aucune information de livraison disponible</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
-  // Préparation des locations pour la carte
+  // Préparation des points de livraison
   const locations: DeliveryLocation[] = [
     {
-      lat: delivery.pickupLatitude || 0,
-      lng: delivery.pickupLongitude || 0,
+      lat: delivery.pickupLocation.latitude,
+      lng: delivery.pickupLocation.longitude,
       type: "pickup",
-      address: delivery.pickupAddress},
+      address: delivery.pickupLocation.address,
+    },
     {
-      lat: delivery.deliveryLatitude || 0,
-      lng: delivery.deliveryLongitude || 0,
+      lat: delivery.deliveryLocation.latitude,
+      lng: delivery.deliveryLocation.longitude,
       type: "delivery",
-      address: delivery.deliveryAddress}];
+      address: delivery.deliveryLocation.address,
+    },
+  ];
 
+  // Ajouter la position actuelle si disponible
   if (currentPosition) {
-    locations.push({ lat: currentPosition.position.lat,
+    locations.push({
+      lat: currentPosition.position.lat,
       lng: currentPosition.position.lng,
       type: "current",
       timestamp: currentPosition.timestamp,
-     });
+    });
   }
 
+  // Calcul de l'ETA
+  const calculateETA = () => {
+    if (!currentPosition || !delivery.estimatedArrival) return null;
+    
+    const now = new Date();
+    const eta = new Date(delivery.estimatedArrival);
+    const diffMs = eta.getTime() - now.getTime();
+    const diffMinutes = Math.ceil(diffMs / (1000 * 60));
+    
+    return diffMinutes > 0 ? diffMinutes : 0;
+  };
+
+  // Fonction pour obtenir la couleur du statut
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING":
         return "bg-yellow-100 text-yellow-800";
-      case "ACCEPTED":
+      case "CONFIRMED":
         return "bg-blue-100 text-blue-800";
-      case "PICKED_UP":
-        return "bg-purple-100 text-purple-800";
-      case "IN_TRANSIT":
+      case "PICKUP":
         return "bg-orange-100 text-orange-800";
+      case "IN_TRANSIT":
+        return "bg-purple-100 text-purple-800";
       case "DELIVERED":
         return "bg-green-100 text-green-800";
       case "CANCELLED":
@@ -321,194 +224,197 @@ export default function DeliveryTrackingMap({
     }
   };
 
+  // Fonction pour obtenir le libellé du statut
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       PENDING: "En attente",
-      ACCEPTED: "Acceptée",
-      PICKED_UP: "Récupérée",
-      IN_TRANSIT: "En transit",
-      DELIVERED: "Livrée",
-      CANCELLED: "Annulée",
+      CONFIRMED: "Confirmé",
+      PICKUP: "Récupération",
+      IN_TRANSIT: "En cours",
+      DELIVERED: "Livré",
+      CANCELLED: "Annulé",
     };
     return labels[status] || status;
   };
 
-  const calculateETA = () => {
-    if (
-      !currentPosition ||
-      !delivery.deliveryLatitude ||
-      !delivery.deliveryLongitude
-    ) {
-      return null;
-    }
+  // Trajet (polyline) entre les points
+  const routeCoordinates = locations
+    .filter(loc => loc.type !== "current")
+    .map(loc => [loc.lat, loc.lng] as [number, number]);
 
-    // Calcul simple de distance (à remplacer par un calcul de route réel)
-    const distanceKm =
-      Math.sqrt(
-        Math.pow(delivery.deliveryLatitude - currentPosition.position.lat, 2) +
-          Math.pow(
-            delivery.deliveryLongitude - currentPosition.position.lng,
-            2,
-          ),
-      ) * 111; // Approximation en km
-
-    const speed = currentPosition.speed || 30; // 30 km/h par défaut
-    const etaMinutes = Math.round((distanceKm / speed) * 60);
-
-    return etaMinutes;
-  };
+  // Ajouter la position actuelle au trajet si disponible
+  if (currentPosition) {
+    routeCoordinates.splice(1, 0, [currentPosition.position.lat, currentPosition.position.lng]);
+  }
 
   const eta = calculateETA();
 
   return (
-    <Card
-      className={cn(
-        className,
-        isFullscreen && "fixed inset-0 z-50 rounded-none",
-      )}
-    >
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Route className="h-5 w-5" />
-            Suivi en temps réel
-            {delivery.trackingCode && (
-              <Badge variant="outline" className="ml-2">
-                #{delivery.trackingCode}
-              </Badge>
-            )}
-          </CardTitle>
-
-          <div className="flex items-center gap-2">
+    <div className={cn("w-full space-y-4", className)}>
+      {/* Informations de statut */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Suivi de livraison</CardTitle>
             <Badge className={getStatusColor(delivery.status)}>
               {getStatusLabel(delivery.status)}
             </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-blue-600" />
+              <div className="text-sm">
+                <p className="font-medium">Récupération</p>
+                <p className="text-muted-foreground truncate">{delivery.pickupLocation.address}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Navigation className="h-4 w-4 text-green-600" />
+              <div className="text-sm">
+                <p className="font-medium">Livraison</p>
+                <p className="text-muted-foreground truncate">{delivery.deliveryLocation.address}</p>
+              </div>
+            </div>
+            {showEta && eta !== null && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-purple-600" />
+                <div className="text-sm">
+                  <p className="font-medium">ETA</p>
+                  <p className="text-muted-foreground">{eta} min</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* Carte interactive */}
+      <Card>
+        <CardContent className="p-0">
+          <div 
+            className={cn(
+              "relative overflow-hidden rounded-lg",
+              isFullscreen && "fixed inset-0 z-50 rounded-none"
+            )}
+            style={{ height: isFullscreen ? "100vh" : height }}
+          >
+            <LeafletMapContainer
+              ref={mapRef}
+              center={[locations[0]?.lat || 48.8566, locations[0]?.lng || 2.3522]}
+              zoom={13}
+              style={{ height: "100%", width: "100%" }}
+              whenReady={() => setIsMapReady(true)}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              
+              {/* Marqueurs pour chaque point */}
+              {locations.map((location, index) => (
+                <Marker
+                  key={index}
+                  position={[location.lat, location.lng]}
+                  icon={icons[location.type]}
+                  eventHandlers={{
+                    click: () => setSelectedLocation(location),
+                  }}
+                >
+                  <Popup>
+                    <div className="p-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        {location.type === "pickup" && <MapPin className="h-4 w-4 text-blue-600" />}
+                        {location.type === "delivery" && <Navigation className="h-4 w-4 text-green-600" />}
+                        {location.type === "current" && <Truck className="h-4 w-4 text-red-600" />}
+                        <span className="font-medium">
+                          {location.type === "pickup" && "Point de récupération"}
+                          {location.type === "delivery" && "Point de livraison"}
+                          {location.type === "current" && "Position actuelle"}
+                        </span>
+                      </div>
+                      {location.address && (
+                        <p className="text-sm text-gray-600">{location.address}</p>
+                      )}
+                      {location.timestamp && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Dernière mise à jour: {location.timestamp.toLocaleTimeString()}
+                        </p>
+                      )}
+                      {location.type === "current" && currentPosition?.speed && (
+                        <p className="text-xs text-gray-500">
+                          Vitesse: {Math.round(currentPosition.speed)} km/h
+                        </p>
+                      )}
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+
+              {/* Trajet */}
+              {routeCoordinates.length > 1 && (
+                <Polyline
+                  positions={routeCoordinates}
+                  color="#8B5CF6"
+                  weight={3}
+                  opacity={0.7}
+                  dashArray="10, 10"
+                />
+              )}
+            </LeafletMapContainer>
+
+            {/* Contrôles de la carte */}
             {showControls && (
-              <div className="flex gap-1">
+              <div className="absolute top-4 right-4 flex flex-col gap-2">
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => refetch()}
-                  className="h-8 w-8 p-0"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="outline"
+                  className="bg-white/90 backdrop-blur-sm"
                   onClick={() => setIsFullscreen(!isFullscreen)}
-                  className="h-8 w-8 p-0"
                 >
-                  {isFullscreen ? (
-                    <Minimize2 className="h-3 w-3" />
-                  ) : (
-                    <Maximize2 className="h-3 w-3" />
-                  )}
+                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-white/90 backdrop-blur-sm"
+                  onClick={() => refetch()}
+                >
+                  <RotateCcw className="h-4 w-4" />
                 </Button>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* ETA et informations */}
-        {showEta && (
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {eta && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                <span>ETA: {eta} min</span>
-              </div>
-            )}
-
-            {currentPosition?.timestamp && (
-              <div className="flex items-center gap-1">
-                <Target className="h-4 w-4" />
-                <span>
-                  Dernière position:{" "}
-                  {new Date(currentPosition.timestamp).toLocaleTimeString()}
-                </span>
-              </div>
-            )}
-
-            {delivery.deliverer && (
-              <div className="flex items-center gap-1">
-                <Truck className="h-4 w-4" />
-                <span>Livreur: {delivery.deliverer.name}</span>
+            {/* Informations en temps réel */}
+            {currentPosition && (
+              <div className="absolute bottom-4 left-4 right-4">
+                <Card className="bg-white/90 backdrop-blur-sm">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                        <span className="text-sm font-medium">En direct</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        {currentPosition.speed && (
+                          <div className="flex items-center gap-1">
+                            <Zap className="h-3 w-3" />
+                            <span>{Math.round(currentPosition.speed)} km/h</span>
+                          </div>
+                        )}
+                        <span>
+                          Dernière position: {currentPosition.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
           </div>
-        )}
-      </CardHeader>
-
-      <CardContent className="p-0">
-        <MapContainer
-          locations={locations}
-          currentPosition={currentPosition}
-          onLocationClick={setSelectedLocation}
-          height={isFullscreen ? "calc(100vh - 180px)" : height}
-          autoCenter={autoCenter}
-        />
-
-        {/* Actions de contact (si en transit) */}
-        {delivery.status === "IN_TRANSIT" && delivery.deliverer && (
-          <div className="p-4 border-t bg-muted/20">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Contact livreur</span>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Appeler
-                </Button>
-                <Button size="sm" variant="outline">
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Message
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </CardContent>
-
-      {/* Modal d'information sur la location sélectionnée */}
-      {selectedLocation && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-10">
-          <div className="bg-background rounded-lg p-4 max-w-sm w-full">
-            <h3 className="font-medium mb-2">
-              {selectedLocation.type === "pickup" && "Point de récupération"}
-              {selectedLocation.type === "delivery" && "Point de livraison"}
-              {selectedLocation.type === "current" && "Position actuelle"}
-            </h3>
-
-            {selectedLocation.address && (
-              <p className="text-sm text-muted-foreground mb-3">
-                {selectedLocation.address}
-              </p>
-            )}
-
-            {selectedLocation.timestamp && (
-              <p className="text-xs text-muted-foreground mb-3">
-                {new Date(selectedLocation.timestamp).toLocaleString()}
-              </p>
-            )}
-
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="flex-1">
-                <Navigation2 className="h-4 w-4 mr-2" />
-                Itinéraire
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setSelectedLocation(null)}
-              >
-                Fermer
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

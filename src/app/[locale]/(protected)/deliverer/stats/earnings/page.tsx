@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import EarningsWidget from "@/components/deliverer/dashboard/earnings-widget";
 
 export default function EarningsPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function EarningsPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Gains - En cours de développement
-        </p>
+        <EarningsWidget />
       </Card>
     </div>
   );

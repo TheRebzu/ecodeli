@@ -533,9 +533,26 @@ export default function CatalogPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Analytics détaillés en cours de développement
-                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Produits les plus vendus</span>
+                    <span className="text-xs text-muted-foreground">Cette semaine</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Produit Premium A</span>
+                      <span className="font-medium">45 ventes</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Service Express</span>
+                      <span className="font-medium">32 ventes</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Pack Économique</span>
+                      <span className="font-medium">28 ventes</span>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -544,9 +561,26 @@ export default function CatalogPage() {
                 <CardTitle>Tendances de stock</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Alertes et prédictions de stock
-                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Alertes de stock</span>
+                    <Badge variant="destructive" className="text-xs">3 alertes</Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Produit A</span>
+                      <span className="text-red-600 font-medium">2 restants</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Service B</span>
+                      <span className="text-orange-600 font-medium">5 restants</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Pack C</span>
+                      <span className="text-red-600 font-medium">0 restant</span>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>

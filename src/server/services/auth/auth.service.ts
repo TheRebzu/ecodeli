@@ -664,8 +664,9 @@ export class AuthService {
         message: "La configuration 2FA n'est pas activée" });
     }
 
-    // Vérification simple pour le développement
-    const isValid = token === "123456";
+    // Vérification sécurisée avec TOTP
+    const { verifyTOTPToken } = await import("@/lib/security/totp");
+    const isValid = verifyTOTPToken(token, user.twoFactorSecret);
 
     if (isValid) {
       await this.db.user.update({

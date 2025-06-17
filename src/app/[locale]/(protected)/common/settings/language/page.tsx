@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { LanguageSwitcher } from "@/components/layout/common/language-switcher";
 
 export default function LanguagePage() {
   const t = useTranslations();
@@ -15,9 +16,12 @@ export default function LanguagePage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Langue - En cours de développement
-        </p>
+        <div className="space-y-4">
+          <LanguageSwitcher locale="fr" />
+          <p className="text-muted-foreground">
+            Choisissez votre langue préférée pour l'interface.
+          </p>
+        </div>
       </Card>
     </div>
   );

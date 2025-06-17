@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { AdminPermissionService } from "@/server/services/admin/admin-permissions.service";
 
 /**
  * Router pour admin services
@@ -118,8 +119,14 @@ export const adminServicesRouter = router({ // Récupérer les statistiques des 
     )
     .query(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Vérifier les permissions selon le rôle
+        // Vérifier les permissions admin pour consulter les services
         const { user } = ctx.session;
+        const permissionService = new AdminPermissionService(ctx.db);
+        await permissionService.requireAdminPermissions(
+          user.id,
+          ["system.settings"],
+          "Vous devez avoir les permissions système pour consulter les services"
+        );
 
         // Récupérer les services depuis la base de données
         const whereClause: any = {};

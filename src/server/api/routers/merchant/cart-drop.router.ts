@@ -2,6 +2,7 @@ import { z } from "zod";
 import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { CartDropType, CartDropStatus } from "@prisma/client";
+import { notificationService } from "@/server/services/shared/notification.service";
 
 /**
  * Router pour la gestion du lâcher de chariot des commerçants
@@ -459,10 +460,19 @@ export const cartDropRouter = router({ /**
           notifications.push(clientNotification);
         }
         
-        // Notification push (simulation OneSignal)
+        // Notification push réelle via OneSignal
         if (updatedCartDrop.merchantId) {
-          // En production: intégration OneSignal
-          console.log(`Push notification envoyée au commerçant ${updatedCartDrop.merchantId}`);
+          try {
+            await notificationService.sendMerchantOrderNotification(
+              updatedCartDrop.merchantId,
+              updatedCartDrop.id,
+              "Lâcher de chariot accepté",
+              `Votre lâcher de chariot ${updatedCartDrop.trackingCode} a été accepté par un livreur`
+            );
+          } catch (error) {
+            console.error("Erreur notification commerçant:", error);
+            // Ne pas faire échouer la transaction pour une erreur de notification
+          }
         }
 
         return {

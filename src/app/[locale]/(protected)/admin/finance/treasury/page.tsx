@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import RevenueDashboard from "@/components/admin/financial/revenue-dashboard";
 
 export default function TreasuryPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function TreasuryPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Trésorerie - En cours de développement
-        </p>
+        <RevenueDashboard />
       </Card>
     </div>
   );

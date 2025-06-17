@@ -3,6 +3,10 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { UserRole, PaymentStatus, PaymentMethod } from "@prisma/client";
 
+// Import des services de paiement
+import { paymentService } from "@/server/services/shared/payment.service";
+import { stripeService } from "@/server/services/shared/stripe.service";
+
 /**
  * Router pour les paiements client
  * Gestion complète des paiements, factures et transactions
@@ -643,35 +647,372 @@ export const clientPaymentsRouter = createTRPCRouter({
 // Fonctions utilitaires Stripe
 
 /**
- * Crée un intent de paiement Stripe
- * En production, utiliser la vraie API Stripe
+ * Crée un intent de paiement Stripe réel
+ * Intégration complète avec l'API Stripe
  */
 async function createStripePaymentIntent(params: {
   amount: number;
   currency: string;
   metadata: Record<string, string>;
 }): Promise<{ id: string; client_secret: string }> {
-  // Simulation d'appel Stripe
-  // En production, remplacer par:
-  // const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-  // return await stripe.paymentIntents.create({
-  //   amount: params.amount,
-  //   currency: params.currency,
-  //   metadata: params.metadata,
-  //   automatic_payment_methods: { enabled: true },
-  // });
+  try {
+    // Vérifier la configuration Stripe
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY not configured');
+    }
 
-  console.log('💳 Création PaymentIntent Stripe:', params);
-  
-  // Simuler le temps d'appel API
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  // Générer des IDs réalistes
-  const paymentIntentId = `pi_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-  const clientSecret = `${paymentIntentId}_secret_${Math.random().toString(36).substring(2, 15)}`;
-  
-  return {
-    id: paymentIntentId,
-    client_secret: clientSecret,
-  };
+    // Initialiser le client Stripe
+    const Stripe = (await import('stripe')).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-11-20.acacia', // Version Stripe la plus récente
+    });
+
+    console.log('💳 Création PaymentIntent Stripe réel:', {
+      amount: params.amount,
+      currency: params.currency,
+      metadataKeys: Object.keys(params.metadata)
+    });
+
+    // Créer l'intent de paiement avec l'API Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: params.amount,
+      currency: params.currency,
+      metadata: params.metadata,
+      automatic_payment_methods: { enabled: true },
+      confirmation_method: 'manual',
+      confirm: false, // Le client confirmera via le frontend
+      description: `EcoDeli - ${params.metadata.description || 'Paiement'}`
+    });
+
+    console.log(`✅ PaymentIntent Stripe créé: ${paymentIntent.id}`);
+
+    return {
+      id: paymentIntent.id,
+      client_secret: paymentIntent.client_secret!,
+    };
+    
+  } catch (error) {
+    console.error('❌ Erreur lors de la création du PaymentIntent Stripe:', error);
+    
+    // En cas d'erreur de configuration ou de réseau, fallback temporaire
+    // Uniquement pour les environnements de développement
+    if (process.env.NODE_ENV === 'development' && !process.env.STRIPE_SECRET_KEY) {
+      console.warn('⚠️ Fallback - Configuration Stripe manquante en développement');
+      
+      // Générer des IDs de fallback pour le développement
+      const fallbackId = `pi_dev_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const fallbackSecret = `${fallbackId}_secret_${Math.random().toString(36).substring(2, 10)}`;
+      
+      return {
+        id: fallbackId,
+        client_secret: fallbackSecret,
+      };
+    }
+    
+    // En production, ne pas utiliser de fallback
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Erreur lors de la création de l\'intent de paiement Stripe',
+      cause: error
+    });
+  }
+}
+
+/**
+ * Traite un paiement Stripe de manière complète
+ * Vérifie, confirme et finalise le paiement
+ */
+async function processStripePayment(params: {
+  paymentIntentId: string;
+  expectedAmount: number;
+  paymentRecordId: string;
+  clientId: string;
+  announcementId?: string;
+  database: any;
+}): Promise<{
+  success: boolean;
+  chargeId?: string;
+  error?: string;
+  metadata?: any;
+}> {
+  try {
+    console.log(`🔄 Traitement du paiement Stripe: ${params.paymentIntentId}`);
+    
+    // Vérifier la configuration Stripe
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('Configuration Stripe manquante');
+    }
+
+    // Initialiser le client Stripe
+    const Stripe = (await import('stripe')).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-11-20.acacia',
+    });
+
+    // Récupérer les détails du PaymentIntent depuis Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(params.paymentIntentId);
+    
+    if (!paymentIntent) {
+      throw new Error('PaymentIntent introuvable');
+    }
+
+    // Vérifier que le montant correspond
+    const stripeAmount = paymentIntent.amount / 100; // Stripe utilise les centimes
+    if (Math.abs(stripeAmount - params.expectedAmount) > 0.01) {
+      throw new Error(`Montant incorrect: attendu ${params.expectedAmount}€, reçu ${stripeAmount}€`);
+    }
+
+    // Vérifier le statut du paiement
+    if (paymentIntent.status !== 'succeeded') {
+      throw new Error(`Paiement non confirmé, statut: ${paymentIntent.status}`);
+    }
+
+    console.log(`✅ Paiement Stripe vérifié: ${params.expectedAmount}€`);
+
+    // Vérifier le statut réel du paiement Stripe
+    if (paymentIntent.status !== 'succeeded') {
+      throw new Error(`Paiement non confirmé. Statut: ${paymentIntent.status}`);
+    }
+
+    // Vérifier que le montant correspond
+    if (paymentIntent.amount !== stripeAmount) {
+      throw new Error(`Montant incohérent. Attendu: ${stripeAmount}, Reçu: ${paymentIntent.amount}`);
+    }
+
+    return {
+      success: true,
+      chargeId: paymentIntent.latest_charge as string,
+      metadata: {
+        stripePaymentIntentId: paymentIntent.id,
+        stripeCustomerId: paymentIntent.customer,
+        paymentMethodId: paymentIntent.payment_method,
+        amount: stripeAmount,
+        currency: paymentIntent.currency,
+        verifiedAt: new Date().toISOString()
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ Erreur traitement paiement Stripe:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue'
+    };
+  }
+}
+
+/**
+ * Vérifie la validité d'un paiement Stripe en interrogeant l'API
+ */
+async function verifyStripePaymentStatus(paymentIntentId: string): Promise<{
+  isValid: boolean;
+  status: string;
+  failureReason?: string;
+}> {
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2023-10-16',
+    });
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    
+    return {
+      isValid: paymentIntent.status === 'succeeded',
+      status: paymentIntent.status,
+      failureReason: paymentIntent.last_payment_error?.message
+    };
+  } catch (error) {
+    console.error('Erreur vérification Stripe:', error);
+    return {
+      isValid: false,
+      status: 'error',
+      failureReason: error instanceof Error ? error.message : 'Erreur inconnue'
+    };
+  }
+}
+
+/**
+ * Déclenche toutes les actions post-paiement
+ * Notifications, mise à jour des statuts, etc.
+ */
+async function triggerPostPaymentActions(params: {
+  paymentId: string;
+  announcementId?: string;
+  clientId: string;
+  amount: number;
+  database: any;
+}): Promise<void> {
+  try {
+    console.log(`🚀 Actions post-paiement pour paiement: ${params.paymentId}`);
+    
+    // 1. Mettre à jour le statut de l'annonce si applicable
+    if (params.announcementId) {
+      await params.database.announcement.update({
+        where: { id: params.announcementId },
+        data: {
+          status: 'PAID',
+          updatedAt: new Date()
+        }
+      });
+      
+      console.log(`📝 Statut annonce ${params.announcementId} mis à jour vers PAID`);
+    }
+
+    // 2. Créer notification de confirmation pour le client
+    await params.database.notification.create({
+      data: {
+        userId: params.clientId,
+        type: 'PAYMENT_CONFIRMED',
+        title: 'Paiement confirmé',
+        message: `Votre paiement de ${params.amount}€ a été confirmé avec succès`,
+        data: {
+          paymentId: params.paymentId,
+          amount: params.amount,
+          announcementId: params.announcementId
+        },
+        priority: 'HIGH'
+      }
+    });
+
+    // 3. Notifier les livreurs correspondants s'il y a une annonce
+    if (params.announcementId) {
+      await notifyMatchedDeliverersOfPayment(params.announcementId, params.database);
+    }
+
+    // 4. Créer une tâche de suivi pour l'équipe admin
+    await params.database.adminTask.create({
+      data: {
+        type: 'PAYMENT_MONITORING',
+        title: `Suivi paiement ${params.amount}€`,
+        description: `Surveiller le paiement confirmé de ${params.amount}€ pour s'assurer de la bonne exécution de la livraison`,
+        priority: 'MEDIUM',
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
+        assignedToRole: 'PAYMENT_MANAGER',
+        metadata: {
+          paymentId: params.paymentId,
+          clientId: params.clientId,
+          amount: params.amount,
+          announcementId: params.announcementId
+        }
+      }
+    });
+
+    // 5. Log d'audit pour traçabilité
+    await params.database.auditLog.create({
+      data: {
+        userId: params.clientId,
+        action: 'PAYMENT_POST_PROCESSING_COMPLETED',
+        tableName: 'Payment',
+        recordId: params.paymentId,
+        changes: {
+          amount: params.amount,
+          announcementUpdated: !!params.announcementId,
+          notificationSent: true,
+          adminTaskCreated: true
+        },
+        ipAddress: 'system',
+        userAgent: 'Payment Processing System'
+      }
+    });
+
+    console.log(`✅ Actions post-paiement terminées pour paiement ${params.paymentId}`);
+
+  } catch (error) {
+    console.error('❌ Erreur actions post-paiement:', error);
+    
+    // Log d'erreur même si les actions échouent
+    await params.database.systemLog.create({
+      data: {
+        type: 'PAYMENT_POST_PROCESSING_ERROR',
+        message: `Échec actions post-paiement ${params.paymentId}`,
+        level: 'ERROR',
+        metadata: {
+          paymentId: params.paymentId,
+          error: error instanceof Error ? error.message : 'Erreur inconnue'
+        }
+      }
+    });
+  }
+}
+
+/**
+ * Notifie les livreurs qui correspondent à l'annonce payée
+ */
+async function notifyMatchedDeliverersOfPayment(announcementId: string, database: any): Promise<void> {
+  try {
+    // Récupérer l'annonce avec ses détails géographiques
+    const announcement = await database.announcement.findUnique({
+      where: { id: announcementId },
+      include: {
+        client: {
+          select: {
+            user: {
+              select: { name: true }
+            }
+          }
+        }
+      }
+    });
+
+    if (!announcement) {
+      console.warn(`⚠️ Annonce ${announcementId} introuvable pour notification livreurs`);
+      return;
+    }
+
+    // Trouver les livreurs dans un rayon de 25km
+    const deliverers = await database.deliverer.findMany({
+      where: {
+        isActive: true,
+        user: {
+          isActive: true,
+          // Filtrage géographique approximatif
+          latitude: {
+            gte: (announcement.pickupLatitude || 0) - 0.25,
+            lte: (announcement.pickupLatitude || 0) + 0.25
+          },
+          longitude: {
+            gte: (announcement.pickupLongitude || 0) - 0.25,
+            lte: (announcement.pickupLongitude || 0) + 0.25
+          }
+        }
+      },
+      include: {
+        user: {
+          select: { id: true, name: true }
+        }
+      },
+      take: 20 // Limiter à 20 livreurs pour éviter le spam
+    });
+
+    console.log(`📍 ${deliverers.length} livreurs trouvés dans la zone pour l'annonce ${announcementId}`);
+
+    // Créer les notifications
+    const notifications = deliverers.map(deliverer => ({
+      userId: deliverer.user.id,
+      type: 'NEW_PAID_ANNOUNCEMENT' as const,
+      title: 'Nouvelle annonce payée disponible',
+      message: `Une nouvelle livraison payée (${announcement.price}€) est disponible près de chez vous`,
+      data: {
+        announcementId,
+        price: announcement.price,
+        distance: 'À proximité',
+        clientName: announcement.client?.user?.name || 'Client',
+        urgency: announcement.urgency || 'NORMAL',
+        actionUrl: `/deliverer/announcements/${announcementId}`
+      },
+      priority: 'HIGH' as const,
+      expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000) // 6h d'expiration
+    }));
+
+    if (notifications.length > 0) {
+      await database.notification.createMany({
+        data: notifications
+      });
+      
+      console.log(`📲 ${notifications.length} notifications envoyées aux livreurs`);
+    }
+
+  } catch (error) {
+    console.error('❌ Erreur notification livreurs:', error);
+  }
 }

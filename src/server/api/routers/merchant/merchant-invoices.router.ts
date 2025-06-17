@@ -189,7 +189,6 @@ export const merchantInvoicesRouter = router({ /**
             message: "Facture non trouvée" });
         }
 
-        // TODO: Générer le PDF avec un service dédié
         const pdfUrl = await generateInvoicePdf(invoice);
 
         return {

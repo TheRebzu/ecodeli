@@ -703,15 +703,193 @@ export async function validateNotificationHistory(
     "🔍 Validation de l'historique des notifications...",
   );
 
-  // Cette validation est simulée car il n'y a pas de modèle NotificationHistory
-  logger.success(
-    "VALIDATION",
-    "✅ Historique des notifications validé (simulation)",
-  );
-  logger.info(
-    "VALIDATION",
-    "📝 Note: L'historique est simulé car aucun modèle correspondant n'existe dans le schéma Prisma",
-  );
+  try {
+    // Créer le modèle NotificationHistory s'il n'existe pas
+    const tableExists = await prisma.$executeRaw`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'notification_history'
+      );
+    `;
 
-  return true;
+    if (!tableExists) {
+      logger.info(
+        "VALIDATION",
+        "📋 Création de la table notification_history...",
+      );
+      
+      await prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS notification_history (
+          id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id TEXT NOT NULL,
+          type TEXT NOT NULL,
+          channel TEXT NOT NULL,
+          status TEXT NOT NULL,
+          content JSONB NOT NULL,
+          metadata JSONB DEFAULT '{}',
+          sent_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          delivered_at TIMESTAMP WITH TIME ZONE,
+          opened_at TIMESTAMP WITH TIME ZONE,
+          clicked_at TIMESTAMP WITH TIME ZONE,
+          error_message TEXT,
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        );
+      `;
+
+      await prisma.$executeRaw`
+        CREATE INDEX IF NOT EXISTS idx_notification_history_user_id ON notification_history(user_id);
+      `;
+      
+      await prisma.$executeRaw`
+        CREATE INDEX IF NOT EXISTS idx_notification_history_type ON notification_history(type);
+      `;
+      
+      await prisma.$executeRaw`
+        CREATE INDEX IF NOT EXISTS idx_notification_history_status ON notification_history(status);
+      `;
+      
+      await prisma.$executeRaw`
+        CREATE INDEX IF NOT EXISTS idx_notification_history_sent_at ON notification_history(sent_at);
+      `;
+
+      logger.success(
+        "VALIDATION",
+        "✅ Table notification_history créée avec succès",
+      );
+    }
+
+    // Validation des données existantes
+    const validationResults = await Promise.all([
+      // Vérifier les utilisateurs valides
+      prisma.$queryRaw`
+        SELECT COUNT(*) as invalid_users FROM notification_history 
+        WHERE user_id NOT IN (SELECT id FROM "User")
+      `,
+      
+      // Vérifier les types de notification valides
+      prisma.$queryRaw`
+        SELECT COUNT(*) as invalid_types FROM notification_history 
+        WHERE type NOT IN ('DELIVERY_UPDATE', 'SERVICE_REMINDER', 'PROMOTION', 'SYSTEM_ALERT', 'PAYMENT_CONFIRMATION')
+      `,
+      
+      // Vérifier les canaux valides
+      prisma.$queryRaw`
+        SELECT COUNT(*) as invalid_channels FROM notification_history 
+        WHERE channel NOT IN ('EMAIL', 'SMS', 'PUSH', 'IN_APP')
+      `,
+      
+      // Vérifier les statuts valides
+      prisma.$queryRaw`
+        SELECT COUNT(*) as invalid_statuses FROM notification_history 
+        WHERE status NOT IN ('SENT', 'DELIVERED', 'OPENED', 'CLICKED', 'FAILED', 'BOUNCED')
+      `,
+      
+      // Vérifier la cohérence des timestamps
+      prisma.$queryRaw`
+        SELECT COUNT(*) as invalid_timestamps FROM notification_history 
+        WHERE delivered_at < sent_at OR opened_at < delivered_at OR clicked_at < opened_at
+      `
+    ]);
+
+    const [invalidUsers, invalidTypes, invalidChannels, invalidStatuses, invalidTimestamps] = validationResults;
+
+    let hasErrors = false;
+    const errors: string[] = [];
+
+    if (Number(invalidUsers[0]?.invalid_users) > 0) {
+      hasErrors = true;
+      errors.push(`${invalidUsers[0]?.invalid_users} notifications avec des utilisateurs invalides`);
+    }
+
+    if (Number(invalidTypes[0]?.invalid_types) > 0) {
+      hasErrors = true;
+      errors.push(`${invalidTypes[0]?.invalid_types} notifications avec des types invalides`);
+    }
+
+    if (Number(invalidChannels[0]?.invalid_channels) > 0) {
+      hasErrors = true;
+      errors.push(`${invalidChannels[0]?.invalid_channels} notifications avec des canaux invalides`);
+    }
+
+    if (Number(invalidStatuses[0]?.invalid_statuses) > 0) {
+      hasErrors = true;
+      errors.push(`${invalidStatuses[0]?.invalid_statuses} notifications avec des statuts invalides`);
+    }
+
+    if (Number(invalidTimestamps[0]?.invalid_timestamps) > 0) {
+      hasErrors = true;
+      errors.push(`${invalidTimestamps[0]?.invalid_timestamps} notifications avec des timestamps incohérents`);
+    }
+
+    if (hasErrors) {
+      logger.error(
+        "VALIDATION",
+        "❌ Erreurs détectées dans l'historique des notifications:",
+      );
+      errors.forEach(error => logger.error("VALIDATION", `  - ${error}`));
+      
+      // Nettoyer les données invalides
+      logger.info("VALIDATION", "🧹 Nettoyage des données invalides...");
+      
+      await prisma.$executeRaw`
+        DELETE FROM notification_history 
+        WHERE user_id NOT IN (SELECT id FROM "User")
+      `;
+      
+      await prisma.$executeRaw`
+        DELETE FROM notification_history 
+        WHERE type NOT IN ('DELIVERY_UPDATE', 'SERVICE_REMINDER', 'PROMOTION', 'SYSTEM_ALERT', 'PAYMENT_CONFIRMATION')
+      `;
+      
+      await prisma.$executeRaw`
+        DELETE FROM notification_history 
+        WHERE channel NOT IN ('EMAIL', 'SMS', 'PUSH', 'IN_APP')
+      `;
+      
+      await prisma.$executeRaw`
+        DELETE FROM notification_history 
+        WHERE status NOT IN ('SENT', 'DELIVERED', 'OPENED', 'CLICKED', 'FAILED', 'BOUNCED')
+      `;
+      
+      await prisma.$executeRaw`
+        DELETE FROM notification_history 
+        WHERE delivered_at < sent_at OR opened_at < delivered_at OR clicked_at < opened_at
+      `;
+
+      logger.success(
+        "VALIDATION",
+        "✅ Données invalides nettoyées",
+      );
+    }
+
+    // Statistiques finales
+    const totalNotifications = await prisma.$queryRaw`
+      SELECT COUNT(*) as total FROM notification_history
+    `;
+    
+    const statusBreakdown = await prisma.$queryRaw`
+      SELECT status, COUNT(*) as count FROM notification_history 
+      GROUP BY status ORDER BY count DESC
+    `;
+
+    logger.success(
+      "VALIDATION",
+      `✅ Historique des notifications validé - ${totalNotifications[0]?.total} notifications`,
+    );
+    
+    logger.info(
+      "VALIDATION",
+      `📊 Répartition par statut: ${JSON.stringify(statusBreakdown)}`,
+    );
+
+    return true;
+  } catch (error) {
+    logger.error(
+      "VALIDATION",
+      `❌ Erreur lors de la validation: ${error.message}`,
+    );
+    return false;
+  }
 }

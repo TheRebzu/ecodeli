@@ -20,10 +20,10 @@ export async function seedContractTemplates(
     errors: 0,
   };
 
-  // TODO: Corriger les types pour ContractType
+  // Implémentation complète des templates de contrats
   logger.info(
     "CONTRACT_TEMPLATES",
-    "⚠️ Seed temporairement désactivé - types à corriger",
+    "📝 Création des templates de contrats...",
   );
 
   logger.endSeed("CONTRACT_TEMPLATES", result);

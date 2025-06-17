@@ -214,7 +214,6 @@ export const delivererRoutesRouter = router({ /**
 
         // Déclencher le matching si public
         if (input.isPublic) {
-          // TODO: Appeler le service de matching
           await triggerRouteMatching(route);
         }
 
