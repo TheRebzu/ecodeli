@@ -50,8 +50,8 @@ export function ClientSidebar({ locale }: ClientSidebarProps) {
 
   // Récupérer les informations de l'utilisateur connecté
   const userInfo = {
-    name: session?.user?.name || user?.name || "Utilisateur",
-    email: session?.user?.email || user?.email || "utilisateur@ecodeli.me",
+    name: data?.user?.name || user?.name || "Utilisateur",
+    email: data?.user?.email || user?.email || "utilisateur@ecodeli.me",
     avatar: user?.image || undefined};
 
   const sections: SidebarSection[] = [

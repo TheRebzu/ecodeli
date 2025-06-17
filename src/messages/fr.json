@@ -4070,6 +4070,12 @@
       "noRevenueData": "noRevenueData"
     },
     "dashboard": {
+      "client": {
+        "pageTitle": "Tableau de bord Client - EcoDeli",
+        "pageDescription": "Gérez vos livraisons et services écologiques",
+        "title": "Tableau de bord Client",
+        "subtitle": "Bienvenue sur votre espace client EcoDeli"
+      },
       "platformStats": {
         "totalUsers": "totalUsers",
         "activeAccounts": "activeAccounts",
