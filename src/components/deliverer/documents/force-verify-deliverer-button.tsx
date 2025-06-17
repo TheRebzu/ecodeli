@@ -96,7 +96,9 @@ export default function ForceVerifyDelivererButton() {
     }
 
     setIsChecking(true);
-    console.log("Lancement de la vérification manuelle...");
+    toast.info("Vérification en cours...", {
+      description: "Lancement de la vérification manuelle des documents"
+    });
     forceVerifyMutation.mutate();
     setIsConfirmDialogOpen(false);
   };

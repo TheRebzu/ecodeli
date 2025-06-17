@@ -1,14 +1,15 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { VerificationStatus, DocumentType } from "@prisma/client";
+import { VerificationStatus, DocumentType, UserRole } from "@prisma/client";
 
 /**
- * Router pour la gestion des v�rifications administratives
- * Validation des documents, comp�tences et habilitations selon le cahier des charges
+ * Router pour la gestion des vérifications administratives
+ * Router pour la gestion des vérifications administratives
+ * Validation des documents, compétences et habilitations selon le cahier des charges
  */
 
-// Sch�mas de validation
+// Schémas de validation
 const verificationFiltersSchema = z.object({ userRole: z.nativeEnum(UserRole).optional(),
   status: z.nativeEnum(VerificationStatus).optional(),
   documentType: z.nativeEnum(DocumentType).optional(),
@@ -27,16 +28,16 @@ const processVerificationSchema = z.object({ verificationId: z.string().cuid(),
   status: z.enum(["APPROVED", "REJECTED"]),
   comments: z.string().min(10).max(1000),
 
-  // Documents requis suppl�mentaires
+  // Documents requis supplémentaires
   requiredDocuments: z.array(z.nativeEnum(DocumentType)).optional(),
 
-  // Validit� de la v�rification
+  // Validité de la vérification
   validUntil: z.date().optional(),
 
-  // Conditions sp�ciales
+  // Conditions spéciales
   conditions: z.array(z.string()).max(10).optional(),
 
-  // Notification � l'utilisateur
+  // Notification à l'utilisateur
   notifyUser: z.boolean().default(true),
   notificationMessage: z.string().max(500).optional() });
 
@@ -49,7 +50,7 @@ const verificationStatsSchema = z.object({ period: z.enum(["WEEK", "MONTH", "QUA
   userRole: z.nativeEnum(UserRole).optional() });
 
 export const adminVerificationRouter = router({ /**
-   * Obtenir toutes les v�rifications en attente
+   * Obtenir toutes les vérifications en attente
    */
   getPendingVerifications: protectedProcedure
     .input(verificationFiltersSchema)
@@ -59,7 +60,7 @@ export const adminVerificationRouter = router({ /**
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent consulter les v�rifications" });
+            "Seuls les administrateurs peuvent consulter les vérifications" });
       }
 
       try {
@@ -113,7 +114,7 @@ export const adminVerificationRouter = router({ /**
             take: input.limit}),
           ctx.db.verification.count({ where  })]);
 
-        // Formatter les donn�es
+        // Formatter les données
         const formattedVerifications = verifications.map((verification) => ({ ...verification,
           daysPending: Math.floor(
             (new Date().getTime() - verification.createdAt.getTime()) /
@@ -138,12 +139,12 @@ export const adminVerificationRouter = router({ /**
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la r�cup�ration des v�rifications" });
+          message: "Erreur lors de la récupération des vérifications" });
       }
     }),
 
   /**
-   * Obtenir les d�tails d'une v�rification
+   * Obtenir les détails d'une vérification
    */
   getVerificationDetails: protectedProcedure
     .input(z.object({ id: z.string().cuid()  }))
@@ -152,7 +153,7 @@ export const adminVerificationRouter = router({ /**
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
-          message: "Acc�s non autoris�" });
+          message: "Accès non autorisé" });
       }
 
       try {
@@ -161,7 +162,7 @@ export const adminVerificationRouter = router({ /**
           include: {
             user: {
               include: {
-                // Donn�es sp�cifiques selon le r�le
+                // Données spécifiques selon le rôle
                 deliverer: true,
                 provider: true,
                 merchant: true}},
@@ -182,10 +183,10 @@ export const adminVerificationRouter = router({ /**
 
         if (!verification) {
           throw new TRPCError({ code: "NOT_FOUND",
-            message: "V�rification non trouv�e" });
+            message: "Vérification non trouvée" });
         }
 
-        // Informations suppl�mentaires selon le r�le
+        // Informations supplémentaires selon le rôle
         const roleSpecificData = {};
         switch (verification.user.role) {
           case "DELIVERER":
@@ -227,12 +228,12 @@ export const adminVerificationRouter = router({ /**
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la r�cup�ration des d�tails" });
+          message: "Erreur lors de la récupération des détails" });
       }
     }),
 
   /**
-   * Traiter une v�rification (approuver/rejeter)
+   * Traiter une vérification (approuver/rejeter)
    */
   processVerification: protectedProcedure
     .input(processVerificationSchema)
@@ -242,7 +243,7 @@ export const adminVerificationRouter = router({ /**
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent traiter les v�rifications" });
+            "Seuls les administrateurs peuvent traiter les vérifications" });
       }
 
       try {
@@ -254,17 +255,17 @@ export const adminVerificationRouter = router({ /**
 
         if (!verification) {
           throw new TRPCError({ code: "NOT_FOUND",
-            message: "V�rification non trouv�e" });
+            message: "Vérification non trouvée" });
         }
 
         if (verification.status !== "PENDING") {
           throw new TRPCError({ code: "BAD_REQUEST",
-            message: "Cette v�rification a d�j� �t� trait�e" });
+            message: "Cette vérification a déjà été traitée" });
         }
 
-        // Transaction pour traiter la v�rification
+        // Transaction pour traiter la vérification
         const result = await ctx.db.$transaction(async (tx) => {
-          // Mettre � jour la v�rification
+          // Mettre à jour la vérification
           const updatedVerification = await tx.verification.update({
             where: { id: input.verificationId },
             data: {
@@ -275,7 +276,7 @@ export const adminVerificationRouter = router({ /**
               verifiedById: user.id,
               verifiedAt: new Date()}});
 
-          // Mettre � jour le statut de l'utilisateur
+          // Mettre à jour le statut de l'utilisateur
           if (input.status === "APPROVED") {
             await updateUserVerificationStatus(
               tx,
@@ -285,7 +286,7 @@ export const adminVerificationRouter = router({ /**
             );
           }
 
-          // Cr�er un log d'audit
+          // Créer un log d'audit
           await tx.auditLog.create({
             data: {
               entityType: "VERIFICATION",
@@ -303,14 +304,60 @@ export const adminVerificationRouter = router({ /**
           return updatedVerification;
         });
 
-        // Envoyer une notification � l'utilisateur si demand�
+        // Envoyer une notification à l'utilisateur si demandé
         if (input.notifyUser) {
-          // TODO: Impl�menter l'envoi de notification
-          // await notificationService.sendVerificationResult({ //   userId: verification.user.id,
-          //   status: input.status,
-          //   message: input.notificationMessage,
-          //   comments: input.comments
-          //  });
+          // Implémenter l'envoi de notification réelle
+          try {
+            await ctx.db.notification.create({
+              data: {
+                userId: verification.user.id,
+                type: input.status === "APPROVED" ? "VERIFICATION_APPROVED" : "VERIFICATION_REJECTED",
+                title: input.status === "APPROVED" ? "Vérification approuvée" : "Vérification rejetée",
+                message: input.notificationMessage || 
+                  (input.status === "APPROVED" 
+                    ? "Votre vérification a été approuvée avec succès." 
+                    : "Votre vérification a été rejetée."),
+                data: {
+                  verificationId: verification.id,
+                  status: input.status,
+                  comments: input.comments,
+                  verifiedBy: user.name,
+                  verifiedAt: new Date().toISOString()
+                },
+                priority: input.status === "REJECTED" ? "HIGH" : "MEDIUM"
+              }
+            });
+
+            // Envoyer un email si l'utilisateur a activé cette préférence
+            if (verification.user.emailNotifications) {
+              const emailData = {
+                to: verification.user.email,
+                template: input.status === "APPROVED" ? "verification-approved" : "verification-rejected",
+                data: {
+                  userName: verification.user.name,
+                  verificationType: verification.type,
+                  comments: input.comments,
+                  verifiedBy: user.name,
+                  verifiedAt: new Date().toLocaleDateString('fr-FR')
+                }
+              };
+              
+              // Note: L'envoi d'email sera géré par le service d'email en arrière-plan
+              await ctx.db.emailQueue.create({
+                data: {
+                  recipientId: verification.user.id,
+                  email: emailData.to,
+                  template: emailData.template,
+                  data: emailData.data,
+                  priority: "NORMAL",
+                  scheduledFor: new Date()
+                }
+              });
+            }
+          } catch (notificationError) {
+            // Log l'erreur mais ne fait pas échouer la transaction principale
+            console.error("Erreur lors de l'envoi de notification:", notificationError);
+          }
         }
 
         return {
@@ -318,17 +365,17 @@ export const adminVerificationRouter = router({ /**
           data: result,
           message:
             input.status === "APPROVED"
-              ? "V�rification approuv�e avec succ�s"
-              : "V�rification rejet�e"};
+              ? "Vérification approuvée avec succès"
+              : "Vérification rejetée"};
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du traitement de la v�rification" });
+          message: "Erreur lors du traitement de la vérification" });
       }
     }),
 
   /**
-   * Traitement en lot des v�rifications
+   * Traitement en lot des vérifications
    */
   bulkProcessVerifications: protectedProcedure
     .input(bulkVerificationSchema)
@@ -338,11 +385,11 @@ export const adminVerificationRouter = router({ /**
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent traiter les v�rifications" });
+            "Seuls les administrateurs peuvent traiter les vérifications" });
       }
 
       try {
-        // V�rifier que toutes les v�rifications existent et sont en attente
+        // Vérifier que toutes les vérifications existent et sont en attente
         const verifications = await ctx.db.verification.findMany({
           where: {
             id: { in: input.verificationIds },
@@ -352,7 +399,7 @@ export const adminVerificationRouter = router({ /**
         if (verifications.length !== input.verificationIds.length) {
           throw new TRPCError({ code: "BAD_REQUEST",
             message:
-              "Certaines v�rifications n'existent pas ou ont d�j� �t� trait�es" });
+              "Certaines vérifications n'existent pas ou ont déjà été traitées" });
         }
 
         const results = await ctx.db.$transaction(
@@ -374,7 +421,7 @@ export const adminVerificationRouter = router({ /**
           }),
         );
 
-        // Mettre � jour les statuts des utilisateurs approuv�s
+        // Mettre à jour les statuts des utilisateurs approuvés
         if (input.action === "APPROVE") {
           await Promise.all(
             verifications.map((verification) =>
@@ -393,7 +440,7 @@ export const adminVerificationRouter = router({ /**
           data: {
             processedCount: results.length,
             action: input.action},
-          message: `${results.length} v�rification(s) trait�e(s) avec succ�s`};
+          message: `${results.length} vérification(s) traitée(s) avec succès`};
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
@@ -402,7 +449,7 @@ export const adminVerificationRouter = router({ /**
     }),
 
   /**
-   * Obtenir les statistiques des v�rifications
+   * Obtenir les statistiques des vérifications
    */
   getVerificationStats: protectedProcedure
     .input(verificationStatsSchema)
@@ -411,7 +458,7 @@ export const adminVerificationRouter = router({ /**
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
-          message: "Acc�s non autoris�" });
+          message: "Accès non autorisé" });
       }
 
       try {
@@ -432,43 +479,44 @@ export const adminVerificationRouter = router({ /**
           byDocumentType,
           averageProcessingTime,
           urgentVerifications] = await Promise.all([
-          // Total des v�rifications
+          // Total des vérifications
           ctx.db.verification.count({ where  }),
 
-          // V�rifications en attente
+          // Vérifications en attente
           ctx.db.verification.count({
             where: { ...baseWhere, status: "PENDING" }}),
 
-          // V�rifications approuv�es
+          // Vérifications approuvées
           ctx.db.verification.count({
             where: { ...baseWhere, status: "APPROVED" }}),
 
-          // V�rifications rejet�es
+          // Vérifications rejetées
           ctx.db.verification.count({
             where: { ...baseWhere, status: "REJECTED" }}),
 
-          // R�partition par r�le
+          // Répartition par rôle
           ctx.db.verification.groupBy({ by: ["user"],
             where: baseWhere,
             count: true }),
 
-          // R�partition par type de document
+          // Répartition par type de document
           ctx.db.verificationDocument.groupBy({
             by: ["document"],
             where: { verification },
             count: true}),
 
-          // Temps moyen de traitement
-          ctx.db.verification.aggregate({
-            where: {
-              ...baseWhere,
-              status: { in: ["APPROVED", "REJECTED"] },
-              verifiedAt: { not }},
-            avg: {
-              // TODO: Calculer la diff�rence entre createdAt et verifiedAt
-            }}),
+          // Temps moyen de traitement - calculer correctement
+          ctx.db.$queryRaw`
+            SELECT AVG(EXTRACT(EPOCH FROM (verified_at - created_at))/3600)::float as avg_hours
+            FROM "Verification"
+            WHERE status IN ('APPROVED', 'REJECTED')
+              AND verified_at IS NOT NULL
+              AND created_at >= ${startDate}
+              AND created_at <= ${endDate}
+              ${input.userRole ? `AND user_role = '${input.userRole}'` : ''}
+          `.then((result: any[]) => result[0]?.avg_hours || 0),
 
-          // V�rifications urgentes
+          // Vérifications urgentes
           ctx.db.verification.count({
             where: {
               ...baseWhere,
@@ -479,7 +527,7 @@ export const adminVerificationRouter = router({ /**
                   createdAt: {
                     lte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)}}]}})]);
 
-        // Timeline des v�rifications
+        // Timeline des vérifications
         const timeline = await ctx.db.$queryRaw`
           SELECT 
             DATE_TRUNC('day', createdat) as date,
@@ -526,19 +574,19 @@ export const adminVerificationRouter = router({ /**
               byDocumentType: byDocumentType.map((item) => ({ type: item.document,
                 count: item.count }))},
             timeline: timeline,
-            averageProcessingTime: 0, // TODO: Calculer correctement
+            averageProcessingTime: Math.round((averageProcessingTime || 0) * 100) / 100, // Temps en heures, arrondi à 2 décimales
             alerts: {
               oldestPending: await getOldestPendingVerification(ctx.db),
               highPriorityCount: urgentVerifications,
               backlogSize: pendingVerifications}}};
       } catch (error) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la r�cup�ration des statistiques" });
+          message: "Erreur lors de la récupération des statistiques" });
       }
     }),
 
   /**
-   * Demander des documents suppl�mentaires
+   * Demander des documents supplémentaires
    */
   requestAdditionalDocuments: protectedProcedure
     .input(
@@ -552,7 +600,7 @@ export const adminVerificationRouter = router({ /**
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
-          message: "Acc�s non autoris�" });
+          message: "Accès non autorisé" });
       }
 
       try {
@@ -562,10 +610,10 @@ export const adminVerificationRouter = router({ /**
 
         if (!verification) {
           throw new TRPCError({ code: "NOT_FOUND",
-            message: "V�rification non trouv�e" });
+            message: "Vérification non trouvée" });
         }
 
-        // Cr�er la demande de documents suppl�mentaires
+        // Créer la demande de documents supplémentaires
         const request = await ctx.db.documentRequest.create({
           data: {
             verificationId: input.verificationId,
@@ -575,7 +623,7 @@ export const adminVerificationRouter = router({ /**
             deadline: input.deadline,
             status: "PENDING"}});
 
-        // Cr�er un log d'audit
+        // Créer un log d'audit
         await ctx.db.auditLog.create({
           data: {
             entityType: "VERIFICATION",
@@ -587,17 +635,54 @@ export const adminVerificationRouter = router({ /**
               message: input.message,
               deadline: input.deadline}}});
 
-        // TODO: Envoyer une notification � l'utilisateur
-        // await notificationService.sendDocumentRequest({ //   userId: verification.user.id,
-        //   requiredDocuments: input.requiredDocuments,
-        //   message: input.message,
-        //   deadline: input.deadline
-        //  });
+        // Envoyer une notification à l'utilisateur
+        try {
+          await ctx.db.notification.create({
+            data: {
+              userId: verification.user.id,
+              type: "ADDITIONAL_DOCUMENTS_REQUESTED",
+              title: "Documents supplémentaires requis",
+              message: input.message,
+              data: {
+                verificationId: input.verificationId,
+                requiredDocuments: input.requiredDocuments,
+                deadline: input.deadline?.toISOString(),
+                requestedBy: user.name,
+                requestId: request.id
+              },
+              priority: "HIGH"
+            }
+          });
+
+          // Envoyer un email si l'utilisateur a activé cette préférence
+          if (verification.user.emailNotifications) {
+            await ctx.db.emailQueue.create({
+              data: {
+                recipientId: verification.user.id,
+                email: verification.user.email,
+                template: "additional-documents-request",
+                data: {
+                  userName: verification.user.name,
+                  verificationId: input.verificationId,
+                  requiredDocuments: input.requiredDocuments,
+                  message: input.message,
+                  deadline: input.deadline?.toLocaleDateString('fr-FR'),
+                  requestedBy: user.name,
+                  loginUrl: `${process.env.NEXTAUTH_URL}/profile/verification`
+                },
+                priority: "HIGH",
+                scheduledFor: new Date()
+              }
+            });
+          }
+        } catch (notificationError) {
+          console.error("Erreur lors de l'envoi de notification:", notificationError);
+        }
 
         return {
           success: true,
           data: request,
-          message: "Demande de documents envoy�e � l'utilisateur"};
+          message: "Demande de documents envoyée à l'utilisateur"};
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
@@ -610,7 +695,7 @@ function getUserTypeLabel(role: UserRole): string {
   const labels = {
     CLIENT: "Client",
     DELIVERER: "Livreur",
-    MERCHANT: "Commer�ant",
+    MERCHANT: "Commerçant",
     PROVIDER: "Prestataire",
     ADMIN: "Administrateur"};
   return labels[role] || role;
@@ -619,7 +704,7 @@ function getUserTypeLabel(role: UserRole): string {
 function calculateCompletenessScore(documents: any[]): number {
   if (!documents || documents.length === 0) return 0;
 
-  // Score bas� sur le nombre et la qualit� des documents
+  // Score basé sur le nombre et la qualité des documents
   const baseScore = Math.min(documents.length * 20, 80); // Max 80 pour 4+ documents
   const qualityBonus = documents.filter((d) => d.document?.verified).length * 5;
 

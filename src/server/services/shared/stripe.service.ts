@@ -429,34 +429,192 @@ export const stripeService = {
   },
 
   /**
-   * Génère une carte de test Stripe pour le mode démo
+   * Génère des cartes de test Stripe complètes pour différents scénarios
    */
   getTestCards() {
-    return [
-      {
-        type: "Visa",
-        number: "4242424242424242",
-        expMonth: 12,
-        expYear: 2030,
-        cvc: "123"},
-      {
-        type: "Mastercard",
-        number: "5555555555554444",
-        expMonth: 12,
-        expYear: 2030,
-        cvc: "123"},
-      {
-        type: "Découverte",
-        number: "6011111111111117",
-        expMonth: 12,
-        expYear: 2030,
-        cvc: "123"},
-      {
-        type: "Échec",
-        number: "4000000000000002",
-        expMonth: 12,
-        expYear: 2030,
-        cvc: "123"}];
+    const currentYear = new Date().getFullYear();
+    const testYear = currentYear + 5; // Cartes valides pour 5 ans
+    
+    return {
+      // Cartes de paiement réussies
+      success: [
+        {
+          type: "Visa",
+          number: "4242424242424242",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte Visa générique - Paiement réussi",
+          country: "US"
+        },
+        {
+          type: "Visa (débit)",
+          number: "4000056655665556",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte Visa débit - Paiement réussi",
+          country: "US"
+        },
+        {
+          type: "Mastercard",
+          number: "5555555555554444",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte Mastercard - Paiement réussi",
+          country: "US"
+        },
+        {
+          type: "American Express",
+          number: "378282246310005",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "1234", // Amex utilise 4 chiffres
+          description: "Carte American Express - Paiement réussi",
+          country: "US"
+        },
+        {
+          type: "Visa (France)",
+          number: "4000002500003155",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte Visa française - Paiement réussi",
+          country: "FR"
+        }
+      ],
+      
+      // Cartes nécessitant une authentification 3D Secure
+      authentication: [
+        {
+          type: "Visa (3D Secure)",
+          number: "4000002760003184",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte nécessitant une authentification 3D Secure",
+          country: "FR"
+        },
+        {
+          type: "Mastercard (3D Secure)",
+          number: "5200828282828210",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Mastercard avec authentification 3D Secure",
+          country: "FR"
+        }
+      ],
+      
+      // Cartes de test pour les échecs
+      declined: [
+        {
+          type: "Visa (fonds insuffisants)",
+          number: "4000000000000002",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte déclinée - Fonds insuffisants",
+          errorCode: "card_declined",
+          country: "US"
+        },
+        {
+          type: "Visa (carte expirée)",
+          number: "4000000000000069",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte déclinée - Carte expirée",
+          errorCode: "expired_card",
+          country: "US"
+        },
+        {
+          type: "Visa (CVC incorrect)",
+          number: "4000000000000127",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte déclinée - CVC incorrect",
+          errorCode: "incorrect_cvc",
+          country: "US"
+        },
+        {
+          type: "Visa (traitement erreur)",
+          number: "4000000000000119",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Erreur de traitement général",
+          errorCode: "processing_error",
+          country: "US"
+        }
+      ],
+      
+      // Cartes de test spéciales
+      special: [
+        {
+          type: "Visa (dispute)",
+          number: "4000000000000259",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Paiement qui sera disputé automatiquement",
+          warningEarly: true,
+          country: "US"
+        },
+        {
+          type: "Visa (fraud)",
+          number: "4100000000000019",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte signalée comme frauduleuse",
+          riskLevel: "highest",
+          country: "US"
+        }
+      ],
+      
+      // Cartes par région
+      international: [
+        {
+          type: "Visa (Allemagne)",
+          number: "4000000000003220",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte Visa allemande",
+          country: "DE"
+        },
+        {
+          type: "Visa (Canada)",
+          number: "4000001240000000",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte Visa canadienne",
+          country: "CA"
+        },
+        {
+          type: "Visa (Royaume-Uni)",
+          number: "4000000000000002",
+          expMonth: 12,
+          expYear: testYear,
+          cvc: "123",
+          description: "Carte Visa britannique",
+          country: "GB"
+        }
+      ],
+      
+      // Informations utiles pour les développeurs
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        stripeMode: process.env.STRIPE_SECRET_KEY?.includes('sk_test') ? 'test' : 'live',
+        documentation: "https://stripe.com/docs/testing#cards",
+        note: "Ces cartes ne sont valides qu'en mode test Stripe"
+      }
+    };
   },
 
   /**

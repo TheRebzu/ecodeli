@@ -326,12 +326,105 @@ export const adminServicesRouter = router({ // Récupérer les statistiques des 
     )
     .mutation(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Implémenter la mise à jour du statut en base
+        // Vérifier les permissions admin
+        if (ctx.session.user.role !== "ADMIN") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les administrateurs peuvent modifier le statut des services",
+          });
+        }
+
+        // Vérifier que le service existe
+        const existingService = await ctx.db.platformService.findUnique({
+          where: { id: input.id },
+          include: {
+            createdBy: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+
+        if (!existingService) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Service non trouvé",
+          });
+        }
+
+        // Mettre à jour le statut en base
+        const updatedService = await ctx.db.platformService.update({
+          where: { id: input.id },
+          data: {
+            status: input.status,
+            updatedAt: new Date(),
+          },
+          include: {
+            createdBy: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+
+        // Créer un log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: "SERVICE",
+            entityId: input.id,
+            action: "STATUS_UPDATED",
+            performedById: ctx.session.user.id,
+            details: {
+              previousStatus: existingService.status,
+              newStatus: input.status,
+              serviceName: existingService.name,
+            },
+          },
+        });
+
+        // Notifier les utilisateurs concernés si le service devient inactif/suspendu
+        if (input.status === "INACTIVE" || input.status === "SUSPENDED") {
+          const affectedUsers = await ctx.db.serviceBooking.findMany({
+            where: {
+              serviceId: input.id,
+              status: "ACTIVE",
+            },
+            include: {
+              user: {
+                select: { id: true, email: true, name: true },
+              },
+            },
+          });
+
+          // Créer des notifications pour les utilisateurs affectés
+          const notifications = affectedUsers.map((booking) => ({
+            userId: booking.user.id,
+            type: "SERVICE_STATUS_CHANGED" as const,
+            title: "Statut du service modifié",
+            message: `Le service "${existingService.name}" est maintenant ${
+              input.status === "INACTIVE" ? "inactif" : "suspendu"
+            }`,
+            data: {
+              serviceId: input.id,
+              serviceName: existingService.name,
+              newStatus: input.status,
+              bookingId: booking.id,
+            },
+            priority: "HIGH" as const,
+          }));
+
+          if (notifications.length > 0) {
+            await ctx.db.notification.createMany({
+              data: notifications,
+            });
+          }
+        }
 
         return {
           success: true,
-          message: "Statut du service mis à jour"};
+          service: updatedService,
+          message: "Statut du service mis à jour avec succès"
+        };
       } catch (error) {
+        if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "BAD_REQUEST",
           message: "Erreur lors de la mise à jour du statut" });
       }
@@ -344,13 +437,89 @@ export const adminServicesRouter = router({ // Récupérer les statistiques des 
     )
     .mutation(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Vérifier que le service peut être supprimé
-        // TODO: Implémenter la suppression en base
+        // Vérifier les permissions admin
+        if (ctx.session.user.role !== "ADMIN") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les administrateurs peuvent supprimer des services",
+          });
+        }
+
+        // Vérifier que le service existe
+        const existingService = await ctx.db.platformService.findUnique({
+          where: { id: input.id },
+          include: {
+            _count: {
+              select: {
+                bookings: true,
+                reviews: true,
+              },
+            },
+          },
+        });
+
+        if (!existingService) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Service non trouvé",
+          });
+        }
+
+        // Vérifier que le service peut être supprimé
+        const activeBookings = await ctx.db.serviceBooking.count({
+          where: {
+            serviceId: input.id,
+            status: { in: ["ACTIVE", "PENDING", "CONFIRMED"] },
+          },
+        });
+
+        if (activeBookings > 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Impossible de supprimer le service. Il y a ${activeBookings} réservation(s) active(s).`,
+          });
+        }
+
+        // Supprimer en cascade (transaction pour assurer la cohérence)
+        await ctx.db.$transaction(async (tx) => {
+          // Supprimer les évaluations liées
+          await tx.serviceReview.deleteMany({
+            where: { serviceId: input.id },
+          });
+
+          // Supprimer les réservations terminées/annulées
+          await tx.serviceBooking.deleteMany({
+            where: { serviceId: input.id },
+          });
+
+          // Supprimer le service lui-même
+          await tx.platformService.delete({
+            where: { id: input.id },
+          });
+
+          // Créer un log d'audit
+          await tx.auditLog.create({
+            data: {
+              entityType: "SERVICE",
+              entityId: input.id,
+              action: "DELETED",
+              performedById: ctx.session.user.id,
+              details: {
+                serviceName: existingService.name,
+                category: existingService.category,
+                deletedBookings: existingService._count.bookings,
+                deletedReviews: existingService._count.reviews,
+              },
+            },
+          });
+        });
 
         return {
           success: true,
-          message: "Service supprimé avec succès"};
+          message: "Service supprimé avec succès"
+        };
       } catch (error) {
+        if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "BAD_REQUEST",
           message: "Erreur lors de la suppression du service" });
       }

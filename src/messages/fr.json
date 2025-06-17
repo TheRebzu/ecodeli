@@ -2401,8 +2401,10 @@
         "codeLabel": "Code d'authentification",
         "codePlaceholder": "123456",
         "verifyButton": "Vérifier",
-        "enterCode": "Entrez le code à 6 chiffres généré par votre application d'authentification"
+        "enterCode": "Entrez le code à 6 chiffres généré par votre application d'authentification",
+        "verificationEmailInfo": "Votre email n'est pas encore vérifié. Vous pouvez renvoyer l'email de vérification ci-dessous."
       },
+      "resendVerificationEmail": "Renvoyer l'email de vérification",
       "continueWith": "Ou continuer avec"
     },
     "register": {
@@ -2514,6 +2516,7 @@
     },
     "errors": {
       "default": "Une erreur d'authentification s'est produite",
+      "id": "Erreur d'identification",
       "OAuthSignin": "Erreur lors de la connexion avec le fournisseur d'authentification",
       "OAuthCallback": "Erreur lors du retour du fournisseur d'authentification",
       "OAuthCreateAccount": "Erreur lors de la création du compte avec le fournisseur d'authentification",

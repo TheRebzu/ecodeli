@@ -1,11 +1,275 @@
-// earnings-widget
-import React from "react";
+"use client";
 
-export default function earningswidget() {
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Euro, 
+  TrendingUp, 
+  TrendingDown,
+  Calendar, 
+  Clock,
+  Target,
+  CreditCard,
+  BarChart3,
+  Download,
+  ArrowUpRight,
+  ArrowDownRight,
+  Wallet
+} from "lucide-react";
+import { api } from "@/trpc/react";
+import { useTranslations } from "next-intl";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+
+export default function EarningsWidget() {
+  const t = useTranslations("dashboard.deliverer.earnings");
+  const [selectedPeriod, setSelectedPeriod] = useState("month");
+  
+  // Récupération des données de gains
+  const { data: earnings, isLoading } = api.deliverer.getEarnings.useQuery({
+    period: selectedPeriod
+  });
+  const { data: payouts } = api.deliverer.getRecentPayouts.useQuery({ limit: 5 });
+  const { data: monthlyBreakdown } = api.deliverer.getMonthlyBreakdown.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i}>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-8 w-16" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-2 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  const earningsCards = [
+    {
+      title: t("totalEarnings"),
+      value: `${earnings?.total?.toFixed(2) || "0.00"}€`,
+      icon: Euro,
+      description: t("thisMonth"),
+      trend: earnings?.totalTrend || 0,
+      color: "text-green-600"
+    },
+    {
+      title: t("pendingPayment"),
+      value: `${earnings?.pending?.toFixed(2) || "0.00"}€`,
+      icon: Clock,
+      description: t("awaitingPayout"),
+      trend: earnings?.pendingTrend || 0,
+      color: "text-orange-600"
+    },
+    {
+      title: t("averagePerDelivery"),
+      value: `${earnings?.averagePerDelivery?.toFixed(2) || "0.00"}€`,
+      icon: Target,
+      description: t("perDelivery"),
+      trend: earnings?.averageTrend || 0,
+      color: "text-blue-600"
+    },
+    {
+      title: t("todayEarnings"),
+      value: `${earnings?.today?.toFixed(2) || "0.00"}€`,
+      icon: Calendar,
+      description: t("today"),
+      trend: earnings?.todayTrend || 0,
+      color: "text-purple-600"
+    }
+  ];
+
   return (
-    <div>
-      <h1>earnings widget</h1>
-      {/* TODO: Implémenter ce composant selon la Mission 1 */}
+    <div className="space-y-6">
+      {/* Header avec sélection de période */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">{t("title")}</h2>
+          <p className="text-muted-foreground">{t("description")}</p>
+        </div>
+        <Tabs value={selectedPeriod} onValueChange={setSelectedPeriod}>
+          <TabsList>
+            <TabsTrigger value="week">{t("periods.week")}</TabsTrigger>
+            <TabsTrigger value="month">{t("periods.month")}</TabsTrigger>
+            <TabsTrigger value="year">{t("periods.year")}</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Cartes de gains */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {earningsCards.map((card, index) => {
+          const Icon = card.icon;
+          const isPositiveTrend = card.trend >= 0;
+          
+          return (
+            <Card key={index}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                <Icon className={`h-4 w-4 ${card.color}`} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{card.value}</div>
+                <div className="flex items-center space-x-2 text-xs">
+                  <span className="text-muted-foreground">{card.description}</span>
+                  {card.trend !== 0 && (
+                    <div className={`flex items-center space-x-1 ${isPositiveTrend ? 'text-green-600' : 'text-red-600'}`}>
+                      {isPositiveTrend ? (
+                        <ArrowUpRight className="h-3 w-3" />
+                      ) : (
+                        <ArrowDownRight className="h-3 w-3" />
+                      )}
+                      <span className="font-medium">{Math.abs(card.trend)}%</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Détails des gains */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Répartition mensuelle */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              {t("monthlyBreakdown")}
+            </CardTitle>
+            <CardDescription>{t("monthlyBreakdownDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {monthlyBreakdown && monthlyBreakdown.categories ? (
+                Object.entries(monthlyBreakdown.categories).map(([category, amount]: [string, any]) => (
+                  <div key={category} className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">{t(`categories.${category}`)}</span>
+                      <span>{amount.toFixed(2)}€</span>
+                    </div>
+                    <Progress 
+                      value={(amount / (monthlyBreakdown.total || 1)) * 100} 
+                      className="h-2"
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">{t("noBreakdownData")}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Paiements récents */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              {t("recentPayouts")}
+            </CardTitle>
+            <CardDescription>{t("recentPayoutsDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {payouts && payouts.length > 0 ? (
+                payouts.map((payout: any) => (
+                  <div key={payout.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full ${
+                        payout.status === "COMPLETED" ? "bg-green-500" :
+                        payout.status === "PENDING" ? "bg-yellow-500" : "bg-red-500"
+                      }`}></div>
+                      <div>
+                        <p className="text-sm font-medium">{t(`payoutStatus.${payout.status.toLowerCase()}`)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(payout.createdAt), "dd MMM yyyy", { locale: fr })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{payout.amount.toFixed(2)}€</p>
+                      <p className="text-xs text-muted-foreground">{payout.method}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Wallet className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">{t("noPayouts")}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Objectifs et performance */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            {t("earningsGoal")}
+          </CardTitle>
+          <CardDescription>{t("earningsGoalDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm">{t("monthlyGoal")}</span>
+              <span className="text-2xl font-bold">
+                {earnings?.total?.toFixed(2) || "0.00"}€ / {earnings?.goal?.toFixed(2) || "1000.00"}€
+              </span>
+            </div>
+            <Progress 
+              value={earnings?.goalProgress || 0} 
+              className="h-3"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{earnings?.goalProgress || 0}% {t("completed")}</span>
+              <span>
+                {earnings?.remainingDays || 0} {t("daysLeft")}
+              </span>
+            </div>
+
+            {(earnings?.goalProgress || 0) >= 80 && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-800">{t("goalAlmostReached")}</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Actions rapides */}
+      <div className="flex flex-wrap gap-3">
+        <Button variant="outline" size="sm">
+          <Download className="h-4 w-4 mr-2" />
+          {t("actions.downloadReport")}
+        </Button>
+        <Button variant="outline" size="sm">
+          <CreditCard className="h-4 w-4 mr-2" />
+          {t("actions.requestPayout")}
+        </Button>
+        <Button variant="outline" size="sm">
+          <Target className="h-4 w-4 mr-2" />
+          {t("actions.setGoal")}
+        </Button>
+      </div>
     </div>
   );
 }

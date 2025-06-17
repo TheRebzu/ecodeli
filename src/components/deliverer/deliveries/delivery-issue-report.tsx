@@ -132,7 +132,6 @@ export default function DeliveryIssueReport({
         timestamp: new Date(),
       });
 
-      console.log("Rapport d'incident soumis avec succès pour:", deliveryId);
     } catch (err) {
       console.error("Erreur lors de la soumission du rapport:", err);
       // L'erreur est déjà gérée par onError de la mutation

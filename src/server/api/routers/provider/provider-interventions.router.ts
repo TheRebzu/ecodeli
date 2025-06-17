@@ -524,8 +524,70 @@ export const providerInterventionsRouter = createTRPCRouter({
 
         // Programmer la prochaine intervention si nécessaire
         if (input.nextAppointmentNeeded && input.nextAppointmentDate) {
-          // TODO: Créer la prochaine intervention
-          console.log(`📅 Prochaine intervention à programmer pour le ${input.nextAppointmentDate}`);
+          // Créer automatiquement la prochaine intervention de suivi
+          const nextIntervention = await ctx.db.providerIntervention.create({
+            data: {
+              providerId: user.id,
+              clientId: intervention.clientId,
+              serviceId: intervention.serviceId, // Même service ou service de suivi
+              title: `Suivi - ${intervention.title}`,
+              description: `Intervention de suivi pour "${intervention.title}"`,
+              type: "FOLLOWUP",
+              status: InterventionStatus.SCHEDULED,
+              priority: intervention.priority,
+              scheduledDate: new Date(input.nextAppointmentDate),
+              estimatedDuration: intervention.estimatedDuration || 60, // Durée par défaut
+              estimatedPrice: intervention.estimatedPrice * 0.5, // 50% du prix initial pour le suivi
+              locationAddress: intervention.locationAddress,
+              locationLatitude: intervention.locationLatitude,
+              locationLongitude: intervention.locationLongitude,
+              parentInterventionId: intervention.id, // Lien avec l'intervention parente
+              autoCreated: true, // Marquer comme créée automatiquement
+              metadata: {
+                parentInterventionId: intervention.id,
+                autoCreatedAt: new Date().toISOString(),
+                reason: "FOLLOW_UP",
+                originalTitle: intervention.title
+              }
+            }
+          });
+
+          // Notifier le client de la prochaine intervention programmée
+          await ctx.db.notification.create({
+            data: {
+              userId: intervention.clientId,
+              type: "INTERVENTION_SCHEDULED",
+              title: "Nouvelle intervention programmée",
+              message: `Une intervention de suivi a été automatiquement programmée pour le ${new Date(input.nextAppointmentDate).toLocaleDateString('fr-FR')}`,
+              data: {
+                interventionId: nextIntervention.id,
+                parentInterventionId: intervention.id,
+                scheduledDate: input.nextAppointmentDate,
+                type: "followup"
+              }
+            }
+          });
+
+          // Créer une tâche admin pour suivi
+          await ctx.db.adminTask.create({
+            data: {
+              type: 'INTERVENTION_FOLLOW_UP_CREATED',
+              title: 'Intervention de suivi créée automatiquement',
+              description: `Intervention de suivi créée pour "${intervention.title}" - Date: ${new Date(input.nextAppointmentDate).toLocaleDateString('fr-FR')}`,
+              status: 'PENDING',
+              priority: 'MEDIUM',
+              assignedToId: user.id,
+              createdById: user.id,
+              metadata: {
+                parentInterventionId: intervention.id,
+                nextInterventionId: nextIntervention.id,
+                scheduledDate: input.nextAppointmentDate,
+                clientId: intervention.clientId
+              }
+            }
+          });
+
+          console.log(`✅ Prochaine intervention créée automatiquement: ${nextIntervention.id} pour le ${input.nextAppointmentDate}`);
         }
 
         return {

@@ -461,8 +461,11 @@ export const clientAnnouncementsRouter = router({
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
             isUsed: false}});
 
-        // TODO: Déclencher notifications aux livreurs de la zone
-        // TODO: Calculer le matching automatique
+        // Système de notifications automatiques aux livreurs de la zone
+        await notifyNearbyDeliverers(announcement, ctx.db);
+        
+        // Système de matching automatique intelligent
+        await calculateAutomaticMatching(announcement, ctx.db);
 
         return {
           success: true,
@@ -941,4 +944,262 @@ function calculateDistance(
 
 function generateValidationCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+/**
+ * Système de notifications automatiques aux livreurs de la zone
+ * Notifie tous les livreurs actifs dans un rayon défini autour de l'annonce
+ */
+async function notifyNearbyDeliverers(announcement: any, db: any): Promise<void> {
+  try {
+    const NOTIFICATION_RADIUS_KM = 15; // Rayon de notification en kilomètres
+    
+    // Récupérer tous les livreurs actifs avec leurs positions
+    const activeDeliverers = await db.deliverer.findMany({
+      where: {
+        status: 'ACTIVE',
+        isOnline: true,
+        user: {
+          isActive: true
+        }
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
+        currentLocation: true
+      }
+    });
+
+    const notifiedDeliverers = [];
+
+    for (const deliverer of activeDeliverers) {
+      // Calculer la distance entre le livreur et le point de collecte
+      if (deliverer.currentLocation && 
+          deliverer.currentLocation.latitude && 
+          deliverer.currentLocation.longitude &&
+          announcement.pickupLatitude && 
+          announcement.pickupLongitude) {
+        
+        const distance = calculateDistance(
+          deliverer.currentLocation.latitude,
+          deliverer.currentLocation.longitude,
+          announcement.pickupLatitude,
+          announcement.pickupLongitude
+        );
+
+        // Si le livreur est dans le rayon, l'ajouter aux notifications
+        if (distance <= NOTIFICATION_RADIUS_KM) {
+          notifiedDeliverers.push({
+            delivererId: deliverer.id,
+            userId: deliverer.user.id,
+            distance: Math.round(distance * 10) / 10, // Arrondir à 1 décimale
+            name: `${deliverer.user.profile?.firstName || ''} ${deliverer.user.profile?.lastName || ''}`.trim() || deliverer.user.email
+          });
+        }
+      }
+    }
+
+    // Créer les notifications en batch
+    if (notifiedDeliverers.length > 0) {
+      // Créer les notifications dans la base de données
+      const notifications = notifiedDeliverers.map(deliverer => ({
+        userId: deliverer.userId,
+        type: 'NEW_DELIVERY_OPPORTUNITY' as const,
+        title: 'Nouvelle opportunité de livraison',
+        message: `Nouvelle annonce disponible à ${deliverer.distance}km de votre position`,
+        data: {
+          announcementId: announcement.id,
+          type: announcement.type,
+          pickupAddress: announcement.pickupAddress,
+          deliveryAddress: announcement.deliveryAddress,
+          suggestedPrice: announcement.suggestedPrice,
+          distance: deliverer.distance,
+          urgency: announcement.urgency,
+          scheduledDate: announcement.scheduledDate
+        },
+        expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000) // Expire dans 2h
+      }));
+
+      await db.notification.createMany({
+        data: notifications
+      });
+
+      console.log(`📲 ${notifiedDeliverers.length} livreurs notifiés pour l'annonce ${announcement.id}`);
+    } else {
+      console.log(`📲 Aucun livreur trouvé dans le rayon de ${NOTIFICATION_RADIUS_KM}km pour l'annonce ${announcement.id}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi des notifications aux livreurs:', error);
+  }
+}
+
+/**
+ * Système de matching automatique intelligent
+ * Calcule et suggère automatiquement les meilleurs livreurs pour une annonce
+ */
+async function calculateAutomaticMatching(announcement: any, db: any): Promise<void> {
+  try {
+    const MATCHING_RADIUS_KM = 20; // Rayon de recherche pour le matching
+    const MAX_SUGGESTIONS = 5; // Nombre maximum de suggestions
+
+    // Récupérer les livreurs éligibles avec leurs statistiques
+    const eligibleDeliverers = await db.deliverer.findMany({
+      where: {
+        status: 'ACTIVE',
+        user: {
+          isActive: true
+        }
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
+        currentLocation: true,
+        delivererStats: true,
+        vehicleInfo: true
+      }
+    });
+
+    const matchingCandidates = [];
+
+    for (const deliverer of eligibleDeliverers) {
+      // Vérifier la distance
+      if (deliverer.currentLocation && 
+          deliverer.currentLocation.latitude && 
+          deliverer.currentLocation.longitude &&
+          announcement.pickupLatitude && 
+          announcement.pickupLongitude) {
+        
+        const distance = calculateDistance(
+          deliverer.currentLocation.latitude,
+          deliverer.currentLocation.longitude,
+          announcement.pickupLatitude,
+          announcement.pickupLongitude
+        );
+
+        if (distance <= MATCHING_RADIUS_KM) {
+          // Calculer le score de matching
+          const matchingScore = calculateMatchingScore({
+            deliverer,
+            announcement,
+            distance
+          });
+
+          matchingCandidates.push({
+            delivererId: deliverer.id,
+            userId: deliverer.user.id,
+            score: matchingScore,
+            distance: Math.round(distance * 10) / 10,
+            name: `${deliverer.user.profile?.firstName || ''} ${deliverer.user.profile?.lastName || ''}`.trim() || deliverer.user.email,
+            stats: deliverer.delivererStats,
+            vehicleType: deliverer.vehicleInfo?.type || 'UNKNOWN'
+          });
+        }
+      }
+    }
+
+    // Trier par score décroissant et prendre les meilleurs
+    const topMatches = matchingCandidates
+      .sort((a, b) => b.score - a.score)
+      .slice(0, MAX_SUGGESTIONS);
+
+    if (topMatches.length > 0) {
+      // Notifier les top livreurs de la suggestion
+      const topNotifications = topMatches.slice(0, 3).map(match => ({
+        userId: match.userId,
+        type: 'DELIVERY_MATCH_SUGGESTED' as const,
+        title: 'Livraison recommandée pour vous',
+        message: `Livraison parfaitement adaptée à votre profil (score: ${Math.round(match.score)}%)`,
+        data: {
+          announcementId: announcement.id,
+          matchingScore: match.score,
+          rank: topMatches.findIndex(m => m.delivererId === match.delivererId) + 1,
+          distance: match.distance,
+          suggestedPrice: announcement.suggestedPrice
+        }
+      }));
+
+      await db.notification.createMany({
+        data: topNotifications
+      });
+
+      console.log(`🎯 Matching automatique: ${topMatches.length} suggestions générées pour l'annonce ${announcement.id}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors du matching automatique:', error);
+  }
+}
+
+/**
+ * Calcule le score de matching entre un livreur et une annonce
+ * Score basé sur plusieurs critères : distance, rating, expérience, disponibilité
+ */
+function calculateMatchingScore(params: {
+  deliverer: any;
+  announcement: any;
+  distance: number;
+}): number {
+  const { deliverer, announcement, distance } = params;
+  let score = 0;
+
+  // Score de distance (40% du score total) - Plus proche = meilleur score
+  const maxDistance = 20; // km
+  const distanceScore = Math.max(0, (maxDistance - distance) / maxDistance) * 40;
+  score += distanceScore;
+
+  // Score de rating (25% du score total)
+  if (deliverer.delivererStats?.averageRating) {
+    const ratingScore = (deliverer.delivererStats.averageRating / 5) * 25;
+    score += ratingScore;
+  }
+
+  // Score d'expérience (20% du score total)
+  if (deliverer.delivererStats?.totalDeliveries) {
+    const experienceScore = Math.min(20, (deliverer.delivererStats.totalDeliveries / 100) * 20);
+    score += experienceScore;
+  }
+
+  // Score de ponctualité (10% du score total)
+  if (deliverer.delivererStats?.onTimeRate) {
+    const punctualityScore = (deliverer.delivererStats.onTimeRate / 100) * 10;
+    score += punctualityScore;
+  }
+
+  // Score de véhicule adapté (5% du score total)
+  if (deliverer.vehicleInfo?.type) {
+    let vehicleScore = 0;
+    const vehicleType = deliverer.vehicleInfo.type;
+    
+    // Adapter selon le type d'annonce
+    if (announcement.type === 'LARGE_ITEM' && ['VAN', 'TRUCK'].includes(vehicleType)) {
+      vehicleScore = 5;
+    } else if (announcement.type === 'STANDARD' && ['CAR', 'BIKE', 'SCOOTER'].includes(vehicleType)) {
+      vehicleScore = 5;
+    } else if (announcement.type === 'EXPRESS' && ['BIKE', 'SCOOTER'].includes(vehicleType)) {
+      vehicleScore = 5;
+    }
+    
+    score += vehicleScore;
+  }
+
+  return Math.round(score * 10) / 10; // Arrondir à 1 décimale
 }

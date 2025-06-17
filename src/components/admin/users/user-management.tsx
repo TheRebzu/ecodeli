@@ -87,18 +87,8 @@ export default function UserTable({
   const [selectAll, setSelectAll] = useState(false);
   const { toast } = useToast();
 
-  // Log détaillé pour debugging
-  console.log("🔍 [CLIENT] UserTable - Données reçues:", {
-    users: users,
-    usersType: typeof users,
-    isArray: Array.isArray(users),
-    usersLength: Array.isArray(users) ? users.length : "N/A",
-    isLoading: isLoading,
-    firstUser: Array.isArray(users) ? users[0] : null});
-
   // Vérification défensive
   const safeUsers = Array.isArray(users) ? users : [];
-  console.log("🔍 [CLIENT] safeUsers length:", safeUsers.length);
 
   // États pour les dialogs
   const [isDialogOpen, setIsDialogOpen] = useState(false);

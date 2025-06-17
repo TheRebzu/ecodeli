@@ -723,4 +723,376 @@ export const delivererRouter = router({ // ===== PROFIL ET DOCUMENTS =====
           deliveryAddress: true,
           estimatedDistance: true,
           price: true}});
-    })});
+    }),
+
+    // Stats endpoints for dashboard widget
+    getDeliveryStats: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.session.user.role !== "DELIVERER") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux livreurs" });
+      }
+
+      const delivererId = ctx.session.user.id;
+      const now = new Date();
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+
+      // Statistiques principales
+      const [
+        totalDeliveries,
+        completedDeliveries,
+        totalEarnings,
+        averageRating,
+        totalDistance,
+        averageDeliveryTime
+      ] = await Promise.all([
+        ctx.db.delivery.count({ where: { delivererId } }),
+        ctx.db.delivery.count({ where: { delivererId, status: "DELIVERED" } }),
+        ctx.db.delivery.aggregate({ 
+          where: { delivererId, status: "DELIVERED" },
+          _sum: { price: true }
+        }),
+        ctx.db.review.aggregate({
+          where: { delivery: { delivererId } },
+          _avg: { rating: true }
+        }),
+        ctx.db.delivery.aggregate({
+          where: { delivererId, status: "DELIVERED" },
+          _sum: { distance: true }
+        }),
+        ctx.db.delivery.aggregate({
+          where: { delivererId, status: "DELIVERED", actualDeliveryTime: { not: null } },
+          _avg: { actualDeliveryTime: true }
+        })
+      ]);
+
+      // Calcul des tendances (comparaison avec le mois dernier)
+      const [
+        lastMonthDeliveries,
+        lastMonthEarnings,
+        lastMonthRating
+      ] = await Promise.all([
+        ctx.db.delivery.count({ where: { delivererId, createdAt: { lt: lastMonth } } }),
+        ctx.db.delivery.aggregate({ 
+          where: { delivererId, status: "DELIVERED", createdAt: { lt: lastMonth } },
+          _sum: { price: true }
+        }),
+        ctx.db.review.aggregate({
+          where: { 
+            delivery: { delivererId, createdAt: { lt: lastMonth } }
+          },
+          _avg: { rating: true }
+        })
+      ]);
+
+      const calculateTrend = (current: number, previous: number) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return Math.round(((current - previous) / previous) * 100);
+      };
+
+      const completionRate = totalDeliveries > 0 ? Math.round((completedDeliveries / totalDeliveries) * 100) : 0;
+      
+      // Prochaine livraison programmée
+      const nextDelivery = await ctx.db.delivery.findFirst({
+        where: { 
+          delivererId, 
+          status: { in: ["ACCEPTED", "IN_PROGRESS"] },
+          scheduledDeliveryTime: { gte: now }
+        },
+        include: { announcement: { select: { deliveryAddress: true } } },
+        orderBy: { scheduledDeliveryTime: "asc" }
+      });
+
+      // Niveau de performance
+      let performanceLevel = "AVERAGE";
+      let performanceScore = 50;
+      
+      if (completionRate >= 95 && (averageRating._avg || 0) >= 4.5) {
+        performanceLevel = "EXCELLENT";
+        performanceScore = 90 + Math.round(completionRate / 10);
+      } else if (completionRate >= 85 && (averageRating._avg || 0) >= 4.0) {
+        performanceLevel = "GOOD";
+        performanceScore = 70 + Math.round(completionRate / 5);
+      } else if (completionRate < 70 || (averageRating._avg || 0) < 3.0) {
+        performanceLevel = "POOR";
+        performanceScore = Math.max(20, completionRate);
+      }
+
+      return {
+        totalDeliveries,
+        completionRate,
+        totalEarnings: totalEarnings._sum.price?.toNumber() || 0,
+        averageRating: averageRating._avg?.toNumber() || null,
+        totalDistance: totalDistance._sum.distance?.toNumber() || 0,
+        averageDeliveryTime: averageDeliveryTime._avg?.toNumber() || 0,
+        deliveriesTrend: calculateTrend(totalDeliveries, lastMonthDeliveries),
+        completionTrend: 0, // Calculé différemment si nécessaire
+        earningsTrend: calculateTrend(
+          totalEarnings._sum.price?.toNumber() || 0,
+          lastMonthEarnings._sum.price?.toNumber() || 0
+        ),
+        ratingTrend: calculateTrend(
+          averageRating._avg?.toNumber() || 0,
+          lastMonthRating._avg?.toNumber() || 0
+        ),
+        nextDelivery: nextDelivery ? {
+          scheduledAt: nextDelivery.scheduledDeliveryTime,
+          address: nextDelivery.announcement?.deliveryAddress
+        } : null,
+        performanceLevel,
+        performanceScore: Math.min(100, performanceScore)
+      };
+    }),
+
+    getWeeklyProgress: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.session.user.role !== "DELIVERER") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux livreurs" });
+      }
+
+      const delivererId = ctx.session.user.id;
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay()); // Dimanche
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      const completed = await ctx.db.delivery.count({
+        where: {
+          delivererId,
+          status: "DELIVERED",
+          completedAt: {
+            gte: startOfWeek,
+            lte: endOfWeek
+          }
+        }
+      });
+
+      const target = 20; // Objectif par défaut, pourrait être configuré par livreur
+      const progressPercentage = Math.min(100, Math.round((completed / target) * 100));
+      const daysLeft = Math.max(0, 7 - now.getDay());
+
+      return {
+        completed,
+        target,
+        progressPercentage,
+        daysLeft
+      };
+    }),
+
+    getRecentDeliveries: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(10).default(5) }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.session.user.role !== "DELIVERER") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux livreurs" });
+        }
+
+        return await ctx.db.delivery.findMany({
+          where: {
+            delivererId: ctx.session.user.id,
+            status: "DELIVERED"
+          },
+          include: {
+            announcement: {
+              select: {
+                title: true,
+                deliveryAddress: true
+              }
+            }
+          },
+          orderBy: { completedAt: "desc" },
+          take: input.limit
+        });
+      }),
+
+    // Earnings endpoints
+    getEarnings: protectedProcedure
+      .input(z.object({
+        period: z.enum(["week", "month", "year"]).default("month")
+      }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.session.user.role !== "DELIVERER") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux livreurs" });
+        }
+
+        const delivererId = ctx.session.user.id;
+        const now = new Date();
+        
+        let startDate: Date;
+        let previousStartDate: Date;
+        
+        switch (input.period) {
+          case "week":
+            startDate = new Date(now);
+            startDate.setDate(now.getDate() - now.getDay());
+            startDate.setHours(0, 0, 0, 0);
+            previousStartDate = new Date(startDate);
+            previousStartDate.setDate(startDate.getDate() - 7);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            previousStartDate = new Date(now.getFullYear() - 1, 0, 1);
+            break;
+          default: // month
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            previousStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        }
+
+        const endDate = now;
+
+        // Calculs des gains actuels
+        const [currentEarnings, previousEarnings, todayEarnings, pendingPayments] = await Promise.all([
+          ctx.db.delivery.aggregate({
+            where: {
+              delivererId,
+              status: "DELIVERED",
+              completedAt: { gte: startDate, lte: endDate }
+            },
+            _sum: { price: true },
+            _count: true
+          }),
+          ctx.db.delivery.aggregate({
+            where: {
+              delivererId,
+              status: "DELIVERED",
+              completedAt: { gte: previousStartDate, lt: startDate }
+            },
+            _sum: { price: true }
+          }),
+          ctx.db.delivery.aggregate({
+            where: {
+              delivererId,
+              status: "DELIVERED",
+              completedAt: {
+                gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+                lte: endDate
+              }
+            },
+            _sum: { price: true }
+          }),
+          ctx.db.payment.aggregate({
+            where: {
+              userId: delivererId,
+              status: "PENDING"
+            },
+            _sum: { amount: true }
+          })
+        ]);
+
+        const total = currentEarnings._sum.price?.toNumber() || 0;
+        const previous = previousEarnings._sum.price?.toNumber() || 0;
+        const today = todayEarnings._sum.price?.toNumber() || 0;
+        const pending = pendingPayments._sum.amount?.toNumber() || 0;
+        const deliveryCount = currentEarnings._count || 1;
+        const averagePerDelivery = total / deliveryCount;
+
+        const calculateTrend = (current: number, prev: number) => {
+          if (prev === 0) return current > 0 ? 100 : 0;
+          return Math.round(((current - prev) / prev) * 100);
+        };
+
+        // Objectif mensuel (pourrait être configuré par utilisateur)
+        const goal = 1000;
+        const goalProgress = Math.min(100, (total / goal) * 100);
+        const remainingDays = input.period === "month" 
+          ? new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate()
+          : 0;
+
+        return {
+          total,
+          pending,
+          today,
+          averagePerDelivery,
+          totalTrend: calculateTrend(total, previous),
+          pendingTrend: 0, // À calculer si nécessaire
+          todayTrend: 0, // À calculer si nécessaire
+          averageTrend: 0, // À calculer si nécessaire
+          goal,
+          goalProgress,
+          remainingDays
+        };
+      }),
+
+    getRecentPayouts: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(10).default(5) }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.session.user.role !== "DELIVERER") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux livreurs" });
+        }
+
+        return await ctx.db.payment.findMany({
+          where: { userId: ctx.session.user.id },
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+            method: true,
+            createdAt: true
+          }
+        });
+      }),
+
+    getMonthlyBreakdown: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.session.user.role !== "DELIVERER") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux livreurs" });
+      }
+
+      const delivererId = ctx.session.user.id;
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // Récupérer les livraisons du mois par type de service
+      const deliveries = await ctx.db.delivery.findMany({
+        where: {
+          delivererId,
+          status: "DELIVERED",
+          completedAt: { gte: startOfMonth }
+        },
+        include: {
+          announcement: {
+            select: { packageType: true }
+          }
+        }
+      });
+
+      // Grouper par catégorie
+      const categories = {
+        documents: 0,
+        packages: 0,
+        food: 0,
+        fragile: 0,
+        other: 0
+      };
+
+      deliveries.forEach(delivery => {
+        const price = delivery.price?.toNumber() || 0;
+        const type = delivery.announcement?.packageType?.toLowerCase() || "other";
+        
+        switch (type) {
+          case "document":
+            categories.documents += price;
+            break;
+          case "package":
+            categories.packages += price;
+            break;
+          case "food":
+            categories.food += price;
+            break;
+          case "fragile":
+            categories.fragile += price;
+            break;
+          default:
+            categories.other += price;
+        }
+      });
+
+      const total = Object.values(categories).reduce((sum, amount) => sum + amount, 0);
+
+      return {
+        categories,
+        total
+      };
+    })
+  })});

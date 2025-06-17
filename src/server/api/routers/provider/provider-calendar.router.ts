@@ -534,8 +534,7 @@ export const providerCalendarRouter = router({ /**
 
         // Notifier les clients si demandé et si il y a des réservations affectées
         if (input.notifyClients && affectedBookings.length > 0) {
-          // TODO: Implémenter les notifications
-          // await notifyClientsOfException(affectedBookings, input.notificationMessage);
+          await notifyClientsOfException(affectedBookings, input.notificationMessage, ctx.db);
         }
 
         return {
@@ -1165,13 +1164,62 @@ function formatException(exception: any): any {
 }
 
 function calculateTotalAvailableHours(slots: any[]): number {
-  // TODO: Calculer le total d'heures disponibles
-  return 0;
+  // Calculer le total d'heures disponibles en sommant tous les créneaux
+  let totalMinutes = 0;
+  
+  for (const slot of slots) {
+    if (slot.startTime && slot.endTime) {
+      // Convertir les heures en minutes pour un calcul précis
+      const startMinutes = timeToMinutes(slot.startTime);
+      const endMinutes = timeToMinutes(slot.endTime);
+      
+      // Ajouter la durée du créneau (gestion des créneaux qui traversent minuit)
+      let duration = endMinutes - startMinutes;
+      if (duration < 0) {
+        duration += 24 * 60; // Ajouter 24h si le créneau traverse minuit
+      }
+      
+      totalMinutes += duration;
+    }
+  }
+  
+  // Convertir en heures avec précision décimale
+  return Math.round((totalMinutes / 60) * 100) / 100;
 }
 
 function calculateBookedHours(bookings: any[]): number {
-  // TODO: Calculer le total d'heures réservées
-  return 0;
+  // Calculer le total d'heures réservées
+  let totalMinutes = 0;
+  
+  for (const booking of bookings) {
+    if (booking.startTime && booking.endTime) {
+      // Calculer la durée de chaque réservation
+      const startTime = new Date(booking.startTime);
+      const endTime = new Date(booking.endTime);
+      
+      const durationMs = endTime.getTime() - startTime.getTime();
+      const durationMinutes = durationMs / (1000 * 60);
+      
+      // Ne compter que les réservations confirmées ou en attente
+      if (['CONFIRMED', 'PENDING', 'IN_PROGRESS'].includes(booking.status)) {
+        totalMinutes += durationMinutes;
+      }
+    } else if (booking.duration) {
+      // Si on a directement la durée en minutes
+      if (['CONFIRMED', 'PENDING', 'IN_PROGRESS'].includes(booking.status)) {
+        totalMinutes += booking.duration;
+      }
+    }
+  }
+  
+  // Convertir en heures avec précision décimale
+  return Math.round((totalMinutes / 60) * 100) / 100;
+}
+
+// Fonction utilitaire pour convertir HH:MM en minutes
+function timeToMinutes(timeString: string): number {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
 }
 
 function calculatePeriodDates(period: string): {
@@ -1336,4 +1384,109 @@ async function checkBookingConflicts(
   }
 
   return conflicts;
+}
+
+/**
+ * Notifie les clients des exceptions d'horaires du prestataire
+ */
+async function notifyClientsOfException(
+  affectedBookings: any[],
+  notificationMessage: string | undefined,
+  db: any
+): Promise<void> {
+  try {
+    console.log(`📬 Notification de ${affectedBookings.length} clients pour exception d'horaires`);
+    
+    // Grouper les réservations par client pour éviter les notifications multiples
+    const clientBookings = new Map();
+    
+    for (const booking of affectedBookings) {
+      if (!clientBookings.has(booking.clientId)) {
+        clientBookings.set(booking.clientId, []);
+      }
+      clientBookings.get(booking.clientId).push(booking);
+    }
+    
+    // Créer les notifications pour chaque client
+    const notifications = [];
+    
+    for (const [clientId, bookings] of clientBookings) {
+      const bookingCount = bookings.length;
+      const firstBooking = bookings[0];
+      
+      // Message personnalisé ou message par défaut
+      const defaultMessage = bookingCount === 1 
+        ? `Votre réservation du ${new Date(firstBooking.scheduledAt).toLocaleDateString('fr-FR')} pourrait être impactée par un changement d'horaires`
+        : `${bookingCount} de vos réservations pourraient être impactées par un changement d'horaires`;
+        
+      const finalMessage = notificationMessage || defaultMessage;
+      
+      // Créer la notification pour ce client
+      const notification = {
+        userId: clientId,
+        type: 'PROVIDER_SCHEDULE_EXCEPTION' as const,
+        title: 'Modification d\'horaires prestataire',
+        message: finalMessage,
+        data: {
+          providerId: firstBooking.providerId,
+          providerName: firstBooking.provider?.user?.name || 'Prestataire',
+          affectedBookings: bookings.map((b: any) => ({
+            id: b.id,
+            serviceName: b.service?.name || 'Service',
+            scheduledAt: b.scheduledAt,
+            status: b.status
+          })),
+          exceptionMessage: notificationMessage,
+          requiresAction: true,
+          actionUrl: `/client/bookings?provider=${firstBooking.providerId}`
+        },
+        priority: 'HIGH',
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 jours
+      };
+      
+      notifications.push(notification);
+    }
+    
+    // Enregistrer toutes les notifications en base
+    if (notifications.length > 0) {
+      await db.notification.createMany({
+        data: notifications
+      });
+      
+      console.log(`✅ ${notifications.length} notifications créées pour l'exception d'horaires`);
+    }
+    
+    // Créer un log pour traçabilité
+    await db.auditLog.create({
+      data: {
+        userId: affectedBookings[0]?.providerId || 'system',
+        action: 'PROVIDER_EXCEPTION_CLIENT_NOTIFICATION',
+        tableName: 'ProviderException',
+        recordId: 'bulk-notification',
+        changes: {
+          affectedClients: Array.from(clientBookings.keys()),
+          notificationMessage,
+          bookingsCount: affectedBookings.length
+        },
+        ipAddress: 'system',
+        userAgent: 'Provider Calendar System'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Erreur lors de la notification des clients:', error);
+    
+    // Log d'erreur même si les notifications échouent
+    await db.systemLog.create({
+      data: {
+        type: 'CLIENT_NOTIFICATION_ERROR',
+        message: `Échec notification clients pour exception prestataire`,
+        level: 'ERROR',
+        metadata: {
+          affectedBookingsCount: affectedBookings.length,
+          error: error instanceof Error ? error.message : 'Erreur inconnue'
+        }
+      }
+    });
+  }
 }

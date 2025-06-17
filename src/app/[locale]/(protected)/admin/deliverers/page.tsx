@@ -102,10 +102,10 @@ export default function AdminDeliverersPage() {
     verificationStatus: deliverer.isVerified ? "APPROVED" : "PENDING",
     createdAt: deliverer.createdAt,
     lastActiveAt: deliverer.lastLoginAt,
-    totalDeliveries: 0, // Données simulées
-    completedDeliveries: 0,
-    rating: 4.5,
-    earnings: 0,
+    totalDeliveries: deliverer._count?.delivererDeliveries || 0,
+    completedDeliveries: deliverer._count?.delivererDeliveries || 0,
+    rating: deliverer.averageRating || 0,
+    earnings: deliverer.wallet?.balance || 0,
     hasVehicle: true,
     vehicleType: "Voiture",
     preferredZones: ["Paris", "Lyon"] }));
@@ -128,9 +128,11 @@ export default function AdminDeliverersPage() {
     suspendedDeliverers: delivererUsers.filter(
       (d: any) => d.status === "SUSPENDED",
     ).length,
-    totalDeliveries: 0,
-    totalEarnings: 0,
-    averageRating: 4.5};
+    totalDeliveries: delivererUsers.reduce((sum: number, d: any) => sum + (d._count?.delivererDeliveries || 0), 0),
+    totalEarnings: delivererUsers.reduce((sum: number, d: any) => sum + (d.wallet?.balance || 0), 0),
+    averageRating: delivererUsers.length > 0 
+      ? delivererUsers.reduce((sum: number, d: any) => sum + (d.averageRating || 0), 0) / delivererUsers.length 
+      : 0};
 
   const isLoadingStats = false;
 
@@ -382,12 +384,33 @@ export default function AdminDeliverersPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-center h-64 text-muted-foreground">
-                <div className="text-center">
-                  <MapPin className="mx-auto h-12 w-12 mb-4" />
-                  <p>Carte des zones de couverture</p>
-                  <p className="text-sm">Fonctionnalité à implémenter</p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from(new Set(delivererUsers.flatMap((d: any) => d.deliverer?.preferredZone ? [d.deliverer.preferredZone] : [])))
+                  .filter(Boolean)
+                  .map((zone: string, index: number) => {
+                    const zoneDeliverers = delivererUsers.filter((d: any) => d.deliverer?.preferredZone === zone);
+                    return (
+                      <Card key={zone} className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-semibold">{zone}</h3>
+                          <Badge variant="secondary">{zoneDeliverers.length} livreurs</Badge>
+                        </div>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <div>Actifs: {zoneDeliverers.filter((d: any) => d.status === 'ACTIVE').length}</div>
+                          <div>En attente: {zoneDeliverers.filter((d: any) => !d.isVerified).length}</div>
+                          <div>Disponibles: {zoneDeliverers.filter((d: any) => d.deliverer?.isAvailable).length}</div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                {delivererUsers.length === 0 && (
+                  <div className="col-span-full flex items-center justify-center h-32 text-muted-foreground">
+                    <div className="text-center">
+                      <MapPin className="mx-auto h-8 w-8 mb-2" />
+                      <p>Aucune zone de couverture disponible</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

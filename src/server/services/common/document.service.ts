@@ -1041,8 +1041,8 @@ export class DocumentService {
             type: "VERIFICATION",
             data: { status: VerificationStatus.APPROVED }});
 
-          // Send email notification (if integrated with email service)
-          // This will need to be implemented based on your email service
+          // Notification email pour approbation de document
+          await this.sendDocumentApprovalEmail(userWithDocument.user, userWithDocument.type);
         }
 
         if (data.verificationStatus === VerificationStatus.REJECTED) {
@@ -1056,8 +1056,8 @@ export class DocumentService {
               status: VerificationStatus.REJECTED,
               reason: data.rejectionReason}});
 
-          // Send email notification (if integrated with email service)
-          // This will need to be implemented based on your email service
+          // Notification email pour rejet de document
+          await this.sendDocumentRejectionEmail(userWithDocument.user, userWithDocument.type, data.rejectionReason);
         }
       }
 
@@ -1192,6 +1192,88 @@ export class DocumentService {
     return documents.map((doc) => ({ ...doc,
       status: doc.verificationStatus,
       createdAt: doc.uploadedAt }));
+  }
+
+  /**
+   * Envoie un email de notification pour approbation de document
+   */
+  private async sendDocumentApprovalEmail(user: any, documentType: string): Promise<void> {
+    try {
+      const emailService = await import("@/server/services/common/email.service").then(m => m.emailService);
+      
+      const documentTypeLabel = this.getDocumentTypeLabel(documentType);
+      
+      await emailService.sendEmail({
+        to: user.email,
+        subject: `Document approuvé - ${documentTypeLabel}`,
+        template: 'document-approval',
+        data: {
+          userName: user.name || user.email,
+          documentType: documentTypeLabel,
+          approvalDate: new Date().toLocaleDateString('fr-FR'),
+          dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+          supportEmail: process.env.SUPPORT_EMAIL || 'support@ecodeli.me'
+        }
+      });
+      
+      console.log(`📧 Email d'approbation envoyé à ${user.email} pour ${documentTypeLabel}`);
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de l\'email d\'approbation:', error);
+      // Ne pas faire échouer le processus principal si l'email échoue
+    }
+  }
+
+  /**
+   * Envoie un email de notification pour rejet de document
+   */
+  private async sendDocumentRejectionEmail(user: any, documentType: string, rejectionReason?: string): Promise<void> {
+    try {
+      const emailService = await import("@/server/services/common/email.service").then(m => m.emailService);
+      
+      const documentTypeLabel = this.getDocumentTypeLabel(documentType);
+      
+      await emailService.sendEmail({
+        to: user.email,
+        subject: `Document rejeté - ${documentTypeLabel}`,
+        template: 'document-rejection',
+        data: {
+          userName: user.name || user.email,
+          documentType: documentTypeLabel,
+          rejectionReason: rejectionReason || 'Document non conforme aux exigences',
+          rejectionDate: new Date().toLocaleDateString('fr-FR'),
+          uploadUrl: `${process.env.NEXT_PUBLIC_APP_URL}/documents/upload`,
+          supportEmail: process.env.SUPPORT_EMAIL || 'support@ecodeli.me',
+          helpUrl: `${process.env.NEXT_PUBLIC_APP_URL}/help/documents`
+        }
+      });
+      
+      console.log(`📧 Email de rejet envoyé à ${user.email} pour ${documentTypeLabel}`);
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de l\'email de rejet:', error);
+      // Ne pas faire échouer le processus principal si l'email échoue
+    }
+  }
+
+  /**
+   * Obtient le libellé français du type de document
+   */
+  private getDocumentTypeLabel(documentType: string): string {
+    const labels: Record<string, string> = {
+      'IDENTITY_CARD': 'Carte d\'identité',
+      'PASSPORT': 'Passeport',
+      'DRIVING_LICENSE': 'Permis de conduire',
+      'VEHICLE_REGISTRATION': 'Carte grise',
+      'INSURANCE_CERTIFICATE': 'Certificat d\'assurance',
+      'BUSINESS_LICENSE': 'Licence commerciale',
+      'TAX_CERTIFICATE': 'Certificat fiscal',
+      'BANK_RIB': 'RIB bancaire',
+      'ADDRESS_PROOF': 'Justificatif de domicile',
+      'PROFESSIONAL_QUALIFICATION': 'Qualification professionnelle'
+    };
+    
+    return labels[documentType] || documentType;
   }
 }
 

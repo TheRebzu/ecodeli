@@ -60,11 +60,11 @@ export const authOptions: NextAuthOptions = {
             image: true,
             twoFactorEnabled: true,
             twoFactorSecret: true,
-            client: { select: { id } },
+            client: { select: { id: true } },
             deliverer: { select: { id: true, isVerified: true } },
             merchant: { select: { id: true, isVerified: true } },
             provider: { select: { id: true, isVerified: true } },
-            admin: { select: { id } }}});
+            admin: { select: { id: true } }}});
 
         if (!user) {
           throw new Error("Utilisateur non trouvé");
@@ -82,7 +82,7 @@ export const authOptions: NextAuthOptions = {
         if (
           user.status !== UserStatus.ACTIVE &&
           !(
-            user.status === UserStatus.PENDINGVERIFICATION &&
+            user.status === UserStatus.PENDING_VERIFICATION &&
             user.role === UserRole.DELIVERER
           )
         ) {
@@ -114,7 +114,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Déterminer si l'utilisateur est vérifié selon son rôle
-        const isVerified = true; // Par défaut, les comptes sont considérés comme vérifiés
+        let isVerified = true; // Par défaut, les comptes sont considérés comme vérifiés
         const status = user.status;
 
         // Déterminer le profileId en fonction du rôle

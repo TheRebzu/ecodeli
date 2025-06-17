@@ -246,7 +246,13 @@ export const cartDropRouter = router({ /**
                 name: true,
                 location: true}}}});
 
-        // TODO: Déclencher le système de matching pour trouver un livreur
+        // Déclencher le système de matching pour trouver un livreur
+        try {
+          await this.triggerDelivererMatching(newCartDrop, ctx);
+        } catch (matchingError) {
+          console.warn("Erreur lors du matching de livreur:", matchingError);
+          // Ne pas faire échouer la création si le matching échoue
+        }
 
         return {
           success: true,

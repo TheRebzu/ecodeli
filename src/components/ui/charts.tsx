@@ -5,6 +5,7 @@ import { AreaChart as TremorAreaChart } from "@tremor/react";
 import { BarChart as TremorBarChart } from "@tremor/react";
 import { LineChart as TremorLineChart } from "@tremor/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 // Types communs pour les graphiques
 interface BaseChartProps {
@@ -178,10 +179,17 @@ export function PieChart({
   data,
   category,
   index,
-  colors,
+  colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#f97316"],
   valueFormatter = (value) => `${value}`,
   className = ""}: PieChartProps) {
-  // TODO: Implémenter avec recharts ou autre, car @tremor/react n'a pas de PieChart
+  
+  // Préparer les données pour recharts
+  const chartData = data.map((item, idx) => ({
+    name: item[index],
+    value: item[category],
+    color: colors[idx % colors.length]
+  }));
+
   return (
     <div className={className}>
       {title && (
@@ -192,10 +200,26 @@ export function PieChart({
           )}
         </div>
       )}
-      <div className="h-64 flex items-center justify-center text-muted-foreground">
-        <span>
-          PieChart non supporté par @tremor/react. À implémenter avec recharts.
-        </span>
+      
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <RechartsPieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              dataKey="value"
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip formatter={(value) => valueFormatter(Number(value))} />
+            <Legend />
+          </RechartsPieChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

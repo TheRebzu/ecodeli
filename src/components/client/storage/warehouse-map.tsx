@@ -72,22 +72,71 @@ export function WarehouseMap({
   const [isLoading, setIsLoading] = useState(true);
   const [mapCenter, setMapCenter] = useState<[number, number]>([
     48.8566, 2.3522]); // Paris par défaut
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
   useEffect(() => {
-    // Centrer la carte sur les entrepôts ou garder Paris par défaut
-    if (warehouses.length > 0) {
-      const validWarehouses = warehouses.filter((w) => w.lat && w.lng);
-      if (validWarehouses.length > 0) {
-        const avgLat =
-          validWarehouses.reduce((sum, w) => sum + (w.lat || 0), 0) /
-          validWarehouses.length;
-        const avgLng =
-          validWarehouses.reduce((sum, w) => sum + (w.lng || 0), 0) /
-          validWarehouses.length;
-        setMapCenter([avgLat, avgLng]);
+    // Obtenir la géolocalisation de l'utilisateur
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos: [number, number] = [
+            position.coords.latitude,
+            position.coords.longitude,
+          ];
+          setUserLocation(userPos);
+          
+          // Si on a des entrepôts, centrer entre l'utilisateur et les entrepôts
+          if (warehouses.length > 0) {
+            const validWarehouses = warehouses.filter((w) => w.lat && w.lng);
+            if (validWarehouses.length > 0) {
+              const avgLat =
+                (validWarehouses.reduce((sum, w) => sum + (w.lat || 0), 0) / validWarehouses.length + userPos[0]) / 2;
+              const avgLng =
+                (validWarehouses.reduce((sum, w) => sum + (w.lng || 0), 0) / validWarehouses.length + userPos[1]) / 2;
+              setMapCenter([avgLat, avgLng]);
+            } else {
+              setMapCenter(userPos);
+            }
+          } else {
+            setMapCenter(userPos);
+          }
+          setIsLoading(false);
+        },
+        (error) => {
+          console.warn("Géolocalisation non disponible:", error);
+          // Fallback: centrer sur les entrepôts ou Paris
+          if (warehouses.length > 0) {
+            const validWarehouses = warehouses.filter((w) => w.lat && w.lng);
+            if (validWarehouses.length > 0) {
+              const avgLat =
+                validWarehouses.reduce((sum, w) => sum + (w.lat || 0), 0) /
+                validWarehouses.length;
+              const avgLng =
+                validWarehouses.reduce((sum, w) => sum + (w.lng || 0), 0) /
+                validWarehouses.length;
+              setMapCenter([avgLat, avgLng]);
+            }
+          }
+          setIsLoading(false);
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      // Géolocalisation non supportée, centrer sur les entrepôts
+      if (warehouses.length > 0) {
+        const validWarehouses = warehouses.filter((w) => w.lat && w.lng);
+        if (validWarehouses.length > 0) {
+          const avgLat =
+            validWarehouses.reduce((sum, w) => sum + (w.lat || 0), 0) /
+            validWarehouses.length;
+          const avgLng =
+            validWarehouses.reduce((sum, w) => sum + (w.lng || 0), 0) /
+            validWarehouses.length;
+          setMapCenter([avgLat, avgLng]);
+        }
       }
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [warehouses]);
 
   const selectedWarehouse = warehouses.find(
@@ -185,6 +234,21 @@ export function WarehouseMap({
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
+              {/* Marqueur de la position utilisateur */}
+              {userLocation && (
+                <Marker position={userLocation}>
+                  <Popup>
+                    <div className="p-2">
+                      <h3 className="font-semibold mb-1">Votre position</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Position actuelle détectée
+                      </p>
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
+              
+              {/* Marqueurs des entrepôts */}
               {warehouses.map((warehouse) => {
                 if (!warehouse.lat || !warehouse.lng) return null;
 
@@ -202,6 +266,11 @@ export function WarehouseMap({
                         {warehouse.description && (
                           <p className="text-sm mb-2">
                             {warehouse.description}
+                          </p>
+                        )}
+                        {userLocation && (
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Distance: {calculateDistance(userLocation[0], userLocation[1], warehouse.lat, warehouse.lng).toFixed(1)} km
                           </p>
                         )}
                         <Button
@@ -330,4 +399,17 @@ export function WarehouseMap({
       )}
     </div>
   );
+}
+
+// Fonction utilitaire pour calculer la distance entre deux points
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Rayon de la Terre en km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+  return distance;
 }

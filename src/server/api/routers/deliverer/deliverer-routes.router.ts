@@ -451,8 +451,8 @@ export const delivererRoutesRouter = router({ /**
     )
     .query(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Implémenter recherche géospatiale avec PostGIS
-        const routes = await ctx.db.delivererPlannedRoute.findMany({
+        // Recherche géospatiale avancée avec calcul de distance et détour
+        const allRoutes = await ctx.db.delivererPlannedRoute.findMany({
           where: {
             isPublic: true,
             status: "PUBLISHED",
@@ -460,19 +460,72 @@ export const delivererRoutesRouter = router({ /**
               gte: new Date(input.departureTime.getTime() - 2 * 60 * 60 * 1000), // -2h
               lte: new Date(input.departureTime.getTime() + 4 * 60 * 60 * 1000), // +4h
             },
-            availableCapacity: { gt: 0 }},
+            availableCapacity: { gt: 0 }
+          },
           include: {
             deliverer: {
               select: {
                 id: true,
                 name: true,
                 image: true,
-                deliverer: {
+                delivererStats: {
                   select: {
                     averageRating: true,
-                    totalDeliveries: true}}}}},
-          take: input.limit,
-          orderBy: { departureTime: "asc" }});
+                    totalDeliveries: true,
+                    onTimeRate: true
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        // Filtrer et scorer les routes selon la compatibilité géospatiale
+        const compatibleRoutes = [];
+        
+        for (const route of allRoutes) {
+          // Vérifier si la route a les coordonnées nécessaires
+          if (!route.originLatitude || !route.originLongitude ||
+              !route.destinationLatitude || !route.destinationLongitude) {
+            continue;
+          }
+          
+          // Calculer le détour nécessaire pour intégrer cette livraison
+          const detourAnalysis = calculateDeliveryDetour(
+            {
+              originLat: route.originLatitude,
+              originLng: route.originLongitude,
+              destLat: route.destinationLatitude,
+              destLng: route.destinationLongitude
+            },
+            {
+              pickupLat: input.departureLatitude,
+              pickupLng: input.departureLongitude,
+              deliveryLat: input.deliveryLatitude,
+              deliveryLng: input.deliveryLongitude
+            }
+          );
+          
+          // Vérifier si le détour est acceptable
+          if (detourAnalysis.detourKm <= input.maxDetourKm) {
+            compatibleRoutes.push({
+              ...route,
+              detourKm: Math.round(detourAnalysis.detourKm * 10) / 10,
+              originalDistanceKm: Math.round(detourAnalysis.originalDistanceKm * 10) / 10,
+              newDistanceKm: Math.round(detourAnalysis.newDistanceKm * 10) / 10,
+              detourPercentage: Math.round(detourAnalysis.detourPercentage),
+              compatibilityScore: calculateRouteCompatibilityScore(route, detourAnalysis, input.departureTime),
+              estimatedDeliveryTime: calculateEstimatedDeliveryTime(route, detourAnalysis),
+              fuelCostIncrease: estimateFuelCostIncrease(detourAnalysis.detourKm),
+              isHighlyCompatible: detourAnalysis.detourKm <= input.maxDetourKm * 0.5 // Très compatible si détour < 50% du max
+            });
+          }
+        }
+        
+        // Trier par score de compatibilité décroissant
+        const routes = compatibleRoutes
+          .sort((a, b) => b.compatibilityScore - a.compatibilityScore)
+          .slice(0, input.limit);
 
         return {
           success: true,
@@ -683,25 +736,79 @@ async function triggerRouteMatching(route: any) {
  * Trouve les annonces compatibles avec une route
  */
 async function findCompatibleAnnouncements(route: any) {
-  // Simulation de recherche géographique
-  // En production, utiliser une vraie recherche géospatiale avec PostGIS
-  const mockAnnouncements = [
-    {
-      id: `ann_${Date.now()}_1`,
-      clientId: `client_${Math.random().toString(36).substring(2, 8)}`,
-      title: "Livraison colis urgent",
-      pickupLatitude: route.originLatitude + (Math.random() - 0.5) * 0.1,
-      pickupLongitude: route.originLongitude + (Math.random() - 0.5) * 0.1,
-      deliveryLatitude: route.destinationLatitude + (Math.random() - 0.5) * 0.1,
-      deliveryLongitude: route.destinationLongitude + (Math.random() - 0.5) * 0.1,
-      weight: Math.random() * 20 + 1,
-      price: Math.random() * 50 + 10,
-      urgency: Math.random() > 0.5 ? "HIGH" : "MEDIUM",
-    },
-    // Ajouter plus d'annonces simulées...
-  ];
-  
-  return mockAnnouncements;
+  try {
+    // Recherche géographique réelle des annonces compatibles
+    const compatibleAnnouncements = await db.announcement.findMany({
+      where: {
+        status: "PUBLISHED",
+        delivery: {
+          status: "PENDING",
+        },
+        // Recherche dans un rayon de 10km autour du point de collecte
+        OR: [
+          {
+            AND: [
+              {
+                pickupLatitude: {
+                  gte: route.originLatitude - 0.09, // ~10km
+                  lte: route.originLatitude + 0.09,
+                },
+              },
+              {
+                pickupLongitude: {
+                  gte: route.originLongitude - 0.09,
+                  lte: route.originLongitude + 0.09,
+                },
+              },
+            ],
+          },
+          {
+            AND: [
+              {
+                deliveryLatitude: {
+                  gte: route.destinationLatitude - 0.09,
+                  lte: route.destinationLatitude + 0.09,
+                },
+              },
+              {
+                deliveryLongitude: {
+                  gte: route.destinationLongitude - 0.09,
+                  lte: route.destinationLongitude + 0.09,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        delivery: true,
+      },
+      take: 20, // Limiter à 20 annonces pour les performances
+    });
+
+    return compatibleAnnouncements.map(announcement => ({
+      id: announcement.id,
+      clientId: announcement.client.id,
+      title: announcement.title,
+      pickupLatitude: announcement.pickupLatitude,
+      pickupLongitude: announcement.pickupLongitude,
+      deliveryLatitude: announcement.deliveryLatitude,
+      deliveryLongitude: announcement.deliveryLongitude,
+      weight: announcement.weight || 0,
+      price: announcement.price,
+      urgency: announcement.urgency || "MEDIUM",
+      createdAt: announcement.createdAt,
+    }));
+  } catch (error) {
+    console.error("Erreur lors de la recherche d'annonces compatibles:", error);
+    return [];
+  }
 }
 
 /**
@@ -747,23 +854,73 @@ function calculatePriceScore(price: number): number {
 }
 
 /**
- * Crée les suggestions de matching en base
+ * Crée les suggestions de matching en base de données
  */
 async function createMatchingSuggestions(routeId: string, announcements: any[]) {
-  // Simulation de création en base
-  console.log(`💾 Création de ${announcements.length} suggestions pour route ${routeId}`);
-  
-  // En production:
-  // for (const announcement of announcements) {
-  //   await db.routeMatchingSuggestion.create({
-  //     data: {
-  //       routeId,
-  //       announcementId: announcement.id,
-  //       score: announcement.matchingScore,
-  //       status: "PENDING",
-  //     },
-  //   });
-  // }
+  try {
+    console.log(`💾 Création de ${announcements.length} suggestions pour route ${routeId}`);
+    
+    // Créer les suggestions réelles en base de données
+    const suggestions = [];
+    
+    for (const announcement of announcements) {
+      try {
+        // Vérifier si la suggestion n'existe pas déjà
+        const existingSuggestion = await db.deliveryApplication.findFirst({
+          where: {
+            announcementId: announcement.id,
+            delivererId: routeId, // Dans ce contexte, routeId correspond au delivererId
+            status: "SUGGESTED",
+          },
+        });
+
+        if (!existingSuggestion) {
+          // Créer une application de livraison avec statut "SUGGESTED"
+          const suggestion = await db.deliveryApplication.create({
+            data: {
+              announcementId: announcement.id,
+              delivererId: routeId,
+              status: "SUGGESTED",
+              applicationNotes: `Suggestion automatique - Score de compatibilité: ${announcement.matchingScore}%`,
+              estimatedPrice: announcement.price,
+              proposedPickupDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // +24h
+              matchingScore: announcement.matchingScore,
+              createdAt: new Date(),
+            },
+          });
+          
+          suggestions.push(suggestion);
+        }
+      } catch (error) {
+        console.error(`Erreur création suggestion pour annonce ${announcement.id}:`, error);
+        // Continuer avec les autres suggestions
+      }
+    }
+
+    console.log(`✅ ${suggestions.length} suggestions créées avec succès`);
+    
+    // Créer un log d'audit pour le matching automatique
+    await db.auditLog.create({
+      data: {
+        userId: routeId,
+        action: "ROUTE_MATCHING_SUGGESTIONS_CREATED",
+        tableName: "DeliveryApplication",
+        recordId: routeId,
+        changes: {
+          suggestionsCreated: suggestions.length,
+          totalAnnouncements: announcements.length,
+          averageScore: Math.round(announcements.reduce((sum, a) => sum + a.matchingScore, 0) / announcements.length),
+        },
+        ipAddress: "system",
+        userAgent: "Route Matching System",
+      },
+    });
+
+    return suggestions;
+  } catch (error) {
+    console.error("Erreur lors de la création des suggestions:", error);
+    throw error;
+  }
 }
 
 /**
@@ -815,4 +972,128 @@ function calculateDirectDistance(
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+/**
+ * Calcule l'analyse de détour pour intégrer une livraison dans une route
+ */
+function calculateDeliveryDetour(
+  route: { originLat: number; originLng: number; destLat: number; destLng: number },
+  delivery: { pickupLat: number; pickupLng: number; deliveryLat: number; deliveryLng: number }
+) {
+  // Distance originale de la route
+  const originalDistance = calculateDirectDistance(
+    route.originLat, route.originLng, 
+    route.destLat, route.destLng
+  );
+  
+  // Nouvelle distance avec la livraison intégrée
+  // Route: Origin -> Pickup -> Delivery -> Destination
+  const originToPickup = calculateDirectDistance(
+    route.originLat, route.originLng,
+    delivery.pickupLat, delivery.pickupLng
+  );
+  
+  const pickupToDelivery = calculateDirectDistance(
+    delivery.pickupLat, delivery.pickupLng,
+    delivery.deliveryLat, delivery.deliveryLng
+  );
+  
+  const deliveryToDestination = calculateDirectDistance(
+    delivery.deliveryLat, delivery.deliveryLng,
+    route.destLat, route.destLng
+  );
+  
+  const newDistance = originToPickup + pickupToDelivery + deliveryToDestination;
+  const detourKm = newDistance - originalDistance;
+  const detourPercentage = (detourKm / originalDistance) * 100;
+  
+  return {
+    originalDistanceKm: originalDistance,
+    newDistanceKm: newDistance,
+    detourKm: Math.max(0, detourKm), // Détour ne peut pas être négatif
+    detourPercentage: Math.max(0, detourPercentage),
+    segments: {
+      originToPickup,
+      pickupToDelivery,
+      deliveryToDestination
+    }
+  };
+}
+
+/**
+ * Calcule un score de compatibilité pour une route
+ */
+function calculateRouteCompatibilityScore(
+  route: any,
+  detourAnalysis: any,
+  requestedTime: Date
+): number {
+  let score = 0;
+  
+  // Score de détour (40%) - Moins de détour = meilleur score
+  const detourScore = Math.max(0, (15 - detourAnalysis.detourKm) / 15) * 40;
+  score += detourScore;
+  
+  // Score de timing (25%) - Plus proche de l'heure demandée = meilleur score
+  const timeDiff = Math.abs(new Date(route.departureTime).getTime() - requestedTime.getTime()) / (1000 * 60 * 60); // en heures
+  const timingScore = Math.max(0, (6 - timeDiff) / 6) * 25; // Max 6h de différence acceptable
+  score += timingScore;
+  
+  // Score de réputation livreur (20%)
+  if (route.deliverer?.delivererStats?.averageRating) {
+    const reputationScore = (route.deliverer.delivererStats.averageRating / 5) * 20;
+    score += reputationScore;
+  }
+  
+  // Score d'expérience (10%)
+  if (route.deliverer?.delivererStats?.totalDeliveries) {
+    const experienceScore = Math.min(10, (route.deliverer.delivererStats.totalDeliveries / 100) * 10);
+    score += experienceScore;
+  }
+  
+  // Score de ponctualité (5%)
+  if (route.deliverer?.delivererStats?.onTimeRate) {
+    const punctualityScore = (route.deliverer.delivererStats.onTimeRate / 100) * 5;
+    score += punctualityScore;
+  }
+  
+  return Math.round(score * 10) / 10;
+}
+
+/**
+ * Calcule le temps de livraison estimé
+ */
+function calculateEstimatedDeliveryTime(route: any, detourAnalysis: any): Date {
+  const baseTime = new Date(route.departureTime);
+  
+  // Vitesse moyenne estimée selon le type de véhicule et le trafic
+  let averageSpeed = 50; // km/h par défaut
+  
+  // Ajouter le temps de trajet basé sur la nouvelle distance
+  const additionalMinutes = (detourAnalysis.newDistanceKm / averageSpeed) * 60;
+  
+  // Ajouter un buffer pour les arrêts et la collecte/livraison
+  const stopTimeMinutes = 15; // 15 min par arrêt (pickup + delivery)
+  
+  const estimatedTime = new Date(baseTime);
+  estimatedTime.setMinutes(estimatedTime.getMinutes() + additionalMinutes + stopTimeMinutes);
+  
+  return estimatedTime;
+}
+
+/**
+ * Estime l'augmentation du coût de carburant
+ */
+function estimateFuelCostIncrease(detourKm: number): number {
+  // Estimation basée sur:
+  // - Consommation moyenne: 7L/100km
+  // - Prix moyen du carburant: 1.5€/L
+  const fuelConsumptionPer100km = 7;
+  const fuelPricePerLiter = 1.5;
+  
+  const fuelConsumed = (detourKm * fuelConsumptionPer100km) / 100;
+  const fuelCost = fuelConsumed * fuelPricePerLiter;
+  
+  return Math.round(fuelCost * 100) / 100; // Arrondir à 2 décimales
 }

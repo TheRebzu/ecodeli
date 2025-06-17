@@ -22,6 +22,8 @@ import {
   Info,
   Check} from "lucide-react";
 import { api } from "@/trpc/react";
+import { useClientStorage } from "@/hooks/client/use-client-storage";
+import { useToast } from "@/components/ui/use-toast";
 
 type OptimalPricingCalculatorProps = {
   boxId: string;
@@ -38,18 +40,28 @@ export function OptimalPricingCalculator({
   onPriceCalculated,
   className = ""}: OptimalPricingCalculatorProps) {
   const { data } = useSession();
+  const { toast } = useToast();
+  const { createReservation, isCreatingReservation } = useClientStorage({
+    onReservationSuccess: (reservation) => {
+      toast({
+        title: "Réservation créée avec succès",
+        description: `Votre réservation a été confirmée. Référence: ${reservation.id}`,
+        variant: "default",
+      });
+    },
+  });
 
   // Calcul du prix optimal
   const {
     data: pricing,
     isLoading,
-    error} = api.storage.calculateOptimalPricing.useQuery(
+    error} = api.clientStorageBoxes.calculateOptimalPricing.useQuery(
     {
       boxId,
       startDate,
       endDate},
     {
-      enabled: !!session?.user?.id && !!boxId && !!startDate && !!endDate,
+      enabled: !!data?.user?.id && !!boxId && !!startDate && !!endDate,
       refetchOnWindowFocus: false},
   );
 
@@ -59,7 +71,7 @@ export function OptimalPricingCalculator({
     }
   }, [pricing, onPriceCalculated]);
 
-  if (!session?.user?.id) {
+  if (!data?.user?.id) {
     return (
       <Card className={className}>
         <CardContent className="flex items-center justify-center py-8">
@@ -261,11 +273,16 @@ export function OptimalPricingCalculator({
           <Button
             className="flex-1"
             onClick={() => {
-              // Action de réservation
-              console.log("Procéder à la réservation avec le prix:", pricing);
+              createReservation({
+                boxId,
+                startDate,
+                endDate,
+                notes: `Réservation avec prix optimal: ${pricing.finalPrice.toFixed(2)}€`,
+              });
             }}
+            disabled={isCreatingReservation}
           >
-            Réserver maintenant
+            {isCreatingReservation ? "Création..." : "Réserver maintenant"}
           </Button>
         </div>
       </CardContent>

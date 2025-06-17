@@ -609,9 +609,90 @@ function getEstimatedArrival(withdrawal: any): Date | null {
   }
 
   const created = new Date(withdrawal.createdAt);
-  const daysToAdd = withdrawal.urgency === "URGENT" ? 1 : 5;
-  created.setDate(created.getDate() + daysToAdd);
-  return created;
+  const createdDay = created.getDay(); // 0 = Dimanche, 1 = Lundi, etc.
+  
+  // Calculer les jours de traitement selon le type de virement et la méthode
+  let processingDays = 0;
+  
+  // Délais de traitement bancaire réels
+  switch (withdrawal.method) {
+    case "INSTANT_TRANSFER":
+      // Virement instantané - quelques minutes à quelques heures
+      processingDays = 0;
+      break;
+    case "SEPA_TRANSFER":
+      // Virement SEPA - 1 jour ouvré
+      processingDays = 1;
+      break;
+    case "INTERNATIONAL_TRANSFER":
+      // Virement international - 3-5 jours ouvrés
+      processingDays = withdrawal.urgency === "URGENT" ? 3 : 5;
+      break;
+    case "PAYPAL":
+      // PayPal - instantané ou 1 jour selon le compte
+      processingDays = 0;
+      break;
+    case "WISE":
+      // Wise (ex-TransferWise) - quelques heures à 2 jours
+      processingDays = withdrawal.urgency === "URGENT" ? 0 : 2;
+      break;
+    default:
+      // Virement bancaire standard - 1-3 jours ouvrés
+      processingDays = withdrawal.urgency === "URGENT" ? 1 : 3;
+  }
+  
+  // Ajouter des jours supplémentaires selon le montant (contrôles de sécurité)
+  if (withdrawal.amount > 5000) {
+    processingDays += 1; // Contrôle de sécurité pour gros montants
+  }
+  if (withdrawal.amount > 10000) {
+    processingDays += 1; // Contrôle additionnel pour très gros montants
+  }
+  
+  // Calculer la date d'arrivée estimée en tenant compte des jours ouvrés
+  const estimatedDate = new Date(created);
+  let daysToAdd = processingDays;
+  
+  // Si on démarre un vendredi et qu'il faut plus d'un jour, décaler après le weekend
+  if (createdDay === 5 && processingDays > 0) { // Vendredi
+    daysToAdd += 2; // Ajouter le weekend
+  }
+  // Si on démarre un samedi
+  else if (createdDay === 6 && processingDays > 0) { // Samedi
+    daysToAdd += 1; // Ajouter le dimanche
+  }
+  
+  // Ajouter les jours en évitant les weekends
+  let currentDate = new Date(estimatedDate);
+  let addedDays = 0;
+  
+  while (addedDays < daysToAdd) {
+    currentDate.setDate(currentDate.getDate() + 1);
+    const dayOfWeek = currentDate.getDay();
+    
+    // Compter seulement les jours ouvrés (lundi à vendredi)
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      addedDays++;
+    }
+  }
+  
+  // Facteur saisonnier (périodes de forte charge bancaire)
+  const month = currentDate.getMonth() + 1;
+  if (month === 12 || month === 1) {
+    // Décembre-Janvier : période de fin/début d'année
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  // Définir l'heure selon le type de virement
+  if (withdrawal.method === "INSTANT_TRANSFER") {
+    // Virement instantané - dans les 2 heures
+    currentDate.setHours(currentDate.getHours() + 2);
+  } else {
+    // Autres virements - avant 16h le jour de réception
+    currentDate.setHours(16, 0, 0, 0);
+  }
+  
+  return currentDate;
 }
 
 function calculatePeriodDates(input: any) {
@@ -664,9 +745,114 @@ async function getEarningsChartData(
   startDate: Date,
   endDate: Date,
   period: string,
+  ctx: any
 ) {
-  // Cette fonction générerait des données pour le graphique
-  // selon la période (par jour, semaine, mois)
-  // Pour l'instant, retourne un tableau vide
-  return [];
+  try {
+    // Récupérer toutes les transactions de gain pour la période
+    const earnings = await ctx.db.walletTransaction.findMany({
+      where: {
+        walletId,
+        type: {
+          in: ['EARNING', 'DELIVERY_PAYOUT', 'BONUS']
+        },
+        createdAt: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      orderBy: {
+        createdAt: 'asc'
+      }
+    });
+
+    // Générer les intervalles selon la période
+    const chartData = [];
+    let currentDate = new Date(startDate);
+    
+    // Déterminer l'incrément selon la période
+    const incrementFunction = getDateIncrement(period);
+    const formatFunction = getDateFormat(period);
+    
+    while (currentDate <= endDate) {
+      const intervalStart = new Date(currentDate);
+      const intervalEnd = new Date(currentDate);
+      incrementFunction(intervalEnd);
+      
+      // Calculer les gains pour cet intervalle
+      const intervalEarnings = earnings.filter(earning => {
+        const earningDate = new Date(earning.createdAt);
+        return earningDate >= intervalStart && earningDate < intervalEnd;
+      });
+      
+      // Calculer les métriques
+      const totalAmount = intervalEarnings.reduce((sum, earning) => sum + earning.amount, 0);
+      const totalTransactions = intervalEarnings.length;
+      const deliveryPayouts = intervalEarnings.filter(e => e.type === 'DELIVERY_PAYOUT').length;
+      const bonuses = intervalEarnings.filter(e => e.type === 'BONUS').reduce((sum, e) => sum + e.amount, 0);
+      
+      chartData.push({
+        date: formatFunction(intervalStart),
+        rawDate: intervalStart,
+        totalAmount: totalAmount / 100, // Convertir en euros
+        totalTransactions,
+        deliveryCount: deliveryPayouts,
+        bonusAmount: bonuses / 100, // Convertir en euros
+        averagePerDelivery: deliveryPayouts > 0 ? (totalAmount - bonuses) / deliveryPayouts / 100 : 0
+      });
+      
+      currentDate = intervalEnd;
+    }
+    
+    // Ajouter des métriques de comparaison
+    if (chartData.length > 1) {
+      for (let i = 1; i < chartData.length; i++) {
+        const current = chartData[i];
+        const previous = chartData[i - 1];
+        
+        current.growthRate = previous.totalAmount > 0 
+          ? ((current.totalAmount - previous.totalAmount) / previous.totalAmount) * 100 
+          : 0;
+          
+        current.trend = current.growthRate > 5 ? 'up' : current.growthRate < -5 ? 'down' : 'stable';
+      }
+    }
+    
+    return chartData;
+    
+  } catch (error) {
+    console.error('Erreur lors de la génération des données graphique:', error);
+    return [];
+  }
+}
+
+function getDateIncrement(period: string) {
+  switch (period) {
+    case 'week':
+      return (date: Date) => date.setDate(date.getDate() + 1); // Par jour pour une semaine
+    case 'month':
+      return (date: Date) => date.setDate(date.getDate() + 1); // Par jour pour un mois
+    case 'quarter':
+      return (date: Date) => date.setDate(date.getDate() + 7); // Par semaine pour un trimestre
+    case 'year':
+      return (date: Date) => date.setMonth(date.getMonth() + 1); // Par mois pour une année
+    default:
+      return (date: Date) => date.setDate(date.getDate() + 1);
+  }
+}
+
+function getDateFormat(period: string) {
+  switch (period) {
+    case 'week':
+    case 'month':
+      return (date: Date) => date.toISOString().split('T')[0]; // YYYY-MM-DD
+    case 'quarter':
+      return (date: Date) => {
+        const weekNumber = Math.ceil(date.getDate() / 7);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-S${weekNumber}`;
+      };
+    case 'year':
+      return (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    default:
+      return (date: Date) => date.toISOString().split('T')[0];
+  }
 }

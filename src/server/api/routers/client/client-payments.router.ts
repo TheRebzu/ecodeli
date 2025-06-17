@@ -187,32 +187,67 @@ export const clientPaymentsRouter = createTRPCRouter({
           },
         });
 
-        // Si c'est un paiement Stripe, traiter avec l'API Stripe
+        // Intégration complète avec Stripe API pour confirmer le paiement
         if (input.method === PaymentMethod.STRIPE && input.paymentIntentId) {
           try {
-            // TODO: Intégration avec Stripe API pour confirmer le paiement
-            console.log(`💳 Traitement paiement Stripe ${input.paymentIntentId} pour ${input.amount}€`);
-            
-            // Simuler le succès Stripe pour l'instant
-            await ctx.db.payment.update({
-              where: { id: payment.id },
-              data: {
-                status: PaymentStatus.COMPLETED,
-                processedAt: new Date(),
-              },
+            const stripePaymentResult = await processStripePayment({
+              paymentIntentId: input.paymentIntentId,
+              expectedAmount: input.amount,
+              paymentRecordId: payment.id,
+              clientId: user.id,
+              announcementId: input.announcementId,
+              database: ctx.db
             });
+
+            if (stripePaymentResult.success) {
+              await ctx.db.payment.update({
+                where: { id: payment.id },
+                data: {
+                  status: PaymentStatus.COMPLETED,
+                  processedAt: new Date(),
+                  stripePaymentIntentId: input.paymentIntentId,
+                  stripeChargeId: stripePaymentResult.chargeId,
+                  metadata: {
+                    ...payment.metadata,
+                    stripe: stripePaymentResult.metadata
+                  }
+                },
+              });
+
+              // Déclencher les actions post-paiement
+              await triggerPostPaymentActions({
+                paymentId: payment.id,
+                announcementId: input.announcementId,
+                clientId: user.id,
+                amount: input.amount,
+                database: ctx.db
+              });
+
+              console.log(`✅ Paiement Stripe confirmé: ${input.paymentIntentId} pour ${input.amount}€`);
+            } else {
+              throw new Error(stripePaymentResult.error || 'Échec de confirmation Stripe');
+            }
           } catch (stripeError) {
-            console.error("Erreur Stripe:", stripeError);
+            console.error("Erreur lors du traitement Stripe:", stripeError);
+            
             await ctx.db.payment.update({
               where: { id: payment.id },
               data: {
                 status: PaymentStatus.FAILED,
-                failureReason: "Erreur lors du traitement Stripe",
+                failureReason: stripeError instanceof Error ? stripeError.message : "Erreur Stripe inconnue",
+                metadata: {
+                  ...payment.metadata,
+                  stripeError: {
+                    message: stripeError instanceof Error ? stripeError.message : 'Erreur inconnue',
+                    timestamp: new Date().toISOString()
+                  }
+                }
               },
             });
+
             throw new TRPCError({
               code: "PAYMENT_REQUIRED",
-              message: "Erreur lors du traitement du paiement",
+              message: "Échec du paiement Stripe. Veuillez réessayer.",
             });
           }
         }

@@ -59,7 +59,7 @@ export async function seedMultiVerificationUsers(
   const existingTestUsers = await prisma.user.count({
     where: {
       email: {
-        endsWith: "@test-ecodeli.me",
+        endsWith: "@ecodeli.me",
       },
     },
   });
@@ -78,7 +78,7 @@ export async function seedMultiVerificationUsers(
     await prisma.user.deleteMany({
       where: {
         email: {
-          endsWith: "@test-ecodeli.me",
+          endsWith: "@ecodeli.me",
         },
       },
     });
@@ -96,7 +96,7 @@ export async function seedMultiVerificationUsers(
     // === ADMINISTRATEURS ===
     {
       name: "Super Admin Test",
-      email: "admin@test-ecodeli.me",
+      email: "admin@ecodeli.me",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
       documents: [
@@ -113,7 +113,7 @@ export async function seedMultiVerificationUsers(
     // === CLIENTS VARIÉS ===
     {
       name: "Jean Dupont",
-      email: "jean.dupont@test-ecodeli.me",
+      email: "jean.dupont@ecodeli.me",
       role: UserRole.CLIENT,
       status: UserStatus.ACTIVE,
       documents: [
@@ -133,7 +133,7 @@ export async function seedMultiVerificationUsers(
     },
     {
       name: "Marie Martin",
-      email: "marie.martin@test-ecodeli.me",
+      email: "marie.martin@ecodeli.me",
       role: UserRole.CLIENT,
       status: UserStatus.PENDING_VERIFICATION,
       documents: [
@@ -148,7 +148,7 @@ export async function seedMultiVerificationUsers(
     },
     {
       name: "Pierre Durand",
-      email: "pierre.durand@test-ecodeli.me",
+      email: "pierre.durand@ecodeli.me",
       role: UserRole.CLIENT,
       status: UserStatus.SUSPENDED,
       documents: [
@@ -168,7 +168,7 @@ export async function seedMultiVerificationUsers(
     // === LIVREURS VARIÉS ===
     {
       name: "Antoine Livreur",
-      email: "antoine.livreur@test-ecodeli.me",
+      email: "antoine.livreur@ecodeli.me",
       role: UserRole.DELIVERER,
       status: UserStatus.ACTIVE,
       documents: [
@@ -198,7 +198,7 @@ export async function seedMultiVerificationUsers(
     },
     {
       name: "Sophia Vélo",
-      email: "sophia.velo@test-ecodeli.me",
+      email: "sophia.velo@ecodeli.me",
       role: UserRole.DELIVERER,
       status: UserStatus.PENDING_VERIFICATION,
       documents: [
@@ -225,7 +225,7 @@ export async function seedMultiVerificationUsers(
     },
     {
       name: "Marc Suspendu",
-      email: "marc.suspendu@test-ecodeli.me",
+      email: "marc.suspendu@ecodeli.me",
       role: UserRole.DELIVERER,
       status: UserStatus.SUSPENDED,
       documents: [
@@ -250,7 +250,7 @@ export async function seedMultiVerificationUsers(
     // === COMMERÇANTS VARIÉS ===
     {
       name: "Boulangerie Martin SARL",
-      email: "boulangerie.martin@test-ecodeli.me",
+      email: "boulangerie.martin@ecodeli.me",
       role: UserRole.MERCHANT,
       status: UserStatus.ACTIVE,
       documents: [
@@ -275,7 +275,7 @@ export async function seedMultiVerificationUsers(
     },
     {
       name: "Épicerie Bio Nature",
-      email: "epicerie.bio@test-ecodeli.me",
+      email: "epicerie.bio@ecodeli.me",
       role: UserRole.MERCHANT,
       status: UserStatus.PENDING_VERIFICATION,
       documents: [
@@ -295,7 +295,7 @@ export async function seedMultiVerificationUsers(
     },
     {
       name: "Restaurant Fermé",
-      email: "restaurant.ferme@test-ecodeli.me",
+      email: "restaurant.ferme@ecodeli.me",
       role: UserRole.MERCHANT,
       status: UserStatus.INACTIVE,
       documents: [
@@ -313,7 +313,7 @@ export async function seedMultiVerificationUsers(
     // === PRESTATAIRES VARIÉS ===
     {
       name: "Paul Plombier",
-      email: "paul.plombier@test-ecodeli.me",
+      email: "paul.plombier@ecodeli.me",
       role: UserRole.PROVIDER,
       status: UserStatus.ACTIVE,
       documents: [
@@ -339,7 +339,7 @@ export async function seedMultiVerificationUsers(
     },
     {
       name: "Électro Services",
-      email: "electro.services@test-ecodeli.me",
+      email: "electro.services@ecodeli.me",
       role: UserRole.PROVIDER,
       status: UserStatus.PENDING_VERIFICATION,
       documents: [
@@ -367,7 +367,7 @@ export async function seedMultiVerificationUsers(
     },
     {
       name: "Jardinage Amateur",
-      email: "jardinage.amateur@test-ecodeli.me",
+      email: "jardinage.amateur@ecodeli.me",
       role: UserRole.PROVIDER,
       status: UserStatus.SUSPENDED,
       documents: [
@@ -589,7 +589,7 @@ async function getUserCreationStats(prisma: PrismaClient) {
   const users = await prisma.user.findMany({
     where: {
       email: {
-        endsWith: "@test-ecodeli.me",
+        endsWith: "@ecodeli.me",
       },
     },
     select: {
@@ -602,7 +602,7 @@ async function getUserCreationStats(prisma: PrismaClient) {
     where: {
       user: {
         email: {
-          endsWith: "@test-ecodeli.me",
+          endsWith: "@ecodeli.me",
         },
       },
     },
@@ -646,7 +646,7 @@ export async function validateMultiVerificationUsers(
   const testUsers = await prisma.user.count({
     where: {
       email: {
-        endsWith: "@test-ecodeli.me",
+        endsWith: "@ecodeli.me",
       },
     },
   });

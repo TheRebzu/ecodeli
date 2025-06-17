@@ -125,10 +125,6 @@ export function DocumentUpload({
     try {
       const file = data.file;
 
-      // Débogage de la date d'expiration
-      if (data.expiryDate) {
-        console.log("Date d'expiration sélectionnée:", data.expiryDate);
-      }
 
       // Vérifier la taille du fichier
       if (file.size > 10 * 1024 * 1024) {
@@ -184,7 +180,6 @@ export function DocumentUpload({
             expiryDate: data.expiryDate,
             description: `Document ${documentTypeLabels[data.type]} soumis le ${new Date().toLocaleDateString()}`});
 
-          console.log("Document uploadé avec succès:", result);
 
           // Forcer un rafraîchissement des documents
           if (typeof refreshDocuments === "function") {

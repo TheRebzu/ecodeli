@@ -78,8 +78,11 @@ export function ProtectedHeader({
 
   // Pour la recherche
   const handleSearch = (searchTerm: string) => {
-    console.log("Recherche:", searchTerm);
-    // Implémenter la logique de recherche
+    if (!searchTerm.trim()) return;
+    
+    // Naviguer vers la page de recherche appropriée selon le rôle
+    const searchPath = `/${locale}/${role}/search?q=${encodeURIComponent(searchTerm)}`;
+    window.location.href = searchPath;
   };
 
   return (

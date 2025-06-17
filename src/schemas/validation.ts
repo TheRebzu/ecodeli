@@ -53,6 +53,6 @@ export const resetPasswordSchema = z
     message: "Les mots de passe ne correspondent pas",
     path: ["confirmPassword"]});
 
-export const forgotPasswordSchema = z.object({ email  });
+export const forgotPasswordSchema = z.object({ email: emailSchema });
 
 export const csrfTokenSchema = z.object({ csrfToken: z.string().min(1, "CSRF token invalide") });

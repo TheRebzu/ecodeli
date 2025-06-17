@@ -187,9 +187,14 @@ export const merchantAnnouncementsRouter = router({ /**
 
             publishedAt: input.isPublished ? new Date() : null}});
 
-        // TODO: Si publié et actif, déclencher les notifications
+        // Si publié et actif, déclencher les notifications aux livreurs potentiels
         if (status === "ACTIVE" && input.allowNotifications) {
-          // Logique de notification aux clients dans la zone
+          try {
+            await this.triggerDelivererNotifications(announcement, ctx);
+          } catch (notificationError) {
+            console.warn("Erreur lors de l'envoi des notifications:", notificationError);
+            // Ne pas faire échouer la publication si les notifications échouent
+          }
         }
 
         return {
@@ -451,6 +456,16 @@ export const merchantAnnouncementsRouter = router({ /**
             ...updateData,
             updatedAt: new Date()}});
 
+        // Si publié et actif, déclencher les notifications aux livreurs potentiels
+        if (updatedAnnouncement.status === "ACTIVE" && updatedAnnouncement.allowNotifications) {
+          try {
+            await this.triggerDelivererNotifications(updatedAnnouncement, ctx);
+          } catch (notificationError) {
+            console.warn("Erreur lors de l'envoi des notifications:", notificationError);
+            // Ne pas faire échouer la publication si les notifications échouent
+          }
+        }
+
         return {
           success: true,
           data: updatedAnnouncement,
@@ -518,6 +533,16 @@ export const merchantAnnouncementsRouter = router({ /**
           data: {
             status: newStatus,
             publishedAt: input.publish ? new Date() : null}});
+
+        // Si publié et actif, déclencher les notifications aux livreurs potentiels
+        if (input.publish && updatedAnnouncement.status === "ACTIVE") {
+          try {
+            await this.triggerDelivererNotifications(updatedAnnouncement, ctx);
+          } catch (notificationError) {
+            console.warn("Erreur lors de l'envoi des notifications:", notificationError);
+            // Ne pas faire échouer la publication si les notifications échouent
+          }
+        }
 
         return {
           success: true,

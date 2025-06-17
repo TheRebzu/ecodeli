@@ -239,6 +239,49 @@ export const delivererAdminService = {
         })
         .sort((a, b) => b.rating - a.rating);
 
+      // Calculer le taux de croissance réel basé sur les inscriptions des 30 derniers jours
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const sixtyDaysAgo = new Date();
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+      const [recentSignups, previousSignups] = await Promise.all([
+        db.user.count({
+          where: {
+            role: UserRole.DELIVERER,
+            createdAt: { gte: thirtyDaysAgo }
+          }
+        }),
+        db.user.count({
+          where: {
+            role: UserRole.DELIVERER,
+            createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo }
+          }
+        })
+      ]);
+
+      const growthRate = previousSignups > 0 
+        ? ((recentSignups - previousSignups) / previousSignups) * 100
+        : recentSignups > 0 ? 100 : 0;
+
+      // Calculer le nombre de zones actives basé sur les livraisons uniques par ville
+      const activeZonesResult = await db.delivery.groupBy({
+        by: ['pickupCity', 'deliveryCity'],
+        where: {
+          deliverer: { role: UserRole.DELIVERER },
+          status: { in: ['IN_PROGRESS', 'COMPLETED'] },
+          createdAt: { gte: thirtyDaysAgo }
+        }
+      });
+
+      // Compter les villes uniques (pickup et delivery combinées)
+      const uniqueCities = new Set();
+      activeZonesResult.forEach(result => {
+        if (result.pickupCity) uniqueCities.add(result.pickupCity);
+        if (result.deliveryCity) uniqueCities.add(result.deliveryCity);
+      });
+      const activeZones = uniqueCities.size;
+
       const result = {
         totalDeliverers,
         activeDeliverers,
@@ -250,8 +293,8 @@ export const delivererAdminService = {
         averageEarnings: walletStats._avg.balance || 0,
         vehicledDeliverers,
         topPerformers: topPerformersFormatted,
-        growthRate: 12.5, // Garder temporairement hardcodé (nécessite historique)
-        activeZones: 25, // Garder temporairement hardcodé (nécessite géolocalisation)
+        growthRate,
+        activeZones,
       };
 
       console.log("📊 Stats livreurs:", result);

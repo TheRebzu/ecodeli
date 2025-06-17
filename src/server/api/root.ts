@@ -77,6 +77,8 @@ import { clientDataRouter } from "./routers/client/client-data.router";
 import { clientContractsRouter } from "./routers/client/client-contracts.router";
 import { clientAppointmentsRouter } from "./routers/client/client-appointments.router";
 import { clientServicesRouter } from "./routers/client/client-services.router";
+import { clientReviewsRouter } from "./routers/client/client-reviews.router";
+import { clientStorageBoxesRouter } from "./routers/client/client-storage-boxes.router";
 
 // Financial router (using admin financial)
 import { financialRouter } from "./routers/admin/admin-financial.router";
@@ -140,6 +142,8 @@ export const appRouter = router({ // Auth
   clientContracts: clientContractsRouter,
   clientAppointments: clientAppointmentsRouter,
   clientServices: clientServicesRouter,
+  clientReviews: clientReviewsRouter,
+  clientStorageBoxes: clientStorageBoxesRouter,
 
   // Deliverer
   deliverer: delivererRouter,

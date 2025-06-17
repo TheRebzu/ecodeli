@@ -394,7 +394,49 @@ export const adminPaymentsRouter = router({ /**
 
         // Envoyer une notification si nécessaire
         if (input.notifyUser) {
-          // TODO: Implémenter l'envoi de notification
+          try {
+            await ctx.db.notification.create({
+              data: {
+                userId: updatedPayment.userId,
+                type: input.action === "APPROVE" ? "PAYMENT_APPROVED" : "PAYMENT_REJECTED",
+                title: input.action === "APPROVE" ? "Paiement approuvé" : "Paiement rejeté",
+                message: input.action === "APPROVE" 
+                  ? "Votre paiement a été approuvé et traité avec succès."
+                  : `Votre paiement a été rejeté. Raison: ${input.validationNotes || "Non spécifiée"}`,
+                data: {
+                  paymentId: input.paymentId,
+                  amount: updatedPayment.amount,
+                  action: input.action,
+                  validationNotes: input.validationNotes,
+                  validatedBy: user.name,
+                },
+                priority: input.action === "REJECT" ? "HIGH" : "MEDIUM"
+              }
+            });
+
+            // Envoyer un email si l'utilisateur a activé cette préférence
+            if (updatedPayment.user?.emailNotifications) {
+              await ctx.db.emailQueue.create({
+                data: {
+                  recipientId: updatedPayment.userId,
+                  email: updatedPayment.user.email,
+                  template: input.action === "APPROVE" ? "payment-approved" : "payment-rejected",
+                  data: {
+                    userName: updatedPayment.user.name,
+                    amount: updatedPayment.amount,
+                    paymentId: input.paymentId,
+                    validationNotes: input.validationNotes,
+                    validatedBy: user.name,
+                    validatedAt: new Date().toLocaleDateString('fr-FR')
+                  },
+                  priority: input.action === "REJECT" ? "HIGH" : "NORMAL",
+                  scheduledFor: new Date()
+                }
+              });
+            }
+          } catch (notificationError) {
+            console.error("Erreur lors de l'envoi de notification:", notificationError);
+          }
         }
 
         return {
@@ -479,11 +521,98 @@ export const adminPaymentsRouter = router({ /**
           return newRefund;
         });
 
-        // TODO: Si processImmediately, déclencher le processus de remboursement avec Stripe
+        // Si processImmediately, déclencher le processus de remboursement avec Stripe
+        if (input.processImmediately && payment.stripePaymentIntentId) {
+          try {
+            // Appeler le service Stripe pour traiter le remboursement
+            const stripeService = await import("@/server/services/shared/stripe.service");
+            
+            const stripeRefund = await stripeService.processRefund({
+              paymentIntentId: payment.stripePaymentIntentId,
+              amount: input.amount * 100, // Convertir en centimes
+              reason: input.reason,
+              metadata: {
+                refundId: refund.id,
+                paymentId: input.paymentId,
+                adminId: user.id
+              }
+            });
+
+            // Mettre à jour le remboursement avec les détails Stripe
+            await ctx.db.refund.update({
+              where: { id: refund.id },
+              data: {
+                stripeRefundId: stripeRefund.id,
+                status: "COMPLETED",
+                processedAt: new Date(),
+                externalResponse: stripeRefund
+              }
+            });
+          } catch (stripeError) {
+            console.error("Erreur lors du remboursement Stripe:", stripeError);
+            // Marquer le remboursement comme échoué
+            await ctx.db.refund.update({
+              where: { id: refund.id },
+              data: {
+                status: "FAILED",
+                failureReason: stripeError.message
+              }
+            });
+            
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Erreur lors du traitement du remboursement avec Stripe"
+            });
+          }
+        }
 
         // Envoyer une notification si nécessaire
         if (input.notifyUser) {
-          // TODO: Implémenter l'envoi de notification
+          try {
+            await ctx.db.notification.create({
+              data: {
+                userId: payment.userId,
+                type: "REFUND_INITIATED",
+                title: "Remboursement initié",
+                message: input.processImmediately 
+                  ? `Votre remboursement de ${input.amount}€ a été traité et sera visible sous 3-5 jours ouvrés.`
+                  : `Votre demande de remboursement de ${input.amount}€ est en cours de traitement.`,
+                data: {
+                  refundId: refund.id,
+                  paymentId: input.paymentId,
+                  amount: input.amount,
+                  reason: input.reason,
+                  processImmediately: input.processImmediately,
+                  initiatedBy: user.name,
+                },
+                priority: "MEDIUM"
+              }
+            });
+
+            // Envoyer un email
+            if (payment.user?.emailNotifications) {
+              await ctx.db.emailQueue.create({
+                data: {
+                  recipientId: payment.userId,
+                  email: payment.user.email,
+                  template: "refund-initiated",
+                  data: {
+                    userName: payment.user.name,
+                    amount: input.amount,
+                    refundId: refund.id,
+                    reason: input.reason,
+                    processImmediately: input.processImmediately,
+                    estimatedTimeframe: input.processImmediately ? "3-5 jours ouvrés" : "7-10 jours ouvrés",
+                    initiatedBy: user.name,
+                  },
+                  priority: "NORMAL",
+                  scheduledFor: new Date()
+                }
+              });
+            }
+          } catch (notificationError) {
+            console.error("Erreur lors de l'envoi de notification:", notificationError);
+          }
         }
 
         return {
@@ -540,21 +669,70 @@ export const adminPaymentsRouter = router({ /**
             break;
 
           case "EXPORT":
-            // TODO: Générer un export CSV/Excel des paiements
-            results = payments;
+            // Générer un export CSV/Excel des paiements
+            const exportData = payments.map(payment => ({
+              id: payment.id,
+              amount: payment.amount,
+              currency: payment.currency,
+              status: payment.status,
+              method: payment.method,
+              createdAt: payment.createdAt.toISOString(),
+              userName: payment.user?.name,
+              userEmail: payment.user?.email,
+              description: payment.description,
+              stripePaymentIntentId: payment.stripePaymentIntentId,
+              reconciledAt: payment.reconciledAt?.toISOString(),
+            }));
+
+            // Créer un fichier d'export en base pour téléchargement ultérieur
+            const exportFile = await ctx.db.exportFile.create({
+              data: {
+                name: `payments-export-${new Date().toISOString().split('T')[0]}.csv`,
+                type: "CSV",
+                entityType: "PAYMENT",
+                data: exportData,
+                createdById: user.id,
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Expire dans 24h
+              }
+            });
+
+            results = [{
+              exportFileId: exportFile.id,
+              downloadUrl: `/api/admin/exports/${exportFile.id}`,
+              recordCount: payments.length
+            }];
             break;
 
           case "RECONCILE":
-            // TODO: Marquer les paiements comme réconciliés
+            // Marquer les paiements comme réconciliés
             results = await ctx.db.$transaction(
               payments.map((payment) =>
                 ctx.db.payment.update({
                   where: { id: payment.id },
                   data: {
                     reconciledAt: new Date(),
-                    reconciledById: user.id}}),
+                    reconciledById: user.id,
+                    reconciledBatch: `BATCH_${Date.now()}` // Identifiant de lot pour traçabilité
+                  }
+                })
               ),
             );
+
+            // Créer un log d'audit pour la réconciliation
+            await ctx.db.auditLog.create({
+              data: {
+                entityType: "PAYMENT_RECONCILIATION",
+                entityId: `BATCH_${Date.now()}`,
+                action: "BULK_RECONCILIATION",
+                performedById: user.id,
+                details: {
+                  paymentIds: input.paymentIds,
+                  count: results.length,
+                  totalAmount: results.reduce((sum, p) => sum + p.amount, 0),
+                  reason: input.reason
+                }
+              }
+            });
             break;
         }
 

@@ -1,34 +1,164 @@
-import { SupportedLanguage } from "@/lib/i18n/user-locale";
 import { DocumentType } from "@/server/db/enums";
 import { TRPCError } from "@trpc/server";
 import formData from "form-data";
 import Mailgun from "mailgun.js";
-// Types et fonctions temporaires pour les emails en attendant la correction
+
+// Types pour les templates d'emails
 type EmailTemplate = {
   to: string;
   subject: string;
   html: string;
 };
 
-// Fonctions utilitaires temporaires (à remplacer par les vraies)
-const sendVerificationEmailUtil = (email: string, token: string) => ({
-  to: email,
-  subject: "Vérification de votre compte",
-  html: `<p>Cliquez sur ce lien pour vérifier votre compte: <a href="${process.env.NEXTAUTH_URL}/verify?token=${token}">Vérifier</a></p>`});
+// Type temporaire pour les locales
+type SupportedLanguage = "fr" | "en" | "es" | "de" | "it";
 
-const sendPasswordResetEmailUtil = (
+// Fonctions utilitaires pour générer les templates d'emails
+const generateVerificationEmailTemplate = (
+  email: string, 
+  token: string, 
+  name: string,
+  locale: SupportedLanguage = "fr"
+): EmailTemplate => {
+  const verifyUrl = `${process.env.NEXTAUTH_URL}/verify?token=${token}`;
+  
+  const templates = {
+    fr: {
+      subject: "Vérifiez votre compte EcoDeli",
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Vérification de compte</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 30px; text-align: center;">
+      <h1 style="margin: 0; font-size: 28px;">EcoDeli</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">Vérification de compte</p>
+    </div>
+    <div style="padding: 30px;">
+      <h2 style="color: #2563eb; margin-top: 0;">Bonjour ${name},</h2>
+      <p>Merci de vous être inscrit sur EcoDeli ! Pour activer votre compte, veuillez cliquer sur le bouton ci-dessous :</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verifyUrl}" style="display: inline-block; background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+          Vérifier mon compte
+        </a>
+      </div>
+      <p style="color: #666; font-size: 14px;">Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :</p>
+      <p style="color: #666; font-size: 12px; word-break: break-all;">${verifyUrl}</p>
+      <p style="color: #666; font-size: 14px; margin-top: 30px;">Ce lien expire dans 24 heures pour des raisons de sécurité.</p>
+    </div>
+    <div style="background-color: #f8fafc; padding: 20px; text-align: center; color: #666; font-size: 12px;">
+      <p style="margin: 0;">© ${new Date().getFullYear()} EcoDeli - Plateforme de livraison écologique</p>
+    </div>
+  </div>
+</body>
+</html>`
+    },
+    en: {
+      subject: "Verify your EcoDeli account",
+      html: `<!-- English template similar structure */`
+    }
+  };
+  
+  return {
+    to: email,
+    ...templates[locale] || templates.fr
+  };
+};
+
+const generatePasswordResetEmailTemplate = (
   email: string,
   name: string,
   token: string,
-) => ({
-  to: email,
-  subject: "Réinitialisation de votre mot de passe",
-  html: `<p>Bonjour ${name}, cliquez sur ce lien pour réinitialiser votre mot de passe: <a href="${process.env.NEXTAUTH_URL}/reset-password?token=${token}">Réinitialiser</a></p>`});
+  locale: SupportedLanguage = "fr"
+): EmailTemplate => {
+  const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
+  
+  return {
+    to: email,
+    subject: "Réinitialisation de votre mot de passe EcoDeli",
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Réinitialisation mot de passe</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 30px; text-align: center;">
+      <h1 style="margin: 0; font-size: 28px;">EcoDeli</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">Réinitialisation mot de passe</p>
+    </div>
+    <div style="padding: 30px;">
+      <h2 style="color: #dc2626; margin-top: 0;">Bonjour ${name},</h2>
+      <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="display: inline-block; background-color: #dc2626; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+          Réinitialiser mon mot de passe
+        </a>
+      </div>
+      <p style="color: #666; font-size: 14px;">Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
+      <p style="color: #666; font-size: 14px; margin-top: 30px;">Ce lien expire dans 1 heure pour des raisons de sécurité.</p>
+    </div>
+    <div style="background-color: #f8fafc; padding: 20px; text-align: center; color: #666; font-size: 12px;">
+      <p style="margin: 0;">© ${new Date().getFullYear()} EcoDeli - Plateforme de livraison écologique</p>
+    </div>
+  </div>
+</body>
+</html>`
+  };
+};
 
-const sendWelcomeEmailUtil = (email: string, name: string) => ({
-  to: email,
-  subject: "Bienvenue sur EcoDeli",
-  html: `<p>Bonjour ${name}, bienvenue sur EcoDeli !</p>`});
+const generateWelcomeEmailTemplate = (
+  email: string, 
+  name: string,
+  locale: SupportedLanguage = "fr"
+): EmailTemplate => {
+  return {
+    to: email,
+    subject: "Bienvenue sur EcoDeli !",
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Bienvenue sur EcoDeli</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; text-align: center;">
+      <h1 style="margin: 0; font-size: 28px;">🌱 EcoDeli</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">Bienvenue dans la communauté</p>
+    </div>
+    <div style="padding: 30px;">
+      <h2 style="color: #059669; margin-top: 0;">Bienvenue ${name} !</h2>
+      <p>Merci de rejoindre EcoDeli, la plateforme de livraison éco-responsable !</p>
+      <p>Votre compte est maintenant activé et vous pouvez profiter de toutes nos fonctionnalités :</p>
+      <ul style="color: #374151; line-height: 1.6;">
+        <li>🚚 Livraisons écologiques par des livreurs locaux</li>
+        <li>📦 Stockage temporaire sécurisé</li>
+        <li>💚 Services éco-responsables</li>
+        <li>📱 Suivi en temps réel de vos commandes</li>
+      </ul>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${process.env.NEXTAUTH_URL}/dashboard" style="display: inline-block; background-color: #059669; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+          Accéder à mon compte
+        </a>
+      </div>
+      <p>Ensemble, construisons un avenir plus durable ! 🌍</p>
+    </div>
+    <div style="background-color: #f8fafc; padding: 20px; text-align: center; color: #666; font-size: 12px;">
+      <p style="margin: 0;">© ${new Date().getFullYear()} EcoDeli - Plateforme de livraison écologique</p>
+    </div>
+  </div>
+</body>
+</html>`
+  };
+};
 
 /**
  * Service pour l'envoi d'emails avec Mailgun
@@ -89,9 +219,10 @@ export class EmailService {
   async sendWelcomeEmail(
     email: string,
     name: string,
-    locale: SupportedLanguage = "fr",
+    locale: any = "fr",
   ): Promise<void> {
-    await sendWelcomeEmailUtil(email, name, locale);
+    const template = generateWelcomeEmailTemplate(email, name, locale);
+    await this.sendEmail(template.to, template.subject, template.html);
   }
 
   /**
@@ -100,17 +231,18 @@ export class EmailService {
   async sendVerificationEmail(
     email: string,
     token: string,
-    locale: SupportedLanguage = "fr",
+    locale: any = "fr",
   ): Promise<void> {
     // Utilise la méthode de la librairie d'email pour assurer la cohérence
     // entre le token généré et le lien de vérification
     const userName = await this.getUserNameByEmail(email);
-    await sendVerificationEmailUtil(
+    const template = generateVerificationEmailTemplate(
       email,
-      userName || "Utilisateur",
       token,
+      userName || "Utilisateur",
       locale,
     );
+    await this.sendEmail(template.to, template.subject, template.html);
   }
 
   /**
@@ -119,15 +251,16 @@ export class EmailService {
   async sendPasswordResetEmail(
     email: string,
     token: string,
-    locale: SupportedLanguage = "fr",
+    locale: any = "fr",
   ): Promise<void> {
     const userName = await this.getUserNameByEmail(email);
-    await sendPasswordResetEmailUtil(
+    const template = generatePasswordResetEmailTemplate(
       email,
       userName || "Utilisateur",
       token,
       locale,
     );
+    await this.sendEmail(template.to, template.subject, template.html);
   }
 
   /**

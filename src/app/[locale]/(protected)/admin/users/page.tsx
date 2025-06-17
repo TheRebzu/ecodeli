@@ -41,10 +41,6 @@ export default function AdminUsersPage() {
     limit: 10,
     ...filters });
 
-  // Debugging léger pour monitoring
-  useEffect(() => {
-    console.log("🔍 [CLIENT] usersQuery.data:", usersQuery.data);
-  }, [usersQuery.data]);
 
   // Gérer la sélection des utilisateurs
   const handleUserSelection = (userIds: string[]) => {

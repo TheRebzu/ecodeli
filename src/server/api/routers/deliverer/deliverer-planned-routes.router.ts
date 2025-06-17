@@ -223,48 +223,10 @@ export const delivererPlannedRoutesRouter = router({ /**
                 name: true,
                 email: true}}}});
 
-        // TODO: Déclencher le système de matching automatique si la route est publique
+        // Système de matching automatique intelligent pour routes publiques
         if (input.isPublic) {
-          // Implémentation de la logique de matching
-          const matchingAnnouncements = await ctx.db.announcement.findMany({
-            where: {
-              status: "PENDING",
-              pickupLatitude: { not: null },
-              pickupLongitude: { not: null },
-              deliveryLatitude: { not: null },
-              deliveryLongitude: { not: null },
-            },
-            include: {
-              client: {
-                include: {
-                  user: {
-                    select: { name: true, phone: true }
-                  }
-                }
-              }
-            }
-          });
-
-          // Filtrer les annonces qui correspondent à la route
-          const compatibleAnnouncements = matchingAnnouncements.filter(announcement => {
-            // Vérifier si l'annonce est sur le chemin de la route
-            const pickupDistance = calculateDistance(
-              input.departureLatitude!,
-              input.departureLongitude!,
-              announcement.pickupLatitude!,
-              announcement.pickupLongitude!
-            );
-            
-            const deliveryDistance = calculateDistance(
-              input.arrivalLatitude!,
-              input.arrivalLongitude!,
-              announcement.deliveryLatitude!,
-              announcement.deliveryLongitude!
-            );
-
-            // Annonce compatible si pickup et delivery sont dans un rayon raisonnable
-            return pickupDistance <= 10 && deliveryDistance <= 10; // 10km de rayon
-          });
+          await triggerAdvancedRouteMatching(route, ctx.db);
+        }
 
           // Fonction helper pour calculer la distance
           function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -425,9 +387,11 @@ export const delivererPlannedRoutesRouter = router({ /**
               ? route.publishedAt || new Date()
               : null}});
 
-        // TODO: Déclencher ou arrêter le matching automatique
+        // Système de matching intelligent selon l'état de publication
         if (input.isPublic) {
-          // Lancer le matching
+          await triggerAdvancedRouteMatching(updatedRoute, ctx.db);
+        } else {
+          await stopRouteMatching(updatedRoute.id, ctx.db);
         }
 
         return {
@@ -575,4 +539,319 @@ function calculateHaversineDistance(
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+/**
+ * Système de matching avancé pour routes planifiées
+ * Analyse les annonces compatibles et crée des suggestions intelligentes
+ */
+async function triggerAdvancedRouteMatching(route: any, db: any): Promise<void> {
+  try {
+    console.log(`🎯 Démarrage du matching avancé pour route planifiée: ${route.id}`);
+    
+    const MATCHING_RADIUS_KM = 15; // Rayon de recherche étendu
+    const MAX_SUGGESTIONS = 10; // Nombre maximum de suggestions
+    
+    // Récupérer les annonces publiées dans la zone géographique
+    const potentialAnnouncements = await db.announcement.findMany({
+      where: {
+        status: "PUBLISHED",
+        delivery: {
+          status: "PENDING"
+        },
+        pickupLatitude: { not: null },
+        pickupLongitude: { not: null },
+        deliveryLatitude: { not: null },
+        deliveryLongitude: { not: null }
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                name: true,
+                email: true
+              }
+            }
+          }
+        },
+        delivery: true
+      },
+      take: 50 // Limiter pour les performances
+    });
+
+    console.log(`📍 ${potentialAnnouncements.length} annonces potentielles trouvées`);
+
+    // Analyser la compatibilité de chaque annonce
+    const compatibleAnnouncements = [];
+    
+    for (const announcement of potentialAnnouncements) {
+      // Calculer la distance entre route et points de collecte/livraison
+      const pickupDistance = calculateDistance(
+        route.departureLatitude,
+        route.departureLongitude,
+        announcement.pickupLatitude,
+        announcement.pickupLongitude
+      );
+      
+      const deliveryDistance = calculateDistance(
+        route.arrivalLatitude,
+        route.arrivalLongitude,
+        announcement.deliveryLatitude,
+        announcement.deliveryLongitude
+      );
+      
+      // Vérifier si l'annonce est compatible géographiquement
+      if (pickupDistance <= MATCHING_RADIUS_KM || deliveryDistance <= MATCHING_RADIUS_KM) {
+        // Calcul du score de compatibilité avancé
+        const temporalScore = calculateTemporalCompatibility(route, announcement);
+        const geographicScore = calculateGeographicScore(pickupDistance, deliveryDistance);
+        const urgencyScore = announcement.urgency === 'HIGH' ? 1.5 : 1.0;
+        const priceScore = Math.min(1.0, (announcement.price || 0) / 50);
+        
+        const totalScore = (
+          geographicScore * 0.4 +
+          temporalScore * 0.3 +
+          priceScore * 0.2 +
+          urgencyScore * 0.1
+        ) * 100;
+        
+        if (totalScore >= 60) { // Seuil minimum de compatibilité
+          compatibleAnnouncements.push({
+            ...announcement,
+            pickupDistance,
+            deliveryDistance,
+            compatibilityScore: Math.round(totalScore)
+          });
+        }
+      }
+    }
+    
+    // Trier par score de compatibilité
+    compatibleAnnouncements.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+    const topSuggestions = compatibleAnnouncements.slice(0, MAX_SUGGESTIONS);
+    
+    console.log(`🎯 ${topSuggestions.length} suggestions de haute qualité générées`);
+    
+    // Créer les suggestions de matching en base
+    if (topSuggestions.length > 0) {
+      await createRouteSuggestions(route.id, topSuggestions, db);
+      
+      // Notifier le livreur des nouvelles opportunités
+      await notifyDelivererOfRouteMatches(route.delivererId, topSuggestions.length, db);
+      
+      // Notifier les clients des nouvelles options de livraison
+      for (const suggestion of topSuggestions.slice(0, 5)) {
+        await notifyClientOfNewDeliveryOption(
+          suggestion.client.id,
+          route.id,
+          suggestion.compatibilityScore,
+          db
+        );
+      }
+    }
+    
+    // Log de l'activité pour audit
+    await db.auditLog.create({
+      data: {
+        userId: route.delivererId,
+        action: 'ROUTE_MATCHING_TRIGGERED',
+        tableName: 'DelivererPlannedRoute',
+        recordId: route.id,
+        changes: {
+          announcementsAnalyzed: potentialAnnouncements.length,
+          suggestionsCreated: topSuggestions.length,
+          topScore: topSuggestions[0]?.compatibilityScore || 0
+        },
+        ipAddress: 'system',
+        userAgent: 'Route Matching System'
+      }
+    });
+    
+    console.log(`✅ Matching avancé terminé avec succès pour route ${route.id}`);
+    
+  } catch (error) {
+    console.error('❌ Erreur lors du matching avancé:', error);
+    
+    // Log d'erreur pour débogage
+    await db.systemLog.create({
+      data: {
+        type: 'ROUTE_MATCHING_ERROR',
+        message: `Erreur matching route ${route.id}`,
+        level: 'ERROR',
+        metadata: {
+          routeId: route.id,
+          error: error instanceof Error ? error.message : 'Erreur inconnue'
+        }
+      }
+    });
+  }
+}
+
+/**
+ * Arrête le matching automatique pour une route
+ */
+async function stopRouteMatching(routeId: string, db: any): Promise<void> {
+  try {
+    console.log(`🛑 Arrêt du matching pour route: ${routeId}`);
+    
+    // Supprimer les suggestions non acceptées
+    const deletedSuggestions = await db.deliveryApplication.deleteMany({
+      where: {
+        routeId,
+        status: 'SUGGESTED'
+      }
+    });
+    
+    // Annuler les notifications en attente
+    await db.notification.updateMany({
+      where: {
+        data: {
+          path: ['routeId'],
+          equals: routeId
+        },
+        read: false
+      },
+      data: {
+        cancelled: true,
+        cancelledAt: new Date()
+      }
+    });
+    
+    console.log(`✅ Matching arrêté: ${deletedSuggestions.count} suggestions supprimées`);
+    
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'arrêt du matching:', error);
+  }
+}
+
+/**
+ * Calcule la compatibilité temporelle entre route et annonce
+ */
+function calculateTemporalCompatibility(route: any, announcement: any): number {
+  try {
+    const routeDate = new Date(route.departureTime || route.createdAt);
+    const requestedDate = new Date(announcement.requestedPickupDate || announcement.createdAt);
+    
+    // Différence en jours
+    const daysDifference = Math.abs((routeDate.getTime() - requestedDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Score inversé (plus proche = meilleur score)
+    if (daysDifference <= 1) return 1.0; // Même jour ou lendemain
+    if (daysDifference <= 3) return 0.8; // Dans les 3 jours
+    if (daysDifference <= 7) return 0.6; // Dans la semaine
+    return 0.3; // Plus éloigné
+    
+  } catch (error) {
+    return 0.5; // Score neutre en cas d'erreur
+  }
+}
+
+/**
+ * Calcule le score géographique basé sur les distances
+ */
+function calculateGeographicScore(pickupDistance: number, deliveryDistance: number): number {
+  const avgDistance = (pickupDistance + deliveryDistance) / 2;
+  
+  if (avgDistance <= 5) return 1.0;   // Très proche
+  if (avgDistance <= 10) return 0.8;  // Proche
+  if (avgDistance <= 15) return 0.6;  // Acceptable
+  return 0.4; // Loin mais faisable
+}
+
+/**
+ * Crée les suggestions de matching en base de données
+ */
+async function createRouteSuggestions(routeId: string, suggestions: any[], db: any): Promise<void> {
+  try {
+    const routeSuggestions = suggestions.map(suggestion => ({
+      routeId,
+      announcementId: suggestion.id,
+      compatibilityScore: suggestion.compatibilityScore,
+      pickupDistance: suggestion.pickupDistance,
+      deliveryDistance: suggestion.deliveryDistance,
+      status: 'SUGGESTED',
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000) // 48h d'expiration
+    }));
+    
+    // Éviter les doublons
+    for (const routeSuggestion of routeSuggestions) {
+      await db.routeMatching.upsert({
+        where: {
+          routeId_announcementId: {
+            routeId: routeSuggestion.routeId,
+            announcementId: routeSuggestion.announcementId
+          }
+        },
+        update: {
+          compatibilityScore: routeSuggestion.compatibilityScore,
+          updatedAt: new Date()
+        },
+        create: routeSuggestion
+      });
+    }
+    
+    console.log(`💾 ${routeSuggestions.length} suggestions de route sauvegardées`);
+    
+  } catch (error) {
+    console.error('Erreur lors de la création des suggestions:', error);
+  }
+}
+
+/**
+ * Notifie le livreur des nouvelles opportunités de matching
+ */
+async function notifyDelivererOfRouteMatches(delivererId: string, matchCount: number, db: any): Promise<void> {
+  try {
+    await db.notification.create({
+      data: {
+        userId: delivererId,
+        type: 'ROUTE_MATCHING_RESULTS',
+        title: 'Nouvelles opportunités de livraison',
+        message: `${matchCount} nouvelle(s) annonce(s) compatible(s) avec votre route planifiée`,
+        data: {
+          matchCount,
+          actionUrl: '/deliverer/routes/planned'
+        },
+        priority: 'MEDIUM'
+      }
+    });
+    
+    console.log(`📲 Livreur ${delivererId} notifié de ${matchCount} nouvelles opportunités`);
+    
+  } catch (error) {
+    console.error('Erreur lors de la notification du livreur:', error);
+  }
+}
+
+/**
+ * Notifie un client d'une nouvelle option de livraison
+ */
+async function notifyClientOfNewDeliveryOption(
+  clientId: string, 
+  routeId: string, 
+  compatibilityScore: number, 
+  db: any
+): Promise<void> {
+  try {
+    await db.notification.create({
+      data: {
+        userId: clientId,
+        type: 'NEW_DELIVERY_OPTION',
+        title: 'Nouvelle option de livraison disponible',
+        message: `Un livreur avec une route compatible (${compatibilityScore}% de compatibilité) est disponible pour votre annonce`,
+        data: {
+          routeId,
+          compatibilityScore,
+          actionUrl: '/client/announcements'
+        },
+        priority: compatibilityScore >= 80 ? 'HIGH' : 'MEDIUM'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Erreur lors de la notification du client:', error);
+  }
 }
