@@ -18,7 +18,9 @@ import {
   Download,
   ArrowUpRight,
   ArrowDownRight,
-  Wallet
+  Wallet,
+  DollarSign,
+  Eye
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { useTranslations } from "next-intl";
@@ -26,66 +28,102 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-export default function EarningsWidget() {
+interface EarningsData {
+  totalEarnings: number;
+  todayEarnings: number;
+  weeklyEarnings: number;
+  monthlyEarnings: number;
+  pendingPayouts: number;
+  completedTrips: number;
+  bonuses: number;
+}
+
+interface EarningsWidgetProps {
+  earnings?: EarningsData;
+  isLoading?: boolean;
+}
+
+const defaultEarnings: EarningsData = {
+  totalEarnings: 3247.50,
+  todayEarnings: 127.25,
+  weeklyEarnings: 856.75,
+  monthlyEarnings: 2834.25,
+  pendingPayouts: 412.50,
+  completedTrips: 47,
+  bonuses: 85.00
+};
+
+export default function EarningsWidget({ 
+  earnings = defaultEarnings, 
+  isLoading = false 
+}: EarningsWidgetProps) {
   const t = useTranslations("dashboard.deliverer.earnings");
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   
   // Récupération des données de gains
-  const { data: earnings, isLoading } = api.deliverer.getEarnings.useQuery({
+  const { data: earningsData, isLoading: earningsLoading } = api.deliverer.getEarnings.useQuery({
     period: selectedPeriod
   });
   const { data: payouts } = api.deliverer.getRecentPayouts.useQuery({ limit: 5 });
   const { data: monthlyBreakdown } = api.deliverer.getMonthlyBreakdown.useQuery();
 
-  if (isLoading) {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount);
+  };
+
+  if (earningsLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Card key={i}>
-            <CardHeader className="pb-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-8 w-16" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-2 w-full" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card className="animate-pulse">
+        <CardHeader>
+          <div className="h-5 bg-gray-200 rounded w-32"></div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-24"></div>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex justify-between">
+              <div className="h-4 bg-gray-200 rounded w-20"></div>
+              <div className="h-4 bg-gray-200 rounded w-16"></div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     );
   }
 
   const earningsCards = [
     {
       title: t("totalEarnings"),
-      value: `${earnings?.total?.toFixed(2) || "0.00"}€`,
-      icon: Euro,
+      value: formatCurrency(earnings.totalEarnings),
+      icon: DollarSign,
       description: t("thisMonth"),
-      trend: earnings?.totalTrend || 0,
+      trend: earningsData?.totalTrend || 0,
       color: "text-green-600"
     },
     {
       title: t("pendingPayment"),
-      value: `${earnings?.pending?.toFixed(2) || "0.00"}€`,
+      value: formatCurrency(earnings.pendingPayouts),
       icon: Clock,
       description: t("awaitingPayout"),
-      trend: earnings?.pendingTrend || 0,
+      trend: earningsData?.pendingTrend || 0,
       color: "text-orange-600"
     },
     {
       title: t("averagePerDelivery"),
-      value: `${earnings?.averagePerDelivery?.toFixed(2) || "0.00"}€`,
+      value: formatCurrency(earnings.monthlyEarnings),
       icon: Target,
       description: t("perDelivery"),
-      trend: earnings?.averageTrend || 0,
+      trend: earningsData?.averageTrend || 0,
       color: "text-blue-600"
     },
     {
       title: t("todayEarnings"),
-      value: `${earnings?.today?.toFixed(2) || "0.00"}€`,
+      value: formatCurrency(earnings.todayEarnings),
       icon: Calendar,
       description: t("today"),
-      trend: earnings?.todayTrend || 0,
+      trend: earningsData?.todayTrend || 0,
       color: "text-purple-600"
     }
   ];
@@ -158,7 +196,7 @@ export default function EarningsWidget() {
                   <div key={category} className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">{t(`categories.${category}`)}</span>
-                      <span>{amount.toFixed(2)}€</span>
+                      <span>{formatCurrency(amount)}</span>
                     </div>
                     <Progress 
                       value={(amount / (monthlyBreakdown.total || 1)) * 100} 
@@ -202,7 +240,7 @@ export default function EarningsWidget() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium">{payout.amount.toFixed(2)}€</p>
+                      <p className="text-sm font-medium">{formatCurrency(payout.amount)}</p>
                       <p className="text-xs text-muted-foreground">{payout.method}</p>
                     </div>
                   </div>
@@ -232,21 +270,21 @@ export default function EarningsWidget() {
             <div className="flex justify-between items-center">
               <span className="text-sm">{t("monthlyGoal")}</span>
               <span className="text-2xl font-bold">
-                {earnings?.total?.toFixed(2) || "0.00"}€ / {earnings?.goal?.toFixed(2) || "1000.00"}€
+                {formatCurrency(earnings.monthlyEarnings)} / {formatCurrency(earningsData?.goal || 1000)}€
               </span>
             </div>
             <Progress 
-              value={earnings?.goalProgress || 0} 
+              value={earningsData?.goalProgress || 0} 
               className="h-3"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{earnings?.goalProgress || 0}% {t("completed")}</span>
+              <span>{earningsData?.goalProgress || 0}% {t("completed")}</span>
               <span>
-                {earnings?.remainingDays || 0} {t("daysLeft")}
+                {earningsData?.remainingDays || 0} {t("daysLeft")}
               </span>
             </div>
 
-            {(earnings?.goalProgress || 0) >= 80 && (
+            {(earningsData?.goalProgress || 0) >= 80 && (
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm text-green-800">{t("goalAlmostReached")}</p>
               </div>
@@ -270,6 +308,16 @@ export default function EarningsWidget() {
           {t("actions.setGoal")}
         </Button>
       </div>
+
+      {/* Statut */}
+      <div className="pt-2 text-center">
+        <p className="text-xs text-muted-foreground">
+          {earnings.completedTrips} livraisons terminées
+        </p>
+      </div>
     </div>
   );
 }
+
+// Export nommé pour les imports
+export { EarningsWidget };

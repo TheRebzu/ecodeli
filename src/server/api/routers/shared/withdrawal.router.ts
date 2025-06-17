@@ -695,7 +695,11 @@ export const withdrawalRouter = router({ /**
         // Récupérer les informations des utilisateurs pour les top retraits
         const walletIds = userStats.map((stat) => stat.walletId);
         const wallets = await ctx.db.wallet.findMany({
-          where: { id: { in } },
+          where: { 
+            id: { 
+              in: walletIds 
+            } 
+          },
           select: {
             id: true,
             userId: true,

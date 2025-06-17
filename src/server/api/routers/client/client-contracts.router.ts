@@ -252,10 +252,8 @@ export const clientContractsRouter = router({
           });
         }
 
-        // Générer une URL de téléchargement sécurisée avec token d'authentification
-        const downloadUrl = `/api/documents/contracts/${contract.id}/download?token=${Buffer.from(
-          `${ctx.session.user.id}-${contract.id}-${Date.now()}`,
-        ).toString("base64")}`;
+        // Construire l'URL de téléchargement directe depuis le stockage
+        const downloadUrl = contract.documentUrl;
 
         return {
           downloadUrl,

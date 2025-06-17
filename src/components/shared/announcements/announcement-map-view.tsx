@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import dynamic from 'next/dynamic';
+import { api } from "@/trpc/react";
+import { AnnouncementType, AnnouncementStatus } from "@prisma/client";
 
 // Import dynamique de Leaflet pour éviter les problèmes SSR
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
@@ -76,66 +78,74 @@ export default function AnnouncementMapView({
   const [selectedVehicleType, setSelectedVehicleType] = useState<string>("all");
   const [distanceFilter, setDistanceFilter] = useState<number>(maxDistance);
 
+  // Utiliser tRPC pour récupérer les annonces
+  const { data: announcementsData, error, isLoading, refetch } = api.announcement.getAll.useQuery({
+    limit: 100,
+    status: selectedStatus !== "all" ? selectedStatus as AnnouncementStatus : undefined,
+    includeLocation: true,
+    maxDistance: currentLocation ? distanceFilter : undefined,
+    userLatitude: currentLocation?.latitude,
+    userLongitude: currentLocation?.longitude
+  });
+
   // Charger les annonces depuis l'API
   useEffect(() => {
     const loadAnnouncements = async () => {
       try {
-        setLoading(true);
+        setLoading(isLoading);
         
-        // Simuler des données d'annonces géolocalisées (à remplacer par appel API réel)
-        const mockAnnouncements: MapAnnouncement[] = [
-          {
-            id: "1",
-            title: "Livraison de produits bio",
-            description: "Livraison de courses bio du magasin à domicile",
-            pickupAddress: "123 Rue de la Paix, 75001 Paris",
-            deliveryAddress: "456 Avenue des Champs, 75008 Paris",
-            pickupLocation: { latitude: 48.8566, longitude: 2.3522 },
-            deliveryLocation: { latitude: 48.8698, longitude: 2.3076 },
-            price: 15.50,
-            status: 'active',
-            urgency: 'medium',
-            createdAt: new Date(),
-            deadline: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2h
-            clientName: "Marie Dubois",
-            clientPhone: "+33 6 12 34 56 78",
-            packageSize: 'medium',
-            vehicleType: 'bike'
-          },
-          {
-            id: "2",
-            title: "Colis urgent - Pharmacie",
-            description: "Médicaments à livrer en urgence",
-            pickupAddress: "Pharmacie Centrale, 789 Rue Victor Hugo, 75002 Paris",
-            deliveryAddress: "10 Place de la République, 75011 Paris",
-            pickupLocation: { latitude: 48.8704, longitude: 2.3417 },
-            deliveryLocation: { latitude: 48.8676, longitude: 2.3631 },
-            price: 25.00,
-            status: 'active',
-            urgency: 'high',
-            createdAt: new Date(),
-            deadline: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1h
-            clientName: "Jean Martin",
-            clientPhone: "+33 6 98 76 54 32",
-            packageSize: 'small',
-            vehicleType: 'scooter'
-          }
-        ];
-
-        // Calculer les distances si position utilisateur disponible
-        if (currentLocation) {
-          mockAnnouncements.forEach(announcement => {
-            const distance = calculateDistance(
-              currentLocation.latitude,
-              currentLocation.longitude,
-              announcement.pickupLocation.latitude,
-              announcement.pickupLocation.longitude
-            );
-            announcement.distance = distance;
-          });
+        if (error) {
+          console.error("Erreur lors du chargement des annonces:", error);
+          toast.error(t("map.errorLoading"));
+          return;
         }
 
-        setAnnouncements(mockAnnouncements);
+        if (announcementsData?.items) {
+          // Transformer les données de l'API en format MapAnnouncement
+          const mappedAnnouncements: MapAnnouncement[] = announcementsData.items.map(announcement => ({
+            id: announcement.id,
+            title: announcement.title,
+            description: announcement.description || "",
+            pickupAddress: announcement.pickupAddress,
+            deliveryAddress: announcement.deliveryAddress,
+            pickupLocation: { 
+              latitude: announcement.pickupLatitude, 
+              longitude: announcement.pickupLongitude 
+            },
+            deliveryLocation: { 
+              latitude: announcement.deliveryLatitude, 
+              longitude: announcement.deliveryLongitude 
+            },
+            price: announcement.suggestedPrice || 0,
+            status: mapAnnouncementStatus(announcement.status),
+            urgency: announcement.priority === "HIGH" ? "high" : 
+                    announcement.priority === "MEDIUM" ? "medium" : "low",
+            createdAt: new Date(announcement.createdAt),
+            deadline: announcement.deliveryDate ? new Date(announcement.deliveryDate) : new Date(Date.now() + 24 * 60 * 60 * 1000),
+            clientName: announcement.client?.name || "Client anonyme",
+            clientPhone: announcement.client?.phoneNumber,
+            packageSize: getPackageSize(announcement.weight, announcement.width, announcement.height, announcement.length),
+            vehicleType: getVehicleType(announcement.type),
+            distance: announcement.distance
+          }));
+
+          // Calculer les distances si position utilisateur disponible
+          if (currentLocation) {
+            mappedAnnouncements.forEach(announcement => {
+              if (!announcement.distance) {
+                const distance = calculateDistance(
+                  currentLocation.latitude,
+                  currentLocation.longitude,
+                  announcement.pickupLocation.latitude,
+                  announcement.pickupLocation.longitude
+                );
+                announcement.distance = distance;
+              }
+            });
+          }
+
+          setAnnouncements(mappedAnnouncements);
+        }
       } catch (error) {
         console.error("Erreur lors du chargement des annonces:", error);
         toast.error(t("map.errorLoading"));
@@ -145,7 +155,53 @@ export default function AnnouncementMapView({
     };
 
     loadAnnouncements();
-  }, [currentLocation, t]);
+  }, [announcementsData, error, isLoading, currentLocation, t]);
+
+  // Fonction pour mapper le statut de l'annonce
+  const mapAnnouncementStatus = (status: AnnouncementStatus): 'active' | 'assigned' | 'completed' | 'cancelled' => {
+    switch (status) {
+      case 'PUBLISHED':
+      case 'DRAFT':
+        return 'active';
+      case 'ASSIGNED':
+      case 'IN_PROGRESS':
+        return 'assigned';
+      case 'DELIVERED':
+      case 'COMPLETED':
+      case 'PAID':
+        return 'completed';
+      case 'CANCELLED':
+        return 'cancelled';
+      default:
+        return 'active';
+    }
+  };
+
+  // Fonction pour déterminer la taille du colis
+  const getPackageSize = (weight?: number, width?: number, height?: number, length?: number): 'small' | 'medium' | 'large' => {
+    if (!weight && !width && !height && !length) return 'medium';
+    
+    const volume = (width || 0) * (height || 0) * (length || 0);
+    const w = weight || 0;
+    
+    if (w < 5 && volume < 1000) return 'small';
+    if (w < 20 && volume < 10000) return 'medium';
+    return 'large';
+  };
+
+  // Fonction pour déterminer le type de véhicule
+  const getVehicleType = (type: AnnouncementType): 'bike' | 'scooter' | 'car' | 'van' => {
+    switch (type) {
+      case 'URGENT':
+        return 'scooter';
+      case 'FRAGILE':
+        return 'car';
+      case 'BULK':
+        return 'van';
+      default:
+        return 'bike';
+    }
+  };
 
   // Calculer la distance entre deux points (formule de Haversine)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {

@@ -28,6 +28,7 @@ import { fr } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { api } from "@/trpc/react";
 
 interface RatingResponseProps {
   ratingId: string;
@@ -81,10 +82,42 @@ export default function RatingResponse({
 }: RatingResponseProps) {
   const t = useTranslations("ratings");
   const [rating, setRating] = useState<RatingData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResponseForm, setShowResponseForm] = useState(false);
+
+  // Utiliser tRPC pour récupérer l'évaluation
+  const { data: ratingData, error: ratingError, isLoading } = api.rating.getById.useQuery({
+    id: ratingId,
+    includeResponse: true
+  });
+
+  // Mutation pour soumettre une réponse
+  const submitResponseMutation = api.rating.submitResponse.useMutation({
+    onSuccess: () => {
+      toast.success(t("response.submitted"));
+      setShowResponseForm(false);
+      form.reset();
+      onResponseSubmitted?.();
+      // Rafraîchir les données
+      api.rating.getById.invalidate({ id: ratingId });
+    },
+    onError: (error) => {
+      toast.error(error.message || t("response.errorSubmitting"));
+    }
+  });
+
+  // Mutation pour supprimer une réponse
+  const deleteResponseMutation = api.rating.deleteResponse.useMutation({
+    onSuccess: () => {
+      toast.success(t("response.deleted"));
+      setShowResponseForm(true);
+      // Rafraîchir les données
+      api.rating.getById.invalidate({ id: ratingId });
+    },
+    onError: (error) => {
+      toast.error(error.message || t("response.errorDeleting"));
+    }
+  });
 
   const form = useForm<ResponseFormData>({
     resolver: zodResolver(responseSchema),
@@ -99,74 +132,61 @@ export default function RatingResponse({
 
   // Charger les données de l'évaluation
   useEffect(() => {
-    const loadRating = async () => {
-      try {
-        setLoading(true);
-        
-        // Simuler des données d'évaluation (à remplacer par appel API réel)
-        const mockRating: RatingData = {
-          id: ratingId,
-          score: 4,
-          comment: "Service professionnel et ponctuel. Le travail a été réalisé selon mes attentes. Je recommande ce prestataire pour sa qualité de service.",
-          clientName: "Marie Dubois",
-          clientAvatarUrl: "/avatars/default-client.png",
-          serviceName: "Réparation plomberie - Fuite robinet",
-          serviceDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 jours
-          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 jour
-          isAnonymous: false,
-          categories: {
-            punctuality: 5,
-            quality: 4,
-            communication: 4,
-            professionalism: 5
-          },
-          tags: ["professionnel", "ponctuel", "efficace"],
-          response: undefined // Pas encore de réponse
-        };
-        
-        setRating(mockRating);
-        setShowResponseForm(!mockRating.response);
-      } catch (err) {
-        setError(t("response.errorLoading"));
-        console.error("Erreur lors du chargement de l'évaluation:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (ratingError) {
+      setError(t("response.errorLoading"));
+      console.error("Erreur lors du chargement de l'évaluation:", ratingError);
+      return;
+    }
 
-    loadRating();
-  }, [ratingId, t]);
+    if (ratingData) {
+      // Transformer les données de l'API en format RatingData
+      const mappedRating: RatingData = {
+        id: ratingData.id,
+        score: ratingData.score,
+        comment: ratingData.comment || "",
+        clientName: ratingData.client?.name || "Client anonyme",
+        clientAvatarUrl: ratingData.client?.image || "/avatars/default-client.png",
+        serviceName: ratingData.service?.name || "Service",
+        serviceDate: new Date(ratingData.serviceDate || ratingData.createdAt),
+        createdAt: new Date(ratingData.createdAt),
+        isAnonymous: ratingData.isAnonymous || false,
+        categories: {
+          punctuality: ratingData.punctuality || ratingData.score,
+          quality: ratingData.quality || ratingData.score,
+          communication: ratingData.communication || ratingData.score,
+          professionalism: ratingData.professionalism || ratingData.score
+        },
+        tags: ratingData.tags || [],
+        response: ratingData.response ? {
+          id: ratingData.response.id,
+          content: ratingData.response.content,
+          createdAt: new Date(ratingData.response.createdAt),
+          isPublic: ratingData.response.isPublic,
+          helpful: ratingData.response.helpful || 0,
+          reports: ratingData.response.reports || 0
+        } : undefined
+      };
+      
+      setRating(mappedRating);
+      setShowResponseForm(!mappedRating.response);
+    }
+  }, [ratingData, ratingError, t]);
 
   const handleSubmitResponse = async (data: ResponseFormData) => {
     if (!rating) return;
 
     try {
-      setIsSubmitting(true);
-      
-      // Simuler l'envoi de la réponse (à remplacer par appel API réel)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const newResponse = {
-        id: "response-1",
+      await submitResponseMutation.mutateAsync({
+        ratingId: rating.id,
         content: data.content,
-        createdAt: new Date(),
         isPublic: data.isPublic,
-        helpful: 0,
-        reports: 0
-      };
-      
-      setRating(prev => prev ? { ...prev, response: newResponse } : null);
-      setShowResponseForm(false);
-      form.reset();
-      
-      toast.success(t("response.submitted"));
-      onResponseSubmitted?.();
-      
+        thankClient: data.thankClient,
+        offerFollowUp: data.offerFollowUp,
+        followUpMessage: data.followUpMessage
+      });
     } catch (err) {
-      toast.error(t("response.errorSubmitting"));
+      // L'erreur est déjà gérée par la mutation
       console.error("Erreur lors de l'envoi de la réponse:", err);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -174,15 +194,10 @@ export default function RatingResponse({
     if (!rating?.response) return;
 
     try {
-      // Simuler la suppression (à remplacer par appel API réel)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setRating(prev => prev ? { ...prev, response: undefined } : null);
-      setShowResponseForm(true);
-      
-      toast.success(t("response.deleted"));
+      await deleteResponseMutation.mutateAsync({
+        responseId: rating.response.id
+      });
     } catch (err) {
-      toast.error(t("response.errorDeleting"));
       console.error("Erreur lors de la suppression:", err);
     }
   };

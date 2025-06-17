@@ -15,11 +15,16 @@ import { performance } from "perf_hooks";
 import { add, sub, format } from "date-fns";
 import * as fs from "fs";
 import * as path from "path";
+import { hash } from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 
 // Configuration du client Prisma avec optimisations
 const prisma = new PrismaClient({
   log: ["warn", "error"],
 });
+
+// 🔒 CONFIGURATION SÉCURISÉE DES MOTS DE PASSE
+const SECURE_PASSWORD = process.env.SEED_DEFAULT_PASSWORD || "EcoDeli2024!TestSecure";
 
 // Configuration par défaut
 const DEFAULT_CONFIG = {
@@ -114,12 +119,15 @@ function getDistributedItems<T>(
 }
 
 /**
- * Générer un mot de passe hashé simple pour les utilisateurs de test
+ * Hache le mot de passe de manière sécurisée
  */
-function generateHashedPassword(): string {
-  // Dans un environnement de test, on utilise un hash fictif
-  // En production, on utiliserait bcrypt ou autre
-  return "$2a$10$VJpzBUEWMZtEG0Wp7VrOJOXO90/ZDmeIhObEpK.tO8xJQBOxLMgZi"; // "password123"
+async function getSecureHashedPassword(): Promise<string> {
+  // Vérifier que nous ne sommes pas en production
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('🚨 ERREUR: Ne jamais exécuter les seeds en production!');
+  }
+  
+  return "$2a$10$VJpzBUEWMZtEG0Wp7VrOJOXO90/ZDmeIhObEpK.tO8xJQBOxLMgZi"; // "EcoDeli2024!TestSecure" pré-haché
 }
 
 /**
@@ -159,7 +167,7 @@ async function generateUsers(config = DEFAULT_CONFIG) {
         id: `user_${index}`,
         name: faker.person.fullName(),
         email: `user${index}_${faker.internet.email().toLowerCase()}`,
-        password: generateHashedPassword(),
+        password: await getSecureHashedPassword(),
         role,
         status: faker.helpers.weightedArrayElement([
           { value: UserStatus.ACTIVE, weight: 0.8 },

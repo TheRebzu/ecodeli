@@ -17,7 +17,8 @@ import {
 import { cn } from "@/lib/utils/common";
 import { useSubscriptionStore } from "@/store/use-subscription-store";
 import { useToast } from "@/components/ui/use-toast";
-import { api } from "@/app/api/api";
+import { api } from "@/trpc/react";
+import { formatCurrency } from "@/utils/document-utils";
 
 import {
   Card,

@@ -29,10 +29,10 @@ import {
   checkPaymentAccessRights} from "@/lib/auth/auth-helpers";
 
 // Importation conditionnelle du service de portefeuille
-let importedWalletService: any;
+let importedWalletService: any = null;
+
 try {
-  importedWalletService =
-    // require("@/server/services/wallet.service").walletService;
+  importedWalletService = await import("@/server/services/wallet.service").then(m => m.walletService);
 } catch (error) {
   console.warn("Wallet service could not be imported:", error);
   importedWalletService = null;

@@ -386,7 +386,9 @@ export class VerificationService {
       where: {
         userId,
         userRole,
-        type: { in }}});
+        type: { in: requiredDocuments }
+      }
+    });
 
     // Statut effectif de chaque document
     const statusByType: Record<string, string> = {};
@@ -511,7 +513,7 @@ export class VerificationService {
     }
 
     // Ajouter à l'historique
-    await db.verificationHistory.create({ data  });
+    await db.verificationHistory.create({ data: historyData });
   }
   /**
    * Récupère le statut de vérification complet d'un utilisateur
@@ -534,7 +536,9 @@ export class VerificationService {
       where: {
         userId,
         userRole,
-        type: { in }}});
+        type: { in: requiredDocuments }
+      }
+    });
 
     // Analyser le statut de chaque document avec la même logique que document-list.tsx
     const documentStatuses = userDocuments.map((doc) =>
@@ -655,7 +659,7 @@ export class VerificationService {
         expiryDate: doc.expiryDate,
         autoExpired: true}}));
 
-    await this.db.auditLog.createMany({ data  });
+    await this.db.auditLog.createMany({ data: auditLogs });
 
     return {
       updated: updateResult.count,
@@ -1234,6 +1238,133 @@ export class VerificationService {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: `Erreur lors de la vérification: ${error.message}`});
+    }
+  }
+
+  /**
+   * Génère un prompt intelligent pour les notifications de vérification
+   */
+  private async createSmartPrompt(options: {
+    documentType: string;
+    userRole: string;
+    documentContext?: string;
+    priorityLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  }) {
+    const { documentType, userRole, documentContext, priorityLevel } = options;
+
+    // Logique de génération de prompt adapté
+    const basePrompts = {
+      IDENTITY_VERIFICATION: "Votre vérification d'identité est requise pour continuer",
+      ADDRESS_PROOF: "Veuillez fournir un justificatif de domicile récent",
+      INCOME_PROOF: "Un justificatif de revenus est nécessaire",
+      BANK_STATEMENT: "Relevé bancaire requis pour validation",
+      DEFAULT: `Vérification de ${documentType} requise`
+    };
+
+    const urgencyLevels = {
+      LOW: "à votre convenance",
+      MEDIUM: "dans les prochains jours",
+      HIGH: "dès que possible"
+    };
+
+    const context = `${basePrompts[documentType] || basePrompts.DEFAULT} ${urgencyLevels[priorityLevel]}.`;
+
+    return {
+      prompt: context,
+      context,
+      documentType,
+      priority: priorityLevel
+    };
+  }
+
+  /**
+   * Met à jour les statistiques des demandes de documents
+   */
+  private async updateDocumentRequestStats(data: {
+    userId: string;
+    requestType: string;
+    documentType: string;
+    source: string;
+  }) {
+    try {
+      // Créer un enregistrement des statistiques
+      await db.userActivityLog.create({
+        data: {
+          userId: data.userId,
+          activityType: 'DOCUMENT_REQUEST_SENT',
+          details: JSON.stringify({
+            requestType: data.requestType,
+            documentType: data.documentType,
+            source: data.source
+          })
+        }
+      });
+    } catch (error) {
+      console.warn("Erreur lors de la mise à jour des statistiques:", error);
+    }
+  }
+
+  /**
+   * Envoie un rappel de vérification
+   */
+  private async sendVerificationReminder(data: {
+    userId: string;
+    documentType: string;
+    context: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    dueDate: Date;
+  }) {
+    try {
+      // Récupérer les informations utilisateur
+      const user = await db.user.findUnique({
+        where: { id: data.userId },
+        select: {
+          email: true,
+          name: true,
+          role: true
+        }
+      });
+
+      if (!user) {
+        throw new Error("Utilisateur non trouvé");
+      }
+
+      // Envoyer l'email de rappel
+      await this.sendEmail({
+        to: user.email,
+        subject: `Vérification requise - ${data.documentType}`,
+        template: 'verification_reminder',
+        data: {
+          userName: user.name,
+          documentType: data.documentType,
+          context: data.context,
+          priority: data.priority,
+          dueDate: data.dueDate,
+          verificationUrl: `${process.env.NEXTAUTH_URL}/verification`
+        }
+      });
+
+      // Créer une notification in-app
+      await db.notification.create({
+        data: {
+          userId: data.userId,
+          type: 'VERIFICATION_REMINDER',
+          title: 'Vérification requise',
+          message: data.context,
+          priority: data.priority,
+          data: {
+            documentType: data.documentType,
+            dueDate: data.dueDate
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du rappel:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de l'envoi du rappel"
+      });
     }
   }
 }

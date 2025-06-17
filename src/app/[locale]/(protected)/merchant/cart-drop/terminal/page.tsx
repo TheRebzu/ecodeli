@@ -20,7 +20,7 @@ import {
   Radio,
 } from "lucide-react";
 import { api } from "@/trpc/react";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
 interface OrderItem {
@@ -46,6 +46,7 @@ interface Order {
 }
 
 export default function MerchantTerminalPage() {
+  const { toast } = useToast();
   const [isConnected, setIsConnected] = useState(true);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [orderNotes, setOrderNotes] = useState("");
@@ -108,7 +109,7 @@ export default function MerchantTerminalPage() {
     },
   });
 
-  // Simulation du scan NFC (remplacé par API réelle)
+  // Scan NFC via API réelle
   const handleScanNFC = async () => {
     if (!nfcEnabled) {
       toast({

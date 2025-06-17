@@ -85,15 +85,17 @@ export class OneSignalService {
   private appId: string;
 
   constructor() {
-    this.apiKey = process.env.ONESIGNAL_API_KEY || "";
-    this.appId = process.env.ONESIGNAL_APP_ID || "";
+    this.apiKey = process.env.ONESIGNAL_REST_API_KEY || "";
+    this.appId = process.env.ONESIGNAL_APP_ID || process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "";
 
-    // Seulement avertir en production si non configuré
-    if (
-      (!this.apiKey || !this.appId) &&
-      process.env.NODE_ENV === "production"
-    ) {
-      console.warn("OneSignal API Key or App ID not configured");
+    if (this.apiKey && this.appId) {
+      console.log("✅ Service OneSignal initialisé");
+    } else {
+      if (process.env.NODE_ENV === "production") {
+        console.warn("⚠️ OneSignal API Key ou App ID manquant en production");
+      } else {
+        console.warn("⚠️ OneSignal non configuré - les notifications push seront simulées");
+      }
     }
   }
 
@@ -252,13 +254,14 @@ export class OneSignalService {
     documentType: string,
     url: string,
   ): Promise<boolean> {
-    return this.sendNotification({
+    const result = await this.sendNotification({
       userId,
       type: "DOCUMENT_APPROVED",
       title: "Document approuvé",
       message: `Votre document ${documentType} a été approuvé.`,
       url,
       data: { documentType }});
+    return result.success;
   }
 
   // Document rejeté
@@ -268,13 +271,14 @@ export class OneSignalService {
     reason: string,
     url: string,
   ): Promise<boolean> {
-    return this.sendNotification({
+    const result = await this.sendNotification({
       userId,
       type: "DOCUMENT_REJECTED",
       title: "Document rejeté",
       message: `Votre document ${documentType} a été rejeté: ${reason}`,
       url,
       data: { documentType, reason }});
+    return result.success;
   }
 
   // Vérification approuvée
@@ -282,12 +286,13 @@ export class OneSignalService {
     userId: string,
     url: string,
   ): Promise<boolean> {
-    return this.sendNotification({ userId,
+    const result = await this.sendNotification({ userId,
       type: "VERIFICATION_APPROVED",
       title: "Compte vérifié",
       message:
         "Votre compte a été vérifié avec succès. Vous avez maintenant accès à toutes les fonctionnalités.",
       url });
+    return result.success;
   }
 
   // Vérification rejetée
@@ -296,13 +301,14 @@ export class OneSignalService {
     reason: string,
     url: string,
   ): Promise<boolean> {
-    return this.sendNotification({
+    const result = await this.sendNotification({
       userId,
       type: "VERIFICATION_REJECTED",
       title: "Vérification rejetée",
       message: `Votre vérification a été rejetée: ${reason}`,
       url,
       data: { reason }});
+    return result.success;
   }
 
   // Nouvelle livraison assignée
@@ -588,13 +594,14 @@ export class OneSignalService {
     userId: string,
     deliveryId: string,
   ): Promise<boolean> {
-    return this.sendNotification({
+    const result = await this.sendNotification({
       userId,
       type: "DELIVERY_COMPLETED",
       title: "Livraison terminée",
       message: "Votre livraison a été effectuée avec succès!",
       url: `/client/deliveries/${deliveryId}/rate`,
       data: { deliveryId }});
+    return result.success;
   }
 
   // Correspondance d'annonce
@@ -603,13 +610,14 @@ export class OneSignalService {
     announcementId: string,
     route: string,
   ): Promise<boolean> {
-    return this.sendNotification({
+    const result = await this.sendNotification({
       userId,
       type: "ANNOUNCEMENT_MATCH",
       title: "Nouvelle opportunité de livraison",
       message: `Une annonce correspond à votre trajet ${route}`,
       url: `/deliverer/announcements/${announcementId}`,
       data: { announcementId, route }});
+    return result.success;
   }
 
   // Paiement reçu
@@ -618,13 +626,14 @@ export class OneSignalService {
     amount: number,
     deliveryId?: string,
   ): Promise<boolean> {
-    return this.sendNotification({
+    const result = await this.sendNotification({
       userId,
       type: "PAYMENT_RECEIVED",
       title: "Paiement reçu",
       message: `Vous avez reçu ${amount}€`,
       url: deliveryId ? `/deliverer/payments` : `/provider/payments`,
       data: { amount, deliveryId }});
+    return result.success;
   }
 
   // Service réservé
@@ -634,13 +643,14 @@ export class OneSignalService {
     clientName: string,
     date: string,
   ): Promise<boolean> {
-    return this.sendNotification({
+    const result = await this.sendNotification({
       userId,
       type: "SERVICE_BOOKED",
       title: "Nouvelle réservation",
       message: `${clientName} a réservé votre service pour le ${date}`,
       url: `/provider/appointments`,
       data: { serviceId, clientName, date }});
+    return result.success;
   }
 
   // Rappel de service
@@ -651,13 +661,14 @@ export class OneSignalService {
     date: string,
     time: string,
   ): Promise<boolean> {
-    return this.sendNotification({
+    const result = await this.sendNotification({
       userId,
       type: "SERVICE_REMINDER",
       title: "Rappel de rendez-vous",
       message: `Rendez-vous avec ${providerName} demain à ${time}`,
       url: `/client/appointments/${serviceId}`,
       data: { serviceId, providerName, date, time }});
+    return result.success;
   }
 
   // Nouvel avis
@@ -668,13 +679,14 @@ export class OneSignalService {
     type: "delivery" | "service",
   ): Promise<boolean> {
     const url = type === "delivery" ? "/deliverer/reviews" : "/provider/ratings";
-    return this.sendNotification({
+    const result = await this.sendNotification({
       userId,
       type: "NEW_REVIEW",
       title: "Nouvel avis reçu",
       message: `${reviewerName} vous a donné ${rating} étoiles`,
       url,
       data: { reviewerName, rating, type }});
+    return result.success;
   }
 
   // Notification groupée pour plusieurs utilisateurs
@@ -686,7 +698,7 @@ export class OneSignalService {
     data?: Record<string, any>,
   ): Promise<boolean> {
     if (!this.apiKey || !this.appId) {
-      if (process.env.NODEENV === "production") {
+      if (process.env.NODE_ENV === "production") {
         console.error("OneSignal API Key or App ID not configured");
       }
       return false;
@@ -701,7 +713,7 @@ export class OneSignalService {
             "Content-Type": "application/json",
             Authorization: `Basic ${this.apiKey}`},
           body: JSON.stringify({
-            appid: this.appId,
+            app_id: this.appId,
             filters: userIds.map((userId, index) => {
               const filter: any = {
                 field: "tag",

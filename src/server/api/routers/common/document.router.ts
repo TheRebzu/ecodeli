@@ -75,8 +75,7 @@ export const documentRouter = router({ /**
     .query(async ({ input  }) => {
       try {
         // Utiliser la fonction centralisée depuis document-utils
-        const {
-          getRequiredDocumentTypesByRole} = // require("@/utils/document-utils");
+        const { getRequiredDocumentTypesByRole } = await import("@/utils/document-utils");
         const types = getRequiredDocumentTypesByRole(input.userRole);
         return types;
       } catch (error: any) {

@@ -15,26 +15,35 @@ export class MerchantService {
    */
   async getMerchantProfile(userId: string) {
     const user = await db.user.findUnique({
-      where: { id },
+      where: { id: userId },
       include: {
-        merchant: {
-          include: {
-            count: {
-              select: {
-                deliveries: true,
-                contracts: true}}}}}});
+        merchant: true
+      }
+    });
 
     if (!user || !user.merchant) {
       throw new TRPCError({ code: "NOT_FOUND",
         message: "Profil merchant non trouvé" });
     }
 
+    // Calculer les statistiques séparément
+    const [totalDeliveries, totalContracts] = await Promise.all([
+      db.delivery.count({
+        where: { merchant: { userId: userId } }
+      }),
+      db.contract.count({
+        where: { merchant: { userId: userId } }
+      })
+    ]);
+
     return {
       ...user,
       merchant: {
         ...user.merchant,
-        totalDeliveries: user.merchant.count.deliveries,
-        totalContracts: user.merchant.count.contracts}};
+        totalDeliveries,
+        totalContracts
+      }
+    };
   }
 
   /**

@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format, addDays, isSameDay, startOfDay, endOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
+import { api } from "@/trpc/react";
 
 interface BookingManagementProps {
   providerId: string;
@@ -81,78 +82,67 @@ export default function BookingManagement({
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showBookingDetails, setShowBookingDetails] = useState(false);
 
+  // Utiliser tRPC pour récupérer les réservations
+  const { data: bookingsData, error: bookingsError, isLoading } = api.provider.getBookings.useQuery({
+    startDate: startOfDay(addDays(new Date(), -30)), // 30 jours dans le passé
+    endDate: endOfDay(addDays(new Date(), 90)), // 90 jours dans le futur
+    limit: 100
+  });
+
+  // Mutations pour gérer les réservations (à implémenter dans le routeur si nécessaire)
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+
   // Charger les réservations
   useEffect(() => {
-    const loadBookings = async () => {
-      try {
-        setLoading(true);
-        
-        // Simuler des données de réservation (à remplacer par appel API réel)
-        const mockBookings: Booking[] = [
-          {
-            id: "1",
-            clientName: "Marie Dubois",
-            clientEmail: "marie.dubois@email.com",
-            clientPhone: "+33 6 12 34 56 78",
-            serviceName: "Réparation plomberie",
-            serviceDescription: "Fuite robinet cuisine - Réparation urgente",
-            scheduledDate: new Date(Date.now() + 2 * 60 * 60 * 1000), // dans 2h
-            duration: 120,
-            status: 'confirmed',
-            price: 85.00,
-            location: "123 Rue de la Paix, 75001 Paris",
-            notes: "Accès par la cour, 2ème étage",
-            priority: 'high',
-            reminderSent: true,
-            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-          },
-          {
-            id: "2",
-            clientName: "Jean Martin",
-            clientEmail: "jean.martin@email.com",
-            clientPhone: "+33 6 98 76 54 32",
-            serviceName: "Installation électrique",
-            serviceDescription: "Installation prises supplémentaires salon",
-            scheduledDate: addDays(new Date(), 1),
-            duration: 180,
-            status: 'pending',
-            price: 120.00,
-            location: "456 Avenue Victor Hugo, 75016 Paris",
-            priority: 'medium',
-            reminderSent: false,
-            createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
-          },
-          {
-            id: "3",
-            clientName: "Sophie Leroy",
-            clientEmail: "sophie.leroy@email.com",
-            clientPhone: "+33 6 45 67 89 12",
-            serviceName: "Maintenance chauffage",
-            serviceDescription: "Révision annuelle chaudière gaz",
-            scheduledDate: addDays(new Date(), -1),
-            duration: 90,
-            status: 'completed',
-            price: 95.00,
-            location: "789 Rue de Rivoli, 75004 Paris",
-            priority: 'low',
-            reminderSent: true,
-            rating: 5,
-            feedback: "Excellent service, très professionnel !",
-            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-          }
-        ];
-        
-        setBookings(mockBookings);
-      } catch (error) {
-        console.error("Erreur lors du chargement des réservations:", error);
-        toast.error(t("management.errorLoading"));
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (bookingsError) {
+      console.error("Erreur lors du chargement des réservations:", bookingsError);
+      toast.error(t("management.errorLoading"));
+      return;
+    }
 
-    loadBookings();
-  }, [providerId, t]);
+    if (bookingsData?.bookings) {
+      // Transformer les données de l'API en format Booking
+      const mappedBookings: Booking[] = bookingsData.bookings.map((booking: any) => ({
+        id: booking.id,
+        clientName: booking.client?.user?.name || "Client anonyme",
+        clientEmail: booking.client?.user?.email || "",
+        clientPhone: booking.client?.user?.phoneNumber || "",
+        serviceName: booking.service?.name || "Service",
+        serviceDescription: booking.service?.description || booking.service?.category || "",
+        scheduledDate: new Date(booking.scheduledAt),
+        duration: booking.service?.duration || 120,
+        status: mapBookingStatus(booking.status),
+        price: booking.service?.price || 0,
+        location: booking.location || "",
+        notes: booking.notes,
+        priority: 'medium',
+        reminderSent: booking.reminderSent || false,
+        cancellationReason: booking.cancellationReason,
+        rating: booking.rating,
+        feedback: booking.feedback,
+        createdAt: new Date(booking.createdAt)
+      }));
+
+      setBookings(mappedBookings);
+    }
+  }, [bookingsData, bookingsError, t]);
+
+  // Fonction pour mapper le statut de la réservation
+  const mapBookingStatus = (status: string): 'pending' | 'confirmed' | 'cancelled' | 'completed' => {
+    switch (status) {
+      case 'CONFIRMED':
+        return 'confirmed';
+      case 'CANCELLED':
+        return 'cancelled';
+      case 'COMPLETED':
+        return 'completed';
+      case 'PENDING':
+      default:
+        return 'pending';
+    }
+  };
 
   // Filtrer les réservations
   useEffect(() => {
@@ -176,61 +166,61 @@ export default function BookingManagement({
     setFilteredBookings(filtered);
   }, [bookings, searchTerm, statusFilter]);
 
-  const handleConfirmBooking = async (bookingId: string) => {
-    try {
-      // Simuler la confirmation (à remplacer par appel API réel)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setBookings(prev => prev.map(booking => 
-        booking.id === bookingId 
-          ? { ...booking, status: 'confirmed' as const }
-          : booking
-      ));
-      
+  // Mutation pour confirmer une réservation
+  const confirmBookingMutation = api.provider.confirmBooking.useMutation({
+    onSuccess: () => {
       toast.success(t("management.bookingConfirmed"));
       onBookingUpdate?.();
-    } catch (error) {
-      toast.error(t("management.errorConfirming"));
-      console.error("Erreur lors de la confirmation:", error);
+      // Invalidation du cache pour rafraîchir les données
+      void api.provider.getBookings.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || t("management.errorConfirming"));
     }
+  });
+
+  const handleConfirmBooking = async (bookingId: string) => {
+    setIsConfirming(true);
+    await confirmBookingMutation.mutateAsync({ id: bookingId });
+    setIsConfirming(false);
   };
 
-  const handleCancelBooking = async (bookingId: string, reason: string) => {
-    try {
-      // Simuler l'annulation (à remplacer par appel API réel)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setBookings(prev => prev.map(booking => 
-        booking.id === bookingId 
-          ? { ...booking, status: 'cancelled' as const, cancellationReason: reason }
-          : booking
-      ));
-      
+  // Mutation pour annuler une réservation
+  const cancelBookingMutation = api.provider.cancelBooking.useMutation({
+    onSuccess: () => {
       toast.success(t("management.bookingCancelled"));
       onBookingUpdate?.();
-    } catch (error) {
-      toast.error(t("management.errorCancelling"));
-      console.error("Erreur lors de l'annulation:", error);
+      // Invalidation du cache pour rafraîchir les données
+      void api.provider.getBookings.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || t("management.errorCancelling"));
     }
+  });
+
+  const handleCancelBooking = async (bookingId: string, reason: string) => {
+    setIsCancelling(true);
+    await cancelBookingMutation.mutateAsync({ id: bookingId });
+    setIsCancelling(false);
   };
 
-  const handleCompleteBooking = async (bookingId: string) => {
-    try {
-      // Simuler la completion (à remplacer par appel API réel)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setBookings(prev => prev.map(booking => 
-        booking.id === bookingId 
-          ? { ...booking, status: 'completed' as const }
-          : booking
-      ));
-      
+  // Mutation pour finaliser une réservation
+  const completeBookingMutation = api.provider.completeBooking.useMutation({
+    onSuccess: () => {
       toast.success(t("management.bookingCompleted"));
       onBookingUpdate?.();
-    } catch (error) {
-      toast.error(t("management.errorCompleting"));
-      console.error("Erreur lors de la finalisation:", error);
+      // Invalidation du cache pour rafraîchir les données
+      void api.provider.getBookings.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || t("management.errorCompleting"));
     }
+  });
+
+  const handleCompleteBooking = async (bookingId: string) => {
+    setIsCompleting(true);
+    await completeBookingMutation.mutateAsync({ id: bookingId });
+    setIsCompleting(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -746,9 +736,7 @@ export default function BookingManagement({
             </CardContent>
           </Card>
         </div>
-    <div>
-      <h1>booking management</h1>
-      {/* TODO: Implémenter ce composant selon la Mission 1 */}
+      )}
     </div>
   );
 }

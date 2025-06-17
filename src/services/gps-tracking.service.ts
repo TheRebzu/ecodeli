@@ -362,7 +362,12 @@ export class GPSTrackingService {
       if (!this.lastPosition) return null;
 
       const { latitude, longitude } = this.lastPosition;
-      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+      
+      if (!apiKey) {
+        console.warn("❌ Clé API Google Maps manquante");
+        return null;
+      }
       
       // Utiliser l'API Roads pour obtenir des informations sur le trafic local
       const response = await fetch(
@@ -370,21 +375,24 @@ export class GPSTrackingService {
       );
 
       if (!response.ok) {
-        throw new Error(`API Google Maps error: ${response.status}`);
+        throw new Error(`API Google Maps error: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
+      
+      console.log("✅ Données Google Maps reçues:", data);
       
       // Traiter les données pour extraire les informations de trafic
       return {
         congestionLevel: this.estimateCongestionFromRoadData(data),
         averageSpeed: this.calculateAverageSpeedFromRoadData(data),
-        incidents: [],
+        incidents: data.incidents || [],
         weatherImpact: 'clear',
-        source: 'google_maps'
+        source: 'google_maps',
+        timestamp: new Date().toISOString()
       };
     } catch (error) {
-      console.error("Erreur API Google Maps:", error);
+      console.error("❌ Erreur API Google Maps:", error);
       return null;
     }
   }
@@ -399,30 +407,62 @@ export class GPSTrackingService {
       const { latitude, longitude } = this.lastPosition;
       const apiKey = process.env.OPENWEATHER_API_KEY;
       
+      if (!apiKey) {
+        console.warn("❌ Clé API OpenWeatherMap manquante");
+        return null;
+      }
+      
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`
+        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric&lang=fr`
       );
 
       if (!response.ok) {
-        throw new Error(`API OpenWeather error: ${response.status}`);
+        throw new Error(`API OpenWeather error: ${response.status} - ${response.statusText}`);
       }
 
       const weatherData = await response.json();
+      
+      console.log("✅ Données météo OpenWeather reçues:", weatherData);
       
       // Estimer l'impact du trafic basé sur la météo
       const weatherImpact = this.assessWeatherImpact(weatherData);
       
       return {
-        congestionLevel: this.calculateTrafficFromTimePatterns(), // Utiliser les patterns temporels comme base
-        averageSpeed: 45, // Vitesse moyenne estimée
+        congestionLevel: this.calculateTrafficFromTimePatterns(), 
+        averageSpeed: this.calculateSpeedFromWeather(weatherData),
         incidents: [],
         weatherImpact: weatherImpact.condition,
         weatherFactor: weatherImpact.factor,
-        source: 'openweather'
+        source: 'openweather',
+        temperature: weatherData.main?.temp,
+        humidity: weatherData.main?.humidity,
+        timestamp: new Date().toISOString()
       };
     } catch (error) {
-      console.error("Erreur API OpenWeather:", error);
+      console.error("❌ Erreur API OpenWeather:", error);
       return null;
+    }
+  }
+
+  /**
+   * Calcule la vitesse estimée basée sur les conditions météo
+   */
+  private calculateSpeedFromWeather(weatherData: any): number {
+    const baseSpeed = 45; // Vitesse de base en km/h
+    const weatherCondition = weatherData.weather[0]?.main?.toLowerCase();
+    
+    switch (weatherCondition) {
+      case 'rain':
+        return baseSpeed * 0.8; // Réduction de 20% sous la pluie
+      case 'snow':
+        return baseSpeed * 0.6; // Réduction de 40% sous la neige  
+      case 'fog':
+      case 'mist':
+        return baseSpeed * 0.7; // Réduction de 30% par brouillard
+      case 'thunderstorm':
+        return baseSpeed * 0.5; // Réduction de 50% par orage
+      default:
+        return baseSpeed;
     }
   }
 

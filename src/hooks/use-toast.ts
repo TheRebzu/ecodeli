@@ -11,7 +11,7 @@ interface ToastProps {
 
 interface ToastContextType {
   toast: (props: ToastProps) => void;
-  toasts: (ToastProps & { id })[];
+  toasts: (ToastProps & { id: string })[];
   dismissToast: (id: string) => void;
 }
 
@@ -20,7 +20,7 @@ const ToastContext = React.createContext<ToastContextType | undefined>(
 );
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = React.useState<(ToastProps & { id })[]>(
+  const [toasts, setToasts] = React.useState<(ToastProps & { id: string })[]>(
     [],
   );
 
@@ -41,9 +41,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = React.useMemo(
-    () => ({ toast,
-      toasts,
-      dismissToast }),
+    () => ({ toast, toasts, dismissToast }),
     [toast, toasts, dismissToast],
   );
 
@@ -57,3 +55,9 @@ export function useToast() {
   }
   return context;
 }
+
+// Export direct pour compatibilité
+export const toast = (props: ToastProps) => {
+  // Fallback si utilisé hors contexte
+  console.log(`🍞 Toast: ${props.title} - ${props.description}`);
+};

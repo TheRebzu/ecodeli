@@ -5,11 +5,12 @@ import { createTRPCContext } from "@/server/api/trpc";
 const handler = async (req: Request) => {
   try {
     // Gérer la requête tRPC avec une meilleure gestion d'erreur
-    return await fetchRequestHandler({ endpoint: "/api/trpc",
+    return await fetchRequestHandler({
+      endpoint: "/api/trpc",
       req,
       router: appRouter,
       createContext: () => createTRPCContext(),
-      onError: ({ error, path  }) => {
+      onError: ({ error, path }) => {
         console.error(`❌ tRPC Error on '${path}':`, error.message);
 
         // Log détaillé de l'erreur Zod si c'est une erreur de validation
@@ -21,15 +22,19 @@ const handler = async (req: Request) => {
         if (error.code === "INTERNAL_SERVER_ERROR") {
           console.error("Stack trace:", error.stack);
         }
-      }});
+      }
+    });
   } catch (error) {
     console.error("❌ Handler tRPC error:", error);
     return new Response(
-      JSON.stringify({ message: "Erreur interne du serveur",
-        code: "INTERNAL_SERVER_ERROR" }),
+      JSON.stringify({ 
+        message: "Erreur interne du serveur",
+        code: "INTERNAL_SERVER_ERROR" 
+      }),
       {
         status: 500,
-        headers: { "content-type": "application/json" }},
+        headers: { "content-type": "application/json" }
+      }
     );
   }
 };

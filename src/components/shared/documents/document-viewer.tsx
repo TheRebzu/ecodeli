@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { api } from "@/trpc/react";
+import { DocumentStatus } from "@prisma/client";
 
 interface DocumentViewerProps {
   documentId: string;
@@ -46,46 +48,75 @@ export default function DocumentViewer({
 }: DocumentViewerProps) {
   const t = useTranslations("documents");
   const [document, setDocument] = useState<DocumentData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [validationComment, setValidationComment] = useState("");
   const [isValidating, setIsValidating] = useState(false);
   const [zoom, setZoom] = useState(100);
 
-  // Simulation de chargement de document (à remplacer par appel API réel)
-  useEffect(() => {
-    const loadDocument = async () => {
-      try {
-        setLoading(true);
-        // Simuler un délai de chargement
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Simuler des données de document (à remplacer par appel API)
-        const mockDocument: DocumentData = {
-          id: documentId,
-          fileName: "document_identite.pdf",
-          fileType: "application/pdf",
-          fileUrl: "/api/documents/view/" + documentId,
-          uploadedAt: new Date(),
-          status: 'pending',
-          description: "Pièce d'identité - Carte nationale d'identité",
-          metadata: {
-            size: 2457600, // 2.4 MB
-            pages: 2
-          }
-        };
-        
-        setDocument(mockDocument);
-      } catch (err) {
-        setError(t("viewer.errorLoading"));
-        console.error("Erreur lors du chargement du document:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Utiliser tRPC pour récupérer le document
+  const { data: documentData, error: documentError, isLoading } = api.document.getById.useQuery({
+    id: documentId
+  });
 
-    loadDocument();
-  }, [documentId, t]);
+  // Mutation pour valider un document
+  const validateDocumentMutation = api.document.validate.useMutation({
+    onSuccess: () => {
+      toast.success(t("validation.success"));
+      // Rafraîchir les données du document
+      api.document.getById.invalidate({ id: documentId });
+    },
+    onError: (error) => {
+      toast.error(error.message || t("validation.error"));
+    }
+  });
+
+  // Charger les données du document
+  useEffect(() => {
+    if (documentError) {
+      setError(t("viewer.errorLoading"));
+      console.error("Erreur lors du chargement du document:", documentError);
+      return;
+    }
+
+    if (documentData) {
+      // Transformer les données de l'API en format DocumentData
+      const mappedDocument: DocumentData = {
+        id: documentData.id,
+        fileName: documentData.fileName,
+        fileType: documentData.fileType,
+        fileUrl: documentData.fileUrl,
+        uploadedAt: new Date(documentData.uploadedAt),
+        status: mapDocumentStatus(documentData.status),
+        description: documentData.description || undefined,
+        metadata: {
+          size: documentData.fileSize,
+          pages: documentData.metadata?.pages,
+          dimensions: documentData.metadata?.dimensions ? {
+            width: documentData.metadata.dimensions.width,
+            height: documentData.metadata.dimensions.height
+          } : undefined
+        },
+        validationComment: documentData.validationComment || undefined,
+        validatedAt: documentData.validatedAt ? new Date(documentData.validatedAt) : undefined,
+        validatedBy: documentData.validatedBy?.name || undefined
+      };
+      
+      setDocument(mappedDocument);
+    }
+  }, [documentData, documentError, t]);
+
+  // Fonction pour mapper le statut du document
+  const mapDocumentStatus = (status: DocumentStatus): 'pending' | 'approved' | 'rejected' => {
+    switch (status) {
+      case 'APPROVED':
+        return 'approved';
+      case 'REJECTED':
+        return 'rejected';
+      case 'PENDING':
+      default:
+        return 'pending';
+    }
+  };
 
   const handleValidation = async (status: 'approved' | 'rejected') => {
     if (!document || !onValidate) return;
@@ -97,8 +128,16 @@ export default function DocumentViewer({
 
     try {
       setIsValidating(true);
-      await onValidate(document.id, status, validationComment);
-      toast.success(t(`validation.${status}Success`));
+      
+      // Utiliser la mutation tRPC au lieu de la fonction onValidate
+      await validateDocumentMutation.mutateAsync({
+        documentId: document.id,
+        status: status === 'approved' ? 'APPROVED' : 'REJECTED',
+        comment: validationComment || undefined
+      });
+      
+      // Appeler onValidate si fourni pour compatibilité
+      onValidate(document.id, status, validationComment);
       
       // Mettre à jour le statut local
       setDocument(prev => prev ? {
@@ -108,7 +147,7 @@ export default function DocumentViewer({
         validatedAt: new Date()
       } : null);
     } catch (err) {
-      toast.error(t("validation.error"));
+      // L'erreur est déjà gérée par la mutation
       console.error("Erreur lors de la validation:", err);
     } finally {
       setIsValidating(false);
@@ -118,7 +157,7 @@ export default function DocumentViewer({
   const handleDownload = () => {
     if (!document) return;
     
-    const link = document.createElement('a');
+    const link = window.document.createElement('a');
     link.href = document.fileUrl;
     link.download = document.fileName;
     link.click();

@@ -10,12 +10,12 @@ import { Decimal } from "@prisma/client/runtime/library";
 /**
  * Configuration du client Stripe
  */
-if (!process.env.STRIPE_SECRETKEY) {
-  throw new Error("STRIPE_SECRETKEY est requis pour le service Stripe");
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("STRIPE_SECRET_KEY est requis pour le service Stripe");
 }
 
-const stripeClient = new Stripe(process.env.STRIPE_SECRETKEY, {
-  apiVersion: "2025-05-28.basil"});
+const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2024-12-18.acacia"});
 
 /**
  * Service Stripe pour la gestion des paiements
@@ -28,11 +28,16 @@ export const stripeService = {
     amount: number,
     currency: string = "eur",
     metadata: Record<string, string> = {},
+    captureMethod: "automatic" | "manual" = "automatic",
   ) {
     try {
-      return await stripeClient.paymentIntents.create({ amount: Math.round(amount * 100), // Stripe utilise les centimes
-        currency, payment_method_types: ["card"],
-        metadata });
+      return await stripeClient.paymentIntents.create({ 
+        amount: Math.round(amount), // Stripe utilise les centimes
+        currency, 
+        payment_method_types: ["card"],
+        capture_method: captureMethod,
+        metadata 
+      });
     } catch (error) {
       console.error("Erreur lors de la création du paiement Stripe:", error);
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
@@ -109,8 +114,8 @@ export const stripeService = {
         country,
         email,
         capabilities: {
-          card_payments: { requested },
-          transfers: { requested }}});
+          card_payments: { requested: true },
+          transfers: { requested: true }}});
 
       // Créer ou mettre à jour le wallet avec l'ID du compte Connect
       const wallet = await walletService.getOrCreateWallet(delivererId);
@@ -179,7 +184,7 @@ export const stripeService = {
 
       // Mettre à jour le wallet correspondant
       const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId }});
+        where: { stripeAccountId: accountId }});
 
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
@@ -215,12 +220,12 @@ export const stripeService = {
           amount: Math.round(amount * 100),
           currency: "eur",
           method},
-        { stripeAccount },
+        { stripeAccount: accountId },
       );
 
       // Mettre à jour le wallet correspondant
       const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId }});
+        where: { stripeAccountId: accountId }});
 
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
@@ -268,7 +273,7 @@ export const stripeService = {
   async getOrCreateCustomer(userId: string, email: string, name?: string) {
     // Vérifier si l'utilisateur a déjà un customer ID
     const user = await db.user.findUnique({
-      where: { id }});
+      where: { id: userId }});
 
     if (user?.stripeCustomerId) {
       // Récupérer le customer existant
@@ -288,7 +293,7 @@ export const stripeService = {
 
     // Mettre à jour l'utilisateur avec le customer ID
     await db.user.update({
-      where: { id },
+      where: { id: userId },
       data: { stripeCustomerId: customer.id }});
 
     return customer;
@@ -329,7 +334,7 @@ export const stripeService = {
     try {
       const subscriptionData: any = {
         customer: customerId,
-        items: [{ price }],
+        items: [{ price: priceId }],
         metadata,
         expand: ["latest_invoice.payment_intent"]};
 
@@ -411,7 +416,7 @@ export const stripeService = {
         return await stripeClient.subscriptions.cancel(subscriptionId);
       } else {
         return await stripeClient.subscriptions.update(subscriptionId, {
-          cancel_at_periodend: true});
+          cancel_at_period_end: true});
       }
     } catch (error) {
       console.error("Erreur lors de l'annulation de l'abonnement:", error);

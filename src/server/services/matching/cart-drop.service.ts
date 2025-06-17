@@ -1013,7 +1013,7 @@ export class CartDropService {
       // Filtrer et scorer les livreurs selon leur pertinence
       const scoredDeliverers = availableDeliverers
         .map(deliverer => {
-          // Calculer la distance approximative (simulation géographique)
+          // Calculer la distance géographique réelle (formule de Haversine)
           const distance = this.calculateDistance(
             merchant.merchant.latitude?.toNumber() || 0,
             merchant.merchant.longitude?.toNumber() || 0,

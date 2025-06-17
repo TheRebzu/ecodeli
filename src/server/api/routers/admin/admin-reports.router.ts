@@ -1024,7 +1024,7 @@ async function generateExcelExport(
       }
     };
     
-    // Simulation de sauvegarde du fichier Excel
+    // Utiliser le service d'export réel pour Excel
     const fs = require('fs').promises;
     const path = require('path');
     const exportDir = process.env.EXPORT_DIR || './exports';
@@ -1033,8 +1033,34 @@ async function generateExcelExport(
     // Créer le dossier s'il n'existe pas
     await fs.mkdir(exportDir, { recursive: true });
     
-    // Simuler l'écriture du fichier Excel (en production: workbook.xlsx.writeFile)
-    await fs.writeFile(filePath + '.json', JSON.stringify(excelData, null, 2));
+    // Utilisation du service d'export réel avec ExcelJS
+    const ExcelJS = require('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Rapport');
+    
+    // Ajouter les données selon le type de rapport
+    switch (input.reportType) {
+      case 'FINANCIAL':
+        worksheet.addRow(['Date', 'Revenus', 'Commissions', 'Remboursements', 'Profit Net']);
+        // Ajouter les données si disponibles
+        if (input.data?.dailyStats) {
+          input.data.dailyStats.forEach((stat: any) => {
+            worksheet.addRow([stat.date, stat.revenue, stat.commissions, stat.refunds, stat.netProfit]);
+          });
+        }
+        break;
+      case 'DELIVERY':
+        worksheet.addRow(['Date', 'Livraisons Totales', 'Complétées', 'Taux Succès', 'Temps Moyen']);
+        break;
+      default:
+        worksheet.addRow(['Métrique', 'Valeur']);
+        worksheet.addRow(['Type de rapport', input.reportType]);
+        worksheet.addRow(['Période', input.period || 'N/A']);
+        worksheet.addRow(['Généré le', new Date().toLocaleDateString()]);
+    }
+    
+    // Sauvegarder le fichier Excel
+    await workbook.xlsx.writeFile(filePath);
     
     // Retourner l'URL de téléchargement
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";

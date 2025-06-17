@@ -63,9 +63,11 @@ export const adminUserRouter = router({ /**
           hasUsersProperty: "users" in result,
           resultKeys: Object.keys(result),
           
-                name: result.users[0].name,
-                email: result.users[0].email}
-            : null});
+                user: result.users?.length > 0 ? {
+                    name: result.users[0].name,
+                    email: result.users[0].email
+                } : null
+            });
 
         // Test avec un retour simplifié pour debug
         const simpleResult = {
@@ -82,11 +84,12 @@ export const adminUserRouter = router({ /**
             .map((u) => ({ id: u.id, name: u.name  }))});
 
         return simpleResult;
-      } catch (error) {
-        console.error("❌ [SERVER] Erreur dans getUsers:", error);
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des utilisateurs",
-          cause: error });
+      } catch (error: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erreur lors de la recherche d'utilisateur",
+          cause: error
+        });
       }
     }),
 

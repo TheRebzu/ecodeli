@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
-import { useSocket } from "@/hooks/use-socket";
+import { useSocket } from '@/hooks/system/use-socket';
 import {
   MapPin,
   Navigation,

@@ -275,7 +275,7 @@ const AppointmentCard = ({
 };
 
 // Composant d'évaluation récente
-const EvaluationCard = ({ evaluation }: { evaluation }) => {
+const EvaluationCard = ({ evaluation }: { evaluation: RecentEvaluation }) => {
   return (
     <Card>
       <CardContent className="p-4">
@@ -395,10 +395,10 @@ export default function ProviderDashboard({ locale }: ProviderDashboardProps) {
   const { data: upcomingAppointments, isLoading: isLoadingAppointments } =
     api.provider.getUpcomingAppointments.useQuery({ limit: 5  });
 
-  const { data } =
+  const { data: recentEvaluations } =
     api.provider.getRecentEvaluations.useQuery({ limit: 3  });
 
-  const { data } = api.provider.getPerformanceChart.useQuery({ period: "month" });
+  const { data: performanceChart } = api.provider.getPerformanceChart.useQuery({ period: "month" });
 
   // Socket.io pour les mises à jour temps réel
   useEffect(() => {

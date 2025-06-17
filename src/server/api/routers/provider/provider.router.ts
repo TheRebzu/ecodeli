@@ -1104,4 +1104,121 @@ export const providerRouter = router({ // Récupération des contrats du prestat
           cancelledAt: new Date()
         }
       });
+    }),
+
+  // Finaliser une réservation
+  completeBooking: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const provider = await ctx.db.user.findUnique({
+        where: { id: userId, role: "PROVIDER" },
+        include: { provider: true }
+      });
+
+      if (!provider?.provider) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès non autorisé" });
+      }
+
+      // Vérifier que la réservation appartient au prestataire
+      const booking = await ctx.db.serviceBooking.findFirst({
+        where: {
+          id: input.id,
+          providerId: provider.provider.id,
+          status: "CONFIRMED"
+        }
+      });
+
+      if (!booking) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Réservation non trouvée ou non confirmée" });
+      }
+
+      return await ctx.db.serviceBooking.update({
+        where: { id: input.id },
+        data: {
+          status: "COMPLETED",
+          completedAt: new Date()
+        }
+      });
+    }),
+
+  // Récupérer toutes les réservations du prestataire
+  getBookings: protectedProcedure
+    .input(z.object({
+      status: z.enum(["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"]).optional(),
+      startDate: z.date().optional(),
+      endDate: z.date().optional(),
+      limit: z.number().min(1).max(100).default(50),
+      offset: z.number().min(0).default(0)
+    }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const provider = await ctx.db.user.findUnique({
+        where: { id: userId, role: "PROVIDER" },
+        include: { provider: true }
+      });
+
+      if (!provider?.provider) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès non autorisé" });
+      }
+
+      const whereClause: any = {
+        providerId: provider.provider.id
+      };
+
+      if (input.status) {
+        whereClause.status = input.status;
+      }
+
+      if (input.startDate || input.endDate) {
+        whereClause.scheduledAt = {};
+        if (input.startDate) {
+          whereClause.scheduledAt.gte = input.startDate;
+        }
+        if (input.endDate) {
+          whereClause.scheduledAt.lte = input.endDate;
+        }
+      }
+
+      const [bookings, totalCount] = await Promise.all([
+        ctx.db.serviceBooking.findMany({
+          where: whereClause,
+          include: {
+            client: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phoneNumber: true
+                  }
+                }
+              }
+            },
+            service: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                category: true,
+                duration: true,
+                price: true
+              }
+            }
+          },
+          orderBy: { scheduledAt: "desc" },
+          take: input.limit,
+          skip: input.offset
+        }),
+        ctx.db.serviceBooking.count({ where: whereClause })
+      ]);
+
+      return {
+        bookings,
+        totalCount,
+        hasMore: input.offset + input.limit < totalCount
+      };
     })});

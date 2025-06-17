@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import WalletBalance from "@/components/deliverer/wallet/wallet-balance";
+import WalletBalance from "@/components/shared/payments/wallet-balance";
 
 export default function DelivererWalletPage() {
   const t = useTranslations("wallet");

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 import { cn } from "@/lib/utils/common";
@@ -19,6 +19,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   defaultDateRange?: DateRange;
@@ -171,3 +172,54 @@ export function DateRangePicker({
     </div>
   );
 }
+
+interface DatePickerWithRangeProps {
+  date?: DateRange;
+  onDateChange?: (range: DateRange) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+export function DatePickerWithRange({ 
+  date,
+  onDateChange,
+  placeholder = "Sélectionner une période",
+  className
+}: DatePickerWithRangeProps) {
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(date);
+  };
+
+  const displayText = () => {
+    if (date?.from && date?.to) {
+      return `${formatDate(date.from)} - ${formatDate(date.to)}`;
+    }
+    if (date?.from) {
+      return formatDate(date.from);
+    }
+    return placeholder;
+  };
+
+  return (
+    <Button
+      variant="outline"
+      className={`w-full justify-start text-left font-normal ${className}`}
+      onClick={() => {
+        // Simulation d'ouverture d'un calendrier
+        const today = new Date();
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        onDateChange?.({ from: weekAgo, to: today });
+      }}
+    >
+      <Calendar className="mr-2 h-4 w-4" />
+      {displayText()}
+      <ChevronDown className="ml-auto h-4 w-4" />
+    </Button>
+  );
+}
+
+export default DatePickerWithRange;

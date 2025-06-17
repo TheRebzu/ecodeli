@@ -1,4 +1,4 @@
-import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
+import { router, publicProcedure, protectedProcedure, adminProcedure } from "@/server/api/trpc";
 import { AuthService } from "@/server/services/auth/auth.service";
 import { DocumentService } from "@/server/services/common/document.service";
 import {

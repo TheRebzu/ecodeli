@@ -1,6 +1,6 @@
-import { DocumentType } from "@/server/db/enums";
+import { DocumentType } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import formData from "form-data";
+import FormData from "form-data";
 import Mailgun from "mailgun.js";
 
 // Types pour les templates d'emails
@@ -170,17 +170,23 @@ export class EmailService {
   private domain: string;
 
   constructor() {
-    this.fromEmail = process.env.EMAIL_FROM || "noreply@ecodeli.me";
+    this.fromEmail = process.env.MAILGUN_FROM_EMAIL || "noreply@ecodeli.me";
     this.appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     this.domain = process.env.MAILGUN_DOMAIN || "";
 
-    // Initialisation de Mailgun
-    const mailgun = new Mailgun(formData);
-    this.mailgun = mailgun.client({ username: "api",
-      key: process.env.MAILGUN_API_KEY || "" });
+    // Initialisation de Mailgun avec les vraies clés du .env
+    const mailgun = new Mailgun(FormData);
+    this.mailgun = mailgun.client({ 
+      username: "api",
+      key: process.env.MAILGUN_API_KEY || "",
+      url: process.env.MAILGUN_DOMAIN?.includes('eu') ? 'https://api.eu.mailgun.net' : 'https://api.mailgun.net'
+    });
 
-    // Pas d'avertissement même si Mailgun n'est pas configuré
-    // car les emails sont bien envoyés par Nodemailer dans src/lib/email.ts
+    if (process.env.MAILGUN_API_KEY) {
+      console.log("✅ Service Email Mailgun initialisé");
+    } else {
+      console.warn("⚠️ Mailgun non configuré - les emails seront simulés");
+    }
   }
 
   /**
@@ -192,24 +198,33 @@ export class EmailService {
     subject: string,
     html: string,
   ): Promise<void> {
-    if (!process.env.MAILGUN_APIKEY || !process.env.MAILGUN_DOMAIN) {
-      // Les emails sont réellement envoyés par Nodemailer (src/lib/email.ts)
-      
-      console.log(`[EMAIL ENVOYÉ VIA NODEMAILER] À: ${to}, Sujet: ${subject}`);
-      return;
+    if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+      console.warn(`[EMAIL SERVICE] Configuration Mailgun manquante - Email non envoyé`);
+      console.warn(`[EMAIL SERVICE] Destinataire: ${to}, Sujet: ${subject}`);
+      throw new TRPCError({ 
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Service email non configuré - vérifiez les variables d'environnement MAILGUN_API_KEY et MAILGUN_DOMAIN" 
+      });
     }
 
     try {
-      await this.mailgun.messages.create(this.domain, {
+      const response = await this.mailgun.messages.create(this.domain, {
         from: this.fromEmail,
         to: [to],
         subject: subject,
-        html: html});
-      console.log(`Email envoyé avec succès à ${to}`);
+        html: html,
+        'o:tracking': true,
+        'o:tracking-clicks': true,
+        'o:tracking-opens': true
+      });
+      
+      console.log(`✅ Email envoyé avec succès à ${to} (ID: ${response.id})`);
     } catch (error) {
-      console.error("Erreur lors de l'envoi d'email:", error);
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de l'envoi d'email" });
+      console.error("❌ Erreur lors de l'envoi d'email Mailgun:", error);
+      throw new TRPCError({ 
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de l'envoi d'email" 
+      });
     }
   }
 
@@ -269,9 +284,13 @@ export class EmailService {
    */
   private async getUserNameByEmail(email: string): Promise<string | null> {
     try {
-      // Cette méthode pourrait être implémentée pour récupérer le nom de l'utilisateur
-      // depuis la base de données, mais pour l'instant, on renvoie simplement null
-      return null;
+      const { db } = await import("@/server/db");
+      const user = await db.user.findUnique({
+        where: { email },
+        select: { name: true }
+      });
+      
+      return user?.name || null;
     } catch (error) {
       console.error(
         "Erreur lors de la récupération du nom d'utilisateur:",

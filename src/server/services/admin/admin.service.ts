@@ -92,26 +92,31 @@ export class AdminService {
       if (hasPendingVerifications) {
         where.submittedVerifications = {
           some: {
-            status: "PENDING"}};
+            status: "PENDING"
+          }
+        };
       }
 
       // Filter by location (via role-specific models)
       if (country || city) {
-        const locationFilter: Prisma.UserWhereInput = {
-          OR: []};
+        const locationFilter: Prisma.UserWhereInput = { OR: [] };
 
         if (country) {
           locationFilter.OR?.push({
-            client: { country }});
+            client: { country }
+          });
           locationFilter.OR?.push({
-            merchant: { businessCountry }});
+            merchant: { businessCountry: country }
+          });
         }
 
         if (city) {
           locationFilter.OR?.push({
-            client: { city }});
+            client: { city }
+          });
           locationFilter.OR?.push({
-            merchant: { businessCity }});
+            merchant: { businessCity: city }
+          });
         }
 
         if (locationFilter.OR?.length) {
@@ -135,15 +140,18 @@ export class AdminService {
           // Sort by the most recent activity log
           orderBy = {
             activityLogs: {
-              max: {
-                createdAt: sort.direction}}};
+              _max: {
+                createdAt: sort.direction
+              }
+            }
+          };
           break;
         default:
           orderBy.createdAt = "desc";
       }
 
       // Execute count query
-      const totalUsers = await this.prisma.user.count({ where  });
+      const totalUsers = await this.prisma.user.count({ where });
 
       // Execute main query
       const users = await this.prisma.user.findMany({
@@ -162,22 +170,31 @@ export class AdminService {
           bannedAt: true,
           banReason: true,
           image: true,
-          count: {
+          _count: {
             select: {
               documents: true,
               submittedVerifications: {
                 where: {
-                  status: "PENDING"}}}},
+                  status: "PENDING"
+                }
+              }
+            }
+          },
           activityLogs: {
             orderBy: {
-              createdAt: "desc"},
-            take: 1}},
+              createdAt: "desc"
+            },
+            take: 1
+          }
+        },
         orderBy,
         skip,
-        take: limit});
+        take: limit
+      });
 
       // Transform data for client
-      const transformedUsers = users.map((user) => ({ id: user.id,
+      const transformedUsers = users.map((user) => ({
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -190,20 +207,24 @@ export class AdminService {
         bannedAt: user.bannedAt,
         banReason: user.banReason,
         image: user.image,
-        documentsCount: user.count.documents,
-        pendingVerificationsCount: user.count.submittedVerifications,
-        lastActivityAt: user.activityLogs[0]?.createdAt }));
+        documentsCount: user._count.documents,
+        pendingVerificationsCount: user._count.submittedVerifications,
+        lastActivityAt: user.activityLogs[0]?.createdAt
+      }));
 
       return {
         users: transformedUsers,
         total: totalUsers,
         page,
         limit,
-        totalPages: Math.ceil(totalUsers / limit)};
+        totalPages: Math.ceil(totalUsers / limit)
+      };
     } catch (error) {
       console.error("Error retrieving users:", error);
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-        message: "Error retrieving users" });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving users"
+      });
     }
   }
 
@@ -212,14 +233,19 @@ export class AdminService {
    */
   async getUserDetail(
     userId: string,
-    options = {
+    options: {
+      includeDocuments?: boolean;
+      includeVerificationHistory?: boolean;
+      includeActivityLogs?: boolean;
+    } = {
       includeDocuments: true,
       includeVerificationHistory: true,
-      includeActivityLogs: false},
+      includeActivityLogs: false
+    }
   ) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         include: {
           client: options.includeVerificationHistory,
           deliverer: options.includeVerificationHistory,
@@ -234,9 +260,12 @@ export class AdminService {
                   verificationStatus: true,
                   uploadedAt: true,
                   fileUrl: true,
-                  notes: true},
+                  notes: true
+                },
                 orderBy: {
-                  uploadedAt: "desc"}}
+                  uploadedAt: "desc"
+                }
+              }
             : false,
           verificationHistory: options.includeVerificationHistory
             ? {
@@ -248,9 +277,14 @@ export class AdminService {
                   verifiedBy: {
                     select: {
                       id: true,
-                      name: true}}},
+                      name: true
+                    }
+                  }
+                },
                 orderBy: {
-                  createdAt: "desc"}}
+                  createdAt: "desc"
+                }
+              }
             : false,
           activityLogs: options.includeActivityLogs
             ? {
@@ -259,21 +293,29 @@ export class AdminService {
                   activityType: true,
                   details: true,
                   ipAddress: true,
-                  createdAt: true},
+                  createdAt: true
+                },
                 orderBy: {
-                  createdAt: "desc"},
-                take: 50}
-            : false}});
+                  createdAt: "desc"
+                },
+                take: 50
+              }
+            : false
+        }
+      });
 
       if (!user) {
-        throw new TRPCError({ code: "NOT_FOUND",
-          message: "User not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found"
+        });
       }
 
       // Create a properly typed result object with documents field
       const result = {
         ...user,
-        documents: [] as any[]};
+        documents: [] as any[]
+      };
 
       // Transform documents to handle SELFIE documents stored as OTHER
       if ("documents" in user && Array.isArray(user.documents)) {
@@ -292,7 +334,8 @@ export class AdminService {
             // Map verificationStatus to status for frontend compatibility
             status: doc.verificationStatus,
             // If document is OTHER type but has selfie in notes, correct the type for frontend
-            type: isSelfie ? "SELFIE" : doc.type};
+            type: isSelfie ? "SELFIE" : doc.type
+          };
         });
       }
 
@@ -301,8 +344,10 @@ export class AdminService {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error retrieving user details:", error);
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-        message: "Error retrieving user details" });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error retrieving user details"
+      });
     }
   }
 
@@ -312,33 +357,38 @@ export class AdminService {
   async updateUserStatus(
     userId: string,
     status: UserStatus,
-    options: { reason?: string; notifyUser?: boolean } = {},
+    options: { reason?: string; notifyUser?: boolean } = {}
   ) {
-    const { reason: reason, notifyUser = true } = options;
+    const { reason, notifyUser = true } = options;
 
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id },
-        select: { email: true, name: true, role: true, status: true }});
+        where: { id: userId },
+        select: { email: true, name: true, role: true, status: true }
+      });
 
       if (!user) {
-        throw new TRPCError({ code: "NOT_FOUND",
-          message: "User not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found"
+        });
       }
 
       // Don't allow updates if status is the same
       if (user.status === status) {
         return {
           success: true,
-          message: "User status is already set to " + status};
+          message: "User status is already set to " + status
+        };
       }
 
       // Update user in a transaction to include audit trail
       const updatedUser = await this.prisma.$transaction(async (tx) => {
         // Update user status
         const updated = await tx.user.update({
-          where: { id },
-          data: { status }});
+          where: { id: userId },
+          data: { status }
+        });
 
         // We'll implement activity logging later when schema is updated
         // For now, just return the updated user
@@ -356,8 +406,10 @@ export class AdminService {
           data: {
             name: user.name || "",
             status,
-            reason: reason || ""},
-          locale});
+            reason: reason || ""
+          },
+          locale
+        });
       }
 
       return updatedUser;
@@ -365,8 +417,10 @@ export class AdminService {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error updating user status:", error);
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-        message: "Error updating user status" });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error updating user status"
+      });
     }
   }
 
@@ -376,44 +430,52 @@ export class AdminService {
   async updateUserRole(
     userId: string,
     role: UserRole,
-    options: { reason?: string; createRoleSpecificProfile?: boolean } = {},
+    options: { reason?: string; createRoleSpecificProfile?: boolean } = {}
   ) {
-    const { reason: reason, createRoleSpecificProfile = true } = options;
+    const { reason, createRoleSpecificProfile = true } = options;
 
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         include: {
           client: true,
           deliverer: true,
           merchant: true,
           provider: true,
-          admin: true}});
+          admin: true
+        }
+      });
 
       if (!user) {
-        throw new TRPCError({ code: "NOT_FOUND",
-          message: "User not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found"
+        });
       }
 
       // Check if role change is allowed
       if (user.role === "ADMIN" && role !== "ADMIN") {
-        throw new TRPCError({ code: "FORBIDDEN",
-          message: "Cannot remove admin role directly" });
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Cannot change admin role"
+        });
       }
 
       // Don't allow updates if role is the same
       if (user.role === role) {
         return {
           success: true,
-          message: "User role is already set to " + role};
+          message: "User role is already set to " + role
+        };
       }
 
       // Update user in a transaction
       const updatedUser = await this.prisma.$transaction(async (tx) => {
         // Update user role
         const updated = await tx.user.update({
-          where: { id },
-          data: { role }});
+          where: { id: userId },
+          data: { role }
+        });
 
         // Create role-specific profile if it doesn't exist
         if (createRoleSpecificProfile) {
@@ -476,8 +538,10 @@ export class AdminService {
       if (error instanceof TRPCError) throw error;
 
       console.error("Error updating user role:", error);
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-        message: "Error updating user role" });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error updating user role"
+      });
     }
   }
 
@@ -487,7 +551,7 @@ export class AdminService {
   async updateAdminPermissions(userId: string, permissions: string[]) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         include: { admin }});
 
       if (!user) {
@@ -535,7 +599,7 @@ export class AdminService {
   async addUserNote(userId: string, note: string) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id }});
+        where: { id: userId }});
 
       if (!user) {
         throw new TRPCError({ code: "NOT_FOUND",
@@ -543,7 +607,7 @@ export class AdminService {
       }
 
       await this.prisma.user.update({
-        where: { id },
+        where: { id: userId },
         data: {
           notes: user.notes
             ? `${user.notes}\n\n${new Date().toISOString()}: ${note}`
@@ -585,7 +649,7 @@ export class AdminService {
       const where: Prisma.UserActivityLogWhereInput = { userId };
 
       if (types?.length) {
-        where.activityType = { in };
+        where.activityType = { in: types };
       }
 
       if (dateFrom || dateTo) {
@@ -595,7 +659,7 @@ export class AdminService {
       }
 
       // Get total count
-      const total = await this.prisma.userActivityLog.count({ where  });
+      const total = await this.prisma.userActivityLog.count({ where });
 
       // Get activity logs
       const logs = await this.prisma.userActivityLog.findMany({
@@ -644,7 +708,7 @@ export class AdminService {
 
       // Check if user exists
       const user = await this.prisma.user.findUnique({
-        where: { id }});
+        where: { id: userId }});
 
       if (!user) {
         throw new TRPCError({ code: "NOT_FOUND",
@@ -789,19 +853,19 @@ export class AdminService {
         this.prisma.user.count({ where: { createdAt: { gte } } }),
         this.prisma.user.count({ where: { createdAt: { gte } } }),
         this.prisma.user.count({ where: { createdAt: { gte } } }),
-        this.prisma.user.groupBy({ by: ["role"], count: true  }),
-        this.prisma.user.groupBy({ by: ["status"], count: true  }),
+        this.prisma.user.groupBy({ by: ["role"], __count: true }),
+        this.prisma.user.groupBy({ by: ["status"], __count: true }),
         this.prisma.user.count({ where: { isVerified } })]);
 
       // Transformation des données
       const roleStats = {};
       usersByRole.forEach((stat) => {
-        roleStats[stat.role] = stat.count;
+        roleStats[stat.role] = stat._count;
       });
 
       const statusStats = {};
       usersByStatus.forEach((stat) => {
-        statusStats[stat.status] = stat.count;
+        statusStats[stat.status] = stat._count;
       });
 
       // Remplacer par un tableau vide ou utiliser un autre champ comme providerCity
@@ -951,10 +1015,10 @@ export class AdminService {
       const roleBreakdown = null;
       if (breakdownByRole) {
         const roleStats = await this.prisma.user.groupBy({ by: ["role"],
-          count: true });
+          _count: true });
         roleBreakdown = roleStats.reduce(
           (acc, stat) => {
-            acc[stat.role] = stat.count;
+            acc[stat.role] = stat._count;
             return acc;
           },
           {} as Record<string, number>,
@@ -965,10 +1029,10 @@ export class AdminService {
       const statusBreakdown = null;
       if (breakdownByStatus) {
         const statusStats = await this.prisma.user.groupBy({ by: ["status"],
-          count: true });
+          _count: true });
         statusBreakdown = statusStats.reduce(
           (acc, stat) => {
-            acc[stat.status] = stat.count;
+            acc[stat.status] = stat._count;
             return acc;
           },
           {} as Record<string, number>,
@@ -1060,7 +1124,7 @@ export class AdminService {
 
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: { id: true, email: true, name: true, status: true, role: true }});
 
       if (!user) {
@@ -1160,7 +1224,7 @@ export class AdminService {
 
       // Vérifier que tous les utilisateurs existent
       const users = await this.prisma.user.findMany({
-        where: { id: { in } },
+        where: { id: { in: userIds } },
         select: { id: true, email: true, name: true, status: true, role: true }});
 
       if (users.length !== userIds.length) {
@@ -1266,7 +1330,7 @@ export class AdminService {
   private async addUserTag(userId: string, tag: string, performedById: string) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: { id: true, tags: true }});
 
       if (!user) {
@@ -1278,7 +1342,7 @@ export class AdminService {
       const currentTags = user.tags || [];
       if (!currentTags.includes(tag)) {
         await this.prisma.user.update({
-          where: { id },
+          where: { id: userId },
           data: { tags: [...currentTags, tag] }});
 
         // Ajouter une entrée dans le journal d'activité
@@ -1308,7 +1372,7 @@ export class AdminService {
   ) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: { id: true, email: true, name: true }});
 
       if (!user) {
@@ -1318,7 +1382,7 @@ export class AdminService {
 
       // Marquer l'utilisateur comme supprimé
       await this.prisma.user.update({
-        where: { id },
+        where: { id: userId },
         data: {
           status: "INACTIVE",
           isDeleted: true,
@@ -1363,7 +1427,7 @@ export class AdminService {
       const { reason: reason, performedById: performedById } = options;
 
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: {
           id: true,
           email: true,
@@ -1404,7 +1468,7 @@ export class AdminService {
 
       // Supprimer l'utilisateur et toutes ses données associées en cascade
       await this.prisma.user.delete({
-        where: { id }});
+        where: { id: userId }});
 
       return { success: true, message: "Utilisateur définitivement supprimé" };
     } catch (error) {
@@ -1835,7 +1899,7 @@ export class AdminService {
     try {
       // Vérifier que l'utilisateur existe
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: { id: true, name: true, email: true, status: true }});
 
       if (!user) {
@@ -1848,7 +1912,7 @@ export class AdminService {
 
       // Mettre à jour l'utilisateur
       const updatedUser = await this.prisma.user.update({
-        where: { id },
+        where: { id: userId },
         data: {
           status: newStatus,
           updatedAt: new Date()},
@@ -1897,7 +1961,7 @@ export class AdminService {
     try {
       // Vérifier que l'utilisateur existe
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: { id: true, name: true, email: true, isBanned: true }});
 
       if (!user) {
@@ -1932,7 +1996,7 @@ export class AdminService {
       }
 
       const updatedUser = await this.prisma.user.update({
-        where: { id },
+        where: { id: userId },
         data: updateData,
         select: {
           id: true,
@@ -1996,7 +2060,7 @@ export class AdminService {
 
       // Vérifier que l'utilisateur existe
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: { id: true, name: true }});
 
       if (!user) {
@@ -2145,7 +2209,7 @@ export class AdminService {
           orderBy: { lastUsed: "desc" },
           skip: offset,
           take: limit}),
-        this.prisma.userDevice.count({ where  })]);
+        this.prisma.userDevice.count({ where })]);
 
       return {
         devices,
@@ -2227,7 +2291,7 @@ export class AdminService {
 
       // Vérifier que les permissions existent
       const existingPermissions = await this.prisma.permission.findMany({
-        where: { id: { in } },
+        where: { id: { in: userIds } },
         select: { id }});
 
       if (existingPermissions.length !== permissionIds.length) {
@@ -2240,7 +2304,7 @@ export class AdminService {
       if (id) {
         // Mise à jour d'un groupe existant
         group = await this.prisma.permissionGroup.update({
-          where: { id },
+          where: { id: userId },
           data: {
             name,
             description,

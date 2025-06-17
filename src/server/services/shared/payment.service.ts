@@ -119,7 +119,7 @@ export const paymentService = {
     metadata: Record<string, any> = {},
   ) {
     const payment = await db.payment.findUnique({
-      where: { id },
+      where: { id: paymentId },
       include: {
         delivery: true,
         service: true,
@@ -139,7 +139,7 @@ export const paymentService = {
       return await db.$transaction(async (tx) => {
         // Mettre à jour le statut du paiement
         const updatedPayment = await tx.payment.update({
-          where: { id },
+          where: { id: paymentId },
           data: {
             status: PaymentStatus.COMPLETED,
             capturedAt: new Date(),
@@ -165,7 +165,7 @@ export const paymentService = {
 
       // Marquer le paiement comme problématique
       await db.payment.update({
-        where: { id },
+        where: { id: paymentId },
         data: {
           status: PaymentStatus.FAILED,
           errorMessage:
@@ -180,7 +180,7 @@ export const paymentService = {
    */
   async processFailedPayment(paymentId: string, reason: string) {
     const payment = await db.payment.findUnique({
-      where: { id }});
+      where: { id: paymentId }});
 
     if (!payment) {
       throw new TRPCError({ code: "NOT_FOUND",
@@ -188,7 +188,7 @@ export const paymentService = {
     }
 
     return await db.payment.update({
-      where: { id },
+      where: { id: paymentId },
       data: {
         status: PaymentStatus.FAILED,
         errorMessage: reason}});
@@ -553,7 +553,7 @@ export async function createPayment(
 
   // Vérifier l'existence de l'utilisateur
   const user = await db.user.findUnique({
-    where: { id }});
+    where: { id: userId }});
 
   if (!user) {
     throw new TRPCError({ code: "NOT_FOUND",
@@ -577,16 +577,18 @@ export async function createPayment(
   }
 
   // Créer un vrai PaymentIntent avec Stripe
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: Math.round(amount * 100), // Convertir en centimes
-    currency: currency.toLowerCase(),
-    description,
-    metadata: {
+  const paymentIntent = await stripeService.createPaymentIntent(
+    Math.round(amount * 100), // Convertir en centimes
+    currency.toLowerCase(),
+    {
       userId,
       deliveryId: deliveryId || "",
       serviceId: serviceId || "",
       subscriptionId: subscriptionId || "",
-      ...input.metadata}, capture_method: isEscrow ? "manual" : "automatic"});
+      ...input.metadata,
+    },
+    isEscrow ? "manual" : "automatic"
+  );
 
   // Créer le paiement dans la base de données
   const payment = await db.payment.create({

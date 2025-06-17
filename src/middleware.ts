@@ -69,22 +69,22 @@ const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
   DELIVERER: [
     "/deliverer/documents",
     "/api/upload",
-    "/api/trpc/document",
-    "/api/documents"], // Ajout des chemins API pour le téléchargement
+    "/api/trpc/document"
+  ],
   MERCHANT: [
     "/merchant/documents",
     "/merchant/verification",
     "/merchant/profile",
     "/api/upload",
-    "/api/trpc/document",
-    "/api/documents"],
+    "/api/trpc/document"
+  ],
   PROVIDER: [
     "/provider/documents",
-    "/provider/verification",
+    "/provider/verification", 
     "/provider/profile",
     "/api/upload",
-    "/api/trpc/document",
-    "/api/documents"],
+    "/api/trpc/document"
+  ],
   CLIENT: [], // Les clients n'ont pas besoin de vérification
   ADMIN: [], // Les admins n'ont pas besoin de vérification
 };
@@ -256,7 +256,7 @@ export async function middleware(request: NextRequest) {
       userRole !== UserRole.CLIENT &&
       userRole !== UserRole.ADMIN &&
       !isVerified &&
-      userStatus === UserStatus.PENDINGVERIFICATION
+      userStatus === UserStatus.PENDING_VERIFICATION
     ) {
       // Vérifier si le chemin actuel est autorisé pour les utilisateurs non vérifiés
       const isAllowedPath = allowedNonVerifiedPaths[userRole].some(
@@ -393,4 +393,39 @@ function getDashboardPathForRole(
 // Configuration du middleware pour qu'il s'exécute sur toutes les routes pertinentes
 export const config = {
   matcher: [
-    "/((?!api/trpc|api/documents|api/upload|next/static|next/image|favicon.ico|robots.txt|sitemap.xml).*)"]};
+    "/api/trpc/:path*",
+    "/api/webhooks/:path*",
+    "/api/auth/:path*",
+    "/api/health",
+    "/api/openapi",
+    "/((?!_next/static|_next/image|favicon.ico).*)"
+  ]
+};
+
+// Routes protégées
+const protectedRoutes = [
+  "/fr/admin",
+  "/fr/client",
+  "/fr/deliverer", 
+  "/fr/merchant",
+  "/fr/provider"
+];
+
+// Routes publiques (non protégées)
+const publicRoutes = [
+  "/",
+  "/fr",
+  "/fr/auth/signin",
+  "/fr/auth/signup",
+  "/fr/auth/reset-password",
+  "/fr/about",
+  "/fr/contact",
+  "/fr/pricing",
+  "/fr/terms",
+  "/fr/privacy",
+  "/api/trpc",
+  "/api/auth",
+  "/api/webhooks",
+  "/api/health",
+  "/api/openapi"
+];

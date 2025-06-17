@@ -360,7 +360,7 @@ export const billingRouter = createTRPCRouter({
           data: {
             reportId: updatedReport.id,
             status: updatedReport.status,
-            downloadUrl: updatedReport.fileUrl,
+            downloadUrl: fileUrl,
             metrics: reportMetrics,
           },
           message: "Rapport généré avec succès",
@@ -702,8 +702,8 @@ async function saveBillingReportFile(reportId: string, reportFile: { buffer: Buf
       }
     });
 
-    // Créer l'URL de téléchargement sécurisée
-    const downloadUrl = `/api/documents/download/${document.id}`;
+    // Construire l'URL de téléchargement directe depuis le stockage
+    const downloadUrl = document.fileUrl;
     
     // Log d'audit pour la sauvegarde
     await db.auditLog.create({
