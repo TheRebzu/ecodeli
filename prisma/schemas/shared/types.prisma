@@ -12,4 +12,63 @@ type GeoCoordinates {
   latitude  Float
   longitude Float
 }
-*/ 
+*/
+
+model ScheduledTask {
+  id             String   @id @default(cuid())
+  orderId        String   @map("order_id")
+  taskType       String   @map("task_type") // PAYMENT_TIMEOUT, PREPARATION_TIMEOUT, PICKUP_TIMEOUT, DELIVERY_TIMEOUT
+  scheduledAt    DateTime @map("scheduled_at")
+  executeAt      DateTime @map("execute_at")
+  isCompleted    Boolean  @default(false) @map("is_completed")
+  isActive       Boolean  @default(true) @map("is_active")
+  maxRetries     Int      @default(3) @map("max_retries")
+  currentRetries Int      @default(0) @map("current_retries")
+  completedAt    DateTime? @map("completed_at")
+  result         String?
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([executeAt, isActive, isCompleted])
+  @@index([orderId])
+  @@index([taskType])
+  @@map("scheduled_tasks")
+}
+
+model CartDropOrder {
+  id                   String   @id @default(cuid())
+  clientId             String   @map("client_id")
+  merchantId           String   @map("merchant_id")
+  terminalId           String   @map("terminal_id")
+  products             Json
+  deliveryAddress      String   @map("delivery_address")
+  deliveryLatitude     Float    @map("delivery_latitude")
+  deliveryLongitude    Float    @map("delivery_longitude")
+  selectedTimeSlot     Json     @map("selected_time_slot")
+  totalProductsPrice   Float    @map("total_products_price")
+  deliveryPrice        Float    @map("delivery_price")
+  totalPrice           Float    @map("total_price")
+  paymentMethod        String   @map("payment_method")
+  paymentStatus        String   @map("payment_status")
+  status               String
+  specialInstructions  String?  @map("special_instructions")
+  estimatedDeliveryTime DateTime @map("estimated_delivery_time")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("cart_drop_orders")
+}
+
+model CartDropEvent {
+  id          String   @id @default(cuid())
+  orderId     String   @map("order_id")
+  eventType   String   @map("event_type")
+  message     String
+  triggeredBy String   @map("triggered_by")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([orderId])
+  @@map("cart_drop_events")
+} 

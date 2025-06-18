@@ -81,7 +81,7 @@ export default async function MerchantDocumentsPage({
       const caller = await createCaller();
       verificationStatus =
         await caller.verification.checkAndUpdateMerchantVerification();
-      console.log("Vérification automatique effectuée:", verificationStatus);
+      // Vérification automatique effectuée avec succès
 
       // Si la vérification a réussi mais que la session n'est pas mise à jour, forcer un rafraîchissement
       if (
@@ -89,12 +89,10 @@ export default async function MerchantDocumentsPage({
         verificationStatus?.isVerified &&
         !session.user.isVerified
       ) {
-        console.log(
-          "Documents vérifiés mais session non mise à jour. Forçage du rafraîchissement...",
-        );
+        // Documents vérifiés mais session non mise à jour - rafraîchissement nécessaire
       }
     } catch (error) {
-      console.error("Erreur lors de la vérification automatique:", error);
+      // Erreur lors de la vérification automatique - continuer sans bloquer
     }
   }
 

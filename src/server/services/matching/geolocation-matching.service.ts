@@ -130,7 +130,7 @@ export class GeolocationMatchingService {
           averageRating: { gte },
           ...(vehicleTypes.length > 0 ? {
             vehicle: {
-                              type: { in: vehicleTypes }
+              type: { in: vehicleTypes }
             }
           } : {}),
           ...(isOnline ? {

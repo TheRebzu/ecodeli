@@ -538,189 +538,197 @@ export const delivererRouter = router({ // ===== PROFIL ET DOCUMENTS =====
           input.response,
           ctx.session.user.id,
         );
-      })}),
-
-  // ===== NOTIFICATIONS =====
-
-  notifications: router({ // Notifications non lues
-    getUnread: protectedProcedure.query(async ({ ctx  }) => {
-      if (ctx.session.user.role !== "DELIVERER") {
-        throw new TRPCError({ code: "FORBIDDEN",
-          message: "Accès réservé aux livreurs" });
-      }
-
-      return await ctx.db.delivererNotification.findMany({
-        where: {
-          delivererId: ctx.session.user.id,
-          readAt: null},
-        orderBy: { createdAt: "desc" },
-        take: 20});
-    }),
-
-    // Marquer comme lue
-    markRead: protectedProcedure
-      .input(z.object({ notificationId: z.string()  }))
-      .mutation(async ({ ctx, input: input  }) => {
-        return await ctx.db.delivererNotification.update({
-          where: {
-            id: input.notificationId,
-            delivererId: ctx.session.user.id},
-          data: {
-            readAt: new Date(),
-            status: "read"}});
       }),
 
-    // Marquer toutes comme lues
-    markAllRead: protectedProcedure.mutation(async ({ ctx  }) => {
-      if (ctx.session.user.role !== "DELIVERER") {
-        throw new TRPCError({ code: "FORBIDDEN",
-          message: "Accès réservé aux livreurs" });
-      }
+    // Earnings endpoints
+    getEarnings: protectedProcedure
+      .input(z.object({
+        period: z.enum(["week", "month", "year"]).default("month")
+      }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.session.user.role !== "DELIVERER") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux livreurs" });
+        }
 
-      return await ctx.db.delivererNotification.updateMany({
-        where: {
-          delivererId: ctx.session.user.id,
-          readAt: null},
-        data: {
-          readAt: new Date(),
-          status: "read"}});
-    })}),
+        const delivererId = ctx.session.user.id;
+        const now = new Date();
+        
+        let startDate: Date;
+        let previousStartDate: Date;
+        
+        switch (input.period) {
+          case "week":
+            startDate = new Date(now);
+            startDate.setDate(now.getDate() - now.getDay());
+            startDate.setHours(0, 0, 0, 0);
+            previousStartDate = new Date(startDate);
+            previousStartDate.setDate(startDate.getDate() - 7);
+            break;
+          case "year":
+            startDate = new Date(now.getFullYear(), 0, 1);
+            previousStartDate = new Date(now.getFullYear() - 1, 0, 1);
+            break;
+          default: // month
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            previousStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        }
 
-  // ===== DASHBOARD MOBILE =====
+        const endDate = now;
 
-  getMobileDashboard: protectedProcedure.query(async ({ ctx  }) => {
-    if (ctx.session.user.role !== "DELIVERER") {
-      throw new TRPCError({ code: "FORBIDDEN",
-        message: "Accès réservé aux livreurs" });
-    }
+        // Calculs des gains actuels
+        const [currentEarnings, previousEarnings, todayEarnings, pendingPayments] = await Promise.all([
+          ctx.db.delivery.aggregate({
+            where: {
+              delivererId,
+              status: "DELIVERED",
+              completedAt: { gte: startDate, lte: endDate }
+            },
+            _sum: { price: true },
+            _count: true
+          }),
+          ctx.db.delivery.aggregate({
+            where: {
+              delivererId,
+              status: "DELIVERED",
+              completedAt: { gte: previousStartDate, lt: startDate }
+            },
+            _sum: { price: true }
+          }),
+          ctx.db.delivery.aggregate({
+            where: {
+              delivererId,
+              status: "DELIVERED",
+              completedAt: {
+                gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+                lte: endDate
+              }
+            },
+            _sum: { price: true }
+          }),
+          ctx.db.payment.aggregate({
+            where: {
+              userId: delivererId,
+              status: "PENDING"
+            },
+            _sum: { amount: true }
+          })
+        ]);
 
-    const delivererId = ctx.session.user.id;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+        const total = currentEarnings._sum.price?.toNumber() || 0;
+        const previous = previousEarnings._sum.price?.toNumber() || 0;
+        const today = todayEarnings._sum.price?.toNumber() || 0;
+        const pending = pendingPayments._sum.amount?.toNumber() || 0;
+        const deliveryCount = currentEarnings._count || 1;
+        const averagePerDelivery = total / deliveryCount;
 
-    // Récupérer les livraisons actives
-    const activeDeliveries = await ctx.db.delivery.findMany({
-      where: {
-        delivererId,
-        status: {
-          in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"]}},
-      include: {
-        announcement: {
+        const calculateTrend = (current: number, prev: number) => {
+          if (prev === 0) return current > 0 ? 100 : 0;
+          return Math.round(((current - prev) / prev) * 100);
+        };
+
+        // Objectif mensuel (pourrait être configuré par utilisateur)
+        const goal = 1000;
+        const goalProgress = Math.min(100, (total / goal) * 100);
+        const remainingDays = input.period === "month" 
+          ? new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate()
+          : 0;
+
+        return {
+          total,
+          pending,
+          today,
+          averagePerDelivery,
+          totalTrend: calculateTrend(total, previous),
+          pendingTrend: 0, // À calculer si nécessaire
+          todayTrend: 0, // À calculer si nécessaire
+          averageTrend: 0, // À calculer si nécessaire
+          goal,
+          goalProgress,
+          remainingDays
+        };
+      }),
+
+    getRecentPayouts: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(10).default(5) }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.session.user.role !== "DELIVERER") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux livreurs" });
+        }
+
+        return await ctx.db.payment.findMany({
+          where: { userId: ctx.session.user.id },
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
           select: {
             id: true,
-            title: true,
-            pickupAddress: true,
-            deliveryAddress: true,
-            pickupCoordinates: true,
-            deliveryCoordinates: true}}},
-      orderBy: { createdAt: "desc" }});
+            amount: true,
+            status: true,
+            method: true,
+            createdAt: true
+          }
+        });
+      }),
 
-    // Statistiques du jour
-    const todayDeliveries = await ctx.db.delivery.count({
-      where: {
-        delivererId,
-        completedAt: {
-          gte: today,
-          lt: tomorrow},
-        status: "COMPLETED"}});
-
-    const todayEarnings = await ctx.db.payment.aggregate({
-      where: {
-        userId: delivererId,
-        status: "COMPLETED",
-        createdAt: {
-          gte: today,
-          lt: tomorrow}},
-      sum: { amount }});
-
-    // Statistiques du mois
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const monthEarnings = await ctx.db.payment.aggregate({
-      where: {
-        userId: delivererId,
-        status: "COMPLETED",
-        createdAt: { gte }},
-      sum: { amount }});
-
-    // Note moyenne
-    const ratings = await ctx.db.deliveryReview.aggregate({
-      where: {
-        delivery: {
-          delivererId}},
-      avg: { rating },
-      count: { id }});
-
-    // Nouvelles annonces (non vues)
-    const newAnnouncements = await ctx.db.announcement.count({
-      where: {
-        status: "ACTIVE",
-        createdAt: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Dernières 24h
-        },
-        deliveries: {
-          none: {
-            delivererId}}}});
-
-    // Notifications non lues
-    const unreadNotifications = await ctx.db.notification.count({
-      where: {
-        userId: delivererId,
-        isRead: false}});
-
-    return {
-      stats: {
-        todayDeliveries,
-        averageRating: ratings.avg.rating || 0,
-        totalRatings: ratings.count.id},
-      activeDeliveries: activeDeliveries.map((delivery) => ({ id: delivery.id,
-        trackingCode: delivery.trackingCode,
-        status: delivery.status,
-        price: delivery.price,
-        createdAt: delivery.createdAt,
-        announcement: delivery.announcement })),
-      earnings: {
-        today: todayEarnings.sum.amount || 0,
-        month: monthEarnings.sum.amount || 0},
-      newAnnouncements,
-      unreadNotifications,
-      todayDeliveries};
-  }),
-
-  // Récupérer les livraisons planifiées
-  getPlannedDeliveries: protectedProcedure
-    .input(
-      z.object({ date: z.date(),
-        limit: z.number().optional().default(10) }),
-    )
-    .query(async ({ ctx, input  }) => {
+    getMonthlyBreakdown: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.session.user.role !== "DELIVERER") {
-        throw new TRPCError({ code: "FORBIDDEN",
-          message: "Accès réservé aux livreurs" });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux livreurs" });
       }
 
-      const startOfDay = new Date(input.date);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(input.date);
-      endOfDay.setHours(23, 59, 59, 999);
+      const delivererId = ctx.session.user.id;
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      return await ctx.db.plannedRoute.findMany({
+      // Récupérer les livraisons du mois par type de service
+      const deliveries = await ctx.db.delivery.findMany({
         where: {
-          delivererId: ctx.session.user.id,
-          plannedDate: {
-            gte: startOfDay,
-            lte: endOfDay},
-          status: "SCHEDULED"},
-        orderBy: {
-          plannedDate: "asc"},
-        take: input.limit,
-        select: {
-          id: true,
-          plannedDate: true,
-          priority: true,
-          pickupAddress: true,
-          deliveryAddress: true,
-          estimatedDistance: true,
-          price: true}});
-    })});
+          delivererId,
+          status: "DELIVERED",
+          completedAt: { gte: startOfMonth }
+        },
+        include: {
+          announcement: {
+            select: { packageType: true }
+          }
+        }
+      });
+
+      // Grouper par catégorie
+      const categories = {
+        documents: 0,
+        packages: 0,
+        food: 0,
+        fragile: 0,
+        other: 0
+      };
+
+      deliveries.forEach(delivery => {
+        const price = delivery.price?.toNumber() || 0;
+        const type = delivery.announcement?.packageType?.toLowerCase() || "other";
+        
+        switch (type) {
+          case "document":
+            categories.documents += price;
+            break;
+          case "package":
+            categories.packages += price;
+            break;
+          case "food":
+            categories.food += price;
+            break;
+          case "fragile":
+            categories.fragile += price;
+            break;
+          default:
+            categories.other += price;
+        }
+      });
+
+      const total = Object.values(categories).reduce((sum, amount) => sum + amount, 0);
+
+      return {
+        categories,
+        total
+      };
+    })
+  })
+});

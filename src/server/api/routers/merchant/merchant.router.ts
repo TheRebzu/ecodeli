@@ -871,5 +871,233 @@ export const merchantRouter = router({ // Récupération des commandes du marcha
           period: input.period};
       })}),
 
+  // Sales stats endpoints for SalesWidget
+  getSalesStats: protectedProcedure
+    .input(z.object({
+      period: z.enum(["week", "month", "year"]).default("month")
+    }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const merchant = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { merchant: true }
+      });
+
+      if (!merchant?.merchant) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé - Marchand uniquement" });
+      }
+
+      const now = new Date();
+      let startDate: Date;
+      let previousStartDate: Date;
+
+      switch (input.period) {
+        case "week":
+          startDate = new Date(now);
+          startDate.setDate(now.getDate() - now.getDay());
+          startDate.setHours(0, 0, 0, 0);
+          previousStartDate = new Date(startDate);
+          previousStartDate.setDate(startDate.getDate() - 7);
+          break;
+        case "year":
+          startDate = new Date(now.getFullYear(), 0, 1);
+          previousStartDate = new Date(now.getFullYear() - 1, 0, 1);
+          break;
+        default: // month
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          previousStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      }
+
+      const endDate = now;
+
+      // Statistiques de ventes actuelles
+      const [currentStats, previousStats] = await Promise.all([
+        ctx.db.order.aggregate({
+          where: {
+            merchantId: merchant.merchant.id,
+            createdAt: { gte: startDate, lte: endDate }
+          },
+          _sum: { total: true },
+          _count: true,
+          _avg: { total: true }
+        }),
+        ctx.db.order.aggregate({
+          where: {
+            merchantId: merchant.merchant.id,
+            createdAt: { gte: previousStartDate, lt: startDate }
+          },
+          _sum: { total: true },
+          _count: true
+        })
+      ]);
+
+      // Clients actifs dans la période
+      const activeCustomers = await ctx.db.order.findMany({
+        where: {
+          merchantId: merchant.merchant.id,
+          createdAt: { gte: startDate, lte: endDate }
+        },
+        select: { clientId: true },
+        distinct: ['clientId']
+      });
+
+      const previousActiveCustomers = await ctx.db.order.findMany({
+        where: {
+          merchantId: merchant.merchant.id,
+          createdAt: { gte: previousStartDate, lt: startDate }
+        },
+        select: { clientId: true },
+        distinct: ['clientId']
+      });
+
+      const calculateTrend = (current: number, previous: number) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return Math.round(((current - previous) / previous) * 100);
+      };
+
+      const totalRevenue = currentStats._sum.total?.toNumber() || 0;
+      const totalOrders = currentStats._count || 0;
+      const averageOrderValue = currentStats._avg.total?.toNumber() || 0;
+      const activeCustomersCount = activeCustomers.length;
+
+      const previousRevenue = previousStats._sum.total?.toNumber() || 0;
+      const previousOrders = previousStats._count || 0;
+      const previousCustomers = previousActiveCustomers.length;
+
+      // Objectifs (configurables par marchand)
+      const monthlyGoal = 5000;
+      const goalProgress = Math.min(100, (totalRevenue / monthlyGoal) * 100);
+      const daysLeftInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
+
+      // Projection basée sur la tendance actuelle
+      const dailyAverage = totalRevenue / (now.getDate() || 1);
+      const projectedRevenue = dailyAverage * new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+      // Métriques de performance
+      const totalVisitors = 1000; // À remplacer par de vraies données d'analytics
+      const conversionRate = totalVisitors > 0 ? (totalOrders / totalVisitors) * 100 : 0;
+      
+      // Taux de rétention client (clients qui ont commandé plusieurs fois)
+      const repeatCustomers = await ctx.db.order.groupBy({
+        by: ['clientId'],
+        where: {
+          merchantId: merchant.merchant.id,
+          createdAt: { gte: startDate, lte: endDate }
+        },
+        _count: true,
+        having: {
+          clientId: {
+            _count: {
+              gt: 1
+            }
+          }
+        }
+      });
+
+      const retentionRate = activeCustomersCount > 0 ? (repeatCustomers.length / activeCustomersCount) * 100 : 0;
+
+      // Temps moyen de traitement des commandes
+      const avgFulfillmentTime = 24; // À calculer depuis les vraies données de livraison
+
+      return {
+        totalRevenue,
+        totalOrders,
+        averageOrderValue,
+        activeCustomers: activeCustomersCount,
+        revenueTrend: calculateTrend(totalRevenue, previousRevenue),
+        ordersTrend: calculateTrend(totalOrders, previousOrders),
+        avgOrderTrend: calculateTrend(averageOrderValue, previousRevenue / (previousOrders || 1)),
+        customersTrend: calculateTrend(activeCustomersCount, previousCustomers),
+        monthlyGoal,
+        goalProgress,
+        daysLeftInMonth,
+        projectedRevenue,
+        conversionRate,
+        retentionRate,
+        avgFulfillmentTime
+      };
+    }),
+
+  getTopProducts: protectedProcedure
+    .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const merchant = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { merchant: true }
+      });
+
+      if (!merchant?.merchant) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé - Marchand uniquement" });
+      }
+
+      // Simuler des produits populaires (à remplacer par vraies données produits)
+      const topProducts = await ctx.db.orderItem.groupBy({
+        by: ['productId'],
+        where: {
+          order: {
+            merchantId: merchant.merchant.id
+          }
+        },
+        _sum: {
+          quantity: true,
+          price: true
+        },
+        _count: true,
+        orderBy: {
+          _sum: {
+            quantity: 'desc'
+          }
+        },
+        take: input.limit
+      });
+
+      // Enrichir avec les détails des produits
+      return await Promise.all(
+        topProducts.map(async (item) => {
+          // Simuler le nom du produit (à remplacer par vraie table produits)
+          const productName = `Produit ${item.productId.slice(-4)}`;
+          
+          return {
+            id: item.productId,
+            name: productName,
+            salesCount: item._sum.quantity || 0,
+            revenue: item._sum.price?.toNumber() || 0
+          };
+        })
+      );
+    }),
+
+  getRecentOrders: protectedProcedure
+    .input(z.object({ limit: z.number().min(1).max(10).default(3) }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const merchant = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { merchant: true }
+      });
+
+      if (!merchant?.merchant) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé - Marchand uniquement" });
+      }
+
+      return await ctx.db.order.findMany({
+        where: {
+          merchantId: merchant.merchant.id
+        },
+        include: {
+          client: {
+            include: {
+              user: {
+                select: { name: true }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: "desc" },
+        take: input.limit
+      });
+    }),
+
   // Dashboard router
   dashboard: merchantDashboardRouter});

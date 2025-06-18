@@ -9,11 +9,14 @@ import { authenticator } from "otplib";
 import { GetServerSidePropsContext } from "next";
 import { getServerSession } from "next-auth/next";
 
-// Ensure we have a stable and consistent secret
+// Configuration sécurisée pour la clé secrète
 const getAuthSecret = () => {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) {
-    throw new Error("NEXTAUTHSECRET is not set in environment variables");
+    throw new Error("⚠️ NEXTAUTH_SECRET non défini dans les variables d'environnement");
+  }
+  if (secret.length < 32) {
+    throw new Error("⚠️ NEXTAUTH_SECRET doit contenir au moins 32 caractères");
   }
   return secret;
 };
@@ -21,144 +24,224 @@ const getAuthSecret = () => {
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as any,
   secret: getAuthSecret(),
+  
+  // Configuration de session sécurisée
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 jours
+    updateAge: 24 * 60 * 60, // Mise à jour toutes les 24h
   },
+  
+  // Configuration JWT sécurisée
   jwt: {
-    // Make JWT configuration more explicit to avoid issues
-    maxAge: 60 * 60 * 24 * 30, // 30 days
+    maxAge: 60 * 60 * 24 * 30, // 30 jours
+    // Algorithme de chiffrement sécurisé
+    secret: getAuthSecret(),
   },
+  
+  // Pages personnalisées
   pages: {
     signIn: "/login",
     error: "/login",
     verifyRequest: "/verify-email",
-    newUser: "/welcome"},
+    newUser: "/welcome",
+  },
+  
+  // Configuration des providers
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Mot de passe", type: "password" },
-        totp: { label: "Code d'authentification", type: "text" }},
-      async authorize(credentials) {
+        email: { 
+          label: "Email", 
+          type: "email",
+          placeholder: "votre@email.com"
+        },
+        password: { 
+          label: "Mot de passe", 
+          type: "password",
+          placeholder: "••••••••"
+        },
+        totp: { 
+          label: "Code d'authentification", 
+          type: "text",
+          placeholder: "123456"
+        },
+      },
+      
+      async authorize(credentials, req) {
+        // Validation stricte des entrées
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email et mot de passe requis");
         }
 
-        // Rechercher l'utilisateur par email
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            password: true,
-            emailVerified: true,
-            role: true,
-            status: true,
-            image: true,
-            twoFactorEnabled: true,
-            twoFactorSecret: true,
-            client: { select: { id } },
-            deliverer: { select: { id: true, isVerified: true } },
-            merchant: { select: { id: true, isVerified: true } },
-            provider: { select: { id: true, isVerified: true } },
-            admin: { select: { id } }}});
-
-        if (!user) {
-          throw new Error("Utilisateur non trouvé");
+        // Vérification du format email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(credentials.email)) {
+          throw new Error("Format d'email invalide");
         }
 
-        // Vérifier si l'email est vérifié
-        if (!user.emailVerified) {
-          throw new Error(
-            "Veuillez vérifier votre email avant de vous connecter",
-          );
-        }
-
-        // Vérifier si l'utilisateur est actif
-        // Seuls les livreurs peuvent se connecter en état PENDING_VERIFICATION
-        if (
-          user.status !== UserStatus.ACTIVE &&
-          !(
-            user.status === UserStatus.PENDINGVERIFICATION &&
-            user.role === UserRole.DELIVERER
-          )
-        ) {
-          throw new Error("Votre compte est " + user.status.toLowerCase());
-        }
-
-        // Vérifier le mot de passe
-        const isPasswordValid = await compare(
-          credentials.password,
-          user.password,
-        );
-        if (!isPasswordValid) {
-          throw new Error("Mot de passe incorrect");
-        }
-
-        // Vérifier la 2FA si activée
-        if (user.twoFactorEnabled) {
-          if (!credentials.totp) {
-            throw new Error("Code d'authentification à deux facteurs requis");
-          }
-
-          // Vérification du code TOTP avec otplib
-          const isValidTotp = authenticator.verify({ token: credentials.totp,
-            secret: user.twoFactorSecret || "" });
-
-          if (!isValidTotp) {
-            throw new Error("Code d'authentification incorrect");
+        // Sécurité : Vérifier l'origine de la requête
+        if (req && req.headers) {
+          const userAgent = req.headers["user-agent"];
+          const referer = req.headers.referer;
+          
+          // Bloquer les requêtes suspectes
+          if (!userAgent || userAgent.includes("curl") || userAgent.includes("wget")) {
+            console.warn("🚨 Tentative de connexion suspecte bloquée:", {
+              userAgent,
+              ip: req.headers["x-forwarded-for"] || req.connection?.remoteAddress,
+            });
+            throw new Error("Requête non autorisée");
           }
         }
 
-        // Déterminer si l'utilisateur est vérifié selon son rôle
-        const isVerified = true; // Par défaut, les comptes sont considérés comme vérifiés
-        const status = user.status;
+        try {
+          // Rechercher l'utilisateur par email
+          const user = await db.user.findUnique({
+            where: { email: credentials.email },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              password: true,
+              emailVerified: true,
+              role: true,
+              status: true,
+              image: true,
+              twoFactorEnabled: true,
+              twoFactorSecret: true,
+              client: { select: { id: true } },
+              deliverer: { select: { id: true, isVerified: true } },
+              merchant: { select: { id: true, isVerified: true } },
+              provider: { select: { id: true, isVerified: true } },
+              admin: { select: { id: true } },
+            },
+          });
 
-        // Déterminer le profileId en fonction du rôle
-        let profileId: string | undefined;
+          if (!user) {
+            // Log de sécurité sans exposer d'informations
+            console.warn("🚨 Tentative de connexion avec email inexistant:", {
+              email: credentials.email.split('@')[0] + '@***',
+              timestamp: new Date().toISOString(),
+            });
+            throw new Error("Identifiants invalides");
+          }
 
-        // Pour les livreurs, vérifier s'ils sont vérifiés
-        if (user.role === UserRole.DELIVERER && user.deliverer) {
-          isVerified = user.deliverer.isVerified;
-          profileId = user.deliverer.id;
-        }
-        // Pour les commerçants, vérifier s'ils sont vérifiés
-        else if (user.role === UserRole.MERCHANT && user.merchant) {
-          isVerified = user.merchant.isVerified;
-          profileId = user.merchant.id;
-        }
-        // Pour les prestataires, vérifier s'ils sont vérifiés
-        else if (user.role === UserRole.PROVIDER && user.provider) {
-          isVerified = user.provider.isVerified;
-          profileId = user.provider.id;
-        }
-        // Pour les clients, pas de vérification nécessaire
-        else if (user.role === UserRole.CLIENT && user.client) {
-          profileId = user.client.id;
-        }
-        // Pour les admins, pas de vérification nécessaire
-        else if (user.role === UserRole.ADMIN && user.admin) {
-          profileId = user.admin.id;
-        }
+          // Vérifier si l'email est vérifié
+          if (!user.emailVerified) {
+            throw new Error("Veuillez vérifier votre email avant de vous connecter");
+          }
 
-        // Mise à jour de la date de dernière connexion
-        await db.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() }});
+          // Vérifier si l'utilisateur est actif
+          if (
+            user.status !== UserStatus.ACTIVE &&
+            !(
+              user.status === UserStatus.PENDING_VERIFICATION &&
+              user.role === UserRole.DELIVERER
+            )
+          ) {
+            throw new Error("Votre compte est " + user.status.toLowerCase());
+          }
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          image: user.image,
-          profileId,
-          isVerified,
-          status};
-      }}),
+          // Vérifier le mot de passe
+          const isPasswordValid = await compare(credentials.password, user.password);
+          if (!isPasswordValid) {
+            // Log de sécurité
+            console.warn("🚨 Tentative de connexion avec mot de passe incorrect:", {
+              userId: user.id,
+              email: user.email.split('@')[0] + '@***',
+              timestamp: new Date().toISOString(),
+            });
+            throw new Error("Identifiants invalides");
+          }
+
+          // Vérifier la 2FA si activée
+          if (user.twoFactorEnabled) {
+            if (!credentials.totp) {
+              throw new Error("Code d'authentification à deux facteurs requis");
+            }
+
+            const isValidTotp = authenticator.verify({
+              token: credentials.totp,
+              secret: user.twoFactorSecret || "",
+            });
+
+            if (!isValidTotp) {
+              throw new Error("Code d'authentification incorrect");
+            }
+          }
+
+          // Déterminer le profileId et la vérification selon le rôle
+          let isVerified = true;
+          let profileId: string | undefined;
+
+          switch (user.role) {
+            case UserRole.DELIVERER:
+              if (user.deliverer) {
+                isVerified = user.deliverer.isVerified;
+                profileId = user.deliverer.id;
+              }
+              break;
+            case UserRole.MERCHANT:
+              if (user.merchant) {
+                isVerified = user.merchant.isVerified;
+                profileId = user.merchant.id;
+              }
+              break;
+            case UserRole.PROVIDER:
+              if (user.provider) {
+                isVerified = user.provider.isVerified;
+                profileId = user.provider.id;
+              }
+              break;
+            case UserRole.CLIENT:
+              if (user.client) {
+                profileId = user.client.id;
+              }
+              break;
+            case UserRole.ADMIN:
+              if (user.admin) {
+                profileId = user.admin.id;
+              }
+              break;
+          }
+
+          // Mise à jour de la date de dernière connexion
+          await db.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+          });
+
+          // Log de connexion réussie (sécurisé)
+          console.info("✅ Connexion réussie:", {
+            userId: user.id,
+            role: user.role,
+            timestamp: new Date().toISOString(),
+          });
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            image: user.image,
+            profileId,
+            isVerified,
+            status: user.status,
+          };
+        } catch (error) {
+          // Log d'erreur sécurisé
+          console.error("❌ Erreur d'authentification:", {
+            error: error instanceof Error ? error.message : "Erreur inconnue",
+            timestamp: new Date().toISOString(),
+          });
+          throw error;
+        }
+      },
+    }),
+    
+    // Provider Google sécurisé
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
@@ -171,11 +254,16 @@ export const authOptions: NextAuthOptions = {
           image: profile.picture,
           role: UserRole.CLIENT,
           status: UserStatus.ACTIVE,
-          isVerified: true};
-      }})],
+          isVerified: true,
+        };
+      },
+    }),
+  ],
+  
+  // Callbacks sécurisés
   callbacks: {
-    async jwt({ token, user, trigger, session  }) {
-      // Quand l'utilisateur se connecte, fusionner ses données avec le token
+    async jwt({ token, user, trigger, session }) {
+      // Lors de la première connexion
       if (user) {
         token.id = user.id;
         token.name = user.name;
@@ -183,7 +271,8 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.status = user.status;
         token.isVerified = user.isVerified;
-        token.picture = user.image; // Nextauth utilise 'picture' mais nous avons 'image'
+        token.picture = user.image;
+        token.profileId = user.profileId;
       }
 
       // Lors d'une mise à jour de session
@@ -191,7 +280,7 @@ export const authOptions: NextAuthOptions = {
         Object.assign(token, session);
       }
 
-      // Vérifier dynamiquement si l'utilisateur est vérifié à chaque requête pour les rôles qui nécessitent une vérification
+      // Vérification dynamique pour les rôles nécessitant une vérification
       if (
         token.role === "DELIVERER" ||
         token.role === "PROVIDER" ||

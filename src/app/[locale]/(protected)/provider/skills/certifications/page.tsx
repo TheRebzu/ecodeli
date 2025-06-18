@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { ServiceStats } from "@/components/provider/services/service-stats";
 
 export default function CertificationsPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function CertificationsPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Certifications - En cours de développement
-        </p>
+        <ServiceStats services={[]} />
       </Card>
     </div>
   );

@@ -1,5 +1,8 @@
 // eslint.config.js - Configuration ESLint v9 pour EcoDeli
-// Version simplifiée fonctionnelle
+// Version corrigée avec parser TypeScript
+
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
 
 export default [
   // === Configuration de base pour JavaScript ===
@@ -85,16 +88,18 @@ export default [
     },
   },
   
-  // === Configuration pour TypeScript (sans parser spécialisé) ===
+  // === Configuration pour TypeScript avec parser approprié ===
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
+      parser: typescriptParser,
       ecmaVersion: 2022,
       sourceType: "module",
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
         },
+        project: './tsconfig.json',
       },
       globals: {
         React: "readonly",
@@ -117,9 +122,13 @@ export default [
         JSX: "readonly",
       },
     },
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+    },
     rules: {
-      // Règles de base pour TypeScript
-      "no-unused-vars": [
+      // Désactiver les règles JS de base pour TypeScript
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
         "warn",
         {
           argsIgnorePattern: "^_",
@@ -142,6 +151,12 @@ export default [
       "no-undef": "off", // TypeScript gère cela
       "no-redeclare": "off", // TypeScript gère cela
       "no-unused-expressions": ["error", { allowShortCircuit: true, allowTernary: true }],
+      
+      // Règles TypeScript spécifiques
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-non-null-assertion": "warn",
+      "@typescript-eslint/prefer-optional-chain": "error",
+      "@typescript-eslint/prefer-nullish-coalescing": "error",
     },
   },
   
@@ -160,6 +175,7 @@ export default [
       "import/no-anonymous-default-export": "off",
       "no-console": "off",
       "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "off",
       "prefer-const": "off",
     },
   },
@@ -171,6 +187,7 @@ export default [
       "no-console": "off",
       "no-process-exit": "off",
       "no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
       "prefer-const": "off",
     },
   },
@@ -186,6 +203,7 @@ export default [
       "no-unused-expressions": "off",
       "no-console": "off",
       "no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
     },
   },
   
@@ -195,76 +213,23 @@ export default [
     rules: {
       "no-console": "off",
       "no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
     },
   },
   
-  // === Configuration pour le serveur ===
-  {
-    files: ["src/server/**/*"],
-    rules: {
-      "no-console": ["warn", { allow: ["warn", "error", "info"] }],
-    },
-  },
-  
-  // === Fichiers à ignorer ===
+  // === Ignorer certains fichiers ===
   {
     ignores: [
-      // Build et dépendances
-      ".next/",
-      ".turbo/",
-      "dist/",
-      "build/",
-      "out/",
-      "node_modules/",
-      
-      // Fichiers générés
-      "*.generated.{ts,js}",
+      "node_modules/**",
+      ".next/**",
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "public/**",
+      "*.min.js",
+      "**/*.d.ts",
       ".env*",
       "next-env.d.ts",
-      
-      // Cache et logs
-      ".eslintcache",
-      "*.log",
-      "*-debug.log*",
-      "*-error.log*",
-      
-      // Prisma
-      "prisma/migrations/",
-      "prisma/generated/",
-      
-      // Documentation et coverage
-      "docs/api/",
-      "coverage/",
-      "*.tsbuildinfo",
-      
-      // Tests et build
-      "__tests__/",
-      "jest.config.js",
-      "setupTests.js",
-      
-      // Temporaires
-      ".tmp/",
-      "temp/",
-      "tmp/",
-      
-      // IDE
-      ".vscode/",
-      ".idea/",
-      
-      // OS
-      ".DS_Store",
-      "Thumbs.db",
-      
-      // Storybook
-      ".storybook/",
-      "storybook-static/",
-      
-      // Scripts temporaires
-      "scripts/temp/",
-      "scripts/backup/",
-      
-      // Anciennes configurations
-      ".eslintrc.*",
     ],
   },
-]; 
+];

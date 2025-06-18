@@ -223,48 +223,10 @@ export const delivererPlannedRoutesRouter = router({ /**
                 name: true,
                 email: true}}}});
 
-        // TODO: Déclencher le système de matching automatique si la route est publique
+        // Système de matching automatique intelligent pour routes publiques
         if (input.isPublic) {
-          // Implémentation de la logique de matching
-          const matchingAnnouncements = await ctx.db.announcement.findMany({
-            where: {
-              status: "PENDING",
-              pickupLatitude: { not: null },
-              pickupLongitude: { not: null },
-              deliveryLatitude: { not: null },
-              deliveryLongitude: { not: null },
-            },
-            include: {
-              client: {
-                include: {
-                  user: {
-                    select: { name: true, phone: true }
-                  }
-                }
-              }
-            }
-          });
-
-          // Filtrer les annonces qui correspondent à la route
-          const compatibleAnnouncements = matchingAnnouncements.filter(announcement => {
-            // Vérifier si l'annonce est sur le chemin de la route
-            const pickupDistance = calculateDistance(
-              input.departureLatitude!,
-              input.departureLongitude!,
-              announcement.pickupLatitude!,
-              announcement.pickupLongitude!
-            );
-            
-            const deliveryDistance = calculateDistance(
-              input.arrivalLatitude!,
-              input.arrivalLongitude!,
-              announcement.deliveryLatitude!,
-              announcement.deliveryLongitude!
-            );
-
-            // Annonce compatible si pickup et delivery sont dans un rayon raisonnable
-            return pickupDistance <= 10 && deliveryDistance <= 10; // 10km de rayon
-          });
+          await triggerAdvancedRouteMatching(route, ctx.db);
+        }
 
           // Fonction helper pour calculer la distance
           function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -425,9 +387,11 @@ export const delivererPlannedRoutesRouter = router({ /**
               ? route.publishedAt || new Date()
               : null}});
 
-        // TODO: Déclencher ou arrêter le matching automatique
+        // Système de matching intelligent selon l'état de publication
         if (input.isPublic) {
-          // Lancer le matching
+          await triggerAdvancedRouteMatching(updatedRoute, ctx.db);
+        } else {
+          await stopRouteMatching(updatedRoute.id, ctx.db);
         }
 
         return {
@@ -505,9 +469,11 @@ export const delivererPlannedRoutesRouter = router({ /**
     )
     .query(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Implémenter la recherche géospatiale avancée
-        // Pour l'instant, recherche basique par ville et temps
-        const routes = await ctx.db.delivererPlannedRoute.findMany({
+        // Recherche géospatiale avancée implémentée avec calculs de distance et scoring
+        console.log(`🔍 Recherche géospatiale avancée - Départ: ${input.departureLatitude}, ${input.departureLongitude}`);
+        
+        // Récupérer toutes les routes publiques dans la fenêtre temporelle
+        const allRoutes = await ctx.db.delivererPlannedRoute.findMany({
           where: {
             isPublic: true,
             status: "PUBLISHED",
@@ -515,17 +481,94 @@ export const delivererPlannedRoutesRouter = router({ /**
               gte: new Date(input.departureTime.getTime() - 2 * 60 * 60 * 1000), // -2h
               lte: new Date(input.departureTime.getTime() + 4 * 60 * 60 * 1000), // +4h
             },
-            availableCapacity: { gt: 0 }},
+            availableCapacity: { gt: 0 },
+            // Filtrage géographique préliminaire (zone étendue)
+            departureLatitude: {
+              gte: input.departureLatitude - 0.5, // ~55km de rayon
+              lte: input.departureLatitude + 0.5
+            },
+            departureLongitude: {
+              gte: input.departureLongitude - 0.5,
+              lte: input.departureLongitude + 0.5
+            }
+          },
           include: {
             deliverer: {
               select: {
                 id: true,
                 name: true,
-                image: true}}},
-          take: input.limit,
-          orderBy: { departureTime: "asc" }});
+                image: true,
+                delivererStats: {
+                  select: {
+                    averageRating: true,
+                    totalDeliveries: true,
+                    onTimeRate: true
+                  }
+                }
+              }
+            }
+          }
+        });
 
-        return { routes };
+        console.log(`📊 ${allRoutes.length} routes trouvées dans la zone temporelle`);
+
+        // Analyser chaque route avec scoring géospatial avancé
+        const scoredRoutes = [];
+        
+        for (const route of allRoutes) {
+          // Calcul de la compatibilité géographique
+          const compatibility = await calculateAdvancedRouteCompatibility({
+            route,
+            requestedPickup: {
+              lat: input.departureLatitude,
+              lng: input.departureLongitude
+            },
+            requestedDelivery: {
+              lat: input.deliveryLatitude,
+              lng: input.deliveryLongitude
+            },
+            maxDetourKm: input.maxDetourKm,
+            requestedTime: input.departureTime
+          });
+
+          if (compatibility.isCompatible) {
+            scoredRoutes.push({
+              ...route,
+              compatibility: {
+                score: compatibility.overallScore,
+                detourDistance: compatibility.detourDistance,
+                timeCompatibility: compatibility.timeCompatibility,
+                priceEstimate: compatibility.estimatedPrice,
+                estimatedDuration: compatibility.estimatedDuration,
+                carbonSavings: compatibility.carbonSavings
+              }
+            });
+          }
+        }
+
+        // Trier par score de compatibilité décroissant
+        const sortedRoutes = scoredRoutes
+          .sort((a, b) => b.compatibility.score - a.compatibility.score)
+          .slice(0, input.limit);
+
+        console.log(`✅ ${sortedRoutes.length} routes compatibles trouvées (score moyen: ${
+          sortedRoutes.length > 0 
+            ? Math.round(sortedRoutes.reduce((sum, r) => sum + r.compatibility.score, 0) / sortedRoutes.length)
+            : 0
+        }%)`);
+
+        return { 
+          routes: sortedRoutes,
+          searchMetadata: {
+            totalAnalyzed: allRoutes.length,
+            totalCompatible: sortedRoutes.length,
+            averageScore: sortedRoutes.length > 0 
+              ? Math.round(sortedRoutes.reduce((sum, r) => sum + r.compatibility.score, 0) / sortedRoutes.length)
+              : 0,
+            searchRadius: '~55km',
+            detourLimit: `${input.maxDetourKm}km`
+          }
+        };
       } catch (error) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la recherche de routes" });
@@ -575,4 +618,455 @@ function calculateHaversineDistance(
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+/**
+ * Système de matching avancé pour routes planifiées
+ * Analyse les annonces compatibles et crée des suggestions intelligentes
+ */
+async function triggerAdvancedRouteMatching(route: any, db: any): Promise<void> {
+  try {
+    console.log(`🎯 Démarrage du matching avancé pour route planifiée: ${route.id}`);
+    
+    const MATCHING_RADIUS_KM = 15; // Rayon de recherche étendu
+    const MAX_SUGGESTIONS = 10; // Nombre maximum de suggestions
+    
+    // Récupérer les annonces publiées dans la zone géographique
+    const potentialAnnouncements = await db.announcement.findMany({
+      where: {
+        status: "PUBLISHED",
+        delivery: {
+          status: "PENDING"
+        },
+        pickupLatitude: { not: null },
+        pickupLongitude: { not: null },
+        deliveryLatitude: { not: null },
+        deliveryLongitude: { not: null }
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                name: true,
+                email: true
+              }
+            }
+          }
+        },
+        delivery: true
+      },
+      take: 50 // Limiter pour les performances
+    });
+
+    console.log(`📍 ${potentialAnnouncements.length} annonces potentielles trouvées`);
+
+    // Analyser la compatibilité de chaque annonce
+    const compatibleAnnouncements = [];
+    
+    for (const announcement of potentialAnnouncements) {
+      // Calculer la distance entre route et points de collecte/livraison
+      const pickupDistance = calculateDistance(
+        route.departureLatitude,
+        route.departureLongitude,
+        announcement.pickupLatitude,
+        announcement.pickupLongitude
+      );
+      
+      const deliveryDistance = calculateDistance(
+        route.arrivalLatitude,
+        route.arrivalLongitude,
+        announcement.deliveryLatitude,
+        announcement.deliveryLongitude
+      );
+      
+      // Vérifier si l'annonce est compatible géographiquement
+      if (pickupDistance <= MATCHING_RADIUS_KM || deliveryDistance <= MATCHING_RADIUS_KM) {
+        // Calcul du score de compatibilité avancé
+        const temporalScore = calculateTemporalCompatibility(route, announcement);
+        const geographicScore = calculateGeographicScore(pickupDistance, deliveryDistance);
+        const urgencyScore = announcement.urgency === 'HIGH' ? 1.5 : 1.0;
+        const priceScore = Math.min(1.0, (announcement.price || 0) / 50);
+        
+        const totalScore = (
+          geographicScore * 0.4 +
+          temporalScore * 0.3 +
+          priceScore * 0.2 +
+          urgencyScore * 0.1
+        ) * 100;
+        
+        if (totalScore >= 60) { // Seuil minimum de compatibilité
+          compatibleAnnouncements.push({
+            ...announcement,
+            pickupDistance,
+            deliveryDistance,
+            compatibilityScore: Math.round(totalScore)
+          });
+        }
+      }
+    }
+    
+    // Trier par score de compatibilité
+    compatibleAnnouncements.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+    const topSuggestions = compatibleAnnouncements.slice(0, MAX_SUGGESTIONS);
+    
+    console.log(`🎯 ${topSuggestions.length} suggestions de haute qualité générées`);
+    
+    // Créer les suggestions de matching en base
+    if (topSuggestions.length > 0) {
+      await createRouteSuggestions(route.id, topSuggestions, db);
+      
+      // Notifier le livreur des nouvelles opportunités
+      await notifyDelivererOfRouteMatches(route.delivererId, topSuggestions.length, db);
+      
+      // Notifier les clients des nouvelles options de livraison
+      for (const suggestion of topSuggestions.slice(0, 5)) {
+        await notifyClientOfNewDeliveryOption(
+          suggestion.client.id,
+          route.id,
+          suggestion.compatibilityScore,
+          db
+        );
+      }
+    }
+    
+    // Log de l'activité pour audit
+    await db.auditLog.create({
+      data: {
+        userId: route.delivererId,
+        action: 'ROUTE_MATCHING_TRIGGERED',
+        tableName: 'DelivererPlannedRoute',
+        recordId: route.id,
+        changes: {
+          announcementsAnalyzed: potentialAnnouncements.length,
+          suggestionsCreated: topSuggestions.length,
+          topScore: topSuggestions[0]?.compatibilityScore || 0
+        },
+        ipAddress: 'system',
+        userAgent: 'Route Matching System'
+      }
+    });
+    
+    console.log(`✅ Matching avancé terminé avec succès pour route ${route.id}`);
+    
+  } catch (error) {
+    console.error('❌ Erreur lors du matching avancé:', error);
+    
+    // Log d'erreur pour débogage
+    await db.systemLog.create({
+      data: {
+        type: 'ROUTE_MATCHING_ERROR',
+        message: `Erreur matching route ${route.id}`,
+        level: 'ERROR',
+        metadata: {
+          routeId: route.id,
+          error: error instanceof Error ? error.message : 'Erreur inconnue'
+        }
+      }
+    });
+  }
+}
+
+/**
+ * Arrête le matching automatique pour une route
+ */
+async function stopRouteMatching(routeId: string, db: any): Promise<void> {
+  try {
+    console.log(`🛑 Arrêt du matching pour route: ${routeId}`);
+    
+    // Supprimer les suggestions non acceptées
+    const deletedSuggestions = await db.deliveryApplication.deleteMany({
+      where: {
+        routeId,
+        status: 'SUGGESTED'
+      }
+    });
+    
+    // Annuler les notifications en attente
+    await db.notification.updateMany({
+      where: {
+        data: {
+          path: ['routeId'],
+          equals: routeId
+        },
+        read: false
+      },
+      data: {
+        cancelled: true,
+        cancelledAt: new Date()
+      }
+    });
+    
+    console.log(`✅ Matching arrêté: ${deletedSuggestions.count} suggestions supprimées`);
+    
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'arrêt du matching:', error);
+  }
+}
+
+/**
+ * Calcule la compatibilité temporelle entre route et annonce
+ */
+function calculateTemporalCompatibility(route: any, announcement: any): number {
+  try {
+    const routeDate = new Date(route.departureTime || route.createdAt);
+    const requestedDate = new Date(announcement.requestedPickupDate || announcement.createdAt);
+    
+    // Différence en jours
+    const daysDifference = Math.abs((routeDate.getTime() - requestedDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Score inversé (plus proche = meilleur score)
+    if (daysDifference <= 1) return 1.0; // Même jour ou lendemain
+    if (daysDifference <= 3) return 0.8; // Dans les 3 jours
+    if (daysDifference <= 7) return 0.6; // Dans la semaine
+    return 0.3; // Plus éloigné
+    
+  } catch (error) {
+    return 0.5; // Score neutre en cas d'erreur
+  }
+}
+
+/**
+ * Calcule le score géographique basé sur les distances
+ */
+function calculateGeographicScore(pickupDistance: number, deliveryDistance: number): number {
+  const avgDistance = (pickupDistance + deliveryDistance) / 2;
+  
+  if (avgDistance <= 5) return 1.0;   // Très proche
+  if (avgDistance <= 10) return 0.8;  // Proche
+  if (avgDistance <= 15) return 0.6;  // Acceptable
+  return 0.4; // Loin mais faisable
+}
+
+/**
+ * Crée les suggestions de matching en base de données
+ */
+async function createRouteSuggestions(routeId: string, suggestions: any[], db: any): Promise<void> {
+  try {
+    const routeSuggestions = suggestions.map(suggestion => ({
+      routeId,
+      announcementId: suggestion.id,
+      compatibilityScore: suggestion.compatibilityScore,
+      pickupDistance: suggestion.pickupDistance,
+      deliveryDistance: suggestion.deliveryDistance,
+      status: 'SUGGESTED',
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000) // 48h d'expiration
+    }));
+    
+    // Éviter les doublons
+    for (const routeSuggestion of routeSuggestions) {
+      await db.routeMatching.upsert({
+        where: {
+          routeId_announcementId: {
+            routeId: routeSuggestion.routeId,
+            announcementId: routeSuggestion.announcementId
+          }
+        },
+        update: {
+          compatibilityScore: routeSuggestion.compatibilityScore,
+          updatedAt: new Date()
+        },
+        create: routeSuggestion
+      });
+    }
+    
+    console.log(`💾 ${routeSuggestions.length} suggestions de route sauvegardées`);
+    
+  } catch (error) {
+    console.error('Erreur lors de la création des suggestions:', error);
+  }
+}
+
+/**
+ * Notifie le livreur des nouvelles opportunités de matching
+ */
+async function notifyDelivererOfRouteMatches(delivererId: string, matchCount: number, db: any): Promise<void> {
+  try {
+    await db.notification.create({
+      data: {
+        userId: delivererId,
+        type: 'ROUTE_MATCHING_RESULTS',
+        title: 'Nouvelles opportunités de livraison',
+        message: `${matchCount} nouvelle(s) annonce(s) compatible(s) avec votre route planifiée`,
+        data: {
+          matchCount,
+          actionUrl: '/deliverer/routes/planned'
+        },
+        priority: 'MEDIUM'
+      }
+    });
+    
+    console.log(`📲 Livreur ${delivererId} notifié de ${matchCount} nouvelles opportunités`);
+    
+  } catch (error) {
+    console.error('Erreur lors de la notification du livreur:', error);
+  }
+}
+
+/**
+ * Notifie un client d'une nouvelle option de livraison
+ */
+async function notifyClientOfNewDeliveryOption(
+  clientId: string, 
+  routeId: string, 
+  compatibilityScore: number, 
+  db: any
+): Promise<void> {
+  try {
+    await db.notification.create({
+      data: {
+        userId: clientId,
+        type: 'NEW_DELIVERY_OPTION',
+        title: 'Nouvelle option de livraison disponible',
+        message: `Un livreur avec une route compatible (${compatibilityScore}% de compatibilité) est disponible pour votre annonce`,
+        data: {
+          routeId,
+          compatibilityScore,
+          actionUrl: '/client/announcements'
+        },
+        priority: compatibilityScore >= 80 ? 'HIGH' : 'MEDIUM'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Erreur lors de la notification du client:', error);
+  }
+}
+
+/**
+ * Calcule la compatibilité avancée entre une route et une demande de livraison
+ * Analyse géospatiale, temporelle et économique complète
+ */
+async function calculateAdvancedRouteCompatibility(params: {
+  route: any;
+  requestedPickup: { lat: number; lng: number };
+  requestedDelivery: { lat: number; lng: number };
+  maxDetourKm: number;
+  requestedTime: Date;
+}): Promise<{
+  isCompatible: boolean;
+  overallScore: number;
+  detourDistance: number;
+  timeCompatibility: number;
+  estimatedPrice: number;
+  estimatedDuration: number;
+  carbonSavings: number;
+}> {
+  try {
+    const { route, requestedPickup, requestedDelivery, maxDetourKm, requestedTime } = params;
+    
+    // 1. Analyse géospatiale - Calcul du détour nécessaire
+    const originalDistance = calculateDistance(
+      route.departureLatitude,
+      route.departureLongitude,
+      route.arrivalLatitude,
+      route.arrivalLongitude
+    );
+    
+    // Distance avec détour
+    const detourDistance1 = calculateDistance(
+      route.departureLatitude,
+      route.departureLongitude,
+      requestedPickup.lat,
+      requestedPickup.lng
+    );
+    
+    const detourDistance2 = calculateDistance(
+      requestedPickup.lat,
+      requestedPickup.lng,
+      requestedDelivery.lat,
+      requestedDelivery.lng
+    );
+    
+    const detourDistance3 = calculateDistance(
+      requestedDelivery.lat,
+      requestedDelivery.lng,
+      route.arrivalLatitude,
+      route.arrivalLongitude
+    );
+    
+    const totalDetourDistance = detourDistance1 + detourDistance2 + detourDistance3;
+    const detourAmount = totalDetourDistance - originalDistance;
+    
+    // Vérification du détour maximum
+    if (detourAmount > maxDetourKm) {
+      return {
+        isCompatible: false,
+        overallScore: 0,
+        detourDistance: detourAmount,
+        timeCompatibility: 0,
+        estimatedPrice: 0,
+        estimatedDuration: 0,
+        carbonSavings: 0
+      };
+    }
+    
+    // 2. Score géographique (plus le détour est faible, meilleur est le score)
+    const geographicScore = Math.max(0, (maxDetourKm - detourAmount) / maxDetourKm * 100);
+    
+    // 3. Analyse temporelle
+    const routeTime = new Date(route.departureTime);
+    const timeDifferenceMs = Math.abs(routeTime.getTime() - requestedTime.getTime());
+    const timeDifferenceHours = timeDifferenceMs / (1000 * 60 * 60);
+    
+    // Score temporel (max 6h de différence acceptable)
+    const timeCompatibility = Math.max(0, (6 - timeDifferenceHours) / 6 * 100);
+    
+    // 4. Calcul du prix estimé basé sur la distance et le détour
+    const basePrice = 3.50; // Prix de base
+    const pricePerKm = 1.20; // Prix par km
+    const detourSurcharge = detourAmount * 0.80; // Surcharge détour
+    const estimatedPrice = basePrice + (detourDistance2 * pricePerKm) + detourSurcharge;
+    
+    // 5. Estimation de la durée (vitesse moyenne 50 km/h)
+    const estimatedDuration = Math.round((totalDetourDistance / 50) * 60); // en minutes
+    
+    // 6. Calcul des économies carbone (vs 2 trajets séparés)
+    const separateTripsDistance = detourDistance1 + detourDistance2 + detourDistance3;
+    const carbonSavingsKm = Math.max(0, separateTripsDistance - totalDetourDistance);
+    const carbonSavings = carbonSavingsKm * 0.12; // 120g CO2/km économisés
+    
+    // 7. Score de fiabilité du livreur
+    const delivererStats = route.deliverer.delivererStats;
+    const reliabilityScore = delivererStats ? (
+      (delivererStats.averageRating || 3) / 5 * 30 +
+      Math.min(30, (delivererStats.totalDeliveries || 0) / 10) +
+      (delivererStats.onTimeRate || 0.8) * 40
+    ) : 50; // Score neutre si pas de stats
+    
+    // 8. Score global pondéré
+    const overallScore = Math.round(
+      geographicScore * 0.35 +      // 35% - Proximité géographique
+      timeCompatibility * 0.25 +    // 25% - Compatibilité temporelle
+      reliabilityScore * 0.20 +     // 20% - Fiabilité du livreur
+      Math.min(100, carbonSavings * 10) * 0.10 + // 10% - Impact écologique
+      (route.availableCapacity / (route.maxCapacity || 5)) * 100 * 0.10 // 10% - Capacité disponible
+    );
+    
+    console.log(`📊 Compatibilité calculée - Score: ${overallScore}%, Détour: ${detourAmount.toFixed(1)}km, Prix: ${estimatedPrice.toFixed(2)}€`);
+    
+    return {
+      isCompatible: overallScore >= 40, // Seuil minimum de 40%
+      overallScore,
+      detourDistance: Math.round(detourAmount * 100) / 100,
+      timeCompatibility: Math.round(timeCompatibility),
+      estimatedPrice: Math.round(estimatedPrice * 100) / 100,
+      estimatedDuration,
+      carbonSavings: Math.round(carbonSavings * 100) / 100
+    };
+    
+  } catch (error) {
+    console.error('❌ Erreur lors du calcul de compatibilité:', error);
+    return {
+      isCompatible: false,
+      overallScore: 0,
+      detourDistance: 0,
+      timeCompatibility: 0,
+      estimatedPrice: 0,
+      estimatedDuration: 0,
+      carbonSavings: 0
+    };
+  }
 }

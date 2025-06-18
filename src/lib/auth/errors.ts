@@ -24,6 +24,7 @@ export type AuthErrorCode =
   | "WeakPassword"
   | "EmailAlreadyInUse"
   | "pending_verification"
+  | "id"
   | "default";
 
 /**

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { NFCCardStatus, NFCTransactionType } from "@prisma/client";
+import { notificationService } from "@/server/services/shared/notification.service";
 
 /**
  * Router pour la gestion des cartes NFC des livreurs
@@ -186,8 +187,19 @@ export const nfcManagementRouter = router({ /**
             }
           });
           
-          // Notification push (simulation OneSignal)
-          console.log(`Push notification envoyée au client ${delivery.clientId} pour validation livraison`);
+          // Notification push réelle via OneSignal
+          try {
+            await notificationService.sendDeliveryNotification(
+              delivery.clientId,
+              delivery.id,
+              "DELIVERED",
+              "Livraison validée",
+              `Votre livraison ${delivery.trackingCode} a été validée avec succès`
+            );
+          } catch (error) {
+            console.error("Erreur notification client:", error);
+            // Ne pas faire échouer la transaction pour une erreur de notification
+          }
         }
         
         // Déclencher le processus de paiement

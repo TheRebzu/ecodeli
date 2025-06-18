@@ -535,10 +535,190 @@ export class PartialDeliveryService {
   private async findAvailableDeliverers(
     segment: PartialDeliverySegment,
   ): Promise<any[]> {
+    try {
+      // Construire les critères de recherche
+      const searchRadius = 25; // km autour du point de collecte
+      const requiredCapabilities = segment.requiredCapabilities || [];
+      
+      // Trouver les livreurs disponibles dans la zone
+      const availableDeliverers = await this.prisma.user.findMany({
+        where: {
+          role: "DELIVERER",
+          isActive: true,
+          deliverer: {
+            isOnline: true,
+            isAvailable: true,
+            // Vérifier que le livreur a les capacités requises
+            capabilities: requiredCapabilities.length > 0 ? {
+              hasEvery: requiredCapabilities
+            } : undefined,
+            // Filtrer par zone géographique approximative
+            currentLatitude: {
+              gte: segment.pickupLatitude - (searchRadius / 111), // 1 degré ≈ 111km
+              lte: segment.pickupLatitude + (searchRadius / 111)
+            },
+            currentLongitude: {
+              gte: segment.pickupLongitude - (searchRadius / 111),
+              lte: segment.pickupLongitude + (searchRadius / 111)
+            }
+          }
+        },
+        include: {
+          deliverer: {
+            include: {
+              vehicle: true,
+              currentDeliveries: {
+                where: {
+                  status: { in: ["PENDING", "IN_PROGRESS", "ASSIGNED"] }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Calculer les métriques pour chaque livreur
+      const scoredDeliverers = await Promise.all(
+        availableDeliverers.map(async (user) => {
+          const deliverer = user.deliverer;
+          if (!deliverer) return null;
+
+          // Calculer la distance exacte
+          const distance = this.calculateDistance(
+            segment.pickupLatitude,
+            segment.pickupLongitude,
+            deliverer.currentLatitude || 0,
+            deliverer.currentLongitude || 0
+          );
+
+          // Filtrer si trop loin
+          if (distance > searchRadius) return null;
+
+          // Calculer le score basé sur plusieurs critères
+          const rating = deliverer.rating || 0;
+          const experience = deliverer.completedDeliveries || 0;
+          const activeDeliveries = deliverer.currentDeliveries?.length || 0;
+          
+          // Score de disponibilité (moins de livraisons actives = mieux)
+          const availabilityScore = Math.max(0, 1 - (activeDeliveries / 5));
+          
+          // Score de distance (plus proche = mieux)
+          const distanceScore = Math.max(0, 1 - (distance / searchRadius));
+          
+          // Score d'expérience
+          const experienceScore = Math.min(1, experience / 100);
+          
+          // Score de notation
+          const ratingScore = rating / 5;
+
+          // Score composite
+          const totalScore = (
+            distanceScore * 0.3 + 
+            ratingScore * 0.3 + 
+            experienceScore * 0.2 + 
+            availabilityScore * 0.2
+          );
+
+          return {
+            id: user.id,
+            name: user.name,
+            phone: user.phone,
+            rating,
+            experience,
+            distance: Math.round(distance * 10) / 10,
+            activeDeliveries,
+            vehicle: deliverer.vehicle,
+            capabilities: deliverer.capabilities,
+            score: totalScore,
+            isAvailable: true,
+            estimatedArrival: this.calculateEstimatedArrival(distance),
+            currentLocation: {
+              latitude: deliverer.currentLatitude,
+              longitude: deliverer.currentLongitude
+            }
+          };
+        })
+      );
+
+      // Filtrer les résultats null et trier par score
+      const validDeliverers = scoredDeliverers
+        .filter(Boolean)
+        .sort((a, b) => (b?.score || 0) - (a?.score || 0))
+        .slice(0, 10); // Top 10 des meilleurs candidats
+
+      // Si aucun livreur n'est trouvé, chercher avec des critères plus larges
+      if (validDeliverers.length === 0) {
+        logger.warn(`Aucun livreur trouvé pour le segment ${segment.id}, recherche élargie...`);
+        
+        const fallbackDeliverers = await this.prisma.user.findMany({
+          where: {
+            role: "DELIVERER",
+            isActive: true,
+            deliverer: {
+              isOnline: true,
+              // Supprimer les restrictions géographiques pour le fallback
+            }
+          },
+          include: {
+            deliverer: {
+              include: {
+                vehicle: true,
+                currentDeliveries: {
+                  where: {
+                    status: { in: ["PENDING", "IN_PROGRESS", "ASSIGNED"] }
+                  }
+                }
+              }
+            }
+          },
+          take: 5 // Limiter à 5 pour les fallbacks
+        });
+
+        return fallbackDeliverers
+          .filter(user => user.deliverer)
+          .map(user => ({
+            id: user.id,
+            name: user.name,
+            phone: user.phone,
+            rating: user.deliverer?.rating || 0,
+            experience: user.deliverer?.completedDeliveries || 0,
+            distance: -1, // Distance inconnue
+            activeDeliveries: user.deliverer?.currentDeliveries?.length || 0,
+            vehicle: user.deliverer?.vehicle,
+            capabilities: user.deliverer?.capabilities,
+            score: 0.5, // Score neutre pour les fallbacks
+            isAvailable: true,
+            estimatedArrival: "Inconnu",
+            currentLocation: {
+              latitude: user.deliverer?.currentLatitude,
+              longitude: user.deliverer?.currentLongitude
+            },
+            isFallback: true
+          }));
+      }
+
+      logger.info(`${validDeliverers.length} livreurs disponibles trouvés pour le segment ${segment.id}`);
+      return validDeliverers;
+
+    } catch (error) {
+      logger.error("Erreur lors de la recherche de livreurs:", error);
+      return [];
+    }
+  }
+
+  private calculateEstimatedArrival(distance: number): string {
+    // Vitesse moyenne en ville: 25 km/h
+    const averageSpeed = 25;
+    const timeInHours = distance / averageSpeed;
+    const timeInMinutes = Math.round(timeInHours * 60);
     
-    return [
-      { id: "deliverer-1", rating: 4.8, experience: 150 },
-      { id: "deliverer-2", rating: 4.6, experience: 89 }];
+    if (timeInMinutes < 60) {
+      return `${timeInMinutes} min`;
+    } else {
+      const hours = Math.floor(timeInMinutes / 60);
+      const minutes = timeInMinutes % 60;
+      return `${hours}h ${minutes}min`;
+    }
   }
 
   private selectBestDeliverer(

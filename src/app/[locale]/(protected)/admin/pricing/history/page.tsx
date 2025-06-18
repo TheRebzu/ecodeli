@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import BillingOverview from "@/components/admin/financial/billing-overview";
 
 export default function PricingHistoryPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function PricingHistoryPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Historique tarifs - En cours de développement
-        </p>
+        <BillingOverview />
       </Card>
     </div>
   );

@@ -47,7 +47,7 @@ import {
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/common";
-import { api } from "@/lib/api";
+import { api } from "@/trpc/react";
 
 export interface ValidationPhoto {
   id: string;
@@ -985,3 +985,4 @@ export default function DeliveryCodeValidator({
     </Card>
   );
 }
+

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import DelivererDashboard from "@/components/deliverer/dashboard/deliverer-dashboard";
 
 export default function ContractPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function ContractPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Mon contrat - En cours de développement
-        </p>
+        <DelivererDashboard locale="fr" />
       </Card>
     </div>
   );

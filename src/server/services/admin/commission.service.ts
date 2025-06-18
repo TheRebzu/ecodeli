@@ -541,7 +541,9 @@ export const commissionService = {
     if (paymentIds.length > 0) {
       await db.payment.updateMany({
         where: {
-          id: { in: paymentIds }
+          id: {
+            in: paymentIds
+          }
         },
         data: {
           commissionId: commission.id

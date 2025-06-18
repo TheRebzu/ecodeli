@@ -71,8 +71,44 @@ export function AnnouncementDashboard() {
   };
 
   const handleExport = async () => {
-    // TODO: Implémenter l'export des données
-    console.log("Export des données");
+    try {
+      // Préparer les paramètres d'export
+      const exportParams = new URLSearchParams({
+        status: filters.status || '',
+        type: filters.type || '',
+        searchTerm: filters.searchTerm || '',
+        ...(filters.startDate && { startDate: filters.startDate }),
+        ...(filters.endDate && { endDate: filters.endDate }),
+        format: 'excel'
+      });
+
+      // Déclencher l'export via l'API
+      const response = await fetch(`/api/admin/announcements/export?${exportParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'export');
+      }
+
+      // Télécharger le fichier
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `annonces-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      console.log("Export des données réalisé avec succès");
+    } catch (error) {
+      console.error("Erreur lors de l'export:", error);
+    }
   };
 
   return (

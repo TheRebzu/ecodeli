@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { ProviderContracts } from "@/components/provider/contracts/provider-contracts";
 
 export default function NegotiationPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function NegotiationPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Négociation - En cours de développement
-        </p>
+        <ProviderContracts />
       </Card>
     </div>
   );

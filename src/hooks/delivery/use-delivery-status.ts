@@ -294,6 +294,13 @@ export function useDeliveryDetails(deliveryId: string) {
   return {
     delivery,
     isLoading,
-    // TODO: Ajouter d'autres propriétés nécessaires
+    // Propriétés calculées
+    isCompleted: delivery?.status === "DELIVERED",
+    isCancelled: delivery?.status === "CANCELLED",
+    isInProgress: ["PENDING_PICKUP", "PICKED_UP", "IN_TRANSIT"].includes(delivery?.status || ""),
+    hasIssues: delivery?.status === "DELAYED" || delivery?.status === "ISSUE",
+    // Helpers
+    canCancel: delivery?.status && ["PENDING", "PENDING_PICKUP"].includes(delivery.status),
+    canUpdate: delivery?.status && !["DELIVERED", "CANCELLED"].includes(delivery.status),
   };
 }

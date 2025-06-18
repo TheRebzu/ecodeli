@@ -74,7 +74,8 @@ export const documentRouter = router({ /**
     .query(async ({ input  }) => {
       try {
         // Utiliser la fonction centralisée depuis document-utils
-        const types = getRequiredDocumentTypesByRole(input.userRole as UserRole);
+        const { getRequiredDocumentTypesByRole } = await import("@/utils/document-utils");
+        const types = getRequiredDocumentTypesByRole(input.userRole);
         return types;
       } catch (error: any) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",

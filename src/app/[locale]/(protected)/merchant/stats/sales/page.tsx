@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import SalesWidget from "@/components/merchant/dashboard/sales-widget";
 
 export default function SalesStatsPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function SalesStatsPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Ventes - En cours de développement
-        </p>
+        <SalesWidget />
       </Card>
     </div>
   );

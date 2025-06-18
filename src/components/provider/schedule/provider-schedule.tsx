@@ -86,7 +86,7 @@ export function ProviderSchedule() {
         startTime: slot.startTime,
         endTime: slot.endTime,
         isAvailable: slot.isAvailable,
-        zones: scheduleData.zones || [] }));
+        zones: slot.zones || [] }));
       
       // Merger avec les jours manquants
       const allDays = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
@@ -178,7 +178,7 @@ export function ProviderSchedule() {
 
   const handleSave = async () => {
     try {
-      await updateScheduleMutation.mutateAsync({ schedule  });
+      await updateScheduleMutation.mutateAsync({ schedule: weeklySchedule, zones: selectedZones });
     } catch (error) {
       // L'erreur est gérée dans onError
     }
@@ -285,7 +285,7 @@ export function ProviderSchedule() {
                         <Select 
                           value={slot.startTime} 
                           onValueChange={(value) => 
-                            updateTimeSlot(slot.day, { startTime })
+                            updateTimeSlot(slot.day, { startTime: value })
                           }
                         >
                           <SelectTrigger className="w-[100px]">
@@ -306,7 +306,7 @@ export function ProviderSchedule() {
                         <Select 
                           value={slot.endTime} 
                           onValueChange={(value) => 
-                            updateTimeSlot(slot.day, { endTime })
+                            updateTimeSlot(slot.day, { endTime: value })
                           }
                         >
                           <SelectTrigger className="w-[100px]">

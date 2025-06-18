@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
+import { DeliveryStatsWidget } from "@/components/deliverer/dashboard/delivery-stats-widget";
+import { EarningsWidget } from "@/components/deliverer/dashboard/earnings-widget";
 import { Card } from "@/components/ui/card";
 
 export default function StatsPage() {
@@ -14,11 +16,15 @@ export default function StatsPage() {
         description={t("deliverer.Stats.description")}
       />
 
-      <Card className="p-6">
-        <p className="text-muted-foreground">
-          Statistiques - En cours de développement
-        </p>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <DeliveryStatsWidget />
+        </Card>
+        
+        <Card className="p-6">
+          <EarningsWidget />
+        </Card>
+      </div>
     </div>
   );
 }

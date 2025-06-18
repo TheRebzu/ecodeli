@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { ContractList } from "@/components/client/contracts/contract-list";
 
 export default function ContractDetailPage() {
   const t = useTranslations();
@@ -15,9 +16,12 @@ export default function ContractDetailPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Détail contrat - En cours de développement
-        </p>
+        <ContractList
+          contracts={[]}
+          isLoading={false}
+          onView={(id) => console.log('View contract:', id)}
+          onDownload={(id) => console.log('Download contract:', id)}
+        />
       </Card>
     </div>
   );

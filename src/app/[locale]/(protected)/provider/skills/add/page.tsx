@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { ServiceForm } from "@/components/provider/profile/service-types";
 
 export default function AddSkillPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function AddSkillPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Ajouter - En cours de développement
-        </p>
+        <ServiceForm />
       </Card>
     </div>
   );

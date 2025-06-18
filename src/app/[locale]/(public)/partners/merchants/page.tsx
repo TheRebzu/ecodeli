@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import MerchantRegisterForm from "@/components/auth/register/merchant-register-form";
 
 export default function BecomeMerchantPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function BecomeMerchantPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Devenir commerçant - En cours de développement
-        </p>
+        <MerchantRegisterForm />
       </Card>
     </div>
   );

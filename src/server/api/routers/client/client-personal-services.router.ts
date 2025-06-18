@@ -132,8 +132,11 @@ export const clientPersonalServicesRouter = router({ /**
 
             status: "PENDING"}});
 
-        // TODO: Notifier les prestataires correspondants
-        // TODO: Calculer le matching automatique
+        // Système de notification automatique aux prestataires correspondants
+        await notifyMatchingProviders(serviceRequest, ctx.db);
+        
+        // Système de matching automatique intelligent
+        await calculateProviderMatching(serviceRequest, ctx.db);
 
         return {
           success: true,
@@ -780,4 +783,265 @@ function getServiceTypeLabel(serviceType: PersonalServiceType): string {
   const labels = { PERSON_TRANSPORT: "Transport de personnes", SHOPPING_SERVICE: "Service de courses", PET_SITTING: "Garde d'animaux", HOME_SERVICE: "Services à domicile", INTERNATIONAL_PURCHASE: "Achats internationaux"};
 
   return labels[serviceType] || serviceType;
+}
+
+/**
+ * Système de notification automatique aux prestataires correspondants
+ */
+async function notifyMatchingProviders(serviceRequest: any, db: any): Promise<void> {
+  try {
+    const NOTIFICATION_RADIUS_KM = 25; // Rayon de recherche pour les prestataires
+    
+    // Récupérer tous les prestataires actifs
+    const activeProviders = await db.provider.findMany({
+      where: {
+        status: 'ACTIVE',
+        isAvailable: true,
+        user: {
+          isActive: true
+        }
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
+        serviceArea: true,
+        providerStats: true
+      }
+    });
+
+    const eligibleProviders = [];
+
+    for (const provider of activeProviders) {
+      // Vérifier la zone de service géographique si les coordonnées sont disponibles
+      if (provider.serviceArea && 
+          serviceRequest.serviceLatitude && 
+          serviceRequest.serviceLongitude) {
+        
+        const distance = calculateServiceDistance(
+          provider.serviceArea.centerLatitude,
+          provider.serviceArea.centerLongitude,
+          serviceRequest.serviceLatitude,
+          serviceRequest.serviceLongitude
+        );
+
+        if (distance <= Math.max(provider.serviceArea.radiusKm || NOTIFICATION_RADIUS_KM, NOTIFICATION_RADIUS_KM)) {
+          eligibleProviders.push({
+            providerId: provider.id,
+            userId: provider.user.id,
+            distance: Math.round(distance * 10) / 10,
+            name: `${provider.user.profile?.firstName || ''} ${provider.user.profile?.lastName || ''}`.trim() || provider.user.email
+          });
+        }
+      } else {
+        // Si pas de géolocalisation, inclure tous les prestataires actifs
+        eligibleProviders.push({
+          providerId: provider.id,
+          userId: provider.user.id,
+          distance: 0,
+          name: `${provider.user.profile?.firstName || ''} ${provider.user.profile?.lastName || ''}`.trim() || provider.user.email
+        });
+      }
+    }
+
+    if (eligibleProviders.length > 0) {
+      // Créer les notifications
+      const notifications = eligibleProviders.map(provider => ({
+        userId: provider.userId,
+        type: 'NEW_SERVICE_OPPORTUNITY' as const,
+        title: 'Nouvelle demande de service',
+        message: `Nouvelle demande de ${getServiceTypeLabel(serviceRequest.serviceType)}`,
+        data: {
+          serviceRequestId: serviceRequest.id,
+          serviceType: serviceRequest.serviceType,
+          clientLocation: serviceRequest.serviceAddress,
+          suggestedPrice: serviceRequest.suggestedPrice,
+          requestedDate: serviceRequest.requestedDate,
+          distance: provider.distance
+        },
+        priority: serviceRequest.urgency === 'URGENT' ? 'HIGH' : 'MEDIUM',
+        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000) // Expire dans 48h
+      }));
+
+      await db.notification.createMany({
+        data: notifications
+      });
+
+      console.log(`📲 ${eligibleProviders.length} prestataires notifiés pour la demande ${serviceRequest.id}`);
+    } else {
+      console.log(`📲 Aucun prestataire éligible trouvé pour la demande ${serviceRequest.id}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de la notification des prestataires:', error);
+  }
+}
+
+/**
+ * Système de matching automatique intelligent
+ */
+async function calculateProviderMatching(serviceRequest: any, db: any): Promise<void> {
+  try {
+    const MATCHING_RADIUS_KM = 30; // Rayon de recherche pour le matching
+    const MAX_SUGGESTIONS = 8; // Nombre maximum de suggestions
+
+    // Récupérer les prestataires éligibles avec leurs statistiques
+    const eligibleProviders = await db.provider.findMany({
+      where: {
+        status: 'ACTIVE',
+        user: {
+          isActive: true
+        }
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
+        serviceArea: true,
+        providerStats: true
+      }
+    });
+
+    const matchingCandidates = [];
+
+    for (const provider of eligibleProviders) {
+      let distance = 0;
+      
+      // Calculer la distance si possible
+      if (provider.serviceArea && 
+          serviceRequest.serviceLatitude && 
+          serviceRequest.serviceLongitude) {
+        
+        distance = calculateServiceDistance(
+          provider.serviceArea.centerLatitude,
+          provider.serviceArea.centerLongitude,
+          serviceRequest.serviceLatitude,
+          serviceRequest.serviceLongitude
+        );
+      }
+
+      if (distance <= MATCHING_RADIUS_KM || distance === 0) {
+        // Calculer le score de matching
+        const matchingScore = calculateServiceMatchingScore({
+          provider,
+          serviceRequest,
+          distance
+        });
+
+        matchingCandidates.push({
+          providerId: provider.id,
+          userId: provider.user.id,
+          score: matchingScore,
+          distance: Math.round(distance * 10) / 10,
+          name: `${provider.user.profile?.firstName || ''} ${provider.user.profile?.lastName || ''}`.trim() || provider.user.email,
+          stats: provider.providerStats
+        });
+      }
+    }
+
+    // Trier par score décroissant et prendre les meilleurs
+    const topMatches = matchingCandidates
+      .sort((a, b) => b.score - a.score)
+      .slice(0, MAX_SUGGESTIONS);
+
+    if (topMatches.length > 0) {
+      // Notifier les top prestataires
+      const topNotifications = topMatches.slice(0, 5).map(match => ({
+        userId: match.userId,
+        type: 'SERVICE_MATCH_SUGGESTED' as const,
+        title: 'Service hautement compatible',
+        message: `Cette demande correspond à votre profil (score: ${Math.round(match.score)}%)`,
+        data: {
+          serviceRequestId: serviceRequest.id,
+          matchingScore: match.score,
+          rank: topMatches.findIndex(m => m.providerId === match.providerId) + 1,
+          distance: match.distance,
+          suggestedPrice: serviceRequest.suggestedPrice,
+          recommended: true
+        },
+        priority: 'HIGH'
+      }));
+
+      await db.notification.createMany({
+        data: topNotifications
+      });
+
+      console.log(`🎯 Matching automatique: ${topMatches.length} suggestions pour la demande ${serviceRequest.id}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors du matching automatique des prestataires:', error);
+  }
+}
+
+/**
+ * Calcule la distance entre deux points géographiques
+ */
+function calculateServiceDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Rayon de la Terre en km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+/**
+ * Calcule un score de matching pour un prestataire
+ */
+function calculateServiceMatchingScore(params: {
+  provider: any;
+  serviceRequest: any;
+  distance: number;
+}): number {
+  const { provider, serviceRequest, distance } = params;
+  let score = 0;
+
+  // Score de distance (30% du score total)
+  if (distance > 0) {
+    const maxDistance = 30; // km
+    const distanceScore = Math.max(0, (maxDistance - distance) / maxDistance) * 30;
+    score += distanceScore;
+  } else {
+    // Si pas de distance calculée, donner un score neutre
+    score += 15;
+  }
+
+  // Score de réputation (40% du score total)
+  if (provider.providerStats?.averageRating) {
+    const reputationScore = (provider.providerStats.averageRating / 5) * 40;
+    score += reputationScore;
+  }
+
+  // Score d'expérience (20% du score total)
+  if (provider.providerStats?.totalServices) {
+    const experienceScore = Math.min(20, (provider.providerStats.totalServices / 50) * 20);
+    score += experienceScore;
+  }
+
+  // Score de disponibilité (10% du score total)
+  if (provider.isAvailable && provider.status === 'ACTIVE') {
+    score += 10;
+  }
+
+  return Math.round(score * 10) / 10;
 }

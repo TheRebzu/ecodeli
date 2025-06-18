@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { ReviewList } from "@/components/client/reviews/review-list";
 
 export default function PendingReviewsPage() {
   const t = useTranslations();
@@ -15,9 +16,11 @@ export default function PendingReviewsPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          À évaluer - En cours de développement
-        </p>
+        <ReviewList
+          reviews={[]}
+          isLoading={false}
+          onCreateNew={() => console.log('Create review')}
+        />
       </Card>
     </div>
   );

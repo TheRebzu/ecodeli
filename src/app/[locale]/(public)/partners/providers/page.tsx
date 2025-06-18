@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import ProviderRegisterForm from "@/components/auth/register/provider-register-form";
 
 export default function BecomeProviderPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function BecomeProviderPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Devenir prestataire - En cours de développement
-        </p>
+        <ProviderRegisterForm />
       </Card>
     </div>
   );

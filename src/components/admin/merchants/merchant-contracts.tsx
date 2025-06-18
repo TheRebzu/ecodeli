@@ -2,30 +2,38 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { PlusCircle, FileText, RefreshCw } from "lucide-react";
-import { ContractStatus } from "@prisma/client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Pagination } from "@/components/ui/pagination";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { api } from "@/trpc/react";
+import { useToast } from "@/hooks/use-toast";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger} from "@/components/ui/dialog";
+  PlusCircle,
+  RefreshCw,
+  MoreHorizontal,
+  FileText,
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Edit,
+  Eye,
+  Trash2,
+  Download,
+  Send,
+} from "lucide-react";
 
-// Définissez les variants disponibles pour Badge
+// Types pour les contrats
+type ContractStatus = "DRAFT" | "PENDING_SIGNATURE" | "ACTIVE" | "TERMINATED" | "EXPIRED";
+
 type BadgeVariant = "default" | "destructive" | "outline" | "secondary";
 
 type StatusConfig = {
@@ -33,144 +41,277 @@ type StatusConfig = {
   label: string;
 };
 
+// Composant principal de gestion des contrats
 export function ContractManagement() {
   const t = useTranslations("admin.contracts");
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<ContractStatus | "ALL">("ALL");
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading] = useState(false);
-  const [contractTemplateDialogOpen, setContractTemplateDialogOpen] =
-    useState(false);
+  const [contractTemplateDialogOpen, setContractTemplateDialogOpen] = useState(false);
+  const [selectedContract, setSelectedContract] = useState<string | null>(null);
 
-  // Données de contrats simulées pour la démo
-  const contracts = [
-    {
-      id: "1",
-      title: "Contrat standard marchand",
-      merchant: "Boulangerie Martin",
-      status: ContractStatus.ACTIVE,
-      createdAt: new Date("2023-11-15"),
-      expiresAt: new Date("2024-11-15"),
-      signedAt: new Date("2023-11-15")},
-    {
-      id: "2",
-      title: "Contrat premium marchand",
-      merchant: "Primeur Durand",
-      status: ContractStatus.ACTIVE,
-      createdAt: new Date("2023-10-20"),
-      expiresAt: new Date("2024-10-20"),
-      signedAt: new Date("2023-10-20")},
-    {
-      id: "3",
-      title: "Contrat partenaire privilégié",
-      merchant: "Boucherie Antoine",
-      status: ContractStatus.ACTIVE,
-      createdAt: new Date("2023-09-05"),
-      expiresAt: new Date("2024-09-05"),
-      signedAt: new Date("2023-09-05")},
-    {
-      id: "4",
-      title: "Contrat standard marchand",
-      merchant: "Fleuriste Belle Rose",
-      status: ContractStatus.PENDING_SIGNATURE,
-      createdAt: new Date("2023-12-01"),
-      expiresAt: null,
-      signedAt: null},
-    {
-      id: "5",
-      title: "Contrat standard marchand",
-      merchant: "Épicerie du Coin",
-      status: ContractStatus.EXPIRED,
-      createdAt: new Date("2022-11-15"),
-      expiresAt: new Date("2023-11-15"),
-      signedAt: new Date("2022-11-15")},
-    {
-      id: "6",
-      title: "Contrat premium marchand",
-      merchant: "Fromagerie Delice",
-      status: ContractStatus.TERMINATED,
-      createdAt: new Date("2023-02-10"),
-      expiresAt: new Date("2024-02-10"),
-      signedAt: new Date("2023-02-10")},
-    {
-      id: "7",
-      title: "Contrat standard marchand",
-      merchant: "Boutique Bio",
-      status: ContractStatus.DRAFT,
-      createdAt: new Date("2023-11-30"),
-      expiresAt: null,
-      signedAt: null}];
+  // Requêtes API pour les contrats
+  const {
+    data: contracts,
+    isLoading: contractsLoading,
+    refetch: refetchContracts,
+  } = api.admin.contracts.getAllContracts.useQuery({
+    status: activeTab === "ALL" ? undefined : activeTab,
+    search: searchTerm || undefined,
+  });
 
-  // Templates de contrats simulés
-  const contractTemplates = [
-    {
-      id: "1",
-      name: "Contrat standard marchand",
-      description: "Contrat de base pour les commerçants"},
-    {
-      id: "2",
-      name: "Contrat premium marchand",
-      description: "Contrat avec services premium pour les commerçants"},
-    {
-      id: "3",
-      name: "Contrat partenaire privilégié",
-      description: "Contrat pour les partenaires privilégiés"}];
+  // Requête pour les templates de contrats
+  const {
+    data: contractTemplates,
+    isLoading: templatesLoading,
+  } = api.admin.contracts.getContractTemplates.useQuery();
+
+  // Mutations pour les actions sur les contrats
+  const createContractMutation = api.admin.contracts.createContract.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Contrat créé",
+        description: "Le nouveau contrat a été créé avec succès.",
+      });
+      refetchContracts();
+      setContractTemplateDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateContractStatusMutation = api.admin.contracts.updateContractStatus.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Statut mis à jour",
+        description: "Le statut du contrat a été mis à jour avec succès.",
+      });
+      refetchContracts();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteContractMutation = api.admin.contracts.deleteContract.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Contrat supprimé",
+        description: "Le contrat a été supprimé avec succès.",
+      });
+      refetchContracts();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const sendContractMutation = api.admin.contracts.sendContractForSignature.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Contrat envoyé",
+        description: "Le contrat a été envoyé pour signature.",
+      });
+      refetchContracts();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Filtrer les contrats selon l'onglet actif et le terme de recherche
-  const filteredContracts = contracts
-    .filter((contract) => activeTab === "ALL" || contract.status === activeTab)
-    .filter(
-      (contract) =>
-        contract.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contract.merchant.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+  const filteredContracts = contracts?.filter((contract) => {
+    const matchesTab = activeTab === "ALL" || contract.status === activeTab;
+    const matchesSearch = !searchTerm || 
+      contract.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contract.merchant?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesTab && matchesSearch;
+  }) || [];
 
   // Formater la date
-  const formatDate = (date: Date | null) => {
+  const formatDate = (date: Date | string | null) => {
     if (!date) return "-";
+    const dateObj = typeof date === "string" ? new Date(date) : date;
     return new Intl.DateTimeFormat("fr-FR", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric"}).format(date);
+      year: "numeric",
+    }).format(dateObj);
   };
 
   // Obtenir le badge de statut
   const getStatusBadge = (status: ContractStatus) => {
-    const statusConfig: Record<
-      ContractStatus,
-      { variant: BadgeVariant; label: string }
-    > = {
-      [ContractStatus.DRAFT]: {
+    const statusConfig: Record<ContractStatus, StatusConfig> = {
+      DRAFT: {
         variant: "secondary",
-        label: t("status.draft")},
-      [ContractStatus.PENDING_SIGNATURE]: {
+        label: t("status.draft"),
+      },
+      PENDING_SIGNATURE: {
         variant: "default",
-        label: t("status.pendingSignature")},
-      [ContractStatus.ACTIVE]: {
+        label: t("status.pendingSignature"),
+      },
+      ACTIVE: {
         variant: "default",
-        label: t("status.active")},
-      [ContractStatus.TERMINATED]: {
+        label: t("status.active"),
+      },
+      TERMINATED: {
         variant: "destructive",
-        label: t("status.terminated")},
-      [ContractStatus.EXPIRED]: {
+        label: t("status.terminated"),
+      },
+      EXPIRED: {
         variant: "outline",
-        label: t("status.expired")}};
+        label: t("status.expired"),
+      },
+    };
 
     const config = statusConfig[status];
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleCreateContract = (templateId: string) => {
-    setContractTemplateDialogOpen(false);
-    // Ici, on simulerait la redirection vers la page de création de contrat avec le template sélectionné
-    console.log(`Créer un contrat avec le template ${templateId}`);
+  // Obtenir l'icône du statut
+  const getStatusIcon = (status: ContractStatus) => {
+    switch (status) {
+      case "DRAFT":
+        return <Edit className="h-4 w-4" />;
+      case "PENDING_SIGNATURE":
+        return <Clock className="h-4 w-4" />;
+      case "ACTIVE":
+        return <CheckCircle className="h-4 w-4" />;
+      case "TERMINATED":
+        return <XCircle className="h-4 w-4" />;
+      case "EXPIRED":
+        return <AlertCircle className="h-4 w-4" />;
+      default:
+        return <FileText className="h-4 w-4" />;
+    }
   };
 
+  // Gérer la création de contrat
+  const handleCreateContract = async (templateId: string, merchantId: string) => {
+    await createContractMutation.mutateAsync({
+      templateId,
+      merchantId,
+    });
+  };
+
+  // Gérer le changement d'onglet
   const handleTabChange = (value: string) => {
     setActiveTab(value as ContractStatus | "ALL");
   };
 
+  // Gérer les actions sur les contrats
+  const handleContractAction = async (action: string, contractId: string) => {
+    switch (action) {
+      case "activate":
+        await updateContractStatusMutation.mutateAsync({
+          contractId,
+          status: "ACTIVE",
+        });
+        break;
+      case "terminate":
+        await updateContractStatusMutation.mutateAsync({
+          contractId,
+          status: "TERMINATED",
+        });
+        break;
+      case "send":
+        await sendContractMutation.mutateAsync({ contractId });
+        break;
+      case "delete":
+        if (confirm("Êtes-vous sûr de vouloir supprimer ce contrat ?")) {
+          await deleteContractMutation.mutateAsync({ contractId });
+        }
+        break;
+    }
+  };
+
+  // Statistiques des contrats
+  const contractStats = {
+    total: contracts?.length || 0,
+    active: contracts?.filter(c => c.status === "ACTIVE").length || 0,
+    pending: contracts?.filter(c => c.status === "PENDING_SIGNATURE").length || 0,
+    expired: contracts?.filter(c => c.status === "EXPIRED").length || 0,
+  };
+
+  if (contractsLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Chargement des contrats...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Statistiques */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium">Total</p>
+                <p className="text-2xl font-bold">{contractStats.total}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm font-medium">Actifs</p>
+                <p className="text-2xl font-bold">{contractStats.active}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-5 w-5 text-orange-600" />
+              <div>
+                <p className="text-sm font-medium">En attente</p>
+                <p className="text-2xl font-bold">{contractStats.pending}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              <div>
+                <p className="text-sm font-medium">Expirés</p>
+                <p className="text-2xl font-bold">{contractStats.expired}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Contrôles */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center space-x-2">
           <Input
@@ -182,7 +323,10 @@ export function ContractManagement() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setSearchTerm("")}
+            onClick={() => {
+              setSearchTerm("");
+              refetchContracts();
+            }}
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -198,26 +342,49 @@ export function ContractManagement() {
               {t("createContract")}
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{t("selectTemplate")}</DialogTitle>
               <DialogDescription>
                 {t("selectTemplateDescription")}
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              {contractTemplates.map((template) => (
-                <Card
-                  key={template.id}
-                  className="cursor-pointer hover:bg-accent/50 transition-colors"
-                  onClick={() => handleCreateContract(template.id)}
-                >
-                  <CardHeader className="p-4">
-                    <CardTitle className="text-base">{template.name}</CardTitle>
-                    <CardDescription>{template.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
+            <div className="grid gap-4 py-4 max-h-96 overflow-y-auto">
+              {templatesLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                </div>
+              ) : (
+                contractTemplates?.map((template) => (
+                  <Card
+                    key={template.id}
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                  >
+                    <CardHeader className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-base">{template.name}</CardTitle>
+                          <CardDescription>{template.description}</CardDescription>
+                        </div>
+                        <Select
+                          onValueChange={(merchantId) => 
+                            handleCreateContract(template.id, merchantId)
+                          }
+                        >
+                          <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Sélectionner un marchand" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {/* Ici, vous devriez charger la liste des marchands */}
+                            <SelectItem value="merchant-1">Boulangerie Martin</SelectItem>
+                            <SelectItem value="merchant-2">Primeur Durand</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))
+              )}
             </div>
             <DialogFooter>
               <Button
@@ -231,113 +398,125 @@ export function ContractManagement() {
         </Dialog>
       </div>
 
+      {/* Liste des contrats */}
       <Tabs
         defaultValue="ALL"
         value={activeTab}
         onValueChange={handleTabChange}
       >
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-6">
-          <TabsTrigger value="ALL">{t("allContracts")}</TabsTrigger>
-          <TabsTrigger value={ContractStatus.DRAFT}>
-            {t("status.draft")}
-          </TabsTrigger>
-          <TabsTrigger value={ContractStatus.PENDING_SIGNATURE}>
-            {t("status.pendingSignature")}
-          </TabsTrigger>
-          <TabsTrigger value={ContractStatus.ACTIVE}>
-            {t("status.active")}
-          </TabsTrigger>
-          <TabsTrigger value={ContractStatus.TERMINATED}>
-            {t("status.terminated")}
-          </TabsTrigger>
-          <TabsTrigger value={ContractStatus.EXPIRED}>
-            {t("status.expired")}
-          </TabsTrigger>
+          <TabsTrigger value="ALL">Tous</TabsTrigger>
+          <TabsTrigger value="DRAFT">Brouillons</TabsTrigger>
+          <TabsTrigger value="PENDING_SIGNATURE">En attente</TabsTrigger>
+          <TabsTrigger value="ACTIVE">Actifs</TabsTrigger>
+          <TabsTrigger value="EXPIRED">Expirés</TabsTrigger>
+          <TabsTrigger value="TERMINATED">Résiliés</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className="space-y-4 mt-4">
+        <TabsContent value={activeTab} className="mt-4">
           <Card>
-            <CardContent className="p-6">
-              {loading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : filteredContracts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">{t("noContracts")}</h3>
-                  <p className="text-sm text-muted-foreground max-w-md mt-2">
-                    {t("noContractsDescription")}
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => setContractTemplateDialogOpen(true)}
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    {t("createContract")}
-                  </Button>
-                </div>
-              ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left">
-                      <th className="py-3 px-2">{t("contractName")}</th>
-                      <th className="py-3 px-2">{t("merchant")}</th>
-                      <th className="py-3 px-2">{t("status")}</th>
-                      <th className="py-3 px-2">{t("createdAt")}</th>
-                      <th className="py-3 px-2">{t("expiresAt")}</th>
-                      <th className="py-3 px-2">{t("actions")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredContracts.map((contract) => (
-                      <tr key={contract.id} className="border-t">
-                        <td className="py-3 px-2 font-medium">
-                          {contract.title}
-                        </td>
-                        <td className="py-3 px-2">{contract.merchant}</td>
-                        <td className="py-3 px-2">
-                          {getStatusBadge(contract.status)}
-                        </td>
-                        <td className="py-3 px-2">
-                          {formatDate(contract.createdAt)}
-                        </td>
-                        <td className="py-3 px-2">
-                          {formatDate(contract.expiresAt)}
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm">
-                              {t("view")}
-                            </Button>
-                            {contract.status === ContractStatus.DRAFT && (
-                              <Button variant="ghost" size="sm">
-                                {t("edit")}
-                              </Button>
-                            )}
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Contrat</TableHead>
+                    <TableHead>Marchand</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Date de création</TableHead>
+                    <TableHead>Date d'expiration</TableHead>
+                    <TableHead>Date de signature</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredContracts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <div className="text-muted-foreground">
+                          <FileText className="h-12 w-12 mx-auto mb-4" />
+                          <p>Aucun contrat trouvé</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredContracts.map((contract) => (
+                      <TableRow key={contract.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {getStatusIcon(contract.status)}
+                            <div>
+                              <p className="font-medium">{contract.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {contract.contractNumber}
+                              </p>
+                            </div>
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{contract.merchant?.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {contract.merchant?.email}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(contract.status)}
+                        </TableCell>
+                        <TableCell>{formatDate(contract.createdAt)}</TableCell>
+                        <TableCell>{formatDate(contract.expiresAt)}</TableCell>
+                        <TableCell>{formatDate(contract.signedAt)}</TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleContractAction("view", contract.id)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Voir
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleContractAction("download", contract.id)}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Télécharger
+                              </DropdownMenuItem>
+                              {contract.status === "DRAFT" && (
+                                <DropdownMenuItem onClick={() => handleContractAction("send", contract.id)}>
+                                  <Send className="mr-2 h-4 w-4" />
+                                  Envoyer pour signature
+                                </DropdownMenuItem>
+                              )}
+                              {contract.status === "PENDING_SIGNATURE" && (
+                                <DropdownMenuItem onClick={() => handleContractAction("activate", contract.id)}>
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Activer
+                                </DropdownMenuItem>
+                              )}
+                              {contract.status === "ACTIVE" && (
+                                <DropdownMenuItem onClick={() => handleContractAction("terminate", contract.id)}>
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                  Résilier
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem 
+                                onClick={() => handleContractAction("delete", contract.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
-
-          {filteredContracts.length > 0 && (
-            <div className="flex justify-end">
-              <Pagination
-                totalItems={filteredContracts.length}
-                itemsPerPage={10}
-                currentPage={1}
-                onPageChange={(page) => console.log(`Page: ${page}`)}
-              />
-            </div>
-          )}
         </TabsContent>
       </Tabs>
     </div>

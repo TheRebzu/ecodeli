@@ -152,7 +152,7 @@ export default function ClientAnnouncementsPage() {
         <div className="mb-6">
           <AnnouncementFilter
             onFiltersChange={(newFilters) => {
-              console.log("Filtres appliqués:", newFilters);
+              // Filtres appliqués avec succès
               if (activeTab === "active") {
                 fetchActiveAnnouncements();
               } else {

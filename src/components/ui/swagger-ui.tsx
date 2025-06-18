@@ -256,7 +256,7 @@ export default function SwaggerUIComponent({
 
         {completeness < 100 && (
           <div className="mt-3 text-sm text-muted-foreground">
-            <p>🚧 Documentation en cours de développement.</p>
+            <p>🚧 Documentation API automatisée disponible.</p>
             <p>
               Pour une documentation complète, consultez la{" "}
               <a

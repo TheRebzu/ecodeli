@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
+import { ServiceForm } from "@/components/provider/profile/service-types";
 import { Card } from "@/components/ui/card";
 
 export default function SkillsPage() {
@@ -15,9 +16,7 @@ export default function SkillsPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Compétences - En cours de développement
-        </p>
+        <ServiceForm />
       </Card>
     </div>
   );

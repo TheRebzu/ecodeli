@@ -43,8 +43,6 @@ export default async function HomePage({
   // Utiliser la fonction pour configurer la locale pour cette requête
   await setRequestLocale(locale);
 
-  // Log pour débogage
-  console.log("PublicHomePage rendering in (public) group, locale:", locale);
 
   return (
     <div className="flex flex-col gap-20 pb-20 mx-auto max-w-screen-2xl scroll-smooth">

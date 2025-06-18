@@ -1,7 +1,7 @@
 import { PrismaClient, UserRole, AnnouncementStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/server/db";
-import { sendEmailNotification } from "@/lib/services/email.service";
+import { EmailService } from "@/server/services/common/email.service";
 import { getUserPreferredLocale } from "@/lib/i18n/user-locale";
 import { DeliveryStatus } from "@prisma/client";
 import { OneSignalService } from "@/lib/integrations/onesignal";
@@ -838,7 +838,7 @@ export class NotificationService {
   }
 
   /**
-   * Envoie une notification SMS - Version étendue
+   * Envoie une notification SMS - Version étendue avec Twilio
    */
   private async sendSmsNotification(
     user: { id: string; phoneNumber?: string | null },
@@ -849,8 +849,11 @@ export class NotificationService {
     },
   ): Promise<void> {
     try {
+      // Importer le service Twilio SMS
+      const { twilioSMSService } = await import("@/lib/integrations/twilio-sms");
+      
       // Utiliser le numéro fourni ou récupérer celui de la base
-      const phoneNumber = user.phoneNumber;
+      let phoneNumber = user.phoneNumber;
 
       if (!phoneNumber) {
         const userData = await this.db.user.findUnique({
@@ -867,7 +870,7 @@ export class NotificationService {
       }
 
       // Formatage du message selon la priorité
-      const formattedMessage = message;
+      let formattedMessage = message;
       if (options?.priority === "URGENT") {
         formattedMessage = `🚨 URGENT: ${message}`;
       } else if (options?.priority === "HIGH") {
@@ -879,24 +882,18 @@ export class NotificationService {
         formattedMessage += ` ${options.actionUrl}`;
       }
 
-      // Envoyer le SMS via le service configuré (Twilio, etc.)
-      if (process.env.TWILIO_ACCOUNTSID && process.env.TWILIO_AUTH_TOKEN) {
-        // Implémentation temporaire - Twilio désactivé
-        // const client = require("twilio")(
-        //   process.env.TWILIO_ACCOUNTSID,
-        //   process.env.TWILIO_AUTH_TOKEN,
-        // );
-        // await client.messages.create({ 
-        //   body: formattedMessage,
-        //   from: process.env.TWILIO_PHONE_NUMBER,
-        //   to: phoneNumber 
-        // });
-        console.log(`[TWILIO DÉSACTIVÉ] SMS à envoyer à l'utilisateur ${user.id} (${phoneNumber}): ${formattedMessage}`);
+      // Envoyer le SMS via le service Twilio
+      const result = await twilioSMSService.sendSMS({
+        to: phoneNumber,
+        body: formattedMessage
+      });
+
+      if (result.success) {
+        console.log(`✅ SMS envoyé à l'utilisateur ${user.id} (${phoneNumber}) - SID: ${result.sid}`);
       } else {
-        console.log(
-          `[CONFIG MANQUANTE] SMS non envoyé à ${phoneNumber}: ${formattedMessage}`,
-        );
+        console.error(`❌ Échec envoi SMS à ${phoneNumber}: ${result.errorMessage}`);
       }
+
     } catch (error) {
       console.error("Erreur lors de l'envoi du SMS:", error);
       // Ne pas faire échouer le processus si le SMS échoue

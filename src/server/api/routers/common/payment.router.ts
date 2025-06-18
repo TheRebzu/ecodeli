@@ -30,10 +30,10 @@ import {
 import { stripeService, checkStripeAvailability } from "@/server/services/shared/stripe.service";
 
 // Importation conditionnelle du service de portefeuille
-let importedWalletService: any;
+let importedWalletService: any = null;
+
 try {
-  // importedWalletService = require("@/server/services/wallet.service").walletService;
-  importedWalletService = null; // Service temporairement désactivé
+  importedWalletService = await import("@/server/services/wallet.service").then(m => m.walletService);
 } catch (error) {
   console.warn("Wallet service could not be imported:", error);
   importedWalletService = null;

@@ -44,34 +44,34 @@ async function main() {
       logger.info("TEST_USERS", "   - Différents statuts utilisateurs");
       logger.info("TEST_USERS", "");
       logger.info("TEST_USERS", "🔑 Comptes de test créés:");
-      logger.info("TEST_USERS", "   📧 admin@test-ecodeli.me (ADMIN)");
+      logger.info("TEST_USERS", "   📧 admin@ecodeli.me (ADMIN)");
       logger.info(
         "TEST_USERS",
-        "   📧 jean.dupont@test-ecodeli.me (CLIENT ACTIF)",
+        "   📧 jean.dupont@ecodeli.me (CLIENT ACTIF)",
       );
       logger.info(
         "TEST_USERS",
-        "   📧 marie.martin@test-ecodeli.me (CLIENT EN ATTENTE)",
+        "   📧 marie.martin@ecodeli.me (CLIENT EN ATTENTE)",
       );
       logger.info(
         "TEST_USERS",
-        "   📧 pierre.durand@test-ecodeli.me (CLIENT SUSPENDU)",
+        "   📧 pierre.durand@ecodeli.me (CLIENT SUSPENDU)",
       );
       logger.info(
         "TEST_USERS",
-        "   📧 antoine.livreur@test-ecodeli.me (LIVREUR ACTIF)",
+        "   📧 antoine.livreur@ecodeli.me (LIVREUR ACTIF)",
       );
       logger.info(
         "TEST_USERS",
-        "   📧 sophia.velo@test-ecodeli.me (LIVREUR EN ATTENTE)",
+        "   📧 sophia.velo@ecodeli.me (LIVREUR EN ATTENTE)",
       );
       logger.info(
         "TEST_USERS",
-        "   📧 boulangerie.martin@test-ecodeli.me (MERCHANT ACTIF)",
+        "   📧 boulangerie.martin@ecodeli.me (MERCHANT ACTIF)",
       );
       logger.info(
         "TEST_USERS",
-        "   📧 paul.plombier@test-ecodeli.me (PROVIDER ACTIF)",
+        "   📧 paul.plombier@ecodeli.me (PROVIDER ACTIF)",
       );
       logger.info("TEST_USERS", "");
       logger.info("TEST_USERS", "🔒 Mot de passe pour tous: Test2024!");

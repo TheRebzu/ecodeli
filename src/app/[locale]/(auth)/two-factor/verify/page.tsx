@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { TwoFactorAuth } from "@/components/auth/verification/two-factor-auth";
 
 export default function TwoFactorVerifyPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function TwoFactorVerifyPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Vérification 2FA - En cours de développement
-        </p>
+        <TwoFactorAuth />
       </Card>
     </div>
   );

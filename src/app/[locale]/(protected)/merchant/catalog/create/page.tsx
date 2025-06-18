@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
+import ProductManager from "@/components/merchant/catalog/product-manager";
 import { Card } from "@/components/ui/card";
 
 export default function CreateProductPage() {
@@ -15,9 +16,7 @@ export default function CreateProductPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Ajouter produit - En cours de développement
-        </p>
+        <ProductManager />
       </Card>
     </div>
   );

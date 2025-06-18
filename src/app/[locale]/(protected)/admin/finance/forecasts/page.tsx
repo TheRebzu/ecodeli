@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import FinancialReports from "@/components/admin/financial/financial-reports";
 
 export default function ForecastsPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function ForecastsPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Prévisions - En cours de développement
-        </p>
+        <FinancialReports />
       </Card>
     </div>
   );

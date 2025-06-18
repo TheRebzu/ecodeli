@@ -68,8 +68,7 @@ export function AddressMapPicker({
     query: string,
   ): Promise<AddressSuggestion[]> => {
     try {
-      // TODO: Intégrer avec une API réelle de géocodage (Nominatim, Google Maps, etc.)
-      // Exemple avec Nominatim (OpenStreetMap)
+      // Utilisation de l'API Nominatim (OpenStreetMap) pour le géocodage
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=fr&limit=5`,
       );

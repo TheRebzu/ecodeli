@@ -393,10 +393,10 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
   const { data: recentOrders, isLoading: isLoadingOrders } =
     api.merchant.dashboard.getRecentOrders.useQuery({ limit: 5 });
 
-  const { data: stockAlerts } =
-    api.merchant.dashboard.getStockAlerts.useQuery();
-
-  const { data: salesChart } = api.merchant.dashboard.getSalesChart.useQuery({ period: "week" });
+  const { data: stockAlerts } = api.merchant.dashboard.getStockAlerts.useQuery();
+  const { data: salesChart } = api.merchant.dashboard.getSalesChart.useQuery({
+    period: "week"
+  });
 
   // Socket.io pour les mises à jour temps réel
   useEffect(() => {

@@ -37,7 +37,7 @@ export function useAuth() {
       // Clear any previous sessions if there was a JWT error
       if (status === "unauthenticated") {
         // Force clear any potential corrupted cookies
-        await signOut({ redirect  });
+        await signOut({ redirect: false });
       }
 
       const response = await signIn("credentials", {
@@ -53,7 +53,7 @@ export function useAuth() {
           response.error.includes("JWT_SESSION_ERROR")
         ) {
           // Clear cookies and retry login once
-          await signOut({ redirect  });
+          await signOut({ redirect: false });
           const retryResponse = await signIn("credentials", {
             email: data.email,
             password: data.password,
@@ -88,7 +88,7 @@ export function useAuth() {
   const logout = async () => {
     try {
       setIsLoading(true);
-      await signOut({ redirect  });
+      await signOut({ redirect: false });
       router.push("/");
       router.refresh();
     } catch (_) {

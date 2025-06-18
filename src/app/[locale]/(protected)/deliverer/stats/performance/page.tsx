@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { DeliveryStatsWidget } from "@/components/deliverer/dashboard/delivery-stats-widget";
 
 export default function PerformancePage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function PerformancePage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Performance - En cours de développement
-        </p>
+        <DeliveryStatsWidget />
       </Card>
     </div>
   );

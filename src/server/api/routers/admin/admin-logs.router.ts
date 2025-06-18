@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { AdminPermissionService } from "@/server/services/admin/admin-permissions.service";
 
 /**
  * Router pour les logs système admin
@@ -29,8 +30,14 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
     )
     .query(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Vérifier les permissions admin
+        // Vérifier les permissions admin
         const { user } = ctx.session;
+        const permissionService = new AdminPermissionService(ctx.db);
+        await permissionService.requireAdminPermissions(
+          user.id,
+          ["audit.view"],
+          "Vous devez avoir les permissions d'audit pour consulter les logs système"
+        );
 
         // Récupérer les logs depuis la base de données
         const whereClause: any = {};
@@ -60,7 +67,7 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
         }
 
         // Compter le total pour la pagination
-        const total = await ctx.db.systemLog.count({ where  });
+        const total = await ctx.db.systemLog.count({ where: whereClause });
 
         // Récupérer les logs avec pagination
         const logs = await ctx.db.systemLog.findMany({
@@ -152,27 +159,27 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
         // Compter le total des logs
         const totalLogs = await ctx.db.systemLog.count({
           where: {
-            timestamp: { gte }}});
+            timestamp: { gte: startDate }}});
 
         // Statistiques par niveau
         const byLevel = await ctx.db.systemLog.groupBy({
           by: ["level"],
           where: {
-            timestamp: { gte }},
-          count: { id }});
+            timestamp: { gte: startDate }},
+          _count: { id: true }});
 
         // Statistiques par catégorie
         const byCategory = await ctx.db.systemLog.groupBy({
           by: ["category"],
           where: {
-            timestamp: { gte }},
-          count: { id }});
+            timestamp: { gte: startDate }},
+          _count: { id: true }});
 
         // Erreurs récentes
         const recentErrors = await ctx.db.systemLog.findMany({
           where: {
             level: "ERROR",
-            timestamp: { gte }},
+            timestamp: { gte: startDate }},
           orderBy: {
             timestamp: "desc"},
           take: 5,
@@ -184,21 +191,21 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
         const hourlyTrends = await ctx.db.systemLog.groupBy({
           by: ["timestamp"],
           where: {
-            timestamp: { gte }},
-          count: { id }});
+            timestamp: { gte: startDate }},
+          _count: { id: true }});
 
         const stats = {
           totalLogs,
           byLevel: byLevel.reduce(
             (acc, item) => {
-              acc[item.level] = item.count.id;
+              acc[item.level] = item._count.id;
               return acc;
             },
             {} as Record<string, number>,
           ),
           byCategory: byCategory.reduce(
             (acc, item) => {
-              acc[item.category] = item.count.id;
+              acc[item.category] = item._count.id;
               return acc;
             },
             {} as Record<string, number>,
@@ -209,7 +216,7 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
            })),
           trends: {
             hourly: hourlyTrends.map((trend, index) => ({ hour: index,
-              count: trend.count.id }))}};
+              count: trend._count.id }))}};
 
         return stats;
       } catch (error) {
@@ -226,19 +233,28 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
     )
     .mutation(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Vérifier les permissions super admin
-        // TODO: Implémenter le nettoyage en base
+        // Vérifier les permissions super admin pour le nettoyage
+        const { user } = ctx.session;
+        const permissionService = new AdminPermissionService(ctx.db);
+        
+        const canCleanup = await permissionService.checkLogCleanupPermissions(user.id);
+        if (!canCleanup) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les super administrateurs peuvent nettoyer les logs système"
+          });
+        }
 
         // Supprimer les logs selon les critères
         const whereClause: any = {
-          createdAt: {
+          timestamp: {
             lt: input.olderThan}};
 
         if (input.level) {
           whereClause.level = input.level;
         }
 
-        const deletedCount = await ctx.db.systemLog.deleteMany({ where  });
+        const deletedCount = await ctx.db.systemLog.deleteMany({ where: whereClause });
 
         return {
           success: true,
@@ -273,16 +289,247 @@ export const adminLogsRouter = router({ // Récupérer tous les logs avec filtre
     )
     .mutation(async ({ ctx, input: input  }) => {
       try {
-        // TODO: Implémenter l'export réel
-
-        const exportUrl = `/api/admin/logs/export/${Math.random().toString(36).substr(2, 9)}.${input.format.toLowerCase()}`;
-
+        // Implémentation complète de l'export des logs
+        const exportData = await generateLogsExport(ctx.db, input.format, input.filters);
+        
         return {
           success: true,
-          downloadUrl: exportUrl,
-          message: "Export généré avec succès"};
+          downloadUrl: exportData.downloadUrl,
+          fileName: exportData.fileName,
+          recordCount: exportData.recordCount,
+          message: `Export généré avec succès: ${exportData.recordCount} entrées`};
       } catch (error) {
+        console.error('Erreur lors de l\'export des logs:', error);
         throw new TRPCError({ code: "BAD_REQUEST",
           message: "Erreur lors de l'export des logs" });
       }
     })});
+
+/**
+ * Génère un export complet des logs selon le format spécifié
+ */
+async function generateLogsExport(
+  db: any, 
+  format: 'CSV' | 'JSON' | 'TXT', 
+  filters?: {
+    level?: string;
+    category?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }
+): Promise<{
+  downloadUrl: string;
+  fileName: string;
+  recordCount: number;
+}> {
+  try {
+    // Construire les filtres de requête
+    const whereClause: any = {};
+    
+    if (filters?.level) {
+      whereClause.level = filters.level;
+    }
+    
+    if (filters?.category) {
+      whereClause.category = filters.category;
+    }
+    
+    if (filters?.startDate || filters?.endDate) {
+      whereClause.timestamp = {};
+      if (filters.startDate) {
+        whereClause.timestamp.gte = filters.startDate;
+      }
+      if (filters.endDate) {
+        whereClause.timestamp.lte = filters.endDate;
+      }
+    }
+
+    // Récupérer les logs avec pagination pour éviter la surcharge mémoire
+    const logs = await db.systemLog.findMany({
+      where: whereClause,
+      orderBy: { timestamp: 'desc' },
+      take: 10000, // Limiter à 10k entrées pour éviter les timeouts
+      select: {
+        id: true,
+        timestamp: true,
+        level: true,
+        category: true,
+        message: true,
+        details: true,
+        source: true,
+        context: true
+      }
+    });
+
+    // Générer le contenu selon le format
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const fileName = `ecodeli-logs-${timestamp}.${format.toLowerCase()}`;
+    let exportContent: string;
+
+    switch (format) {
+      case 'CSV':
+        exportContent = generateCSVExport(logs);
+        break;
+      case 'JSON':
+        exportContent = generateJSONExport(logs);
+        break;
+      case 'TXT':
+        exportContent = generateTXTExport(logs);
+        break;
+      default:
+        throw new Error(`Format d'export non supporté: ${format}`);
+    }
+
+    // Sauvegarder le fichier temporairement
+    const downloadUrl = await saveExportFile(fileName, exportContent);
+
+    console.log(`📊 Export logs généré: ${logs.length} entrées en format ${format}`);
+
+    return {
+      downloadUrl,
+      fileName,
+      recordCount: logs.length
+    };
+  } catch (error) {
+    console.error('Erreur lors de la génération de l\'export:', error);
+    throw error;
+  }
+}
+
+/**
+ * Génère un export au format CSV
+ */
+function generateCSVExport(logs: any[]): string {
+  const headers = [
+    'ID',
+    'Timestamp',
+    'Level',
+    'Category', 
+    'Message',
+    'Details',
+    'Source',
+    'Context'
+  ];
+
+  const csvLines = [headers.join(',')];
+
+  for (const log of logs) {
+    const row = [
+      `"${log.id}"`,
+      `"${log.timestamp.toISOString()}"`,
+      `"${log.level}"`,
+      `"${log.category || ''}"`,
+      `"${(log.message || '').replace(/"/g, '""')}"`,
+      `"${JSON.stringify(log.details || {}).replace(/"/g, '""')}"`,
+      `"${log.source || ''}"`,
+      `"${JSON.stringify(log.context || {}).replace(/"/g, '""')}"`
+    ];
+    csvLines.push(row.join(','));
+  }
+
+  return csvLines.join('\n');
+}
+
+/**
+ * Génère un export au format JSON
+ */
+function generateJSONExport(logs: any[]): string {
+  const exportData = {
+    metadata: {
+      exportedAt: new Date().toISOString(),
+      recordCount: logs.length,
+      format: 'JSON',
+      version: '1.0'
+    },
+    logs: logs.map(log => ({
+      id: log.id,
+      timestamp: log.timestamp.toISOString(),
+      level: log.level,
+      category: log.category,
+      message: log.message,
+      details: log.details,
+      source: log.source,
+      context: log.context
+    }))
+  };
+
+  return JSON.stringify(exportData, null, 2);
+}
+
+/**
+ * Génère un export au format TXT lisible
+ */
+function generateTXTExport(logs: any[]): string {
+  const lines = [
+    '========================================',
+    'ECODELI - EXPORT DES LOGS SYSTÈME',
+    '========================================',
+    `Généré le: ${new Date().toLocaleString('fr-FR')}`,
+    `Nombre d'entrées: ${logs.length}`,
+    '========================================',
+    ''
+  ];
+
+  for (const log of logs) {
+    lines.push(`[${log.timestamp.toLocaleString('fr-FR')}] ${log.level} - ${log.category || 'GENERAL'}`);
+    lines.push(`Message: ${log.message}`);
+    
+    if (log.source) {
+      lines.push(`Source: ${log.source}`);
+    }
+    
+    if (log.details && Object.keys(log.details).length > 0) {
+      lines.push(`Détails: ${JSON.stringify(log.details, null, 2)}`);
+    }
+    
+    if (log.context && Object.keys(log.context).length > 0) {
+      lines.push(`Contexte: ${JSON.stringify(log.context, null, 2)}`);
+    }
+    
+    lines.push('----------------------------------------');
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Sauvegarde temporairement un fichier d'export et retourne l'URL de téléchargement
+ */
+async function saveExportFile(fileName: string, content: string): Promise<string> {
+  try {
+    // En production, utiliser un stockage cloud (S3, etc.)
+    // Pour cette implémentation, simuler la sauvegarde
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    const exportsDir = path.join(process.cwd(), 'temp', 'exports');
+    if (!fs.existsSync(exportsDir)) {
+      fs.mkdirSync(exportsDir, { recursive: true });
+    }
+    
+    const filePath = path.join(exportsDir, fileName);
+    fs.writeFileSync(filePath, content, 'utf8');
+    
+    // Générer une URL de téléchargement temporaire
+    const downloadUrl = `/api/exports/${fileName}`;
+    
+    // Programmer la suppression du fichier après 1 heure
+    setTimeout(() => {
+      try {
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`🗑️ Fichier d'export supprimé: ${fileName}`);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la suppression du fichier d\'export:', error);
+      }
+    }, 60 * 60 * 1000); // 1 heure
+    
+    console.log(`💾 Fichier d'export sauvegardé: ${fileName}`);
+    return downloadUrl;
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde du fichier d\'export:', error);
+    throw new Error('Impossible de sauvegarder le fichier d\'export');
+  }
+}

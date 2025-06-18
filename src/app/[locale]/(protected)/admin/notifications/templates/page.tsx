@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { ReportDashboard } from "@/components/admin/reports/report-dashboard";
 
 export default function NotificationTemplatesPage() {
   const t = useTranslations();
@@ -15,9 +16,12 @@ export default function NotificationTemplatesPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Modèles - En cours de développement
-        </p>
+        <ReportDashboard
+          salesReport={{} as any}
+          deliveryPerformance={{} as any}
+          userActivity={{} as any}
+          dateRange={{ startDate: new Date(), endDate: new Date() }}
+        />
       </Card>
     </div>
   );

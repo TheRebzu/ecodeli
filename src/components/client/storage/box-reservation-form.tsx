@@ -182,41 +182,60 @@ export function BoxReservationForm({
               </CardContent>
             </Card>
 
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Vous pouvez modifier votre sélection à l'étape suivante.
+              </p>
+            </div>
           </div>
         );
 
       case "details":
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Détails de la réservation</CardTitle>
                 <CardDescription>
-                  Informations complémentaires sur votre réservation
+                  Remplissez les informations pour finaliser votre réservation
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Notes (optionnel)</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Informations complémentaires..."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Ajoutez des notes sur votre réservation
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Date de début</label>
+                    <p className="text-sm text-muted-foreground">{startDate.toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Date de fin</label>
+                    <p className="text-sm text-muted-foreground">{endDate.toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Durée</label>
+                    <p className="text-sm text-muted-foreground">{durationInDays} jour(s)</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Prix total</label>
+                    <p className="text-lg font-semibold">{totalPrice}€</p>
+                  </div>
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes (optionnel)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Instructions spéciales ou commentaires..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
           </div>
@@ -224,26 +243,31 @@ export function BoxReservationForm({
 
       case "payment":
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Récapitulatif et paiement</CardTitle>
                 <CardDescription>
-                  Vérifiez les détails avant de finaliser
+                  Vérifiez les détails avant de procéder au paiement
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="bg-muted p-4 rounded-lg space-y-2">
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <h4 className="font-semibold mb-2">Résumé de la réservation</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Box:</span>
+                      <span>{selectedBox.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Période:</span>
+                      <span>{startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}</span>
+                    </div>
                     <div className="flex justify-between">
                       <span>Durée:</span>
                       <span>{durationInDays} jour(s)</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Prix par jour:</span>
-                      <span>{selectedBox.pricePerDay}€</span>
-                    </div>
-                    <div className="flex justify-between font-bold">
+                    <div className="flex justify-between font-semibold">
                       <span>Total:</span>
                       <span>{totalPrice}€</span>
                     </div>
@@ -256,23 +280,14 @@ export function BoxReservationForm({
 
       case "confirmation":
         return (
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-green-600">
-                  Réservation confirmée !
-                </CardTitle>
-                <CardDescription>
-                  Votre réservation a été effectuée avec succès
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-4">
-                  <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <p>Vous recevrez bientôt les détails par email.</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-green-600" />
+            </div>
+            <h3 className="text-xl font-semibold">Réservation confirmée !</h3>
+            <p className="text-muted-foreground">
+              Votre réservation a été créée avec succès. Vous recevrez un email de confirmation.
+            </p>
           </div>
         );
 
@@ -282,21 +297,19 @@ export function BoxReservationForm({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Réservation de box</h2>
-          <Badge variant="outline">
-            {step === "confirmation" ? "Confirmée" : "En cours"}
-          </Badge>
-        </div>
-        <Progress value={getStepProgress()} className="w-full" />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>Sélection</span>
-          <span>Détails</span>
-          <span>Paiement</span>
-          <span>Confirmation</span>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Réservation de box</h2>
+        <Badge variant="outline">
+          {step === "confirmation" ? "Confirmée" : "En cours"}
+        </Badge>
+      </div>
+      <Progress value={getStepProgress()} className="w-full" />
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>Sélection</span>
+        <span>Détails</span>
+        <span>Paiement</span>
+        <span>Confirmation</span>
       </div>
 
       <Form {...form}>

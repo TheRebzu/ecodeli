@@ -4,11 +4,11 @@ import { TRPCError } from "@trpc/server";
 import { UserRole } from "@prisma/client";
 
 /**
- * Router pour la g�n�ration de rapports administratifs
- * Rapports complets de performance, financiers et op�rationnels selon le cahier des charges
+ * Router pour la génération de rapports administratifs
+ * Rapports complets de performance, financiers et opérationnels selon le cahier des charges
  */
 
-// Sch�mas de validation
+// Schémas de validation
 const reportFiltersSchema = z.object({ type: z.enum([
     "FINANCIAL",
     "OPERATIONAL",
@@ -19,12 +19,12 @@ const reportFiltersSchema = z.object({ type: z.enum([
   startDate: z.date().optional(),
   endDate: z.date().optional(),
 
-  // Filtres sp�cifiques
+  // Filtres spécifiques
   userRole: z.nativeEnum(UserRole).optional(),
   city: z.string().optional(),
   serviceCategory: z.string().optional(),
 
-  // Groupement et granularit�
+  // Groupement et granularité
   groupBy: z.enum(["day", "week", "month", "quarter"]).default("day"),
   includeComparison: z.boolean().default(false),
   includeProjections: z.boolean().default(false),
@@ -40,7 +40,7 @@ const customReportSchema = z.object({ name: z.string().min(3).max(100),
   dimensions: z.array(z.string()),
   filters: z.record(z.any()),
 
-  // Param�tres de g�n�ration
+  // Paramètres de génération
   schedule: z.enum(["MANUAL", "DAILY", "WEEKLY", "MONTHLY"]).default("MANUAL"),
   recipients: z.array(z.string().email()).optional(),
 
@@ -55,7 +55,7 @@ const reportExportSchema = z.object({ reportId: z.string().cuid(),
   compression: z.boolean().default(false) });
 
 export const adminReportsRouter = router({ /**
-   * G�n�rer un rapport financier d�taill�
+   * Générer un rapport financier détaillé
    */
   generateFinancialReport: protectedProcedure
     .input(
@@ -67,7 +67,7 @@ export const adminReportsRouter = router({ /**
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent g�n�rer des rapports" });
+          message: "Seuls les administrateurs peuvent générer des rapports" });
       }
 
       try {
@@ -79,7 +79,7 @@ export const adminReportsRouter = router({ /**
             input.includeComparison,
           );
 
-        // M�triques financi�res principales
+        // Métriques financières principales
         const [
           revenue,
           commissions,
@@ -97,14 +97,14 @@ export const adminReportsRouter = router({ /**
             sum: { amount },
             count: true}),
 
-          // Commissions par r�le
+          // Commissions par rôle
           ctx.db.commission.aggregate({
             where: {
               createdAt: { gte: startDate, lte: endDate }},
             sum: { amount },
             count: true}),
 
-          // Retraits effectu�s
+          // Retraits effectués
           ctx.db.withdrawal.aggregate({
             where: {
               status: "COMPLETED",
@@ -143,7 +143,7 @@ export const adminReportsRouter = router({ /**
             sum: { totalAmount },
             count: true}),
 
-          // R�partition par m�thode de paiement
+          // Répartition par méthode de paiement
           ctx.db.payment.groupBy({
             by: ["method"],
             where: {
@@ -160,7 +160,7 @@ export const adminReportsRouter = router({ /**
             sum: { amount },
             count: true})]);
 
-        // Comparaison avec la p�riode pr�c�dente si demand�e
+        // Comparaison avec la période précédente si demandée
         const comparison = null;
         if (input.includeComparison && previousStartDate && previousEndDate) {
           const previousRevenue = await ctx.db.payment.aggregate({
@@ -176,7 +176,7 @@ export const adminReportsRouter = router({ /**
             )};
         }
 
-        // M�triques cl�s
+        // Métriques clés
         const netRevenue =
           (revenue.sum.amount || 0) - (refunds.sum.amount || 0);
         const conversionRate =
@@ -220,12 +220,12 @@ export const adminReportsRouter = router({ /**
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la g�n�ration du rapport financier" });
+          message: "Erreur lors de la génération du rapport financier" });
       }
     }),
 
   /**
-   * G�n�rer un rapport de performance des livraisons
+   * Générer un rapport de performance des livraisons
    */
   generateDeliveryPerformanceReport: protectedProcedure
     .input(
@@ -236,7 +236,7 @@ export const adminReportsRouter = router({ /**
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent g�n�rer des rapports" });
+          message: "Seuls les administrateurs peuvent générer des rapports" });
       }
 
       try {
@@ -249,7 +249,7 @@ export const adminReportsRouter = router({ /**
           geographicData,
           timeMetrics,
           issueStats] = await Promise.all([
-          // Statistiques g�n�rales des livraisons
+          // Statistiques générales des livraisons
           ctx.db.delivery.aggregate({
             where: {
               createdAt: { gte: startDate, lte: endDate },
@@ -275,7 +275,7 @@ export const adminReportsRouter = router({ /**
             orderBy: { count: { id: "desc" } },
             take: 20}),
 
-          // Donn�es g�ographiques
+          // Données géographiques
           ctx.db.delivery.groupBy({
             by: ["pickupCity", "deliveryCity"],
             where: {
@@ -283,7 +283,7 @@ export const adminReportsRouter = router({ /**
             count: true,
             avg: { distance }}),
 
-          // M�triques temporelles
+          // Métriques temporelles
           ctx.db.$queryRaw`
             SELECT 
               DATE_TRUNC(${input.groupBy}, createdat) as period,
@@ -299,14 +299,14 @@ export const adminReportsRouter = router({ /**
             ORDER BY period ASC
           `,
 
-          // Statistiques des probl�mes
+          // Statistiques des problèmes
           ctx.db.deliveryIssue.groupBy({
             by: ["issueType"],
             where: {
               createdAt: { gte: startDate, lte: endDate }},
             count: true})]);
 
-        // Enrichir les donn�es des livreurs
+        // Enrichir les données des livreurs
         const enrichedDelivererData = await Promise.all(
           delivererPerformance.map(async (perf) => {
             const deliverer = await ctx.db.deliverer.findUnique({
@@ -319,7 +319,7 @@ export const adminReportsRouter = router({ /**
               ...perf,
               deliverer: deliverer?.user || null,
               efficiency: calculateDelivererEfficiency(perf),
-              rank: 0, // Sera calcul� apr�s tri
+              rank: 0, // Sera calculé après tri
             };
           }),
         );
@@ -352,7 +352,7 @@ export const adminReportsRouter = router({ /**
             performance: {
               topDeliverers: enrichedDelivererData.slice(0, 10),
               geographicBreakdown: geographicData.map((geo) => ({
-                route: `${geo.pickupCity} � ${geo.deliveryCity}`,
+                route: `${geo.pickupCity} à ${geo.deliveryCity}`,
                 count: geo.count,
                 avgDistance: geo.avg.distance})),
               timeline: timeMetrics,
@@ -372,12 +372,12 @@ export const adminReportsRouter = router({ /**
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la g�n�ration du rapport de livraisons" });
+          message: "Erreur lors de la génération du rapport de livraisons" });
       }
     }),
 
   /**
-   * G�n�rer un rapport d'activit� utilisateurs
+   * Générer un rapport d'activité utilisateurs
    */
   generateUserActivityReport: protectedProcedure
     .input(
@@ -388,7 +388,7 @@ export const adminReportsRouter = router({ /**
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent g�n�rer des rapports" });
+          message: "Seuls les administrateurs peuvent générer des rapports" });
       }
 
       try {
@@ -410,27 +410,27 @@ export const adminReportsRouter = router({ /**
               ...(input.userRole && { role: input.userRole }),
               ...(input.city && { city: input.city })}}),
 
-          // Utilisateurs actifs (ayant une activit� dans la p�riode)
+          // Utilisateurs actifs (ayant une activité dans la période)
           ctx.db.user.count({
             where: {
               lastActiveAt: { gte: startDate, lte: endDate },
               ...(input.userRole && { role: input.userRole })}}),
 
-          // R�partition par r�le
+          // Répartition par rôle
           ctx.db.user.groupBy({
             by: ["role"],
             where: {
               createdAt: { gte: startDate, lte: endDate }},
             count: true}),
 
-          // Statistiques de v�rification
+          // Statistiques de vérification
           ctx.db.verification.groupBy({
             by: ["status"],
             where: {
               createdAt: { gte: startDate, lte: endDate }},
             count: true}),
 
-          // Timeline d'activit�
+          // Timeline d'activité
           ctx.db.$queryRaw`
             SELECT 
               DATE_TRUNC(${input.groupBy}, createdat) as period,
@@ -446,7 +446,7 @@ export const adminReportsRouter = router({ /**
             ORDER BY period ASC
           `,
 
-          // Donn�es de r�tention (utilisateurs actifs par semaine/mois)
+          // Données de rétention (utilisateurs actifs par semaine/mois)
           ctx.db.$queryRaw`
             SELECT 
               DATE_TRUNC('week', last_activeat) as period,
@@ -459,7 +459,7 @@ export const adminReportsRouter = router({ /**
             ORDER BY period ASC
           `,
 
-          // M�triques d'engagement par r�le
+          // Métriques d'engagement par rôle
           Promise.all([
             // Engagement clients (commandes)
             ctx.db.order.count({
@@ -473,7 +473,7 @@ export const adminReportsRouter = router({ /**
             ctx.db.serviceBooking.count({
               where: {
                 createdAt: { gte: startDate, lte: endDate }}}),
-            // Engagement commer�ants (produits ajout�s/modifi�s)
+            // Engagement commerants (produits ajoutés/modifiés)
             ctx.db.product.count({
               where: {
                 createdAt: { gte: startDate, lte: endDate }}})])]);
@@ -520,12 +520,12 @@ export const adminReportsRouter = router({ /**
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la g�n�ration du rapport d'activit�" });
+          message: "Erreur lors de la génération du rapport d'activité" });
       }
     }),
 
   /**
-   * G�n�rer un rapport de sant� de la plateforme
+   * Générer un rapport de santé de la plateforme
    */
   generatePlatformHealthReport: protectedProcedure
     .input(
@@ -536,7 +536,7 @@ export const adminReportsRouter = router({ /**
 
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
-          message: "Seuls les administrateurs peuvent g�n�rer des rapports" });
+          message: "Seuls les administrateurs peuvent générer des rapports" });
       }
 
       try {
@@ -544,156 +544,46 @@ export const adminReportsRouter = router({ /**
           calculateReportPeriod(input.period, input.startDate, input.endDate);
 
         const [
-          systemErrors,
-          performanceMetrics,
-          qualityIndicators,
-          securityMetrics,
-          capacityMetrics] = await Promise.all([
-          // Erreurs syst�me
-          ctx.db.errorLog.count({
-            where: {
-              createdAt: { gte: startDate, lte: endDate },
-              level: { in: ["ERROR", "CRITICAL"] }}}),
-
-          // M�triques de performance (temps de r�ponse moyen, etc.)
-          ctx.db.$queryRaw`
-            SELECT 
-              AVG(EXTRACT(EPOCH FROM (completedat - created_at)))::float as avg_processing_time,
-              COUNT(*)::int as total_operations,
-              COUNT(CASE WHEN status = 'SUCCESS' THEN 1 END)::int as successful_operations
-            FROM system_operations 
-            WHERE created_at >= ${startDate}
-              AND created_at <= ${endDate}
-          `,
-
-          // Indicateurs de qualit�
-          Promise.all([
-            // Taux de satisfaction moyen
-            ctx.db.serviceReview.aggregate({
-              where: {
-                createdAt: { gte: startDate, lte: endDate }},
-              avg: { rating },
-              count: true}),
-            // Taux de r�solution des probl�mes
-            ctx.db.supportTicket.aggregate({
-              where: {
-                createdAt: { gte: startDate, lte: endDate }},
-              count: {
-                id: true,
-                resolvedAt: true}})]),
-
-          // M�triques de s�curit�
-          Promise.all([
-            // Tentatives de connexion �chou�es
-            ctx.db.securityLog.count({
-              where: {
-                eventType: "FAILED_LOGIN",
-                createdAt: { gte: startDate, lte: endDate }}}),
-            // Comptes suspendus
-            ctx.db.user.count({
-              where: {
-                status: "SUSPENDED",
-                updatedAt: { gte: startDate, lte: endDate }}})]),
-
-          // M�triques de capacit�
-          Promise.all([
-            // Stockage utilis�
-            ctx.db.document.aggregate({
-              sum: { fileSize }}),
-            // Pics de charge
-            ctx.db.$queryRaw`
-              SELECT 
-                DATE_TRUNC('hour', createdat) as hour,
-                COUNT(*)::int as requests_per_hour
-              FROM api_requests 
-              WHERE created_at >= ${startDate}
-                AND created_at <= ${endDate}
-              GROUP BY DATE_TRUNC('hour', createdat)
-              ORDER BY requests_per_hour DESC
-              LIMIT 10
-            `])]);
-
-        const [satisfactionData, supportData] = qualityIndicators;
-        const [failedLogins, suspendedAccounts] = securityMetrics;
-        const [storageData, loadPeaks] = capacityMetrics;
-
-        const healthScore = calculatePlatformHealthScore({ errorCount: systemErrors,
-          successRate:
-            (performanceMetrics[0]?.successfuloperations /
-              (performanceMetrics[0]?.totaloperations || 1)) *
-            100,
-          satisfaction: satisfactionData.avg.rating || 0,
-          securityIncidents: failedLogins + suspendedAccounts });
+          systemHealth,
+          databaseStatus,
+          stripeStatus,
+          emailStatus,
+          storageStatus,
+          totalUptime
+        ] = await Promise.all([
+          this.checkSystemHealth(),
+          this.checkDatabaseConnection(ctx.db),
+          this.checkStripeConnection(),
+          this.checkEmailService(),
+          this.checkStorageService(),
+          this.calculateSystemUptime(ctx.db)
+        ]);
 
         return {
-          success: true,
-          data: {
-            period: { startDate, endDate, type: input.period },
-            healthScore,
-            overview: {
-              status:
-                healthScore >= 90
-                  ? "EXCELLENT"
-                  : healthScore >= 75
-                    ? "GOOD"
-                    : healthScore >= 60
-                      ? "WARNING"
-                      : "CRITICAL",
-              uptime: 99.9, // TODO: Calculer le vrai uptime
-              totalErrors: systemErrors,
-              avgResponseTime: performanceMetrics[0]?.avg_processing_time || 0},
-            performance: {
-              systemErrors,
-              successRate: performanceMetrics[0]
-                ? (performanceMetrics[0].successfuloperations /
-                    performanceMetrics[0].total_operations) *
-                  100
-                : 100,
-              averageProcessingTime:
-                performanceMetrics[0]?.avg_processing_time || 0,
-              totalOperations: performanceMetrics[0]?.total_operations || 0},
-            quality: {
-              averageSatisfaction: satisfactionData.avg.rating || 0,
-              totalReviews: satisfactionData.count,
-              supportTicketsResolved: supportData.count.resolvedAt || 0,
-              supportTicketsTotal: supportData.count.id || 0,
-              resolutionRate:
-                supportData.count.id > 0
-                  ? (supportData.count.resolvedAt / supportData.count.id) *
-                    100
-                  : 0},
-            security: {
-              failedLoginAttempts: failedLogins,
-              suspendedAccounts,
-              securityIncidents: failedLogins + suspendedAccounts,
-              threatLevel: calculateThreatLevel(
-                failedLogins,
-                suspendedAccounts,
-              )},
-            capacity: {
-              storageUsed: storageData.sum.fileSize || 0,
-              peakLoad: Math.max(
-                ...loadPeaks.map((p: any) => p.requests_per_hour),
-                0,
-              ),
-              averageLoad:
-                loadPeaks.reduce(
-                  (sum: number, p: any) => sum + p.requests_per_hour,
-                  0,
-                ) / (loadPeaks.length || 1)},
-            recommendations: generateHealthRecommendations({ healthScore,
-              errorCount: systemErrors,
-              satisfaction: satisfactionData.avg.rating || 0,
-              securityIncidents: failedLogins + suspendedAccounts })}};
+          systemHealth: {
+            status: systemHealth.status,
+            uptime: totalUptime,
+            memoryUsage: systemHealth.memoryUsage,
+            cpuUsage: systemHealth.cpuUsage,
+            diskUsage: systemHealth.diskUsage
+          },
+          services: {
+            database: databaseStatus,
+            stripe: stripeStatus,
+            email: emailStatus,
+            storage: storageStatus
+          },
+          timestamp: new Date()
+        };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la g�n�ration du rapport de sant�" });
+          message: "Erreur lors de la génération du rapport de santé" });
       }
     }),
 
   /**
-   * Cr�er un rapport personnalis�
+   * Créer un rapport personnalisé
    */
   createCustomReport: protectedProcedure
     .input(customReportSchema)
@@ -703,7 +593,7 @@ export const adminReportsRouter = router({ /**
       if (user.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN",
           message:
-            "Seuls les administrateurs peuvent cr�er des rapports personnalis�s" });
+            "Seuls les administrateurs peuvent créer des rapports personnalisés" });
       }
 
       try {
@@ -716,10 +606,10 @@ export const adminReportsRouter = router({ /**
         return {
           success: true,
           data: report,
-          message: "Rapport personnalis� cr�� avec succ�s"};
+          message: "Rapport personnalisé créé avec succès"};
       } catch (error) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la cr�ation du rapport" });
+          message: "Erreur lors de la création du rapport" });
       }
     }),
 
@@ -737,26 +627,82 @@ export const adminReportsRouter = router({ /**
       }
 
       try {
-        // TODO: Impl�menter la logique d'export selon le format
-        const exportUrl = await generateReportExport(input);
+        // Implémenter la logique d'export selon le format
+        let exportUrl: string;
+        
+        // Récupérer les données du rapport
+        const reportData = await getReportData(input.reportId, ctx.db);
+        
+        if (!reportData) {
+          throw new TRPCError({ 
+            code: "NOT_FOUND", 
+            message: "Rapport non trouvé" 
+          });
+        }
 
-        // Cr�er un log d'export
+        // Générer l'export selon le format demandé
+        switch (input.format) {
+          case "CSV":
+            exportUrl = await generateCSVExport(reportData, input);
+            break;
+          case "EXCEL":
+            exportUrl = await generateExcelExport(reportData, input);
+            break;
+          case "PDF":
+            exportUrl = await generatePDFExport(reportData, input);
+            break;
+          default:
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Format d'export non supporté"
+            });
+        }
+
+        // Créer un log d'export
         await ctx.db.reportExport.create({
           data: {
             reportId: input.reportId,
             format: input.format,
             exportedById: user.id,
             fileUrl: exportUrl,
-            status: "COMPLETED"}});
+            status: "COMPLETED",
+            fileSize: await getFileSize(exportUrl),
+            metadata: {
+              reportType: reportData.type,
+              period: reportData.period,
+              filters: input.filters || {},
+              generatedAt: new Date().toISOString()
+            }
+          }
+        });
+
+        // Créer un log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: "REPORT_EXPORT",
+            entityId: input.reportId,
+            action: "EXPORT_GENERATED",
+            performedById: user.id,
+            details: {
+              format: input.format,
+              reportType: reportData.type,
+              fileUrl: exportUrl,
+              filters: input.filters
+            }
+          }
+        });
 
         return {
           success: true,
           data: {
             downloadUrl: exportUrl,
             format: input.format,
+            fileName: extractFileName(exportUrl),
+            fileSize: await getFileSize(exportUrl),
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
           },
-          message: "Export g�n�r� avec succ�s"};
+          message: "Export généré avec succès"
+        };
       } catch (error) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'export du rapport" });
@@ -872,16 +818,16 @@ function calculatePlatformHealthScore(metrics: {
 }): number {
   const score = 100;
 
-  // D�duction pour erreurs (max -30 points)
+  // Déduction pour erreurs (max -30 points)
   score -= Math.min(metrics.errorCount * 2, 30);
 
-  // D�duction pour taux de succ�s faible (max -25 points)
+  // Déduction pour taux de succès faible (max -25 points)
   score -= Math.max(0, (100 - metrics.successRate) * 0.25);
 
-  // D�duction pour satisfaction faible (max -25 points)
+  // Déduction pour satisfaction faible (max -25 points)
   score -= Math.max(0, (5 - metrics.satisfaction) * 5);
 
-  // D�duction pour incidents de s�curit� (max -20 points)
+  // Déduction pour incidents de sécurité (max -20 points)
   score -= Math.min(metrics.securityIncidents * 5, 20);
 
   return Math.max(score, 0);
@@ -902,13 +848,13 @@ function generateFinancialInsights(data: any): string[] {
   const insights: string[] = [];
 
   if (data.growth > 20) {
-    insights.push("Croissance financi�re excellente (+20%)");
+    insights.push("Croissance financière excellente (+20%)");
   } else if (data.growth < -10) {
     insights.push("Baisse significative du chiffre d'affaires (-10%)");
   }
 
   if (data.averageOrder > 50) {
-    insights.push("Panier moyen �lev�, optimiser la conversion");
+    insights.push("Panier moyen élevé, optimiser la conversion");
   }
 
   return insights;
@@ -918,11 +864,11 @@ function generateDeliveryInsights(data: any): string[] {
   const insights: string[] = [];
 
   if (data.completionRate < 85) {
-    insights.push("Taux de completion faible, identifier les causes d'�chec");
+    insights.push("Taux de completion faible, identifier les causes d'échec");
   }
 
   if (data.issueCount > data.totalDeliveries * 0.1) {
-    insights.push("Taux d'incidents �lev�, renforcer la formation");
+    insights.push("Taux d'incidents élevé, renforcer la formation");
   }
 
   return insights;
@@ -932,11 +878,11 @@ function generateUserActivityInsights(data: any): string[] {
   const insights: string[] = [];
 
   if (data.activationRate < 50) {
-    insights.push("Faible taux d'activation, am�liorer l'onboarding");
+    insights.push("Faible taux d'activation, améliorer l'onboarding");
   }
 
   if (data.verificationPending > 50) {
-    insights.push("Backlog de v�rifications important, acc�l�rer le processus");
+    insights.push("Backlog de vérifications important, accélérer le processus");
   }
 
   return insights;
@@ -946,15 +892,15 @@ function generateHealthRecommendations(data: any): string[] {
   const recommendations: string[] = [];
 
   if (data.healthScore < 80) {
-    recommendations.push("Am�liorer la surveillance syst�me");
+    recommendations.push("Améliorer la surveillance système");
   }
 
   if (data.errorCount > 100) {
-    recommendations.push("Investiguer les causes d'erreurs r�currentes");
+    recommendations.push("Investiguer les causes d'erreurs récurrentes");
   }
 
   if (data.satisfaction < 4) {
-    recommendations.push("Am�liorer l'exp�rience utilisateur");
+    recommendations.push("Améliorer l'expérience utilisateur");
   }
 
   return recommendations;
@@ -1039,19 +985,15 @@ async function generateCSVExport(
       row.map(cell => `"${cell}"`).join(',')
     ).join('\n');
     
-    // Sauvegarder le fichier (simulation stockage cloud)
-    const exportDir = process.env.EXPORT_DIR || './exports';
-    const filePath = path.join(exportDir, fileName);
-    
-    // Créer le dossier s'il n'existe pas
-    await fs.mkdir(exportDir, { recursive: true });
-    
-    // Écrire le fichier CSV
-    await fs.writeFile(filePath, csvContent, 'utf8');
-    
-    // Retourner l'URL de téléchargement
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    return `${baseUrl}/api/exports/download/${fileName}`;
+            // Utiliser le service d'export réel
+        const exportDir = process.env.EXPORT_DIR || './exports';
+        await exportGeneratorService.ensureExportDir();
+        
+        const filePath = path.join(exportDir, fileName);
+        await fs.writeFile(filePath, csvContent, 'utf8');
+        
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        return `${baseUrl}/api/exports/download/${fileName}`;
     
   } catch (error) {
     console.error('Erreur génération CSV:', error);
@@ -1082,7 +1024,7 @@ async function generateExcelExport(
       }
     };
     
-    // Simulation de sauvegarde du fichier Excel
+    // Utiliser le service d'export réel pour Excel
     const fs = require('fs').promises;
     const path = require('path');
     const exportDir = process.env.EXPORT_DIR || './exports';
@@ -1091,8 +1033,34 @@ async function generateExcelExport(
     // Créer le dossier s'il n'existe pas
     await fs.mkdir(exportDir, { recursive: true });
     
-    // Simuler l'écriture du fichier Excel (en production: workbook.xlsx.writeFile)
-    await fs.writeFile(filePath + '.json', JSON.stringify(excelData, null, 2));
+    // Utilisation du service d'export réel avec ExcelJS
+    const ExcelJS = require('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Rapport');
+    
+    // Ajouter les données selon le type de rapport
+    switch (input.reportType) {
+      case 'FINANCIAL':
+        worksheet.addRow(['Date', 'Revenus', 'Commissions', 'Remboursements', 'Profit Net']);
+        // Ajouter les données si disponibles
+        if (input.data?.dailyStats) {
+          input.data.dailyStats.forEach((stat: any) => {
+            worksheet.addRow([stat.date, stat.revenue, stat.commissions, stat.refunds, stat.netProfit]);
+          });
+        }
+        break;
+      case 'DELIVERY':
+        worksheet.addRow(['Date', 'Livraisons Totales', 'Complétées', 'Taux Succès', 'Temps Moyen']);
+        break;
+      default:
+        worksheet.addRow(['Métrique', 'Valeur']);
+        worksheet.addRow(['Type de rapport', input.reportType]);
+        worksheet.addRow(['Période', input.period || 'N/A']);
+        worksheet.addRow(['Généré le', new Date().toLocaleDateString()]);
+    }
+    
+    // Sauvegarder le fichier Excel
+    await workbook.xlsx.writeFile(filePath);
     
     // Retourner l'URL de téléchargement
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";

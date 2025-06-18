@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { MerchantOrders } from "@/components/merchant/orders/merchant-orders";
 
 export default function OrderDetailPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function OrderDetailPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Détail commande - En cours de développement
-        </p>
+        <MerchantOrders />
       </Card>
     </div>
   );

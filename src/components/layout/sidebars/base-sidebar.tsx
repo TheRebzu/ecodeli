@@ -98,7 +98,6 @@ export function BaseSidebar({
   };
 
   const handleLogout = () => {
-    console.log(`Déconnexion de l'utilisateur ${userInfo?.name}`);
     logout();
   };
 

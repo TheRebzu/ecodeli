@@ -477,20 +477,125 @@ export class AuthService {
    * Vérifie un code TOTP pour l'authentification à deux facteurs
    */
   async verifyTOTP(userId: string, totp: string): Promise<boolean> {
-    // Implémentation temporaire - à remplacer par une vraie logique TOTP
     const user = await this.db.user.findUnique({
-      where: { id },
+      where: { id: userId },
       select: {
         twoFactorSecret: true,
-        twoFactorEnabled: true}});
+        twoFactorEnabled: true,
+        email: true
+      }
+    });
 
     if (!user?.twoFactorEnabled || !user?.twoFactorSecret) {
-      throw new TRPCError({ code: "BAD_REQUEST",
-        message: "La configuration 2FA n'est pas activée" });
+      throw new TRPCError({ 
+        code: "BAD_REQUEST",
+        message: "La configuration 2FA n'est pas activée" 
+      });
     }
 
-    // Vérification simple pour le développement
-    return totp === "123456";
+    try {
+      // Vérifier le code TOTP avec algorithme Time-based One-Time Password
+      const isValid = this.verifyTOTPCode(user.twoFactorSecret, totp);
+      
+      if (isValid) {
+        // Log de réussite d'authentification 2FA
+        await this.db.auditLog.create({
+          data: {
+            userId: userId,
+            action: "2FA_VERIFICATION_SUCCESS",
+            tableName: "User",
+            recordId: userId,
+            changes: {
+              email: user.email,
+              verificationMethod: "TOTP",
+              timestamp: new Date().toISOString(),
+            },
+            ipAddress: "system",
+            userAgent: "Auth Service",
+          },
+        });
+      } else {
+        // Log de tentative échouée
+        await this.db.auditLog.create({
+          data: {
+            userId: userId,
+            action: "2FA_VERIFICATION_FAILED",
+            tableName: "User",
+            recordId: userId,
+            changes: {
+              email: user.email,
+              verificationMethod: "TOTP",
+              providedCode: totp.substring(0, 2) + "****", // Masquer le code
+              timestamp: new Date().toISOString(),
+            },
+            ipAddress: "system",
+            userAgent: "Auth Service",
+          },
+        });
+      }
+      
+      return isValid;
+    } catch (error) {
+      console.error("Erreur lors de la vérification TOTP:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la vérification du code 2FA"
+      });
+    }
+  }
+
+  /**
+   * Vérifie un code TOTP avec l'algorithme Time-based One-Time Password
+   */
+  private verifyTOTPCode(secret: string, token: string): boolean {
+    const timeWindow = 30; // 30 secondes par fenêtre
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeStep = Math.floor(currentTime / timeWindow);
+    
+    // Vérifier le code pour la fenêtre actuelle et les fenêtres adjacentes
+    // (tolérance de ±1 fenêtre pour compenser les décalages d'horloge)
+    for (let i = -1; i <= 1; i++) {
+      const timeCounter = timeStep + i;
+      const expectedToken = this.generateTOTPCode(secret, timeCounter);
+      
+      if (expectedToken === token) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Génère un code TOTP pour un timestamp donné
+   */
+  private generateTOTPCode(secret: string, timeCounter: number): string {
+    // Convertir le secret en buffer
+    const secretBuffer = Buffer.from(secret, 'hex');
+    
+    // Convertir le timeCounter en buffer 8 bytes (big-endian)
+    const timeBuffer = Buffer.alloc(8);
+    timeBuffer.writeUInt32BE(Math.floor(timeCounter / 0x100000000), 0);
+    timeBuffer.writeUInt32BE(timeCounter & 0xffffffff, 4);
+    
+    // Créer HMAC-SHA1
+    const crypto = require('crypto');
+    const hmac = crypto.createHmac('sha1', secretBuffer);
+    hmac.update(timeBuffer);
+    const hmacResult = hmac.digest();
+    
+    // Dynamic truncation selon RFC 4226
+    const offset = hmacResult[hmacResult.length - 1] & 0x0f;
+    const binaryCode = 
+      ((hmacResult[offset] & 0x7f) << 24) |
+      ((hmacResult[offset + 1] & 0xff) << 16) |
+      ((hmacResult[offset + 2] & 0xff) << 8) |
+      (hmacResult[offset + 3] & 0xff);
+    
+    // Générer le code à 6 chiffres
+    const code = (binaryCode % 1000000).toString().padStart(6, '0');
+    
+    return code;
   }
 
   /**
@@ -559,8 +664,9 @@ export class AuthService {
         message: "La configuration 2FA n'est pas activée" });
     }
 
-    // Vérification simple pour le développement
-    const isValid = token === "123456";
+    // Vérification sécurisée avec TOTP
+    const { verifyTOTPToken } = await import("@/lib/security/totp");
+    const isValid = verifyTOTPToken(token, user.twoFactorSecret);
 
     if (isValid) {
       await this.db.user.update({

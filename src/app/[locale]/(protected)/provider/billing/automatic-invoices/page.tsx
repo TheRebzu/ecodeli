@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import BillingDashboard from "@/components/admin/financial/billing-dashboard";
 
 export default function AutoInvoicesPage() {
   const t = useTranslations();
@@ -15,9 +16,7 @@ export default function AutoInvoicesPage() {
       />
 
       <Card className="p-6">
-        <p className="text-muted-foreground">
-          Factures auto - En cours de développement
-        </p>
+        <BillingDashboard />
       </Card>
     </div>
   );

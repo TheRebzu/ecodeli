@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { api } from "@/lib/api";
+import { api } from "@/trpc/react";
 
 // Types
 interface Review {
@@ -49,7 +49,7 @@ export function useClientReviews(options: UseClientReviewsOptions = {}): UseClie
     data: reviewsData,
     isLoading,
     refetch,
-  } = api.client.reviews.getClientReviews.useQuery(
+  } = api.clientReviews.getClientReviews.useQuery(
     {
       status: options.status,
       serviceId: options.serviceId,
@@ -63,7 +63,7 @@ export function useClientReviews(options: UseClientReviewsOptions = {}): UseClie
     },
   );
 
-  const submitReviewMutation = api.client.reviews.submitReview.useMutation({
+  const submitReviewMutation = api.clientReviews.submitReview.useMutation({
     onSuccess: () => {
       refetch();
     },

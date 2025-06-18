@@ -27,6 +27,7 @@ import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 import { toast } from "sonner";
 import DeliveryCodeValidator from "@/components/shared/deliveries/delivery-code-validator";
 import type { ValidationPhoto } from "@/components/shared/deliveries/delivery-code-validator";
+import { api } from "@/trpc/react";
 
 interface DeliveryValidationPageProps {
   params: Promise<{
@@ -116,28 +117,18 @@ export default async function DeliveryValidationPage({
     try {
       setIsValidating(true);
 
-      // Valider la livraison via l'API
-      const response = await fetch("/api/trpc/deliverer.validateDelivery", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ deliveryId: params.id,
-          validationCode: code,
-          photos: photos.map((p) => ({ type: p.type, url: p.url  })),
-          location: location
-            ? {
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-              }
-            : undefined,
-        }),
+      // Valider la livraison via tRPC
+      await api.deliverer.validateDelivery.mutate({
+        deliveryId: params.id,
+        validationCode: code,
+        photos: photos.map((p) => ({ type: p.type, url: p.url })),
+        location: location
+          ? {
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            }
+          : undefined,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || t("validationError"));
-      }
 
       // Vérifier les photos requises
       const requiredPhotoTypes = ["package"];
@@ -152,15 +143,6 @@ export default async function DeliveryValidationPage({
           );
         }
       }
-
-      console.log("Validation réussie:", {
-        deliveryId: params.id,
-        code,
-        photos: photos.length,
-        location: location
-          ? `${location.coords.latitude},${location.coords.longitude}`
-          : "Non fournie",
-      });
 
       setValidationSuccess(true);
       toast.success(t("deliveryValidatedSuccess"));

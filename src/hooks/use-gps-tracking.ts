@@ -277,8 +277,8 @@ export function useGPSTracking(options: UseGPSTrackingOptions = {}) {
   }, []);
 
   // Simuler une position (pour les tests)
-  const simulatePosition = useCallback((position: { latitude: number; longitude: number }) => {
-    gpsTrackingService.simulatePosition(position);
+  const setManualPosition = useCallback((position: { latitude: number; longitude: number }, accuracy: number = 10) => {
+    gpsTrackingService.setManualPosition(position, accuracy);
   }, []);
 
   // Effect pour démarrage automatique
@@ -315,7 +315,7 @@ export function useGPSTracking(options: UseGPSTrackingOptions = {}) {
     calculateETA,
     getCurrentPosition,
     checkPermissions,
-    simulatePosition,
+    setManualPosition,
     
     // Utilitaires
     isSupported: !!navigator.geolocation,

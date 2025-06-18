@@ -398,13 +398,13 @@ export default function DelivererDashboard({ locale }: { locale }) {
     refreshBalance} = useWalletBalance();
 
   // Récupérer les notifications urgentes
-  const { data: notificationsData } =
-    api.notification.getUrgentNotifications.useQuery();
+  const { data: urgentNotificationsData } = api.notification.getUrgentNotifications.useQuery();
 
   // Récupérer les livraisons planifiées
-  const { data: plannedDeliveriesData } =
-    api.delivery.deliverer.getPlannedDeliveries.useQuery({ date: new Date(),
-      limit: 5 });
+  const { data: plannedDeliveries } = api.delivery.deliverer.getPlannedDeliveries.useQuery({
+    date: new Date(),
+    limit: 5
+  });
 
   const stats = dashboardData?.stats;
   const activeDeliveries = dashboardData?.activeDeliveries || [];
@@ -458,10 +458,10 @@ export default function DelivererDashboard({ locale }: { locale }) {
 
   // Charger les notifications urgentes au démarrage
   useEffect(() => {
-    if (notificationsData) {
-      setUrgentNotifications(notificationsData);
+    if (urgentNotificationsData) {
+      setUrgentNotifications(urgentNotificationsData);
     }
-  }, [notificationsData]);
+  }, [urgentNotificationsData]);
 
   const handleNavigateToDelivery = (deliveryId: string) => {
     router.push(`/deliverer/deliveries/${deliveryId}`);

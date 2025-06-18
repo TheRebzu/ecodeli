@@ -1082,6 +1082,11 @@ export function useDeliveryRating(deliveryId: string) {
   return {
     rateDelivery,
     isRating: rateMutation.isLoading,
-    // TODO: Ajouter d'autres propriétés nécessaires
+    // Propriétés calculées
+    hasRated: rateMutation.isSuccess,
+    canRate: !rateMutation.isLoading && !rateMutation.isSuccess,
+    error: rateMutation.error,
+    // Helpers
+    reset: rateMutation.reset,
   };
 }

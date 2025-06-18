@@ -76,15 +76,6 @@ export function BoxReservations() {
   // Récupération des réservations du client
   const { reservations, isLoading } = useBoxReservations(activeTab);
 
-  // Debug: log pour voir ce qui est retourné
-  console.log(
-    "reservations:",
-    reservations,
-    "type:",
-    typeof reservations,
-    "isArray:",
-    Array.isArray(reservations),
-  );
 
   if (isLoading) {
     return <ReservationsSkeleton />;
