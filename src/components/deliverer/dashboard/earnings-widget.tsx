@@ -43,18 +43,8 @@ interface EarningsWidgetProps {
   isLoading?: boolean;
 }
 
-const defaultEarnings: EarningsData = {
-  totalEarnings: 3247.50,
-  todayEarnings: 127.25,
-  weeklyEarnings: 856.75,
-  monthlyEarnings: 2834.25,
-  pendingPayouts: 412.50,
-  completedTrips: 47,
-  bonuses: 85.00
-};
-
 export default function EarningsWidget({ 
-  earnings = defaultEarnings, 
+  earnings, 
   isLoading = false 
 }: EarningsWidgetProps) {
   const t = useTranslations("dashboard.deliverer.earnings");
@@ -93,10 +83,21 @@ export default function EarningsWidget({
     );
   }
 
+  // Utiliser les données réelles ou les données par défaut de l'API
+  const realEarnings = earningsData || earnings || {
+    totalEarnings: 0,
+    todayEarnings: 0,
+    weeklyEarnings: 0,
+    monthlyEarnings: 0,
+    pendingPayouts: 0,
+    completedTrips: 0,
+    bonuses: 0
+  };
+
   const earningsCards = [
     {
       title: t("totalEarnings"),
-      value: formatCurrency(earnings.totalEarnings),
+      value: formatCurrency(realEarnings.totalEarnings),
       icon: DollarSign,
       description: t("thisMonth"),
       trend: earningsData?.totalTrend || 0,
@@ -120,7 +121,7 @@ export default function EarningsWidget({
     },
     {
       title: t("todayEarnings"),
-      value: formatCurrency(earnings.todayEarnings),
+      value: formatCurrency(realEarnings.todayEarnings),
       icon: Calendar,
       description: t("today"),
       trend: earningsData?.todayTrend || 0,

@@ -11,8 +11,8 @@ export default function PricingSimulatorPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <PageHeader
-        title="Simulateur"
-        description={t("admin.PricingSimulator.description")}
+        title={t("admin.pricing.simulator.title")}
+        description={t("admin.pricing.simulator.description")}
       />
 
       <Card className="p-6">

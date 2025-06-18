@@ -33,7 +33,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { api } from '@/trpc/react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 interface MerchantApplication {
   id: string;
@@ -148,6 +148,14 @@ export default function MerchantValidation() {
     },
   });
 
+  // Récupérer les marchands approuvés
+  const { data: approvedMerchants } = api.admin.merchants.getMerchants.useQuery({
+    status: 'ACTIVE',
+    limit: 10,
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
+  });
+
   const validateDocumentMutation = api.admin.validateDocument.useMutation({
     onSuccess: () => {
       toast({
@@ -165,120 +173,17 @@ export default function MerchantValidation() {
     },
   });
 
-  // Données simulées pour la démonstration (remplacées par les vraies données tRPC)
-  const mockApplications: MerchantApplication[] = applications ?? [
-    {
-      id: 'app-1',
-      merchantId: 'merchant-1',
-      businessName: 'Restaurant Le Gourmet',
-      ownerName: 'Pierre Dubois',
-      businessType: 'RESTAURANT',
-      status: 'PENDING',
-      submissionDate: new Date('2024-10-20'),
-      email: 'pierre@legourmet.fr',
-      phone: '+33123456789',
-      address: {
-        street: '123 Rue de la Paix',
-        city: 'Paris',
-        postalCode: '75001',
-        country: 'France'
-      },
-      businessHours: {
-        monday: '11:00-23:00',
-        tuesday: '11:00-23:00',
-        wednesday: '11:00-23:00',
-        thursday: '11:00-23:00',
-        friday: '11:00-00:00',
-        saturday: '11:00-00:00',
-        sunday: 'Fermé'
-      },
-      documents: [
-        {
-          id: 'doc-1',
-          type: 'BUSINESS_LICENSE',
-          name: 'Licence commerciale.pdf',
-          url: '/documents/license-1.pdf',
-          status: 'PENDING',
-          uploadDate: new Date('2024-10-20')
-        },
-        {
-          id: 'doc-2',
-          type: 'TAX_ID',
-          name: 'Numéro SIRET.pdf',
-          url: '/documents/siret-1.pdf',
-          status: 'APPROVED',
-          uploadDate: new Date('2024-10-20')
-        },
-        {
-          id: 'doc-3',
-          type: 'PHOTOS',
-          name: 'Photos du restaurant.zip',
-          url: '/documents/photos-1.zip',
-          status: 'PENDING',
-          uploadDate: new Date('2024-10-21')
-        }
-      ],
-      verificationScore: 75,
-      riskLevel: 'MEDIUM'
-    },
-    {
-      id: 'app-2',
-      merchantId: 'merchant-2',
-      businessName: 'Pharmacie Central',
-      ownerName: 'Dr. Marie Leroy',
-      businessType: 'PHARMACY',
-      status: 'UNDER_REVIEW',
-      submissionDate: new Date('2024-10-18'),
-      reviewDate: new Date('2024-10-22'),
-      email: 'contact@pharmaciecentral.fr',
-      phone: '+33987654321',
-      address: {
-        street: '45 Avenue des Champs',
-        city: 'Lyon',
-        postalCode: '69001',
-        country: 'France'
-      },
-      businessHours: {
-        monday: '08:00-20:00',
-        tuesday: '08:00-20:00',
-        wednesday: '08:00-20:00',
-        thursday: '08:00-20:00',
-        friday: '08:00-20:00',
-        saturday: '08:00-18:00',
-        sunday: '09:00-12:00'
-      },
-      documents: [
-        {
-          id: 'doc-4',
-          type: 'BUSINESS_LICENSE',
-          name: 'Licence pharmacie.pdf',
-          url: '/documents/license-2.pdf',
-          status: 'APPROVED',
-          uploadDate: new Date('2024-10-18')
-        },
-        {
-          id: 'doc-5',
-          type: 'INSURANCE',
-          name: 'Assurance professionnelle.pdf',
-          url: '/documents/insurance-2.pdf',
-          status: 'APPROVED',
-          uploadDate: new Date('2024-10-18')
-        }
-      ],
-      verificationScore: 92,
-      riskLevel: 'LOW',
-      reviewedBy: 'admin-1'
-    }
-  ];
+  // Données réelles via tRPC (fini les mocks)
+  const validApplications: MerchantApplication[] = applications || [];
 
-  const mockMetrics: ValidationMetrics = validationMetrics ?? {
-    totalApplications: 248,
-    pendingApplications: 23,
-    approvedApplications: 198,
-    rejectedApplications: 27,
-    averageProcessingTime: 3.2,
-    approvalRate: 88.1,
-    documentsToReview: 45
+  const validMetrics: ValidationMetrics = validationMetrics || {
+    totalApplications: 0,
+    pendingApplications: 0,
+    approvedApplications: 0,
+    rejectedApplications: 0,
+    averageProcessingTime: 0,
+    approvalRate: 0,
+    documentsToReview: 0
   };
 
   const getStatusColor = (status: string) => {
@@ -382,9 +287,9 @@ export default function MerchantValidation() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('validation.totalApplications')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.totalApplications}</p>
+                <p className="text-2xl font-bold">{validMetrics.totalApplications}</p>
                 <p className="text-sm text-green-600">
-                  {mockMetrics.approvedApplications} {t('validation.approved')}
+                  {validMetrics.approvedApplications} {t('validation.approved')}
                 </p>
               </div>
               <Building className="h-8 w-8 text-blue-500" />
@@ -399,7 +304,7 @@ export default function MerchantValidation() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('validation.pendingApplications')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.pendingApplications}</p>
+                <p className="text-2xl font-bold">{validMetrics.pendingApplications}</p>
                 <p className="text-sm text-muted-foreground">
                   {t('validation.requiresAction')}
                 </p>
@@ -416,9 +321,9 @@ export default function MerchantValidation() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('validation.approvalRate')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.approvalRate}%</p>
+                <p className="text-2xl font-bold">{validMetrics.approvalRate}%</p>
                 <p className="text-sm text-muted-foreground">
-                  {mockMetrics.averageProcessingTime} {t('validation.daysAvg')}
+                  {validMetrics.averageProcessingTime} {t('validation.daysAvg')}
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
@@ -433,7 +338,7 @@ export default function MerchantValidation() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('validation.documentsToReview')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.documentsToReview}</p>
+                <p className="text-2xl font-bold">{validMetrics.documentsToReview}</p>
                 <p className="text-sm text-muted-foreground">
                   {t('validation.awaitingReview')}
                 </p>
@@ -516,7 +421,7 @@ export default function MerchantValidation() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockApplications
+                {validApplications
                   .filter(app => app.status === 'PENDING')
                   .map((application) => (
                     <div key={application.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -589,7 +494,7 @@ export default function MerchantValidation() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockApplications
+                  {validApplications
                     .filter(app => app.status === 'UNDER_REVIEW')
                     .map((application) => (
                       <TableRow key={application.id}>
@@ -661,21 +566,28 @@ export default function MerchantValidation() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
-                {/* Simulation de demandes approuvées */}
-                <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50">
-                  <div className="flex items-center gap-4">
-                    <CheckCircle className="h-8 w-8 text-green-500" />
-                    <div>
-                      <h3 className="font-medium">Boulangerie Martin</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Jean Martin • Approuvé le 15/10/2024
-                      </p>
+                {approvedMerchants?.length > 0 ? (
+                  approvedMerchants.map((merchant) => (
+                    <div key={merchant.id} className="flex items-center justify-between p-4 border rounded-lg bg-green-50">
+                      <div className="flex items-center gap-4">
+                        <CheckCircle className="h-8 w-8 text-green-500" />
+                        <div>
+                          <h3 className="font-medium">{merchant.businessName}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {merchant.name} • Approuvé le {new Date(merchant.approvedAt || merchant.createdAt).toLocaleDateString('fr-FR')}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800">
+                        {t('validation.approved')}
+                      </Badge>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center text-muted-foreground p-8">
+                    {t('validation.noApprovedApplications')}
                   </div>
-                  <Badge className="bg-green-100 text-green-800">
-                    {t('validation.approved')}
-                  </Badge>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -700,7 +612,7 @@ export default function MerchantValidation() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockApplications.map((application) => (
+                  {validApplications.map((application) => (
                     <TableRow key={application.id}>
                       <TableCell>
                         <div>

@@ -28,7 +28,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { api } from '@/trpc/react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 interface DeliveryMetrics {
   totalDeliveries: number;
@@ -93,88 +93,25 @@ export default function DeliveryAnalytics() {
     groupBy: 'HOUR'
   });
 
-  // Données simulées pour la démonstration (remplacées par les vraies données tRPC)
-  const mockMetrics: DeliveryMetrics = deliveryMetrics ?? {
-    totalDeliveries: 2847,
-    completedDeliveries: 2654,
-    pendingDeliveries: 156,
-    cancelledDeliveries: 37,
-    averageDeliveryTime: 28.5,
-    onTimeDeliveryRate: 92.3,
-    averageRating: 4.6,
-    totalDistance: 15420.8,
-    averageDistance: 5.4,
-    totalRevenue: 42850.30,
-    activeDeliverers: 45,
-    busyDeliverers: 32
+  // Données réelles via tRPC (fini les mocks)
+  const validMetrics: DeliveryMetrics = deliveryMetrics || {
+    totalDeliveries: 0,
+    completedDeliveries: 0,
+    pendingDeliveries: 0,
+    cancelledDeliveries: 0,
+    averageDeliveryTime: 0,
+    onTimeDeliveryRate: 0,
+    averageRating: 0,
+    totalDistance: 0,
+    averageDistance: 0,
+    totalRevenue: 0,
+    activeDeliverers: 0,
+    busyDeliverers: 0
   };
 
-  const mockPerformance: DeliveryPerformance[] = delivererPerformance ?? [
-    {
-      delivererId: 'del-1',
-      delivererName: 'Pierre Martin',
-      completedDeliveries: 156,
-      averageTime: 24.2,
-      onTimeRate: 96.8,
-      rating: 4.8,
-      totalDistance: 842.5,
-      earnings: 2340.50,
-      status: 'ACTIVE'
-    },
-    {
-      delivererId: 'del-2',
-      delivererName: 'Sophie Durand',
-      completedDeliveries: 142,
-      averageTime: 26.1,
-      onTimeRate: 94.2,
-      rating: 4.7,
-      totalDistance: 756.3,
-      earnings: 2180.20,
-      status: 'BUSY'
-    },
-    {
-      delivererId: 'del-3',
-      delivererName: 'Marc Leblanc',
-      completedDeliveries: 138,
-      averageTime: 29.8,
-      onTimeRate: 89.1,
-      rating: 4.5,
-      totalDistance: 698.7,
-      earnings: 1950.80,
-      status: 'ACTIVE'
-    }
-  ];
+  const validPerformance: DeliveryPerformance[] = delivererPerformance || [];
 
-  const mockZoneStats: ZoneStats[] = zoneStatistics ?? [
-    {
-      zone: 'Centre-ville',
-      deliveries: 856,
-      averageTime: 22.4,
-      successRate: 96.2,
-      revenue: 15420.30
-    },
-    {
-      zone: 'Quartier Nord',
-      deliveries: 642,
-      averageTime: 31.2,
-      successRate: 91.8,
-      revenue: 11250.80
-    },
-    {
-      zone: 'Zone Sud',
-      deliveries: 534,
-      averageTime: 35.6,
-      successRate: 88.4,
-      revenue: 9180.50
-    },
-    {
-      zone: 'Banlieue Est',
-      deliveries: 428,
-      averageTime: 42.1,
-      successRate: 85.2,
-      revenue: 7650.20
-    }
-  ];
+  const validZoneStats: ZoneStats[] = zoneStatistics || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -267,11 +204,11 @@ export default function DeliveryAnalytics() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('analytics.totalDeliveries')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.totalDeliveries.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{validMetrics.totalDeliveries.toLocaleString()}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="text-sm text-green-600">
-                    {mockMetrics.completedDeliveries} {t('analytics.completed')}
+                    {validMetrics.completedDeliveries} {t('analytics.completed')}
                   </span>
                 </div>
               </div>
@@ -287,9 +224,9 @@ export default function DeliveryAnalytics() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('analytics.averageDeliveryTime')}
                 </p>
-                <p className="text-2xl font-bold">{formatTime(mockMetrics.averageDeliveryTime)}</p>
+                <p className="text-2xl font-bold">{formatTime(validMetrics.averageDeliveryTime)}</p>
                 <p className="text-sm text-muted-foreground">
-                  {mockMetrics.onTimeDeliveryRate}% {t('analytics.onTime')}
+                  {validMetrics.onTimeDeliveryRate}% {t('analytics.onTime')}
                 </p>
               </div>
               <Timer className="h-8 w-8 text-orange-500" />
@@ -304,7 +241,7 @@ export default function DeliveryAnalytics() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('analytics.averageRating')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.averageRating}</p>
+                <p className="text-2xl font-bold">{validMetrics.averageRating}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <Star className="h-4 w-4 text-yellow-500 fill-current" />
                   <span className="text-sm text-muted-foreground">
@@ -324,9 +261,9 @@ export default function DeliveryAnalytics() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('analytics.activeDeliverers')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.activeDeliverers}</p>
+                <p className="text-2xl font-bold">{validMetrics.activeDeliverers}</p>
                 <p className="text-sm text-muted-foreground">
-                  {mockMetrics.busyDeliverers} {t('analytics.busy')}
+                  {validMetrics.busyDeliverers} {t('analytics.busy')}
                 </p>
               </div>
               <Users className="h-8 w-8 text-purple-500" />
@@ -363,9 +300,9 @@ export default function DeliveryAnalytics() {
                       <span>{t('analytics.completed')}</span>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{mockMetrics.completedDeliveries}</p>
+                      <p className="font-medium">{validMetrics.completedDeliveries}</p>
                       <p className="text-sm text-muted-foreground">
-                        {((mockMetrics.completedDeliveries / mockMetrics.totalDeliveries) * 100).toFixed(1)}%
+                        {((validMetrics.completedDeliveries / validMetrics.totalDeliveries) * 100).toFixed(1)}%
                       </p>
                     </div>
                   </div>
@@ -375,9 +312,9 @@ export default function DeliveryAnalytics() {
                       <span>{t('analytics.pending')}</span>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{mockMetrics.pendingDeliveries}</p>
+                      <p className="font-medium">{validMetrics.pendingDeliveries}</p>
                       <p className="text-sm text-muted-foreground">
-                        {((mockMetrics.pendingDeliveries / mockMetrics.totalDeliveries) * 100).toFixed(1)}%
+                        {((validMetrics.pendingDeliveries / validMetrics.totalDeliveries) * 100).toFixed(1)}%
                       </p>
                     </div>
                   </div>
@@ -387,9 +324,9 @@ export default function DeliveryAnalytics() {
                       <span>{t('analytics.cancelled')}</span>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{mockMetrics.cancelledDeliveries}</p>
+                      <p className="font-medium">{validMetrics.cancelledDeliveries}</p>
                       <p className="text-sm text-muted-foreground">
-                        {((mockMetrics.cancelledDeliveries / mockMetrics.totalDeliveries) * 100).toFixed(1)}%
+                        {((validMetrics.cancelledDeliveries / validMetrics.totalDeliveries) * 100).toFixed(1)}%
                       </p>
                     </div>
                   </div>
@@ -409,20 +346,20 @@ export default function DeliveryAnalytics() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{t('analytics.totalDistance')}</span>
-                    <span className="font-bold">{formatDistance(mockMetrics.totalDistance)}</span>
+                    <span className="font-bold">{formatDistance(validMetrics.totalDistance)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{t('analytics.averageDistance')}</span>
-                    <span className="font-bold">{formatDistance(mockMetrics.averageDistance)}</span>
+                    <span className="font-bold">{formatDistance(validMetrics.averageDistance)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{t('analytics.totalRevenue')}</span>
-                    <span className="font-bold">{formatCurrency(mockMetrics.totalRevenue)}</span>
+                    <span className="font-bold">{formatCurrency(validMetrics.totalRevenue)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{t('analytics.avgRevenuePerKm')}</span>
                     <span className="font-bold">
-                      {formatCurrency(mockMetrics.totalRevenue / mockMetrics.totalDistance)}
+                      {formatCurrency(validMetrics.totalRevenue / validMetrics.totalDistance)}
                     </span>
                   </div>
                 </div>
@@ -439,8 +376,8 @@ export default function DeliveryAnalytics() {
                   <p className="text-sm font-medium text-muted-foreground">
                     {t('analytics.onTimeRate')}
                   </p>
-                  <p className="text-2xl font-bold">{mockMetrics.onTimeDeliveryRate}%</p>
-                  <Progress value={mockMetrics.onTimeDeliveryRate} className="mt-2" />
+                  <p className="text-2xl font-bold">{validMetrics.onTimeDeliveryRate}%</p>
+                  <Progress value={validMetrics.onTimeDeliveryRate} className="mt-2" />
                 </div>
               </CardContent>
             </Card>
@@ -453,7 +390,7 @@ export default function DeliveryAnalytics() {
                     {t('analytics.avgRevenuePerDelivery')}
                   </p>
                   <p className="text-2xl font-bold">
-                    {formatCurrency(mockMetrics.totalRevenue / mockMetrics.completedDeliveries)}
+                    {formatCurrency(validMetrics.totalRevenue / validMetrics.completedDeliveries)}
                   </p>
                 </div>
               </CardContent>
@@ -467,7 +404,7 @@ export default function DeliveryAnalytics() {
                     {t('analytics.deliveriesPerDeliverer')}
                   </p>
                   <p className="text-2xl font-bold">
-                    {Math.round(mockMetrics.completedDeliveries / mockMetrics.activeDeliverers)}
+                    {Math.round(validMetrics.completedDeliveries / validMetrics.activeDeliverers)}
                   </p>
                 </div>
               </CardContent>
@@ -496,7 +433,7 @@ export default function DeliveryAnalytics() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockPerformance.map((deliverer) => (
+                  {validPerformance.map((deliverer) => (
                     <TableRow key={deliverer.delivererId}>
                       <TableCell className="font-medium">{deliverer.delivererName}</TableCell>
                       <TableCell>
@@ -538,7 +475,7 @@ export default function DeliveryAnalytics() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
-                {mockZoneStats.map((zone) => (
+                {validZoneStats.map((zone) => (
                   <div key={zone.zone} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-4">
                       <MapPin className="h-8 w-8 text-blue-500" />

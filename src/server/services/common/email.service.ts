@@ -478,4 +478,63 @@ export class EmailService {
 
     await this.sendEmail(email, subject, html);
   }
+
+  /**
+   * Envoie un email de facture au client
+   */
+  async sendInvoiceEmail(
+    email: string,
+    name: string,
+    invoiceNumber: string,
+    totalAmount: number,
+    invoiceId: string,
+    locale: SupportedLanguage = "fr",
+  ): Promise<void> {
+    const invoiceUrl = `${this.appUrl}/invoices/${invoiceId}`;
+    const subject = `Facture ${invoiceNumber} - EcoDeli`;
+    
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Facture EcoDeli</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 30px; text-align: center;">
+      <h1 style="margin: 0; font-size: 28px;">📄 EcoDeli</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">Facture</p>
+    </div>
+    <div style="padding: 30px;">
+      <h2 style="color: #3b82f6; margin-top: 0;">Bonjour ${name},</h2>
+      <p>Vous avez reçu une nouvelle facture de la part d'EcoDeli.</p>
+      
+      <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <p style="margin: 0; color: #666; font-size: 14px;">Numéro de facture</p>
+        <p style="margin: 5px 0 15px 0; font-size: 18px; font-weight: bold; color: #1e293b;">${invoiceNumber}</p>
+        
+        <p style="margin: 0; color: #666; font-size: 14px;">Montant total</p>
+        <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #059669;">${totalAmount.toFixed(2)} €</p>
+      </div>
+      
+      <p>Vous pouvez consulter et télécharger votre facture en ligne :</p>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${invoiceUrl}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+          Voir ma facture
+        </a>
+      </div>
+      
+      <p style="color: #666; font-size: 14px;">Si vous avez des questions concernant cette facture, n'hésitez pas à nous contacter.</p>
+    </div>
+    <div style="background-color: #f8fafc; padding: 20px; text-align: center; color: #666; font-size: 12px;">
+      <p style="margin: 0;">© ${new Date().getFullYear()} EcoDeli - Plateforme de livraison écologique</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    await this.sendEmail(email, subject, html);
+  }
 }

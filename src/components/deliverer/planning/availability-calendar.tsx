@@ -34,7 +34,7 @@ import {
   Repeat
 } from "lucide-react";
 import { trpc } from "@/trpc/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { TimePickerDemo } from "@/components/ui/time-picker";
 
 interface AvailabilitySlot {

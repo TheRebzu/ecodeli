@@ -18,7 +18,7 @@ import { ContractFilters } from "@/components/client/contracts/contract-filters"
 
 // Hooks
 import { useClientContracts } from "@/hooks/client/use-client-contracts";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ContractsPage() {
   const t = useTranslations("contracts");

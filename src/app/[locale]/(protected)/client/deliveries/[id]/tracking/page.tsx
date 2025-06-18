@@ -80,11 +80,15 @@ export default function LiveTrackingPage() {
   // Fonction pour rafraîchir les données
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refreshData();
-    toast({ title: t("dataRefreshed"),
-      duration: 2000,
-     });
-    setTimeout(() => setRefreshing(false), 500);
+    try {
+      await refreshData();
+      toast({ 
+        title: t("dataRefreshed"),
+        duration: 2000,
+      });
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   // Fonction pour retourner aux détails de la livraison

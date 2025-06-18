@@ -65,7 +65,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
 
   // Récupérer les données du portefeuille
   const { data: walletData, isLoading: loadingWallet } =
-    api.deliverer.wallet.getStats.useQuery({ period  });
+    api.deliverer.wallet.getStats.useQuery({ period: selectedPeriod });
 
   // Récupérer les transactions
   const { data: transactions, isLoading: loadingTransactions } =
@@ -148,7 +148,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
         "Date,Type,Description,Montant,Statut",
         ...transactionList.map(
           (t) =>
-            `${format(t.createdAt, "dd/MM/yyyy", { locale })},${getTransactionLabel(t.type)},${t.description},${t.amount},${t.status}`,
+            `${format(t.createdAt, "dd/MM/yyyy", { locale: fr })},${getTransactionLabel(t.type)},${t.description},${t.amount},${t.status}`,
         )].join("\n");
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -358,7 +358,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
                             {format(
                               transaction.createdAt,
                               "dd MMM yyyy à HH:mm",
-                              { locale },
+                              { locale: fr },
                             )}
                           </div>
                         </div>
@@ -429,12 +429,40 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center bg-muted/25 rounded">
-                  <div className="text-center text-muted-foreground">
-                    <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Graphique des gains</p>
-                    <p className="text-xs">À implémenter avec Chart.js</p>
-                  </div>
+                <div className="h-64">
+                  {earningsData?.chartData && earningsData.chartData.length > 0 ? (
+                    <div className="w-full h-full">
+                      {/* Graphique simple en SVG en attendant Chart.js */}
+                      <div className="flex items-end justify-between h-48 px-4 border-b border-l border-muted">
+                        {earningsData.chartData.slice(0, 7).map((item, index) => (
+                          <div key={index} className="flex flex-col items-center gap-2">
+                            <div 
+                              className="bg-primary rounded-t w-8 min-h-[20px] transition-all"
+                              style={{ 
+                                height: `${Math.max(20, (item.value / Math.max(...earningsData.chartData.map(d => d.value))) * 160)}px` 
+                              }}
+                            />
+                            <span className="text-xs text-muted-foreground rotate-45 origin-left">
+                              {format(new Date(item.date), 'dd/MM', { locale: fr })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 text-center">
+                        <p className="text-sm text-muted-foreground">
+                          Gains journaliers sur 7 jours
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center bg-muted/25 rounded">
+                      <div className="text-center text-muted-foreground">
+                        <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Aucune donnée disponible</p>
+                        <p className="text-xs">Commencez à livrer pour voir vos gains</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -447,12 +475,42 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center bg-muted/25 rounded">
-                  <div className="text-center text-muted-foreground">
-                    <PieChart className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Répartition des revenus</p>
-                    <p className="text-xs">À implémenter avec Chart.js</p>
-                  </div>
+                <div className="h-64">
+                  {earningsData?.breakdown && Object.keys(earningsData.breakdown).length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Graphique en barres horizontal simple */}
+                      {Object.entries(earningsData.breakdown).map(([type, amount], index) => {
+                        const percentage = (amount / Object.values(earningsData.breakdown).reduce((a, b) => a + b, 0)) * 100;
+                        const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-red-500'];
+                        return (
+                          <div key={type} className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium capitalize">
+                                {type.toLowerCase().replace('_', ' ')}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                {formatCurrency(amount)} ({percentage.toFixed(1)}%)
+                              </span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-3">
+                              <div 
+                                className={`h-3 rounded-full ${colors[index % colors.length]} transition-all duration-300`}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center bg-muted/25 rounded">
+                      <div className="text-center text-muted-foreground">
+                        <PieChart className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Aucune donnée disponible</p>
+                        <p className="text-xs">Les revenus apparaîtront ici</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -461,7 +519,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
       </Tabs>
 
       {/* Alertes et informations */}
-      {withdrawals && withdrawals.withdrawals.length > 0 && (
+      {data && data.withdrawals.length > 0 && (
         <Card className="border-amber-200 bg-amber-50">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
@@ -471,7 +529,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
                   Retraits en cours de traitement
                 </h4>
                 <p className="text-sm text-amber-700 mt-1">
-                  Vous avez {withdrawals.withdrawals.length} retrait(s) en
+                  Vous avez {data.withdrawals.length} retrait(s) en
                   attente de traitement. Le délai habituel est de 1-3 jours
                   ouvrés.
                 </p>

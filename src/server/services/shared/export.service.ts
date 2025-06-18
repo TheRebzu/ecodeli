@@ -1,6 +1,6 @@
 /**
  * Service d'export de données utilisant des bibliothèques réelles
- * Remplace les simulations d'export par des implémentations fonctionnelles
+ * Implémentations fonctionnelles pour CSV, Excel et PDF
  */
 
 import { TRPCError } from "@trpc/server";

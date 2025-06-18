@@ -1,5 +1,13 @@
 import { z } from "zod";
-import { PaymentStatus } from "@prisma/client";
+
+// Définition de PaymentStatus (non importé de Prisma car pas encore généré)
+export const PaymentStatus = {
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED", 
+  FAILED: "FAILED",
+  REFUNDED: "REFUNDED",
+  CANCELLED: "CANCELLED"
+} as const;
 
 // Définition de ServiceType (non importé de Prisma car pas encore généré)
 export const ServiceType = {
@@ -8,12 +16,10 @@ export const ServiceType = {
   STORAGE: "STORAGE",
   CUSTOM: "CUSTOM"} as const;
 
-/**
- * Schéma de base pour les paiements
- */
+// Schéma de base pour les paiements
 export const paymentBaseSchema = z.object({
   amount: z.number().positive("Le montant doit être positif"),
-  currency: z.string().length(3, "La devise doit faire 3 caractères").default("EUR"),
+  currency: z.string().length(3, "La devise doit contenir 3 caractères").default("EUR"),
   description: z.string().min(1, "La description est requise"),
 });
 
@@ -53,7 +59,13 @@ export const processPaymentSchema = z.object({ paymentId: z.string().cuid("ID pa
  * Schéma pour filtrer les paiements
  */
 export const paymentFilterSchema = z.object({ userId: z.string().cuid("ID utilisateur invalide").optional(),
-  status: z.nativeEnum(PaymentStatus).optional(),
+  status: z.enum([
+    PaymentStatus.PENDING,
+    PaymentStatus.COMPLETED,
+    PaymentStatus.FAILED,
+    PaymentStatus.REFUNDED,
+    PaymentStatus.CANCELLED
+  ]).optional(),
   minAmount: z.number().optional(),
   maxAmount: z.number().optional(),
   startDate: z.date().optional(),

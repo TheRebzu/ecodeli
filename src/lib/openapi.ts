@@ -293,7 +293,7 @@ const options: swaggerJsdoc.Options = {
   apis: [
     path.join(process.cwd(), "src/server/api/routers/**/*.ts"),
     path.join(process.cwd(), "src/app/api/**/*.ts"),
-    filename, // Include this file for inline documentation
+    path.join(process.cwd(), "src/lib/openapi.ts"), // Include this file for inline documentation
   ]};
 
 export const specs = swaggerJsdoc(options);

@@ -60,6 +60,8 @@ interface MerchantStats {
   averageOrderValue: number;
   customerSatisfaction: number;
   conversionRate: number;
+  isVerified: boolean;
+  verificationStatus: string;
 }
 
 interface Order {
@@ -397,6 +399,7 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
   const { data: salesChart } = api.merchant.dashboard.getSalesChart.useQuery({
     period: "week"
   });
+  const { data: trends } = api.merchant.dashboard.getTrends.useQuery();
 
   // Socket.io pour les mises à jour temps réel
   useEffect(() => {
@@ -470,7 +473,7 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
           title="CA aujourd'hui"
           value={`${currentStats?.dailyRevenue || 0}€`}
           icon={<Euro className="h-5 w-5" />}
-          trend={{ value: 12, label: "vs hier" }}
+          trend={trends?.dailyTrend}
           isLoading={isLoadingStats}
           onClick={() => router.push("/merchant/stats/sales")}
           color="text-green-600"
@@ -481,7 +484,7 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
           title="CA mensuel"
           value={`${currentStats?.monthlyRevenue || 0}€`}
           icon={<TrendingUp className="h-5 w-5" />}
-          trend={{ value: 8, label: "vs mois dernier" }}
+          trend={trends?.monthlyTrend}
           isLoading={isLoadingStats}
           onClick={() => router.push("/merchant/stats")}
           color="text-blue-600"
@@ -667,12 +670,26 @@ export default function MerchantDashboard({ locale }: MerchantDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col items-center justify-center p-4">
-                    <div className="rounded-full bg-green-100 dark:bg-green-900/50 p-3 mb-4">
-                      <CheckCircle className="h-8 w-8 text-green-600" />
+                    <div className={cn(
+                      "rounded-full p-3 mb-4",
+                      currentStats?.isVerified 
+                        ? "bg-green-100 dark:bg-green-900/50" 
+                        : "bg-yellow-100 dark:bg-yellow-900/50"
+                    )}>
+                      {currentStats?.isVerified ? (
+                        <CheckCircle className="h-8 w-8 text-green-600" />
+                      ) : (
+                        <Clock className="h-8 w-8 text-yellow-600" />
+                      )}
                     </div>
-                    <h3 className="text-lg font-medium mb-1">Compte vérifié</h3>
+                    <h3 className="text-lg font-medium mb-1">
+                      {currentStats?.isVerified ? "Compte vérifié" : "Vérification en cours"}
+                    </h3>
                     <p className="text-center text-sm text-muted-foreground">
-                      Votre magasin est entièrement fonctionnel
+                      {currentStats?.isVerified 
+                        ? "Votre magasin est entièrement fonctionnel"
+                        : "Votre compte est en cours de validation"
+                      }
                     </p>
                   </div>
                 </CardContent>

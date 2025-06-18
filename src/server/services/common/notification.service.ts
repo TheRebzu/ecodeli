@@ -856,9 +856,9 @@ export class NotificationService {
       let phoneNumber = user.phoneNumber;
 
       if (!phoneNumber) {
-        const userData = await this.db.user.findUnique({
+        const userData = await this.prisma.user.findUnique({
           where: { id: user.id },
-          select: { phoneNumber }});
+          select: { phoneNumber: true }});
         phoneNumber = userData?.phoneNumber;
       }
 

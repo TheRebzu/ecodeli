@@ -76,7 +76,16 @@
       "Bash(npm run lint:*)",
       "Bash(pnpm install:*)",
       "Bash(node:*)",
-      "Bash(source .env)"
+      "Bash(source .env)",
+      "Bash(npx tsx:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm check:*)",
+      "Bash(./validate-refactoring.sh:*)",
+      "Bash(npm install:*)",
+      "Bash(tsc:*)"
     ]
   },
   "allowed_tools": [

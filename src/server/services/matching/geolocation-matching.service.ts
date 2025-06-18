@@ -127,7 +127,7 @@ export class GeolocationMatchingService {
               lte: bounds.maxLng
             }
           },
-          averageRating: { gte },
+          averageRating: { gte: minRating },
           ...(vehicleTypes.length > 0 ? {
             vehicle: {
               type: { in: vehicleTypes }
@@ -214,7 +214,7 @@ export class GeolocationMatchingService {
     try {
       // Mettre � jour la position dans la base de donn�es
       await db.deliverer.update({
-        where: { id },
+        where: { id: delivererId },
         data: {
           user: {
             update: {
@@ -376,11 +376,11 @@ export class GeolocationMatchingService {
       );
 
       // Calculer les m�triques de la route
-      const totalDistance = 0;
-      const totalDuration = 0;
-      const currentLat = startLatitude;
-      const currentLng = startLongitude;
-      const currentTime = new Date();
+      let totalDistance = 0;
+      let totalDuration = 0;
+      let currentLat = startLatitude;
+      let currentLng = startLongitude;
+      let currentTime = new Date();
 
       const routeWithDetails = optimizedRoute.map((point, index) => {
         const distance = this.calculateDistance(currentLat, currentLng, point.latitude, point.longitude);
@@ -491,7 +491,7 @@ export class GeolocationMatchingService {
       // Récupérer les données de livraison des 30 derniers jours pour cette zone et cette heure
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       
-      const historicalData = await this.db.delivery.findMany({
+      const historicalData = await db.delivery.findMany({
         where: {
           createdAt: {
             gte: thirtyDaysAgo,

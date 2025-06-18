@@ -37,6 +37,10 @@ export interface TutorialStore {
   startAnimation: () => void;
   endAnimation: () => void;
   
+  // Helper methods
+  scrollToTarget: (element: HTMLElement) => void;
+  calculateTargetPosition: (element: HTMLElement) => void;
+  
   // Utility
   reset: () => void;
 }
@@ -90,14 +94,15 @@ export const useTutorialStore = create<TutorialStore>()(
 
           // If targeting a specific element, scroll to it and highlight
           if (targetElement) {
-            setTimeout(() => {
+            // Utilisation d'un requestAnimationFrame pour une meilleure performance
+            requestAnimationFrame(() => {
               const element = document.querySelector(targetElement) as HTMLElement;
               if (element) {
                 get().setHighlightedElement(element);
                 get().scrollToTarget(element);
                 get().calculateTargetPosition(element);
               }
-            }, 100);
+            });
           }
         },
 
@@ -107,16 +112,32 @@ export const useTutorialStore = create<TutorialStore>()(
           
           set({ isAnimating: true });
           
-          setTimeout(() => {
-            set({
-              isOverlayVisible: false,
-              currentTarget: null,
-              overlayConfig: null,
-              highlightedElement: null,
-              targetPosition: null,
-              isAnimating: false,
+          // Utilisation d'une transition CSS au lieu d'un setTimeout
+          const overlayElement = document.querySelector('[data-tutorial-overlay]');
+          if (overlayElement) {
+            overlayElement.addEventListener('transitionend', () => {
+              set({
+                isOverlayVisible: false,
+                currentTarget: null,
+                overlayConfig: null,
+                highlightedElement: null,
+                targetPosition: null,
+                isAnimating: false,
+              });
+            }, { once: true });
+          } else {
+            // Fallback si pas d'élément overlay
+            requestAnimationFrame(() => {
+              set({
+                isOverlayVisible: false,
+                currentTarget: null,
+                overlayConfig: null,
+                highlightedElement: null,
+                targetPosition: null,
+                isAnimating: false,
+              });
             });
-          }, animationDuration);
+          }
         },
 
         updateOverlayConfig: (newConfig: Partial<OverlayConfig>) => {

@@ -805,8 +805,8 @@ export class GPSTrackingService {
    */
   setManualPosition(position: { latitude: number; longitude: number }, accuracy: number = 10): void {
     if (process.env.NODE_ENV === 'production') {
-      console.warn('La mise à jour manuelle de position ne devrait pas être utilisée en production');
-      return;
+      // En production, cette fonction est complètement désactivée pour des raisons de sécurité
+      throw new Error('La mise à jour manuelle de position est désactivée en production');
     }
 
     const manualPosition: GeolocationPosition = {

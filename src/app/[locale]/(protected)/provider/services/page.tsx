@@ -19,7 +19,7 @@ import { ServiceFilters } from "@/components/provider/services/service-filters";
 
 // Hooks
 import { useProviderServices } from "@/hooks/provider/use-provider-services";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ProviderServicesPage() {
   const t = useTranslations("providerServices");

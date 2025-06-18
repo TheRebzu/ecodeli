@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from "react";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useTranslations } from "next-intl";
 import type { AnnouncementWithDetails } from "@/types/announcements/announcement-with-details";
 

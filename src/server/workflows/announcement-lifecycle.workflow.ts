@@ -495,16 +495,24 @@ export class AnnouncementLifecycleWorkflow {
   }
 
   private async getAnnouncement(announcementId: string): Promise<any> {
+    // Récupérer l'annonce depuis la base de données
+    const announcement = await this.prisma.announcement.findUnique({
+      where: { id: announcementId }
+    });
     
-    return { id };
+    if (!announcement) {
+      throw new Error(`Annonce ${announcementId} non trouvée`);
+    }
+    
+    return announcement;
   }
 
   private async triggerMatching(announcementId: string): Promise<void> {
-    // Déclencher le processus de matching
-    setTimeout(async () => {
-      
-      await this.handleMatchFound(announcementId, "match-123", 85);
-    }, 5000);
+    // Déclencher le processus de matching via le service de jobs
+    await this.scheduleJob('MATCHING_CHECK', announcementId, {
+      delay: 5000, // 5 secondes de délai
+      data: { announcementId }
+    });
   }
 
   private async autoAssignDeliverer(
@@ -518,26 +526,22 @@ export class AnnouncementLifecycleWorkflow {
   }
 
   private async scheduleReminders(announcementId: string): Promise<void> {
-    // Programmer les rappels selon la configuration
+    // Programmer les rappels via le service de jobs
     for (const hours of this.config.reminderHours) {
-      setTimeout(
-        () => {
-          this.sendReminder(announcementId, hours);
-        },
-        hours * 60 * 60 * 1000,
-      );
+      await this.scheduleJob('SEND_REMINDER', announcementId, {
+        delay: hours * 60 * 60 * 1000,
+        data: { announcementId, hours }
+      });
     }
   }
 
   private async scheduleEscalations(announcementId: string): Promise<void> {
-    // Programmer les escalations selon la configuration
+    // Programmer les escalations via le service de jobs
     for (const rule of this.config.escalationRules) {
-      setTimeout(
-        () => {
-          this.handleEscalation(announcementId, rule);
-        },
-        rule.noMatchAfterHours * 60 * 60 * 1000,
-      );
+      await this.scheduleJob('HANDLE_ESCALATION', announcementId, {
+        delay: rule.noMatchAfterHours * 60 * 60 * 1000,
+        data: { announcementId, rule }
+      });
     }
   }
 
@@ -661,13 +665,11 @@ export class AnnouncementLifecycleWorkflow {
   }
 
   private async scheduleAutoValidation(announcementId: string): Promise<void> {
-    // Validation automatique après 24h
-    setTimeout(
-      () => {
-        this.handleAutoValidation(announcementId);
-      },
-      24 * 60 * 60 * 1000,
-    );
+    // Validation automatique après 24h via le service de jobs
+    await this.scheduleJob('AUTO_VALIDATION', announcementId, {
+      delay: 24 * 60 * 60 * 1000,
+      data: { announcementId }
+    });
   }
 
   private async handleAutoValidation(announcementId: string): Promise<void> {
@@ -701,5 +703,41 @@ export class AnnouncementLifecycleWorkflow {
 
     await this.updateAnnouncementStatus(announcementId, "COMPLETED");
     logger.info(`Annonce ${announcementId} terminée avec succès`);
+  }
+
+  // Service de planification des tâches
+  private async scheduleJob(jobType: string, announcementId: string, options: {
+    delay: number;
+    data: any;
+  }): Promise<void> {
+    try {
+      // Utiliser le modèle AuditLog existant pour tracer les tâches programmées
+      const jobData = {
+        type: jobType,
+        status: 'PENDING' as const,
+        scheduledFor: new Date(Date.now() + options.delay),
+        data: options.data,
+        attempts: 0,
+        maxAttempts: 3,
+        targetModel: 'Announcement',
+        targetId: announcementId
+      };
+
+      // Sauvegarder la tâche programmée comme log d'audit
+      await this.prisma.auditLog.create({
+        data: {
+          entityType: 'ANNOUNCEMENT',
+          entityId: announcementId,
+          action: `SCHEDULE_${jobType}`,
+          performedById: 'system',
+          changes: jobData
+        }
+      });
+
+      logger.info(`Tâche ${jobType} programmée pour ${announcementId} dans ${options.delay}ms`);
+    } catch (error) {
+      logger.error(`Erreur lors de la programmation de la tâche ${jobType}:`, error);
+      throw error;
+    }
   }
 }

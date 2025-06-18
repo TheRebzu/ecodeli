@@ -27,7 +27,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { api } from '@/trpc/react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 interface ActivityLog {
   id: string;
@@ -67,34 +67,28 @@ export default function UserActivityLog() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Requêtes tRPC pour récupérer les logs d'activité
-  const { data: activityLogs, isLoading: logsLoading } = api.admin.getUserActivityLogs.useQuery({
+  const { data: activityLogsData, isLoading: logsLoading } = api.admin.userActivity.getActivityLogs.useQuery({
     ...filters,
     search: searchTerm,
+    page: 1,
     limit: 50,
-    offset: 0,
   });
 
-  const { data: activityStats } = api.admin.getActivityStats.useQuery({
-    period: '24_HOURS'
-  });
-
-  const { data: securityAlerts } = api.admin.getSecurityAlerts.useQuery({
-    status: 'ACTIVE'
+  const { data: activityStats } = api.admin.userActivity.getActivityStats.useQuery({
+    timeRange: '24h'
   });
 
   // Mutation pour exporter les logs
-  const exportLogsMutation = api.admin.exportActivityLogs.useMutation({
+  const exportLogsMutation = api.admin.userActivity.exportActivityLogs.useMutation({
     onSuccess: (data) => {
-      // Télécharger le fichier CSV
-      const blob = new Blob([data.csvContent], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
+      // Télécharger le fichier depuis l'URL fournie
       const a = document.createElement('a');
       a.style.display = 'none';
-      a.href = url;
-      a.download = `activity-logs-${new Date().toISOString().split('T')[0]}.csv`;
+      a.href = data.downloadUrl;
+      a.download = data.filename;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       
       toast({
         title: t('activity.exportSuccess'),
@@ -110,69 +104,15 @@ export default function UserActivityLog() {
     },
   });
 
-  // Données simulées pour la démonstration (remplacées par les vraies données tRPC)
-  const mockLogs: ActivityLog[] = activityLogs || [
-    {
-      id: '1',
-      userId: 'user-123',
-      userName: 'Marie Dubois',
-      userRole: 'CLIENT',
-      action: 'LOGIN',
-      category: 'AUTH',
-      description: 'Connexion réussie à l\'application',
-      ipAddress: '192.168.1.100',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      location: 'Paris, France',
-      severity: 'LOW',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      success: true,
-      metadata: { sessionId: 'sess-456' }
-    },
-    {
-      id: '2',
-      userId: 'user-456',
-      userName: 'Jean Martin',
-      userRole: 'DELIVERER',
-      action: 'FAILED_LOGIN',
-      category: 'SECURITY',
-      description: 'Tentative de connexion échouée - mot de passe incorrect',
-      ipAddress: '10.0.0.5',
-      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
-      location: 'Lyon, France',
-      severity: 'MEDIUM',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000),
-      success: false,
-      metadata: { attempts: 3 }
-    },
-    {
-      id: '3',
-      userId: 'user-789',
-      userName: 'Sophie Durand',
-      userRole: 'MERCHANT',
-      action: 'PAYMENT_PROCESSED',
-      category: 'PAYMENT',
-      description: 'Paiement de 45.50€ traité avec succès',
-      ipAddress: '172.16.0.10',
-      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-      location: 'Marseille, France',
-      severity: 'LOW',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000),
-      success: true,
-      metadata: { amount: 45.50, currency: 'EUR', paymentMethod: 'CARD' }
-    }
-  ];
-
-  const mockStats = activityStats || {
-    totalActions: 15420,
-    successfulActions: 14892,
-    failedActions: 528,
-    securityAlerts: 12,
-    activeUsers: 1247,
-    topActions: [
-      { action: 'LOGIN', count: 3456 },
-      { action: 'PAYMENT_PROCESSED', count: 2341 },
-      { action: 'DELIVERY_COMPLETED', count: 1876 }
-    ]
+  // Utiliser les vraies données ou des valeurs par défaut
+  const activityLogs = activityLogsData?.logs || [];
+  const stats = activityStats || {
+    totalActions: 0,
+    successfulActions: 0,
+    failedActions: 0,
+    securityAlerts: 0,
+    activeUsers: 0,
+    topActions: []
   };
 
   const getCategoryIcon = (category: string) => {
@@ -236,7 +176,7 @@ export default function UserActivityLog() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('activity.totalActions')}
                 </p>
-                <p className="text-2xl font-bold">{mockStats.totalActions.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{stats.totalActions.toLocaleString()}</p>
               </div>
               <Clock className="h-8 w-8 text-blue-500" />
             </div>
@@ -250,7 +190,7 @@ export default function UserActivityLog() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('activity.successfulActions')}
                 </p>
-                <p className="text-2xl font-bold">{mockStats.successfulActions.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{stats.successfulActions.toLocaleString()}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
@@ -264,7 +204,7 @@ export default function UserActivityLog() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('activity.failedActions')}
                 </p>
-                <p className="text-2xl font-bold">{mockStats.failedActions.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{stats.failedActions.toLocaleString()}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-orange-500" />
             </div>
@@ -278,7 +218,7 @@ export default function UserActivityLog() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('activity.securityAlerts')}
                 </p>
-                <p className="text-2xl font-bold">{mockStats.securityAlerts}</p>
+                <p className="text-2xl font-bold">{stats.securityAlerts}</p>
               </div>
               <Shield className="h-8 w-8 text-red-500" />
             </div>
@@ -292,7 +232,7 @@ export default function UserActivityLog() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('activity.activeUsers')}
                 </p>
-                <p className="text-2xl font-bold">{mockStats.activeUsers.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{stats.activeUsers.toLocaleString()}</p>
               </div>
               <User className="h-8 w-8 text-purple-500" />
             </div>
@@ -400,7 +340,7 @@ export default function UserActivityLog() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockLogs.map((log) => (
+                  {activityLogs.map((log) => (
                     <TableRow key={log.id}>
                       <TableCell className="font-mono text-sm">
                         {log.timestamp.toLocaleString()}
@@ -467,7 +407,7 @@ export default function UserActivityLog() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockLogs
+                {activityLogs
                   .filter(log => log.category === 'SECURITY' || log.severity === 'HIGH' || log.severity === 'CRITICAL')
                   .map((log) => (
                     <div key={log.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -510,7 +450,7 @@ export default function UserActivityLog() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockStats.topActions.map((action, index) => (
+                  {stats.topActions.map((action, index) => (
                     <div key={action.action} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">#{index + 1}</span>

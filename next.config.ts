@@ -40,7 +40,10 @@ const nextConfig: NextConfig = {
     'socket.io',
     'puppeteer',
     'exceljs',
-    'onesignal-node'
+    'onesignal-node',
+    'crypto-js',
+    'swagger-ui-react',
+    '@opentelemetry/api'
   ],
 
   // Optimisation expérimentale
@@ -48,6 +51,33 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["@radix-ui/react-icons", "lucide-react"],
     ppr: false, // Partial Prerendering
     optimizeCss: true,
+  },
+
+  // Headers de sécurité
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(self)',
+          },
+        ],
+      },
+    ];
   },
 
   // Activer les images externes avec la nouvelle configuration
@@ -72,6 +102,8 @@ const nextConfig: NextConfig = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname, "./src"),
     };
+
+    // Configuration simplifiée pour éviter les problèmes de bundling
 
     // Résoudre les fallbacks pour les modules Node.js UNIQUEMENT côté client
     if (!isServer) {
@@ -100,30 +132,30 @@ const nextConfig: NextConfig = {
       };
     }
 
-    // Optimisations de performance
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: "all",
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: "vendors",
-              chunks: "all",
-              priority: 10,
-            },
-            common: {
-              name: "common",
-              minChunks: 2,
-              chunks: "all",
-              priority: 5,
-              reuseExistingChunk: true,
-            },
-          },
-        },
-      };
-    }
+    // Optimisations de performance désactivées temporairement pour debug
+    // if (!dev) {
+    //   config.optimization = {
+    //     ...config.optimization,
+    //     splitChunks: {
+    //       chunks: "all",
+    //       cacheGroups: {
+    //         vendor: {
+    //           test: /[\\/]node_modules[\\/]/,
+    //           name: "vendors",
+    //           chunks: "all",
+    //           priority: 10,
+    //         },
+    //         common: {
+    //           name: "common",
+    //           minChunks: 2,
+    //           chunks: "all",
+    //           priority: 5,
+    //           reuseExistingChunk: true,
+    //         },
+    //       },
+    //     },
+    //   };
+    // }
 
     return config;
   },

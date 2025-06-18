@@ -60,7 +60,74 @@ export function AppointmentCalendar({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p>Composant calendrier - À implémenter</p>
+        <div className="space-y-4">
+          {/* Navigation du mois */}
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentMonth(addDays(currentMonth, -30))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <h3 className="text-lg font-semibold">
+              {format(currentMonth, "MMMM yyyy", { locale: fr })}
+            </h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentMonth(addDays(currentMonth, 30))}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Grille du calendrier */}
+          <div className="grid grid-cols-7 gap-1">
+            {/* En-têtes des jours */}
+            {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
+              <div
+                key={day}
+                className="p-2 text-center text-sm font-medium text-muted-foreground"
+              >
+                {day}
+              </div>
+            ))}
+
+            {/* Jours du calendrier */}
+            {days.map((day, index) => (
+              <button
+                key={index}
+                onClick={() => onDateSelect(day.date)}
+                className={`
+                  relative p-2 h-12 text-sm transition-colors rounded
+                  ${!day.isCurrentMonth ? "text-muted-foreground/50" : ""}
+                  ${day.isToday ? "bg-primary text-primary-foreground font-semibold" : "hover:bg-muted"}
+                  ${isSameDay(day.date, selectedDate) && !day.isToday ? "bg-muted ring-2 ring-primary" : ""}
+                `}
+              >
+                {format(day.date, "d")}
+                {day.appointments.length > 0 && (
+                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Légende */}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-primary rounded" />
+              <span>Aujourd'hui</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full" />
+              <span>Rendez-vous</span>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

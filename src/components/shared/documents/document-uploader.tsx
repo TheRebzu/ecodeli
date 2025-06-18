@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { api } from "@/trpc/react";
 import {
   Upload,
