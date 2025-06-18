@@ -2,8 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { router, protectedProcedure, adminProcedure } from "@/server/api/trpc";
 import { DocumentService } from "@/server/services/common/document.service";
-import { DocumentStatus } from "@/server/db/enums";
-import { UserRole, VerificationStatus } from "@prisma/client";
+import { DocumentStatus, UserRole, VerificationStatus } from "@/server/db/enums";
 import {
   uploadDocumentSchema,
   updateDocumentSchema,
@@ -12,7 +11,7 @@ import {
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
-import { getUserDocumentsWithFullStatus } from "@/utils/document-utils";
+import { getUserDocumentsWithFullStatus, getRequiredDocumentTypesByRole } from "@/utils/document-utils";
 
 const documentService = new DocumentService();
 
@@ -170,10 +169,10 @@ export const documentRouter = router({ /**
             message: "Le fichier et le type de document sont requis" });
         }
 
-        const fileUrl = "";
-        const fileName = "";
-        const mimeType = "";
-        const fileSize = 0;
+        let fileUrl = "";
+        let fileName = "";
+        let mimeType = "";
+        let fileSize = 0;
 
         // Traiter le fichier selon son type
         if (typeof input.file === "string") {
@@ -196,7 +195,7 @@ export const documentRouter = router({ /**
           fileSize = buffer.length;
 
           // Déterminer l'extension de fichier en fonction du MIME type
-          const extension = ".bin";
+          let extension = ".bin";
           if (mimeType === "image/jpeg") extension = ".jpg";
           else if (mimeType === "image/png") extension = ".png";
           else if (mimeType === "image/heic") extension = ".heic";
@@ -214,7 +213,7 @@ export const documentRouter = router({ /**
             "uploads",
             userId,
           );
-          await fs.mkdir(uploadDir, { recursive });
+          await fs.mkdir(uploadDir, { recursive: true });
 
           // Chemin complet du fichier
           const filePath = path.join(uploadDir, uniqueFilename);
@@ -267,7 +266,7 @@ export const documentRouter = router({ /**
                 "uploads",
                 userId,
               );
-              await fs.mkdir(uploadDir, { recursive });
+              await fs.mkdir(uploadDir, { recursive: true });
 
               // Destination finale
               const finalPath = path.join(uploadDir, uniqueFilename);
@@ -292,7 +291,7 @@ export const documentRouter = router({ /**
               "application/octet-stream";
 
             // Déterminer l'extension de fichier
-            const extension = ".bin";
+            let extension = ".bin";
             if (mimeType === "image/jpeg") extension = ".jpg";
             else if (mimeType === "image/png") extension = ".png";
             else if (mimeType === "image/heic") extension = ".heic";
@@ -310,7 +309,7 @@ export const documentRouter = router({ /**
               "uploads",
               userId,
             );
-            await fs.mkdir(uploadDir, { recursive });
+            await fs.mkdir(uploadDir, { recursive: true });
 
             // Chemin complet du fichier
             const filePath = path.join(uploadDir, uniqueFilename);
@@ -327,12 +326,12 @@ export const documentRouter = router({ /**
                 "arrayBuffer method not available in server context",
               );
             } else if ("buffer" in input.file) {
-              fileBuffer = (input.file as { buffer }).buffer;
+              fileBuffer = (input.file as any).buffer;
             } else if (Buffer.isBuffer(input.file)) {
               fileBuffer = input.file;
             } else if ("base64" in input.file) {
               fileBuffer = Buffer.from(
-                (input.file as { base64 }).base64,
+                (input.file as any).base64,
                 "base64",
               );
             } else if ("data" in input.file) {
@@ -349,7 +348,7 @@ export const documentRouter = router({ /**
                 if (input.file && typeof input.file === "object") {
                   fileBuffer = Buffer.from(JSON.stringify(input.file));
                   mimeType = "application/json";
-                  extension = ".json";
+                  let extension = ".json";
                 } else {
                   throw new Error("Format de fichier non pris en charge");
                 }

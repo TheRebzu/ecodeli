@@ -933,7 +933,7 @@ export class NotificationService {
       }
 
       // Compter le nombre total de notifications
-      const total = await this.db.notification.count({ where  });
+      const total = await this.db.notification.count({ where });
 
       // Récupérer les notifications
       const notifications = await this.db.notification.findMany({

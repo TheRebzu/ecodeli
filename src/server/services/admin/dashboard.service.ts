@@ -40,7 +40,6 @@ export const dashboardService = {
           newUsers: { today: 0, thisWeek: 0, thisMonth: 0 },
           activeUsers: { today: 0, thisWeek: 0 },
           totalUsers: 0,
-          activeUsers: 0,
           pendingVerifications: 0,
           newUsersToday: 0,
           newUsersThisWeek: 0,
@@ -296,7 +295,6 @@ export const dashboardService = {
         },
         // Ajouter ces propriétés pour la compatibilité avec le code existant
         totalUsers,
-        activeUsers,
         pendingVerifications,
         newUsersToday,
         newUsersThisWeek,
@@ -371,11 +369,15 @@ export const dashboardService = {
       });
 
       // Récupérer les demandes de vérification récemment soumises
+      const startOfThisWeek = new Date();
+      startOfThisWeek.setDate(startOfThisWeek.getDate() - startOfThisWeek.getDay());
+      startOfThisWeek.setHours(0, 0, 0, 0);
+      
       const recentlySubmitted = await db.verificationRequest.findMany({
         where: {
           status: "PENDING",
           createdAt: {
-            gte: startOfWeek(new Date()),
+            gte: startOfThisWeek,
           },
         },
         include: {

@@ -10,7 +10,7 @@ import { useSession } from "next-auth/react";
  * avec vérification explicite de l'environnement client
  */
 export function useSocket() {
-  const { data } = useSession();
+  const { data: session } = useSession();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<Error | null>(null);

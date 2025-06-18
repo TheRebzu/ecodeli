@@ -383,6 +383,23 @@ export const merchantStatsRouter = router({ /**
             totalRevenue > 0 ? (product.revenue / totalRevenue) * 100 : 0;
         });
 
+        // Pré-calculer les vues si nécessaire pour le tri
+        let productViews: Map<string, number> = new Map();
+        if (input.sortBy === "views") {
+          const viewsData = await Promise.all(
+            enrichedStats.map(async (product) => {
+              const viewCount = await ctx.db.productView.count({
+                where: { 
+                  productId: product.id, 
+                  createdAt: { gte: startDate, lte: endDate } 
+                }
+              });
+              return { productId: product.id, views: viewCount };
+            })
+          );
+          productViews = new Map(viewsData.map(item => [item.productId, item.views]));
+        }
+
         // Trier selon le critère demandé
         enrichedStats.sort((a, b) => {
           switch (input.sortBy) {

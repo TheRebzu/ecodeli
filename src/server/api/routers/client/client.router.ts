@@ -555,7 +555,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
           where,
           include: {
             client: true,
-            count: {
+            _count: {
               select: {
                 clientAnnouncements: true,
                 documents: true}}},
@@ -575,11 +575,11 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
               where: { clientId: client.client.id }}),
             ctx.db.payment.aggregate({
               where: { userId: client.id, status: "COMPLETED" },
-              sum: { amount }}),
+              _sum: { amount: true }}),
             ctx.db.announcement.findFirst({
               where: { clientId: client.client.id },
               orderBy: { createdAt: "desc" },
-              select: { createdAt }})]);
+              select: { createdAt: true }})]);
 
           return {
             id: client.id,
@@ -598,9 +598,9 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
               country: client.client.country},
             stats: {
               totalOrders,
-              totalSpent: totalSpent.sum.amount?.toNumber() || 0,
+              totalSpent: totalSpent._sum.amount?.toNumber() || 0,
               lastOrderDate: lastOrderDate?.createdAt,
-              documentsCount: client.count.documents}};
+              documentsCount: client._count.documents}};
         }),
       );
 
@@ -646,10 +646,10 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
             gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)}}}),
       ctx.db.payment.aggregate({
         where: { status: "COMPLETED" },
-        sum: { amount }}),
+        _sum: { amount: true }}),
       ctx.db.payment.aggregate({
         where: { status: "COMPLETED" },
-        avg: { amount }})]);
+        _avg: { amount: true }})]);
 
     return {
       totalClients,
@@ -658,8 +658,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
       suspendedClients,
       inactiveClients,
       newClientsThisMonth,
-      totalRevenue: totalRevenue.sum.amount?.toNumber() || 0,
-      averageOrderValue: averageOrderValue.avg.amount?.toNumber() || 0};
+      totalRevenue: totalRevenue._sum.amount?.toNumber() || 0,
+      averageOrderValue: averageOrderValue._avg.amount?.toNumber() || 0};
   }),
 
   // Nouveaux endpoints pour le dashboard amélioré
@@ -671,7 +671,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
       .query(async ({ ctx, input: input  }) => {
         const userId = ctx.session.user.id;
         const user = await ctx.db.user.findUnique({
-          where: { id },
+          where: { id: userId },
           include: { client }});
 
         if (!user?.client) {
@@ -694,7 +694,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
   storage: router({ getActiveBoxes: clientProcedure.query(async ({ ctx  }) => {
       const userId = ctx.session.user.id;
       const user = await ctx.db.user.findUnique({
-        where: { id },
+        where: { id: userId },
         include: { client }});
 
       if (!user?.client) {

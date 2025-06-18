@@ -18,6 +18,7 @@ import { geocodingRouter } from "./routers/common/geocoding.router";
 import { exportRouter } from "./routers/common/export.router";
 import { pdfRouter } from "./routers/common/pdf.router";
 import { i18nRouter } from "./routers/common/i18n.router";
+import { stripeStatusRouter } from "./routers/common/stripe-status.router";
 
 // Shared routers
 import { announcementRouter } from "./routers/shared/announcement.router";
@@ -115,6 +116,7 @@ export const appRouter = router({ // Auth
   export: exportRouter,
   pdf: pdfRouter,
   i18n: i18nRouter,
+  stripeStatus: stripeStatusRouter,
 
   // Shared
   announcement: announcementRouter,

@@ -39,10 +39,14 @@ const getSocket = (): Socket | null => {
   if (!isClient) return null;
 
   if (!socketInstance) {
-    socketInstance = io(
-      process.env.NEXT_PUBLIC_SOCKETURL || "http://localhost:3001",
-      { autoConnect },
-    );
+    // Configuration URL unifiée
+    const socketUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    
+    socketInstance = io(socketUrl, {
+      path: '/socket.io/',
+      autoConnect: false, // Ne pas se connecter automatiquement
+      transports: ['websocket', 'polling'],
+    });
   }
   return socketInstance;
 };
@@ -79,7 +83,9 @@ export const socket = isClient
           socketClient.disconnect();
         }
       },
-      connected: socketInstance?.connected || false}
+      get connected() {
+        return socketInstance?.connected || false;
+      }}
   : null;
 
 // Fonctions de connexion réelles

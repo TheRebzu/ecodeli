@@ -43,7 +43,7 @@ export const i18nRouter = router({ // Récupérer les messages de traduction pou
 
         // Lire et parser le fichier JSON
         const messagesContent = readFileSync(messagesPath, "utf-8");
-        const messages = {};
+        let messages = {};
         
         try {
           messages = JSON.parse(messagesContent);

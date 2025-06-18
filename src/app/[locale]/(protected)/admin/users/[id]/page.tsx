@@ -51,16 +51,23 @@ export default function UserDetailPage() {
   } | null>(null);
 
   // API pour récupérer les détails complets de l'utilisateur
-  const { data: user, isLoading } = api.admin.users.getUserDetail.useQuery({ userId,
-    includeDocuments: true,
-    includeVerificationHistory: true,
-    includeActivityLogs: true,
-    includeLoginHistory: true,
-    includeNotes: false,
-    includePermissions: false,
-    includeSubscriptions: false,
-    includePaymentMethods: false,
-    includeNotificationSettings: false });
+  const { data: user, isLoading } = api.admin.users.getUserDetail.useQuery(
+    {
+      userId,
+      includeDocuments: true,
+      includeVerificationHistory: true,
+      includeActivityLogs: true,
+      includeLoginHistory: true,
+      includeNotes: false,
+      includePermissions: false,
+      includeSubscriptions: false,
+      includePaymentMethods: false,
+      includeNotificationSettings: false,
+    },
+    {
+      enabled: !!userId,
+    },
+  );
   const updateUserStatusMutation = api.admin.users.updateUserStatus.useMutation(
     {
       onSuccess: () => {

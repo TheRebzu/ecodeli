@@ -52,13 +52,13 @@ export class VerificationService {
     {
       [UserRole.DELIVERER]: [
         DocumentType.ID_CARD,
-        DocumentType.DRIVING_LICENSE,
+        DocumentType.DRIVERS_LICENSE,
         DocumentType.VEHICLE_REGISTRATION,
-        DocumentType.INSURANCE],
+        DocumentType.VEHICLE_INSURANCE],
       [UserRole.PROVIDER]: [
         DocumentType.ID_CARD,
-        DocumentType.QUALIFICATION_CERTIFICATE,
-        DocumentType.INSURANCE,
+        DocumentType.PROFESSIONAL_QUALIFICATION,
+        DocumentType.INSURANCE_CERTIFICATE,
         DocumentType.PROOF_OF_ADDRESS],
       [UserRole.MERCHANT]: [
         DocumentType.ID_CARD,
@@ -141,7 +141,7 @@ export class VerificationService {
     }
 
     // Vérifier si un document de ce type existe déjà
-    const existingDocument = await this.db.document.findFirst({
+    const existingDocument = await this.prisma.document.findFirst({
       where: {
         userId,
         type,
@@ -153,7 +153,7 @@ export class VerificationService {
     let document;
     if (existingDocument) {
       // Mettre à jour le document existant
-      document = await this.db.document.update({
+      document = await this.prisma.document.update({
         where: { id: existingDocument.id },
         data: {
           filename: uploadResult.filename,
@@ -166,7 +166,7 @@ export class VerificationService {
           updatedAt: new Date()}});
     } else {
       // Créer un nouveau document
-      document = await this.db.document.create({
+      document = await this.prisma.document.create({
         data: {
           userId,
           type,

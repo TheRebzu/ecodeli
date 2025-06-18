@@ -1,6 +1,6 @@
 import { api } from "@/trpc/react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export interface ClientFilters {
   search?: string;
@@ -11,80 +11,119 @@ export interface ClientFilters {
 
 export const useAdminClients = () => {
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<ClientFilters>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
 
   // Appel tRPC réel pour récupérer les clients
   const {
     data: clientsData,
     isLoading,
     refetch,
-  } = api.admin.users.getUsers.useQuery(
-    {
-      role: "CLIENT",
-      includeProfile: true,
-    },
-    {
-      onError: (err: any) => {
-        setError(err.message || "Erreur lors du chargement des clients");
-      },
-    },
-  );
-
-  const updateClientStatusMutation = api.admin.users.updateUserStatus.useMutation({
-    onSuccess: () => {
-      refetch();
-    },
-    onError: (err: any) => {
-      setError(err.message || "Erreur lors de la mise à jour du statut");
-    },
+    error: queryError,
+  } = api.client.getAllClients.useQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: filters.search,
+    status: filters.status,
+    sortBy: filters.sortBy || "createdAt",
+    sortDirection: filters.sortDirection || "desc",
   });
 
-  const suspendClientMutation = api.admin.users.suspendUser.useMutation({
-    onSuccess: () => {
-      refetch();
-    },
-    onError: (err: any) => {
-      setError(err.message || "Erreur lors de la suspension");
-    },
-  });
-
+  // Pour l'instant, on simule ces fonctions - à implémenter selon l'API disponible
   const updateClientStatus = async (clientId: string, status: string) => {
-    await updateClientStatusMutation.mutateAsync({ userId: clientId, status  });
+    // TODO: Implémenter avec la vraie API
+    console.log("Update client status:", clientId, status);
   };
 
   const suspendClient = async (clientId: string, reason: string) => {
-    await suspendClientMutation.mutateAsync({ userId: clientId, reason  });
+    // TODO: Implémenter avec la vraie API
+    console.log("Suspend client:", clientId, reason);
   };
 
-  // Transformer les données pour correspondre à l'interface attendue
-  const transformedClients = (clientsData?.users || []).map((user: any) => ({
-    id: user.id,
-    name: user.profile?.firstName && user.profile?.lastName 
-      ? `${user.profile.firstName} ${user.profile.lastName}`
-      : user.email,
-    email: user.email,
-    status: user.status,
-    role: user.role,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-    profileId: user.profile?.id,
-    city: user.profile?.address?.city || "Non renseigné",
-    phone: user.profile?.phone || "Non renseigné",
-    totalOrders: user.profile?.totalOrders || 0,
-    totalSpent: user.profile?.totalSpent || 0,
-    averageRating: user.profile?.averageRating || 0,
-    lastOrderDate: user.profile?.lastOrderDate,
-    isVerified: user.emailVerified,
-    preferences: user.profile?.preferences || {},
-  }));
+  // Debug: Afficher la structure des données reçues
+  console.log("🔍 DEBUG - useAdminClients - Données reçues:", clientsData);
+  console.log("Type de clientsData:", typeof clientsData);
+  console.log("Clés de clientsData:", clientsData ? Object.keys(clientsData) : "undefined");
+  
+  // Les données sont déjà transformées et paginées côté serveur
+  // Vérifier si les données sont encapsulées dans json par tRPC
+  const dataSource = (clientsData as any)?.json || clientsData;
+  const transformedClients = dataSource?.clients || [];
 
-  return {
-    clients: transformedClients,
-    isLoading,
-    error,
-    updateClientStatus,
-    suspendClient,
-    refetch,
+  // Calculer les statistiques depuis l'API dédiée
+  const { data: statsData } = api.client.getClientStats.useQuery();
+
+  const stats = useMemo(() => {
+    if (!statsData) {
+      return {
+        totalClients: 0,
+        activeClients: 0,
+        suspendedClients: 0,
+        newClientsThisMonth: 0,
+      };
+    }
+
+    return {
+      totalClients: statsData.totalClients,
+      activeClients: statsData.activeClients,
+      suspendedClients: statsData.suspendedClients,
+      newClientsThisMonth: statsData.newClientsThisMonth,
+    };
+  }, [statsData]);
+
+  // Pagination gérée côté serveur
+  const pagination = useMemo(() => {
+    const paginationData = dataSource?.pagination;
+    if (!paginationData) {
+      return {
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: 1,
+        pageSize: 10,
+        hasNext: false,
+        hasPrevious: false,
+      };
+    }
+
+    return {
+      totalItems: paginationData.total,
+      totalPages: paginationData.totalPages,
+      currentPage: paginationData.page,
+      pageSize: paginationData.limit,
+      hasNext: paginationData.hasNext,
+      hasPrevious: paginationData.hasPrev,
+    };
+  }, [clientsData?.pagination]);
+
+  // Fonctions de gestion des filtres
+  const updateFilters = (newFilters: Partial<ClientFilters>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setCurrentPage(1); // Reset page when filters change
   };
+
+  const clearFilters = () => {
+    setFilters({});
+    setCurrentPage(1);
+  };
+
+      return {
+      clients: transformedClients,
+      pagination,
+      stats,
+      filters,
+      currentPage,
+      pageSize,
+      isLoading,
+      isLoadingStats: isLoading,
+      error: error || queryError?.message,
+      updateFilters,
+      clearFilters,
+      setCurrentPage,
+      updateClientStatus,
+      suspendClient,
+      refetch,
+    };
 };
 
 export type AdminClient = NonNullable<

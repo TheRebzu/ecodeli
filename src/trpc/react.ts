@@ -1,6 +1,6 @@
 "use client";
 
-import { httpBatchLink, createTRPCReact } from "@trpc/react-query";
+import { httpBatchLink, httpLink, createTRPCReact } from "@trpc/react-query";
 import { type AppRouter } from "@/server/api/root";
 import superjson from "superjson";
 
@@ -15,7 +15,8 @@ export const api = createTRPCReact<AppRouter>();
 export const trpcClient = api.createClient({
   transformer: superjson,
   links: [
-    httpBatchLink({
+    // Utilisation de httpLink au lieu de httpBatchLink pour éviter les problèmes de batching
+    httpLink({
       url: `${process.env.NEXT_PUBLIC_APPURL || "http://localhost:3000"}/api/trpc`,
       headers() {
         return {

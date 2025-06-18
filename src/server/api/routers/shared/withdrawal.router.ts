@@ -5,12 +5,12 @@ import {
   getOrCreateWallet,
   createWithdrawalRequest,
   processWithdrawalRequest} from "@/server/services/shared/wallet.service";
-import { WithdrawalStatus } from "@prisma/client";
+import { WithdrawalStatus, UserRole } from "@prisma/client";
 import { isRoleAllowed, hasDocumentAccess } from "@/lib/auth/auth-helpers";
 import { db } from "@/server/db";
 import {
   withdrawalBaseSchema,
-  requestWithdrawalSchema} from "@/schemas/payment/withdrawal.schema";
+  WithdrawalSchema} from "@/schemas/payment/withdrawal.schema";
 
 /**
  * Router tRPC pour la gestion des retraits depuis les portefeuilles
@@ -132,7 +132,7 @@ export const withdrawalRouter = router({ /**
         const [withdrawals, total] = await Promise.all([
           ctx.db.withdrawalRequest.findMany({
             where,
-            orderBy: { requestedAt },
+            orderBy: { requestedAt: sortOrder },
             skip: (page - 1) * limit,
             take: limit,
             include: {
@@ -140,7 +140,7 @@ export const withdrawalRouter = router({ /**
                 select: {
                   id: true,
                   name: true}}}}),
-          ctx.db.withdrawalRequest.count({ where  })]);
+          ctx.db.withdrawalRequest.count({ where })]);
 
         return {
           withdrawals,
@@ -171,7 +171,7 @@ export const withdrawalRouter = router({ /**
 
         // Récupérer la demande de retrait
         const withdrawal = await ctx.db.withdrawalRequest.findUnique({
-          where: { id },
+          where: { id: withdrawalId },
           include: {
             wallet: {
               select: {
