@@ -1,25 +1,30 @@
 "use client";
 
-import * as React from "react";
-import { addDays, format } from "date-fns";
+import React from "react";
+import { format, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
-import { DateRange } from "react-day-picker";
-
-import { cn } from "@/lib/utils/common";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger} from "@/components/ui/popover";
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue} from "@/components/ui/select";
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+
+export type DateRange = {
+  from: Date | undefined;
+  to?: Date | undefined;
+};
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   defaultDateRange?: DateRange;
@@ -35,7 +40,8 @@ const predefinedRanges = [
   { value: "90", label: "90 derniers jours" },
   { value: "this-month", label: "Ce mois" },
   { value: "last-month", label: "Mois dernier" },
-  { value: "this-year", label: "Cette année" }];
+  { value: "this-year", label: "Cette année" }
+];
 
 export function DateRangePicker({
   defaultDateRange,
@@ -48,7 +54,8 @@ export function DateRangePicker({
   const [date, setDate] = React.useState<DateRange | undefined>(
     defaultDateRange || {
       from: addDays(new Date(), -30), // 30 derniers jours par défaut
-      to: new Date()},
+      to: new Date()
+    },
   );
   const [selectedRange, setSelectedRange] = React.useState<string>("30");
 
@@ -64,7 +71,7 @@ export function DateRangePicker({
 
     const today = new Date();
     let from: Date;
-    const to = today;
+    let to: Date = today;
 
     switch (value) {
       case "7":
@@ -111,11 +118,11 @@ export function DateRangePicker({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "dd MMM yyyy", { locale })} -{" "}
-                  {format(date.to, "dd MMM yyyy", { locale })}
+                  {format(date.from, "dd MMM yyyy", { locale: fr })} -{" "}
+                  {format(date.to, "dd MMM yyyy", { locale: fr })}
                 </>
               ) : (
-                format(date.from, "dd MMM yyyy", { locale })
+                format(date.from, "dd MMM yyyy", { locale: fr })
               )
             ) : (
               <span>Sélectionner une période</span>
@@ -155,14 +162,14 @@ export function DateRangePicker({
               {date?.from && (
                 <>
                   <strong>Du:</strong>{" "}
-                  {format(date.from, "dd/MM/yyyy", { locale })}
+                  {format(date.from, "dd/MM/yyyy", { locale: fr })}
                 </>
               )}
               {date?.to && (
                 <>
                   {" - "}
                   <strong>au:</strong>{" "}
-                  {format(date.to, "dd/MM/yyyy", { locale })}
+                  {format(date.to, "dd/MM/yyyy", { locale: fr })}
                 </>
               )}
             </p>
@@ -186,6 +193,9 @@ export function DatePickerWithRange({
   placeholder = "Sélectionner une période",
   className
 }: DatePickerWithRangeProps) {
+  const [internalDate, setInternalDate] = React.useState<DateRange | undefined>(date);
+  const [isOpen, setIsOpen] = React.useState(false);
+
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('fr-FR', {
       day: '2-digit',
@@ -195,30 +205,50 @@ export function DatePickerWithRange({
   };
 
   const displayText = () => {
-    if (date?.from && date?.to) {
-      return `${formatDate(date.from)} - ${formatDate(date.to)}`;
+    const activeDate = date || internalDate;
+    if (activeDate?.from && activeDate?.to) {
+      return `${formatDate(activeDate.from)} - ${formatDate(activeDate.to)}`;
     }
-    if (date?.from) {
-      return formatDate(date.from);
+    if (activeDate?.from) {
+      return formatDate(activeDate.from);
     }
     return placeholder;
   };
 
+  const handleDateChange = (range: DateRange | undefined) => {
+    setInternalDate(range);
+    if (range && onDateChange) {
+      onDateChange(range);
+    }
+    if (range?.from && range?.to) {
+      setIsOpen(false);
+    }
+  };
+
   return (
-    <Button
-      variant="outline"
-      className={`w-full justify-start text-left font-normal ${className}`}
-      onClick={() => {
-        // Simulation d'ouverture d'un calendrier
-        const today = new Date();
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        onDateChange?.({ from: weekAgo, to: today });
-      }}
-    >
-      <Calendar className="mr-2 h-4 w-4" />
-      {displayText()}
-      <ChevronDown className="ml-auto h-4 w-4" />
-    </Button>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={`w-full justify-start text-left font-normal ${className}`}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {displayText()}
+          <ChevronDown className="ml-auto h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          initialFocus
+          mode="range"
+          defaultMonth={(date || internalDate)?.from}
+          selected={date || internalDate}
+          onSelect={handleDateChange}
+          numberOfMonths={2}
+          locale={fr}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }
 

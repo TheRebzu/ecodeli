@@ -286,7 +286,7 @@ const AdminQuickActions = () => {
       description: "Valider les documents",
       action: () => router.push("/admin/verifications"),
       color: "text-blue-600 bg-blue-100 dark:bg-blue-900/50",
-      badge: "5 en attente"},
+      badge: actionItems?.pendingVerifications ? `${actionItems.pendingVerifications} en attente` : undefined},
     {
       icon: <Shield className="h-5 w-5" />,
       label: "Sécurité",
@@ -461,7 +461,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
     dailyRevenue: dashboardData?.transactionStats?.dailyRevenue || 0,
     commissionEarned: dashboardData?.transactionStats?.commissionEarned || 0,
     revenueGrowth: dashboardData?.transactionStats?.growth || 0,
-    platformHealth: 98,
+    platformHealth: dashboardData?.systemHealth?.score || realtimeStats?.platformHealth || 98,
     systemAlerts: alerts.filter((a) => !a.isResolved).length};
 
   // Récupérer les données réelles depuis l'API
@@ -1035,15 +1035,21 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Publiées</span>
-                    <Badge variant="default">156</Badge>
+                    <Badge variant="default">
+{announcementData?.announcementStats?.published || 0}
+                    </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">En cours</span>
-                    <Badge variant="secondary">89</Badge>
+                    <Badge variant="secondary">
+{announcementData?.announcementStats?.inProgress || 0}
+                    </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Terminées</span>
-                    <Badge variant="outline">234</Badge>
+                    <Badge variant="outline">
+{announcementData?.announcementStats?.completed || 0}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>

@@ -34,6 +34,7 @@ import { DashboardStatsWidget } from "./widgets/dashboard-stats-widget";
 import { EnvironmentalMetricsWidget } from "./widgets/environmental-metrics-widget";
 import { RealTimeDeliveriesWidget } from "./widgets/real-time-deliveries-widget";
 import { LiveActivityFeedWidget } from "./widgets/live-activity-feed-widget";
+import { EnvironmentalStatsCards } from "./environmental-stats-cards";
 
 // Composants de loading pour les widgets
 const WidgetSkeleton = () => (
@@ -141,8 +142,11 @@ export function ClientDashboard() {
 
   const handleRefreshAll = async () => {
     setIsRefreshing(true);
-    await refetch();
-    setTimeout(() => setIsRefreshing(false), 1000);
+    try {
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   if (error) {
@@ -274,71 +278,8 @@ export function ClientDashboard() {
             </div>
           </div>
           
-          {/* Statistiques détaillées */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      CO2 économisé ce mois
-                    </p>
-                    <p className="text-2xl font-bold text-green-600">47,5kg</p>
-                  </div>
-                  <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-                    <Globe className="h-6 w-6 text-green-600" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    +48% vs mois dernier
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Emballages réutilisés
-                    </p>
-                    <p className="text-2xl font-bold text-blue-600">23</p>
-                  </div>
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-                    <Box className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    92% de réutilisation
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Niveau EcoScore
-                    </p>
-                    <p className="text-2xl font-bold text-purple-600">875</p>
-                  </div>
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
-                    <Sparkles className="h-6 w-6 text-purple-600" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                    Eco-Citoyen
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Statistiques détaillées - Données réelles */}
+          <EnvironmentalStatsCards />
         </TabsContent>
 
         {/* Onglet Activité */}

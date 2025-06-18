@@ -47,7 +47,7 @@ import {
   Camera
 } from "lucide-react";
 import { api } from "@/trpc/react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
 // Types pour les produits

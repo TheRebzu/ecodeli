@@ -4,6 +4,7 @@ import { TransactionType, PaymentStatus } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { walletService } from "@/server/services/shared/wallet.service";
 import { stripeService } from "@/server/services/shared/stripe.service";
+import { getPayPalService } from "@/lib/integrations/paypal";
 
 export interface DelivererEarning {
   deliveryId: string;
@@ -31,10 +32,10 @@ export interface WithdrawalRequest {
  */
 export const delivererWalletService = {
   /**
-   * Récupère le solde détaillé d'un livreur
+   * Rï¿½cupï¿½re le solde dï¿½taillï¿½ d'un livreur
    */
   async getDelivererBalance(delivererId: string) {
-    // Vérifier que le livreur existe
+    // Vï¿½rifier que le livreur existe
     const deliverer = await db.user.findUnique({
       where: { 
         id: delivererId,
@@ -45,14 +46,14 @@ export const delivererWalletService = {
     if (!deliverer) {
       throw new TRPCError({
         code: "NOT_FOUND",
-        message: "Livreur non trouvé"
+        message: "Livreur non trouvï¿½"
       });
     }
 
-    // Récupérer le portefeuille
+    // Rï¿½cupï¿½rer le portefeuille
     const wallet = await walletService.getOrCreateWallet(delivererId);
 
-    // Calculer les stats détaillées
+    // Calculer les stats dï¿½taillï¿½es
     const [
       totalEarnings,
       pendingEarnings,
@@ -102,7 +103,7 @@ export const delivererWalletService = {
         _sum: { amount: true }
       }),
 
-      // Total des commissions payées
+      // Total des commissions payï¿½es
       db.commission.aggregate({
         where: {
           payment: {
@@ -149,7 +150,7 @@ export const delivererWalletService = {
   },
 
   /**
-   * Récupère l'historique des gains d'un livreur
+   * Rï¿½cupï¿½re l'historique des gains d'un livreur
    */
   async getDelivererEarnings(
     delivererId: string,
@@ -234,12 +235,12 @@ export const delivererWalletService = {
   },
 
   /**
-   * Crée une demande de retrait
+   * Crï¿½e une demande de retrait
    */
   async createWithdrawalRequest(withdrawalData: WithdrawalRequest) {
     const { delivererId, amount, bankAccount, method, notes } = withdrawalData;
 
-    // Vérifier le solde disponible
+    // Vï¿½rifier le solde disponible
     const balance = await this.getDelivererBalance(delivererId);
     
     if (balance.availableBalance.lt(amount)) {
@@ -253,17 +254,17 @@ export const delivererWalletService = {
     if (amount < 10) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Le montant minimum de retrait est de 10¬"
+        message: "Le montant minimum de retrait est de 10ï¿½"
       });
     }
 
     const wallet = balance.wallet;
 
-    // Créer la transaction de retrait
+    // Crï¿½er la transaction de retrait
     const withdrawal = await db.walletTransaction.create({
       data: {
         walletId: wallet.id,
-        amount: new Decimal(-amount), // Négatif pour un retrait
+        amount: new Decimal(-amount), // Nï¿½gatif pour un retrait
         type: TransactionType.WITHDRAWAL,
         status: "PENDING",
         description: `Retrait ${method.toLowerCase().replace('_', ' ')}`,
@@ -277,7 +278,7 @@ export const delivererWalletService = {
       }
     });
 
-    // Mettre à jour le solde disponible
+    // Mettre ï¿½ jour le solde disponible
     await db.wallet.update({
       where: { id: wallet.id },
       data: {
@@ -287,7 +288,7 @@ export const delivererWalletService = {
       }
     });
 
-    // Traitement selon la méthode
+    // Traitement selon la mï¿½thode
     try {
       switch (method) {
         case "STRIPE_CONNECT":
@@ -340,19 +341,19 @@ export const delivererWalletService = {
     if (!wallet.stripeAccountId) {
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
-        message: "Compte Stripe Connect non configuré"
+        message: "Compte Stripe Connect non configurï¿½"
       });
     }
 
     try {
-      // Créer un payout via Stripe Connect
+      // Crï¿½er un payout via Stripe Connect
       const payout = await stripeService.createPayout(
         wallet.stripeAccountId,
         amount,
         "standard"
       );
 
-      // Mettre à jour la transaction
+      // Mettre ï¿½ jour la transaction
       await db.walletTransaction.update({
         where: { id: withdrawalId },
         data: {
@@ -397,12 +398,12 @@ export const delivererWalletService = {
       }
     });
 
-    // Créer une tâche pour l'admin
+    // Crï¿½er une tï¿½che pour l'admin
     await db.adminTask.create({
       data: {
         type: "PROCESS_WITHDRAWAL",
         title: "Traitement de retrait bancaire",
-        description: `Retrait de ${amount}¬ pour le livreur ${delivererId}`,
+        description: `Retrait de ${amount}ï¿½ pour le livreur ${delivererId}`,
         priority: "MEDIUM",
         status: "PENDING",
         data: {
@@ -414,7 +415,7 @@ export const delivererWalletService = {
       }
     });
 
-    // Envoyer notification à l'admin
+    // Envoyer notification ï¿½ l'admin
     try {
       const admins = await db.user.findMany({
         where: { role: "ADMIN", isActive: true }
@@ -426,7 +427,7 @@ export const delivererWalletService = {
         await notificationService.sendNotification({
           userId: admin.id,
           title: "Nouvelle demande de retrait",
-          message: `Retrait de ${amount}¬ en attente de traitement`,
+          message: `Retrait de ${amount}ï¿½ en attente de traitement`,
           type: "ADMIN_TASK",
           data: {
             withdrawalId,
@@ -450,24 +451,106 @@ export const delivererWalletService = {
     amount: number,
     withdrawalId: string
   ) {
-    // TODO: Intégrer l'API PayPal Payouts
-    // Pour l'instant, traitement manuel
-    await db.walletTransaction.update({
-      where: { id: withdrawalId },
-      data: {
-        status: "PENDING",
-        metadata: {
-          method: "PAYPAL",
-          requiresManualProcessing: true
+    try {
+      // RÃ©cupÃ©rer les informations du livreur
+      const deliverer = await db.deliverer.findUnique({
+        where: { id: delivererId },
+        select: {
+          user: {
+            select: {
+              email: true,
+              name: true
+            }
+          },
+          paypalEmail: true
         }
-      }
-    });
+      });
 
-    return { status: "pending_paypal_integration" };
+      if (!deliverer) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Livreur non trouvÃ©"
+        });
+      }
+
+      const paypalEmail = deliverer.paypalEmail || deliverer.user.email;
+      
+      // VÃ©rifier que l'email PayPal est valide
+      const paypalService = getPayPalService();
+      const isValidEmail = await paypalService.verifyPayPalAccount(paypalEmail);
+      
+      if (!isValidEmail) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Email PayPal invalide"
+        });
+      }
+
+      // CrÃ©er le payout PayPal
+      const payoutResult = await paypalService.createPayoutBatch([
+        {
+          recipientType: 'EMAIL',
+          amount: {
+            value: amount.toFixed(2),
+            currency: 'EUR'
+          },
+          receiver: paypalEmail,
+          note: `Retrait EcoDeli - ${withdrawalId}`,
+          senderItemId: withdrawalId
+        }
+      ]);
+
+      // Mettre Ã  jour la transaction avec les informations PayPal
+      await db.walletTransaction.update({
+        where: { id: withdrawalId },
+        data: {
+          status: payoutResult.batchStatus === 'SUCCESS' ? "COMPLETED" : "PENDING",
+          externalId: payoutResult.batchId,
+          metadata: {
+            method: "PAYPAL",
+            paypalBatchId: payoutResult.batchId,
+            paypalBatchStatus: payoutResult.batchStatus,
+            paypalEmail: paypalEmail,
+            processedAt: new Date().toISOString()
+          }
+        }
+      });
+
+      // Si le paiement est en attente, programmer une vÃ©rification
+      if (payoutResult.batchStatus === 'PENDING' || payoutResult.batchStatus === 'PROCESSING') {
+        // Ici, vous pourriez implÃ©menter un job pour vÃ©rifier le statut plus tard
+        console.log(`Payout PayPal en cours de traitement: ${payoutResult.batchId}`);
+      }
+
+      return { 
+        status: payoutResult.batchStatus === 'SUCCESS' ? "completed" : "processing",
+        paypalBatchId: payoutResult.batchId
+      };
+    } catch (error) {
+      console.error('Erreur lors du traitement PayPal:', error);
+      
+      // Mettre Ã  jour la transaction comme Ã©chouÃ©e
+      await db.walletTransaction.update({
+        where: { id: withdrawalId },
+        data: {
+          status: "FAILED",
+          metadata: {
+            method: "PAYPAL",
+            error: error instanceof Error ? error.message : "Erreur inconnue",
+            failedAt: new Date().toISOString()
+          }
+        }
+      });
+      
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors du traitement du retrait PayPal"
+      });
+    }
   },
 
   /**
-   * Confirme un retrait (appelé par webhook ou admin)
+   * Confirme un retrait (appelï¿½ par webhook ou admin)
    */
   async confirmWithdrawal(withdrawalId: string, externalId?: string) {
     const withdrawal = await db.walletTransaction.findUnique({
@@ -478,15 +561,15 @@ export const delivererWalletService = {
     if (!withdrawal) {
       throw new TRPCError({
         code: "NOT_FOUND",
-        message: "Retrait non trouvé"
+        message: "Retrait non trouvï¿½"
       });
     }
 
     if (withdrawal.status === "COMPLETED") {
-      return withdrawal; // Déjà traité
+      return withdrawal; // Dï¿½jï¿½ traitï¿½
     }
 
-    // Mettre à jour la transaction
+    // Mettre ï¿½ jour la transaction
     const updatedWithdrawal = await db.walletTransaction.update({
       where: { id: withdrawalId },
       data: {
@@ -496,12 +579,12 @@ export const delivererWalletService = {
       }
     });
 
-    // Mettre à jour le solde réel
+    // Mettre ï¿½ jour le solde rï¿½el
     await db.wallet.update({
       where: { id: withdrawal.walletId },
       data: {
         balance: {
-          increment: withdrawal.amount // amount est déjà négatif
+          increment: withdrawal.amount // amount est dï¿½jï¿½ nï¿½gatif
         }
       }
     });
@@ -511,8 +594,8 @@ export const delivererWalletService = {
       const { notificationService } = await import("@/server/services/common/notification.service");
       await notificationService.sendNotification({
         userId: withdrawal.wallet.userId,
-        title: "Retrait effectué",
-        message: `Votre retrait de ${Math.abs(Number(withdrawal.amount))}¬ a été traité`,
+        title: "Retrait effectuï¿½",
+        message: `Votre retrait de ${Math.abs(Number(withdrawal.amount))}ï¿½ a ï¿½tï¿½ traitï¿½`,
         type: "PAYMENT_SENT",
         data: {
           withdrawalId,
@@ -527,7 +610,7 @@ export const delivererWalletService = {
   },
 
   /**
-   * Récupère l'historique des retraits d'un livreur
+   * Rï¿½cupï¿½re l'historique des retraits d'un livreur
    */
   async getWithdrawalHistory(
     delivererId: string,
@@ -637,7 +720,7 @@ export const delivererWalletService = {
   },
 
   /**
-   * Génère une référence unique pour un retrait
+   * Gï¿½nï¿½re une rï¿½fï¿½rence unique pour un retrait
    */
   generateWithdrawalReference(): string {
     const timestamp = Date.now().toString(36);

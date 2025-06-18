@@ -29,7 +29,7 @@ import {
   Handshake
 } from 'lucide-react';
 import { api } from '@/trpc/react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 interface ProviderContract {
   id: string;
@@ -146,65 +146,17 @@ export default function ProviderContracts() {
     },
   });
 
-  // Données simulées pour la démonstration (remplacées par les vraies données tRPC)
-  const mockContracts: ProviderContract[] = contracts ?? [
-    {
-      id: 'contract-1',
-      providerId: 'provider-1',
-      providerName: 'Services Pro SARL',
-      providerType: 'COMPANY',
-      contractType: 'SERVICE',
-      status: 'ACTIVE',
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-12-31'),
-      renewalDate: new Date('2024-11-01'),
-      commissionRate: 15,
-      minimumGuarantee: 2000,
-      performanceBonus: 500,
-      penaltyClause: true,
-      autoRenewal: true,
-      monthlyRevenue: 8500,
-      totalEarnings: 85000,
-      performanceScore: 4.7,
-      lastModified: new Date('2024-10-15'),
-      createdBy: 'admin-1',
-      terms: ['Respect des délais', 'Qualité de service', 'Disponibilité 24/7'],
-      attachments: [
-        { id: '1', name: 'Contrat signé.pdf', type: 'PDF', url: '/contracts/contract-1.pdf' }
-      ]
-    },
-    {
-      id: 'contract-2',
-      providerId: 'provider-2',
-      providerName: 'Marie Dubois',
-      providerType: 'INDIVIDUAL',
-      contractType: 'DELIVERY',
-      status: 'PENDING',
-      startDate: new Date('2024-11-01'),
-      endDate: new Date('2025-10-31'),
-      commissionRate: 12,
-      minimumGuarantee: 1500,
-      performanceBonus: 300,
-      penaltyClause: false,
-      autoRenewal: false,
-      monthlyRevenue: 3200,
-      totalEarnings: 19200,
-      performanceScore: 4.9,
-      lastModified: new Date('2024-10-20'),
-      createdBy: 'admin-2',
-      terms: ['Ponctualité', 'Soin des colis', 'Communication client'],
-      attachments: []
-    }
-  ];
+  // Données réelles via tRPC (fini les mocks)
+  const validContracts: ProviderContract[] = contracts ?? [];
 
-  const mockMetrics: ContractMetrics = contractMetrics ?? {
-    totalContracts: 156,
-    activeContracts: 142,
-    pendingContracts: 8,
-    expiringContracts: 6,
-    totalRevenue: 1250000,
-    averageCommission: 13.5,
-    renewalRate: 87.2
+  const validMetrics: ContractMetrics = contractMetrics ?? {
+    totalContracts: 0,
+    activeContracts: 0,
+    pendingContracts: 0,
+    expiringContracts: 0,
+    totalRevenue: 0,
+    averageCommission: 0,
+    renewalRate: 0
   };
 
   const getStatusColor = (status: string) => {
@@ -306,9 +258,9 @@ export default function ProviderContracts() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('contracts.totalContracts')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.totalContracts}</p>
+                <p className="text-2xl font-bold">{validMetrics.totalContracts}</p>
                 <p className="text-sm text-green-600">
-                  {mockMetrics.activeContracts} {t('contracts.active')}
+                  {validMetrics.activeContracts} {t('contracts.active')}
                 </p>
               </div>
               <FileText className="h-8 w-8 text-blue-500" />
@@ -323,9 +275,9 @@ export default function ProviderContracts() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('contracts.totalRevenue')}
                 </p>
-                <p className="text-2xl font-bold">{formatCurrency(mockMetrics.totalRevenue)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(validMetrics.totalRevenue)}</p>
                 <p className="text-sm text-muted-foreground">
-                  {mockMetrics.averageCommission}% {t('contracts.avgCommission')}
+                  {validMetrics.averageCommission}% {t('contracts.avgCommission')}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-green-500" />
@@ -340,7 +292,7 @@ export default function ProviderContracts() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('contracts.renewalRate')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.renewalRate}%</p>
+                <p className="text-2xl font-bold">{validMetrics.renewalRate}%</p>
                 <p className="text-sm text-muted-foreground">
                   {t('contracts.lastYear')}
                 </p>
@@ -357,7 +309,7 @@ export default function ProviderContracts() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('contracts.expiringContracts')}
                 </p>
-                <p className="text-2xl font-bold">{mockMetrics.expiringContracts}</p>
+                <p className="text-2xl font-bold">{validMetrics.expiringContracts}</p>
                 <p className="text-sm text-orange-600">
                   {t('contracts.next30Days')}
                 </p>
@@ -441,7 +393,7 @@ export default function ProviderContracts() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockContracts
+                  {validContracts
                     .filter(contract => contract.status === 'ACTIVE')
                     .map((contract) => (
                       <TableRow key={contract.id}>
@@ -535,7 +487,7 @@ export default function ProviderContracts() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockContracts
+                {validContracts
                   .filter(contract => contract.status === 'PENDING')
                   .map((contract) => (
                     <div key={contract.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -593,7 +545,7 @@ export default function ProviderContracts() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockContracts
+                {validContracts
                   .filter(contract => isContractExpiringSoon(contract.endDate))
                   .map((contract) => (
                     <div key={contract.id} className="flex items-center justify-between p-4 border rounded-lg bg-orange-50">
@@ -652,7 +604,7 @@ export default function ProviderContracts() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockContracts.map((contract) => (
+                  {validContracts.map((contract) => (
                     <TableRow key={contract.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">

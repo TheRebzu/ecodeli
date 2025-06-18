@@ -20,7 +20,7 @@ import {
   Radio,
 } from "lucide-react";
 import { api } from "@/trpc/react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
 interface OrderItem {

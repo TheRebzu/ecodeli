@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/trpc/react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useGeolocation } from "@/hooks/use-geolocation";
 
 export interface AnnouncementFilters {
@@ -46,7 +46,7 @@ export function useDelivererAnnouncements(
 
   const [applicationStatus, setApplicationStatus] = useState<Record<string, string>>({});
 
-  // Requête pour récupérer les annonces disponibles
+  // Requï¿½te pour rï¿½cupï¿½rer les annonces disponibles
   const {
     data: announcements,
     isLoading: announcementsLoading,
@@ -74,7 +74,7 @@ export function useDelivererAnnouncements(
     }
   });
 
-  // Requête pour récupérer les candidatures du livreur
+  // Requï¿½te pour rï¿½cupï¿½rer les candidatures du livreur
   const {
     data: applications,
     isLoading: applicationsLoading,
@@ -87,7 +87,7 @@ export function useDelivererAnnouncements(
     refetchInterval: autoRefresh ? refreshInterval : false,
   });
 
-  // Mutation pour postuler à une annonce
+  // Mutation pour postuler ï¿½ une annonce
   const applyToAnnouncementMutation = api.deliverer.announcements.apply.useMutation({
     onSuccess: (application) => {
       setApplicationStatus(prev => ({
@@ -96,12 +96,12 @@ export function useDelivererAnnouncements(
       }));
       
       toast({
-        title: "Candidature envoyée",
-        description: "Votre candidature a été envoyée avec succès",
+        title: "Candidature envoyï¿½e",
+        description: "Votre candidature a ï¿½tï¿½ envoyï¿½e avec succï¿½s",
         variant: "default"
       });
 
-      // Rafraîchir les données
+      // Rafraï¿½chir les donnï¿½es
       refetchApplications();
       refetchAnnouncements();
     },
@@ -114,22 +114,22 @@ export function useDelivererAnnouncements(
     }
   });
 
-  // Mutation pour créer un trajet planifié
+  // Mutation pour crï¿½er un trajet planifiï¿½
   const createRouteMutation = api.deliverer.routes.create.useMutation({
     onSuccess: (result) => {
       toast({
-        title: "Trajet créé",
-        description: `Trajet créé avec succès. ${result.matchingAnnouncements.length} annonce(s) correspondante(s) trouvée(s)`,
+        title: "Trajet crï¿½ï¿½",
+        description: `Trajet crï¿½ï¿½ avec succï¿½s. ${result.matchingAnnouncements.length} annonce(s) correspondante(s) trouvï¿½e(s)`,
         variant: "default"
       });
 
-      // Rafraîchir les annonces
+      // Rafraï¿½chir les annonces
       refetchAnnouncements();
     },
     onError: (error) => {
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de créer le trajet",
+        description: error.message || "Impossible de crï¿½er le trajet",
         variant: "destructive"
       });
     }
@@ -172,8 +172,8 @@ export function useDelivererAnnouncements(
     ) => {
       if (applicationStatus[announcementId]) {
         toast({
-          title: "Candidature déjà envoyée",
-          description: "Vous avez déjà postulé à cette annonce",
+          title: "Candidature dï¿½jï¿½ envoyï¿½e",
+          description: "Vous avez dï¿½jï¿½ postulï¿½ ï¿½ cette annonce",
           variant: "destructive"
         });
         return;
@@ -231,7 +231,7 @@ export function useDelivererAnnouncements(
     averagePrice: announcements?.reduce((sum, ann) => sum + Number(ann.totalPrice), 0) / (announcements?.length || 1) || 0
   };
 
-  // Utilitaires de tri et filtrage côté client
+  // Utilitaires de tri et filtrage cï¿½tï¿½ client
   const sortedAnnouncements = announcements?.slice().sort((a, b) => {
     if (!filters.sortBy) return 0;
 
@@ -268,7 +268,7 @@ export function useDelivererAnnouncements(
   });
 
   const filteredAnnouncements = sortedAnnouncements?.filter(announcement => {
-    // Filtrer les annonces pour lesquelles on a déjà postulé
+    // Filtrer les annonces pour lesquelles on a dï¿½jï¿½ postulï¿½
     if (applicationStatus[announcement.id]) {
       return false;
     }
@@ -308,11 +308,11 @@ export function useDelivererAnnouncements(
   });
 
   return {
-    // Données
+    // Donnï¿½es
     announcements: filteredAnnouncements || [],
     applications: applications?.applications || [],
     
-    // États de chargement
+    // ï¿½tats de chargement
     isLoading: announcementsLoading || applicationsLoading,
     isLocationLoading: locationLoading,
     
@@ -326,7 +326,7 @@ export function useDelivererAnnouncements(
     updateFilters,
     clearFilters,
     
-    // États des mutations
+    // ï¿½tats des mutations
     isApplying: applyToAnnouncementMutation.isPending,
     isCreatingRoute: createRouteMutation.isPending,
     
@@ -348,19 +348,18 @@ export function useDelivererAnnouncements(
   };
 }
 
-// Hook spécialisé pour les notifications d'annonces
+// Hook spï¿½cialisï¿½ pour les notifications d'annonces
 export function useAnnouncementNotifications(delivererId: string) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simuler des notifications WebSocket/SSE
-    // TODO: Implémenter une vraie connexion WebSocket
-    const interval = setInterval(() => {
-      // Logique de vérification de nouvelles annonces
-    }, 10000);
-
-    return () => clearInterval(interval);
+    // Configuration pour les notifications en temps rÃ©el
+    // Utilise le polling intÃ©grÃ© de tRPC pour l'instant
+    // Pas besoin d'interval manuel car tRPC gÃ¨re dÃ©jÃ  le refetchInterval
+    return () => {
+      // Cleanup si nÃ©cessaire
+    };
   }, [delivererId]);
 
   const markAsRead = useCallback((notificationId: string) => {
@@ -385,7 +384,7 @@ export function useAnnouncementNotifications(delivererId: string) {
   };
 }
 
-// Hook pour les routes planifiées
+// Hook pour les routes planifiï¿½es
 export function useDelivererRoutes(delivererId: string) {
   const { toast } = useToast();
 
@@ -402,8 +401,8 @@ export function useDelivererRoutes(delivererId: string) {
   const deleteRouteMutation = api.deliverer.routes.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: "Trajet supprimé",
-        description: "Le trajet a été supprimé avec succès",
+        title: "Trajet supprimï¿½",
+        description: "Le trajet a ï¿½tï¿½ supprimï¿½ avec succï¿½s",
         variant: "default"
       });
       refetch();

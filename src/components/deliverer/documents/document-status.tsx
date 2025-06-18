@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { toast } from '@/hooks/use-toast'
+import { toast } from "@/components/ui/use-toast"
 import { 
   FileText, 
   Upload, 

@@ -62,6 +62,7 @@ import {
   BaseSidebar,
   type SidebarSection} from "@/components/layout/sidebars/base-sidebar";
 
+
 interface AdminSidebarProps {
   locale: string;
 }
@@ -241,7 +242,7 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
           href: `/${locale}/admin/pricing/history`,
           icon: Clock},
         {
-          label: "Simulateur prix",
+          label: "Simulateur de tarification",
           href: `/${locale}/admin/pricing/simulator`,
           icon: Calculator}]},
 

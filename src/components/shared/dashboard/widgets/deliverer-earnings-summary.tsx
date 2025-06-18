@@ -176,32 +176,32 @@ export function DelivererEarningsSummary({
     );
   };
 
-  // Données par défaut si aucune donnée n'est fournie
+  // Données vides par défaut si aucune donnée n'est fournie
   const defaultEarnings = {
     day: {
-      current: 45.5,
-      previous: 38.2,
-      change: 7.3,
-      changePercentage: 19.1,
-      deliveriesCount: 6,
-      hoursWorked: 4.5,
-      averagePerDelivery: 7.58},
+      current: 0,
+      previous: 0,
+      change: 0,
+      changePercentage: 0,
+      deliveriesCount: 0,
+      hoursWorked: 0,
+      averagePerDelivery: 0},
     week: {
-      current: 287.4,
-      previous: 245.8,
-      change: 41.6,
-      changePercentage: 16.9,
-      deliveriesCount: 38,
-      hoursWorked: 28.5,
-      averagePerDelivery: 7.56},
+      current: 0,
+      previous: 0,
+      change: 0,
+      changePercentage: 0,
+      deliveriesCount: 0,
+      hoursWorked: 0,
+      averagePerDelivery: 0},
     month: {
-      current: 1156.8,
-      previous: 1089.3,
-      change: 67.5,
-      changePercentage: 6.2,
-      deliveriesCount: 152,
-      hoursWorked: 118.2,
-      averagePerDelivery: 7.61}};
+      current: 0,
+      previous: 0,
+      change: 0,
+      changePercentage: 0,
+      deliveriesCount: 0,
+      hoursWorked: 0,
+      averagePerDelivery: 0}};
 
   const earningsData = earnings || defaultEarnings;
 

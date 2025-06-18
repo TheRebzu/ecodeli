@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { api } from "@/trpc/react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
 // Schéma de validation pour le formulaire de retrait

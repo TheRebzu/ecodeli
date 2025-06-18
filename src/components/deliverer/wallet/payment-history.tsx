@@ -35,7 +35,7 @@ import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { trpc } from "@/trpc/client";
 import { formatCurrency, formatDate } from "@/lib/utils/formatting";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 interface PaymentHistoryFilters {
   search: string;

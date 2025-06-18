@@ -1,6 +1,6 @@
 /**
  * Service de notification push utilisant OneSignal
- * Remplace les simulations de notifications par des appels API réels
+ * Implémentations réelles pour les notifications push
  */
 
 import { TRPCError } from "@trpc/server";

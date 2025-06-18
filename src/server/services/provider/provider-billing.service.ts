@@ -1,6 +1,7 @@
 import { prisma } from "@/server/db";
 import { TRPCError } from "@trpc/server";
 import { StripeService } from "@/server/services/shared/stripe.service";
+import { EmailService } from "@/server/services/common/email.service";
 
 export interface InvoiceFilters {
   status?: "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED";
@@ -28,7 +29,7 @@ export interface MonthlyReportData {
 
 export class ProviderBillingService {
   /**
-   * Récupère les factures du prestataire avec filtres
+   * Rï¿½cupï¿½re les factures du prestataire avec filtres
    */
   static async getInvoices(providerId: string, filters: InvoiceFilters = {}) {
     try {
@@ -126,13 +127,13 @@ export class ProviderBillingService {
       console.error("Error fetching invoices:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des factures",
+        message: "Erreur lors de la rï¿½cupï¿½ration des factures",
       });
     }
   }
 
   /**
-   * Récupère une facture spécifique
+   * Rï¿½cupï¿½re une facture spï¿½cifique
    */
   static async getInvoiceById(providerId: string, invoiceId: string) {
     try {
@@ -191,7 +192,7 @@ export class ProviderBillingService {
       if (!invoice) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Facture non trouvée",
+          message: "Facture non trouvï¿½e",
         });
       }
 
@@ -235,20 +236,20 @@ export class ProviderBillingService {
       console.error("Error fetching invoice:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération de la facture",
+        message: "Erreur lors de la rï¿½cupï¿½ration de la facture",
       });
     }
   }
 
   /**
-   * Génère une facture automatique pour les interventions terminées
+   * Gï¿½nï¿½re une facture automatique pour les interventions terminï¿½es
    */
   static async generateAutomaticInvoice(
     providerId: string,
     interventionIds: string[]
   ) {
     try {
-      // Récupérer les interventions terminées
+      // Rï¿½cupï¿½rer les interventions terminï¿½es
       const interventions = await prisma.serviceBooking.findMany({
         where: {
           id: { in: interventionIds },
@@ -264,20 +265,20 @@ export class ProviderBillingService {
       if (interventions.length === 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Aucune intervention terminée trouvée",
+          message: "Aucune intervention terminï¿½e trouvï¿½e",
         });
       }
 
-      // Vérifier que toutes les interventions sont du même client
+      // Vï¿½rifier que toutes les interventions sont du mï¿½me client
       const clientId = interventions[0].clientId;
       if (!interventions.every((intervention) => intervention.clientId === clientId)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Toutes les interventions doivent être du même client",
+          message: "Toutes les interventions doivent ï¿½tre du mï¿½me client",
         });
       }
 
-      // Générer le numéro de facture
+      // Gï¿½nï¿½rer le numï¿½ro de facture
       const invoiceNumber = await this.generateInvoiceNumber(providerId);
 
       // Calculer les montants
@@ -293,7 +294,7 @@ export class ProviderBillingService {
       const taxAmount = subtotalAmount * taxRate;
       const totalAmount = subtotalAmount + taxAmount;
 
-      // Créer la facture
+      // Crï¿½er la facture
       const invoice = await prisma.invoice.create({
         data: {
           invoiceNumber,
@@ -343,7 +344,7 @@ export class ProviderBillingService {
       console.error("Error generating automatic invoice:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la génération de la facture automatique",
+        message: "Erreur lors de la gï¿½nï¿½ration de la facture automatique",
       });
     }
   }
@@ -376,18 +377,18 @@ export class ProviderBillingService {
       if (!invoice) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Facture non trouvée",
+          message: "Facture non trouvï¿½e",
         });
       }
 
       if (invoice.status !== "DRAFT") {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Seules les factures en brouillon peuvent être envoyées",
+          message: "Seules les factures en brouillon peuvent ï¿½tre envoyï¿½es",
         });
       }
 
-      // Mettre à jour le statut
+      // Mettre ï¿½ jour le statut
       const updatedInvoice = await prisma.invoice.update({
         where: { id: invoiceId },
         data: {
@@ -396,16 +397,23 @@ export class ProviderBillingService {
         },
       });
 
-      // Envoyer l'email au client (intégration avec service d'email)
-      // TODO: Implémenter l'envoi d'email
+      // Envoyer l'email au client
+      const emailService = new EmailService();
+      await emailService.sendInvoiceEmail(
+        invoice.client.email,
+        invoice.client.name || 'Client',
+        invoice.invoiceNumber,
+        invoice.totalAmount,
+        updatedInvoice.id
+      );
 
-      // Créer une notification pour le client
+      // Crï¿½er une notification pour le client
       await prisma.notification.create({
         data: {
           userId: invoice.clientId,
           type: "INVOICE_RECEIVED",
           title: "Nouvelle facture",
-          content: `Vous avez reçu une facture n°${invoice.invoiceNumber}`,
+          content: `Vous avez reï¿½u une facture nï¿½${invoice.invoiceNumber}`,
           data: {
             invoiceId: invoice.id,
             invoiceNumber: invoice.invoiceNumber,
@@ -430,7 +438,7 @@ export class ProviderBillingService {
   }
 
   /**
-   * Récupère les statistiques de facturation
+   * Rï¿½cupï¿½re les statistiques de facturation
    */
   static async getBillingStats(providerId: string) {
     try {
@@ -496,13 +504,13 @@ export class ProviderBillingService {
       console.error("Error fetching billing stats:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des statistiques de facturation",
+        message: "Erreur lors de la rï¿½cupï¿½ration des statistiques de facturation",
       });
     }
   }
 
   /**
-   * Génère un rapport mensuel
+   * Gï¿½nï¿½re un rapport mensuel
    */
   static async generateMonthlyReport(
     providerId: string,
@@ -584,11 +592,11 @@ export class ProviderBillingService {
       // Calculer les clients uniques servis
       const uniqueClients = new Set(interventions.map(i => i.client.id)).size;
 
-      // Calculer le taux de réussite
+      // Calculer le taux de rï¿½ussite
       const totalInterventions = interventions.length;
-      const completionRate = 100; // Déjà filtré sur COMPLETED
+      const completionRate = 100; // Dï¿½jï¿½ filtrï¿½ sur COMPLETED
 
-      // Récupérer les noms des services top
+      // Rï¿½cupï¿½rer les noms des services top
       const serviceIds = topServices.map(s => s.serviceId);
       const services = await prisma.service.findMany({
         where: { id: { in: serviceIds } },
@@ -618,13 +626,13 @@ export class ProviderBillingService {
       console.error("Error generating monthly report:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la génération du rapport mensuel",
+        message: "Erreur lors de la gï¿½nï¿½ration du rapport mensuel",
       });
     }
   }
 
   /**
-   * Génère un numéro de facture unique
+   * Gï¿½nï¿½re un numï¿½ro de facture unique
    */
   private static async generateInvoiceNumber(providerId: string): Promise<string> {
     const currentYear = new Date().getFullYear();
@@ -646,7 +654,7 @@ export class ProviderBillingService {
   }
 
   /**
-   * Récupère les revenus par période
+   * Rï¿½cupï¿½re les revenus par pï¿½riode
    */
   static async getRevenueChart(
     providerId: string,

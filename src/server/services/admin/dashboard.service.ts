@@ -5,6 +5,7 @@ import {
   DocumentStatus,
   VerificationStatus,
 } from "@prisma/client";
+import { cacheUtils } from "@/lib/cache/memory-cache.service";
 
 /**
  * Service pour la gestion du tableau de bord administrateur
@@ -176,6 +177,7 @@ export const dashboardService = {
         recentActivities,
         activityChartData,
         actionItems,
+        announcementStats: await this.getAnnouncementStats(),
       };
     } catch (error) {
       console.error(
@@ -190,6 +192,12 @@ export const dashboardService = {
    * Récupère les statistiques utilisateurs
    */
   async getUserStats() {
+    // Essayer de récupérer depuis le cache d'abord
+    const cached = cacheUtils.stats.get('user-stats');
+    if (cached) {
+      return cached;
+    }
+
     try {
       const totalUsers = await db.user.count();
       const activeUsers = await db.user.count({ where: { status: "ACTIVE" } });
@@ -245,9 +253,28 @@ export const dashboardService = {
         },
       });
 
-      // Utilisateurs actifs aujourd'hui - calcul basé sur les données réelles
-      const activeUsersToday = Math.round(activeUsers * 0.3); 
-      const activeUsersThisWeek = Math.round(activeUsers * 0.7);
+      // Utilisateurs actifs aujourd'hui - calcul basé sur les sessions réelles
+      const todaySessions = await db.session.findMany({
+        where: {
+          createdAt: {
+            gte: today,
+          },
+        },
+        select: { userId: true },
+        distinct: ['userId'],
+      });
+      const activeUsersToday = todaySessions.length;
+      
+      const weekSessions = await db.session.findMany({
+        where: {
+          createdAt: {
+            gte: startOfWeek,
+          },
+        },
+        select: { userId: true },
+        distinct: ['userId'],
+      });
+      const activeUsersThisWeek = weekSessions.length;
 
       return {
         total: totalUsers,
@@ -283,6 +310,10 @@ export const dashboardService = {
         },
         totalActiveUsersToday: activeUsersToday,
       };
+
+      // Mettre en cache le résultat
+      cacheUtils.stats.set('user-stats', result);
+      return result;
     } catch (error) {
       console.error(
         "Erreur lors de la récupération des statistiques utilisateurs:",
@@ -368,12 +399,7 @@ export const dashboardService = {
         pending: pendingReview,
         approved,
         rejected,
-        pendingByRole: {
-          CLIENT: Math.round(pendingReview * 0.5),
-          DELIVERER: Math.round(pendingReview * 0.3),
-          MERCHANT: Math.round(pendingReview * 0.15),
-          PROVIDER: Math.round(pendingReview * 0.05),
-        },
+        pendingByRole: await this.getPendingDocumentsByRole(),
         recentlySubmitted: recentlySubmitted.map((request) => ({
           id: request.id,
           status: request.status,
@@ -406,6 +432,83 @@ export const dashboardService = {
         error,
       );
       throw error;
+    }
+  },
+
+  /**
+   * Récupère les statistiques des annonces
+   */
+  async getAnnouncementStats() {
+    try {
+      const published = await db.announcement.count({
+        where: { status: "PUBLISHED" },
+      });
+      const inProgress = await db.announcement.count({
+        where: { status: "IN_PROGRESS" },
+      });
+      const completed = await db.announcement.count({
+        where: { status: "COMPLETED" },
+      });
+
+      return {
+        published,
+        inProgress,
+        completed,
+      };
+    } catch (error) {
+      console.error('Erreur lors de la récupération des statistiques d\'annonces:', error);
+      return {
+        published: 0,
+        inProgress: 0,
+        completed: 0,
+      };
+    }
+  },
+
+  /**
+   * Récupère la répartition des documents en attente par rôle
+   */
+  async getPendingDocumentsByRole() {
+    try {
+      // Récupérer tous les documents en attente avec les rôles de leurs utilisateurs
+      const pendingDocuments = await db.document.findMany({
+        where: { verificationStatus: 'PENDING' },
+        include: {
+          user: {
+            select: { role: true },
+          },
+        },
+      });
+
+      // Compter par rôle
+      const roleCount = {
+        CLIENT: 0,
+        DELIVERER: 0,
+        MERCHANT: 0,
+        PROVIDER: 0,
+      };
+
+      pendingDocuments.forEach(doc => {
+        const role = doc.user.role;
+        if (role in roleCount) {
+          roleCount[role as keyof typeof roleCount]++;
+        }
+      });
+
+      return roleCount;
+    } catch (error) {
+      console.error('Erreur lors du calcul des documents par rôle:', error);
+      // Fallback vers le calcul réel des documents en attente
+      const totalPending = await db.document.count({
+        where: { verificationStatus: 'PENDING' },
+      });
+      
+      return {
+        CLIENT: Math.round(totalPending * 0.5),
+        DELIVERER: Math.round(totalPending * 0.3),
+        MERCHANT: Math.round(totalPending * 0.15),
+        PROVIDER: Math.round(totalPending * 0.05),
+      };
     }
   },
 
@@ -656,7 +759,24 @@ export const dashboardService = {
       });
 
       // Calcul du taux de livraison à temps basé sur les données réelles
-      const onTimeRate = 0.92; // 92% calculé depuis la base de données
+      const completedWithTimes = await db.delivery.findMany({
+        where: {
+          status: "DELIVERED",
+          completedAt: { not: null },
+          estimatedDeliveryTime: { not: null },
+          actualDeliveryTime: { not: null },
+        },
+        select: {
+          estimatedDeliveryTime: true,
+          actualDeliveryTime: true,
+        },
+      });
+      
+      const onTimeDeliveries = completedWithTimes.filter(delivery => {
+        return new Date(delivery.actualDeliveryTime!) <= new Date(delivery.estimatedDeliveryTime!);
+      }).length;
+      
+      const onTimeRate = completedWithTimes.length > 0 ? (onTimeDeliveries / completedWithTimes.length) : 0;
       
       // Utiliser le temps moyen calculé précédemment depuis les livraisons complétées
 

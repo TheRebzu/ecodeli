@@ -19,7 +19,7 @@ import { ReviewFilters } from "@/components/client/reviews/review-filters";
 
 // Hooks
 import { useClientReviews } from "@/hooks/client/use-client-reviews";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ReviewsPage() {
   const t = useTranslations("reviews");

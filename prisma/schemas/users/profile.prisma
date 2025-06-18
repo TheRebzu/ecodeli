@@ -58,6 +58,8 @@ model Deliverer {
   bankInfo            Json?
   taxIdentifier       String?
   deliveryPreferences Json?
+  paypalEmail         String?   // Email PayPal pour les retraits
+  stripeAccountId     String?   // ID du compte Stripe Connect
   
   // Relations
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)

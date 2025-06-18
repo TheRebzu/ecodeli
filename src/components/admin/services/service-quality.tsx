@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertTriangle, TrendingUp, TrendingDown, Star, MessageSquare, CheckCircle, XCircle, Clock, Search, BarChart3, Users, Filter, Download } from 'lucide-react';
 import { api } from '@/trpc/react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 interface QualityMetric {
   id: string;
@@ -61,6 +61,9 @@ export default function ServiceQuality() {
     period: '30_DAYS'
   });
 
+  // Statistiques générales des services
+  const { data: serviceStats } = api.admin.services.getStats.useQuery();
+
   // Mutations pour les actions de qualité
   const createActionMutation = api.admin.createQualityAction.useMutation({
     onSuccess: () => {
@@ -88,50 +91,10 @@ export default function ServiceQuality() {
     },
   });
 
-  // Données simulées pour la démonstration (remplacées par les vraies données tRPC)
-  const mockMetrics: QualityMetric[] = qualityMetrics ?? [
-    {
-      id: '1',
-      serviceName: 'Nettoyage domicile',
-      providerId: 'prov-1',
-      providerName: 'Marie Dubois',
-      averageRating: 4.8,
-      totalReviews: 156,
-      completionRate: 98,
-      responseTime: 2,
-      complaintCount: 1,
-      status: 'EXCELLENT',
-      lastUpdated: new Date(),
-      trend: 'UP'
-    },
-    {
-      id: '2',
-      serviceName: 'Jardinage',
-      providerId: 'prov-2',
-      providerName: 'Pierre Martin',
-      averageRating: 3.2,
-      totalReviews: 45,
-      completionRate: 75,
-      responseTime: 8,
-      complaintCount: 8,
-      status: 'POOR',
-      lastUpdated: new Date(),
-      trend: 'DOWN'
-    }
-  ];
+  // Données réelles via tRPC (fini les mocks)
+  const validMetrics: QualityMetric[] = qualityMetrics || [];
 
-  const mockActions: QualityAction[] = qualityActions ?? [
-    {
-      id: '1',
-      serviceId: '2',
-      type: 'IMPROVEMENT_PLAN',
-      description: 'Plan d\'amélioration pour le service jardinage',
-      assignedTo: 'admin-1',
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      status: 'IN_PROGRESS',
-      createdAt: new Date()
-    }
-  ];
+  const validActions: QualityAction[] = qualityActions || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -179,7 +142,9 @@ export default function ServiceQuality() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('quality.averageRating')}
                 </p>
-                <p className="text-2xl font-bold">4.2</p>
+                <p className="text-2xl font-bold">
+                  {serviceStats?.averageRating ? serviceStats.averageRating.toFixed(1) : '0.0'}
+                </p>
               </div>
               <Star className="h-8 w-8 text-yellow-500" />
             </div>
@@ -293,7 +258,7 @@ export default function ServiceQuality() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockMetrics
+                  {validMetrics
                     .filter(metric => metric.status === 'POOR' || metric.status === 'CRITICAL')
                     .map((metric) => (
                       <div key={metric.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -327,7 +292,7 @@ export default function ServiceQuality() {
         {/* Liste des services */}
         <TabsContent value="services" className="space-y-6">
           <div className="grid gap-4">
-            {mockMetrics.map((metric) => (
+            {validMetrics.map((metric) => (
               <Card key={metric.id}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -404,7 +369,7 @@ export default function ServiceQuality() {
           </div>
 
           <div className="grid gap-4">
-            {mockActions.map((action) => (
+            {validActions.map((action) => (
               <Card key={action.id}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">

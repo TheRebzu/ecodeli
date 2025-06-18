@@ -5,6 +5,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { logger } from "@/lib/utils/logger";
+import { prisma } from "@/server/db";
 
 export type EscrowStatus =
   | "PENDING"
@@ -639,10 +640,7 @@ export class EscrowPaymentService {
         transaction.paymentIntentId = paymentIntent.id;
         console.log(`💳 PaymentIntent Stripe escrow créé: ${paymentIntent.id}`);
       } else {
-        // Fallback pour développement avec UUID robuste
-        const { randomUUID } = await import('crypto');
-        transaction.paymentIntentId = `pi_dev_escrow_${Date.now()}_${randomUUID().substring(0, 8)}`;
-        console.warn('⚠️ Mode développement - PaymentIntent simulé pour escrow');
+        throw new Error('Configuration Stripe manquante. Veuillez configurer STRIPE_SECRET_KEY.');
       }
       
       transaction.cardLast4 = paymentDetails.cardNumber?.slice(-4) || "4242";
@@ -690,7 +688,7 @@ export class EscrowPaymentService {
       if (transaction.paymentIntentId && process.env.STRIPE_SECRET_KEY) {
         const Stripe = (await import('stripe')).default;
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-          apiVersion: '2025-05-28.basil',
+          apiVersion: '2024-11-20.acacia',
         });
 
         const captureResult = await stripe.paymentIntents.capture(
@@ -707,18 +705,9 @@ export class EscrowPaymentService {
             captureId: captureResult.latest_charge as string
           };
         }
+      } else {
+        throw new Error('Configuration Stripe manquante ou PaymentIntent non trouvé.');
       }
-
-      // Fallback avec UUID robuste
-      const { randomUUID } = await import('crypto');
-      const captureId = `capture_${Date.now()}_${randomUUID().substring(0, 12)}`;
-      
-      console.log(`💰 Capture de fonds simulée: ${captureId} (${transaction.amount}€)`);
-      
-      return {
-        success: true,
-        captureId
-      };
       
     } catch (error) {
       console.error('❌ Erreur capture fonds:', error);
@@ -734,24 +723,50 @@ export class EscrowPaymentService {
     breakdown: EscrowTransaction["breakdown"],
   ): Promise<{ success: boolean; transferIds?: string[]; error?: string }> {
     try {
-      const { randomUUID } = await import('crypto');
-      const timestamp = Date.now();
+      let delivererTransferId: string;
+      let platformTransferId: string;
       
-      // Génération d'IDs de transfert robustes avec UUIDs
-      const delivererTransferId = `transfer_deliverer_${timestamp}_${randomUUID().substring(0, 8)}`;
-      const platformTransferId = `transfer_platform_${timestamp}_${randomUUID().substring(0, 8)}`;
-      
-      console.log(`💸 Exécution des transferts:
-        - Livreur: ${breakdown.deliveryFee}€ (ID: ${delivererTransferId})
-        - Plateforme: ${breakdown.platformFee}€ (ID: ${platformTransferId})`);
+      // Exécution des vrais transferts Stripe
+      if (process.env.STRIPE_SECRET_KEY && transaction.paymentIntentId) {
+        const Stripe = (await import('stripe')).default;
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+          apiVersion: '2024-11-20.acacia',
+        });
 
-      // En production, ici on ferait les vrais transferts Stripe
-      // await stripe.transfers.create({
-      //   amount: Math.round(breakdown.deliveryFee * 100),
-      //   currency: transaction.currency,
-      //   destination: delivererStripeAccountId,
-      //   metadata: { escrowTransactionId: transaction.id }
-      // });
+        // Récupérer les comptes Stripe connectés du livreur
+        if (!transaction.delivererId) {
+          throw new Error('Aucun livreur assigné à cette transaction');
+        }
+        
+        const deliverer = await prisma.deliverer.findUnique({
+          where: { id: transaction.delivererId },
+          select: { stripeAccountId: true }
+        });
+
+        if (!deliverer?.stripeAccountId) {
+          throw new Error('Compte Stripe du livreur non configuré');
+        }
+
+        // Transfert vers le livreur
+        const delivererTransfer = await stripe.transfers.create({
+          amount: Math.round(breakdown.deliveryFee * 100),
+          currency: transaction.currency.toLowerCase(),
+          destination: deliverer.stripeAccountId,
+          metadata: {
+            escrowTransactionId: transaction.id,
+            type: 'delivery_payment'
+          }
+        });
+
+        delivererTransferId = delivererTransfer.id;
+        platformTransferId = `platform_fee_${transaction.id}`;
+        
+        console.log(`✅ Transferts Stripe exécutés:
+          - Livreur: ${breakdown.deliveryFee}€ (ID: ${delivererTransferId})
+          - Plateforme: ${breakdown.platformFee}€ (rétention)`);
+      } else {
+        throw new Error('Configuration Stripe manquante pour les transferts');
+      }
 
       const transferIds = [delivererTransferId, platformTransferId];
 
@@ -779,7 +794,7 @@ export class EscrowPaymentService {
       if (transaction.paymentIntentId && process.env.STRIPE_SECRET_KEY) {
         const Stripe = (await import('stripe')).default;
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-          apiVersion: '2025-05-28.basil',
+          apiVersion: '2024-11-20.acacia',
         });
 
         const refund = await stripe.refunds.create({
@@ -799,18 +814,9 @@ export class EscrowPaymentService {
             refundId: refund.id
           };
         }
+      } else {
+        throw new Error('Configuration Stripe manquante ou PaymentIntent non trouvé.');
       }
-
-      // Fallback avec UUID robuste
-      const { randomUUID } = await import('crypto');
-      const refundId = `refund_${Date.now()}_${randomUUID().substring(0, 12)}`;
-      
-      console.log(`💰 Remboursement simulé: ${refundId} (${amount}€) - Raison: ${reason}`);
-      
-      return {
-        success: true,
-        refundId
-      };
       
     } catch (error) {
       console.error('❌ Erreur remboursement:', error);
@@ -824,20 +830,93 @@ export class EscrowPaymentService {
   private async saveEscrowTransaction(
     transaction: EscrowTransaction,
   ): Promise<void> {
-    logger.info(`Transaction escrow sauvegardée: ${transaction.id}`);
+    try {
+      await prisma.payment.create({
+        data: {
+          id: transaction.id,
+          amount: transaction.amount,
+          currency: transaction.currency,
+          status: transaction.status as any,
+          paymentMethod: transaction.paymentMethod,
+          userId: transaction.clientId,
+          metadata: {
+            escrowData: transaction,
+            breakdown: transaction.breakdown,
+            events: transaction.events,
+          },
+          createdAt: transaction.createdAt,
+          updatedAt: transaction.updatedAt,
+        },
+      });
+      
+      logger.info(`Transaction escrow sauvegardée: ${transaction.id}`);
+    } catch (error) {
+      logger.error('Erreur sauvegarde transaction escrow:', error);
+      throw error;
+    }
   }
 
   private async updateEscrowTransaction(
     transaction: EscrowTransaction,
   ): Promise<void> {
-    logger.info(`Transaction escrow mise à jour: ${transaction.id}`);
+    try {
+      await prisma.payment.update({
+        where: { id: transaction.id },
+        data: {
+          status: transaction.status as any,
+          metadata: {
+            escrowData: transaction,
+            breakdown: transaction.breakdown,
+            events: transaction.events,
+          },
+          updatedAt: transaction.updatedAt,
+        },
+      });
+      
+      logger.info(`Transaction escrow mise à jour: ${transaction.id}`);
+    } catch (error) {
+      logger.error('Erreur mise à jour transaction escrow:', error);
+      throw error;
+    }
   }
 
   private async getEscrowTransaction(
     id: string,
   ): Promise<EscrowTransaction | null> {
-    
-    return null;
+    try {
+      const payment = await prisma.payment.findUnique({
+        where: { id },
+        include: {
+          user: true,
+        },
+      });
+      
+      if (!payment || !payment.metadata || typeof payment.metadata !== 'object') {
+        return null;
+      }
+      
+      const metadata = payment.metadata as any;
+      const escrowData = metadata.escrowData;
+      
+      if (!escrowData) {
+        return null;
+      }
+      
+      return {
+        ...escrowData,
+        id: payment.id,
+        amount: payment.amount.toNumber(),
+        status: payment.status as EscrowStatus,
+        breakdown: metadata.breakdown || {},
+        events: metadata.events || [],
+        createdAt: payment.createdAt,
+        updatedAt: payment.updatedAt,
+      } as EscrowTransaction;
+      
+    } catch (error) {
+      logger.error('Erreur récupération transaction escrow:', error);
+      throw error;
+    }
   }
 
   private async getApplicableReleaseRules(): Promise<EscrowReleaseRule[]> {

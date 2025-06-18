@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router } from "@/server/api/trpc";
+import { router, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import path from "path";
 import fs from "fs/promises";

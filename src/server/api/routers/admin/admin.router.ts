@@ -5,7 +5,11 @@ import { adminUserRouter } from "./admin-users.router";
 import { adminServicesRouter } from "./admin-services.router";
 import { adminLogsRouter } from "./admin-logs.router";
 import { adminSettingsRouter } from "./admin-settings.router";
+import { userActivityRouter } from "./user-activity.router";
 import { financialRouter } from "./admin-financial.router";
+import { financialMetricsRouter } from "./financial-metrics.router";
+import { serviceQualityRouter } from "./service-quality.router";
+import { deliveryAnalyticsRouter } from "./delivery-analytics.router";
 import { adminVerificationRouter } from "./admin-verification.router";
 import { adminReportsRouter } from "./admin-reports.router";
 import { adminContractsRouter } from "./admin-contracts.router";
@@ -31,8 +35,12 @@ export const adminRouter = router({ deliverers: adminDeliverersRouter,
   users: adminUserRouter,
   services: adminServicesRouter,
   logs: adminLogsRouter,
+  userActivity: userActivityRouter,
   settings: adminSettingsRouter,
   financial: financialRouter,
+  financialMetrics: financialMetricsRouter,
+  serviceQuality: serviceQualityRouter,
+  deliveryAnalytics: deliveryAnalyticsRouter,
   verification: adminVerificationRouter,
   reports: adminReportsRouter,
   contracts: adminContractsRouter,

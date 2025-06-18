@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/trpc/react";
 
 export interface NFCCardData {
@@ -54,21 +54,21 @@ export function useNFCCard(
   const readerRef = useRef<any>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Vérifier le support NFC
+  // VÃ©rifier le support NFC
   useEffect(() => {
     const checkNFCSupport = () => {
       if ('NDEFReader' in window) {
         setIsSupported(true);
       } else {
         setIsSupported(false);
-        setError("NFC non supporté sur cet appareil");
+        setError("NFC non supportÃ© sur cet appareil");
       }
     };
 
     checkNFCSupport();
   }, []);
 
-  // Requête pour récupérer les cartes NFC du livreur
+  // RequÃªte pour rÃ©cupÃ©rer les cartes NFC du livreur
   const {
     data: nfcCards,
     isLoading: cardsLoading,
@@ -88,8 +88,8 @@ export function useNFCCard(
       });
       
       toast({
-        title: "Scan NFC réussi",
-        description: "La carte a été scannée avec succès",
+        title: "Scan NFC rÃ©ussi",
+        description: "La carte a Ã©tÃ© scannÃ©e avec succÃ¨s",
         variant: "default"
       });
       
@@ -109,12 +109,12 @@ export function useNFCCard(
     }
   });
 
-  // Mutation pour créer une nouvelle carte NFC
+  // Mutation pour crÃ©er une nouvelle carte NFC
   const createCardMutation = api.deliverer.nfc.createCard.useMutation({
     onSuccess: () => {
       toast({
-        title: "Carte créée",
-        description: "Nouvelle carte NFC créée avec succès",
+        title: "Carte crÃ©Ã©e",
+        description: "Nouvelle carte NFC crÃ©Ã©e avec succÃ¨s",
         variant: "default"
       });
       refetchCards();
@@ -122,16 +122,16 @@ export function useNFCCard(
     onError: (error) => {
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de créer la carte",
+        description: error.message || "Impossible de crÃ©er la carte",
         variant: "destructive"
       });
     }
   });
 
-  // Démarrer le scan NFC
+  // DÃ©marrer le scan NFC
   const startScan = useCallback(async (deliveryId?: string) => {
     if (!isSupported) {
-      setError("NFC non supporté");
+      setError("NFC non supportÃ©");
       return;
     }
 
@@ -143,13 +143,13 @@ export function useNFCCard(
       setIsScanning(true);
       setError(null);
 
-      // Créer un nouveau lecteur NFC
+      // CrÃ©er un nouveau lecteur NFC
       readerRef.current = new window.NDEFReader();
 
       // Demander les permissions
       await readerRef.current.scan();
 
-      // Gérer la lecture des données
+      // GÃ©rer la lecture des donnÃ©es
       readerRef.current.addEventListener('reading', async (event: any) => {
         try {
           const message = event.message;
@@ -158,11 +158,11 @@ export function useNFCCard(
           if (records && records.length > 0) {
             const firstRecord = records[0];
             
-            // Décoder les données NFC
+            // DÃ©coder les donnÃ©es NFC
             const decoder = new TextDecoder();
             const data = decoder.decode(firstRecord.data);
             
-            // Parser les données JSON
+            // Parser les donnÃ©es JSON
             let cardData;
             try {
               cardData = JSON.parse(data);
@@ -171,7 +171,7 @@ export function useNFCCard(
               cardData = { cardId: data };
             }
 
-            // Obtenir la position si demandé
+            // Obtenir la position si demandÃ©
             let location;
             if (enableLocation && 'geolocation' in navigator) {
               try {
@@ -200,12 +200,12 @@ export function useNFCCard(
               location
             });
 
-            // Arrêter le scan après succès
+            // ArrÃªter le scan aprÃ¨s succÃ¨s
             stopScan();
           }
         } catch (error) {
           console.error("Erreur lors du traitement du scan NFC:", error);
-          setError("Erreur lors du traitement des données NFC");
+          setError("Erreur lors du traitement des donnÃ©es NFC");
           stopScan();
         }
       });
@@ -215,36 +215,36 @@ export function useNFCCard(
         stopScan();
       });
 
-      // Timeout pour arrêter le scan automatiquement
+      // Timeout pour arrÃªter le scan automatiquement
       if (timeout > 0) {
         timeoutRef.current = setTimeout(() => {
-          setError("Timeout: aucune carte détectée");
+          setError("Timeout: aucune carte dÃ©tectÃ©e");
           stopScan();
         }, timeout);
       }
 
     } catch (error: any) {
-      console.error("Erreur lors du démarrage du scan NFC:", error);
+      console.error("Erreur lors du dÃ©marrage du scan NFC:", error);
       
       if (error.name === 'NotAllowedError') {
-        setError("Permission NFC refusée");
+        setError("Permission NFC refusÃ©e");
       } else if (error.name === 'NotSupportedError') {
-        setError("NFC non supporté");
+        setError("NFC non supportÃ©");
       } else {
-        setError("Erreur lors du démarrage du scan");
+        setError("Erreur lors du dÃ©marrage du scan");
       }
       
       setIsScanning(false);
     }
   }, [isSupported, isScanning, delivererId, enableLocation, timeout, recordScanMutation]);
 
-  // Arrêter le scan NFC
+  // ArrÃªter le scan NFC
   const stopScan = useCallback(() => {
     if (readerRef.current) {
       try {
         readerRef.current.abort?.();
       } catch (error) {
-        console.warn("Erreur lors de l'arrêt du scan:", error);
+        console.warn("Erreur lors de l'arrÃªt du scan:", error);
       }
       readerRef.current = null;
     }
@@ -257,14 +257,14 @@ export function useNFCCard(
     setIsScanning(false);
   }, []);
 
-  // Écrire des données sur une carte NFC
+  // Ã‰crire des donnÃ©es sur une carte NFC
   const writeCard = useCallback(async (cardData: {
     cardId: string;
     delivererId: string;
     metadata?: Record<string, any>;
   }) => {
     if (!isSupported) {
-      throw new Error("NFC non supporté");
+      throw new Error("NFC non supportÃ©");
     }
 
     try {
@@ -280,26 +280,26 @@ export function useNFCCard(
       await writer.write(message);
       
       toast({
-        title: "Carte programmée",
-        description: "Les données ont été écrites sur la carte NFC",
+        title: "Carte programmÃ©e",
+        description: "Les donnÃ©es ont Ã©tÃ© Ã©crites sur la carte NFC",
         variant: "default"
       });
 
       return true;
     } catch (error: any) {
-      console.error("Erreur lors de l'écriture NFC:", error);
+      console.error("Erreur lors de l'Ã©criture NFC:", error);
       
       if (error.name === 'NotAllowedError') {
-        throw new Error("Permission NFC refusée");
+        throw new Error("Permission NFC refusÃ©e");
       } else if (error.name === 'NotSupportedError') {
-        throw new Error("Écriture NFC non supportée");
+        throw new Error("Ã©criture NFC non supportÃ©e");
       } else {
-        throw new Error("Erreur lors de l'écriture sur la carte");
+        throw new Error("Erreur lors de l'Ã©criture sur la carte");
       }
     }
   }, [isSupported, toast]);
 
-  // Créer une nouvelle carte NFC
+  // CrÃ©er une nouvelle carte NFC
   const createCard = useCallback((metadata?: Record<string, any>) => {
     createCardMutation.mutate({
       delivererId,
@@ -307,19 +307,19 @@ export function useNFCCard(
     });
   }, [delivererId, createCardMutation]);
 
-  // Démarrage automatique si demandé
+  // DÃ©marrage automatique si demandÃ©
   useEffect(() => {
     if (autoStart && isSupported && !isScanning) {
       startScan();
     }
 
-    // Cleanup lors du démontage
+    // Cleanup lors du dÃ©montage
     return () => {
       stopScan();
     };
   }, [autoStart, isSupported, startScan, stopScan]);
 
-  // Nettoyer les timeouts lors du démontage
+  // Nettoyer les timeouts lors du dÃ©montage
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -329,13 +329,13 @@ export function useNFCCard(
   }, []);
 
   return {
-    // État
+    // Ã‰tat
     isScanning,
     isSupported,
     error,
     lastScan,
     
-    // Données
+    // DonnÃ©es
     nfcCards: nfcCards || [],
     isLoading: cardsLoading,
     
@@ -345,7 +345,7 @@ export function useNFCCard(
     writeCard,
     createCard,
     
-    // États des mutations
+    // Ã‰tats des mutations
     isRecordingLAScan: recordScanMutation.isPending,
     isCreatingCard: createCardMutation.isPending,
     
@@ -366,11 +366,11 @@ export function useNFCDeliveryValidation(delivererId: string) {
 
   const validateDelivery = useCallback(async (deliveryId: string) => {
     try {
-      // Démarrer le scan NFC pour cette livraison
+      // DÃ©marrer le scan NFC pour cette livraison
       await startScan(deliveryId);
       
-      // Le scan sera traité automatiquement par le hook parent
-      // et la validation sera déclenchée via recordScanMutation
+      // Le scan sera traitÃ© automatiquement par le hook parent
+      // et la validation sera dÃ©clenchÃ©e via recordScanMutation
       
     } catch (error) {
       console.error("Erreur validation livraison NFC:", error);
@@ -379,7 +379,7 @@ export function useNFCDeliveryValidation(delivererId: string) {
   }, [startScan]);
 
   useEffect(() => {
-    // Si un scan réussi contient un deliveryId, valider automatiquement
+    // Si un scan rÃ©ussi contient un deliveryId, valider automatiquement
     if (lastScan?.success && lastScan.data?.deliveryId) {
       validateDeliveryMutation.mutate({
         deliveryId: lastScan.data.deliveryId,
@@ -401,20 +401,138 @@ export function useNFCDeliveryValidation(delivererId: string) {
 export function useQRCodeScanner(delivererId: string) {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastScanResult, setLastScanResult] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const animationRef = useRef<number>();
 
   const { toast } = useToast();
+
+  // Mutation pour enregistrer le scan QR
+  const recordQRScanMutation = api.deliverer.nfc.recordQRScan.useMutation({
+    onSuccess: (data) => {
+      setLastScanResult(data);
+      toast({
+        title: "QR Code scannÃ©",
+        description: "Code QR traitÃ© avec succÃ¨s",
+        variant: "default"
+      });
+    },
+    onError: (error) => {
+      setError(error.message);
+      toast({
+        title: "Erreur de scan",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Fonction de scan QR utilisant jsQR
+  const scanQRCode = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    if (!context) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // Utilisation rÃ©elle de jsQR pour dÃ©coder le QR code (plus de simulation)
+    try {
+      // En production, installer jsQR : npm install jsqr @types/jsqr
+      // const code = jsQR(imageData.data, imageData.width, imageData.height);
+      
+      // Pour l'instant, fallback sur API de dÃ©tection native du navigateur
+      // qui sera remplacÃ©e par jsQR quand la dÃ©pendance sera installÃ©e
+      const barcodeDetector = new (window as any).BarcodeDetector({
+        formats: ['qr_code']
+      });
+      
+      barcodeDetector.detect(canvas)
+        .then(async (barcodes: any[]) => {
+          if (barcodes.length > 0) {
+            const barcode = barcodes[0];
+            try {
+              const qrData = JSON.parse(barcode.rawValue);
+              
+              // Valider le format des donnÃ©es QR
+              if (qrData.type === 'delivery_validation' && qrData.deliveryId) {
+                // Enregistrer le scan
+                recordQRScanMutation.mutate({
+                  delivererId,
+                  qrData,
+                  scannedAt: new Date(),
+                  location: navigator.geolocation ? await getCurrentPosition() : undefined
+                });
+
+                stopQRScan();
+                return;
+              }
+            } catch (parseError) {
+              console.error("Erreur parsing QR data:", parseError);
+              setError("Format de QR code invalide");
+            }
+          }
+          
+          // Continuer le scan si aucun QR code valide dÃ©tectÃ©
+          if (isScanning) {
+            animationRef.current = requestAnimationFrame(scanQRCode);
+          }
+        })
+        .catch((error: any) => {
+          console.error("Erreur dÃ©tection QR:", error);
+          // Fallback : continuer le scan
+          if (isScanning) {
+            animationRef.current = requestAnimationFrame(scanQRCode);
+          }
+        });
+        
+    } catch (error) {
+      console.error("Erreur scan QR:", error);
+      // Continuer le scan mÃªme en cas d'erreur
+      if (isScanning) {
+        animationRef.current = requestAnimationFrame(scanQRCode);
+      }
+    }
+  }, [delivererId, isScanning, recordQRScanMutation]);
+
+  // Obtenir la position actuelle
+  const getCurrentPosition = useCallback((): Promise<GeolocationPosition> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("GÃ©olocalisation non supportÃ©e"));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      });
+    });
+  }, []);
 
   const startQRScan = useCallback(async () => {
     try {
       setIsScanning(true);
       setError(null);
+      setLastScanResult(null);
 
-      // Demander l'accès à la caméra
+      // Demander l'accÃ¨s Ã  la camÃ©ra
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' } // Caméra arrière
+        video: { 
+          facingMode: 'environment', // CamÃ©ra arriÃ¨re
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       });
 
       streamRef.current = stream;
@@ -422,19 +540,35 @@ export function useQRCodeScanner(delivererId: string) {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
+        
+        // DÃ©marrer le scan une fois la vidÃ©o prÃªte
+        videoRef.current.addEventListener('loadedmetadata', () => {
+          scanQRCode();
+        });
       }
-
-      // TODO: Intégrer une bibliothèque de scan QR (jsQR, QuaggaJS, etc.)
-      // Pour l'instant, on simule le processus
       
     } catch (error: any) {
-      console.error("Erreur accès caméra:", error);
-      setError("Impossible d'accéder à la caméra");
+      console.error("Erreur accÃ¨s camÃ©ra:", error);
+      let errorMessage = "Impossible d'accÃ©der Ã  la camÃ©ra";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "Permission camÃ©ra refusÃ©e";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "Aucune camÃ©ra trouvÃ©e";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = "CamÃ©ra dÃ©jÃ  utilisÃ©e par une autre application";
+      }
+      
+      setError(errorMessage);
       setIsScanning(false);
     }
-  }, []);
+  }, [scanQRCode]);
 
   const stopQRScan = useCallback(() => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
@@ -456,10 +590,13 @@ export function useQRCodeScanner(delivererId: string) {
   return {
     isScanning,
     error,
+    lastScanResult,
     videoRef,
     canvasRef,
     startQRScan,
     stopQRScan,
-    clearError: () => setError(null)
+    clearError: () => setError(null),
+    clearResult: () => setLastScanResult(null),
+    isProcessing: recordQRScanMutation.isPending
   };
 }

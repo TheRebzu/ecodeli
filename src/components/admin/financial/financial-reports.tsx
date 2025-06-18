@@ -27,7 +27,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { api } from '@/trpc/react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 interface FinancialMetrics {
   totalRevenue: number;
@@ -75,19 +75,19 @@ export default function FinancialReports() {
   const [reportType, setReportType] = useState('SUMMARY');
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
-  // Requêtes tRPC pour récupérer les données financières
-  const { data: financialMetrics, isLoading: _metricsLoading } = api.admin.getFinancialMetrics.useQuery({
-    period: dateRange,
-    includeBreakdown: true,
+  // Requêtes tRPC pour récupérer les données financières réelles
+  const timeRange = dateRange === '7_DAYS' ? '7d' : dateRange === '30_DAYS' ? '30d' : dateRange === '90_DAYS' ? '90d' : '1y';
+  
+  const { data: financialMetrics, isLoading: metricsLoading } = api.admin.financialMetrics.getFinancialMetrics.useQuery({
+    timeRange,
   });
 
-  const { data: _revenueData } = api.admin.getRevenueData.useQuery({
-    period: dateRange,
-    groupBy: 'DAY'
+  const { data: revenueBreakdown, isLoading: revenueLoading } = api.admin.financialMetrics.getRevenueBreakdown.useQuery({
+    timeRange,
   });
 
-  const { data: paymentStats } = api.admin.getPaymentStats.useQuery({
-    period: dateRange
+  const { data: paymentStats, isLoading: statsLoading } = api.admin.financialMetrics.getPaymentStats.useQuery({
+    timeRange,
   });
 
   const { data: _topUsers } = api.admin.getTopRevenueUsers.useQuery({
@@ -96,20 +96,16 @@ export default function FinancialReports() {
   });
 
   // Mutations pour les exports
-  const exportReportMutation = api.admin.exportFinancialReport.useMutation({
+  const exportReportMutation = api.admin.financialMetrics.exportFinancialData.useMutation({
     onSuccess: (data) => {
-      // Télécharger le fichier
-      const blob = new Blob([data.content], { 
-        type: data.format === 'PDF' ? 'application/pdf' : 'text/csv' 
-      });
-      const url = window.URL.createObjectURL(blob);
+      // Télécharger le fichier depuis l'URL fournie
       const a = document.createElement('a');
       a.style.display = 'none';
-      a.href = url;
-      a.download = `financial-report-${new Date().toISOString().split('T')[0]}.${data.format.toLowerCase()}`;
+      a.href = data.downloadUrl;
+      a.download = data.filename;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       
       toast({
         title: t('reports.exportSuccess'),
@@ -126,44 +122,35 @@ export default function FinancialReports() {
     },
   });
 
-  // Données simulées pour la démonstration (remplacées par les vraies données tRPC)
-  const mockMetrics: FinancialMetrics = financialMetrics || {
-    totalRevenue: 145750.50,
-    totalCommissions: 29150.10,
-    totalPayouts: 98420.30,
-    netProfit: 18180.10,
-    pendingPayments: 5240.80,
-    refunds: 1320.40,
-    averageTransactionValue: 42.35,
-    transactionCount: 3441,
-    monthlyGrowth: 12.5,
-    topRevenueSources: [
-      { source: 'Livraisons', amount: 85420.30, percentage: 58.6 },
-      { source: 'Services', amount: 45320.20, percentage: 31.1 },
-      { source: 'Abonnements', amount: 15010.00, percentage: 10.3 }
-    ]
+  // Utiliser les vraies données ou des valeurs par défaut
+  const metrics = financialMetrics || {
+    totalRevenue: 0,
+    totalCommissions: 0,
+    totalPayouts: 0,
+    netProfit: 0,
+    pendingPayments: 0,
+    refunds: 0,
+    averageTransactionValue: 0,
+    transactionCount: 0,
+    monthlyGrowth: 0,
+    topRevenueSources: []
   };
 
-  const mockRevenueBreakdown: RevenueBreakdown = {
-    deliveryFees: 85420.30,
-    serviceFees: 45320.20,
-    subscriptions: 15010.00,
-    commissions: 29150.10,
-    other: 5850.90
+  const breakdown = revenueBreakdown || {
+    deliveryFees: 0,
+    serviceFees: 0,
+    subscriptions: 0,
+    commissions: 0,
+    other: 0
   };
 
-  const mockPaymentStats: PaymentStats = paymentStats || {
-    byMethod: [
-      { method: 'Carte bancaire', amount: 98420.50, count: 2145 },
-      { method: 'PayPal', amount: 32150.30, count: 854 },
-      { method: 'Virement', amount: 15180.70, count: 442 }
-    ],
-    byStatus: [
-      { status: 'Complété', amount: 138750.20, count: 3201 },
-      { status: 'En attente', amount: 5240.80, count: 187 },
-      { status: 'Échoué', amount: 1759.50, count: 53 }
-    ]
+  const stats = paymentStats || {
+    byMethod: [],
+    byStatus: []
   };
+
+  // Loading state
+  const isLoading = metricsLoading || revenueLoading || statsLoading;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -182,14 +169,25 @@ export default function FinancialReports() {
       <TrendingDown className="h-4 w-4 text-red-600" />;
   };
 
-  const handleExportReport = (format: 'PDF' | 'CSV', type: string) => {
+  const handleExportReport = (format: 'PDF' | 'CSV' | 'XLSX') => {
     exportReportMutation.mutate({
+      timeRange,
       format,
-      type,
-      period: dateRange,
-      includeCharts: format === 'PDF',
+      includeBreakdown: true,
+      includePaymentStats: true,
     });
   };
+
+  // Afficher un loader pendant le chargement des données
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -232,11 +230,11 @@ export default function FinancialReports() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('reports.totalRevenue')}
                 </p>
-                <p className="text-2xl font-bold">{formatCurrency(mockMetrics.totalRevenue)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(metrics.totalRevenue)}</p>
                 <div className="flex items-center gap-1 mt-1">
-                  {getGrowthIcon(mockMetrics.monthlyGrowth)}
-                  <span className={`text-sm ${getGrowthColor(mockMetrics.monthlyGrowth)}`}>
-                    {mockMetrics.monthlyGrowth > 0 ? '+' : ''}{mockMetrics.monthlyGrowth}%
+                  {getGrowthIcon(metrics.monthlyGrowth)}
+                  <span className={`text-sm ${getGrowthColor(metrics.monthlyGrowth)}`}>
+                    {metrics.monthlyGrowth > 0 ? '+' : ''}{metrics.monthlyGrowth}%
                   </span>
                 </div>
               </div>
@@ -252,7 +250,7 @@ export default function FinancialReports() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('reports.netProfit')}
                 </p>
-                <p className="text-2xl font-bold">{formatCurrency(mockMetrics.netProfit)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(metrics.netProfit)}</p>
                 <p className="text-sm text-muted-foreground">
                   {t('reports.afterCommissions')}
                 </p>
@@ -269,7 +267,7 @@ export default function FinancialReports() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('reports.pendingPayments')}
                 </p>
-                <p className="text-2xl font-bold">{formatCurrency(mockMetrics.pendingPayments)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(metrics.pendingPayments)}</p>
                 <p className="text-sm text-muted-foreground">
                   {t('reports.awaitingProcessing')}
                 </p>
@@ -286,9 +284,9 @@ export default function FinancialReports() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('reports.avgTransactionValue')}
                 </p>
-                <p className="text-2xl font-bold">{formatCurrency(mockMetrics.averageTransactionValue)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(metrics.averageTransactionValue)}</p>
                 <p className="text-sm text-muted-foreground">
-                  {mockMetrics.transactionCount.toLocaleString()} {t('reports.transactions')}
+                  {metrics.transactionCount.toLocaleString()} {t('reports.transactions')}
                 </p>
               </div>
               <CreditCard className="h-8 w-8 text-purple-500" />
@@ -319,7 +317,7 @@ export default function FinancialReports() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockMetrics.topRevenueSources.map((source, index) => (
+                  {metrics.topRevenueSources.map((source, index) => (
                     <div key={source.source} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={`w-3 h-3 rounded-full ${
@@ -367,7 +365,7 @@ export default function FinancialReports() {
                   <p className="text-sm font-medium text-muted-foreground">
                     {t('reports.totalCommissions')}
                   </p>
-                  <p className="text-xl font-bold">{formatCurrency(mockMetrics.totalCommissions)}</p>
+                  <p className="text-xl font-bold">{formatCurrency(metrics.totalCommissions)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -379,7 +377,7 @@ export default function FinancialReports() {
                   <p className="text-sm font-medium text-muted-foreground">
                     {t('reports.totalPayouts')}
                   </p>
-                  <p className="text-xl font-bold">{formatCurrency(mockMetrics.totalPayouts)}</p>
+                  <p className="text-xl font-bold">{formatCurrency(metrics.totalPayouts)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -391,7 +389,7 @@ export default function FinancialReports() {
                   <p className="text-sm font-medium text-muted-foreground">
                     {t('reports.refunds')}
                   </p>
-                  <p className="text-xl font-bold">{formatCurrency(mockMetrics.refunds)}</p>
+                  <p className="text-xl font-bold">{formatCurrency(metrics.refunds)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -409,24 +407,24 @@ export default function FinancialReports() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="p-4 border rounded-lg">
                     <p className="text-sm font-medium text-muted-foreground">{t('reports.deliveryFees')}</p>
-                    <p className="text-lg font-bold">{formatCurrency(mockRevenueBreakdown.deliveryFees)}</p>
+                    <p className="text-lg font-bold">{formatCurrency(revenueBreakdown?.deliveryFees || 0)}</p>
                   </div>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground">{t('reports.serviceFees')}</p>
-                    <p className="text-lg font-bold">{formatCurrency(mockRevenueBreakdown.serviceFees)}</p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground">{t('reports.subscriptions')}</p>
-                    <p className="text-lg font-bold">{formatCurrency(mockRevenueBreakdown.subscriptions)}</p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground">{t('reports.commissions')}</p>
-                    <p className="text-lg font-bold">{formatCurrency(mockRevenueBreakdown.commissions)}</p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground">{t('reports.other')}</p>
-                    <p className="text-lg font-bold">{formatCurrency(mockRevenueBreakdown.other)}</p>
-                  </div>
+                                      <div className="p-4 border rounded-lg">
+                      <p className="text-sm font-medium text-muted-foreground">{t('reports.serviceFees')}</p>
+                      <p className="text-lg font-bold">{formatCurrency(revenueBreakdown?.serviceFees || 0)}</p>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <p className="text-sm font-medium text-muted-foreground">{t('reports.subscriptions')}</p>
+                      <p className="text-lg font-bold">{formatCurrency(revenueBreakdown?.subscriptions || 0)}</p>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <p className="text-sm font-medium text-muted-foreground">{t('reports.commissions')}</p>
+                      <p className="text-lg font-bold">{formatCurrency(revenueBreakdown?.commissions || 0)}</p>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <p className="text-sm font-medium text-muted-foreground">{t('reports.other')}</p>
+                      <p className="text-lg font-bold">{formatCurrency(revenueBreakdown?.other || 0)}</p>
+                    </div>
                 </div>
               </div>
             </CardContent>
@@ -443,7 +441,7 @@ export default function FinancialReports() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockPaymentStats.byMethod.map((method) => (
+                  {stats.byMethod.map((method) => (
                     <div key={method.method} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <p className="font-medium">{method.method}</p>
@@ -465,7 +463,7 @@ export default function FinancialReports() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockPaymentStats.byStatus.map((status) => (
+                  {stats.byStatus.map((status) => (
                     <div key={status.status} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         <Badge variant={

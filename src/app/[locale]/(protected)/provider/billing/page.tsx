@@ -24,7 +24,7 @@ import { EarningsSummary } from "@/components/provider/billing/earnings-summary"
 
 // Hooks
 import { useProviderMonthlyBilling } from "@/hooks/provider/use-provider-monthly-billing";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function BillingPage() {
   const t = useTranslations("providerBilling");

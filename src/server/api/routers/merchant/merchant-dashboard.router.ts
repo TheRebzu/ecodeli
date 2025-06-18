@@ -3,20 +3,23 @@ import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { subDays, startOfDay, endOfDay, subMonths, format } from "date-fns";
 
-export const merchantDashboardRouter = router({ /**
+export const merchantDashboardRouter = router({
+  /**
    * Récupère les statistiques du dashboard merchant
    */
-  getDashboardStats: protectedProcedure.query(async ({ ctx  }) => {
+  getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.session.user.role !== "MERCHANT") {
-      throw new TRPCError({ code: "FORBIDDEN",
-        message: "Accès réservé aux marchands" });
+      throw new TRPCError({ 
+        code: "FORBIDDEN",
+        message: "Accès réservé aux marchands" 
+      });
     }
 
     const merchantId = ctx.session.user.id;
     const today = new Date();
     const startOfToday = startOfDay(today);
     const endOfToday = endOfDay(today);
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
     // Revenus du jour
     const dailyRevenue = await ctx.db.payment.aggregate({
@@ -25,16 +28,27 @@ export const merchantDashboardRouter = router({ /**
         status: "COMPLETED",
         createdAt: {
           gte: startOfToday,
-          lte: endOfToday}},
-      sum: { amount }});
+          lte: endOfToday
+        }
+      },
+      _sum: { 
+        amount: true 
+      }
+    });
 
     // Revenus du mois
     const monthlyRevenue = await ctx.db.payment.aggregate({
       where: {
         userId: merchantId,
         status: "COMPLETED",
-        createdAt: { gte }},
-      sum: { amount }});
+        createdAt: { 
+          gte: startOfCurrentMonth
+        }
+      },
+      _sum: { 
+        amount: true 
+      }
+    });
 
     // Commandes du jour
     const orderCount = await ctx.db.order.count({
@@ -42,47 +56,91 @@ export const merchantDashboardRouter = router({ /**
         merchantId,
         createdAt: {
           gte: startOfToday,
-          lte: endOfToday}}});
+          lte: endOfToday
+        }
+      }
+    });
 
     // Livraisons actives
     const activeDeliveries = await ctx.db.delivery.count({
       where: {
-        announcement: { userId },
+        announcement: { 
+          clientId: merchantId 
+        },
         status: {
-          in: ["PENDING", "ASSIGNED", "IN_PROGRESS"]}}});
+          in: ["PENDING", "ASSIGNED", "IN_PROGRESS"]
+        }
+      }
+    });
 
     // Articles en stock faible
     const lowStockItems = await ctx.db.product.count({
       where: {
         merchantId,
         stockQuantity: {
-          lte: ctx.db.product.findFirst({
-            where: { merchantId },
-            select: { minimumStock }})}}});
+          lt: 10 // Seuil de stock faible
+        }
+      }
+    });
+
+    // Nombre total d'annonces pour calculer le taux de conversion
+    const totalAnnouncements = await ctx.db.announcement.count({
+      where: { 
+        clientId: merchantId 
+      }
+    });
+
+    // Statut de vérification du marchand
+    const merchantInfo = await ctx.db.merchant.findUnique({
+      where: { 
+        userId: merchantId 
+      },
+      select: { 
+        isVerified: true,
+        verificationStatus: true 
+      }
+    });
 
     // Panier moyen
     const avgOrderValue = await ctx.db.order.aggregate({
       where: {
         merchantId,
         status: "COMPLETED",
-        createdAt: { gte }},
-      avg: { total }});
+        createdAt: { 
+          gte: startOfCurrentMonth
+        }
+      },
+      _avg: { 
+        total: true 
+      }
+    });
 
     // Note moyenne de satisfaction
     const customerSatisfaction = await ctx.db.merchantReview.aggregate({
       where: {
-        merchantId},
-      avg: { rating }});
+        merchantId
+      },
+      _avg: { 
+        rating: true 
+      }
+    });
 
     return {
-      dailyRevenue: dailyRevenue.sum.amount || 0,
-      monthlyRevenue: monthlyRevenue.sum.amount || 0,
+      dailyRevenue: dailyRevenue._sum.amount || 0,
+      monthlyRevenue: monthlyRevenue._sum.amount || 0,
       orderCount,
       activeDeliveries,
       lowStockItems,
-      averageOrderValue: avgOrderValue.avg.total || 0,
-      customerSatisfaction: customerSatisfaction.avg.rating || 0,
-      conversionRate: 85};
+      averageOrderValue: avgOrderValue._avg.total || 0,
+      customerSatisfaction: customerSatisfaction._avg.rating || 0,
+      
+      // Calcul réel du taux de conversion (annonces créées vs commandes créées)
+      conversionRate: totalAnnouncements > 0 ? Math.round((orderCount / totalAnnouncements) * 100) : 0,
+      
+      // Statut de vérification
+      isVerified: merchantInfo?.isVerified || false,
+      verificationStatus: merchantInfo?.verificationStatus || 'PENDING'
+    };
   }),
 
   /**
@@ -90,43 +148,62 @@ export const merchantDashboardRouter = router({ /**
    */
   getRecentOrders: protectedProcedure
     .input(
-      z.object({ limit: z.number().optional().default(10) }),
+      z.object({ 
+        limit: z.number().optional().default(10) 
+      })
     )
-    .query(async ({ ctx, input  }) => {
+    .query(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "MERCHANT") {
-        throw new TRPCError({ code: "FORBIDDEN",
-          message: "Accès réservé aux marchands" });
+        throw new TRPCError({ 
+          code: "FORBIDDEN",
+          message: "Accès réservé aux marchands" 
+        });
       }
 
       const merchantId = ctx.session.user.id;
 
       return await ctx.db.order.findMany({
         where: {
-          merchantId},
+          merchantId
+        },
         include: {
           customer: {
             select: {
               profile: {
                 select: {
                   firstName: true,
-                  lastName: true}},
-              email: true}},
+                  lastName: true
+                }
+              },
+              email: true
+            }
+          },
           items: {
             include: {
               product: {
-                select: { name }}}}},
+                select: { 
+                  name: true 
+                }
+              }
+            }
+          }
+        },
         orderBy: {
-          createdAt: "desc"},
-        take: input.limit});
+          createdAt: "desc"
+        },
+        take: input.limit
+      });
     }),
 
   /**
    * Récupère les alertes de stock
    */
-  getStockAlerts: protectedProcedure.query(async ({ ctx  }) => {
+  getStockAlerts: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.session.user.role !== "MERCHANT") {
-      throw new TRPCError({ code: "FORBIDDEN",
-        message: "Accès réservé aux marchands" });
+      throw new TRPCError({ 
+        code: "FORBIDDEN",
+        message: "Accès réservé aux marchands" 
+      });
     }
 
     const merchantId = ctx.session.user.id;
@@ -135,20 +212,29 @@ export const merchantDashboardRouter = router({ /**
       where: {
         merchantId,
         stockQuantity: {
-          lte: ctx.db.product.fields.minimumStock}},
+          lt: 10 // Seuil de stock faible
+        }
+      },
       select: {
         id: true,
         name: true,
         stockQuantity: true,
         minimumStock: true,
         category: {
-          select: { name }}}});
+          select: { 
+            name: true 
+          }
+        }
+      }
+    });
 
-    return lowStockProducts.map((product) => ({ id: product.id,
+    return lowStockProducts.map((product) => ({
+      id: product.id,
       productName: product.name,
       currentStock: product.stockQuantity,
       minimumStock: product.minimumStock,
-      category: product.category?.name || "Non catégorisé" }));
+      category: product.category?.name || "Non catégorisé"
+    }));
   }),
 
   /**
@@ -156,12 +242,16 @@ export const merchantDashboardRouter = router({ /**
    */
   getSalesChart: protectedProcedure
     .input(
-      z.object({ period: z.enum(["week", "month", "quarter"]).default("week") }),
+      z.object({ 
+        period: z.enum(["week", "month", "quarter"]).default("week") 
+      })
     )
-    .query(async ({ ctx, input  }) => {
+    .query(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "MERCHANT") {
-        throw new TRPCError({ code: "FORBIDDEN",
-          message: "Accès réservé aux marchands" });
+        throw new TRPCError({ 
+          code: "FORBIDDEN",
+          message: "Accès réservé aux marchands" 
+        });
       }
 
       const merchantId = ctx.session.user.id;
@@ -187,7 +277,7 @@ export const merchantDashboardRouter = router({ /**
 
       // Générer les données pour chaque jour
       const chartData = await Promise.all(
-        Array.from({ length }, async (_, i) => {
+        Array.from({ length: days }, async (_, i) => {
           const date = subDays(today, days - 1 - i);
           const startOfDate = startOfDay(date);
           const endOfDate = endOfDay(date);
@@ -198,21 +288,30 @@ export const merchantDashboardRouter = router({ /**
               status: "COMPLETED",
               createdAt: {
                 gte: startOfDate,
-                lte: endOfDate}},
-            sum: { amount }});
+                lte: endOfDate
+              }
+            },
+            _sum: { 
+              amount: true 
+            }
+          });
 
           const orders = await ctx.db.order.count({
             where: {
               merchantId,
               createdAt: {
                 gte: startOfDate,
-                lte: endOfDate}}});
+                lte: endOfDate
+              }
+            }
+          });
 
           return {
             date: format(date, "MM/dd"),
-            revenue: revenue.sum.amount || 0,
-            orders};
-        }),
+            revenue: revenue._sum.amount || 0,
+            orders
+          };
+        })
       );
 
       return chartData;
@@ -221,10 +320,12 @@ export const merchantDashboardRouter = router({ /**
   /**
    * Récupère les commandes par statut pour les métriques
    */
-  getOrdersByStatus: protectedProcedure.query(async ({ ctx  }) => {
+  getOrdersByStatus: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.session.user.role !== "MERCHANT") {
-      throw new TRPCError({ code: "FORBIDDEN",
-        message: "Accès réservé aux marchands" });
+      throw new TRPCError({ 
+        code: "FORBIDDEN",
+        message: "Accès réservé aux marchands" 
+      });
     }
 
     const merchantId = ctx.session.user.id;
@@ -232,11 +333,17 @@ export const merchantDashboardRouter = router({ /**
     const orderStats = await ctx.db.order.groupBy({
       by: ["status"],
       where: {
-        merchantId},
-      count: { id }});
+        merchantId
+      },
+      _count: { 
+        id: true 
+      }
+    });
 
-    return orderStats.map((stat) => ({ status: stat.status,
-      count: stat.count.id }));
+    return orderStats.map((stat) => ({
+      status: stat.status,
+      count: stat._count.id
+    }));
   }),
 
   /**
@@ -244,13 +351,17 @@ export const merchantDashboardRouter = router({ /**
    */
   getTopProducts: protectedProcedure
     .input(
-      z.object({ limit: z.number().optional().default(5),
-        period: z.enum(["week", "month", "quarter"]).default("month") }),
+      z.object({ 
+        limit: z.number().optional().default(5),
+        period: z.enum(["week", "month", "quarter"]).default("month") 
+      })
     )
-    .query(async ({ ctx, input  }) => {
+    .query(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "MERCHANT") {
-        throw new TRPCError({ code: "FORBIDDEN",
-          message: "Accès réservé aux marchands" });
+        throw new TRPCError({ 
+          code: "FORBIDDEN",
+          message: "Accès réservé aux marchands" 
+        });
       }
 
       const merchantId = ctx.session.user.id;
@@ -272,17 +383,27 @@ export const merchantDashboardRouter = router({ /**
         by: ["productId"],
         where: {
           product: {
-            merchantId},
+            merchantId
+          },
           order: {
-            status: "COMPLETED",
-            createdAt: { gte }}},
-        sum: {
-          quantity: true,
-          total: true},
+            createdAt: {
+              gte: startDate
+            }
+          }
+        },
+        _sum: {
+          quantity: true
+        },
+        _count: {
+          id: true
+        },
         orderBy: {
-          sum: {
-            quantity: "desc"}},
-        take: input.limit});
+          _sum: {
+            quantity: "desc"
+          }
+        },
+        take: input.limit
+      });
 
       // Récupérer les détails des produits
       const productDetails = await Promise.all(
@@ -290,18 +411,27 @@ export const merchantDashboardRouter = router({ /**
           const product = await ctx.db.product.findUnique({
             where: { id: item.productId },
             select: {
-              id: true,
               name: true,
-              price: true}});
+              price: true,
+              category: {
+                select: {
+                  name: true
+                }
+              }
+            }
+          });
 
           return {
-            id: product?.id || item.productId,
+            productId: item.productId,
             name: product?.name || "Produit inconnu",
-            price: product?.price || 0,
-            totalSold: item.sum.quantity || 0,
-            totalRevenue: item.sum.total || 0};
-        }),
+            category: product?.category?.name || "Non catégorisé",
+            totalSold: item._sum.quantity || 0,
+            orderCount: item._count.id,
+            price: product?.price || 0
+          };
+        })
       );
 
       return productDetails;
-    })});
+    })
+});
