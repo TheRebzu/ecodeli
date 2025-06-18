@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/server/auth";
+import { authOptions } from "@/server/auth/next-auth";
 import { invoiceGenerationService } from "@/server/services/billing/invoice-generation.service";
 
 export async function POST(req: NextRequest) {

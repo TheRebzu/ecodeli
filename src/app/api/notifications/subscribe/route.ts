@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/server/auth";
+import { authOptions } from "@/server/auth/next-auth";
 import { db } from "@/server/db";
 
 export async function POST(req: NextRequest) {

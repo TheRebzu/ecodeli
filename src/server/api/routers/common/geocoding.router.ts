@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router } from "@/server/api/trpc";
+import { router, publicProcedure } from "@/server/api/trpc";
 
 export const geocodingRouter = router({ // Recherche d'adresse (géocodage)
   searchAddress: publicProcedure

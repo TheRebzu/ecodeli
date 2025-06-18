@@ -467,8 +467,8 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
   // Récupérer les données réelles depuis l'API
   const { data: analyticsData, isLoading: analyticsLoading } =
     api.admin.analytics.getDashboardOverview.useQuery();
-  const { data } = api.admin.system.getAlerts.useQuery();
-  const { data } =
+  const { data: alertsData } = api.admin.system.getAlerts.useQuery();
+  const { data: activityData } =
     api.admin.analytics.getRecentActivity.useQuery();
 
   const overviewData = {
@@ -477,12 +477,12 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
     recentActivity: activityData?.recentActivity || []};
 
   // Récupérer les données réelles des différentes sections
-  const { data } =
+  const { data: deliveryAnalytics } =
     api.admin.analytics.getDeliveryStats.useQuery();
-  const { data } = api.admin.analytics.getUserStats.useQuery();
-  const { data } =
+  const { data: userAnalytics } = api.admin.analytics.getUserStats.useQuery();
+  const { data: financialAnalytics } =
     api.admin.analytics.getFinancialData.useQuery();
-  const { data } =
+  const { data: announcementAnalytics } =
     api.admin.analytics.getAnnouncementStats.useQuery();
 
   const deliveryData = {

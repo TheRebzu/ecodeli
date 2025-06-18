@@ -50,7 +50,9 @@ export default function CodeVerification({
   useEffect(() => {
     if (timeLeft <= 0 || !isLocked) return;
 
-    const timer = // Appel API réel via tRPC
+    const timer = setTimeout(() => {
+      setTimeLeft(timeLeft - 1);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [timeLeft, isLocked]);

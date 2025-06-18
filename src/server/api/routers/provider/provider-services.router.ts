@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "@/server/api/trpc";
+import { router, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { serviceService } from "@/server/services/provider/provider-service.service";
 import {
   createAvailabilitySchema,

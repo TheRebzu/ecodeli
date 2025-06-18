@@ -999,7 +999,7 @@ export class AuthService {
     locale: SupportedLanguage,
   ) {
     const user = await this.db.user.findUnique({
-      where: { id },
+      where: { id: userId },
       include: {
         client: true,
         deliverer: true,
@@ -1013,7 +1013,7 @@ export class AuthService {
 
     // Mettre à jour le statut
     await this.db.user.update({
-      where: { id },
+      where: { id: userId },
       data: {
         status: status === "APPROVED" ? "ACTIVE" : "REJECTED"}});
 
@@ -1084,7 +1084,7 @@ export class AuthService {
    */
   async getSession(userId: string) {
     const user = await this.db.user.findUnique({
-      where: { id },
+      where: { id: userId },
       select: {
         id: true,
         email: true,
@@ -1094,7 +1094,7 @@ export class AuthService {
         image: true,
         status: true,
         client: {
-          select: { id }},
+          select: { id: true }},
         deliverer: {
           select: {
             id: true,

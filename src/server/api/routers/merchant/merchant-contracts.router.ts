@@ -122,7 +122,7 @@ export const contractRouter = router({ // ===== ENDPOINTS POUR MERCHANTS =====
    * Signe un contrat (merchant)
    */
   signContract: protectedProcedure
-    .input(contractSignSchema.omit({ signedById  }))
+    .input(contractSignSchema.omit({ signedById: true }))
     .mutation(async ({ ctx, input: input  }) => {
       const userId = ctx.session.user.id;
 

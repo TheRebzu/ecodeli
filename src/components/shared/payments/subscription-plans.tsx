@@ -17,7 +17,8 @@ import {
 import { cn } from "@/lib/utils/common";
 import { useSubscriptionStore } from "@/store/use-subscription-store";
 import { useToast } from "@/components/ui/use-toast";
-import { api } from "@/app/api/api";
+import { api } from "@/trpc/react";
+import { StripeFeatureGuard, StripeStatusIndicator } from "./stripe-status-indicator";
 
 import {
   Card,
@@ -120,6 +121,11 @@ export function SubscriptionPlans({
         <p className="text-muted-foreground max-w-2xl mx-auto">
           {t("description")}
         </p>
+        
+        {/* Indicateur de statut Stripe */}
+        <div className="flex justify-center">
+          <StripeStatusIndicator showFullMessage />
+        </div>
 
         {/* Toggle mensuel/annuel */}
         <div className="flex items-center justify-center space-x-3 mt-6">
@@ -150,8 +156,16 @@ export function SubscriptionPlans({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-        {plans.map((plan) => {
+      <StripeFeatureGuard
+        fallback={
+          <div className="text-center py-12">
+            <h3 className="text-lg font-semibold mb-2">Plans d'abonnement temporairement indisponibles</h3>
+            <p className="text-muted-foreground">Les fonctionnalités d'abonnement payant ne sont pas disponibles actuellement.</p>
+          </div>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {plans.map((plan) => {
           const isCurrentPlan = currentPlanId === plan.id;
           const discount = getAnnualDiscount(plan);
           const price =
@@ -298,7 +312,8 @@ export function SubscriptionPlans({
             </Card>
           );
         })}
-      </div>
+        </div>
+      </StripeFeatureGuard>
 
       <div className="max-w-3xl mx-auto text-center text-sm text-muted-foreground mt-12">
         <p>{t("planFooterDescription")}</p>

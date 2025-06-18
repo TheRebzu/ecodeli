@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { PaymentStatus, PaymentMethod } from "@prisma/client";
+import { PaymentStatus, UserRole } from "@prisma/client";
 
 /**
  * Router pour la gestion administrative des paiements
@@ -10,7 +10,7 @@ import { PaymentStatus, PaymentMethod } from "@prisma/client";
 
 // Schémas de validation
 const paymentFiltersSchema = z.object({ status: z.nativeEnum(PaymentStatus).optional(),
-  method: z.nativeEnum(PaymentMethod).optional(),
+  method: z.string().optional(),
   userRole: z.nativeEnum(UserRole).optional(),
   amountRange: z
     .object({
@@ -117,8 +117,8 @@ export const adminPaymentsRouter = router({ /**
         if (input.hasIssues) {
           where.OR = [
             { status: "FAILED" },
-            { disputeStatus: { not } },
-            { requiresManualReview }];
+            { disputeStatus: { not: null } },
+            { requiresManualReview: true }];
         }
 
         if (input.requiresValidation) {

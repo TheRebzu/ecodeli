@@ -1068,6 +1068,61 @@
     }
   },
   "Admin": {
+    "clients": {
+      "title": "Gestion des Clients",
+      "subtitle": "Administrez et supervisez tous les clients de la plateforme",
+      "tabs": {
+        "list": "Liste des Clients",
+        "stats": "Statistiques"
+      },
+      "overview": {
+        "title": "Aperçu des Clients",
+        "totalClients": "Total clients",
+        "activeClients": "Clients actifs",
+        "suspendedClients": "Clients suspendus",
+        "newThisMonth": "Nouveaux ce mois"
+      },
+      "actions": {
+        "export": "Exporter",
+        "addClient": "Ajouter un client",
+        "clearFilters": "Effacer les filtres",
+        "exportSelection": "Exporter sélection",
+        "suspend": "Suspendre",
+        "reactivate": "Réactiver"
+      },
+      "filters": {
+        "searchPlaceholder": "Rechercher par nom, email ou ville...",
+        "statusPlaceholder": "Filtrer par statut",
+        "allStatuses": "Tous les statuts"
+      },
+      "status": {
+        "ACTIVE": "Actifs",
+        "PENDING_VERIFICATION": "En attente",
+        "SUSPENDED": "Suspendus",
+        "INACTIVE": "Inactifs"
+      },
+      "table": {
+        "selectAll": "Tout sélectionner",
+        "client": "Client",
+        "email": "Email",
+        "status": "Statut",
+        "city": "Ville",
+        "registrationDate": "Date d'inscription",
+        "actions": "Actions"
+      },
+      "bulk": {
+        "selectedCount": "{count} client(s) sélectionné(s)"
+      },
+      "loading": {
+        "clients": "Chargement des clients...",
+        "stats": "Chargement des statistiques..."
+      },
+      "errors": {
+        "loadingClients": "Erreur lors du chargement des clients",
+        "loadingStats": "Impossible de charger les statistiques",
+        "retry": "Réessayer"
+      }
+    },
     "verification": {
       "tabs": {
         "all": "Tous",
@@ -1144,30 +1199,111 @@
         "actions": "Actions"
       },
       "users": {
-        "title": "[TO_TRANSLATE] title",
-        "subtitle": "[TO_TRANSLATE] subtitle",
-        "quickStats": "[TO_TRANSLATE] quickStats",
-        "stats": {
-          "totalUsers": "[TO_TRANSLATE] totalUsers",
-          "activeUsers": "[TO_TRANSLATE] activeUsers",
-          "newUsers": "[TO_TRANSLATE] newUsers",
-          "churnRate": "[TO_TRANSLATE] churnRate",
-          "growthRate": "[TO_TRANSLATE] growthRate"
+        "title": "Gestion des utilisateurs",
+        "subtitle": "Gérer tous les utilisateurs de la plateforme",
+        "quickStats": "Statistiques rapides",
+        "tabs": {
+          "all": "Tous",
+          "pending": "En attente",
+          "approved": "Approuvés",
+          "rejected": "Rejetés"
         },
-        "selectAll": "[TO_TRANSLATE] selectAll",
-        "noUsers": "[TO_TRANSLATE] noUsers",
-        "verified": "[TO_TRANSLATE] verified",
-        "unverified": "[TO_TRANSLATE] unverified",
-        "never": "[TO_TRANSLATE] never",
-        "pending": "[TO_TRANSLATE] pending",
-        "openMenu": "[TO_TRANSLATE] openMenu",
+        "stats": {
+          "title": "Statistiques",
+          "totalUsers": "Total utilisateurs",
+          "activeUsers": "Utilisateurs actifs",
+          "newUsers": "Nouveaux utilisateurs",
+          "churnRate": "Taux d'attrition",
+          "growthRate": "Taux de croissance"
+        },
+        "selectAll": "Tout sélectionner",
+        "noUsers": "Aucun utilisateur trouvé",
+        "verified": "Vérifié",
+        "unverified": "Non vérifié",
+        "never": "Jamais",
+        "pending": "En attente",
+        "openMenu": "Ouvrir le menu",
+        "actions": {
+          "title": "Actions",
+          "view": "Voir",
+          "edit": "Modifier",
+          "verify": "Vérifier"
+        },
+        "roles": {
+          "ADMIN": "Administrateur",
+          "CLIENT": "Client",
+          "MERCHANT": "Commerçant",
+          "DELIVERER": "Livreur",
+          "PROVIDER": "Prestataire"
+        },
+        "status": {
+          "ACTIVE": "Actif",
+          "INACTIVE": "Inactif",
+          "PENDING_VERIFICATION": "En attente de vérification",
+          "SUSPENDED": "Suspendu"
+        },
+        "table": {
+          "user": "Utilisateur",
+          "role": "Rôle",
+          "status": "Statut",
+          "documents": "Documents",
+          "created": "Créé le",
+          "actions": "Actions"
+        },
         "bulkActions": {
-          "button": "[TO_TRANSLATE] button",
-          "title": "[TO_TRANSLATE] title",
-          "confirmationText": "[TO_TRANSLATE] confirmationText",
-          "cancel": "[TO_TRANSLATE] cancel",
-          "processing": "[TO_TRANSLATE] processing",
-          "confirm": "[TO_TRANSLATE] confirm"
+          "button": "Actions groupées",
+          "title": "Actions groupées",
+          "confirmationText": "Êtes-vous sûr de vouloir effectuer cette action sur les utilisateurs sélectionnés ?",
+          "cancel": "Annuler",
+          "processing": "Traitement en cours...",
+          "confirm": "Confirmer",
+          "actions": {
+            "ACTIVATE": {
+              "label": "Activer"
+            },
+            "DEACTIVATE": {
+              "label": "Désactiver"
+            },
+            "SUSPEND": {
+              "label": "Suspendre"
+            },
+            "FORCE_PASSWORD_RESET": {
+              "label": "Forcer la réinitialisation du mot de passe"
+            },
+            "SEND_VERIFICATION_EMAIL": {
+              "label": "Envoyer un email de vérification"
+            },
+            "ASSIGN_ROLE": {
+              "label": "Assigner un rôle"
+            },
+            "ASSIGN_PERMISSION": {
+              "label": "Assigner une permission"
+            },
+            "REVOKE_PERMISSION": {
+              "label": "Révoquer une permission"
+            },
+            "ADD_TAG": {
+              "label": "Ajouter un tag"
+            },
+            "REMOVE_TAG": {
+              "label": "Supprimer un tag"
+            },
+            "SEND_NOTIFICATION": {
+              "label": "Envoyer une notification"
+            },
+            "EXPORT_DATA": {
+              "label": "Exporter les données"
+            },
+            "DELETE": {
+              "label": "Supprimer"
+            },
+            "BAN": {
+              "label": "Bannir"
+            },
+            "UNBAN": {
+              "label": "Débannir"
+            }
+          }
         }
       },
       "documents": "[TO_TRANSLATE] documents",

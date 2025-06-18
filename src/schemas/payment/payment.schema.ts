@@ -8,6 +8,15 @@ export const ServiceType = {
   STORAGE: "STORAGE",
   CUSTOM: "CUSTOM"} as const;
 
+/**
+ * Schéma de base pour les paiements
+ */
+export const paymentBaseSchema = z.object({
+  amount: z.number().positive("Le montant doit être positif"),
+  currency: z.string().length(3, "La devise doit faire 3 caractères").default("EUR"),
+  description: z.string().min(1, "La description est requise"),
+});
+
 export const createPaymentSchema = paymentBaseSchema.extend({ userId: z.string().cuid("ID utilisateur invalide"),
   isEscrow: z.boolean().optional().default(false),
   serviceType: z.enum([

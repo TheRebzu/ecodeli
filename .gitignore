@@ -273,3 +273,4 @@ mock-data/personal/
 # Configuration locale des services
 config/local/
 config/dev-only/
+mobile/.gradle/

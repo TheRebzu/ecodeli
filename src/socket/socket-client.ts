@@ -45,11 +45,11 @@ export const initializeSocket = (
 ): Socket => {
   if (socket?.connected) return socket;
 
-  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 
-                   process.env.NEXT_PUBLIC_APP_URL?.replace(/^https?/, 'ws') ||
-                   'ws://localhost:3000';
+  // Configuration unifiée de l'URL
+  const socketUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   socket = io(socketUrl, {
+    path: '/socket.io/',
     auth: { 
       token,
       userId,

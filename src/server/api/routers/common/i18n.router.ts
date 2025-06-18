@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router } from "@/server/api/trpc";
+import { router, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import path from "path";
 import fs from "fs/promises";
@@ -43,7 +43,7 @@ export const i18nRouter = router({ // Récupérer les messages de traduction pou
 
         // Lire et parser le fichier JSON
         const messagesContent = readFileSync(messagesPath, "utf-8");
-        const messages = {};
+        let messages = {};
         
         try {
           messages = JSON.parse(messagesContent);

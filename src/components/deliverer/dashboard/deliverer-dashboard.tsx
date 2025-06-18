@@ -398,11 +398,11 @@ export default function DelivererDashboard({ locale }: { locale }) {
     refreshBalance} = useWalletBalance();
 
   // Récupérer les notifications urgentes
-  const { data } =
+  const { data: notificationsData } =
     api.notification.getUrgentNotifications.useQuery();
 
   // Récupérer les livraisons planifiées
-  const { data } =
+  const { data: plannedDeliveriesData } =
     api.delivery.deliverer.getPlannedDeliveries.useQuery({ date: new Date(),
       limit: 5 });
 

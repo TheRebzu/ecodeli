@@ -11,16 +11,16 @@ import fs from "fs/promises";
 
 // Désactive le bodyParser pour permettre la lecture des FormData
 export const config = {
-  api: { bodyParser }};
+  api: { bodyParser: false }};
 
 const UPLOAD_DIR = process.cwd() + "/public/uploads";
 
 // Fonction pour s'assurer que le répertoire d'upload existe
 async function ensureUploadDir() {
   try {
-    await fs.access(UPLOADDIR);
+    await fs.access(UPLOAD_DIR);
   } catch (error) {
-    await fs.mkdir(UPLOADDIR, { recursive });
+    await fs.mkdir(UPLOAD_DIR, { recursive: true });
   }
 }
 

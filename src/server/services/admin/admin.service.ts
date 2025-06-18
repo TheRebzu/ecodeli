@@ -162,7 +162,7 @@ export class AdminService {
           bannedAt: true,
           banReason: true,
           image: true,
-          count: {
+          _count: {
             select: {
               documents: true,
               submittedVerifications: {
@@ -190,8 +190,8 @@ export class AdminService {
         bannedAt: user.bannedAt,
         banReason: user.banReason,
         image: user.image,
-        documentsCount: user.count.documents,
-        pendingVerificationsCount: user.count.submittedVerifications,
+        documentsCount: user._count.documents,
+        pendingVerificationsCount: user._count.submittedVerifications,
         lastActivityAt: user.activityLogs[0]?.createdAt }));
 
       return {
@@ -219,7 +219,7 @@ export class AdminService {
   ) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         include: {
           client: options.includeVerificationHistory,
           deliverer: options.includeVerificationHistory,
@@ -318,7 +318,7 @@ export class AdminService {
 
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: { email: true, name: true, role: true, status: true }});
 
       if (!user) {
@@ -337,7 +337,7 @@ export class AdminService {
       const updatedUser = await this.prisma.$transaction(async (tx) => {
         // Update user status
         const updated = await tx.user.update({
-          where: { id },
+          where: { id: userId },
           data: { status }});
 
         // We'll implement activity logging later when schema is updated
@@ -382,7 +382,7 @@ export class AdminService {
 
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         include: {
           client: true,
           deliverer: true,
@@ -585,7 +585,7 @@ export class AdminService {
       const where: Prisma.UserActivityLogWhereInput = { userId };
 
       if (types?.length) {
-        where.activityType = { in };
+        where.activityType = { in: types };
       }
 
       if (dateFrom || dateTo) {
@@ -1160,7 +1160,7 @@ export class AdminService {
 
       // Vérifier que tous les utilisateurs existent
       const users = await this.prisma.user.findMany({
-        where: { id: { in } },
+        where: { id: { in: userIds } },
         select: { id: true, email: true, name: true, status: true, role: true }});
 
       if (users.length !== userIds.length) {
@@ -2227,7 +2227,7 @@ export class AdminService {
 
       // Vérifier que les permissions existent
       const existingPermissions = await this.prisma.permission.findMany({
-        where: { id: { in } },
+        where: { id: { in: permissionIds } },
         select: { id }});
 
       if (existingPermissions.length !== permissionIds.length) {

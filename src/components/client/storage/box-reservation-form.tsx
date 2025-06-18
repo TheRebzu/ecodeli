@@ -182,7 +182,107 @@ export function BoxReservationForm({
               </CardContent>
             </Card>
 
-            {}
+          </div>
+        );
+
+      case "details":
+        return (
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Détails de la réservation</CardTitle>
+                <CardDescription>
+                  Informations complémentaires sur votre réservation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes (optionnel)</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Informations complémentaires..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Ajoutez des notes sur votre réservation
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case "payment":
+        return (
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Récapitulatif et paiement</CardTitle>
+                <CardDescription>
+                  Vérifiez les détails avant de finaliser
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-muted p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between">
+                      <span>Durée:</span>
+                      <span>{durationInDays} jour(s)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Prix par jour:</span>
+                      <span>{selectedBox.pricePerDay}€</span>
+                    </div>
+                    <div className="flex justify-between font-bold">
+                      <span>Total:</span>
+                      <span>{totalPrice}€</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case "confirmation":
+        return (
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-green-600">
+                  Réservation confirmée !
+                </CardTitle>
+                <CardDescription>
+                  Votre réservation a été effectuée avec succès
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-4">
+                  <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                  <p>Vous recevrez bientôt les détails par email.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Réservation de box</h2>

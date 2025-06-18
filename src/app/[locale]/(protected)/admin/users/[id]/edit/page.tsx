@@ -68,16 +68,24 @@ export default function UserEditPage() {
   const {
     data: user,
     isLoading,
-    error} = api.admin.users.getUserDetail.useQuery({ userId,
-    includeDocuments: true,
-    includeVerificationHistory: true,
-    includeActivityLogs: false,
-    includeLoginHistory: false,
-    includeNotes: false,
-    includePermissions: false,
-    includeSubscriptions: false,
-    includePaymentMethods: false,
-    includeNotificationSettings: false });
+    error,
+  } = api.admin.users.getUserDetail.useQuery(
+    {
+      userId,
+      includeDocuments: true,
+      includeVerificationHistory: true,
+      includeActivityLogs: false,
+      includeLoginHistory: false,
+      includeNotes: false,
+      includePermissions: false,
+      includeSubscriptions: false,
+      includePaymentMethods: false,
+      includeNotificationSettings: false,
+    },
+    {
+      enabled: !!userId,
+    },
+  );
 
   // Debug: Afficher l'erreur dans la console
   if (error) {

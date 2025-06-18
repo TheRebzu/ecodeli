@@ -98,7 +98,7 @@ export default function AdminClientsPage() {
 
   const handleStatusChange = (status: string) => {
     const statusValue = status === "all" ? undefined : (status as any);
-    updateFilters({ status  });
+    updateFilters({ status: statusValue });
   };
 
   if (error) {

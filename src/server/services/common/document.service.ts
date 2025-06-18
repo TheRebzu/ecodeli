@@ -873,7 +873,7 @@ export class DocumentService {
           where: {
             userId,
             status: "APPROVED",
-            type: { in }}});
+            type: { in: requiredDocumentTypes }}});
 
         // Si tous les documents requis sont approuvés, mettre à jour le statut de vérification
         if (approvedDocuments.length === requiredDocumentTypes.length) {
@@ -898,7 +898,7 @@ export class DocumentService {
           where: {
             userId,
             status: "APPROVED",
-            type: { in }}});
+            type: { in: requiredDocumentTypes }}});
 
         if (approvedDocuments.length === requiredDocumentTypes.length) {
           await db.provider.update({
@@ -1133,10 +1133,17 @@ export class DocumentService {
   }
   // Get required document types by user role
   getRequiredDocumentTypesByRole(role: string): DocumentType[] {
-    // Utiliser la fonction centralisée dans document-utils
-    const {
-      getRequiredDocumentTypesByRole} = // require("@/utils/document-utils");
-    return getRequiredDocumentTypesByRole(role);
+    // Implementation temporaire en attendant document-utils
+    switch (role) {
+      case 'MERCHANT':
+        return ['ID_CARD', 'BUSINESS_LICENSE', 'TAX_CERTIFICATE'] as DocumentType[];
+      case 'DELIVERER':
+        return ['ID_CARD', 'DRIVING_LICENSE', 'INSURANCE'] as DocumentType[];
+      case 'PROVIDER':
+        return ['ID_CARD', 'PROFESSIONAL_QUALIFICATION', 'INSURANCE_CERTIFICATE'] as DocumentType[];
+      default:
+        return ['ID_CARD'] as DocumentType[];
+    }
   }
 
   // Send reminders for missing documents

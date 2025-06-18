@@ -29,6 +29,14 @@ type CreateNextContextOptionsWithAuth = CreateNextContextOptions & {
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can 
+ * export it from here.
+ */
+const createInnerTRPCContext = (opts: CreateContextOptions) => {
+  return {
+    session: opts.session,
+    db,
+    headers: opts.headers,
+  };
 };
 
 /**
@@ -59,8 +67,8 @@ export const createTRPCContext = async (
   }
 
   // Sinon, nous sommes dans un contexte App Router
-  const requestHeaders = {};
-  const session = null;
+  let requestHeaders = {};
+  let session = null;
 
   try {
     // Import dynamique pour éviter les erreurs côté client
@@ -145,6 +153,7 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next  }) => {
   }
   return next({
     ctx: {
+      ...ctx,
       // Infers the `session` as non-nullable
       session: { ...ctx.session, user: ctx.session.user }}});
 });
@@ -179,6 +188,7 @@ const enforceUserIsVerifiedDeliverer = t.middleware(({ ctx, next  }) => {
 
   return next({
     ctx: {
+      ...ctx,
       session: { ...ctx.session, user: ctx.session.user }}});
 });
 
@@ -201,6 +211,7 @@ const enforceUserIsAdmin = t.middleware(({ ctx, next  }) => {
 
   return next({
     ctx: {
+      ...ctx,
       session: { ...ctx.session, user: ctx.session.user }}});
 });
 
@@ -221,6 +232,7 @@ const enforceUserIsClient = t.middleware(({ ctx, next  }) => {
 
   return next({
     ctx: {
+      ...ctx,
       session: { ...ctx.session, user: ctx.session.user }}});
 });
 
@@ -241,6 +253,7 @@ const enforceUserIsMerchant = t.middleware(({ ctx, next  }) => {
 
   return next({
     ctx: {
+      ...ctx,
       session: { ...ctx.session, user: ctx.session.user }}});
 });
 
@@ -271,6 +284,7 @@ const enforceFinancialAccess = t.middleware(async ({ ctx, next  }) => {
 
   return next({
     ctx: {
+      ...ctx,
       session: { ...ctx.session, user: ctx.session.user },
       wallet}});
 });

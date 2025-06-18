@@ -2,6 +2,9 @@
 import { NextConfig } from "next";
 import withNextIntl from "next-intl/plugin";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   // Configurer le serveur de fichiers statiques
@@ -100,7 +103,7 @@ const nextConfig: NextConfig = {
         dns: false,
         dgram: false,
         worker_threads: false,
-        events: require.resolve("events/"),
+        events: false,
       };
 
       // Ajouter socket.io-client au client uniquement

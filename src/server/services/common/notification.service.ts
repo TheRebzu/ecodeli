@@ -881,14 +881,17 @@ export class NotificationService {
 
       // Envoyer le SMS via le service configuré (Twilio, etc.)
       if (process.env.TWILIO_ACCOUNTSID && process.env.TWILIO_AUTH_TOKEN) {
-        const client = // require("twilio")(
-          process.env.TWILIO_ACCOUNTSID,
-          process.env.TWILIO_AUTH_TOKEN,
-        );
-        await client.messages.create({ body: formattedMessage,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: phoneNumber });
-        console.log(`SMS envoyé à l'utilisateur ${user.id} (${phoneNumber})`);
+        // Implémentation temporaire - Twilio désactivé
+        // const client = require("twilio")(
+        //   process.env.TWILIO_ACCOUNTSID,
+        //   process.env.TWILIO_AUTH_TOKEN,
+        // );
+        // await client.messages.create({ 
+        //   body: formattedMessage,
+        //   from: process.env.TWILIO_PHONE_NUMBER,
+        //   to: phoneNumber 
+        // });
+        console.log(`[TWILIO DÉSACTIVÉ] SMS à envoyer à l'utilisateur ${user.id} (${phoneNumber}): ${formattedMessage}`);
       } else {
         console.log(
           `[CONFIG MANQUANTE] SMS non envoyé à ${phoneNumber}: ${formattedMessage}`,
@@ -929,11 +932,11 @@ export class NotificationService {
       }
 
       if (types && types.length > 0) {
-        where.type = { in };
+        where.type = { in: types };
       }
 
       // Compter le nombre total de notifications
-      const total = await this.db.notification.count({ where  });
+      const total = await this.db.notification.count({ where });
 
       // Récupérer les notifications
       const notifications = await this.db.notification.findMany({

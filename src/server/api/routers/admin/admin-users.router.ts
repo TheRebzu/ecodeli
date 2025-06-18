@@ -62,10 +62,10 @@ export const adminUserRouter = router({ /**
           page: result.page,
           hasUsersProperty: "users" in result,
           resultKeys: Object.keys(result),
-          
+          firstUser: result.users && result.users.length > 0 ? {
                 name: result.users[0].name,
-                email: result.users[0].email}
-            : null});
+                email: result.users[0].email
+            } : null});
 
         // Test avec un retour simplifié pour debug
         const simpleResult = {
@@ -95,7 +95,7 @@ export const adminUserRouter = router({ /**
    */
   getUserDetail: adminProcedure
     .input(getUserDetailSchema)
-    .query(async ({ ctx, input: input  }) => {
+    .query(async ({ ctx, input }) => {
       const adminService = new AdminService(ctx.db);
       return adminService.getUserDetail(input.userId, {
         includeDocuments: input.includeDocuments,
@@ -282,7 +282,7 @@ export const adminUserRouter = router({ /**
       );
 
       return adminService.exportUsers(
-        input.format,
+        input.format as "csv" | "excel" | "pdf",
         input.fields,
         input.filters || {},
       );
@@ -416,14 +416,14 @@ export const adminUserRouter = router({ /**
           scheduledFor: input.scheduledFor},
       );
 
-      return adminService.bulkUserAction({ userIds: input.userIds,
+      return adminService.bulkUserAction({ 
+        userIds: input.userIds,
         action: input.action,
         reason: input.reason,
         notifyUsers: input.notifyUsers,
         additionalData: input.additionalData,
-        scheduledFor: input.scheduledFor,
-        confirmationCode: input.confirmationCode,
-        performedById: ctx.session.user.id });
+        performedById: ctx.session.user.id 
+      });
     }),
 
   /**
@@ -438,17 +438,16 @@ export const adminUserRouter = router({ /**
             "Vous n'avez pas les permissions nécessaires pour accéder aux journaux d'audit." });
       }
 
-      return AuditService.getAllAuditLogs({ entityType: input.entityType,
+      return AuditService.getAllAuditLogs({ 
+        entityType: input.entityType,
         entityId: input.entityId,
         performedById: input.performedById,
         action: input.action,
         fromDate: input.fromDate,
         toDate: input.toDate,
-        severity: input.severity,
-        status: input.status,
-        ipAddress: input.ipAddress,
         limit: input.limit,
-        offset: (input.page - 1) * input.limit });
+        offset: (input.page - 1) * input.limit 
+      });
     }),
 
   /**
@@ -533,7 +532,7 @@ export const adminUserRouter = router({ /**
         "notification_settings_update",
         ctx.session.user.id,
         null,
-        { settings },
+        { settings: input },
       );
 
       return notificationService.updateUserNotificationSettings(input);
@@ -567,8 +566,11 @@ export const adminUserRouter = router({ /**
           channel: input.channel},
       );
 
-      return notificationService.sendUserNotification({ ...input,
-        sentById: ctx.session.user.id });
+      return notificationService.sendUserNotification({ 
+        ...input,
+        sentById: ctx.session.user.id,
+        type: input.type as any
+      });
     }),
 
   /**

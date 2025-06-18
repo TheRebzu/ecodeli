@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { VerificationStatus, DocumentType } from "@prisma/client";
+import { VerificationStatus, DocumentType, UserRole } from "@prisma/client";
 
 /**
  * Router pour la gestion des v�rifications administratives

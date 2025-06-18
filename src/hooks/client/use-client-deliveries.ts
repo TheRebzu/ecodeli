@@ -32,7 +32,7 @@ export function useClientDeliveries({
   sortOrder = "desc",
   page = 1,
   limit = 10}: UseClientDeliveriesOptions) {
-  const { data } = useSession();
+  const { data: session } = useSession();
   const [hasActiveDeliveries, setHasActiveDeliveries] = useState(false);
 
   // Convertir le status en tableau de chaînes
@@ -52,7 +52,7 @@ export function useClientDeliveries({
   };
 
   // Récupérer les livraisons
-  const { data, isLoading, error, refetch } =
+  const { data: deliveriesData, isLoading, error, refetch } =
     api.deliveryTracking.getDeliveries.useQuery(
       {
         status: getStatusFilter(status),
@@ -62,9 +62,9 @@ export function useClientDeliveries({
         sortOrder},
       {
         enabled: !!session,
-        onSuccess: (data: any) => {
+        onSuccess: (deliveries: any) => {
           // Vérifier s'il y a au moins une livraison active avec ETA
-          const hasActive = data?.deliveries.some(
+          const hasActive = deliveries?.deliveries.some(
             (delivery: any) =>
               delivery.status === "IN_TRANSIT" && delivery.estimatedArrival,
           );
@@ -94,8 +94,8 @@ export function useClientDeliveries({
   }
 
   return {
-    deliveries: data?.deliveries || [],
-    pagination: data?.pagination,
+    deliveries: deliveriesData?.deliveries || [],
+    pagination: deliveriesData?.pagination,
     isLoading,
     error: error ? error.message : null,
     refetch,
