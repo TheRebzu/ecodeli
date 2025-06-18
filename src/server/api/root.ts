@@ -9,6 +9,7 @@ import { verificationRouter } from "./routers/auth/verification.router";
 import { userRouter } from "./routers/common/user.router";
 import { paymentRouter } from "./routers/common/payment.router";
 import { documentRouter } from "./routers/common/document.router";
+import { commonDocumentRouter } from "./routers/common/common-document.router";
 import { profileRouter } from "./routers/common/profile.router";
 import { notificationRouter } from "./routers/common/notification.router";
 import { userPreferencesRouter } from "./routers/common/user-preferences.router";
@@ -107,6 +108,9 @@ export const appRouter = router({ // Auth
   user: userRouter,
   payment: paymentRouter,
   document: documentRouter,
+  common: router({
+    document: commonDocumentRouter,
+  }),
   profile: profileRouter,
   notification: notificationRouter,
   userPreferences: userPreferencesRouter,

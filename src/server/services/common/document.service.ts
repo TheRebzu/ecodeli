@@ -5,8 +5,7 @@ import {
   UserRole} from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/server/db";
-import {
-  NotificationService} from "@/server/services/common/notification.service";
+import { NotificationService } from "@/lib/services/notification.service";
 import { getUserPreferredLocale } from "@/lib/i18n/user-locale";
 import { cloudinaryService } from "@/lib/integrations/cloudinary";
 
@@ -91,11 +90,9 @@ type UploadFileResult = {
  */
 export class DocumentService {
   private prisma: PrismaClient;
-  private notificationService: NotificationService;
 
   constructor(prisma = db) {
     this.prisma = prisma;
-    this.notificationService = new NotificationService();
   }
 
   /**
@@ -255,6 +252,85 @@ export class DocumentService {
   }
 
   /**
+   * Upload document à partir de données base64
+   */
+  async uploadDocumentFromBase64(params: {
+    userId: string;
+    type: DocumentType;
+    file: string; // Base64 string
+    notes?: string;
+    expiryDate?: Date;
+    userRole?: UserRole;
+  }) {
+    try {
+      console.log("📤 Service uploadDocumentFromBase64 - Début:", {
+        userId: params.userId,
+        type: params.type,
+        fileLength: params.file.length
+      });
+
+      // Valider et extraire les données base64
+      const matches = params.file.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+      if (!matches || matches.length !== 3) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Format de fichier base64 invalide"
+        });
+      }
+
+      const mimeType = matches[1];
+      const base64Data = matches[2];
+      
+      // Convertir base64 en buffer
+      const buffer = Buffer.from(base64Data, 'base64');
+      const fileSize = buffer.length;
+      
+      // Générer un nom de fichier
+      const fileExtension = mimeType.includes('pdf') ? '.pdf' : '.jpg';
+      const filename = `document_${params.type}_${Date.now()}${fileExtension}`;
+      
+      console.log("📤 Fichier traité:", {
+        filename,
+        mimeType,
+        fileSize,
+        type: params.type
+      });
+
+      // Créer l'objet file pour saveFile
+      const fileData = {
+        buffer,
+        filename,
+        mimetype: mimeType
+      };
+
+      // Sauvegarder le fichier
+      const savedFile = await this.saveFile(fileData, params.userId, params.type);
+      
+      console.log("📤 Fichier sauvegardé:", savedFile);
+
+      // Utiliser uploadDocument avec les données du fichier sauvegardé
+      const document = await this.uploadDocument({
+        userId: params.userId,
+        type: params.type,
+        filename: savedFile.filename,
+        fileUrl: savedFile.fileUrl,
+        mimeType: savedFile.mimeType,
+        fileSize: savedFile.fileSize,
+        notes: params.notes,
+        expiryDate: params.expiryDate,
+        userRole: params.userRole
+      });
+
+      console.log("✅ Document uploadé avec succès:", document.id);
+      return document;
+
+    } catch (error) {
+      console.error("❌ Erreur uploadDocumentFromBase64:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Télécharge un document pour un utilisateur
    */
   async uploadDocument(params: UploadDocumentParams) {
@@ -314,10 +390,10 @@ export class DocumentService {
 
       try {
         // Envoyer une notification à tous les administrateurs
-        const userLocale = getUserPreferredLocale(user);
-        await this.notificationService.sendDocumentSubmissionToAdminsNotification(
-          document,
-          userLocale,
+        await NotificationService.sendDocumentSubmissionNotification(
+          document.id,
+          document.userId,
+          document.type,
         );
         console.log(
           `Notification envoyée avec succès aux administrateurs pour le document ${document.id}`,
@@ -672,16 +748,19 @@ export class DocumentService {
     // Notification par email
     try {
       if (verificationStatus === VerificationStatus.APPROVED) {
-        await this.notificationService.sendDocumentApprovedNotification(
-          document.user.email as string,
-          document.type as DocumentType,
-        );
+        await NotificationService.sendToUser(document.userId, {
+          title: "Document approuvé",
+          message: `Votre document ${document.type} a été approuvé.`,
+          type: "DOCUMENT_APPROVED",
+          data: { documentId: document.id, documentType: document.type }
+        });
       } else if (verificationStatus === VerificationStatus.REJECTED) {
-        await this.notificationService.sendDocumentRejectedNotification(
-          document.user.email as string,
-          document.type as DocumentType,
-          rejectionReason || "Aucune raison spécifiée",
-        );
+        await NotificationService.sendToUser(document.userId, {
+          title: "Document rejeté",
+          message: `Votre document ${document.type} a été rejeté. Raison: ${rejectionReason || "Aucune raison spécifiée"}`,
+          type: "DOCUMENT_REJECTED",
+          data: { documentId: document.id, documentType: document.type, rejectionReason }
+        });
       }
     } catch (notificationError) {
       console.error("❌ Erreur lors de l'envoi de la notification:", notificationError);

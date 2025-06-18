@@ -61,9 +61,9 @@ export class NotificationService {
       const users = await db.user.findMany({
         where: {
           role},
-        select: { id }});
+        select: { id: true }});
 
-      await db.notification.createMany({ data: users.map((user) => ({
+      await db.notification.createMany({ data: users.map((user: { id: string }) => ({
           userId: user.id,
           title: notification.title,
           message: notification.message,
@@ -96,7 +96,7 @@ export class NotificationService {
     try {
       // Récupérer les informations sur l'utilisateur
       const user = await db.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: { name: true, email: true }});
 
       if (!user) {
@@ -128,7 +128,7 @@ export class NotificationService {
   static async markAsRead(notificationId: string) {
     try {
       await db.notification.update({
-        where: { id },
+        where: { id: notificationId },
         data: {
           read: true,
           readAt: new Date()}});

@@ -162,6 +162,22 @@
     "price": "price",
     "eur": "eur"
   },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "description": "Connectez-vous à votre compte EcoDeli",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "forgotPassword": "Mot de passe oublié ?",
+      "noAccount": "Pas encore de compte ?",
+      "signUp": "S'inscrire"
+    },
+    "register": {
+      "title": "Inscription",
+      "description": "Créez votre compte EcoDeli"
+    }
+  },
   "deliverer": {
     "title": "title",
     "description": "description",
@@ -1572,9 +1588,9 @@
     "sunday": "sunday"
   },
   "documents": {
-    "title": "title",
-    "description": "description",
-    "back": "back",
+    "title": "Mes Documents",
+    "description": "Gérez vos documents de vérification et leur statut",
+    "back": "Retour",
     "document": "document",
     "a": "a",
     "upload": {
@@ -1624,17 +1640,22 @@
       "description": "description",
       "close": "close"
     },
-    "verification": {
-      "title": "title",
-      "description": "description",
-      "documentDetails": "documentDetails",
-      "rejectionReason": "rejectionReason",
-      "rejectionReasonHelp": "rejectionReasonHelp",
-      "cancel": "cancel",
-      "processing": "processing",
-      "reject": "reject",
-      "approve": "approve"
-    },
+          "verification": {
+        "title": "Vérification des documents",
+        "description": "Veuillez télécharger tous les documents requis pour activer votre compte livreur.",
+        "required": "Vérification requise",
+        "verified": {
+          "title": "Compte vérifié",
+          "description": "Votre compte est vérifié. Vous pouvez gérer vos documents ci-dessous."
+        },
+        "documentDetails": "Détails du document",
+        "rejectionReason": "Raison du rejet",
+        "rejectionReasonHelp": "Expliquez pourquoi ce document a été rejeté",
+        "cancel": "Annuler",
+        "processing": "Traitement en cours",
+        "reject": "Rejeter",
+        "approve": "Approuver"
+      },
     "success": {
       "title": "title",
       "description": "description"

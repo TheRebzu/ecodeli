@@ -2,7 +2,7 @@ import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
 import { headers } from "next/headers";
 import type { AppRouter } from "@/server/api/root";
-import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
+import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import { cookieToString } from "next/dist/server/web/spec-extension/cookies";
 import superjson from "superjson";
 
@@ -35,7 +35,7 @@ export function api(
   return createTRPCProxyClient<AppRouter>({
     transformer: superjson,
     links: [
-      httpBatchLink({
+      httpLink({
         url: `${process.env.NEXT_PUBLIC_APPURL || "http://localhost:3000"}/api/trpc`,
         headers() {
           const headersList = new Map();
@@ -60,7 +60,7 @@ export function createServerComponentClient({
   return createTRPCProxyClient<AppRouter>({
     transformer: superjson,
     links: [
-      httpBatchLink({
+      httpLink({
         url: `${process.env.NEXT_PUBLIC_APPURL || "http://localhost:3000"}/api/trpc`,
         headers() {
           const headersList = new Map();

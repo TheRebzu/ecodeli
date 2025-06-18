@@ -146,7 +146,86 @@ export async function seedDelivererUsers(
   // Générer 35 livreurs avec des profils variés
   const delivererUsers: DelivererData[] = [];
 
-  // IMPORTANT: Livreuse principale pour les tests - marie.laurent@orange.fr
+  // IMPORTANT: Livreur principal pour les tests - celianlivreur@celian-vf.fr
+  const celianVehicle = {
+    type: "e-bike",
+    name: "Vélo électrique",
+    capacity: 20,
+    maxWeight: 25,
+    speed: 25,
+  };
+
+  delivererUsers.push({
+    name: "Celian Livreur",
+    email: "celianlivreur@celian-vf.fr",
+    password: "CelianPass2024!",
+    phoneNumber: generateFrenchPhone(),
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+    status: UserStatus.PENDING_VERIFICATION, // En attente de vérification
+    address: {
+      street: "42 avenue de la République",
+      city: "Paris",
+      zipCode: "75011",
+      country: "France",
+      latitude: 48.8663,
+      longitude: 2.3722,
+    },
+    vehicle: {
+      type: celianVehicle.type,
+      name: celianVehicle.name,
+      licensePlate: "EBK-456-78",
+      capacity: celianVehicle.capacity,
+      maxWeight: celianVehicle.maxWeight,
+      averageSpeed: celianVehicle.speed,
+      isElectric: true,
+      registrationDate: getRandomDate(180, 730), // Entre 6 mois et 2 ans
+      insuranceExpiry: faker.date.future({ years: 1 }),
+    },
+    serviceZones: [
+      "Paris 11ème",
+      "Paris 10ème",
+      "Paris 12ème",
+      "Paris 3ème",
+      "Paris 4ème",
+      "Paris 20ème",
+    ],
+    availability: {
+      isActive: false, // Inactif tant que non vérifié
+      workingDays: [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+      ],
+      workingHours: { start: "09:00", end: "21:00" },
+      maxOrdersPerDay: 25,
+      preferredOrderTypes: ["food", "groceries", "urgent"],
+    },
+    verification: {
+      isVerified: false, // Non vérifié
+      verificationDate: null, // Pas encore vérifié
+      documentsStatus: "PENDING", // Documents en attente
+      backgroundCheckStatus: "PENDING", // Vérification de casier en attente
+      drivingLicenseVerified: false, // Pas besoin de permis pour vélo électrique
+      identityVerified: false, // Identité non vérifiée
+      addressVerified: false, // Adresse non vérifiée
+    },
+    performance: {
+      rating: null, // Pas encore de note
+      totalDeliveries: 0, // Aucune livraison effectuée
+      successRate: null, // Pas encore de données
+      averageDeliveryTime: null, // Pas encore de données
+      onTimeRate: null, // Pas encore de données
+      customerRating: null, // Pas encore de note client
+      lastDeliveryDate: null, // Aucune livraison
+      totalEarnings: 0.0, // Aucun gain
+    },
+  });
+
+  // IMPORTANT: Livreuse secondaire pour les tests - marie.laurent@orange.fr
   const marieVehicle = {
     type: "car",
     name: "Peugeot 208",
@@ -224,8 +303,8 @@ export async function seedDelivererUsers(
     },
   });
 
-  // 19 autres livreurs actifs et vérifiés
-  for (let i = 0; i < 19; i++) {
+  // 18 autres livreurs actifs et vérifiés (maintenant qu'on a 2 livreurs principaux)
+  for (let i = 0; i < 18; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const address = generateFrenchAddress();

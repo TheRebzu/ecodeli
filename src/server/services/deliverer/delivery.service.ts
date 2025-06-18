@@ -549,42 +549,74 @@ export const DeliveryService = {
   async getDelivererDocuments(delivererId: string, userId: string) {
     // Vérification des permissions
     if (delivererId !== userId) {
-      const requester = await db.user.findUnique({ where: { id } });
+      const requester = await db.user.findUnique({ where: { id: userId } });
       if (requester?.role !== "ADMIN") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé"  });
       }
     }
 
-    const application = await db.deliveryApplication.findFirst({
-      where: { delivererId, announcementId: "profile-documents" },
+    console.log(`🔍 Récupération des documents pour le livreur: ${delivererId}`);
+
+    // Récupérer les documents de la table `document` au lieu de `applicationDocument`
+    const documents = await db.document.findMany({
+      where: { 
+        userId: delivererId,
+        // Optionnel: filtrer par rôle si nécessaire
+        // userRole: "DELIVERER" 
+      },
       include: {
-        requiredDocuments: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+          }
+        },
+        verifications: {
           include: {
-            auditLogs: {
-              include: {
-                actor: {
-                  select: {
-                    profile: { select: { firstName: true, lastName: true } }}}},
-              orderBy: { createdAt: "desc" }},
             verifier: {
               select: {
-                profile: { select: { firstName: true, lastName: true } }}}},
-          orderBy: { version: "desc" }}}});
-
-    if (!application) {
-      return [];
-    }
-
-    // Grouper par type de document pour avoir la dernière version
-    const documentsByType = new Map();
-    application.requiredDocuments.forEach((doc) => {
-      const existing = documentsByType.get(doc.documentType);
-      if (!existing || doc.version > existing.version) {
-        documentsByType.set(doc.documentType, doc);
-      }
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          },
+          orderBy: { requestedAt: "desc" }
+        }
+      },
+      orderBy: { uploadedAt: "desc" }
     });
 
-    return Array.from(documentsByType.values());
+    console.log(`📄 ${documents.length} documents trouvés pour le livreur ${delivererId}`);
+
+    // Transformer les documents pour correspondre au format attendu par le frontend
+    return documents.map(doc => ({
+      id: doc.id,
+      documentType: doc.type,
+      type: doc.type, // Compatibilité avec les deux champs
+      fileName: doc.filename,
+      fileUrl: doc.fileUrl,
+      fileSize: doc.fileSize,
+      mimeType: doc.mimeType,
+      status: doc.verificationStatus,
+      verificationStatus: doc.verificationStatus,
+      uploadedAt: doc.uploadedAt,
+      createdAt: doc.uploadedAt,
+      expiryDate: doc.expiryDate,
+      rejectionReason: doc.rejectionReason,
+      isVerified: doc.isVerified,
+      user: doc.user,
+      verifications: doc.verifications,
+      // Champs pour compatibilité avec l'ancien format
+      version: 1,
+      autoValidated: false,
+      validationScore: 100,
+      validationFlags: [],
+      verifiedAt: doc.verifiedAt,
+      verifiedBy: doc.verifiedBy
+    }));
   },
 
   /**

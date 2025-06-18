@@ -158,8 +158,15 @@ export const documentRouter = router({ /**
    * avec les anciens appels à l'API Route /api/documents/upload qui utilisaient formidable
    */
   uploadDocument: protectedProcedure
-    .input(uploadDocumentSchema)
-    .mutation(async ({ ctx, input: input  }) => {
+    .input(uploadDocumentSchema.passthrough())
+    .mutation(async ({ ctx, input }) => {
+      console.log("📤 Upload Document - Données reçues:", {
+        input: input,
+        inputType: typeof input,
+        inputKeys: input ? Object.keys(input) : "input is falsy",
+        userId: ctx.session.user.id,
+      });
+
       try {
         const userId = ctx.session.user.id;
 

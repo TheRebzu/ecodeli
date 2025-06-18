@@ -71,7 +71,7 @@ interface DocumentUploadFormProps {
 }
 
 // Configuration des types de documents
-const _DOCUMENT_CONFIG: Record<
+const DOCUMENT_CONFIG: Record<
   string,
   {
     label: string;

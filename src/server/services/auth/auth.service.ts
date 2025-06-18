@@ -1222,8 +1222,8 @@ export class AuthService {
     }
 
     // Déterminer le profileId en fonction du rôle
-    const profileId = null;
-    const additionalInfo = {};
+    let profileId = null;
+    let additionalInfo = {};
 
     switch (user.role) {
       case UserRole.CLIENT:

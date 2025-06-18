@@ -26,7 +26,7 @@ import { Progress } from "@/components/ui/progress";
 
 export default function DelivererDocumentsPage() {
   useRoleProtection(["DELIVERER"]);
-  const { data } = useSession();
+  const { data: session } = useSession();
   const t = useTranslations("documents");
 
   return (
@@ -76,15 +76,15 @@ export default function DelivererDocumentsPage() {
         <Alert className="mb-6 border-green-200 bg-green-50">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">
-            <span className="font-medium">
-              {t("verification.verified", { default: "Compte vérifié" })}
-            </span>
-            <br />
-            <span>
-              {t("verification.verified.description", {
-                default:
-                  "Votre compte est vérifié. Vous pouvez gérer vos documents ci-dessous."})}
-            </span>
+                          <span className="font-medium">
+                {t("verification.verified.title", { default: "Compte vérifié" })}
+              </span>
+              <br />
+              <span>
+                {t("verification.verified.description", {
+                  default:
+                    "Votre compte est vérifié. Vous pouvez gérer vos documents ci-dessous."})}
+              </span>
           </AlertDescription>
         </Alert>
       )}

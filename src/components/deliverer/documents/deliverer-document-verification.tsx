@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,8 @@ import {
   Scan} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { documentTypeSchema } from "@/schemas/common/document.schema";
+import { z } from "zod";
 
 interface DocumentVerificationProps {
   delivererId?: string;
@@ -42,15 +44,17 @@ export default function DelivererDocumentVerification({
   const { toast } = useToast();
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [uploadingDocType, setUploadingDocType] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [encodedFile, setEncodedFile] = useState<string | null>(null);
 
   // Queries
-  const { data: verificationStatus, refetch } =
+  const { data: documentsData, refetch } =
     api.deliverer.documents.getAll.useQuery(
       { delivererId },
       { refetchInterval: 30000 }, // Actualisation toutes les 30s
     );
 
-  const { data } =
+  const { data: verificationHistory } =
     api.delivery.verification.getDocumentHistory.useQuery(
       { documentId: selectedDocument?.id },
       { enabled: !!selectedDocument?.id },
@@ -74,20 +78,65 @@ export default function DelivererDocumentVerification({
       }},
   );
 
-  const uploadMutation = api.deliverer.documents.upload.useMutation({ onSuccess: () => {
+  // Utiliser une fonction d'upload personnalisée au lieu de tRPC
+  const [isUploading, setIsUploading] = useState(false);
+  
+  const uploadDocument = async (uploadData: { type: string; file: string }) => {
+    console.log("🚀 Début uploadDocument function:", { uploadData: { type: uploadData.type, fileLength: uploadData.file.length } });
+    setIsUploading(true);
+    try {
+      console.log("📤 Envoi API Route - Données préparées:", {
+        type: uploadData.type,
+        fileLength: uploadData.file.length,
+        endpoint: "/api/documents/upload"
+      });
+
+      console.log("🌐 Appel fetch vers /api/documents/upload");
+      const response = await fetch("/api/documents/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(uploadData),
+      });
+
+      console.log("📡 Réponse reçue:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("❌ Erreur response:", errorData);
+        throw new Error(errorData.error || "Erreur lors de l'upload");
+      }
+
+      const result = await response.json();
+      console.log("✅ Upload réussi:", result);
+
       toast({
         title: "Document uploadé",
         description: "Votre document a été envoyé pour vérification",
-        variant: "success" });
+        variant: "success"
+      });
+      
       setUploadingDocType(null);
       refetch();
       onStatusChange?.("UPLOADED");
-    },
-    onError: (error) => {
-      toast({ title: "Erreur d'upload",
+      
+    } catch (error: any) {
+      console.error("❌ Erreur upload:", error);
+      toast({
+        title: "Erreur d'upload",
         description: error.message,
-        variant: "destructive" });
-    }});
+        variant: "destructive"
+      });
+    } finally {
+      console.log("🔚 Fin uploadDocument - isUploading = false");
+      setIsUploading(false);
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -124,6 +173,21 @@ export default function DelivererDocumentVerification({
     return labels[type] || type;
   };
 
+  // Convert local doc type names to common API enum values
+  const mapToApiDocumentType = (type: string): string => {
+    const mapping: Record<string, string> = {
+      IDENTITY: "ID_CARD",
+      DRIVING_LICENSE: "DRIVING_LICENSE",
+      VEHICLE_REGISTRATION: "VEHICLE_REGISTRATION",
+      INSURANCE: "INSURANCE",
+      BACKGROUND_CHECK: "CRIMINAL_RECORD",
+      MEDICAL_CERTIFICATE: "QUALIFICATION_CERTIFICATE",
+      ADDRESS_PROOF: "PROOF_OF_ADDRESS",
+      BANK_DETAILS: "OTHER",
+    };
+    return mapping[type] || type;
+  };
+
   const isDocumentExpiring = (expiryDate?: Date) => {
     if (!expiryDate) return false;
     const now = new Date();
@@ -137,7 +201,49 @@ export default function DelivererDocumentVerification({
     return expiryDate <= new Date();
   };
 
-  if (!verificationStatus) {
+  // Date-fns locale
+  const locale = fr;
+
+  // Handle file selection & convert to base64
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("📁 Fichier sélectionné !", e.target.files);
+    const file = e.target.files?.[0];
+    if (!file) {
+      console.log("❌ Aucun fichier sélectionné");
+      return;
+    }
+    
+    console.log("📁 Fichier:", {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+    
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      console.log("✅ Fichier encodé en base64:", {
+        length: result.length,
+        preview: result.substring(0, 50)
+      });
+      setEncodedFile(result);
+    };
+    reader.onerror = (error) => {
+      console.error("❌ Erreur lors de l'encodage:", error);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Reset file state when modal closes or after successful upload
+  useEffect(() => {
+    if (!uploadingDocType) {
+      setSelectedFile(null);
+      setEncodedFile(null);
+    }
+  }, [uploadingDocType]);
+
+  if (!documentsData) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -152,7 +258,7 @@ export default function DelivererDocumentVerification({
     );
   }
 
-  const documents = verificationStatus.documents || [];
+  const documents = documentsData || [];
   const approvedCount = documents.filter(
     (doc: any) => doc.status === "APPROVED",
   ).length;
@@ -570,13 +676,31 @@ export default function DelivererDocumentVerification({
                 </AlertDescription>
               </Alert>
 
-              {/* File upload component would go here */}
-              <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-sm text-muted-foreground">
-                  Glissez votre document ici ou cliquez pour sélectionner
-                </p>
-              </div>
+              {/* File input */}
+              <label
+                htmlFor="document-upload-input"
+                className="block text-center py-8 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
+              >
+                {selectedFile ? (
+                  <span className="text-sm font-medium text-foreground">
+                    {selectedFile.name}
+                  </span>
+                ) : (
+                  <>
+                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      Glissez votre document ici ou cliquez pour sélectionner
+                    </p>
+                  </>
+                )}
+                <input
+                  id="document-upload-input"
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+              </label>
 
               <div className="flex gap-2">
                 <Button
@@ -586,8 +710,36 @@ export default function DelivererDocumentVerification({
                 >
                   Annuler
                 </Button>
-                <Button className="flex-1" disabled={uploadMutation.isPending}>
-                  {uploadMutation.isPending ? "Upload..." : "Uploader"}
+                <Button
+                  className="flex-1"
+                  disabled={isUploading || !encodedFile}
+                  onClick={() => {
+                    console.log("🔔 Bouton Uploader cliqué !", { 
+                      isUploading, 
+                      hasEncodedFile: !!encodedFile, 
+                      uploadingDocType 
+                    });
+                    
+                    if (!encodedFile || !uploadingDocType) {
+                      console.error("❌ Données manquantes:", { encodedFile: !!encodedFile, uploadingDocType });
+                      return;
+                    }
+                    
+                    const uploadData = {
+                      type: mapToApiDocumentType(uploadingDocType),
+                      file: encodedFile,
+                    };
+                    
+                    console.log("📤 Préparation upload:", {
+                      type: uploadData.type,
+                      fileLength: uploadData.file.length,
+                      fileStart: uploadData.file.substring(0, 50)
+                    });
+                    
+                    uploadDocument(uploadData);
+                  }}
+                >
+                  {isUploading ? "Upload..." : "Uploader"}
                 </Button>
               </div>
             </div>

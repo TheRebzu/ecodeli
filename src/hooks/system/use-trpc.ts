@@ -1,4 +1,4 @@
-import { httpBatchLink } from "@trpc/client";
+import { httpLink } from "@trpc/client";
 import { createTRPCProxyClient } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import type { AppRouter } from "@/server/api/root";
@@ -17,7 +17,7 @@ export function getBaseUrl() {
 
 // Configuration des liens pour les requêtes avec transformer
 const links = [
-  httpBatchLink({
+  httpLink({
     url: `${getBaseUrl()}/api/trpc`,
     headers: () => {
       return {

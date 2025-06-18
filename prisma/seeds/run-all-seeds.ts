@@ -159,7 +159,6 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     category: "verifications",
     dependencies: [
       "deliverer-documents",
-      "provider-documents",
       "merchant-documents",
     ],
     seedFunction: seedVerificationStates,

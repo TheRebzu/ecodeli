@@ -60,8 +60,8 @@ export const delivererRouter = router({ // ===== PROFIL ET DOCUMENTS =====
 
   documents: router({ // Lister tous les documents
     getAll: protectedProcedure
-      .input(z.object({ delivererId: z.string().optional()  }))
-      .query(async ({ ctx, input: input  }) => {
+      .input(z.object({ delivererId: z.string().optional() }).default({}))
+      .query(async ({ ctx, input }) => {
         const delivererId = input.delivererId || ctx.session.user.id;
         return await DeliveryService.getDelivererDocuments(
           delivererId,
@@ -516,7 +516,7 @@ export const delivererRouter = router({ // ===== PROFIL ET DOCUMENTS =====
               include: {
                 client: {
                   select: {
-                    profile: { select: { firstName: true, lastName: true } }}}}}},
+                    name: true }}}}},
           orderBy: { matchingScore: "desc" },
           take: input.limit});
       }),

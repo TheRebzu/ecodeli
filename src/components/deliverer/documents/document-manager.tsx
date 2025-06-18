@@ -27,13 +27,19 @@ const REQUIRED_DOCUMENTS = [
   { type: "BACKGROUND_CHECK", label: "Casier judiciaire", required: true }];
 
 interface DocumentStatus {
-  type: string;
+  id?: string;
+  documentType: string;
+  type?: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   uploadedAt?: Date;
   verifiedAt?: Date;
   rejectionReason?: string;
   documentUrl?: string;
   expiryDate?: Date;
+  mimeType?: string;
+  fileSize?: number;
+  checksum?: string;
+  notes?: string;
 }
 
 export default function DelivererDocumentManager() {
@@ -46,29 +52,107 @@ export default function DelivererDocumentManager() {
   const { data: verificationStatus, refetch } =
     api.deliverer.documents.getAll.useQuery();
 
-  // Upload d'un document
-  const uploadMutation = api.deliverer.documents.upload.useMutation({ onSuccess: () => {
+  // Upload d'un document via API Route
+  const [isUploading, setIsUploading] = useState(false);
+  
+  // Mapper les types de documents locaux vers les types API
+  const mapToApiDocumentType = (type: string): string => {
+    const mapping: Record<string, string> = {
+      IDENTITY: "ID_CARD",
+      DRIVING_LICENSE: "DRIVING_LICENSE",
+      VEHICLE_REGISTRATION: "VEHICLE_REGISTRATION",
+      INSURANCE: "INSURANCE",
+      BACKGROUND_CHECK: "CRIMINAL_RECORD",
+      MEDICAL_CERTIFICATE: "QUALIFICATION_CERTIFICATE",
+      ADDRESS_PROOF: "PROOF_OF_ADDRESS",
+      BANK_DETAILS: "OTHER",
+    };
+    return mapping[type] || type;
+  };
+  
+  const uploadDocumentApi = async (uploadData: { type: string; file: string; notes?: string; expiryDate?: string }) => {
+    setIsUploading(true);
+    try {
+      console.log("📤 Document Manager - Upload API:", {
+        type: uploadData.type,
+        fileLength: uploadData.file.length
+      });
+
+      const response = await fetch("/api/documents/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(uploadData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erreur lors de l'upload");
+      }
+
+      const result = await response.json();
+      console.log("✅ Document Manager - Upload réussi:", result);
+
       toast({
         title: "Document uploadé",
         description: "Votre document a été envoyé pour vérification",
-        variant: "success" });
+        variant: "success"
+      });
+      
       setUploadModalOpen(null);
       refetch();
-    },
-    onError: (error) => {
-      toast({ title: "Erreur d'upload",
+      
+    } catch (error: any) {
+      console.error("❌ Document Manager - Erreur upload:", error);
+      toast({
+        title: "Erreur d'upload",
         description: error.message,
-        variant: "destructive" });
-    }});
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const getDocumentStatus = (documentType: string): DocumentStatus | null => {
-    if (!verificationStatus?.documents) return null;
+    // Mapper le type local vers le type API pour la recherche
+    const mappedType = mapToApiDocumentType(documentType);
+    console.log("🔍 getDocumentStatus - recherche pour:", { 
+      original: documentType, 
+      mapped: mappedType 
+    });
+    console.log("🔍 verificationStatus data:", verificationStatus);
+    
+    // Extraire les documents de la réponse tRPC
+    let documents = verificationStatus;
+    
+    // Si c'est un objet avec json/meta (réponse tRPC wrappée), extraire les données
+    if (verificationStatus && typeof verificationStatus === 'object' && 'json' in verificationStatus) {
+      documents = (verificationStatus as any).json;
+      console.log("📦 Extraction depuis verificationStatus.json:", documents);
+    }
+    
+    if (!documents || !Array.isArray(documents)) {
+      console.log("❌ documents pas un array ou null:", documents);
+      return null;
+    }
 
-    return (
-      verificationStatus.documents.find(
-        (doc: any) => doc.documentType === documentType,
-      ) || null
+    const found = documents.find(
+      (doc: any) => {
+        console.log("🔍 Comparaison doc:", {
+          documentType: doc.documentType,
+          type: doc.type,
+          recherche: mappedType,
+          match1: doc.documentType === mappedType,
+          match2: doc.type === mappedType
+        });
+        return doc.documentType === mappedType || doc.type === mappedType;
+      }
     );
+    
+    console.log("🔍 Document trouvé:", found);
+    return found || null;
   };
 
   const getStatusIcon = (status?: string) => {
@@ -113,29 +197,44 @@ export default function DelivererDocumentManager() {
     documentType: string,
     data: { file: File; expiryDate?: string; notes?: string },
   ) => {
-    // Simuler l'upload du fichier (en réalité, cela passerait par un service d'upload)
-    const formData = new FormData();
-    formData.append("file", data.file);
-    formData.append("documentType", documentType);
-    if (data.expiryDate) formData.append("expiryDate", data.expiryDate);
-    if (data.notes) formData.append("notes", data.notes);
+    console.log("📤 Document Manager - handleUpload:", {
+      documentType,
+      file: data.file.name,
+      size: data.file.size
+    });
 
-    const newDocument: Document = {
-      id: `temp-${Date.now()}`,
-      name: data.file.name,
-      type: data.type,
-      status: "UPLOADING",
-      uploadedAt: new Date(),
-      documentUrl: "", // URL sera mise à jour après l'upload réel
-      size: data.file.size,
-      mimeType: data.file.type};
+    // Convertir le fichier en base64
+    const reader = new FileReader();
+    const base64Promise = new Promise<string>((resolve, reject) => {
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(data.file);
+    });
 
-    await uploadMutation.mutateAsync({ documentType,
-      documentUrl: newDocument.documentUrl,
-      mimeType: data.file.type,
-      fileSize: data.file.size,
-      expiryDate: data.expiryDate,
-      notes: data.notes });
+    try {
+      const base64File = await base64Promise;
+      console.log("✅ Document Manager - Fichier converti en base64:", base64File.length);
+
+      const mappedType = mapToApiDocumentType(documentType);
+      console.log("🔄 Mapping de type:", { 
+        documentType, 
+        mappedType 
+      });
+
+      await uploadDocumentApi({
+        type: mappedType,
+        file: base64File,
+        notes: data.notes,
+        expiryDate: data.expiryDate
+      });
+    } catch (error) {
+      console.error("❌ Document Manager - Erreur conversion base64:", error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la conversion du fichier",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -260,7 +359,7 @@ export default function DelivererDocumentManager() {
                         }
                         size="sm"
                         onClick={() => setUploadModalOpen(document.type)}
-                        disabled={uploadMutation.isPending}
+                        disabled={isUploading}
                       >
                         <Upload className="h-4 w-4 mr-1" />
                         {status?.status === "REJECTED" ? "Remplacer" : "Upload"}
@@ -313,7 +412,7 @@ export default function DelivererDocumentManager() {
                         variant="outline"
                         size="sm"
                         onClick={() => setUploadModalOpen(document.type)}
-                        disabled={uploadMutation.isPending}
+                        disabled={isUploading}
                       >
                         <Upload className="h-4 w-4 mr-1" />
                         Upload
@@ -334,7 +433,7 @@ export default function DelivererDocumentManager() {
           open={!!uploadModalOpen}
           onOpenChange={(open) => !open && setUploadModalOpen(null)}
           onSubmit={(data) => handleUpload(uploadModalOpen, data)}
-          isLoading={uploadMutation.isPending}
+          isLoading={isUploading}
         />
       )}
 
