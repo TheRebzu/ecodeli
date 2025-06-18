@@ -30,7 +30,7 @@ import { fr } from "date-fns/locale";
 import DocumentVerificationStatus from "@/components/deliverer/documents/document-verification-status";
 import DeliveryTrackingMap from "@/components/shared/maps/delivery-tracking-map";
 import { useWalletBalance } from "@/hooks/payment/use-wallet";
-import { useSocket } from "@/hooks/system/use-socket";
+import { useSocket } from "@/components/providers/socket-provider";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils/common";
 import { ScrollArea } from "@/components/ui/scroll-area";

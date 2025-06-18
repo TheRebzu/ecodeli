@@ -32,8 +32,10 @@ export function Providers({ children, session }: ProvidersProps) {
         disableTransitionOnChange
       >
         <TRPCProvider>
-          {children}
-          <Toaster />
+          <SocketProvider>
+            {children}
+            <Toaster />
+          </SocketProvider>
         </TRPCProvider>
       </ThemeProvider>
     </SessionProvider>

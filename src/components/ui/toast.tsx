@@ -129,23 +129,4 @@ export {
   ToastClose,
   ToastAction};
 
-export function useToast() {
-  const [toasts, setToasts] = React.useState<ToastProps[]>([]);
 
-  function toast({ ...props }: ToastProps) {
-    const id = Math.random().toString(36).slice(2, 11);
-    setToasts((prevToasts) => [...prevToasts, { ...props, id }]);
-    return id;
-  }
-
-  function dismiss(id?: string) {
-    setToasts((prevToasts) => {
-      if (id) {
-        return prevToasts.filter((toast) => toast.id !== id);
-      }
-      return [];
-    });
-  }
-
-  return { toast, dismiss, toasts };
-}

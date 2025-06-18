@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSocket } from "@/hooks/system/use-socket";
+import { useSocket } from "@/components/providers/socket-provider";
 import { api } from "@/trpc/react";
 
 // UI Components
