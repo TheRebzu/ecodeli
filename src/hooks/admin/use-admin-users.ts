@@ -52,7 +52,7 @@ export function useAdminUsers() {
       includeLoginHistory: false,
       includeNotes: false},
   ) => {
-    // API réelle pour récupérer les détails utilisateur
+    // Récupération des détails utilisateur
     return api.admin.users.getUserDetail.useQuery(
       { userId, ...options },
       {

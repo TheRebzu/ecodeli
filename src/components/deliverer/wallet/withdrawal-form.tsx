@@ -112,7 +112,7 @@ export function WithdrawalForm({
     try {
       setIsSubmitting(true);
       
-      // Appel API réel pour traiter le retrait - pas de simulation
+      // Traitement du retrait via API
       await onSubmit(data);
       
       toast({

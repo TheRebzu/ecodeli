@@ -12,326 +12,279 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle} from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Clock, Package, Truck, Heart } from "lucide-react";
+  CardTitle
+} from "@/components/ui/card";
+import { 
+  MapPin, 
+  Clock, 
+  Package, 
+  Truck, 
+  Edit, 
+  Eye, 
+  Star,
+  Navigation,
+  CreditCard,
+  X
+} from "lucide-react";
 import { cn } from "@/lib/utils/common";
-import type { AnnouncementStatus, UserRole } from "@prisma/client";
-import Link from "next/link";
-
-// Définir un type étendu pour les statuts qui inclut ceux utilisés dans l'UI mais pas dans le schéma
-type ExtendedAnnouncementStatus =
-  | AnnouncementStatus
-  | "IN_APPLICATION"
-  | "DELIVERED"
-  | "PAID"
-  | "PROBLEM"
-  | "DISPUTE";
-
-// Types pour le composant
-type AnnouncementCardProps = {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  status: AnnouncementStatus | ExtendedAnnouncementStatus;
-  price: number;
-  distance?: number;
-  pickupAddress: string;
-  deliveryAddress: string;
-  pickupDate?: Date | null;
-  deliveryDate?: Date | null;
-  createdAt: Date;
-  isFavorite?: boolean;
-  userRole?: UserRole;
-  clientName?: string;
-  clientImage?: string;
-  clientRating?: number;
-  delivererName?: string;
-  delivererImage?: string;
-  delivererRating?: number;
-  onFavoriteToggle?: (id: string) => void;
-  onApply?: (id: string) => void;
-  onCancel?: (id: string) => void;
-  onPayNow?: (id: string) => void;
-  onViewDetails?: (id: string) => void;
-  className?: string;
-};
+import { 
+  type AnnouncementCard as AnnouncementCardType,
+  getAnnouncementStatusColor,
+  getAnnouncementStatusLabel,
+  getAnnouncementTypeLabel,
+  getAnnouncementPriorityLabel,
+  getAnnouncementPriorityColor
+} from "@/types/client/announcements";
 
 /**
  * Carte d'annonce pour afficher une annonce dans une liste
  */
-export const AnnouncementCard: React.FC<AnnouncementCardProps> = ({ id,
+export const AnnouncementCard: React.FC<AnnouncementCardType> = ({
+  id,
   title,
   description,
   type,
   status,
-  price,
-  distance,
-  pickupAddress,
-  deliveryAddress,
-  pickupDate,
-  deliveryDate,
+  priority,
   createdAt,
-  isFavorite,
-  userRole,
-  clientName,
-  clientImage,
-  clientRating,
-  delivererName,
-  delivererImage,
-  delivererRating,
-  onFavoriteToggle,
-  onApply,
+  pickup,
+  delivery,
+  pricing,
+  proposalsCount,
+  isUrgent,
+  estimatedDeliveryTime,
+  ecoFriendly,
+  onView,
+  onEdit,
   onCancel,
-  onPayNow,
-  onViewDetails,
-  className }) => {
-  const t = useTranslations("Announcements");
-
-  // Déterminer le statut à afficher
-  const getStatusBadge = () => {
-    const statusStyles: Record<string, string> = {
-      DRAFT: "bg-gray-200 hover:bg-gray-300 text-gray-700",
-      PENDING: "bg-gray-200 hover:bg-gray-300 text-gray-700",
-      PUBLISHED: "bg-blue-100 hover:bg-blue-200 text-blue-800", IN_APPLICATION: "bg-purple-100 hover:bg-purple-200 text-purple-800",
-      ASSIGNED: "bg-indigo-100 hover:bg-indigo-200 text-indigo-800", IN_PROGRESS: "bg-amber-100 hover:bg-amber-200 text-amber-800",
-      DELIVERED: "bg-green-100 hover:bg-green-200 text-green-800",
-      COMPLETED: "bg-emerald-100 hover:bg-emerald-200 text-emerald-800",
-      CANCELLED: "bg-red-100 hover:bg-red-200 text-red-800",
-      PAID: "bg-green-100 hover:bg-green-200 text-green-800",
-      PROBLEM: "bg-red-100 hover:bg-red-200 text-red-800",
-      DISPUTE: "bg-red-100 hover:bg-red-200 text-red-800"};
-
-    return (
-      <Badge
-        variant="outline"
-        className={cn("font-normal", statusStyles[status] || "")}
-      >
-        {t(`status.${status}`)}
-      </Badge>
-    );
-  };
-
-  // Déterminer les actions disponibles selon le rôle et le statut
-  const getActions = () => {
-    // Actions pour les clients
-    if (userRole === "CLIENT") {
-      if (status === "DRAFT" || status === "PENDING") {
-        return (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewDetails?.(id)}
-            >
-              {t("actions.edit")}
-            </Button>
-            <Button size="sm" onClick={() => onViewDetails?.(id)}>
-              {t("actions.publish")}
-            </Button>
-          </>
-        );
-      }
-
-      if (status === "PUBLISHED" || status === "IN_APPLICATION") {
-        return (
-          <>
-            <Button variant="outline" size="sm" onClick={() => onCancel?.(id)}>
-              {t("actions.cancel")}
-            </Button>
-            <Button size="sm" onClick={() => onViewDetails?.(id)}>
-              {t("actions.viewApplications")}
-            </Button>
-          </>
-        );
-      }
-
-      if (status === "DELIVERED") {
-        return (
-          <Button size="sm" onClick={() => onViewDetails?.(id)}>
-            {t("actions.confirmDelivery")}
-          </Button>
-        );
-      }
-
-      if (status === "COMPLETED") {
-        if (typeof status === "string" && !status.includes("PAID")) {
-          return (
-            <Button size="sm" onClick={() => onPayNow?.(id)}>
-              {t("actions.payNow")}
-            </Button>
-          );
-        }
-      }
-    }
-
-    // Actions pour les livreurs
-    if (userRole === "DELIVERER") {
-      if (status === "PUBLISHED" || status === "IN_APPLICATION") {
-        return (
-          <Button size="sm" onClick={() => onApply?.(id)}>
-            {t("actions.apply")}
-          </Button>
-        );
-      }
-
-      if (status === "ASSIGNED" || status === "IN_PROGRESS") {
-        return (
-          <Button size="sm" onClick={() => onViewDetails?.(id)}>
-            {t("actions.trackDelivery")}
-          </Button>
-        );
-      }
-    }
-
-    // Action par défaut
-    return (
-      <Button variant="outline" size="sm" onClick={() => onViewDetails?.(id)}>
-        {t("actions.viewDetails")}
-      </Button>
-    );
-  };
-
-  // Formatage du prix
-  const formattedPrice = new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR"}).format(price);
+  onTrack,
+  onRate,
+  onViewProposals
+}) => {
+  const t = useTranslations("announcements");
 
   // Formatage des dates relatives
   const getRelativeDate = (date: Date) => {
     return formatDistance(date, new Date(), {
       addSuffix: true,
-      locale: fr});
+      locale: fr
+    });
+  };
+
+  // Obtenir l'icône selon le type
+  const getTypeIcon = () => {
+    switch (type) {
+      case "delivery":
+      case "eco_delivery":
+        return <Truck className="h-4 w-4" />;
+      case "storage":
+        return <Package className="h-4 w-4" />;
+      case "service":
+        return <Star className="h-4 w-4" />;
+      default:
+        return <Package className="h-4 w-4" />;
+    }
+  };
+
+  // Déterminer les actions disponibles selon le statut
+  const getActions = () => {
+    const actions = [];
+
+    // Actions selon le statut
+    if (status === "draft" || status === "active") {
+      actions.push(
+        <Button
+          key="edit"
+          variant="outline"
+          size="sm"
+          onClick={() => onEdit?.(id)}
+          className="flex items-center gap-1"
+        >
+          <Edit className="h-3 w-3" />
+          Modifier
+        </Button>
+      );
+    }
+
+    if (status === "active" || status === "matched") {
+      actions.push(
+        <Button
+          key="cancel"
+          variant="outline"
+          size="sm"
+          onClick={() => onCancel?.(id)}
+          className="flex items-center gap-1 text-red-600 hover:text-red-700"
+        >
+          <X className="h-3 w-3" />
+          Annuler
+        </Button>
+      );
+    }
+
+    if (status === "in_progress" || status === "matched") {
+      actions.push(
+        <Button
+          key="track"
+          variant="outline"
+          size="sm"
+          onClick={() => onTrack?.(id)}
+          className="flex items-center gap-1"
+        >
+          <Navigation className="h-3 w-3" />
+          Suivre
+        </Button>
+      );
+    }
+
+    if (status === "completed") {
+      actions.push(
+        <Button
+          key="rate"
+          variant="outline"
+          size="sm"
+          onClick={() => onRate?.(id)}
+          className="flex items-center gap-1"
+        >
+          <Star className="h-3 w-3" />
+          Noter
+        </Button>
+      );
+    }
+
+    if (proposalsCount > 0) {
+      actions.push(
+        <Button
+          key="proposals"
+          size="sm"
+          onClick={() => onViewProposals?.(id)}
+          className="flex items-center gap-1"
+        >
+          <Eye className="h-3 w-3" />
+          {proposalsCount} propositions
+        </Button>
+      );
+    }
+
+    // Action par défaut si aucune autre
+    if (actions.length === 0) {
+      actions.push(
+        <Button
+          key="view"
+          variant="outline"
+          size="sm"
+          onClick={() => onView?.(id)}
+          className="flex items-center gap-1"
+        >
+          <Eye className="h-3 w-3" />
+          Voir détails
+        </Button>
+      );
+    }
+
+    return actions;
   };
 
   return (
-    <Card
-      className={cn(
-        "w-full overflow-hidden hover:shadow-md transition-shadow",
-        className,
-      )}
-    >
-      <CardHeader className="pb-2">
+    <Card className="w-full overflow-hidden hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg line-clamp-1">{title}</CardTitle>
-            <CardDescription className="flex items-center space-x-2">
-              <Clock className="h-3.5 w-3.5" />
-              <span>{getRelativeDate(createdAt)}</span>
-              {getStatusBadge()}
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <CardTitle className="text-lg line-clamp-1">{title}</CardTitle>
+              {isUrgent && (
+                <Badge variant="destructive" className="text-xs">
+                  Urgent
+                </Badge>
+              )}
+              {ecoFriendly && (
+                <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                  Eco
+                </Badge>
+              )}
+            </div>
+            <CardDescription className="flex items-center space-x-3 text-sm">
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span>{getRelativeDate(createdAt)}</span>
+              </div>
+              <Badge
+                variant="outline"
+                className={cn("text-xs", getAnnouncementStatusColor(status))}
+              >
+                {getAnnouncementStatusLabel(status)}
+              </Badge>
+              <div className={cn("text-xs font-medium", getAnnouncementPriorityColor(priority))}>
+                {getAnnouncementPriorityLabel(priority)}
+              </div>
             </CardDescription>
           </div>
-          {onFavoriteToggle && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              onClick={() => onFavoriteToggle(id)}
-              aria-label={
-                isFavorite
-                  ? t("actions.removeFromFavorites")
-                  : t("actions.addToFavorites")
-              }
-            >
-              <Heart
-                className={cn(
-                  "h-5 w-5",
-                  isFavorite ? "fill-red-500 text-red-500" : "text-gray-500",
-                )}
-              />
-            </Button>
-          )}
         </div>
       </CardHeader>
 
-      <CardContent className="pb-2">
-        <div className="flex flex-col space-y-3">
+      <CardContent className="pb-3">
+        <div className="space-y-3">
           <p className="text-sm line-clamp-2 text-muted-foreground">
             {description}
           </p>
 
-          <div className="flex items-start space-x-3 text-sm">
-            <div className="flex-1 flex items-start space-x-1">
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <span className="line-clamp-2 text-muted-foreground">
-                {pickupAddress}
-              </span>
-            </div>
-            <div className="flex-1 flex items-start space-x-1">
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <span className="line-clamp-2 text-muted-foreground">
-                {deliveryAddress}
-              </span>
-            </div>
-          </div>
-
+          {/* Type et prix */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              {type.includes("PACKAGE") && (
-                <Package className="h-4 w-4 text-muted-foreground" />
-              )}
-              {type.includes("TRANSPORT") && (
-                <Truck className="h-4 w-4 text-muted-foreground" />
-              )}
-              <span className="text-sm font-medium">{t(`types.${type}`)}</span>
-            </div>
-
-            <div className="text-right">
-              <span className="text-sm font-normal text-muted-foreground">
-                {t("price")}
+              {getTypeIcon()}
+              <span className="text-sm font-medium">
+                {getAnnouncementTypeLabel(type)}
               </span>
-              <p className="text-lg font-bold">{formattedPrice}</p>
+            </div>
+            <div className="text-right">
+              <span className="text-sm text-muted-foreground">Prix</span>
+              <p className="text-lg font-bold">
+                {pricing.totalPrice.toLocaleString("fr-FR", {
+                  style: "currency",
+                  currency: pricing.currency,
+                })}
+              </p>
             </div>
           </div>
 
-          {/* Afficher le client ou le livreur selon le contexte */}
-          {userRole === "DELIVERER" && clientName && (
-            <div className="flex items-center mt-2">
-              <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src={clientImage} alt={clientName} />
-                <AvatarFallback>
-                  {clientName.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">
-                  {t("client")}
-                </span>
-                <span className="text-sm font-medium">{clientName}</span>
+          {/* Adresses */}
+          <div className="space-y-2 text-sm">
+            <div className="flex items-start space-x-2">
+              <MapPin className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="text-xs text-muted-foreground">Départ:</span>
+                <p className="line-clamp-1">{pickup.address}, {pickup.city}</p>
               </div>
             </div>
-          )}
-
-          {userRole === "CLIENT" && delivererName && (
-            <div className="flex items-center mt-2">
-              <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src={delivererImage} alt={delivererName} />
-                <AvatarFallback>
-                  {delivererName.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">
-                  {t("deliverer")}
-                </span>
-                <span className="text-sm font-medium">{delivererName}</span>
+            <div className="flex items-start space-x-2">
+              <MapPin className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="text-xs text-muted-foreground">Arrivée:</span>
+                <p className="line-clamp-1">{delivery.address}, {delivery.city}</p>
               </div>
+            </div>
+          </div>
+
+          {/* Infos supplémentaires */}
+          {estimatedDeliveryTime && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>Livraison estimée: {estimatedDeliveryTime}</span>
             </div>
           )}
         </div>
       </CardContent>
 
-      <CardFooter className="flex justify-between pt-2">
-        {distance !== undefined && (
-          <div className="text-sm text-muted-foreground">
-            {t("distance")}:{" "}
-            {distance < 1
-              ? `${(distance * 1000).toFixed(0)}m`
-              : `${distance.toFixed(1)}km`}
-          </div>
-        )}
-        <div className="flex space-x-2">{getActions()}</div>
+      <CardFooter className="flex justify-between items-center pt-0">
+        <div className="text-sm text-muted-foreground">
+          {proposalsCount > 0 ? (
+            <span>{proposalsCount} proposition(s)</span>
+          ) : (
+            <span>Aucune proposition</span>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {getActions()}
+        </div>
       </CardFooter>
     </Card>
   );

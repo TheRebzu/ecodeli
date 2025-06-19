@@ -52,7 +52,7 @@ export default function VerificationList() {
       setLastUpdated("");
     }
 
-    // Simuler le chargement des statistiques
+    // Chargement des statistiques de vérification
     setStatsLoading(true);
     setTimeout(async () => {
       // Charger les vraies statistiques depuis l'API

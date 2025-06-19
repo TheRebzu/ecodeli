@@ -94,7 +94,7 @@ export class OneSignalService {
       if (process.env.NODE_ENV === "production") {
         console.warn("⚠️ OneSignal API Key ou App ID manquant en production");
       } else {
-        console.warn("⚠️ OneSignal non configuré - les notifications push seront simulées");
+        console.warn("⚠️ OneSignal non configuré - les notifications push sont désactivées");
       }
     }
   }

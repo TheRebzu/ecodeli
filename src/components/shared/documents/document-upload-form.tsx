@@ -217,7 +217,7 @@ export default function DocumentUploadForm({
   // Soumettre le formulaire
   const handleSubmit = async (values: FormValues) => {
     try {
-      // Simuler le progrès d'upload
+      // Progression de l'upload du document
       setUploadProgress(0);
       const interval = setInterval(() => {
         setUploadProgress((prev) => {

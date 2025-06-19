@@ -714,7 +714,7 @@ export const dashboardService = {
         },
       });
 
-      // Calcul du temps moyen de livraison depuis les données réelles
+      // Calcul du temps moyen de livraison
       const completedDeliveries = await db.delivery.findMany({
         where: {
           status: "DELIVERED",
@@ -760,7 +760,7 @@ export const dashboardService = {
         },
       });
 
-      // Calcul du taux de livraison à temps basé sur les données réelles
+      // Calcul du taux de livraison à temps
       const completedWithTimes = await db.delivery.findMany({
         where: {
           status: "DELIVERED",

@@ -93,7 +93,7 @@ export default function DeliveryAnalytics() {
     groupBy: 'HOUR'
   });
 
-  // Données réelles via tRPC (fini les mocks)
+  // Récupération des données d'analyse des livraisons
   const validMetrics: DeliveryMetrics = deliveryMetrics || {
     totalDeliveries: 0,
     completedDeliveries: 0,

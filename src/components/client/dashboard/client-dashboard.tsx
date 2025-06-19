@@ -31,10 +31,8 @@ import {
 
 // Import des nouveaux widgets améliorés
 import { DashboardStatsWidget } from "./widgets/dashboard-stats-widget";
-import { EnvironmentalMetricsWidget } from "./widgets/environmental-metrics-widget";
 import { RealTimeDeliveriesWidget } from "./widgets/real-time-deliveries-widget";
 import { LiveActivityFeedWidget } from "./widgets/live-activity-feed-widget";
-import { EnvironmentalStatsCards } from "./environmental-stats-cards";
 
 // Composants de loading pour les widgets
 const WidgetSkeleton = () => (
@@ -136,7 +134,7 @@ export function ClientDashboard() {
     isLoading,
     error,
     refetch,
-  } = api.client.getDashboardData.useQuery(undefined, {
+  } = api.client.dashboard.getStats.useQuery({ timeframe: "month" }, {
     refetchInterval: 30000, // Actualise toutes les 30 secondes
   });
 
@@ -183,7 +181,7 @@ export function ClientDashboard() {
             Tableau de bord
           </h1>
           <p className="text-muted-foreground">
-            Bienvenue sur votre dashboard EcoDeli - Suivez votre impact environnemental en temps réel
+            Bienvenue sur votre dashboard EcoDeli - Gérez vos annonces, livraisons et services
           </p>
         </div>
         <div className="flex gap-2">
@@ -210,7 +208,7 @@ export function ClientDashboard() {
 
       {/* Navigation par onglets */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Vue d'ensemble
@@ -218,10 +216,6 @@ export function ClientDashboard() {
           <TabsTrigger value="deliveries" className="flex items-center gap-2">
             <Truck className="h-4 w-4" />
             Livraisons
-          </TabsTrigger>
-          <TabsTrigger value="environmental" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            Impact Eco
           </TabsTrigger>
           <TabsTrigger value="activity" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
@@ -247,7 +241,7 @@ export function ClientDashboard() {
               <RealTimeDeliveriesWidget />
             </Suspense>
             <Suspense fallback={<WidgetSkeleton />}>
-              <EnvironmentalMetricsWidget />
+              <LiveActivityFeedWidget />
             </Suspense>
           </div>
         </TabsContent>
@@ -266,20 +260,6 @@ export function ClientDashboard() {
               </Suspense>
             </div>
           </div>
-        </TabsContent>
-
-        {/* Onglet Impact Environnemental */}
-        <TabsContent value="environmental" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="lg:col-span-2">
-              <Suspense fallback={<WidgetSkeleton />}>
-                <EnvironmentalMetricsWidget />
-              </Suspense>
-            </div>
-          </div>
-          
-          {/* Statistiques détaillées - Données réelles */}
-          <EnvironmentalStatsCards />
         </TabsContent>
 
         {/* Onglet Activité */}

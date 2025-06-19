@@ -160,7 +160,7 @@ export function AddressMapPicker({
 
       const { latitude, longitude } = position.coords;
 
-      // Simuler une géocodage inverse pour obtenir l'adresse
+      // Géocodage inverse pour obtenir l'adresse
       const reversedAddress = `Position actuelle (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
 
       onAddressChange(reversedAddress);

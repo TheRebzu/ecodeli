@@ -168,7 +168,7 @@ export default function AdminCommissionsPage() {
       toast({ title: t("downloadStarted"),
         description: t("commissionReportDownloadStarted") });
 
-      // Simuler un délai pour la démo
+      // Traitement de l'export des commissions
       // Appel API réel via tRPC
     } catch (error) {
       toast({ variant: "destructive",

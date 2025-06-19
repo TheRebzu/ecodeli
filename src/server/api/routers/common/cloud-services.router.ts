@@ -7,6 +7,25 @@ import { db } from "@/server/db";
  * Router pour la gestion des services cloud et monitoring
  */
 export const cloudServicesRouter = createTRPCRouter({
+  // Health check simple pour la surveillance de l'API
+  health: protectedProcedure.query(async () => {
+    try {
+      // Test rapide de connexion à la base de données
+      await db.user.count();
+      
+      return {
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        version: "1.0.0"
+      };
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Service non disponible"
+      });
+    }
+  }),
+
   // Vérifier le status de tous les services
   getServicesStatus: adminProcedure.query(async () => {
     try {

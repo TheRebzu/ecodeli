@@ -445,7 +445,7 @@ export function useQRCodeScanner(delivererId: string) {
 
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     
-    // Utilisation réelle de jsQR pour décoder le QR code (plus de simulation)
+    // Utilisation de jsQR pour décoder le QR code
     try {
       // En production, installer jsQR : npm install jsqr @types/jsqr
       // const code = jsQR(imageData.data, imageData.width, imageData.height);

@@ -173,7 +173,7 @@ export default function MerchantValidation() {
     },
   });
 
-  // Données réelles via tRPC (fini les mocks)
+  // Récupération des données de validation des commerçants
   const validApplications: MerchantApplication[] = applications || [];
 
   const validMetrics: ValidationMetrics = validationMetrics || {

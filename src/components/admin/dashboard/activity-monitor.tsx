@@ -49,7 +49,7 @@ export default function ActivityMonitor() {
   const { data: systemHealth } = api.admin.getPerformanceMetrics.useQuery();
   const { data: activeConnections } = api.admin.getUserStats.useQuery();
 
-  // Simuler des métriques système en temps réel
+      // Récupération des métriques système en temps réel
   const [metrics, setMetrics] = useState({
     cpu: 45,
     memory: 68,

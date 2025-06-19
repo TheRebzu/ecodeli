@@ -16,26 +16,11 @@ import {
   Activity,
   Calendar
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/common";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { api } from "@/trpc/react";
-
-interface ActivityItem {
-  id: string;
-  type: "delivery" | "order" | "service" | "notification";
-  title: string;
-  description: string;
-  timestamp: Date;
-  status: "pending" | "in_progress" | "completed" | "cancelled";
-  icon: React.ComponentType<{ className?: string }>;
-  metadata?: {
-    orderId?: string;
-    deliveryId?: string;
-    amount?: number;
-    location?: string;
-  };
-}
+import { type DashboardActivity } from "@/types/client/dashboard";
 
 interface LiveActivityFeedWidgetProps {
   className?: string;
@@ -48,8 +33,8 @@ export function LiveActivityFeedWidget({
 }: LiveActivityFeedWidgetProps) {
   const [filter, setFilter] = useState<"all" | "delivery" | "order" | "service">("all");
 
-  // Récupération des vraies données d'activité depuis l'API
-  const { data: activities, isLoading, error, refetch } = api.client.legacyDashboard.getActivityFeed.useQuery(
+  // Récupération des données d'activité
+  const { data: activities, isLoading, error, refetch } = api.client.getRecentActivity.useQuery(
     undefined,
     {
       refetchInterval: 30000, // Actualise toutes les 30 secondes
@@ -57,7 +42,7 @@ export function LiveActivityFeedWidget({
     }
   );
 
-  const getStatusColor = (status: ActivityItem["status"]) => {
+  const getStatusColor = (status: DashboardActivity["status"]) => {
     switch (status) {
       case "completed":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
@@ -72,7 +57,7 @@ export function LiveActivityFeedWidget({
     }
   };
 
-  const getStatusLabel = (status: ActivityItem["status"]) => {
+  const getStatusLabel = (status: DashboardActivity["status"]) => {
     switch (status) {
       case "completed":
         return "Terminé";
@@ -84,6 +69,23 @@ export function LiveActivityFeedWidget({
         return "Annulé";
       default:
         return "Inconnu";
+    }
+  };
+
+  const getActivityIcon = (type: DashboardActivity["type"]) => {
+    switch (type) {
+      case "delivery":
+        return Truck;
+      case "service":
+        return Calendar;
+      case "payment":
+        return CheckCircle;
+      case "achievement":
+        return Activity;
+      case "announcement":
+        return Package;
+      default:
+        return Activity;
     }
   };
 
@@ -149,7 +151,7 @@ export function LiveActivityFeedWidget({
     );
   }
 
-  if (!activities || activities.length === 0) {
+  if (!activities || !Array.isArray(activities) || activities.length === 0) {
     return (
       <Card className={className}>
         <CardHeader>
@@ -207,7 +209,7 @@ export function LiveActivityFeedWidget({
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
             {activities.map((activity) => {
-              const IconComponent = activity.icon;
+              const IconComponent = getActivityIcon(activity.type);
               
               return (
                 <div
@@ -244,14 +246,14 @@ export function LiveActivityFeedWidget({
                     {/* Métadonnées */}
                     {activity.metadata && (
                       <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                        {activity.metadata.orderId && (
-                          <span>#{activity.metadata.orderId}</span>
+                        {activity.metadata.deliveryId && (
+                          <span>#{activity.metadata.deliveryId}</span>
                         )}
                         {activity.metadata.amount && (
-                          <span>{activity.metadata.amount.toFixed(2)}€</span>
+                          <span>{activity.metadata.amount.toFixed(2)}{activity.metadata.currency || "€"}</span>
                         )}
-                        {activity.metadata.location && (
-                          <span>{activity.metadata.location}</span>
+                        {activity.metadata.serviceId && (
+                          <span>Service #{activity.metadata.serviceId}</span>
                         )}
                       </div>
                     )}

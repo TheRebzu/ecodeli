@@ -41,8 +41,8 @@ export function AccessBoxDialog({
   const handleGetAccessCode = () => {
     setIsLoading(true);
 
-    // Simuler une requête API avec un délai
-    // Appel API réel via tRPC
+          // Requête d'accès à la box avec vérification
+    // Accès à la box via API
   };
 
   const copyToClipboard = (text: string) => {

@@ -185,7 +185,7 @@ export class EmailService {
     if (process.env.MAILGUN_API_KEY) {
       // Message initial seulement
     } else {
-      console.warn("⚠️ Mailgun non configuré - les emails seront simulés");
+      console.warn("⚠️ Mailgun non configuré - les emails sont désactivés");
     }
   }
 

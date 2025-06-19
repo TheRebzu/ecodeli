@@ -17,37 +17,15 @@ import {
   Navigation,
   Calendar
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/common";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { api } from "@/trpc/react";
-
-interface DeliveryStatus {
-  id: string;
-  orderId: string;
-  status: "pending" | "accepted" | "picked_up" | "in_transit" | "delivered" | "cancelled";
-  delivererName: string;
-  delivererAvatar?: string;
-  pickupAddress: string;
-  deliveryAddress: string;
-  estimatedTime: string;
-  currentLocation?: {
-    lat: number;
-    lng: number;
-    address: string;
-  };
-  progress: number;
-  createdAt: Date;
-  updatedAt: Date;
-  tracking?: {
-    events: Array<{
-      status: string;
-      timestamp: Date;
-      location?: string;
-      description: string;
-    }>;
-  };
-}
+import { 
+  type RealTimeDelivery, 
+  getDeliveryStatusColor, 
+  getDeliveryStatusLabel 
+} from "@/types/client/dashboard";
 
 interface RealTimeDeliveriesWidgetProps {
   className?: string;
@@ -60,8 +38,8 @@ export function RealTimeDeliveriesWidget({
 }: RealTimeDeliveriesWidgetProps) {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("active");
 
-  // Récupération des vraies données de livraisons depuis l'API
-  const { data: deliveries, isLoading, error, refetch } = api.client.deliveries.getRealTimeStatus.useQuery(
+  // Récupération des données de livraisons
+  const { data: deliveries, isLoading, error, refetch } = api.client.getRecentDeliveries.useQuery(
     undefined,
     {
       refetchInterval: 15000, // Actualise toutes les 15 secondes pour le temps réel
@@ -69,45 +47,15 @@ export function RealTimeDeliveriesWidget({
     }
   );
 
-  const getStatusColor = (status: DeliveryStatus["status"]) => {
-    switch (status) {
-      case "delivered":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case "in_transit":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "picked_up":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
-      case "accepted":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-      case "pending":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
-      case "cancelled":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+  // Protection: s'assurer que deliveries est un tableau
+  const safeDeliveries = React.useMemo(() => {
+    if (!deliveries || !Array.isArray(deliveries)) {
+      return [];
     }
-  };
+    return deliveries;
+  }, [deliveries]);
 
-  const getStatusLabel = (status: DeliveryStatus["status"]) => {
-    switch (status) {
-      case "delivered":
-        return "Livré";
-      case "in_transit":
-        return "En cours";
-      case "picked_up":
-        return "Récupéré";
-      case "accepted":
-        return "Accepté";
-      case "pending":
-        return "En attente";
-      case "cancelled":
-        return "Annulé";
-      default:
-        return "Inconnu";
-    }
-  };
-
-  const getStatusIcon = (status: DeliveryStatus["status"]) => {
+  const getStatusIcon = (status: RealTimeDelivery["status"]) => {
     switch (status) {
       case "delivered":
         return CheckCircle;
@@ -188,7 +136,7 @@ export function RealTimeDeliveriesWidget({
     );
   }
 
-  if (!deliveries || deliveries.length === 0) {
+  if (safeDeliveries.length === 0) {
     return (
       <Card className={className}>
         <CardHeader>
@@ -248,7 +196,7 @@ export function RealTimeDeliveriesWidget({
       <CardContent>
         <ScrollArea className="h-[350px] pr-4">
           <div className="space-y-4">
-            {deliveries.map((delivery) => {
+            {safeDeliveries.map((delivery) => {
               const StatusIcon = getStatusIcon(delivery.status);
               
               return (
@@ -263,10 +211,10 @@ export function RealTimeDeliveriesWidget({
                       <span className="text-sm font-medium">#{delivery.orderId}</span>
                     </div>
                     <Badge
-                      className={cn("text-xs", getStatusColor(delivery.status))}
+                      className={cn("text-xs", getDeliveryStatusColor(delivery.status))}
                       variant="secondary"
                     >
-                      {getStatusLabel(delivery.status)}
+                      {getDeliveryStatusLabel(delivery.status)}
                     </Badge>
                   </div>
 
@@ -360,7 +308,7 @@ export function RealTimeDeliveriesWidget({
 
         {/* Footer avec indicateur temps réel */}
         <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
-          <span>{deliveries.length} livraison(s) affichée(s)</span>
+          <span>{safeDeliveries.length} livraison(s) affichée(s)</span>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span>Temps réel</span>

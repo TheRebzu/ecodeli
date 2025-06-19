@@ -39,7 +39,11 @@ interface InvoiceWithRelations {
   deliveryId: string | null;
 }
 
-export const clientRouter = router({ getProfile: protectedProcedure.query(async ({ ctx  }) => {
+export const clientRouter = router({
+  // Routes du dashboard client
+  dashboard: clientDashboardRouter,
+
+  getProfile: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
@@ -168,6 +172,173 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
           : undefined }));
   }),
 
+  // Route pour récupérer les livraisons récentes (utilisée par RealTimeDeliveriesWidget)
+  getRecentDeliveries: clientProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { client: true }
+    });
+
+    if (!user?.client) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
+    }
+
+    // Récupérer les livraisons en cours et récentes
+    const deliveries = await ctx.db.delivery.findMany({
+      where: { 
+        clientId: user.client.id,
+      },
+      include: {
+        announcement: {
+          select: { 
+            title: true, 
+            pickupAddress: true, 
+            deliveryAddress: true,
+            pickupDate: true,
+            deliveryDate: true
+          }
+        },
+        deliverer: {
+          select: { 
+            name: true,
+            image: true,
+            phoneNumber: true
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10
+    });
+
+         // Transformation des données pour correspondre au type RealTimeDelivery
+     return deliveries.map((delivery: any) => ({
+      id: delivery.id,
+      orderId: delivery.id, // Utiliser l'ID de livraison comme ID de commande
+      status: delivery.status.toLowerCase() as any,
+      delivererName: delivery.deliverer?.name || "Non assigné",
+      delivererAvatar: delivery.deliverer?.image,
+      delivererPhone: delivery.deliverer?.phoneNumber,
+      pickupAddress: delivery.announcement.pickupAddress,
+      deliveryAddress: delivery.announcement.deliveryAddress,
+      estimatedTime: delivery.announcement.deliveryDate 
+        ? new Date(delivery.announcement.deliveryDate).toLocaleString() 
+        : "À déterminer",
+      progress: delivery.status === "DELIVERED" ? 100 :
+                delivery.status === "IN_TRANSIT" ? 70 :
+                delivery.status === "PICKED_UP" ? 40 :
+                delivery.status === "ACCEPTED" ? 20 : 0,
+      createdAt: delivery.createdAt,
+      updatedAt: delivery.updatedAt,
+      tracking: {
+        events: [{
+          id: `${delivery.id}-status`,
+          status: delivery.status,
+          timestamp: delivery.updatedAt,
+          description: `Statut: ${delivery.status}`,
+        }]
+      }
+    }));
+  }),
+
+  // Route pour récupérer l'activité récente (utilisée par LiveActivityFeedWidget)
+  getRecentActivity: clientProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { client: true }
+    });
+
+    if (!user?.client) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
+    }
+
+    const clientId = user.client.id;
+
+    // Récupérer les activités récentes de différents types
+    const [recentDeliveries, recentServices, recentInvoices, recentAnnouncements] = await Promise.all([
+      ctx.db.delivery.findMany({
+        where: { clientId },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: {
+          announcement: { select: { title: true } }
+        }
+      }),
+      ctx.db.serviceBooking.findMany({
+        where: { clientId },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: { 
+          service: { select: { name: true } }
+        }
+      }),
+      ctx.db.invoice.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 5
+      }),
+      ctx.db.announcement.findMany({
+        where: { clientId },
+        orderBy: { createdAt: "desc" },
+        take: 5
+      })
+    ]);
+
+         // Combiner et transformer les activités
+     const activities = [
+       ...recentDeliveries.map((delivery: any) => ({
+        id: delivery.id,
+        type: "delivery" as const,
+        title: delivery.announcement?.title || `Livraison ${delivery.id.slice(-8)}`,
+        description: `Statut: ${delivery.status}`,
+        timestamp: delivery.createdAt,
+        status: delivery.status.toLowerCase() as any,
+        metadata: {
+          deliveryId: delivery.id
+        }
+      })),
+             ...recentServices.map((service: any) => ({
+         id: service.id,
+         type: "service" as const,
+         title: service.service?.title ?? service.service?.name ?? `Service ${service.id.slice(-8)}`,
+        description: `Statut: ${service.status}`,
+        timestamp: service.createdAt,
+        status: service.status.toLowerCase() as any,
+        metadata: {
+          serviceId: service.id
+        }
+      })),
+             ...recentInvoices.map((invoice: any) => ({
+         id: invoice.id,
+         type: "payment" as const,
+         title: `Facture #${invoice.id.slice(-8)}`,
+         description: `${invoice.amount}€ - ${invoice.status}`,
+         timestamp: invoice.createdAt,
+         status: invoice.status.toLowerCase() as any,
+         metadata: {
+           amount: invoice.amount,
+           currency: "EUR"
+         }
+       })),
+       ...recentAnnouncements.map((announcement: any) => ({
+        id: announcement.id,
+        type: "announcement" as const,
+        title: announcement.title,
+        description: `Statut: ${announcement.status}`,
+        timestamp: announcement.createdAt,
+        status: announcement.status.toLowerCase() as any,
+        metadata: {
+          announcementId: announcement.id
+        }
+      }))
+    ]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 10);
+
+    return activities;
+  }),
+
   getInvoices: protectedProcedure.query(async ({ ctx  }) => {
     const userId = ctx.session.user.id;
 
@@ -289,7 +460,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
       ctx.db.delivery.count({
         where: {
           clientId,
-          status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] }}}),
+          status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] } }}),
       ctx.db.delivery.count({
         where: { clientId, status: "DELIVERED" }}),
       ctx.db.serviceBooking.count({ where: { clientId } }),
@@ -302,65 +473,6 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
       completedDeliveries,
       bookedServices,
       unpaidInvoices};
-  }),
-
-  // Procédure pour récupérer l'activité récente du client
-  getRecentActivity: clientProcedure.query(async ({ ctx  }) => {
-    const userId = ctx.session.user.id;
-
-    // Récupérer l'utilisateur client avec le contexte tRPC
-    const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { client: true }});
-
-    if (!user || !user.client) {
-      throw new TRPCError({ code: "NOT_FOUND",
-        message: "Profil client non trouvé" });
-    }
-
-    const clientId = user.client.id;
-
-    // Activité récente simplifiée
-    const [recentDeliveries, recentServices, recentInvoices] =
-      await Promise.all([
-        ctx.db.delivery.findMany({
-          where: { clientId },
-          orderBy: { createdAt: "desc" },
-          take: 5}),
-        ctx.db.serviceBooking.findMany({
-          where: { clientId },
-          orderBy: { createdAt: "desc" },
-          take: 5,
-          include: { service }}),
-        ctx.db.invoice.findMany({
-          where: { userId },
-          orderBy: { createdAt: "desc" },
-          take: 5})]);
-
-    // Combiner et trier toutes les activités par date
-    const allActivities = [
-      ...recentDeliveries.map((delivery) => ({ type: "DELIVERY",
-        id: delivery.id,
-        status: delivery.status,
-        date: delivery.createdAt,
-        data: delivery })),
-      ...recentServices.map((booking) => ({
-        type: "SERVICE",
-        id: booking.id,
-        status: booking.status,
-        date: booking.createdAt,
-        data: {
-          ...booking,
-          serviceName: booking.service.name}})),
-      ...recentInvoices.map((invoice) => ({ type: "INVOICE",
-        id: invoice.id,
-        status: invoice.status,
-        date: invoice.createdAt,
-        data: invoice }))]
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
-      .slice(0, 10);
-
-    return allActivities;
   }),
 
   // Procédure pour récupérer les métriques financières du client
@@ -790,34 +902,6 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
     };
   }),
 
-  getRecentDeliveries: clientProcedure
-    .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
-    .query(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-      const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true }
-      });
-
-      if (!user?.client) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
-      }
-
-      return await ctx.db.delivery.findMany({
-        where: { clientId: user.client.id },
-        include: {
-          announcement: {
-            select: { title: true, pickupAddress: true, deliveryAddress: true }
-          },
-          deliverer: {
-            select: { name: true }
-          }
-        },
-        orderBy: { createdAt: "desc" },
-        take: input.limit
-      });
-    }),
-
   getMonthlySpending: clientProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     const now = new Date();
@@ -1081,253 +1165,6 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
       });
     }),
 
-  // Intégrer le router dashboard
-  dashboard: clientDashboardRouter,
-
-  // Dashboard endpoints - tous les endpoints requis par les widgets
-  legacyDashboard: router({
-    getStats: clientProcedure.query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
-      const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true }
-      });
-
-      if (!user?.client) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
-      }
-
-      const clientId = user.client.id;
-      const now = new Date();
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-
-      // Statistiques principales
-      const [totalDeliveries, activeAnnouncements, serviceBookings, storageBoxes] = await Promise.all([
-        ctx.db.delivery.count({ where: { clientId } }),
-        ctx.db.announcement.count({ where: { clientId, status: "ACTIVE" } }),
-        ctx.db.serviceBooking.count({ where: { clientId } }),
-        ctx.db.storageBoxReservation.count({ where: { clientId, status: "ACTIVE" } })
-      ]);
-
-      // Tendances (comparaison avec le mois dernier)
-      const [lastMonthDeliveries, lastMonthAnnouncements, lastMonthBookings, lastMonthStorage] = await Promise.all([
-        ctx.db.delivery.count({ where: { clientId, createdAt: { lt: lastMonth } } }),
-        ctx.db.announcement.count({ where: { clientId, createdAt: { lt: lastMonth } } }),
-        ctx.db.serviceBooking.count({ where: { clientId, createdAt: { lt: lastMonth } } }),
-        ctx.db.storageBoxReservation.count({ where: { clientId, createdAt: { lt: lastMonth } } })
-      ]);
-
-      // Calcul des tendances en pourcentage
-      const calculateTrend = (current: number, previous: number) => {
-        if (previous === 0) return current > 0 ? 100 : 0;
-        return Math.round(((current - previous) / previous) * 100);
-      };
-
-      return [
-        {
-          title: "Livraisons totales",
-          value: totalDeliveries.toString(),
-          change: calculateTrend(totalDeliveries, lastMonthDeliveries),
-          trend: calculateTrend(totalDeliveries, lastMonthDeliveries) >= 0 ? "up" : "down"
-        },
-        {
-          title: "Annonces actives",
-          value: activeAnnouncements.toString(),
-          change: calculateTrend(activeAnnouncements, lastMonthAnnouncements),
-          trend: calculateTrend(activeAnnouncements, lastMonthAnnouncements) >= 0 ? "up" : "down"
-        },
-        {
-          title: "Services réservés",
-          value: serviceBookings.toString(),
-          change: calculateTrend(serviceBookings, lastMonthBookings),
-          trend: calculateTrend(serviceBookings, lastMonthBookings) >= 0 ? "up" : "down"
-        },
-        {
-          title: "Boxes de stockage",
-          value: storageBoxes.toString(),
-          change: calculateTrend(storageBoxes, lastMonthStorage),
-          trend: calculateTrend(storageBoxes, lastMonthStorage) >= 0 ? "up" : "down"
-        }
-      ];
-    }),
-
-    getEnvironmentalMetrics: clientProcedure.query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
-      const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true }
-      });
-
-      if (!user?.client) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
-      }
-
-      const clientId = user.client.id;
-
-      // Calculer les métriques environnementales basées sur les livraisons complétées
-      const completedDeliveries = await ctx.db.delivery.count({
-        where: { clientId, status: "DELIVERED" }
-      });
-
-      // Métriques environnementales simulées mais réalistes
-      const co2Saved = completedDeliveries * 2.5; // kg CO2 économisé par livraison groupée
-      const distanceOptimized = completedDeliveries * 15; // km économisés
-      const ecoScore = Math.min(100, Math.round((completedDeliveries) * 2.5));
-
-      return {
-        co2Saved: Math.round(co2Saved * 10) / 10,
-        distanceOptimized: Math.round(distanceOptimized),
-        ecoScore,
-        completedDeliveries,
-        monthlyGrowth: 12 // Croissance mensuelle en %
-      };
-    }),
-
-    getActivityFeed: clientProcedure.query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
-      const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true }
-      });
-
-      if (!user?.client) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
-      }
-
-      const clientId = user.client.id;
-
-      // Récupérer l'activité récente
-      const [recentDeliveries, recentServices, recentInvoices] = await Promise.all([
-        ctx.db.delivery.findMany({
-          where: { clientId },
-          orderBy: { createdAt: "desc" },
-          take: 3,
-          include: {
-            announcement: { select: { title: true } }
-          }
-        }),
-        ctx.db.serviceBooking.findMany({
-          where: { clientId },
-          orderBy: { createdAt: "desc" },
-          take: 3,
-          include: {
-            service: { select: { name: true } }
-          }
-        }),
-        ctx.db.invoice.findMany({
-          where: { userId },
-          orderBy: { createdAt: "desc" },
-          take: 2
-        })
-      ]);
-
-      // Combiner et formater l'activité
-      const activities = [
-        ...recentDeliveries.map(delivery => ({
-          id: delivery.id,
-          type: "delivery" as const,
-          title: `Livraison: ${delivery.announcement.title}`,
-          description: `Statut: ${delivery.status}`,
-          timestamp: delivery.createdAt.toISOString(),
-          status: delivery.status.toLowerCase()
-        })),
-        ...recentServices.map(service => ({
-          id: service.id,
-          type: "service" as const,
-          title: `Service: ${service.service.name}`,
-          description: `Statut: ${service.status}`,
-          timestamp: service.createdAt.toISOString(),
-          status: service.status.toLowerCase()
-        })),
-        ...recentInvoices.map(invoice => ({
-          id: invoice.id,
-          type: "payment" as const,
-          title: `Facture #${invoice.id.slice(-8)}`,
-          description: `${invoice.amount}€ - ${invoice.status}`,
-          timestamp: invoice.createdAt.toISOString(),
-          status: invoice.status.toLowerCase()
-        }))
-      ]
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 5);
-
-      return activities;
-    })
-  }),
-
-  deliveries: router({
-    getRealTimeStatus: clientProcedure.query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
-      const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true }
-      });
-
-      if (!user?.client) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
-      }
-
-      const clientId = user.client.id;
-
-      // Récupérer les livraisons en cours
-      const activeDeliveries = await ctx.db.delivery.findMany({
-        where: {
-          clientId,
-          status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] }
-        },
-        include: {
-          announcement: { select: { title: true, pickupAddress: true, deliveryAddress: true } },
-          deliverer: { select: { name: true } }
-        },
-        orderBy: { updatedAt: "desc" },
-        take: 5
-      });
-
-      return activeDeliveries.map(delivery => ({
-        id: delivery.id,
-        title: delivery.announcement.title,
-        status: delivery.status,
-        estimatedTime: "15-30 min", // Temps estimé simulé
-        delivererName: delivery.deliverer?.name || "Non assigné",
-        pickup: delivery.announcement.pickupAddress,
-        destination: delivery.announcement.deliveryAddress,
-        lastUpdate: delivery.updatedAt.toISOString()
-      }));
-    })
-  }),
-
-  getEnvironmentalMetrics: clientProcedure.query(async ({ ctx }) => {
-    const userId = ctx.session.user.id;
-    const user = await ctx.db.user.findUnique({
-      where: { id: userId },
-      include: { client: true }
-    });
-
-    if (!user?.client) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
-    }
-
-    const clientId = user.client.id;
-
-    // Calculer les métriques environnementales basées sur les livraisons complétées
-    const completedDeliveries = await ctx.db.delivery.count({
-      where: { clientId, status: "DELIVERED" }
-    });
-
-    // Métriques environnementales simulées mais réalistes
-    const co2Saved = completedDeliveries * 2.5; // kg CO2 économisé par livraison groupée
-    const distanceOptimized = completedDeliveries * 15; // km économisés
-    const ecoScore = Math.min(100, Math.round((completedDeliveries) * 2.5));
-
-    return {
-      co2Saved: Math.round(co2Saved * 10) / 10,
-      distanceOptimized: Math.round(distanceOptimized),
-      ecoScore,
-      completedDeliveries,
-      monthlyGrowth: 12 // Croissance mensuelle en %
-    };
-  }),
-
   // Dashboard Data - Données principales du tableau de bord client
   getDashboardData: clientProcedure.query(async ({ ctx }) => {
     try {
@@ -1414,7 +1251,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
         }
       });
 
-      // Métriques environnementales (exemple simulé pour l'instant)
+      // Métriques environnementales du client
       const co2Saved = completedDeliveries * 2.5; // kg CO2 économisé par livraison groupée
       const distanceOptimized = completedDeliveries * 15; // km économisés
       

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createBookingSchema } from "@/schemas/service/service.schema";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,45 +14,51 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage} from "@/components/ui/form";
+  FormMessage
+} from "@/components/ui/form";
 import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
-  ClockIcon,
-  CreditCardIcon,
-  CheckCircleIcon,
+  Clock,
+  CreditCard,
+  CheckCircle,
   Calendar,
   User,
-  MapPin} from "lucide-react";
-import { formatPrice, formatDate } from "@/lib/i18n/formatters";
-import { useServiceBooking } from "@/hooks/features/use-service-booking";
+  MapPin,
+  Loader2
+} from "lucide-react";
 import { TimeslotPicker } from "@/components/schedule/timeslot-picker";
-import { CalendarView } from "@/components/schedule/calendar-view";
+import { useClientServices } from "@/hooks/client/use-client-services";
+import { 
+  type ServiceSearchResult, 
+  type CreateBookingData,
+  formatServicePrice 
+} from "@/types/client/services";
+import { cn } from "@/lib/utils/common";
+
+// Schema de validation pour le formulaire de réservation
+const createBookingSchema = z.object({
+  serviceId: z.string().min(1, "Service requis"),
+  providerId: z.string().min(1, "Prestataire requis"),
+  date: z.string().min(1, "Date requise"),
+  startTime: z.string().min(1, "Heure de début requise"),
+  endTime: z.string().optional(),
+  notes: z.string().optional(),
+  paymentMethod: z.enum(["card", "appWallet", "paypal"]),
+  participantCount: z.number().min(1).default(1),
+  termsAccepted: z.boolean().refine((val) => val === true, {
+    message: "Vous devez accepter les conditions générales",
+  }),
+});
+
+type BookingFormData = z.infer<typeof createBookingSchema>;
 
 interface BookingFormProps {
-  service: {
-    id: string;
-    name: string;
-    description?: string;
-    price: number;
-    duration?: number;
-    provider: {
-      id: string;
-      name?: string;
-      image?: string;
-      address?: string;
-      city?: string;
-    };
-  };
+  service: ServiceSearchResult;
   selectedDate: Date | null;
   onCancel: () => void;
+  onSuccess?: (bookingId: string) => void;
   showAdvancedOptions?: boolean;
 }
 
@@ -63,50 +69,76 @@ export function BookingForm({
   service,
   selectedDate,
   onCancel,
-  showAdvancedOptions = true}: BookingFormProps) {
-  const t = useTranslations("services.booking");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  onSuccess,
+  showAdvancedOptions = true
+}: BookingFormProps) {
+  const t = useTranslations("services");
   const [showServiceDetails, setShowServiceDetails] = useState(false);
-  const [participantCount, setParticipantCount] = useState(1);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
+  
+  const { createBooking } = useClientServices();
 
-  const {
-    selectedTimeSlot,
-    handleTimeSlotChange,
-    availableTimeSlots,
-    handleNotesChange,
-    createBooking,
-    notes} = useServiceBooking({ serviceId: service.id,
-    providerId: service.provider.id });
+  // Formatage des dates
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("fr-FR", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   // Données du formulaire
-  const form = useForm({
+  const form = useForm<BookingFormData>({
     resolver: zodResolver(createBookingSchema),
     defaultValues: {
       serviceId: service.id,
-      providerId: service.provider.id,
-      date: selectedDate ? formatDate(selectedDate) : "",
-      startTime: selectedTimeSlot || "",
-      notes: notes,
-      paymentMethod: "card"}});
+      providerId: service.providerId,
+      date: selectedDate ? selectedDate.toISOString().split("T")[0] : "",
+      startTime: "",
+      notes: "",
+      paymentMethod: "card",
+      participantCount: 1,
+      termsAccepted: false,
+    },
+  });
+
+  const { isSubmitting } = form.formState;
 
   // Soumission du formulaire
-  const onSubmit = async (data: any) => {
-    setIsSubmitting(true);
+  const onSubmit = async (data: BookingFormData) => {
+    if (!selectedDate) return;
+
     try {
-      await createBooking();
-      // La redirection est gérée dans le hook useServiceBooking
+      const bookingData: CreateBookingData = {
+        serviceId: data.serviceId,
+        providerId: data.providerId,
+        scheduledDate: selectedDate,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        notes: data.notes,
+        paymentMethod: data.paymentMethod as "card" | "wallet" | "paypal",
+        clientLocation: {
+          address: "",
+          city: "",
+          postalCode: "",
+          coordinates: { lat: 0, lng: 0 },
+        },
+      };
+
+      const booking = await createBooking(bookingData);
+      onSuccess?.(booking.id);
     } catch (error) {
       console.error("Booking error:", error);
-      setIsSubmitting(false);
     }
   };
 
   if (!selectedDate) {
     return (
       <div className="text-center py-4">
-        <p className="text-red-500">{t("form.selectDateFirst")}</p>
+        <p className="text-red-500">Veuillez d&apos;abord sélectionner une date</p>
         <Button onClick={onCancel} variant="outline" className="mt-2">
-          {t("form.back")}
+          Retour
         </Button>
       </div>
     );
@@ -118,8 +150,8 @@ export function BookingForm({
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-semibold">{t("form.title")}</h2>
-            <p className="text-muted-foreground">{service.name}</p>
+            <h2 className="text-xl font-semibold">Réserver ce service</h2>
+            <p className="text-muted-foreground">{service.title}</p>
           </div>
           <Button
             type="button"
@@ -127,7 +159,7 @@ export function BookingForm({
             size="sm"
             onClick={() => setShowServiceDetails(!showServiceDetails)}
           >
-            {showServiceDetails ? t("form.hideDetails") : t("form.showDetails")}
+            {showServiceDetails ? "Masquer les détails" : "Voir les détails"}
           </Button>
         </div>
 
@@ -136,19 +168,25 @@ export function BookingForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Informations du service */}
               <div>
-                <h4 className="font-medium mb-2">{t("form.serviceInfo")}</h4>
+                <h4 className="font-medium mb-2">Informations du service</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
-                    <ClockIcon className="h-4 w-4" />
+                    <Clock className="h-4 w-4" />
                     <span>
                       {service.duration
                         ? `${service.duration} min`
-                        : t("form.durationVariable")}
+                        : "Durée variable"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CreditCardIcon className="h-4 w-4" />
-                    <span>{formatPrice(service.price)}</span>
+                    <CreditCard className="h-4 w-4" />
+                    <span>
+                      {formatServicePrice(
+                        service.pricing.price,
+                        service.pricing.currency,
+                        service.pricing.priceType
+                      )}
+                    </span>
                   </div>
                   {service.description && (
                     <p className="text-muted-foreground">
@@ -160,18 +198,16 @@ export function BookingForm({
 
               {/* Informations du prestataire */}
               <div>
-                <h4 className="font-medium mb-2">{t("form.providerInfo")}</h4>
+                <h4 className="font-medium mb-2">Prestataire</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4" />
-                    <span>{service.provider.name || t("form.provider")}</span>
+                    <span>{service.providerName}</span>
                   </div>
-                  {service.provider.city && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{service.provider.city}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span>{service.location.serviceArea}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -181,19 +217,19 @@ export function BookingForm({
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Date et heure avec TimeslotPicker */}
+          {/* Date et heure */}
           <div className="space-y-4">
             <h3 className="font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              {t("form.appointment")}
+              Rendez-vous
             </h3>
 
             <FormField
               control={form.control}
               name="date"
-              render={({ field  }) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("form.date")}</FormLabel>
+                  <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -209,17 +245,17 @@ export function BookingForm({
             <FormField
               control={form.control}
               name="startTime"
-              render={({ field  }) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("form.time")}</FormLabel>
+                  <FormLabel>Heure de début</FormLabel>
                   <FormControl>
                     <TimeslotPicker
                       value={field.value}
                       onChange={(value) => {
                         field.onChange(value);
-                        handleTimeSlotChange(value);
+                        setSelectedTimeSlot(value);
                       }}
-                      placeholder={t("form.selectTime")}
+                      placeholder="Sélectionner une heure"
                       mode="start"
                       minTime="06:00"
                       maxTime="22:00"
@@ -228,11 +264,6 @@ export function BookingForm({
                     />
                   </FormControl>
                   <FormMessage />
-                  {availableTimeSlots.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      {t("form.noAvailableSlots")}
-                    </p>
-                  )}
                 </FormItem>
               )}
             />
@@ -243,15 +274,15 @@ export function BookingForm({
           {/* Options avancées */}
           {showAdvancedOptions && (
             <div className="space-y-4">
-              <h3 className="font-medium">{t("form.advancedOptions")}</h3>
+              <h3 className="font-medium">Options avancées</h3>
 
               {/* Nombre de participants */}
               <FormField
                 control={form.control}
                 name="participantCount"
-                render={({ field  }) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("form.participantCount")}</FormLabel>
+                    <FormLabel>Nombre de participants</FormLabel>
                     <FormControl>
                       <div className="flex items-center gap-3">
                         <Button
@@ -259,24 +290,22 @@ export function BookingForm({
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const newCount = Math.max(1, participantCount - 1);
-                            setParticipantCount(newCount);
+                            const newCount = Math.max(1, field.value - 1);
                             field.onChange(newCount);
                           }}
-                          disabled={participantCount <= 1}
+                          disabled={field.value <= 1}
                         >
                           -
                         </Button>
                         <span className="w-16 text-center">
-                          {participantCount}
+                          {field.value}
                         </span>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const newCount = participantCount + 1;
-                            setParticipantCount(newCount);
+                            const newCount = field.value + 1;
                             field.onChange(newCount);
                           }}
                         >
@@ -297,18 +326,14 @@ export function BookingForm({
           <FormField
             control={form.control}
             name="notes"
-            render={({ field  }) => (
+            render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("form.notes")}</FormLabel>
+                <FormLabel>Notes spéciales</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
-                    placeholder={t("form.notesPlaceholder")}
+                    placeholder="Ajoutez des informations supplémentaires pour le prestataire..."
                     rows={3}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      handleNotesChange(e.target.value);
-                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -322,9 +347,9 @@ export function BookingForm({
           <FormField
             control={form.control}
             name="paymentMethod"
-            render={({ field  }) => (
+            render={({ field }) => (
               <FormItem className="space-y-3">
-                <FormLabel>{t("form.paymentMethod")}</FormLabel>
+                <FormLabel>Méthode de paiement</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -336,8 +361,8 @@ export function BookingForm({
                         <RadioGroupItem value="card" />
                       </FormControl>
                       <FormLabel className="font-normal cursor-pointer flex items-center">
-                        <CreditCardIcon className="w-4 h-4 mr-2" />
-                        {t("form.creditCard")}
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Carte bancaire
                       </FormLabel>
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
@@ -345,7 +370,7 @@ export function BookingForm({
                         <RadioGroupItem value="appWallet" />
                       </FormControl>
                       <FormLabel className="font-normal cursor-pointer">
-                        {t("form.appWallet")}
+                        Portefeuille de l&apos;app
                       </FormLabel>
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
@@ -363,32 +388,45 @@ export function BookingForm({
             )}
           />
 
-          {/* Récapitulatif amélioré */}
+          {/* Récapitulatif */}
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-medium mb-3">{t("form.summary")}</h3>
+            <h3 className="font-medium mb-3">Récapitulatif</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span>{t("form.servicePrice")}</span>
-                <span>{formatPrice(service.price)}</span>
+                <span>Prix du service</span>
+                <span>
+                  {formatServicePrice(
+                    service.pricing.price,
+                    service.pricing.currency,
+                    service.pricing.priceType
+                  )}
+                </span>
               </div>
 
-              {showAdvancedOptions && participantCount > 1 && (
+              {showAdvancedOptions && form.watch("participantCount") > 1 && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>
-                    {t("form.participants")} (x{participantCount})
+                    Participants (x{form.watch("participantCount")})
                   </span>
-                  <span>{formatPrice(service.price * participantCount)}</span>
+                  <span>
+                    {formatServicePrice(
+                      service.pricing.price * form.watch("participantCount"),
+                      service.pricing.currency,
+                      service.pricing.priceType
+                    )}
+                  </span>
                 </div>
               )}
 
               <Separator />
 
               <div className="flex justify-between font-medium text-base">
-                <span>{t("form.total")}</span>
+                <span>Total</span>
                 <span className="text-primary">
-                  {formatPrice(
-                    service.price *
-                      (showAdvancedOptions ? participantCount : 1),
+                  {formatServicePrice(
+                    service.pricing.price * (showAdvancedOptions ? form.watch("participantCount") : 1),
+                    service.pricing.currency,
+                    service.pricing.priceType
                   )}
                 </span>
               </div>
@@ -411,7 +449,7 @@ export function BookingForm({
           <FormField
             control={form.control}
             name="termsAccepted"
-            render={({ field  }) => (
+            render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <div className="flex items-center h-5 mt-0.5">
@@ -419,20 +457,26 @@ export function BookingForm({
                       type="checkbox"
                       required
                       className="w-4 h-4"
+                      checked={field.value}
                       onChange={(e) => field.onChange(e.target.checked)}
                     />
                   </div>
                 </FormControl>
                 <div className="text-sm">
-                  {t.rich("form.termsAndConditions", {
-                    link: (chunks) => (
-                      <Link
-                        href="/terms"
-                        className="text-primary hover:underline"
-                      >
-                        {chunks}
-                      </Link>
-                    )})}
+                  J&apos;accepte les{" "}
+                  <Link
+                    href="/terms"
+                    className="text-primary hover:underline"
+                  >
+                    conditions générales
+                  </Link>{" "}
+                  et la{" "}
+                  <Link
+                    href="/privacy"
+                    className="text-primary hover:underline"
+                  >
+                    politique de confidentialité
+                  </Link>
                 </div>
               </FormItem>
             )}
@@ -446,7 +490,7 @@ export function BookingForm({
               className="flex-1"
               onClick={onCancel}
             >
-              {t("form.cancel")}
+              Annuler
             </Button>
             <Button
               type="submit"
@@ -457,15 +501,15 @@ export function BookingForm({
             >
               {isSubmitting ? (
                 <span className="flex items-center">
-                  <span className="animate-spin mr-2">⏳</span>{" "}
-                  {t("form.processing")}
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Traitement...
                 </span>
               ) : (
                 <span className="flex items-center">
-                  <CheckCircleIcon className="w-4 h-4 mr-2" />
-                  {t("form.confirmBooking")}
-                  {showAdvancedOptions && participantCount > 1 && (
-                    <span className="ml-1">({ participantCount })</span>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Confirmer la réservation
+                  {showAdvancedOptions && form.watch("participantCount") > 1 && (
+                    <span className="ml-1">({form.watch("participantCount")})</span>
                   )}
                 </span>
               )}

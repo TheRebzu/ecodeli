@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useTranslations } from "next-intl";
-import { Loader2, PackageX, Search } from "lucide-react";
+import { Loader2, PackageX, Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnnouncementCard } from "@/components/shared/announcements/announcement-card";
 import {
@@ -12,35 +12,64 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious} from "@/components/ui/pagination";
+  PaginationPrevious
+} from "@/components/ui/pagination";
 import { useMediaQuery } from "@/hooks/common/use-media-query";
-import { UserRole } from "@prisma/client";
-import { type AnnouncementWithDetails, type AnnouncementListProps, convertToAnnouncementCard, addAnnouncementCardHandlers } from "@/types/client/announcements";
+import { 
+  type ClientAnnouncement, 
+  type AnnouncementCard as AnnouncementCardType,
+  convertToAnnouncementCard, 
+  addAnnouncementCardHandlers 
+} from "@/types/client/announcements";
 import { cn } from "@/lib/utils/common";
 import { Input } from "@/components/ui/input";
 
-// Component specific types are now imported from types/client/announcements.ts
+interface AnnouncementListProps {
+  announcements: ClientAnnouncement[];
+  isLoading?: boolean;
+  totalCount?: number;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  onSearchChange?: (query: string) => void;
+  onView?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onCancel?: (id: string) => void;
+  onTrack?: (id: string) => void;
+  onRate?: (id: string) => void;
+  onViewProposals?: (id: string) => void;
+  emptyStateTitle?: string;
+  emptyStateMessage?: string;
+  emptyStateAction?: {
+    label: string;
+    onClick: () => void;
+  };
+  searchQuery?: string;
+  className?: string;
+}
 
-export const AnnouncementList: React.FC<AnnouncementListProps> = ({ announcements,
-  isLoading,
-  userRole,
-  totalCount,
-  currentPage,
-  totalPages,
+export const AnnouncementList: React.FC<AnnouncementListProps> = ({
+  announcements,
+  isLoading = false,
+  totalCount = 0,
+  currentPage = 1,
+  totalPages = 1,
   onPageChange,
   onSearchChange,
-  onFavoriteToggle,
-  onApply,
+  onView,
+  onEdit,
   onCancel,
-  onPayNow,
-  onViewDetails,
+  onTrack,
+  onRate,
+  onViewProposals,
   emptyStateTitle,
   emptyStateMessage,
   emptyStateAction,
-  filters,
-  className }) => {
-  const t = useTranslations("Announcements");
-  const [searchQuery, setSearchQuery] = React.useState(filters?.search || "");
+  searchQuery = "",
+  className
+}) => {
+  const t = useTranslations("announcements");
+  const [localSearchQuery, setLocalSearchQuery] = React.useState(searchQuery);
   const isMobile = useMediaQuery("(max-width: 640px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
@@ -98,12 +127,12 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({ announcement
   // Gérer le changement de recherche
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setSearchQuery(value);
+    setLocalSearchQuery(value);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearchChange?.(searchQuery);
+    onSearchChange?.(localSearchQuery);
   };
 
   // État vide
@@ -147,7 +176,7 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({ announcement
               type="text"
               placeholder={t("search.placeholder")}
               className="pl-9"
-              value={searchQuery}
+              value={localSearchQuery}
               onChange={handleSearchChange}
             />
           </div>
@@ -172,17 +201,17 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({ announcement
           {announcements.map((announcement) => {
             const cardProps = convertToAnnouncementCard(announcement);
             const propsWithHandlers = addAnnouncementCardHandlers(cardProps, {
-              onFavoriteToggle,
-              onApply,
-              onCancel,
-              onPayNow,
-              onViewDetails,
+              onView: onView || (() => {}),
+              onEdit: onEdit || (() => {}),
+              onCancel: onCancel || (() => {}),
+              onTrack: onTrack || (() => {}),
+              onRate: onRate || (() => {}),
+              onViewProposals: onViewProposals || (() => {}),
             });
 
             return (
               <AnnouncementCard
                 key={announcement.id}
-                userRole={userRole}
                 {...propsWithHandlers}
               />
             );

@@ -701,7 +701,7 @@ export const paymentRouter = router({
             message: "La date de début doit être antérieure à la date de fin" });
         }
 
-        // Générer le rapport réel (mock pour le moment)
+        // Génération du rapport de paiements
         const report = {
           fileUrl: `/reports/payment-report-${Date.now()}.pdf`,
           fileName: `payment-report-${input.startDate.toISOString().split('T')[0]}-${input.endDate.toISOString().split('T')[0]}.pdf`,

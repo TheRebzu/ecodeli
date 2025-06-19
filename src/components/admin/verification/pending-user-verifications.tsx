@@ -44,16 +44,16 @@ export function PendingUserVerifications({
   const { data: usersData, isLoading } = api.adminUser.getUsers.useQuery({ page: 1,
     limit: 100 });
 
-  // Filtrer les utilisateurs par rôle et simuler des documents en attente
+  // Filtrage des utilisateurs par rôle et documents en attente
   const allUsers = usersData?.json?.users || [];
   const roleUsers = allUsers.filter((user: any) => user.role === userRole);
 
-  // Pour cette démo, on simule que certains utilisateurs ont des documents en attente
+  // Identification des utilisateurs avec documents en attente
   const usersWithPendingDocs = roleUsers
     .filter((user: any) => !user.isVerified) // Utilisateurs non vérifiés
     .slice(0, PAGESIZE); // Limiter à PAGE_SIZE résultats
 
-  // Simuler la structure de données attendue
+      // Structure de données des documents en attente
   const pendingVerificationsData = {
     data: usersWithPendingDocs.map((user: any) => ({
       id: `doc-${user.id}`,

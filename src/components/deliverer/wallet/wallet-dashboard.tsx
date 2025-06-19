@@ -143,7 +143,7 @@ export default function WalletDashboard({ userId }: WalletDashboardProps) {
 
   const exportTransactions = async () => {
     try {
-      // Simuler l'export
+      // Export des données de transaction
       const csvContent = [
         "Date,Type,Description,Montant,Statut",
         ...transactionList.map(

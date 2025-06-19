@@ -194,7 +194,7 @@ export function MandatoryTutorialManager({ children }: MandatoryTutorialManagerP
           }
           break;
         case "click":
-          // Simuler un clic ou mettre en évidence l'élément
+          // Mettre en évidence l'élément ciblé
           const element = document.querySelector(currentStep.actionRequired.target || "");
           if (element) {
             element.scrollIntoView({ behavior: "smooth", block: "center" });

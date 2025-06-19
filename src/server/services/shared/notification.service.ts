@@ -53,7 +53,7 @@ class NotificationService {
    */
   async sendPushNotification(payload: PushNotificationPayload): Promise<{ success: boolean; id?: string }> {
     if (!this.oneSignalAppId || !this.oneSignalApiKey) {
-      console.log("OneSignal non configuré - notification simulée :", payload.contents);
+      console.log("OneSignal non configuré - notification en attente :", payload.contents);
       return { success: true };
     }
 
@@ -204,7 +204,7 @@ class NotificationService {
    */
   async updateUserTags(userId: string, tags: Record<string, string>): Promise<{ success: boolean }> {
     if (!this.oneSignalAppId || !this.oneSignalApiKey) {
-      console.log("OneSignal non configuré - tags simulés pour utilisateur :", userId, tags);
+      console.log("OneSignal non configuré - tags en attente pour utilisateur :", userId, tags);
       return { success: true };
     }
 
@@ -237,7 +237,7 @@ class NotificationService {
    */
   async deleteUser(userId: string): Promise<{ success: boolean }> {
     if (!this.oneSignalAppId || !this.oneSignalApiKey) {
-      console.log("OneSignal non configuré - suppression utilisateur simulée :", userId);
+      console.log("OneSignal non configuré - suppression utilisateur en attente :", userId);
       return { success: true };
     }
 

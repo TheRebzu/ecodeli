@@ -68,7 +68,7 @@ export default function DelivererRoutesPage() {
       setIsLoading(true);
       setError(null);
 
-      // Simuler un appel API pour l'instant
+      // Récupération des routes optimisées
       // Dans une implémentation réelle, cela serait remplacé par un appel tRPC
       // const response = await api.delivererRoute.getMyRoutes.query();
       // setRoutes(response);

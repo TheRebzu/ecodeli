@@ -1,149 +1,327 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
+import {
+  type StorageBox,
+  type StorageReservation,
+  type StorageSearchFilters,
+  type StorageSearchResult,
+  type StorageStats,
+  type WarehouseInfo,
+  type CreateReservationData,
+  type ExtendReservationData,
+} from "@/types/client/storage";
 
-interface UseClientStorageOptions {
-  onReservationSuccess?: (reservation: any) => void;
-  onReservationError?: (error: any) => void;
+interface UseClientStorageProps {
+  initialFilters?: StorageSearchFilters;
 }
 
-interface CreateReservationData {
-  boxId: string;
-  startDate: Date;
-  endDate: Date;
-  notes?: string;
-  paymentMethodId?: string;
-}
-
-export function useClientStorage(options: UseClientStorageOptions = {}) {
+export function useClientStorage({
+  initialFilters = {}
+}: UseClientStorageProps = {}) {
   const router = useRouter();
-  const [isCreatingReservation, setIsCreatingReservation] = useState(false);
+  const { toast } = useToast();
+  const t = useTranslations("storage");
 
-  // Mutation pour créer une réservation
-  const createReservationMutation = api.clientStorageBoxes.createReservation.useMutation({
-    onMutate: () => {
-      setIsCreatingReservation(true);
-    },
-    onSuccess: (data) => {
-      setIsCreatingReservation(false);
-      toast.success("Réservation créée avec succès !");
-      options.onReservationSuccess?.(data);
-      
-      // Rediriger vers la page de confirmation
-      router.push(`/client/storage/${data.id}`);
-    },
-    onError: (error) => {
-      setIsCreatingReservation(false);
-      toast.error(error.message || "Erreur lors de la création de la réservation");
-      options.onReservationError?.(error);
-    },
+  const [filters, setFilters] = useState<StorageSearchFilters>(initialFilters);
+  const [searchResults, setSearchResults] = useState<StorageBox[]>([]);
+  const [myReservations, setMyReservations] = useState<StorageReservation[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // Recherche de box - Appel API réel
+  const {
+    data: searchData,
+    isLoading: isSearching,
+    error: searchError,
+    refetch: refetchSearch
+  } = api.clientStorage.searchBoxes.useQuery(filters, {
+    enabled: Object.keys(filters).length > 0,
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: false,
   });
 
-  // Mutation pour annuler une réservation
-  const cancelReservationMutation = api.clientStorageBoxes.cancelReservation.useMutation({
-    onSuccess: (data) => {
-      toast.success("Réservation annulée avec succès");
-      if (data.cancellationFee > 0) {
-        toast.info(`Frais d'annulation: ${data.cancellationFee.toFixed(2)}€`);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message || "Erreur lors de l'annulation");
-    },
+  // Mes réservations - Appel API réel
+  const {
+    data: reservationsData,
+    isLoading: isLoadingReservations,
+    error: reservationsError,
+    refetch: refetchReservations
+  } = api.clientStorage.getMyReservations.useQuery(undefined, {
+    staleTime: 30000, // 30 secondes
+    refetchOnWindowFocus: false,
   });
 
-  // Mutation pour prolonger une réservation
-  const extendReservationMutation = api.clientStorageBoxes.extendReservation.useMutation({
-    onSuccess: (data) => {
-      toast.success("Réservation prolongée avec succès");
-      toast.info(`Coût additionnel: ${data.additionalCost.toFixed(2)}€`);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Erreur lors de la prolongation");
-    },
+  // Mes statistiques - Appel API réel
+  const {
+    data: statsData,
+    isLoading: isLoadingStats,
+    error: statsError,
+    refetch: refetchStats
+  } = api.clientStorage.getMyStats.useQuery(undefined, {
+    staleTime: 300000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
-  // Fonction pour créer une réservation
-  const createReservation = async (data: CreateReservationData) => {
-    try {
-      const result = await createReservationMutation.mutateAsync(data);
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  };
+  // Entrepôts disponibles - Appel API réel
+  const {
+    data: warehousesData,
+    isLoading: isLoadingWarehouses,
+    error: warehousesError,
+    refetch: refetchWarehouses
+  } = api.clientStorage.getAvailableWarehouses.useQuery(undefined, {
+    staleTime: 600000, // 10 minutes
+    refetchOnWindowFocus: false,
+  });
 
-  // Fonction pour annuler une réservation
-  const cancelReservation = async (reservationId: string, reason?: string) => {
-    try {
-      const result = await cancelReservationMutation.mutateAsync({
-        reservationId,
-        reason,
-      });
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  // Fonction pour prolonger une réservation
-  const extendReservation = async (reservationId: string, newEndDate: Date) => {
-    try {
-      const result = await extendReservationMutation.mutateAsync({
-        reservationId,
-        newEndDate,
-      });
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  // Fonction pour créer une notification de disponibilité
-  const createAvailabilityNotification = api.clientStorageBoxes.createAvailabilityNotification.useMutation({
+  // Mutations - Appels API réels
+  const createReservationMutation = api.clientStorage.createReservation.useMutation({
     onSuccess: () => {
-      toast.success("Notification de disponibilité créée");
+      toast({
+        title: "Succès",
+        description: "Réservation créée avec succès",
+      });
+      refetchReservations();
+      refetchStats();
     },
     onError: (error) => {
-      toast.error(error.message || "Erreur lors de la création de la notification");
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+      setError(error.message);
     },
   });
 
-  const notifyWhenAvailable = async (data: {
-    boxId: string;
-    startDate: Date;
-    endDate: Date;
-    email?: string;
-    phone?: string;
-  }) => {
-    try {
-      const result = await createAvailabilityNotification.mutateAsync(data);
-      return result;
-    } catch (error) {
-      throw error;
+  const cancelReservationMutation = api.clientStorage.cancelReservation.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Réservation annulée avec succès",
+      });
+      refetchReservations();
+      refetchStats();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+      setError(error.message);
+    },
+  });
+
+  const extendReservationMutation = api.clientStorage.extendReservation.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Réservation prolongée avec succès",
+      });
+      refetchReservations();
+      refetchStats();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+      setError(error.message);
+    },
+  });
+
+  const accessBoxMutation = api.clientStorage.accessBox.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Accès autorisé à la box",
+      });
+      refetchReservations();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+      setError(error.message);
+    },
+  });
+
+  // Actions avec gestion d'erreur unifiée - Appels API réels uniquement
+  const searchBoxes = useCallback(
+    async (newFilters: StorageSearchFilters) => {
+      setError(null);
+      setFilters(newFilters);
+      await refetchSearch();
+    },
+    [refetchSearch],
+  );
+
+  const createReservation = useCallback(
+    async (data: CreateReservationData) => {
+      setError(null);
+      return await createReservationMutation.mutateAsync(data);
+    },
+    [createReservationMutation],
+  );
+
+  const extendReservation = useCallback(
+    async (data: ExtendReservationData) => {
+      setError(null);
+      return await extendReservationMutation.mutateAsync(data);
+    },
+    [extendReservationMutation],
+  );
+
+  const cancelReservation = useCallback(
+    async (reservationId: string, reason?: string) => {
+      setError(null);
+      return await cancelReservationMutation.mutateAsync({ 
+        reservationId, 
+        reason 
+      });
+    },
+    [cancelReservationMutation],
+  );
+
+  const accessBox = useCallback(
+    async (reservationId: string, location?: { lat: number; lng: number }) => {
+      setError(null);
+      return await accessBoxMutation.mutateAsync({ 
+        reservationId, 
+        location 
+      });
+    },
+    [accessBoxMutation],
+  );
+
+  const updateFilters = useCallback(
+    (newFilters: Partial<StorageSearchFilters>) => {
+      setError(null);
+      setFilters(prev => ({ ...prev, ...newFilters }));
+    },
+    [],
+  );
+
+  const resetError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  // Navigation helpers
+  const navigateToBox = useCallback(
+    (boxId: string) => {
+      router.push(`/client/storage/${boxId}`);
+    },
+    [router],
+  );
+
+  const navigateToReservation = useCallback(
+    (reservationId: string) => {
+      router.push(`/client/storage/reservations/${reservationId}`);
+    },
+    [router],
+  );
+
+  const navigateToWarehouse = useCallback(
+    (warehouseId: string) => {
+      router.push(`/client/storage/warehouses/${warehouseId}`);
+    },
+    [router],
+  );
+
+  // Gestion des erreurs centralisée
+  React.useEffect(() => {
+    if (searchError) {
+      setError(searchError.message);
     }
-  };
+  }, [searchError]);
+
+  React.useEffect(() => {
+    if (reservationsError) {
+      setError(reservationsError.message);
+    }
+  }, [reservationsError]);
+
+  React.useEffect(() => {
+    if (statsError) {
+      setError(statsError.message);
+    }
+  }, [statsError]);
+
+  React.useEffect(() => {
+    if (warehousesError) {
+      setError(warehousesError.message);
+    }
+  }, [warehousesError]);
+
+  // Mettre à jour les données selon les réponses API
+  React.useEffect(() => {
+    if (searchData?.boxes) {
+      setSearchResults(searchData.boxes);
+    }
+  }, [searchData]);
+
+  React.useEffect(() => {
+    if (reservationsData) {
+      setMyReservations(reservationsData);
+    }
+  }, [reservationsData]);
 
   return {
-    // États
-    isCreatingReservation,
-    isCancellingReservation: cancelReservationMutation.isLoading,
-    isExtendingReservation: extendReservationMutation.isLoading,
-    isCreatingNotification: createAvailabilityNotification.isLoading,
-
+    // Données
+    boxes: searchResults,
+    reservations: myReservations,
+    stats: statsData,
+    warehouses: warehousesData,
+    filters,
+    
+    // Chargement et erreurs
+    isLoading: isSearching || isLoadingReservations || isLoadingStats || isLoadingWarehouses,
+    isSearching,
+    isLoadingReservations,
+    isLoadingStats,
+    isLoadingWarehouses,
+    error,
+    
     // Actions
+    searchBoxes,
     createReservation,
-    cancelReservation,
     extendReservation,
-    notifyWhenAvailable,
-
-    // Erreurs
-    reservationError: createReservationMutation.error,
-    cancellationError: cancelReservationMutation.error,
-    extensionError: extendReservationMutation.error,
-    notificationError: createAvailabilityNotification.error,
+    cancelReservation,
+    accessBox,
+    updateFilters,
+    resetError,
+    
+    // Navigation
+    navigateToBox,
+    navigateToReservation,
+    navigateToWarehouse,
+    
+    // Utilitaires
+    refetchSearch,
+    refetchReservations,
+    refetchStats,
+    refetchWarehouses,
+    
+    // Méta-données de recherche
+    searchMeta: searchData ? {
+      total: searchData.total,
+      page: searchData.page,
+      limit: searchData.limit,
+      hasMore: searchData.hasMore,
+      availableFilters: searchData.filters
+    } : null,
+    
+    // États des mutations
+    isCreatingReservation: createReservationMutation.isPending,
+    isExtendingReservation: extendReservationMutation.isPending,
+    isCancellingReservation: cancelReservationMutation.isPending,
+    isAccessingBox: accessBoxMutation.isPending,
   };
 }

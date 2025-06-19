@@ -49,7 +49,7 @@ interface DashboardStatsWidgetProps {
 export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
   const [timeframe, setTimeframe] = useState<"week" | "month" | "year">("month");
 
-  // Récupération des vraies données depuis l'API
+  // Récupération des statistiques du dashboard
   const { data: stats, isLoading, error } = api.client.dashboard.getStats.useQuery(
     { timeframe },
     {
@@ -133,7 +133,7 @@ export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
     );
   }
 
-  if (!stats || stats.length === 0) {
+  if (!stats || !Array.isArray(stats) || stats.length === 0) {
     return (
       <div className={cn("space-y-6", className)}>
         <Card>
@@ -172,7 +172,7 @@ export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
 
       {/* Grille des statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((stat) => {
+        {Array.isArray(stats) && stats.map((stat) => {
           const ChangeIcon = getChangeIcon(stat.changeType);
           const changeColor = getChangeColor(stat.changeType);
           const IconComponent = iconMap[stat.icon as keyof typeof iconMap] || Package;

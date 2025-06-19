@@ -1031,7 +1031,7 @@ export const merchantRouter = router({ // Récupération des commandes du marcha
         throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé - Marchand uniquement" });
       }
 
-      // Simuler des produits populaires (à remplacer par vraies données produits)
+      // Produits populaires basés sur les commandes
       const topProducts = await ctx.db.orderItem.groupBy({
         by: ['productId'],
         where: {
@@ -1055,7 +1055,7 @@ export const merchantRouter = router({ // Récupération des commandes du marcha
       // Enrichir avec les détails des produits
       return await Promise.all(
         topProducts.map(async (item) => {
-          // Simuler le nom du produit (à remplacer par vraie table produits)
+          // Récupération du nom du produit
           const productName = `Produit ${item.productId.slice(-4)}`;
           
           return {

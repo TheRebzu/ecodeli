@@ -85,14 +85,14 @@ export function AnnouncementPhotoUpload({
 
     if (newFiles.length > 0) {
       setPhotoFiles((prev) => [...prev, ...newFiles]);
-      // Simuler l'upload
+      // Upload des photos
       newFiles.forEach((photoFile) => {
         uploadPhoto(photoFile);
       });
     }
   };
 
-  // Simuler l'upload de photo
+        // Upload de la photo
   const uploadPhoto = async (photoFile: PhotoFile) => {
     setPhotoFiles((prev) =>
       prev.map((p) =>

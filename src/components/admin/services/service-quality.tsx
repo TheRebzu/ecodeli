@@ -91,7 +91,7 @@ export default function ServiceQuality() {
     },
   });
 
-  // Données réelles via tRPC (fini les mocks)
+  // Récupération des données de qualité des services
   const validMetrics: QualityMetric[] = qualityMetrics || [];
 
   const validActions: QualityAction[] = qualityActions || [];

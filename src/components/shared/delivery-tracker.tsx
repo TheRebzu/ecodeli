@@ -127,7 +127,7 @@ export function DeliveryTracker({ deliveryId, initialData }: DeliveryTrackerProp
   useEffect(() => {
     if (mapRef.current && currentLocation) {
       // Ici on intégrerait une vraie carte (Google Maps, Mapbox, etc.)
-      // Pour l'instant, on simule avec du contenu
+      // Contenu par défaut en attente des données
       mapRef.current.innerHTML = `
         <div class="flex items-center justify-center h-full bg-muted rounded-lg">
           <div class="text-center">

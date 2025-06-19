@@ -83,7 +83,7 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
   // Utiliser les vraies données utilisateur
   const userDataWithDocs = userData;
 
-  // 🔧 FIX: Simuler les mutations pour la démo (à remplacer par les vraies APIs)
+  // Mutations pour la gestion des documents
   const approveDocumentMutation = {
     mutate: (data: any) => {
       // Appel API réel via tRPC

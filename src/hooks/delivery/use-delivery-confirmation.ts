@@ -175,7 +175,7 @@ export function useDeliveryConfirmation(deliveryId?: string) {
         await fetchDeliveryDetails();
 
         // Rediriger après un court délai
-        // Appel API réel via tRPC
+        // Confirmation de livraison via API
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Erreur inconnue";

@@ -67,7 +67,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "// === ANALYSE ===": "",
-    "analyze": "cross-env ANALYZE=true pnpm build",
+    "analyze": "ANALYZE=true npm run build",
     "analyze:bundle": "ANALYZE=true next build",
     "analyze:deps": "tsx scripts/diagnostics/analyze-dependencies.ts",
     "check:circular": "madge --circular --extensions ts,tsx src/",
@@ -134,8 +134,7 @@
     "// === API DOCUMENTATION ====": "",
     "docs:api:generate": "tsx scripts/add-api-docs.ts",
     "docs:api:check": "curl -s http://localhost:3000/api/openapi | jq '.paths | length'",
-    "docs:api:open": "open http://localhost:3000/fr/developers/api-docs",
-    "build:analyze": "ANALYZE=true npm run build"
+    "docs:api:open": "open http://localhost:3000/fr/developers/api-docs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.1",

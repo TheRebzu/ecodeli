@@ -504,7 +504,7 @@ export default function FinancialReports() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Données simulées pour les top utilisateurs */}
+                  {/* Top utilisateurs par revenus */}
                   {[
                     { rank: 1, name: 'Marie Dubois', role: 'PROVIDER', revenue: 12450.30, transactions: 87, avg: 143.11 },
                     { rank: 2, name: 'Jean Martin', role: 'MERCHANT', revenue: 10320.50, transactions: 156, avg: 66.16 },

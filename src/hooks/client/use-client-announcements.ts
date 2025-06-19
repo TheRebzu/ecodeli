@@ -5,121 +5,160 @@ import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslations } from "next-intl";
-import type { AnnouncementWithDetails } from "@/types/announcements/announcement-with-details";
-
-interface AnnouncementFilter {
-  limit?: number;
-  page?: number;
-  status?: string[];
-  search?: string;
-  location?: {
-    latitude: number;
-    longitude: number;
-    radius: number;
-  };
-}
+import { 
+  type ClientAnnouncement, 
+  type AnnouncementFilters,
+  type CreateAnnouncementData,
+  type UpdateAnnouncementData 
+} from "@/types/client/announcements";
 
 interface UseClientAnnouncementsProps {
-  initialFilter?: AnnouncementFilter;
+  initialFilter?: AnnouncementFilters;
 }
 
 export function useClientAnnouncements({
-  initialFilter = { limit: 10, page: 1 }}: UseClientAnnouncementsProps = {}) {
+  initialFilter = {}
+}: UseClientAnnouncementsProps = {}) {
   const router = useRouter();
   const { toast } = useToast();
   const t = useTranslations("announcements");
 
-  const [filter, setFilter] = useState<AnnouncementFilter>(initialFilter);
-  const [myAnnouncements, setMyAnnouncements] = useState<
-    AnnouncementWithDetails[]
-  >([]);
+  const [filter, setFilter] = useState<AnnouncementFilters>(initialFilter);
+  const [myAnnouncements, setMyAnnouncements] = useState<ClientAnnouncement[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Récupérer mes annonces
+  // Récupérer mes annonces avec filtres
   const {
     data: myAnnouncementsData,
     isLoading: isLoadingMy,
-    refetch: refetchMy} = api.client.clientAnnouncements.getMyAnnouncements.useQuery(filter);
+    error: apiError,
+    refetch: refetchMy
+  } = api.clientAnnouncements.getMyAnnouncements.useQuery(filter, {
+    staleTime: 30000, // 30 secondes
+    refetchOnWindowFocus: false,
+  });
 
-  // Récupérer mes annonces actives
-  const {
-    data: activeAnnouncementsData,
-    isLoading: isLoadingActive,
-    refetch: refetchActive} = api.client.clientAnnouncements.getActiveAnnouncements.useQuery();
-
-  // Récupérer l'historique
-  const {
-    data: historyData,
-    isLoading: isLoadingHistory,
-    refetch: refetchHistory} = api.client.clientAnnouncements.getAnnouncementHistory.useQuery();
-
-  const isLoading = isLoadingMy || isLoadingActive || isLoadingHistory;
+  const isLoading = isLoadingMy;
 
   // Mutations
-  const deleteAnnouncementMutation =
-    api.client.clientAnnouncements.deleteAnnouncement.useMutation({ onSuccess: () => {
-        toast({
-          title: t("deleteSuccess"),
-          description: t("announcementDeleted") });
-        refetchMy();
-        refetchActive();
-      },
-      onError: (error) => {
-        toast({ title: t("deleteError"),
-          description: error.message,
-          variant: "destructive" });
-      }});
-
-  // Actions
-  const fetchMyAnnouncements = useCallback(
-    async (page?: number) => {
-      try {
-        setError(null);
-        const newFilter = page ? { ...filter, page } : filter;
-        setFilter(newFilter);
-        await refetchMy();
-      } catch (error) {
-        setError("Erreur lors du chargement des annonces");
-      }
+  const createAnnouncementMutation = api.clientAnnouncements.createAnnouncement.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Annonce créée avec succès",
+      });
+      refetchMy();
     },
-    [filter, refetchMy],
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+      setError(error.message);
+    },
+  });
+
+  const updateAnnouncementMutation = api.clientAnnouncements.updateAnnouncement.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Annonce mise à jour avec succès",
+      });
+      refetchMy();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+      setError(error.message);
+    },
+  });
+
+  const cancelAnnouncementMutation = api.clientAnnouncements.cancelAnnouncement.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Annonce annulée avec succès",
+      });
+      refetchMy();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+      setError(error.message);
+    },
+  });
+
+  const acceptProposalMutation = api.clientAnnouncements.acceptProposal.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Proposition acceptée avec succès",
+      });
+      refetchMy();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+      setError(error.message);
+    },
+  });
+
+  // Actions avec gestion d'erreur unifiée
+  const createAnnouncement = useCallback(
+    async (data: CreateAnnouncementData) => {
+      setError(null);
+      return await createAnnouncementMutation.mutateAsync(data);
+    },
+    [createAnnouncementMutation],
   );
 
-  const fetchActiveAnnouncements = useCallback(async () => {
-    try {
+  const updateAnnouncement = useCallback(
+    async (data: UpdateAnnouncementData) => {
       setError(null);
-      await refetchActive();
-      if (activeAnnouncementsData) {
-        setMyAnnouncements(activeAnnouncementsData);
-      }
-    } catch (error) {
-      setError("Erreur lors du chargement des annonces actives");
-    }
-  }, [refetchActive, activeAnnouncementsData]);
-
-  const fetchAnnouncementHistory = useCallback(async () => {
-    try {
-      setError(null);
-      await refetchHistory();
-      if (historyData) {
-        setMyAnnouncements(historyData);
-      }
-    } catch (error) {
-      setError("Erreur lors du chargement de l'historique");
-    }
-  }, [refetchHistory, historyData]);
-
-  const deleteAnnouncement = useCallback(
-    async (announcementId: string) => {
-      await deleteAnnouncementMutation.mutateAsync({ announcementId  });
+      return await updateAnnouncementMutation.mutateAsync(data);
     },
-    [deleteAnnouncementMutation],
+    [updateAnnouncementMutation],
+  );
+
+  const cancelAnnouncement = useCallback(
+    async (announcementId: string) => {
+      setError(null);
+      return await cancelAnnouncementMutation.mutateAsync({ announcementId });
+    },
+    [cancelAnnouncementMutation],
+  );
+
+  const acceptProposal = useCallback(
+    async (proposalId: string) => {
+      setError(null);
+      return await acceptProposalMutation.mutateAsync({ proposalId });
+    },
+    [acceptProposalMutation],
+  );
+
+  const updateFilter = useCallback(
+    (newFilter: Partial<AnnouncementFilters>) => {
+      setError(null);
+      setFilter(prev => ({ ...prev, ...newFilter }));
+    },
+    [],
   );
 
   const resetError = useCallback(() => {
     setError(null);
   }, []);
 
+  // Navigation helpers
   const navigateToAnnouncement = useCallback(
     (announcementId: string) => {
       router.push(`/client/announcements/${announcementId}`);
@@ -148,41 +187,51 @@ export function useClientAnnouncements({
     [router],
   );
 
+  // Gestion des erreurs centralisée
+  React.useEffect(() => {
+    if (apiError) {
+      setError(apiError.message);
+    }
+  }, [apiError]);
+
   // Mettre à jour les annonces selon les données reçues
   React.useEffect(() => {
-    if (myAnnouncementsData) {
-      setMyAnnouncements(myAnnouncementsData);
+    if (myAnnouncementsData?.announcements) {
+      setMyAnnouncements(myAnnouncementsData.announcements);
     }
   }, [myAnnouncementsData]);
 
   return {
     // Data
-    myAnnouncements,
+    announcements: myAnnouncements,
+    total: myAnnouncementsData?.total || 0,
+    hasMore: myAnnouncementsData?.hasMore || false,
+    stats: myAnnouncementsData?.stats,
     filter,
 
     // Loading states
     isLoading,
-    isLoadingMy,
-    isLoadingActive,
-    isLoadingHistory,
+    isCreating: createAnnouncementMutation.isPending,
+    isUpdating: updateAnnouncementMutation.isPending,
+    isCanceling: cancelAnnouncementMutation.isPending,
+    isAcceptingProposal: acceptProposalMutation.isPending,
 
     // Error state
     error,
 
     // Actions
-    fetchMyAnnouncements,
-    fetchActiveAnnouncements,
-    fetchAnnouncementHistory,
-    deleteAnnouncement,
+    createAnnouncement,
+    updateAnnouncement,
+    cancelAnnouncement,
+    acceptProposal,
+    updateFilter,
     resetError,
-    setFilter,
+    refetch: refetchMy,
 
     // Navigation
     navigateToAnnouncement,
     navigateToEdit,
     navigateToTracking,
     navigateToPayment,
-
-    // Mutations
-    isDeleting: deleteAnnouncementMutation.isPending};
+  };
 }

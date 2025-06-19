@@ -1178,7 +1178,7 @@ export const invoiceService = {
     period: { start: Date; end: Date },
     userType: "MERCHANT" | "PROVIDER" | "DELIVERER",
   ) {
-    // Calculer les vraies données basées sur l'activité
+    // Calcul des données basées sur l'activité
     switch (userType) {
       case "MERCHANT":
         return await this.calculateMerchantData(user, period);
@@ -1192,7 +1192,7 @@ export const invoiceService = {
   },
 
   /**
-   * Calcule les données réelles pour un marchand
+   * Calcule les données financières pour un marchand
    * @private
    */
   async calculateMerchantData(user: any, period: { start: Date; end: Date }) {
@@ -1234,7 +1234,7 @@ export const invoiceService = {
   },
 
   /**
-   * Calcule les données réelles pour un prestataire
+   * Calcule les données financières pour un prestataire
    * @private
    */
   async calculateProviderData(user: any, period: { start: Date; end: Date }) {
@@ -1268,7 +1268,7 @@ export const invoiceService = {
   },
 
   /**
-   * Calcule les données réelles pour un livreur
+   * Calcule les données financières pour un livreur
    * @private
    */
   async calculateDelivererData(user: any, period: { start: Date; end: Date }) {
@@ -1364,7 +1364,7 @@ export const invoiceService = {
     baseWhere: any,
     groupBy: "DAY" | "WEEK" | "MONTH",
   ) {
-    // Générer des données réelles basées sur les factures existantes
+    // Génération des données basées sur les factures existantes
     const invoices = await db.invoice.findMany({
       where: baseWhere,
       select: {

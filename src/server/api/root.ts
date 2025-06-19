@@ -1,5 +1,5 @@
 import superjson from "superjson";
-import { router, createTRPCContext } from "./trpc";
+import { router, createTRPCContext, publicProcedure } from "./trpc";
 
 // Auth routers
 import { authRouter } from "./routers/auth/auth.router";
@@ -20,6 +20,7 @@ import { exportRouter } from "./routers/common/export.router";
 import { pdfRouter } from "./routers/common/pdf.router";
 import { i18nRouter } from "./routers/common/i18n.router";
 import { stripeStatusRouter } from "./routers/common/stripe-status.router";
+import { cloudServicesRouter } from "./routers/common/cloud-services.router";
 
 // Shared routers
 import { announcementRouter } from "./routers/shared/announcement.router";
@@ -100,7 +101,17 @@ export { createTRPCContext } from "./trpc";
 /**
  * Router API principal qui regroupe tous les autres routers.
  */
-export const appRouter = router({ // Auth
+export const appRouter = router({
+  // Health check simple
+  health: publicProcedure.query(async () => {
+    return {
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      version: "1.0.0"
+    };
+  }),
+
+  // Auth
   auth: authRouter,
   verification: verificationRouter,
 
@@ -121,6 +132,7 @@ export const appRouter = router({ // Auth
   pdf: pdfRouter,
   i18n: i18nRouter,
   stripeStatus: stripeStatusRouter,
+  cloudServices: cloudServicesRouter,
 
   // Shared
   announcement: announcementRouter,

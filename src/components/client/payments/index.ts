@@ -1,9 +1,16 @@
 /**
- * Index automatiquement généré pour C:\Users\Amine\WebstormProjects\ecodeli\src\components\client\payments
- * Généré le: 06/06/2025 13:30:09
+ * Index for client payments components
+ * Updated: 06/19/2025
  */
 
-// Exports des fichiers locaux
+// Main dashboard component
+export { ClientPaymentsDashboard } from "./client-payments-dashboard";
+
+// Core payment management components
+export { PaymentMethodManager } from "./payment-method-manager";
+export { WalletManager } from "./wallet-manager";
+
+// Legacy components
 export { ClientInvoiceList } from "./invoice-list";
 export { default as PaymentHistory } from "./payment-history";
 export * from "./payment-history";

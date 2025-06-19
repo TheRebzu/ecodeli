@@ -61,7 +61,7 @@ export class TwilioSMSService {
         this.isConfigured = false;
       }
     } else {
-      console.warn('⚠️ Configuration Twilio manquante - les SMS seront simulés');
+      console.warn('⚠️ Configuration Twilio manquante - les SMS sont désactivés');
       this.isConfigured = false;
     }
   }

@@ -15,7 +15,7 @@ const createPersonalServiceRequestSchema = z.object({ serviceType: z.nativeEnum(
 
   // Localisation
   location: z.object({
-    address: z.string().min(5).max(200),
+    address: z.string().min(5).max(200),TY
     city: z.string().min(2).max(100),
     postalCode: z.string().min(5).max(10),
     latitude: z.number().min(-90).max(90).optional(),

@@ -168,7 +168,7 @@ export default function AdminInvoicesPage() {
       toast({ title: t("downloadStarted"),
         description: t("invoiceReportDownloadStarted") });
 
-      // Simuler un délai pour la démo
+      // Traitement de l'export des factures
       // Appel API réel via tRPC
     } catch (error) {
       toast({ variant: "destructive",

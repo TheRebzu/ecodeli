@@ -486,7 +486,7 @@ export class ContractService {
         message: "Contrat non trouvé" });
     }
 
-    // Générer le PDF du contrat avec les vraies données
+    // Génération du PDF du contrat avec les données utilisateur
     const contractPdf = await generateContractPDF(contract);
 
     // Sauvegarder le PDF

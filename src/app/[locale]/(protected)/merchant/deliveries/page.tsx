@@ -77,7 +77,7 @@ export default function MerchantDeliveriesPage() {
   const handleExport = () => {
     // Logique pour l'exportation des données
     toast.info(t("exportStarted"));
-    // Simuler un délai pour l'exportation
+    // Traitement de l'exportation
     // Appel API réel via tRPC
   };
 

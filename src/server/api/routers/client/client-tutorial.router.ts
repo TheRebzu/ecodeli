@@ -39,7 +39,7 @@ export const clientTutorialRouter = router({ /**
       }
 
       // Vérifier si Mission 1 est complétée
-      // Pour le moment, simulons avec un champ sur le client
+      // Gestion du tutoriel client via le profil utilisateur
       const mission1Completed = client.tutorialMission1Completed ?? false;
       const mission1Progress = client.tutorialMission1Progress ?? 0;
 

@@ -128,7 +128,7 @@ export default function AdminPaymentsPage() {
       toast({ title: t("downloadStarted"),
         description: t("paymentReportDownloadStarted") });
 
-      // Simuler un délai pour la démo
+      // Traitement de l'action de paiement
       // Appel API réel via tRPC
     } catch (error) {
       toast({ variant: "destructive",

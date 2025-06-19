@@ -10,7 +10,7 @@ type LogLevel = "debug" | "info" | "warn" | "error";
  */
 const config = {
   // Niveau de log minimum à afficher
-  minLevel: (process.env.LOGLEVEL || "info") as LogLevel,
+  minLevel: (process.env.LOGLEVEL ?? "info") as LogLevel,
 
   // Activation/désactivation des logs selon l'environnement
   enabled:
@@ -39,7 +39,7 @@ const levels: Record<LogLevel, number> = {
  * Formate un message de log
  */
 function formatMessage(level: LogLevel, message: string, data?: any): string {
-  const timestamp = new Date().toLocaleTimeString([], { hour12 });
+  const timestamp = new Date().toLocaleTimeString([], { hour12: false });
   return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
 }
 
@@ -47,7 +47,9 @@ function formatMessage(level: LogLevel, message: string, data?: any): string {
  * Vérifier si un niveau de log doit être affiché
  */
 function shouldLog(level: LogLevel): boolean {
-  if (!config.enabled) return false;
+  if (!config.enabled) {
+    return false;
+  }
   return levels[level] >= levels[config.minLevel];
 }
 

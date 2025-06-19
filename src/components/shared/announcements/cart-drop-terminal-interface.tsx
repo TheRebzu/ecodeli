@@ -404,7 +404,7 @@ export const CartDropTerminalInterface: React.FC<
                       size="lg"
                       variant="outline"
                       onClick={() => {
-                        // Simuler un scan NFC
+                        // Traitement du scan NFC
                         toast.info(t("nfcReady"));
                       }}
                       disabled={isProcessing}

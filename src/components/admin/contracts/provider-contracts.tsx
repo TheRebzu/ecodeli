@@ -146,7 +146,7 @@ export default function ProviderContracts() {
     },
   });
 
-  // Données réelles via tRPC (fini les mocks)
+  // Récupération des données de contrats prestataires
   const validContracts: ProviderContract[] = contracts ?? [];
 
   const validMetrics: ContractMetrics = contractMetrics ?? {
