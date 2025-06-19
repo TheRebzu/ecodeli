@@ -74,17 +74,13 @@ export function EnvironmentalMetricsWidget({ className }: EnvironmentalMetricsWi
   const [timeframe, setTimeframe] = useState<"week" | "month" | "year">("month");
 
   // Récupération des vraies données environnementales depuis l'API
-  const { data: metrics, isLoading, error, refetch } = useQuery({
-    queryKey: ["client-environmental-metrics", timeframe],
-    queryFn: async () => {
-      const response = await api.client.dashboard.getEnvironmentalMetrics.query({
-        timeframe
-      });
-      return response;
-    },
-    refetchInterval: 300000, // Actualise toutes les 5 minutes
-    staleTime: 60000, // Données périmées après 1 minute
-  });
+  const { data: metrics, isLoading, error, refetch } = api.client.dashboard.getEnvironmentalMetrics.useQuery(
+    { timeframe },
+    {
+      refetchInterval: 300000, // Actualise toutes les 5 minutes
+      staleTime: 60000, // Données périmées après 1 minute
+    }
+  );
 
   const getEcoLevelColor = (level: string) => {
     switch (level.toLowerCase()) {

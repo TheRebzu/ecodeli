@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -26,22 +25,22 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/common";
 import { api } from "@/trpc/react";
+import { type DashboardStat } from "@/types/client/dashboard";
 
-interface DashboardStat {
-  id: string;
-  title: string;
-  value: string | number;
-  previousValue?: string | number;
-  change?: number;
-  changeType: "increase" | "decrease" | "neutral";
-  trend: Array<{ period: string; value: number }>;
-  unit?: string;
-  goal?: number;
-  icon: any;
-  color: string;
-  bgColor: string;
-  description?: string;
-}
+// Icon mapping helper
+const iconMap = {
+  Package,
+  Euro,
+  Calendar,
+  Truck,
+  Leaf,
+  Award,
+  Target,
+  Activity,
+  ShoppingBag,
+  CreditCard,
+  BarChart3,
+};
 
 interface DashboardStatsWidgetProps {
   className?: string;
@@ -51,15 +50,13 @@ export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
   const [timeframe, setTimeframe] = useState<"week" | "month" | "year">("month");
 
   // Récupération des vraies données depuis l'API
-  const { data: stats, isLoading, error } = useQuery({
-    queryKey: ["client-dashboard-stats", timeframe],
-    queryFn: async () => {
-      const response = await api.client.dashboard.getStats.query({ timeframe });
-      return response;
-    },
-    refetchInterval: 60000, // Actualise chaque minute
-    staleTime: 30000, // Considère les données comme périmées après 30s
-  });
+  const { data: stats, isLoading, error } = api.client.dashboard.getStats.useQuery(
+    { timeframe },
+    {
+      refetchInterval: 60000, // Actualise chaque minute
+      staleTime: 30000, // Considère les données comme périmées après 30s
+    }
+  );
 
   const getChangeIcon = (changeType: DashboardStat["changeType"]) => {
     switch (changeType) {
@@ -83,10 +80,10 @@ export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
     }
   };
 
-  const formatValue = (value: string | number, unit?: string) => {
-    if (typeof value === "string") return value;
+  const formatValue = (value: number, unit?: string) => {
     if (unit === "€") return `${value.toFixed(2)}€`;
     if (unit === "kg") return `${value}kg`;
+    if (unit === "pts") return `${value} pts`;
     return value.toString();
   };
 
@@ -178,11 +175,8 @@ export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
         {stats.map((stat) => {
           const ChangeIcon = getChangeIcon(stat.changeType);
           const changeColor = getChangeColor(stat.changeType);
-          const IconComponent = stat.icon;
-          const progress = calculateProgress(
-            typeof stat.value === "number" ? stat.value : 0,
-            stat.goal
-          );
+          const IconComponent = iconMap[stat.icon as keyof typeof iconMap] || Package;
+          const progress = calculateProgress(stat.value, 0);
 
           return (
             <Card key={stat.id} className="overflow-hidden">
@@ -218,13 +212,13 @@ export function DashboardStatsWidget({ className }: DashboardStatsWidgetProps) {
                   )}
                 </div>
 
-                {/* Barre de progression pour les objectifs */}
-                {stat.goal && typeof stat.value === "number" && (
+                {/* Barre de progression pour les objectifs - temporairement désactivée */}
+                {false && (
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Objectif</span>
                       <span className="font-medium">
-                        {formatValue(stat.goal, stat.unit)}
+                        {/* Goal formatting */}
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">

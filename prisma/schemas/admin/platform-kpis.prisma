@@ -114,6 +114,9 @@ model MultiSiteStats {
   // Métadonnées
   calculatedAt         DateTime         @default(now())
   createdAt            DateTime         @default(now())
+  
+  // Relations
+  warehouse            Warehouse?       @relation(fields: [siteType], references: [siteCode])
 
   @@index([siteType])
   @@index([periodStart, periodEnd])

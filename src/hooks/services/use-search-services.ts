@@ -25,10 +25,11 @@ export function useSearchServices() {
   const categoriesQuery = api.service.getCategories.useQuery();
 
   // Rechercher des services avec les paramètres de recherche
-  const searchQuery = api.service.searchServices.useQuery(
+  const searchQuery = api.clientServices.searchServices.useQuery(
     searchParams || {
       page: 1,
-      limit: 10},
+      limit: 10,
+    }
   );
 
   // Fonction pour effectuer une recherche avec les valeurs du formulaire

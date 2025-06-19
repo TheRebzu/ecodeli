@@ -20,6 +20,9 @@ const OUTPUT_SCHEMA = path.resolve(process.cwd(), "prisma/schema.prisma");
 const DOMAIN_ORDER = [
   "shared", // Enums partagés (dépendance zéro)
   "users", // Modèles utilisateur (dépendance fondamentale)
+  "client", // Modèles spécifiques clients
+  "merchant", // Modèles spécifiques marchands
+  "provider", // Modèles spécifiques prestataires
   "deliveries", // Dépend de users
   "services", // Dépend de users
   "appointments", // Dépend de users et services

@@ -102,6 +102,8 @@ export const announcementRouter = router({ // Récupération de toutes les annon
       }
 
       try {
+        console.log('🔍 Données reçues pour création d\'annonce:', JSON.stringify(input, null, 2));
+        
         const announcement = await ctx.db.announcement.create({
           data: {
             title: input.title,
@@ -139,11 +141,29 @@ export const announcementRouter = router({ // Récupération de toutes les annon
             requiresId: input.requiresId,
             clientId: input.clientId}});
 
+        console.log('✅ Annonce créée avec succès:', announcement.id);
         return announcement;
       } catch (error) {
-        console.error("Erreur lors de la création de l'annonce:", error);
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
-          message: "Une erreur est survenue lors de la création de l'annonce" });
+        console.error("❌ Erreur détaillée lors de la création de l'annonce:", {
+          message: error instanceof Error ? error.message : error,
+          input: JSON.stringify(input, null, 2),
+          stack: error instanceof Error ? error.stack : 'No stack trace'
+        });
+        
+        // Erreur de validation Prisma
+        if (error instanceof Error && error.message.includes('Prisma')) {
+          throw new TRPCError({ 
+            code: "BAD_REQUEST",
+            message: `Erreur de validation des données: ${error.message}`,
+            cause: error 
+          });
+        }
+        
+        throw new TRPCError({ 
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Une erreur est survenue lors de la création de l'annonce",
+          cause: error 
+        });
       }
     }),
 

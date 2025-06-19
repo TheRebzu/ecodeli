@@ -1,14 +1,6 @@
 // ===== MODÈLES TUTORIEL PREMIÈRE CONNEXION CLIENTS =====
 // Ce fichier contient les modèles pour le système de tutoriel bloquant step-by-step selon le cahier des charges
 
-/// Statut de tutoriel
-enum TutorialStatus {
-  NOT_STARTED    // Pas encore commencé
-  IN_PROGRESS    // En cours
-  COMPLETED      // Terminé
-  SKIPPED        // Ignoré (utilisateur expérimenté)
-}
-
 /// Type d'étape de tutoriel
 enum TutorialStepType {
   OVERLAY        // Overlay bloquant avec explication
@@ -61,6 +53,8 @@ model ClientTutorialConfig {
   
   // Étapes du tutoriel
   tutorialSteps     ClientTutorialStep[]
+  tutorialProgresses ClientTutorialProgress[]
+  analytics         TutorialAnalytics[]
 
   @@index([isEnabled])
   @@index([version])
@@ -132,6 +126,7 @@ model ClientTutorialStep {
   
   // Progressions des utilisateurs sur cette étape
   userProgresses    ClientTutorialProgress[]
+  stepProgresses    ClientTutorialStepProgress[]
 
   @@unique([configId, stepOrder])
   @@index([configId, stepOrder])
@@ -148,7 +143,7 @@ model ClientTutorialProgress {
   currentStepId     String?            // Étape actuelle
   
   // Statut global
-  status            TutorialStatus     @default(NOT_STARTED)
+  status            ProgressStatus     @default(NOT_STARTED)
   completionRate    Float              @default(0) // Pourcentage de completion (0-100)
   
   // Progression
@@ -181,7 +176,7 @@ model ClientTutorialProgress {
   
   // Relations
   user              User               @relation("ClientTutorialUser", fields: [userId], references: [id], onDelete: Cascade)
-  config            ClientTutorialConfig @relation("ClientTutorialConfig", fields: [configId], references: [id], onDelete: Cascade)
+  config            ClientTutorialConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
   currentStep       ClientTutorialStep? @relation(fields: [currentStepId], references: [id])
   
   // Détails des étapes
@@ -286,7 +281,7 @@ model TutorialAnalytics {
   createdAt         DateTime  @default(now())
   
   // Relations
-  config            ClientTutorialConfig @relation("TutorialAnalytics", fields: [configId], references: [id], onDelete: Cascade)
+  config            ClientTutorialConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
 
   @@index([configId])
   @@index([periodStart, periodEnd])

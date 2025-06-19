@@ -1,9 +1,21 @@
-import { io, Socket } from "socket.io-client";
+/**
+ * 🔧 EcoDeli - Client Socket.IO corrigé
+ * ====================================
+ * 
+ * Client Socket.IO compatible avec Next.js App Router selon le workflow EcoDeli Mission 1 :
+ * - Connexion au port 3001 (serveur Socket.IO dédié)
+ * - Authentification avec NextAuth
+ * - Gestion des erreurs de connexion
+ * - Reconnexion automatique
+ */
+
+import { io, Socket } from 'socket.io-client';
 import { toast } from "@/components/ui/use-toast";
 
 let socket: Socket | null = null;
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 5;
+let connectionAttempts = 0;
+const MAX_RETRY_ATTEMPTS = 5;
+const RETRY_DELAY = 2000; // 2 secondes
 
 export interface RealTimeNotification {
   id: string;
@@ -32,385 +44,266 @@ export interface DeliveryUpdate {
 }
 
 /**
- * Initialize the socket connection with enhanced real-time features
- * @param token - User authentication token
- * @param userId - User ID for targeted notifications
- * @param userRole - User role for filtering events
- * @returns The socket instance
+ * Configuration Socket.IO
  */
-export const initializeSocket = (
-  token: string, 
-  userId: string, 
-  userRole: string
-): Socket => {
-  if (socket?.connected) return socket;
+const SOCKET_CONFIG = {
+  // Connexion au serveur Socket.IO dédié (port 3001)
+  url: process.env.NEXT_PUBLIC_SOCKET_URL ?? 'http://localhost:3001',
+  options: {
+    transports: ['polling', 'websocket'],
+    timeout: 20000,
+    forceNew: false,
+    reconnection: true,
+    reconnectionAttempts: MAX_RETRY_ATTEMPTS,
+    reconnectionDelay: RETRY_DELAY,
+    maxReconnectionAttempts: MAX_RETRY_ATTEMPTS,
+    path: '/socket.io',
+    autoConnect: false,
+  }
+};
 
-  // Configuration unifiée de l'URL
-  const socketUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+/**
+ * Initialise la connexion Socket.IO avec authentification
+ */
+export function initializeSocket(token: string, userId: string, role: string): Socket {
+  if (socket?.connected) {
+    console.log('🔌 Socket.IO déjà connecté');
+    return socket;
+  }
 
-  socket = io(socketUrl, {
-    path: '/socket.io/',
+  try {
+    console.log('🔌 Initialisation Socket.IO...', {
+      url: SOCKET_CONFIG.url,
+      userId,
+      role
+    });
+
+    // Créer la connexion avec l'authentification
+    socket = io(SOCKET_CONFIG.url, {
+      ...SOCKET_CONFIG.options,
     auth: { 
       token,
       userId,
-      role: userRole
-    },
-    autoConnect: true,
-    reconnection: true,
-    reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    timeout: 20000,
-    transports: ['websocket', 'polling']
-  });
-
-  // Événements de connexion
-  socket.on("connect", () => {
-    console.log(`🔌 Socket connecté - ID: ${socket?.id}`);
-    reconnectAttempts = 0;
-    
-    // Rejoindre les rooms appropriées
-    socket?.emit("join-user-room", userId);
-    socket?.emit("join-role-room", userRole.toLowerCase());
-    
-    // Notification de reconnexion si ce n'est pas la première connexion
-    if (reconnectAttempts > 0) {
-      toast({
-        title: "✅ Connexion rétablie",
-        description: "Les notifications temps réel sont actives",
-        duration: 3000,
-      });
-    }
-  });
-
-  socket.on("disconnect", (reason) => {
-    console.log(`🔌 Socket déconnecté - Raison: ${reason}`);
-    
-    if (reason === "io server disconnect") {
-      // Reconnexion forcée par le serveur
-      socket?.connect();
-    }
-  });
-
-  socket.on("connect_error", (error) => {
-    console.error("❌ Erreur de connexion Socket:", error);
-    reconnectAttempts++;
-    
-    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-      toast({
-        title: "⚠️ Problème de connexion",
-        description: "Les notifications temps réel peuvent être retardées",
-        variant: "destructive",
-        duration: 5000,
-      });
-    }
-  });
-
-  socket.on("reconnect", (attemptNumber) => {
-    console.log(`🔄 Socket reconnecté après ${attemptNumber} tentatives`);
-    toast({
-      title: "✅ Connexion rétablie",
-      description: "Les notifications temps réel sont de nouveau actives",
-      duration: 3000,
-    });
-  });
-
-  // Événements de notifications temps réel
-  socket.on("notification", (notification: RealTimeNotification) => {
-    console.log("🔔 Notification temps réel reçue:", notification);
-    handleRealTimeNotification(notification);
-  });
-
-  socket.on("delivery-update", (update: DeliveryUpdate) => {
-    console.log("🚚 Mise à jour livraison:", update);
-    handleDeliveryUpdate(update);
-  });
-
-  socket.on("delivery-location", (data: {
-    deliveryId: string;
-    location: { latitude: number; longitude: number };
-    eta: string;
-    speed: number;
-  }) => {
-    console.log("📍 Position livreur mise à jour:", data);
-    handleLocationUpdate(data);
-  });
-
-  socket.on("announcement-match", (data: {
-    announcementId: string;
-    delivererId: string;
-    message: string;
-  }) => {
-    console.log("🎯 Correspondance annonce:", data);
-    handleAnnouncementMatch(data);
-  });
-
-  socket.on("system-alert", (alert: {
-    type: string;
-    title: string;
-    message: string;
-    priority: string;
-  }) => {
-    console.log("🚨 Alerte système:", alert);
-    handleSystemAlert(alert);
-  });
-
-  // Événements d'état en temps réel
-  socket.on("user-online", (data: { userId: string; role: string }) => {
-    console.log("👤 Utilisateur en ligne:", data);
-    handleUserOnline(data);
-  });
-
-  socket.on("user-offline", (data: { userId: string; role: string }) => {
-    console.log("👤 Utilisateur hors ligne:", data);
-    handleUserOffline(data);
-  });
-
-  return socket;
-};
-
-/**
- * Gérer les notifications temps réel reçues
- */
-function handleRealTimeNotification(notification: RealTimeNotification) {
-  // Afficher un toast pour les notifications importantes
-  if (notification.priority === "HIGH" || notification.priority === "URGENT") {
-    toast({
-      title: notification.title,
-      description: notification.message,
-      duration: notification.priority === "URGENT" ? 0 : 5000,
-      action: notification.actionUrl ? {
-        altText: "Voir",
-        onClick: () => window.location.href = notification.actionUrl!
-      } : undefined,
-    });
-  }
-
-  // Déclencher un événement personnalisé pour que les composants puissent l'écouter
-  const event = new CustomEvent("realtime-notification", {
-    detail: notification
-  });
-  window.dispatchEvent(event);
-
-  // Mettre à jour le badge de notifications
-  updateNotificationBadge();
-}
-
-/**
- * Gérer les mises à jour de livraison
- */
-function handleDeliveryUpdate(update: DeliveryUpdate) {
-  // Déclencher un événement pour le tracking de livraison
-  const event = new CustomEvent("delivery-update", {
-    detail: update
-  });
-  window.dispatchEvent(event);
-
-  // Toast pour les étapes importantes
-  const importantStatuses = ["PICKED_UP", "IN_TRANSIT", "NEARBY", "ARRIVED", "DELIVERED"];
-  if (importantStatuses.includes(update.status)) {
-    toast({
-      title: "📦 Livraison mise à jour",
-      description: update.message,
-      duration: 4000,
-    });
-  }
-}
-
-/**
- * Gérer les mises à jour de position GPS
- */
-function handleLocationUpdate(data: any) {
-  const event = new CustomEvent("delivery-location", {
-    detail: data
-  });
-  window.dispatchEvent(event);
-}
-
-/**
- * Gérer les correspondances d'annonces
- */
-function handleAnnouncementMatch(data: any) {
-  toast({
-    title: "🎯 Nouvelle opportunité",
-    description: data.message,
-    duration: 6000,
-    action: {
-      altText: "Voir l'annonce",
-      onClick: () => window.location.href = `/deliverer/announcements/${data.announcementId}`
-    },
-  });
-
-  const event = new CustomEvent("announcement-match", {
-    detail: data
-  });
-  window.dispatchEvent(event);
-}
-
-/**
- * Gérer les alertes système
- */
-function handleSystemAlert(alert: any) {
-  toast({
-    title: alert.title,
-    description: alert.message,
-    variant: alert.priority === "URGENT" ? "destructive" : "default",
-    duration: alert.priority === "URGENT" ? 0 : 7000,
-  });
-}
-
-/**
- * Gérer les utilisateurs en ligne
- */
-function handleUserOnline(data: any) {
-  const event = new CustomEvent("user-online", {
-    detail: data
-  });
-  window.dispatchEvent(event);
-}
-
-/**
- * Gérer les utilisateurs hors ligne
- */
-function handleUserOffline(data: any) {
-  const event = new CustomEvent("user-offline", {
-    detail: data
-  });
-  window.dispatchEvent(event);
-}
-
-/**
- * Mettre à jour le badge de notifications
- */
-function updateNotificationBadge() {
-  const event = new CustomEvent("update-notification-badge");
-  window.dispatchEvent(event);
-}
-
-/**
- * Send a typing indicator
- */
-export const sendTypingIndicator = (conversationId: string, isTyping: boolean) => {
-  if (socket?.connected) {
-    socket.emit("typing", { conversationId, isTyping });
-  }
-};
-
-/**
- * Join a specific conversation room
- */
-export const joinConversation = (conversationId: string) => {
-  if (socket?.connected) {
-    socket.emit("join-conversation", conversationId);
-  }
-};
-
-/**
- * Leave a conversation room
- */
-export const leaveConversation = (conversationId: string) => {
-  if (socket?.connected) {
-    socket.emit("leave-conversation", conversationId);
-  }
-};
-
-/**
- * Send a real-time location update (for deliverers)
- */
-export const sendLocationUpdate = (deliveryId: string, location: {
-  latitude: number;
-  longitude: number;
-  accuracy?: number;
-  speed?: number;
-  heading?: number;
-}) => {
-  if (socket?.connected) {
-    socket.emit("location-update", {
-      deliveryId,
-      location: {
-        ...location,
-        timestamp: new Date().toISOString()
+        role
       }
     });
-  }
-};
 
-/**
- * Update delivery status in real-time
- */
-export const updateDeliveryStatus = (deliveryId: string, status: string, data?: any) => {
-  if (socket?.connected) {
-    socket.emit("delivery-status-update", {
-      deliveryId,
-      status,
-      data,
-      timestamp: new Date().toISOString()
+    // === ÉVÉNEMENTS DE CONNEXION ===
+    
+    socket.on('connect', () => {
+      console.log('✅ Socket.IO connecté:', socket?.id);
+      connectionAttempts = 0;
     });
-  }
-};
 
-/**
- * Send live ETA updates
- */
-export const sendETAUpdate = (deliveryId: string, eta: {
-  estimatedMinutes: number;
-  estimatedArrival: string;
-  confidence: number;
-}) => {
-  if (socket?.connected) {
-    socket.emit("eta-update", {
-      deliveryId,
-      eta,
-      timestamp: new Date().toISOString()
+    socket.on('connect_error', (error) => {
+      console.error('❌ Erreur connexion Socket.IO:', error.message);
+      connectionAttempts++;
+      
+      if (connectionAttempts >= MAX_RETRY_ATTEMPTS) {
+        console.error(`❌ Échec connexion Socket.IO après ${MAX_RETRY_ATTEMPTS} tentatives`);
+        socket?.disconnect();
+      }
     });
-  }
-};
 
-/**
- * Get the current socket instance
- * @returns The current socket instance or null if not initialized
- */
-export const getSocket = (): Socket | null => socket;
+    socket.on('disconnect', (reason) => {
+      console.log('🔌 Socket.IO déconnecté:', reason);
+      
+      // Reconnexion automatique sauf si déconnexion manuelle
+      if (reason !== 'io client disconnect') {
+        console.log('🔄 Tentative de reconnexion...');
+      }
+    });
 
-/**
- * Check if socket is connected
- */
-export const isSocketConnected = (): boolean => {
-  return socket?.connected ?? false;
-};
+    socket.on('reconnect', (attemptNumber) => {
+      console.log(`✅ Socket.IO reconnecté après ${attemptNumber} tentative(s)`);
+      connectionAttempts = 0;
+    });
 
-/**
- * Force reconnection
- */
-export const reconnectSocket = (): void => {
-  if (socket) {
-    socket.disconnect();
+    socket.on('reconnect_failed', () => {
+      console.error('❌ Échec de toutes les tentatives de reconnexion Socket.IO');
+    });
+
+    // === ÉVÉNEMENTS MÉTIER ===
+    
+    // Notifications temps réel
+    socket.on('realtime-notification', (notification) => {
+      console.log('📱 Notification reçue:', notification);
+      // L'événement sera capturé par le SocketProvider
+    });
+
+    // Mises à jour de livraison
+    socket.on('delivery-location-update', (update) => {
+      console.log('📍 Position livreur mise à jour:', update);
+    });
+
+    socket.on('delivery-status-changed', (update) => {
+      console.log('📦 Statut livraison changé:', update);
+    });
+
+    socket.on('delivery-eta-update', (update) => {
+      console.log('⏰ ETA mise à jour:', update);
+    });
+
+    // Utilisateurs en ligne
+    socket.on('user-online', (data) => {
+      console.log('👤 Utilisateur en ligne:', data.userId);
+    });
+
+    socket.on('user-offline', (data) => {
+      console.log('👤 Utilisateur hors ligne:', data.userId);
+    });
+
+    // Messagerie
+    socket.on('user-typing', (data) => {
+      console.log('⌨️ Utilisateur tape:', data);
+    });
+
+    // === ÉVÉNEMENTS DE DEBUG ===
+    
+    socket.on('pong', () => {
+      console.log('🏓 Pong reçu du serveur');
+    });
+
+    // Démarrer la connexion
     socket.connect();
+
+    return socket;
+
+  } catch (error) {
+    console.error('❌ Erreur initialisation Socket.IO:', error);
+    throw error;
   }
-};
+}
 
 /**
- * Close the socket connection
+ * Vérifie si Socket.IO est connecté
  */
-export const closeSocket = (): void => {
+export function isSocketConnected(): boolean {
+  return socket?.connected ?? false;
+}
+
+/**
+ * Récupère l'instance Socket.IO
+ */
+export function getSocket(): Socket | null {
+  return socket;
+}
+
+/**
+ * Ferme la connexion Socket.IO
+ */
+export function closeSocket(): void {
   if (socket) {
+    console.log('🔌 Fermeture connexion Socket.IO');
     socket.disconnect();
     socket = null;
   }
-};
+}
 
 /**
- * Listen to custom events for components
+ * Émet un ping vers le serveur
  */
-export const onRealTimeEvent = (eventType: string, callback: (data: any) => void) => {
-  window.addEventListener(eventType, (event: any) => {
-    callback(event.detail);
-  });
-};
+export function pingServer(): void {
+  if (socket?.connected) {
+    socket.emit('ping');
+  }
+}
 
 /**
- * Remove event listener
+ * === FONCTIONS UTILITAIRES POUR LES ÉVÉNEMENTS ===
  */
-export const offRealTimeEvent = (eventType: string, callback: (data: any) => void) => {
-  window.removeEventListener(eventType, callback);
-};
+
+// Gestion des événements temps réel génériques
+const eventHandlers = new Map<string, Set<Function>>();
+
+/**
+ * Ajoute un écouteur d'événement
+ */
+export function onRealTimeEvent(event: string, handler: Function): void {
+  if (!eventHandlers.has(event)) {
+    eventHandlers.set(event, new Set());
+  }
+  eventHandlers.get(event)!.add(handler);
+
+  // Écouter l'événement sur le socket si connecté
+  if (socket?.connected) {
+    socket.on(event, handler as any);
+  }
+}
+
+/**
+ * Retire un écouteur d'événement
+ */
+export function offRealTimeEvent(event: string, handler: Function): void {
+  const handlers = eventHandlers.get(event);
+  if (handlers) {
+    handlers.delete(handler);
+    
+    // Retirer l'écouteur du socket
+    if (socket) {
+      socket.off(event, handler as any);
+    }
+  }
+}
+
+/**
+ * === FONCTIONS MÉTIER SPÉCIFIQUES ===
+ */
+
+/**
+ * Rejoindre le suivi d'une livraison
+ */
+export function trackDelivery(deliveryId: string): void {
+  if (socket?.connected) {
+    console.log(`👀 Début du suivi de la livraison ${deliveryId}`);
+    socket.emit('track-delivery', deliveryId);
+  }
+}
+
+/**
+ * Arrêter le suivi d'une livraison
+ */
+export function stopTrackingDelivery(deliveryId: string): void {
+  if (socket?.connected) {
+    console.log(`🚫 Arrêt du suivi de la livraison ${deliveryId}`);
+    socket.emit('stop-tracking-delivery', deliveryId);
+  }
+}
+
+/**
+ * Marquer une notification comme lue
+ */
+export function markNotificationAsRead(notificationId: string): void {
+  if (socket?.connected) {
+    socket.emit('mark-notification-read', notificationId);
+  }
+}
+
+/**
+ * Rejoindre une conversation
+ */
+export function joinConversation(conversationId: string): void {
+  if (socket?.connected) {
+    console.log(`💬 Rejoindre la conversation ${conversationId}`);
+    socket.emit('join-conversation', conversationId);
+  }
+}
+
+/**
+ * Quitter une conversation
+ */
+export function leaveConversation(conversationId: string): void {
+  if (socket?.connected) {
+    console.log(`👋 Quitter la conversation ${conversationId}`);
+    socket.emit('leave-conversation', conversationId);
+  }
+}
+
+/**
+ * Envoyer un indicateur de frappe
+ */
+export function sendTypingIndicator(conversationId: string, isTyping: boolean): void {
+  if (socket?.connected) {
+    socket.emit('typing', { conversationId, isTyping });
+  }
+}

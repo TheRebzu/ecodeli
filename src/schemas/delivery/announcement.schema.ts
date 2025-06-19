@@ -16,6 +16,9 @@ export const AnnouncementStatusEnum = z.enum([
 
 export const AnnouncementTypeEnum = z.enum([
   "PACKAGE_DELIVERY",
+  "PARTIAL_DELIVERY",
+  "FINAL_DISTRIBUTION", 
+  "CART_DROP",
   "GROCERY_SHOPPING",
   "PERSON_TRANSPORT",
   "AIRPORT_TRANSFER",
@@ -68,9 +71,9 @@ const announcementBaseSchema = z.object({ title: z
   length: z.number().positive().optional(),
   isFragile: z.boolean().default(false),
   needsCooling: z.boolean().default(false),
-  pickupDate: z.string().datetime().optional(),
+  pickupDate: z.string().optional(),
   pickupTimeWindow: z.string().optional(),
-  deliveryDate: z.string().datetime().optional(),
+  deliveryDate: z.string().optional(),
   deliveryTimeWindow: z.string().optional(),
   isFlexible: z.boolean().default(false),
   suggestedPrice: z
@@ -149,8 +152,8 @@ export const searchAnnouncementSchema = z.object({ query: z.string().optional(),
   priority: AnnouncementPriorityEnum.optional(),
   pickupAddressSearch: z.string().optional(),
   deliveryAddressSearch: z.string().optional(),
-  fromDate: z.string().datetime().optional(),
-  toDate: z.string().datetime().optional(),
+  fromDate: z.string().optional(),
+  toDate: z.string().optional(),
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
   tags: z.array(z.string()).optional(),
@@ -177,8 +180,8 @@ export const assignDelivererSchema = z.object({ announcementId: z.string().cuid(
   notes: z.string().optional() });
 
 // Schéma pour les statistiques des annonces
-export const announcementStatsSchema = z.object({ startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+export const announcementStatsSchema = z.object({ startDate: z.string().optional(),
+  endDate: z.string().optional(),
   clientId: z.string().cuid("ID client invalide").optional(),
   delivererId: z.string().cuid("ID de livreur invalide").optional(),
   type: AnnouncementTypeEnum.optional() });

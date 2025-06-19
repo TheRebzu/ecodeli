@@ -7,10 +7,12 @@ import { TRPCError } from "@trpc/server";
  * Compatible avec MandatoryTutorialWrapper
  */
 
-// Schémas de validation
-const completeTutorialSchema = z.object({ tutorialType: z.enum(["MISSION_1"]),
-  completedSteps: z.number().min(1).max(10),
- });
+// Schémas de validation avec défauts pour éviter les erreurs undefined
+const completeTutorialSchema = z.object({ 
+  tutorialType: z.enum(["MISSION_1"]).default("MISSION_1"),
+  completedSteps: z.number().min(1).max(10).default(10),
+  skipped: z.boolean().optional().default(false), // Nouveau paramètre pour skip
+}).default({ tutorialType: "MISSION_1", completedSteps: 10, skipped: false });
 
 export const clientTutorialRouter = router({ /**
    * Obtenir le statut du tutoriel Mission 1
@@ -38,8 +40,8 @@ export const clientTutorialRouter = router({ /**
 
       // Vérifier si Mission 1 est complétée
       // Pour le moment, simulons avec un champ sur le client
-      const mission1Completed = client.tutorialMission1Completed || false;
-      const mission1Progress = client.tutorialMission1Progress || 0;
+      const mission1Completed = client.tutorialMission1Completed ?? false;
+      const mission1Progress = client.tutorialMission1Progress ?? 0;
 
       return {
         mission1Completed,
@@ -47,10 +49,13 @@ export const clientTutorialRouter = router({ /**
         canSkip: false, // Mission 1 est obligatoire
       };
     } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+      throw new TRPCError({ 
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la récupération du statut",
-       });
+      });
     }
   }),
 
@@ -94,10 +99,13 @@ export const clientTutorialRouter = router({ /**
           message: "Mission 1 complétée avec succès !",
         };
       } catch (error) {
-        if (error instanceof TRPCError) throw error;
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({ 
+          code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de la finalisation du tutoriel",
-         });
+        });
       }
     }),
 
@@ -139,10 +147,13 @@ export const clientTutorialRouter = router({ /**
         message: "Tutoriel réinitialisé avec succès",
       };
     } catch (error) {
-      if (error instanceof TRPCError) throw error;
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+      throw new TRPCError({ 
+        code: "INTERNAL_SERVER_ERROR",
         message: "Erreur lors de la réinitialisation",
-       });
+      });
     }
   }),
 });

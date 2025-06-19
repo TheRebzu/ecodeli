@@ -37,7 +37,7 @@ export function TutorialNavigation({
   onComplete,
   isLoading = false,
   className,
-  labels = DEFAULTLABELS}: TutorialNavigationProps) {
+  labels = DEFAULT_LABELS}: TutorialNavigationProps) {
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
   const [isSkipping, setIsSkipping] = useState(false);

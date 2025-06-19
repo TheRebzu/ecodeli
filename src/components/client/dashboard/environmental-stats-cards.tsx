@@ -27,7 +27,7 @@ const StatCardSkeleton = () => (
 export function EnvironmentalStatsCards() {
   // Récupérer les métriques environnementales réelles
   const { data: environmentalMetrics, isLoading, error } = 
-    api.client.getEnvironmentalMetrics.useQuery(undefined, {
+    api.client.legacyDashboard.getEnvironmentalMetrics.useQuery(undefined, {
       refetchInterval: 60000, // Actualise toutes les minutes
     });
 

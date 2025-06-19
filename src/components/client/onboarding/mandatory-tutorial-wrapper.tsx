@@ -36,59 +36,114 @@ export function MandatoryTutorialWrapper({
   children, 
   requireMission1 = true 
 }: MandatoryTutorialWrapperProps) {
-  const { data } = useSession();
+  const { data: session } = useSession();
   const { toast } = useToast();
   
+  // État de montage pour éviter les différences d'hydratation
+  const [isMounted, setIsMounted] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  
+  // État de session côté client uniquement après montage
+  const [sessionCompleted, setSessionCompleted] = useState(false);
+
+  // Effet pour marquer le composant comme monté et récupérer les données de session
+  useEffect(() => {
+    setIsMounted(true);
+    // Récupérer le statut de session uniquement côté client
+    const completed = sessionStorage.getItem('mission1_completed') === 'true';
+    setSessionCompleted(completed);
+  }, []);
 
   // Vérifier si l'utilisateur a complété Mission 1
   const { data: tutorialStatus, isLoading, refetch } = 
     api.clientTutorial.getTutorialStatus.useQuery(undefined, {
-      enabled: !!session?.user,
+      enabled: !!session?.user && isMounted,
     });
 
   // Mutation pour marquer le tutoriel comme complété
-  const completeTutorialMutation = api.clientTutorial.completeTutorial.useMutation({ onSuccess: () => {
+  const completeTutorialMutation = api.clientTutorial.completeTutorial.useMutation({
+    onSuccess: () => {
       setTutorialCompleted(true);
       setShowTutorial(false);
+      setIsCompleting(false);
+      
+      // Marquer comme complété dans la session (seulement si monté)
+      if (isMounted) {
+        sessionStorage.setItem('mission1_completed', 'true');
+        setSessionCompleted(true);
+      }
+      
       toast({
         title: "Mission 1 accomplie !",
         description: "Félicitations ! Vous avez maintenant accès à toutes les fonctionnalités.",
-       });
+      });
       refetch();
+      
+      // Recharger la page après un court délai pour s'assurer que la base de données est mise à jour
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     },
     onError: (error) => {
-      toast({ title: "Erreur",
+      toast({ 
+        title: "Erreur",
         description: error.message,
         variant: "destructive",
-       });
+      });
       setIsCompleting(false);
     },
   });
 
   useEffect(() => {
-    if (!isLoading && tutorialStatus && requireMission1) {
-      const hasCompletedMission1 = tutorialStatus.mission1Completed;
+    if (!isLoading && tutorialStatus && requireMission1 && isMounted) {
+      const hasCompletedMission1 = tutorialStatus.mission1Completed || sessionCompleted;
       
-      if (!hasCompletedMission1) {
+      if (!hasCompletedMission1 && !tutorialCompleted) {
         // Afficher immédiatement le tutoriel si Mission 1 n'est pas complétée
-        setShowTutorial(true);
+        // mais seulement si on n'a pas déjà montré le tutoriel
+        if (!showTutorial) {
+          setShowTutorial(true);
+        }
       } else {
         setTutorialCompleted(true);
       }
     }
-  }, [tutorialStatus, isLoading, requireMission1]);
+  }, [tutorialStatus, isLoading, requireMission1, tutorialCompleted, sessionCompleted, isMounted]);
 
   const handleCompleteTutorial = async () => {
+    // Protection renforcée contre les appels multiples
+    if (isCompleting || tutorialCompleted) {
+      console.log("🚫 APPEL BLOQUÉ - déjà en cours ou complété", { 
+        isCompleting, 
+        tutorialCompleted,
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+    
+    console.log("🚀 DÉMARRAGE completion tutoriel Mission 1", {
+      timestamp: new Date().toISOString(),
+      userId: session?.user?.id
+    });
+    
     setIsCompleting(true);
+    
     try {
-      await completeTutorialMutation.mutateAsync({ tutorialType: "MISSION_1",
+      const params = { 
+        tutorialType: "MISSION_1" as const,
         completedSteps: 10, // Nombre total d'étapes Mission 1
-       });
+      };
+      
+      console.log("📤 ENVOI mutation avec paramètres:", params);
+      
+      const result = await completeTutorialMutation.mutateAsync(params);
+      
+      console.log("✅ SUCCÈS - Tutoriel Mission 1 complété", result);
+      
     } catch (error) {
-      console.error("Erreur lors de la completion du tutoriel:", error);
+      console.error("❌ ERREUR lors de la completion du tutoriel:", error);
       setIsCompleting(false);
     }
   };
@@ -97,7 +152,51 @@ export function MandatoryTutorialWrapper({
     setShowTutorial(true);
   };
 
-  // Écran de chargement
+  // Fonction pour passer le tutoriel directement
+  const handleSkipTutorial = async () => {
+    if (isCompleting || tutorialCompleted) {
+      return;
+    }
+    
+    setIsCompleting(true);
+    
+    try {
+      const params = { 
+        tutorialType: "MISSION_1" as const,
+        completedSteps: 10, // Marquer toutes les étapes comme complétées
+        skipped: true, // Nouveau paramètre pour indiquer que c'est un skip
+      };
+      
+      await completeTutorialMutation.mutateAsync(params);
+      
+      // Marquer comme complété dans la session (seulement si monté)
+      if (isMounted) {
+        sessionStorage.setItem('mission1_completed', 'true');
+        setSessionCompleted(true);
+      }
+      
+      toast({
+        title: "Tutoriel ignoré",
+        description: "Vous pouvez toujours y accéder depuis les paramètres.",
+      });
+      
+      // Recharger la page après avoir sauté le tutoriel
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (error) {
+      console.error("❌ ERREUR lors du skip du tutoriel:", error);
+      setIsCompleting(false);
+    }
+  };
+
+  // Pas d'affichage conditionnel avant le montage pour éviter l'hydratation mismatch
+  if (!isMounted) {
+    return <>{children}</>;
+  }
+
+  // Écran de chargement (seulement après montage)
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-background flex items-center justify-center">
@@ -110,7 +209,7 @@ export function MandatoryTutorialWrapper({
   }
 
   // Si Mission 1 n'est pas requis ou est complété, afficher l'app normalement
-  if (!requireMission1 || tutorialCompleted || tutorialStatus?.mission1Completed) {
+  if (!requireMission1 || tutorialCompleted || tutorialStatus?.mission1Completed || sessionCompleted) {
     return <>{children}</>;
   }
 
@@ -192,9 +291,24 @@ export function MandatoryTutorialWrapper({
                 size="lg" 
                 onClick={handleStartTutorial}
                 className="flex items-center gap-2"
+                disabled={isCompleting}
               >
                 <BookOpen className="h-4 w-4" />
                 {tutorialStatus?.mission1Progress > 0 ? "Continuer Mission 1" : "Commencer Mission 1"}
+              </Button>
+              
+              <Button 
+                size="lg"
+                variant="outline"
+                onClick={handleSkipTutorial}
+                className="flex items-center gap-2"
+                disabled={isCompleting}
+              >
+                {isCompleting ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                ) : (
+                  <>Passer le tutoriel</>
+                )}
               </Button>
             </div>
 
@@ -212,10 +326,17 @@ export function MandatoryTutorialWrapper({
       </div>
 
       {/* Dialog du tutoriel */}
-      <Dialog open={showTutorial} onOpenChange={() => {}}>
+      <Dialog open={showTutorial} onOpenChange={(open) => {
+        // Empêcher la fermeture du dialog tant que le tutoriel n'est pas complété
+        if (!open && !tutorialCompleted) {
+          return;
+        }
+        setShowTutorial(open);
+      }}>
         <DialogContent 
           className="max-w-5xl max-h-[90vh] overflow-hidden"
-          hideCloseButton={true}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Mission 1 - Tutoriel EcoDeli</DialogTitle>

@@ -37,20 +37,20 @@ export default function CreateAnnouncementPage() {
 
   const { createAnnouncement } = useAnnouncement();
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (formData: any) => {
     try {
       setIsSubmitting(true);
       setError(null);
 
       // Vérifier que l'utilisateur est connecté
-      if (!session?.user?.id) {
+      if (!data?.user?.id) {
         throw new Error("Utilisateur non connecté");
       }
 
       // Ajouter l'ID du client connecté et les champs manquants
       const dataWithClientId: CreateAnnouncementInput = {
-        ...data,
-        clientId: session.user.id,
+        ...formData,
+        clientId: data.user.id,
         tags: [], // Ajouter tags vide par défaut
       };
 

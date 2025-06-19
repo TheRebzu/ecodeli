@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDescription, AlertTitle, Alert } from "@/components/ui/alert";
 import { useRoleProtection } from "@/hooks/auth/use-role-protection";
 import { Separator } from "@/components/ui/separator";
-import { type Announcement } from "@/types/announcements/announcement";
+import { type AnnouncementWithDetails, convertToAnnouncementCard } from "@/types/client/announcements";
 
 export default function ClientAnnouncementsPage() {
   useRoleProtection(["CLIENT"]);
@@ -59,37 +59,8 @@ export default function ClientAnnouncementsPage() {
     }
   };
 
-  // Adapter les données pour les composants
-  // Conversion du type AnnouncementWithDetails vers Announcement pour ClientStatusDashboard
-  const announcementsForDashboard = myAnnouncements.map((announcement) => {
-    return {
-      id: announcement.id,
-      title: announcement.title,
-      description: announcement.description,
-      type: announcement.type,
-      status: announcement.status,
-      priority: announcement.priority || "MEDIUM",
-      pickupAddress: announcement.pickupAddress,
-      deliveryAddress: announcement.deliveryAddress,
-      isFragile: announcement.isFragile || false,
-      needsCooling: announcement.needsCooling || false,
-      isFlexible: announcement.isFlexible || false,
-      isNegotiable: announcement.isNegotiable || false,
-      clientId: announcement.clientId,
-      client: announcement.client,
-      delivererId: announcement.delivererId,
-      deliverer: announcement.deliverer,
-      createdAt: announcement.createdAt,
-      updatedAt: announcement.updatedAt,
-      viewCount: announcement.viewCount || 0,
-      applicationsCount: announcement.applications?.length || 0,
-      tags: announcement.tags || [],
-      photos: announcement.photos || [],
-      requiresSignature: announcement.requiresSignature || false,
-      requiresId: announcement.requiresId || false,
-      isFavorite: announcement.isFavorite || false,
-      applications: announcement.applications} as Announcement;
-  });
+  // Les données sont déjà dans le bon format (AnnouncementWithDetails)
+  // Plus de conversion complexe nécessaire
 
   return (
     <div className="container py-6 space-y-6">
@@ -134,8 +105,8 @@ export default function ClientAnnouncementsPage() {
         </div>
       </div>
 
-      {/* Dashboard de statistiques - adapté aux types attendus */}
-      <ClientStatusDashboard announcements={announcementsForDashboard} />
+      {/* Dashboard de statistiques */}
+      <ClientStatusDashboard announcements={myAnnouncements} />
 
       <Separator className="my-6" />
 

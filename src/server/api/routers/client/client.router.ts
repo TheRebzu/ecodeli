@@ -10,6 +10,7 @@ import type { User, Client } from "@prisma/client";
 import { dashboardService } from "@/server/services/admin/dashboard.service";
 import { storageService } from "@/server/services/storage.service";
 import { serviceService } from "@/server/services/provider/provider-service.service";
+import { clientDashboardRouter } from "./client-dashboard.router";
 import { Prisma } from "@prisma/client";
 
 // Définir les interfaces pour les données récupérées de la base de données
@@ -42,10 +43,10 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
     const userId = ctx.session.user.id;
 
     const user = await ctx.db.user.findUnique({
-      where: { id },
-      include: { client }});
+      where: { id: userId },
+      include: { client: true }});
 
-    if (!user || !user.client) {
+    if (!user?.client) {
       throw new TRPCError({ code: "NOT_FOUND",
         message: "Profil client non trouvé" });
     }
@@ -76,8 +77,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
       // Vérifier si l'utilisateur est un client
       const user = await ctx.db.user.findUnique({
-        where: { id },
-        include: { client }});
+        where: { id: userId },
+        include: { client: true }});
 
       if (!user || !user.client) {
         throw new TRPCError({ code: "FORBIDDEN",
@@ -90,7 +91,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
       // Mise à jour des données utilisateur
       if (name || phoneNumber) {
         await ctx.db.user.update({
-          where: { id },
+          where: { id: userId },
           data: {
             name: name || undefined,
             phoneNumber: phoneNumber || undefined}});
@@ -105,8 +106,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
       // Récupération des données mises à jour
       const updatedUser = await ctx.db.user.findUnique({
-        where: { id },
-        include: { client }});
+        where: { id: userId },
+        include: { client: true }});
 
       return {
         id: updatedUser?.id,
@@ -125,8 +126,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
     // Vérifier si l'utilisateur est un client
     const user = await ctx.db.user.findUnique({
-      where: { id },
-      include: { client }});
+      where: { id: userId },
+      include: { client: true }});
 
     if (!user || !user.client) {
       throw new TRPCError({ code: "FORBIDDEN",
@@ -172,8 +173,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
     // Vérifier si l'utilisateur est un client
     const user = await ctx.db.user.findUnique({
-      where: { id },
-      include: { client }});
+      where: { id: userId },
+      include: { client: true }});
 
     if (!user || !user.client) {
       throw new TRPCError({ code: "FORBIDDEN",
@@ -210,8 +211,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
       // Vérifier si l'utilisateur est un client
       const user = await ctx.db.user.findUnique({
-        where: { id },
-        include: { client }});
+        where: { id: userId },
+        include: { client: true }});
 
       if (!user || !user.client) {
         throw new TRPCError({ code: "FORBIDDEN",
@@ -267,8 +268,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
     // Récupérer l'utilisateur client avec le contexte tRPC
     const user = await ctx.db.user.findUnique({
-      where: { id },
-      include: { client }});
+      where: { id: userId },
+      include: { client: true }});
 
     if (!user || !user.client) {
       throw new TRPCError({ code: "NOT_FOUND",
@@ -309,8 +310,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
     // Récupérer l'utilisateur client avec le contexte tRPC
     const user = await ctx.db.user.findUnique({
-      where: { id },
-      include: { client }});
+      where: { id: userId },
+      include: { client: true }});
 
     if (!user || !user.client) {
       throw new TRPCError({ code: "NOT_FOUND",
@@ -370,7 +371,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
     const [totalSpent, unpaidInvoices] = await Promise.all([
       ctx.db.payment.aggregate({
         where: { userId, status: "COMPLETED" },
-        sum: { amount }}),
+        _sum: { amount: true }}),
       ctx.db.invoice.findMany({
         where: { userId, status: "OVERDUE" }})]);
 
@@ -380,7 +381,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
     );
 
     return {
-      totalSpent: totalSpent.sum.amount?.toNumber() || 0,
+      totalSpent: totalSpent._sum.amount?.toNumber() || 0,
       unpaidAmount,
       unpaidInvoicesCount: unpaidInvoices.length};
   }),
@@ -391,8 +392,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
     // Récupérer l'utilisateur client avec le contexte tRPC
     const user = await ctx.db.user.findUnique({
-      where: { id },
-      include: { client }});
+      where: { id: userId },
+      include: { client: true }});
 
     if (!user || !user.client) {
       throw new TRPCError({ code: "NOT_FOUND",
@@ -445,8 +446,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
       // Vérifier si l'utilisateur est un client
       const user = await ctx.db.user.findUnique({
-        where: { id },
-        include: { client }});
+        where: { id: userId },
+        include: { client: true }});
 
       if (!user || !user.client) {
         throw new TRPCError({ code: "FORBIDDEN",
@@ -468,8 +469,8 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
 
       // Vérifier si l'utilisateur est un client
       const user = await ctx.db.user.findUnique({
-        where: { id },
-        include: { client }});
+        where: { id: userId },
+        include: { client: true }});
 
       if (!user || !user.client) {
         throw new TRPCError({ code: "FORBIDDEN",
@@ -672,7 +673,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
         const userId = ctx.session.user.id;
         const user = await ctx.db.user.findUnique({
           where: { id: userId },
-          include: { client }});
+          include: { client: true }});
 
         if (!user?.client) {
           throw new TRPCError({ code: "NOT_FOUND",
@@ -695,7 +696,7 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
       const userId = ctx.session.user.id;
       const user = await ctx.db.user.findUnique({
         where: { id: userId },
-        include: { client }});
+        include: { client: true }});
 
       if (!user?.client) {
         throw new TRPCError({ code: "NOT_FOUND",
@@ -1078,5 +1079,409 @@ export const clientRouter = router({ getProfile: protectedProcedure.query(async 
           updatedAt: new Date()
         }
       });
+    }),
+
+  // Intégrer le router dashboard
+  dashboard: clientDashboardRouter,
+
+  // Dashboard endpoints - tous les endpoints requis par les widgets
+  legacyDashboard: router({
+    getStats: clientProcedure.query(async ({ ctx }) => {
+      const userId = ctx.session.user.id;
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { client: true }
+      });
+
+      if (!user?.client) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
+      }
+
+      const clientId = user.client.id;
+      const now = new Date();
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+
+      // Statistiques principales
+      const [totalDeliveries, activeAnnouncements, serviceBookings, storageBoxes] = await Promise.all([
+        ctx.db.delivery.count({ where: { clientId } }),
+        ctx.db.announcement.count({ where: { clientId, status: "ACTIVE" } }),
+        ctx.db.serviceBooking.count({ where: { clientId } }),
+        ctx.db.storageBoxReservation.count({ where: { clientId, status: "ACTIVE" } })
+      ]);
+
+      // Tendances (comparaison avec le mois dernier)
+      const [lastMonthDeliveries, lastMonthAnnouncements, lastMonthBookings, lastMonthStorage] = await Promise.all([
+        ctx.db.delivery.count({ where: { clientId, createdAt: { lt: lastMonth } } }),
+        ctx.db.announcement.count({ where: { clientId, createdAt: { lt: lastMonth } } }),
+        ctx.db.serviceBooking.count({ where: { clientId, createdAt: { lt: lastMonth } } }),
+        ctx.db.storageBoxReservation.count({ where: { clientId, createdAt: { lt: lastMonth } } })
+      ]);
+
+      // Calcul des tendances en pourcentage
+      const calculateTrend = (current: number, previous: number) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return Math.round(((current - previous) / previous) * 100);
+      };
+
+      return [
+        {
+          title: "Livraisons totales",
+          value: totalDeliveries.toString(),
+          change: calculateTrend(totalDeliveries, lastMonthDeliveries),
+          trend: calculateTrend(totalDeliveries, lastMonthDeliveries) >= 0 ? "up" : "down"
+        },
+        {
+          title: "Annonces actives",
+          value: activeAnnouncements.toString(),
+          change: calculateTrend(activeAnnouncements, lastMonthAnnouncements),
+          trend: calculateTrend(activeAnnouncements, lastMonthAnnouncements) >= 0 ? "up" : "down"
+        },
+        {
+          title: "Services réservés",
+          value: serviceBookings.toString(),
+          change: calculateTrend(serviceBookings, lastMonthBookings),
+          trend: calculateTrend(serviceBookings, lastMonthBookings) >= 0 ? "up" : "down"
+        },
+        {
+          title: "Boxes de stockage",
+          value: storageBoxes.toString(),
+          change: calculateTrend(storageBoxes, lastMonthStorage),
+          trend: calculateTrend(storageBoxes, lastMonthStorage) >= 0 ? "up" : "down"
+        }
+      ];
+    }),
+
+    getEnvironmentalMetrics: clientProcedure.query(async ({ ctx }) => {
+      const userId = ctx.session.user.id;
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { client: true }
+      });
+
+      if (!user?.client) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
+      }
+
+      const clientId = user.client.id;
+
+      // Calculer les métriques environnementales basées sur les livraisons complétées
+      const completedDeliveries = await ctx.db.delivery.count({
+        where: { clientId, status: "DELIVERED" }
+      });
+
+      // Métriques environnementales simulées mais réalistes
+      const co2Saved = completedDeliveries * 2.5; // kg CO2 économisé par livraison groupée
+      const distanceOptimized = completedDeliveries * 15; // km économisés
+      const ecoScore = Math.min(100, Math.round((completedDeliveries) * 2.5));
+
+      return {
+        co2Saved: Math.round(co2Saved * 10) / 10,
+        distanceOptimized: Math.round(distanceOptimized),
+        ecoScore,
+        completedDeliveries,
+        monthlyGrowth: 12 // Croissance mensuelle en %
+      };
+    }),
+
+    getActivityFeed: clientProcedure.query(async ({ ctx }) => {
+      const userId = ctx.session.user.id;
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { client: true }
+      });
+
+      if (!user?.client) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
+      }
+
+      const clientId = user.client.id;
+
+      // Récupérer l'activité récente
+      const [recentDeliveries, recentServices, recentInvoices] = await Promise.all([
+        ctx.db.delivery.findMany({
+          where: { clientId },
+          orderBy: { createdAt: "desc" },
+          take: 3,
+          include: {
+            announcement: { select: { title: true } }
+          }
+        }),
+        ctx.db.serviceBooking.findMany({
+          where: { clientId },
+          orderBy: { createdAt: "desc" },
+          take: 3,
+          include: {
+            service: { select: { name: true } }
+          }
+        }),
+        ctx.db.invoice.findMany({
+          where: { userId },
+          orderBy: { createdAt: "desc" },
+          take: 2
+        })
+      ]);
+
+      // Combiner et formater l'activité
+      const activities = [
+        ...recentDeliveries.map(delivery => ({
+          id: delivery.id,
+          type: "delivery" as const,
+          title: `Livraison: ${delivery.announcement.title}`,
+          description: `Statut: ${delivery.status}`,
+          timestamp: delivery.createdAt.toISOString(),
+          status: delivery.status.toLowerCase()
+        })),
+        ...recentServices.map(service => ({
+          id: service.id,
+          type: "service" as const,
+          title: `Service: ${service.service.name}`,
+          description: `Statut: ${service.status}`,
+          timestamp: service.createdAt.toISOString(),
+          status: service.status.toLowerCase()
+        })),
+        ...recentInvoices.map(invoice => ({
+          id: invoice.id,
+          type: "payment" as const,
+          title: `Facture #${invoice.id.slice(-8)}`,
+          description: `${invoice.amount}€ - ${invoice.status}`,
+          timestamp: invoice.createdAt.toISOString(),
+          status: invoice.status.toLowerCase()
+        }))
+      ]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 5);
+
+      return activities;
     })
+  }),
+
+  deliveries: router({
+    getRealTimeStatus: clientProcedure.query(async ({ ctx }) => {
+      const userId = ctx.session.user.id;
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { client: true }
+      });
+
+      if (!user?.client) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
+      }
+
+      const clientId = user.client.id;
+
+      // Récupérer les livraisons en cours
+      const activeDeliveries = await ctx.db.delivery.findMany({
+        where: {
+          clientId,
+          status: { in: ["PENDING", "ACCEPTED", "IN_TRANSIT"] }
+        },
+        include: {
+          announcement: { select: { title: true, pickupAddress: true, deliveryAddress: true } },
+          deliverer: { select: { name: true } }
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 5
+      });
+
+      return activeDeliveries.map(delivery => ({
+        id: delivery.id,
+        title: delivery.announcement.title,
+        status: delivery.status,
+        estimatedTime: "15-30 min", // Temps estimé simulé
+        delivererName: delivery.deliverer?.name || "Non assigné",
+        pickup: delivery.announcement.pickupAddress,
+        destination: delivery.announcement.deliveryAddress,
+        lastUpdate: delivery.updatedAt.toISOString()
+      }));
+    })
+  }),
+
+  getEnvironmentalMetrics: clientProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { client: true }
+    });
+
+    if (!user?.client) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Client non trouvé" });
+    }
+
+    const clientId = user.client.id;
+
+    // Calculer les métriques environnementales basées sur les livraisons complétées
+    const completedDeliveries = await ctx.db.delivery.count({
+      where: { clientId, status: "DELIVERED" }
+    });
+
+    // Métriques environnementales simulées mais réalistes
+    const co2Saved = completedDeliveries * 2.5; // kg CO2 économisé par livraison groupée
+    const distanceOptimized = completedDeliveries * 15; // km économisés
+    const ecoScore = Math.min(100, Math.round((completedDeliveries) * 2.5));
+
+    return {
+      co2Saved: Math.round(co2Saved * 10) / 10,
+      distanceOptimized: Math.round(distanceOptimized),
+      ecoScore,
+      completedDeliveries,
+      monthlyGrowth: 12 // Croissance mensuelle en %
+    };
+  }),
+
+  // Dashboard Data - Données principales du tableau de bord client
+  getDashboardData: clientProcedure.query(async ({ ctx }) => {
+    try {
+      const userId = ctx.session.user.id;
+      
+      // Récupérer l'utilisateur avec ses données client et annonces
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { 
+          client: true,
+          clientAnnouncements: {
+            take: 5,
+            orderBy: { createdAt: "desc" },
+            include: {
+              applications: {
+                include: {
+                  deliverer: {
+                    select: { name: true, email: true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Récupérer les réservations de services séparément
+      const serviceBookings = await ctx.db.serviceBooking.findMany({
+        where: { clientId: user?.client?.id },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: {
+          service: {
+            include: {
+              provider: {
+                select: { 
+                  name: true, 
+                  email: true 
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (!user?.client) {
+        throw new TRPCError({ 
+          code: "NOT_FOUND", 
+          message: "Profil client non trouvé" 
+        });
+      }
+
+      // Statistiques des annonces
+      const announcementStats = await ctx.db.announcement.groupBy({
+        by: ['status'],
+        where: { clientId: user.client.id },
+        _count: { id: true }
+      });
+
+      // Statistiques des réservations de services
+      const serviceBookingStats = await ctx.db.serviceBooking.groupBy({
+        by: ['status'],
+        where: { clientId: user.client.id },
+        _count: { id: true }
+      });
+
+      // Calcul des métriques de base
+      const totalAnnouncements = announcementStats.reduce((sum, stat) => sum + stat._count.id, 0);
+      const activeAnnouncements = announcementStats.find(s => s.status === 'ACTIVE')?._count.id ?? 0;
+      const completedDeliveries = announcementStats.find(s => s.status === 'DELIVERED')?._count.id ?? 0;
+      
+      const totalServiceBookings = serviceBookingStats.reduce((sum, stat) => sum + stat._count.id, 0);
+      const pendingServices = serviceBookingStats.find(s => s.status === 'PENDING')?._count.id ?? 0;
+      const completedServices = serviceBookingStats.find(s => s.status === 'COMPLETED')?._count.id ?? 0;
+
+      // Activité récente (dernières 24h)
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const recentActivity = await ctx.db.announcement.count({
+        where: {
+          clientId: user.client.id,
+          createdAt: { gte: yesterday }
+        }
+      });
+
+      // Métriques environnementales (exemple simulé pour l'instant)
+      const co2Saved = completedDeliveries * 2.5; // kg CO2 économisé par livraison groupée
+      const distanceOptimized = completedDeliveries * 15; // km économisés
+      
+      return {
+        // Profil utilisateur
+        profile: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          joinedAt: user.createdAt,
+          address: user.client.address,
+          city: user.client.city,
+          postalCode: user.client.postalCode
+        },
+        
+        // Statistiques principales
+        stats: {
+          totalAnnouncements,
+          activeAnnouncements,
+          completedDeliveries,
+          totalServiceBookings,
+          pendingServices,
+          completedServices,
+          recentActivity
+        },
+        
+        // Métriques environnementales
+        environmental: {
+          co2Saved: Math.round(co2Saved * 10) / 10,
+          distanceOptimized: Math.round(distanceOptimized),
+          ecoScore: Math.min(100, Math.round((completedDeliveries + completedServices) * 2.5))
+        },
+        
+        // Données récentes
+        recentAnnouncements: user.clientAnnouncements.map(announcement => ({
+          id: announcement.id,
+          title: announcement.title,
+          status: announcement.status,
+          createdAt: announcement.createdAt,
+          applicationsCount: announcement.applications.length,
+          pickupAddress: announcement.pickupAddress,
+          deliveryAddress: announcement.deliveryAddress
+        })),
+        
+        recentServiceBookings: serviceBookings.map(booking => ({
+          id: booking.id,
+          status: booking.status,
+          scheduledDate: booking.scheduledDate,
+          createdAt: booking.createdAt,
+          service: {
+            title: booking.service.title,
+            provider: {
+              name: booking.service.provider.name
+            }
+          }
+        })),
+        
+        // Timestamp de dernière mise à jour
+        lastUpdated: new Date().toISOString()
+      };
+      
+    } catch (error) {
+      console.error("Erreur dans getDashboardData:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de la récupération des données du dashboard"
+      });
+    }
+  })
 });

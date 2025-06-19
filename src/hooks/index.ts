@@ -25,3 +25,11 @@ export * from "./roles";
 export * from "./services";
 export * from "./shared";
 export * from "./system";
+
+// Hooks pour éviter les erreurs d'hydratation (Mission 1)
+export { 
+  useMounted, 
+  useMountedCallback, 
+  useSafeStorage, 
+  useClientValue 
+} from './use-mounted';

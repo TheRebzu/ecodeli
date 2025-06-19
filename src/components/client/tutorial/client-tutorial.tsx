@@ -444,7 +444,7 @@ export function ClientTutorial({
         totalSteps={totalSteps}
         onPrevious={goToPreviousStep}
         onNext={goToNextStep}
-        onSkip={isMission1 ? () => {} : handleComplete} // Pas de skip pour Mission 1
+        onSkip={handleComplete} // Pour Mission 1, skip = terminer le tutoriel
         onComplete={handleComplete}
         isLoading={isCompleting}
         labels={navigationLabels}

@@ -14,71 +14,12 @@ import {
   PaginationNext,
   PaginationPrevious} from "@/components/ui/pagination";
 import { useMediaQuery } from "@/hooks/common/use-media-query";
-import {
-  AnnouncementStatus,
-  UserRole,
-  type Announcement} from "@prisma/client";
+import { UserRole } from "@prisma/client";
+import { type AnnouncementWithDetails, type AnnouncementListProps, convertToAnnouncementCard, addAnnouncementCardHandlers } from "@/types/client/announcements";
 import { cn } from "@/lib/utils/common";
 import { Input } from "@/components/ui/input";
 
-// Type étendu pour inclure des champs de recherche
-interface AnnouncementFilterInput {
-  limit?: number;
-  page?: number;
-  search?: string;
-  type?: string | string[];
-  status?: string | string[];
-  // Autres champs possibles...
-}
-
-type AnnouncementWithDetails = Announcement & {
-  client?: {
-    id: string;
-    name: string;
-    image?: string | null;
-    rating?: number;
-  };
-  deliverer?: {
-    id: string;
-    userId: string;
-    name: string;
-    image?: string | null;
-    rating?: number;
-  };
-  applications?: Array<{
-    id: string;
-    delivererId: string;
-    status: string;
-    proposedPrice: number;
-    createdAt: Date;
-  }>;
-  isFavorite?: boolean;
-  distance?: number;
-};
-
-interface AnnouncementListProps {
-  announcements: AnnouncementWithDetails[];
-  isLoading: boolean;
-  userRole?: UserRole;
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  onSearchChange?: (query: string) => void;
-  onFavoriteToggle?: (id: string) => void;
-  onApply?: (id: string) => void;
-  onCancel?: (id: string) => void;
-  onPayNow?: (id: string) => void;
-  onViewDetails?: (id: string) => void;
-  emptyStateTitle?: string;
-  emptyStateMessage?: string;
-  emptyStateAction?: {
-    label: string;
-    onClick: () => void;
-  };
-  filters?: Partial<AnnouncementFilterInput>;
-  className?: string;
-}
+// Component specific types are now imported from types/client/announcements.ts
 
 export const AnnouncementList: React.FC<AnnouncementListProps> = ({ announcements,
   isLoading,
@@ -217,7 +158,7 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({ announcement
       {/* Statut de la recherche */}
       {totalCount > 0 && (
         <div className="text-sm text-muted-foreground mb-4">
-          {t("totalResults", { count })}
+          {t("totalResults", { count: totalCount })}
         </div>
       )}
 
@@ -228,38 +169,24 @@ export const AnnouncementList: React.FC<AnnouncementListProps> = ({ announcement
         renderEmptyState()
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          {announcements.map((announcement) => (
-            <AnnouncementCard
-              key={announcement.id}
-              id={announcement.id}
-              title={announcement.title}
-              description={announcement.description}
-              type={announcement.type}
-              status={announcement.status as AnnouncementStatus}
-              price={
-                announcement.suggestedPrice || announcement.finalPrice || 0
-              }
-              distance={announcement.distance}
-              pickupAddress={announcement.pickupAddress}
-              deliveryAddress={announcement.deliveryAddress}
-              pickupDate={announcement.pickupDate}
-              deliveryDate={announcement.deliveryDate}
-              createdAt={announcement.createdAt}
-              isFavorite={announcement.isFavorite}
-              userRole={userRole}
-              clientName={announcement.client?.name}
-              clientImage={announcement.client?.image || undefined}
-              clientRating={announcement.client?.rating}
-              delivererName={announcement.deliverer?.name}
-              delivererImage={announcement.deliverer?.image || undefined}
-              delivererRating={announcement.deliverer?.rating}
-              onFavoriteToggle={onFavoriteToggle}
-              onApply={onApply}
-              onCancel={onCancel}
-              onPayNow={onPayNow}
-              onViewDetails={onViewDetails}
-            />
-          ))}
+          {announcements.map((announcement) => {
+            const cardProps = convertToAnnouncementCard(announcement);
+            const propsWithHandlers = addAnnouncementCardHandlers(cardProps, {
+              onFavoriteToggle,
+              onApply,
+              onCancel,
+              onPayNow,
+              onViewDetails,
+            });
+
+            return (
+              <AnnouncementCard
+                key={announcement.id}
+                userRole={userRole}
+                {...propsWithHandlers}
+              />
+            );
+          })}
         </div>
       )}
 

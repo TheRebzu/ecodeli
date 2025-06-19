@@ -64,7 +64,18 @@ const formSchema = z.object({ title: z
   description: z
     .string()
     .min(10, "La description doit contenir au moins 10 caractères"),
-  type: z.string(),
+  type: z.enum([
+    "PACKAGE_DELIVERY",
+    "PARTIAL_DELIVERY",
+    "FINAL_DISTRIBUTION", 
+    "CART_DROP",
+    "GROCERY_SHOPPING",
+    "PERSON_TRANSPORT",
+    "AIRPORT_TRANSFER",
+    "FOREIGN_PURCHASE",
+    "PET_CARE",
+    "HOME_SERVICES"
+  ]),
   priority: z.string().default("MEDIUM"),
   pickupAddress: z.string().min(5, "L'adresse de collecte est requise"),
   pickupLongitude: z.number().optional(),

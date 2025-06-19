@@ -61,18 +61,13 @@ export function RealTimeDeliveriesWidget({
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("active");
 
   // Récupération des vraies données de livraisons depuis l'API
-  const { data: deliveries, isLoading, error, refetch } = useQuery({
-    queryKey: ["client-real-time-deliveries", statusFilter, maxItems],
-    queryFn: async () => {
-      const response = await api.client.deliveries.getRealTimeStatus.query({
-        status: statusFilter === "all" ? undefined : statusFilter,
-        limit: maxItems
-      });
-      return response;
-    },
-    refetchInterval: 15000, // Actualise toutes les 15 secondes pour le temps réel
-    staleTime: 5000, // Données périmées après 5s pour le temps réel
-  });
+  const { data: deliveries, isLoading, error, refetch } = api.client.deliveries.getRealTimeStatus.useQuery(
+    undefined,
+    {
+      refetchInterval: 15000, // Actualise toutes les 15 secondes pour le temps réel
+      staleTime: 5000, // Données périmées après 5s pour le temps réel
+    }
+  );
 
   const getStatusColor = (status: DeliveryStatus["status"]) => {
     switch (status) {

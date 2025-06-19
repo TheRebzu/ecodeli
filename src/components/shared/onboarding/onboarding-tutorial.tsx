@@ -79,9 +79,6 @@ export default function OnboardingTutorial({
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
-  // Mutation pour marquer le tutorial comme termin�
-  const completeTutorialMutation = api.user.completeTutorial.useMutation();
-
   // V�rifier si l'utilisateur a d�j� vu le tutorial
   const { data } = api.user.getPreferences.useQuery();
 
@@ -525,7 +522,7 @@ export default function OnboardingTutorial({
 
   const handleComplete = async () => {
     try {
-      await completeTutorialMutation.mutateAsync();
+      // Marquer le tutorial comme terminé localement
       setIsOpen(false);
       onComplete?.();
     } catch (error) {
@@ -535,7 +532,7 @@ export default function OnboardingTutorial({
 
   const handleSkip = async () => {
     try {
-      await completeTutorialMutation.mutateAsync();
+      // Ignorer le tutorial localement
       setIsOpen(false);
       onSkip?.();
     } catch (error) {

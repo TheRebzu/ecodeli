@@ -49,7 +49,7 @@ export class CloudinaryService {
       });
       
       this.isConfigured = true;
-      console.log('✅ Service Cloudinary initialisé');
+      // Message initial seulement
     } else {
       console.warn('⚠️ Configuration Cloudinary manquante - les fichiers seront stockés localement');
       this.isConfigured = false;
@@ -84,12 +84,12 @@ export class CloudinaryService {
 
       // Options par défaut
       const uploadOptions = {
-        resource_type: options.resource_type || 'auto',
-        folder: options.folder || 'ecodeli',
+        resource_type: options.resource_type ?? 'auto',
+        folder: options.folder ?? 'ecodeli',
         public_id: options.public_id,
-        tags: options.tags || ['ecodeli'],
+        tags: options.tags ?? ['ecodeli'],
         allowed_formats: options.allowed_formats,
-        max_file_size: options.max_file_size || 10485760, // 10MB par défaut
+        max_file_size: options.max_file_size ?? 10485760, // 10MB par défaut
         ...options.transformation && { transformation: options.transformation }
       };
 

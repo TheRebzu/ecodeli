@@ -28,6 +28,7 @@ model Box {
   reservations        Reservation[]
   subscriptions       BoxAvailabilitySubscription[]
   usageHistory        BoxUsageHistory[]
+  activities          WarehouseActivity[]           @relation("WarehouseActivityBox")
 
   @@index([warehouseId])
   @@index([clientId])

@@ -1,6 +1,6 @@
 {
   "summary": {
-    "totalKeys": 0,
+    "totalKeys": 9233,
     "sourceLanguage": "fr",
     "targetLanguages": [
       "en",
@@ -8,36 +8,1352 @@
       "de",
       "it"
     ],
-    "generatedAt": "2025-06-17T20:40:48.216Z",
-    "fromCode": 0,
-    "fromExisting": 0
+    "generatedAt": "2025-06-19T08:13:29.797Z",
+    "fromCode": 4927,
+    "fromExisting": 6492
   },
   "languageProgress": {
     "en": {
       "translated": 0,
-      "needsTranslation": 0,
-      "completionPercent": null
+      "needsTranslation": 9233,
+      "completionPercent": 0
     },
     "es": {
       "translated": 0,
-      "needsTranslation": 0,
-      "completionPercent": null
+      "needsTranslation": 9233,
+      "completionPercent": 0
     },
     "de": {
       "translated": 0,
-      "needsTranslation": 0,
-      "completionPercent": null
+      "needsTranslation": 9233,
+      "completionPercent": 0
     },
     "it": {
       "translated": 0,
-      "needsTranslation": 0,
-      "completionPercent": null
+      "needsTranslation": 9233,
+      "completionPercent": 0
     }
   },
   "topMissingKeys": {
-    "en": [],
-    "es": [],
-    "de": [],
-    "it": []
+    "en": [
+      {
+        "key": "Common.metaTitle",
+        "sourceText": "MetaTitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/metadata.ts"
+        ]
+      },
+      {
+        "key": "Common.metaDescription",
+        "sourceText": "MetaDescription",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/metadata.ts"
+        ]
+      },
+      {
+        "key": "public.Partners.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/page.tsx",
+          "src/app/[locale]/(public)/partners/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Legal.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/page.tsx",
+          "src/app/[locale]/(public)/legal/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Developers.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/developers/page.tsx",
+          "src/app/[locale]/(public)/developers/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Blog.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/blog/page.tsx",
+          "src/app/[locale]/(public)/blog/page.tsx"
+        ]
+      },
+      {
+        "key": "deliverer.title",
+        "sourceText": "Title",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/deliverer/page.tsx",
+          "src/app/[locale]/(protected)/admin/deliverers/verifications/page.tsx",
+          "src/app/[locale]/(protected)/admin/deliverers/verifications/page.tsx"
+        ]
+      },
+      {
+        "key": "deliverer.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/deliverer/page.tsx",
+          "src/app/[locale]/(protected)/deliverer/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/deliverer/deliveries/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.pageTitle",
+        "sourceText": "PageTitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.pageDescription",
+        "sourceText": "PageDescription",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.title",
+        "sourceText": "Title",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/provider/schedule/page.tsx",
+          "src/app/[locale]/(protected)/provider/contracts/page.tsx",
+          "src/app/[locale]/(protected)/merchant/stats/page.tsx",
+          "src/app/[locale]/(protected)/merchant/orders/page.tsx",
+          "src/app/[locale]/(protected)/merchant/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/merchant/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/page.tsx",
+          "src/app/[locale]/(protected)/admin/verifications/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/page.tsx",
+          "src/app/[locale]/(protected)/admin/invoices/page.tsx",
+          "src/app/[locale]/(protected)/admin/invoices/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/create/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/create/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/commissions/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/commissions/page.tsx",
+          "src/app/[locale]/(protected)/admin/merchants/contracts/page.tsx",
+          "src/app/[locale]/(protected)/admin/merchants/contracts/page.tsx",
+          "src/components/auth/two-factor-challenge.tsx",
+          "src/components/auth/two-factor-challenge.tsx",
+          "src/components/provider/ratings/ratings-overview.tsx",
+          "src/components/provider/profile/pricing-negotiation.tsx",
+          "src/components/provider/profile/pricing-negotiation.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/merchant/dashboard/sales-widget.tsx",
+          "src/components/merchant/dashboard/sales-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/contracts/contract-management.tsx",
+          "src/components/merchant/contracts/contract-management.tsx",
+          "src/components/merchant/contracts/contract-list.tsx",
+          "src/components/merchant/contracts/contract-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-create.tsx",
+          "src/components/merchant/announcements/announcement-create.tsx",
+          "src/components/deliverer/wallet/payment-history.tsx",
+          "src/components/deliverer/wallet/payment-history.tsx",
+          "src/components/deliverer/planning/route-optimization.tsx",
+          "src/components/deliverer/planning/route-optimization.tsx",
+          "src/components/deliverer/planning/availability-calendar.tsx",
+          "src/components/deliverer/planning/availability-calendar.tsx",
+          "src/components/deliverer/deliveries/delivery-validation.tsx",
+          "src/components/deliverer/deliveries/delivery-validation.tsx",
+          "src/components/deliverer/deliveries/delivery-tracking-panel.tsx",
+          "src/components/deliverer/deliveries/delivery-tracking-panel.tsx",
+          "src/components/deliverer/deliveries/delivery-status-update.tsx",
+          "src/components/deliverer/deliveries/delivery-status-update.tsx",
+          "src/components/deliverer/deliveries/delivery-notes.tsx",
+          "src/components/deliverer/deliveries/delivery-notes.tsx",
+          "src/components/deliverer/deliveries/delivery-list.tsx",
+          "src/components/deliverer/deliveries/delivery-list.tsx",
+          "src/components/deliverer/deliveries/delivery-issue-report.tsx",
+          "src/components/deliverer/deliveries/delivery-issue-report.tsx",
+          "src/components/deliverer/deliveries/delivery-contact.tsx",
+          "src/components/deliverer/deliveries/delivery-contact.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation-form.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation-form.tsx",
+          "src/components/deliverer/dashboard/earnings-widget.tsx",
+          "src/components/deliverer/dashboard/earnings-widget.tsx",
+          "src/components/deliverer/announcements/announcement-filter.tsx",
+          "src/components/deliverer/announcements/announcement-filter.tsx",
+          "src/components/client/storage/box-list.tsx",
+          "src/components/client/storage/box-list.tsx",
+          "src/components/client/services/service-booking-list.tsx",
+          "src/components/client/services/service-booking-list.tsx",
+          "src/components/client/payments/payment-methods.tsx",
+          "src/components/client/payments/payment-methods.tsx",
+          "src/components/client/deliveries/delivery-rating-form.tsx",
+          "src/components/client/dashboard/client-quick-actions.tsx",
+          "src/components/client/dashboard/client-quick-actions.tsx",
+          "src/components/client/announcements/announcement-edit-form.tsx",
+          "src/components/client/announcements/announcement-edit-form.tsx",
+          "src/components/auth/register-forms/password-reset.tsx",
+          "src/components/auth/register-forms/password-reset.tsx",
+          "src/components/auth/login/forgot-password-form.tsx",
+          "src/components/auth/login/forgot-password-form.tsx",
+          "src/components/admin/verification/verification-list.tsx",
+          "src/components/admin/verification/verification-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/users/user-permissions.tsx",
+          "src/components/admin/users/user-permissions.tsx",
+          "src/components/admin/users/user-bulk-actions.tsx",
+          "src/components/admin/services/service-management.tsx",
+          "src/components/admin/services/service-management.tsx",
+          "src/components/admin/payments/payment-monitoring.tsx",
+          "src/components/admin/payments/payment-monitoring.tsx",
+          "src/components/admin/financial/revenue-dashboard.tsx",
+          "src/components/admin/financial/revenue-dashboard.tsx",
+          "src/components/admin/dashboard/platform-stats.tsx",
+          "src/components/admin/dashboard/platform-stats.tsx",
+          "src/components/admin/dashboard/activity-monitor.tsx",
+          "src/components/admin/dashboard/activity-monitor.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/client/services/search/service-search-form.tsx",
+          "src/components/client/services/search/service-search-form.tsx"
+        ]
+      },
+      {
+        "key": "Common.subtitle",
+        "sourceText": "Subtitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx"
+        ]
+      },
+      {
+        "key": "Common.createAccount",
+        "sourceText": "CreateAccount",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.enterDetails",
+        "sourceText": "EnterDetails",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.welcome",
+        "sourceText": "Welcome",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.connectToAccount",
+        "sourceText": "ConnectToAccount",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx"
+        ]
+      },
+      {
+        "key": "public.BecomeMerchant.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/merchants/page.tsx",
+          "src/app/[locale]/(public)/partners/merchants/page.tsx"
+        ]
+      },
+      {
+        "key": "public.BecomeProvider.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/providers/page.tsx",
+          "src/app/[locale]/(public)/partners/providers/page.tsx"
+        ]
+      },
+      {
+        "key": "public.CGV.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/cgv/page.tsx",
+          "src/app/[locale]/(public)/legal/cgv/page.tsx"
+        ]
+      },
+      {
+        "key": "public.CGU.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/cgu/page.tsx",
+          "src/app/[locale]/(public)/legal/cgu/page.tsx"
+        ]
+      }
+    ],
+    "es": [
+      {
+        "key": "Common.metaTitle",
+        "sourceText": "MetaTitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/metadata.ts"
+        ]
+      },
+      {
+        "key": "Common.metaDescription",
+        "sourceText": "MetaDescription",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/metadata.ts"
+        ]
+      },
+      {
+        "key": "public.Partners.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/page.tsx",
+          "src/app/[locale]/(public)/partners/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Legal.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/page.tsx",
+          "src/app/[locale]/(public)/legal/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Developers.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/developers/page.tsx",
+          "src/app/[locale]/(public)/developers/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Blog.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/blog/page.tsx",
+          "src/app/[locale]/(public)/blog/page.tsx"
+        ]
+      },
+      {
+        "key": "deliverer.title",
+        "sourceText": "Title",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/deliverer/page.tsx",
+          "src/app/[locale]/(protected)/admin/deliverers/verifications/page.tsx",
+          "src/app/[locale]/(protected)/admin/deliverers/verifications/page.tsx"
+        ]
+      },
+      {
+        "key": "deliverer.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/deliverer/page.tsx",
+          "src/app/[locale]/(protected)/deliverer/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/deliverer/deliveries/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.pageTitle",
+        "sourceText": "PageTitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.pageDescription",
+        "sourceText": "PageDescription",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.title",
+        "sourceText": "Title",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/provider/schedule/page.tsx",
+          "src/app/[locale]/(protected)/provider/contracts/page.tsx",
+          "src/app/[locale]/(protected)/merchant/stats/page.tsx",
+          "src/app/[locale]/(protected)/merchant/orders/page.tsx",
+          "src/app/[locale]/(protected)/merchant/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/merchant/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/page.tsx",
+          "src/app/[locale]/(protected)/admin/verifications/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/page.tsx",
+          "src/app/[locale]/(protected)/admin/invoices/page.tsx",
+          "src/app/[locale]/(protected)/admin/invoices/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/create/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/create/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/commissions/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/commissions/page.tsx",
+          "src/app/[locale]/(protected)/admin/merchants/contracts/page.tsx",
+          "src/app/[locale]/(protected)/admin/merchants/contracts/page.tsx",
+          "src/components/auth/two-factor-challenge.tsx",
+          "src/components/auth/two-factor-challenge.tsx",
+          "src/components/provider/ratings/ratings-overview.tsx",
+          "src/components/provider/profile/pricing-negotiation.tsx",
+          "src/components/provider/profile/pricing-negotiation.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/merchant/dashboard/sales-widget.tsx",
+          "src/components/merchant/dashboard/sales-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/contracts/contract-management.tsx",
+          "src/components/merchant/contracts/contract-management.tsx",
+          "src/components/merchant/contracts/contract-list.tsx",
+          "src/components/merchant/contracts/contract-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-create.tsx",
+          "src/components/merchant/announcements/announcement-create.tsx",
+          "src/components/deliverer/wallet/payment-history.tsx",
+          "src/components/deliverer/wallet/payment-history.tsx",
+          "src/components/deliverer/planning/route-optimization.tsx",
+          "src/components/deliverer/planning/route-optimization.tsx",
+          "src/components/deliverer/planning/availability-calendar.tsx",
+          "src/components/deliverer/planning/availability-calendar.tsx",
+          "src/components/deliverer/deliveries/delivery-validation.tsx",
+          "src/components/deliverer/deliveries/delivery-validation.tsx",
+          "src/components/deliverer/deliveries/delivery-tracking-panel.tsx",
+          "src/components/deliverer/deliveries/delivery-tracking-panel.tsx",
+          "src/components/deliverer/deliveries/delivery-status-update.tsx",
+          "src/components/deliverer/deliveries/delivery-status-update.tsx",
+          "src/components/deliverer/deliveries/delivery-notes.tsx",
+          "src/components/deliverer/deliveries/delivery-notes.tsx",
+          "src/components/deliverer/deliveries/delivery-list.tsx",
+          "src/components/deliverer/deliveries/delivery-list.tsx",
+          "src/components/deliverer/deliveries/delivery-issue-report.tsx",
+          "src/components/deliverer/deliveries/delivery-issue-report.tsx",
+          "src/components/deliverer/deliveries/delivery-contact.tsx",
+          "src/components/deliverer/deliveries/delivery-contact.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation-form.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation-form.tsx",
+          "src/components/deliverer/dashboard/earnings-widget.tsx",
+          "src/components/deliverer/dashboard/earnings-widget.tsx",
+          "src/components/deliverer/announcements/announcement-filter.tsx",
+          "src/components/deliverer/announcements/announcement-filter.tsx",
+          "src/components/client/storage/box-list.tsx",
+          "src/components/client/storage/box-list.tsx",
+          "src/components/client/services/service-booking-list.tsx",
+          "src/components/client/services/service-booking-list.tsx",
+          "src/components/client/payments/payment-methods.tsx",
+          "src/components/client/payments/payment-methods.tsx",
+          "src/components/client/deliveries/delivery-rating-form.tsx",
+          "src/components/client/dashboard/client-quick-actions.tsx",
+          "src/components/client/dashboard/client-quick-actions.tsx",
+          "src/components/client/announcements/announcement-edit-form.tsx",
+          "src/components/client/announcements/announcement-edit-form.tsx",
+          "src/components/auth/register-forms/password-reset.tsx",
+          "src/components/auth/register-forms/password-reset.tsx",
+          "src/components/auth/login/forgot-password-form.tsx",
+          "src/components/auth/login/forgot-password-form.tsx",
+          "src/components/admin/verification/verification-list.tsx",
+          "src/components/admin/verification/verification-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/users/user-permissions.tsx",
+          "src/components/admin/users/user-permissions.tsx",
+          "src/components/admin/users/user-bulk-actions.tsx",
+          "src/components/admin/services/service-management.tsx",
+          "src/components/admin/services/service-management.tsx",
+          "src/components/admin/payments/payment-monitoring.tsx",
+          "src/components/admin/payments/payment-monitoring.tsx",
+          "src/components/admin/financial/revenue-dashboard.tsx",
+          "src/components/admin/financial/revenue-dashboard.tsx",
+          "src/components/admin/dashboard/platform-stats.tsx",
+          "src/components/admin/dashboard/platform-stats.tsx",
+          "src/components/admin/dashboard/activity-monitor.tsx",
+          "src/components/admin/dashboard/activity-monitor.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/client/services/search/service-search-form.tsx",
+          "src/components/client/services/search/service-search-form.tsx"
+        ]
+      },
+      {
+        "key": "Common.subtitle",
+        "sourceText": "Subtitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx"
+        ]
+      },
+      {
+        "key": "Common.createAccount",
+        "sourceText": "CreateAccount",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.enterDetails",
+        "sourceText": "EnterDetails",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.welcome",
+        "sourceText": "Welcome",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.connectToAccount",
+        "sourceText": "ConnectToAccount",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx"
+        ]
+      },
+      {
+        "key": "public.BecomeMerchant.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/merchants/page.tsx",
+          "src/app/[locale]/(public)/partners/merchants/page.tsx"
+        ]
+      },
+      {
+        "key": "public.BecomeProvider.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/providers/page.tsx",
+          "src/app/[locale]/(public)/partners/providers/page.tsx"
+        ]
+      },
+      {
+        "key": "public.CGV.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/cgv/page.tsx",
+          "src/app/[locale]/(public)/legal/cgv/page.tsx"
+        ]
+      },
+      {
+        "key": "public.CGU.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/cgu/page.tsx",
+          "src/app/[locale]/(public)/legal/cgu/page.tsx"
+        ]
+      }
+    ],
+    "de": [
+      {
+        "key": "Common.metaTitle",
+        "sourceText": "MetaTitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/metadata.ts"
+        ]
+      },
+      {
+        "key": "Common.metaDescription",
+        "sourceText": "MetaDescription",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/metadata.ts"
+        ]
+      },
+      {
+        "key": "public.Partners.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/page.tsx",
+          "src/app/[locale]/(public)/partners/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Legal.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/page.tsx",
+          "src/app/[locale]/(public)/legal/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Developers.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/developers/page.tsx",
+          "src/app/[locale]/(public)/developers/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Blog.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/blog/page.tsx",
+          "src/app/[locale]/(public)/blog/page.tsx"
+        ]
+      },
+      {
+        "key": "deliverer.title",
+        "sourceText": "Title",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/deliverer/page.tsx",
+          "src/app/[locale]/(protected)/admin/deliverers/verifications/page.tsx",
+          "src/app/[locale]/(protected)/admin/deliverers/verifications/page.tsx"
+        ]
+      },
+      {
+        "key": "deliverer.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/deliverer/page.tsx",
+          "src/app/[locale]/(protected)/deliverer/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/deliverer/deliveries/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.pageTitle",
+        "sourceText": "PageTitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.pageDescription",
+        "sourceText": "PageDescription",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.title",
+        "sourceText": "Title",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/provider/schedule/page.tsx",
+          "src/app/[locale]/(protected)/provider/contracts/page.tsx",
+          "src/app/[locale]/(protected)/merchant/stats/page.tsx",
+          "src/app/[locale]/(protected)/merchant/orders/page.tsx",
+          "src/app/[locale]/(protected)/merchant/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/merchant/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/page.tsx",
+          "src/app/[locale]/(protected)/admin/verifications/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/page.tsx",
+          "src/app/[locale]/(protected)/admin/invoices/page.tsx",
+          "src/app/[locale]/(protected)/admin/invoices/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/create/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/create/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/commissions/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/commissions/page.tsx",
+          "src/app/[locale]/(protected)/admin/merchants/contracts/page.tsx",
+          "src/app/[locale]/(protected)/admin/merchants/contracts/page.tsx",
+          "src/components/auth/two-factor-challenge.tsx",
+          "src/components/auth/two-factor-challenge.tsx",
+          "src/components/provider/ratings/ratings-overview.tsx",
+          "src/components/provider/profile/pricing-negotiation.tsx",
+          "src/components/provider/profile/pricing-negotiation.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/merchant/dashboard/sales-widget.tsx",
+          "src/components/merchant/dashboard/sales-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/contracts/contract-management.tsx",
+          "src/components/merchant/contracts/contract-management.tsx",
+          "src/components/merchant/contracts/contract-list.tsx",
+          "src/components/merchant/contracts/contract-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-create.tsx",
+          "src/components/merchant/announcements/announcement-create.tsx",
+          "src/components/deliverer/wallet/payment-history.tsx",
+          "src/components/deliverer/wallet/payment-history.tsx",
+          "src/components/deliverer/planning/route-optimization.tsx",
+          "src/components/deliverer/planning/route-optimization.tsx",
+          "src/components/deliverer/planning/availability-calendar.tsx",
+          "src/components/deliverer/planning/availability-calendar.tsx",
+          "src/components/deliverer/deliveries/delivery-validation.tsx",
+          "src/components/deliverer/deliveries/delivery-validation.tsx",
+          "src/components/deliverer/deliveries/delivery-tracking-panel.tsx",
+          "src/components/deliverer/deliveries/delivery-tracking-panel.tsx",
+          "src/components/deliverer/deliveries/delivery-status-update.tsx",
+          "src/components/deliverer/deliveries/delivery-status-update.tsx",
+          "src/components/deliverer/deliveries/delivery-notes.tsx",
+          "src/components/deliverer/deliveries/delivery-notes.tsx",
+          "src/components/deliverer/deliveries/delivery-list.tsx",
+          "src/components/deliverer/deliveries/delivery-list.tsx",
+          "src/components/deliverer/deliveries/delivery-issue-report.tsx",
+          "src/components/deliverer/deliveries/delivery-issue-report.tsx",
+          "src/components/deliverer/deliveries/delivery-contact.tsx",
+          "src/components/deliverer/deliveries/delivery-contact.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation-form.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation-form.tsx",
+          "src/components/deliverer/dashboard/earnings-widget.tsx",
+          "src/components/deliverer/dashboard/earnings-widget.tsx",
+          "src/components/deliverer/announcements/announcement-filter.tsx",
+          "src/components/deliverer/announcements/announcement-filter.tsx",
+          "src/components/client/storage/box-list.tsx",
+          "src/components/client/storage/box-list.tsx",
+          "src/components/client/services/service-booking-list.tsx",
+          "src/components/client/services/service-booking-list.tsx",
+          "src/components/client/payments/payment-methods.tsx",
+          "src/components/client/payments/payment-methods.tsx",
+          "src/components/client/deliveries/delivery-rating-form.tsx",
+          "src/components/client/dashboard/client-quick-actions.tsx",
+          "src/components/client/dashboard/client-quick-actions.tsx",
+          "src/components/client/announcements/announcement-edit-form.tsx",
+          "src/components/client/announcements/announcement-edit-form.tsx",
+          "src/components/auth/register-forms/password-reset.tsx",
+          "src/components/auth/register-forms/password-reset.tsx",
+          "src/components/auth/login/forgot-password-form.tsx",
+          "src/components/auth/login/forgot-password-form.tsx",
+          "src/components/admin/verification/verification-list.tsx",
+          "src/components/admin/verification/verification-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/users/user-permissions.tsx",
+          "src/components/admin/users/user-permissions.tsx",
+          "src/components/admin/users/user-bulk-actions.tsx",
+          "src/components/admin/services/service-management.tsx",
+          "src/components/admin/services/service-management.tsx",
+          "src/components/admin/payments/payment-monitoring.tsx",
+          "src/components/admin/payments/payment-monitoring.tsx",
+          "src/components/admin/financial/revenue-dashboard.tsx",
+          "src/components/admin/financial/revenue-dashboard.tsx",
+          "src/components/admin/dashboard/platform-stats.tsx",
+          "src/components/admin/dashboard/platform-stats.tsx",
+          "src/components/admin/dashboard/activity-monitor.tsx",
+          "src/components/admin/dashboard/activity-monitor.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/client/services/search/service-search-form.tsx",
+          "src/components/client/services/search/service-search-form.tsx"
+        ]
+      },
+      {
+        "key": "Common.subtitle",
+        "sourceText": "Subtitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx"
+        ]
+      },
+      {
+        "key": "Common.createAccount",
+        "sourceText": "CreateAccount",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.enterDetails",
+        "sourceText": "EnterDetails",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.welcome",
+        "sourceText": "Welcome",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.connectToAccount",
+        "sourceText": "ConnectToAccount",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx"
+        ]
+      },
+      {
+        "key": "public.BecomeMerchant.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/merchants/page.tsx",
+          "src/app/[locale]/(public)/partners/merchants/page.tsx"
+        ]
+      },
+      {
+        "key": "public.BecomeProvider.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/providers/page.tsx",
+          "src/app/[locale]/(public)/partners/providers/page.tsx"
+        ]
+      },
+      {
+        "key": "public.CGV.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/cgv/page.tsx",
+          "src/app/[locale]/(public)/legal/cgv/page.tsx"
+        ]
+      },
+      {
+        "key": "public.CGU.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/cgu/page.tsx",
+          "src/app/[locale]/(public)/legal/cgu/page.tsx"
+        ]
+      }
+    ],
+    "it": [
+      {
+        "key": "Common.metaTitle",
+        "sourceText": "MetaTitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/metadata.ts"
+        ]
+      },
+      {
+        "key": "Common.metaDescription",
+        "sourceText": "MetaDescription",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/metadata.ts"
+        ]
+      },
+      {
+        "key": "public.Partners.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/page.tsx",
+          "src/app/[locale]/(public)/partners/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Legal.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/page.tsx",
+          "src/app/[locale]/(public)/legal/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Developers.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/developers/page.tsx",
+          "src/app/[locale]/(public)/developers/page.tsx"
+        ]
+      },
+      {
+        "key": "public.Blog.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/blog/page.tsx",
+          "src/app/[locale]/(public)/blog/page.tsx"
+        ]
+      },
+      {
+        "key": "deliverer.title",
+        "sourceText": "Title",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/deliverer/page.tsx",
+          "src/app/[locale]/(protected)/admin/deliverers/verifications/page.tsx",
+          "src/app/[locale]/(protected)/admin/deliverers/verifications/page.tsx"
+        ]
+      },
+      {
+        "key": "deliverer.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/deliverer/page.tsx",
+          "src/app/[locale]/(protected)/deliverer/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/deliverer/deliveries/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.pageTitle",
+        "sourceText": "PageTitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/rate/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.pageDescription",
+        "sourceText": "PageDescription",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/[id]/confirm/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.title",
+        "sourceText": "Title",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/provider/schedule/page.tsx",
+          "src/app/[locale]/(protected)/provider/contracts/page.tsx",
+          "src/app/[locale]/(protected)/merchant/stats/page.tsx",
+          "src/app/[locale]/(protected)/merchant/orders/page.tsx",
+          "src/app/[locale]/(protected)/merchant/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/merchant/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/client/deliveries/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/page.tsx",
+          "src/app/[locale]/(protected)/admin/verifications/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/page.tsx",
+          "src/app/[locale]/(protected)/admin/invoices/page.tsx",
+          "src/app/[locale]/(protected)/admin/invoices/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/create/page.tsx",
+          "src/app/[locale]/(protected)/merchant/announcements/create/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/warehouses/[id]/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/commissions/page.tsx",
+          "src/app/[locale]/(protected)/admin/payments/commissions/page.tsx",
+          "src/app/[locale]/(protected)/admin/merchants/contracts/page.tsx",
+          "src/app/[locale]/(protected)/admin/merchants/contracts/page.tsx",
+          "src/components/auth/two-factor-challenge.tsx",
+          "src/components/auth/two-factor-challenge.tsx",
+          "src/components/provider/ratings/ratings-overview.tsx",
+          "src/components/provider/profile/pricing-negotiation.tsx",
+          "src/components/provider/profile/pricing-negotiation.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/dashboard/ratings-widget.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/merchant/dashboard/sales-widget.tsx",
+          "src/components/merchant/dashboard/sales-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/dashboard/delivery-stats-widget.tsx",
+          "src/components/merchant/contracts/contract-management.tsx",
+          "src/components/merchant/contracts/contract-management.tsx",
+          "src/components/merchant/contracts/contract-list.tsx",
+          "src/components/merchant/contracts/contract-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-list.tsx",
+          "src/components/merchant/announcements/announcement-create.tsx",
+          "src/components/merchant/announcements/announcement-create.tsx",
+          "src/components/deliverer/wallet/payment-history.tsx",
+          "src/components/deliverer/wallet/payment-history.tsx",
+          "src/components/deliverer/planning/route-optimization.tsx",
+          "src/components/deliverer/planning/route-optimization.tsx",
+          "src/components/deliverer/planning/availability-calendar.tsx",
+          "src/components/deliverer/planning/availability-calendar.tsx",
+          "src/components/deliverer/deliveries/delivery-validation.tsx",
+          "src/components/deliverer/deliveries/delivery-validation.tsx",
+          "src/components/deliverer/deliveries/delivery-tracking-panel.tsx",
+          "src/components/deliverer/deliveries/delivery-tracking-panel.tsx",
+          "src/components/deliverer/deliveries/delivery-status-update.tsx",
+          "src/components/deliverer/deliveries/delivery-status-update.tsx",
+          "src/components/deliverer/deliveries/delivery-notes.tsx",
+          "src/components/deliverer/deliveries/delivery-notes.tsx",
+          "src/components/deliverer/deliveries/delivery-list.tsx",
+          "src/components/deliverer/deliveries/delivery-list.tsx",
+          "src/components/deliverer/deliveries/delivery-issue-report.tsx",
+          "src/components/deliverer/deliveries/delivery-issue-report.tsx",
+          "src/components/deliverer/deliveries/delivery-contact.tsx",
+          "src/components/deliverer/deliveries/delivery-contact.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation-form.tsx",
+          "src/components/deliverer/deliveries/delivery-confirmation-form.tsx",
+          "src/components/deliverer/dashboard/earnings-widget.tsx",
+          "src/components/deliverer/dashboard/earnings-widget.tsx",
+          "src/components/deliverer/announcements/announcement-filter.tsx",
+          "src/components/deliverer/announcements/announcement-filter.tsx",
+          "src/components/client/storage/box-list.tsx",
+          "src/components/client/storage/box-list.tsx",
+          "src/components/client/services/service-booking-list.tsx",
+          "src/components/client/services/service-booking-list.tsx",
+          "src/components/client/payments/payment-methods.tsx",
+          "src/components/client/payments/payment-methods.tsx",
+          "src/components/client/deliveries/delivery-rating-form.tsx",
+          "src/components/client/dashboard/client-quick-actions.tsx",
+          "src/components/client/dashboard/client-quick-actions.tsx",
+          "src/components/client/announcements/announcement-edit-form.tsx",
+          "src/components/client/announcements/announcement-edit-form.tsx",
+          "src/components/auth/register-forms/password-reset.tsx",
+          "src/components/auth/register-forms/password-reset.tsx",
+          "src/components/auth/login/forgot-password-form.tsx",
+          "src/components/auth/login/forgot-password-form.tsx",
+          "src/components/admin/verification/verification-list.tsx",
+          "src/components/admin/verification/verification-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/users/user-permissions.tsx",
+          "src/components/admin/users/user-permissions.tsx",
+          "src/components/admin/users/user-bulk-actions.tsx",
+          "src/components/admin/services/service-management.tsx",
+          "src/components/admin/services/service-management.tsx",
+          "src/components/admin/payments/payment-monitoring.tsx",
+          "src/components/admin/payments/payment-monitoring.tsx",
+          "src/components/admin/financial/revenue-dashboard.tsx",
+          "src/components/admin/financial/revenue-dashboard.tsx",
+          "src/components/admin/dashboard/platform-stats.tsx",
+          "src/components/admin/dashboard/platform-stats.tsx",
+          "src/components/admin/dashboard/activity-monitor.tsx",
+          "src/components/admin/dashboard/activity-monitor.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/admin/audit/audit-log-table.tsx",
+          "src/components/client/services/search/service-search-form.tsx",
+          "src/components/client/services/search/service-search-form.tsx"
+        ]
+      },
+      {
+        "key": "Common.subtitle",
+        "sourceText": "Subtitle",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/client/messages/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/users/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/app/[locale]/(protected)/admin/audit/page.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/provider/bookings/booking-confirmation.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx",
+          "src/components/admin/warehouses/warehouse-list.tsx"
+        ]
+      },
+      {
+        "key": "Common.createAccount",
+        "sourceText": "CreateAccount",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.enterDetails",
+        "sourceText": "EnterDetails",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/register/page.tsx",
+          "src/app/[locale]/(auth)/register/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.welcome",
+        "sourceText": "Welcome",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx"
+        ]
+      },
+      {
+        "key": "Common.connectToAccount",
+        "sourceText": "ConnectToAccount",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(auth)/login/page.tsx",
+          "src/app/[locale]/(auth)/login/page.tsx"
+        ]
+      },
+      {
+        "key": "public.BecomeMerchant.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/merchants/page.tsx",
+          "src/app/[locale]/(public)/partners/merchants/page.tsx"
+        ]
+      },
+      {
+        "key": "public.BecomeProvider.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/partners/providers/page.tsx",
+          "src/app/[locale]/(public)/partners/providers/page.tsx"
+        ]
+      },
+      {
+        "key": "public.CGV.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/cgv/page.tsx",
+          "src/app/[locale]/(public)/legal/cgv/page.tsx"
+        ]
+      },
+      {
+        "key": "public.CGU.description",
+        "sourceText": "Description",
+        "priority": "high",
+        "files": [
+          "src/app/[locale]/(public)/legal/cgu/page.tsx",
+          "src/app/[locale]/(public)/legal/cgu/page.tsx"
+        ]
+      }
+    ]
   }
 }

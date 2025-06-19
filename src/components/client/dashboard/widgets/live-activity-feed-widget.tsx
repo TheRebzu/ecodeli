@@ -49,18 +49,13 @@ export function LiveActivityFeedWidget({
   const [filter, setFilter] = useState<"all" | "delivery" | "order" | "service">("all");
 
   // Récupération des vraies données d'activité depuis l'API
-  const { data: activities, isLoading, error, refetch } = useQuery({
-    queryKey: ["client-activity-feed", filter, maxItems],
-    queryFn: async () => {
-      const response = await api.client.dashboard.getActivityFeed.query({
-        filter: filter === "all" ? undefined : filter,
-        limit: maxItems
-      });
-      return response;
-    },
-    refetchInterval: 30000, // Actualise toutes les 30 secondes
-    staleTime: 15000, // Données périmées après 15s
-  });
+  const { data: activities, isLoading, error, refetch } = api.client.legacyDashboard.getActivityFeed.useQuery(
+    undefined,
+    {
+      refetchInterval: 30000, // Actualise toutes les 30 secondes
+      staleTime: 15000, // Données périmées après 15s
+    }
+  );
 
   const getStatusColor = (status: ActivityItem["status"]) => {
     switch (status) {

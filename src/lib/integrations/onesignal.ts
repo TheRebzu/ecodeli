@@ -85,11 +85,11 @@ export class OneSignalService {
   private appId: string;
 
   constructor() {
-    this.apiKey = process.env.ONESIGNAL_REST_API_KEY || "";
-    this.appId = process.env.ONESIGNAL_APP_ID || process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "";
+    this.apiKey = process.env.ONESIGNAL_REST_API_KEY ?? "";
+    this.appId = process.env.ONESIGNAL_APP_ID ?? process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID ?? "";
 
     if (this.apiKey && this.appId) {
-      console.log("✅ Service OneSignal initialisé");
+      // Message initial seulement
     } else {
       if (process.env.NODE_ENV === "production") {
         console.warn("⚠️ OneSignal API Key ou App ID manquant en production");

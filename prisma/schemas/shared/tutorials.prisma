@@ -80,7 +80,7 @@ model Tutorial {
   
   // Audit
   createdBy   String?
-  creator     User?         @relation("TutorialCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  // creator     User?         @relation("TutorialCreator", fields: [createdBy], references: [id], onDelete: SetNull)
   
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -150,7 +150,7 @@ model TutorialProgress {
   retryCount  Int            @default(0) // Nombre de tentatives
   
   // Relations
-  user        User     @relation("TutorialProgressToUser", fields: [userId], references: [id], onDelete: Cascade)
+  // user        User     @relation("TutorialProgressToUser", fields: [userId], references: [id], onDelete: Cascade)
   tutorial    Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
   stepCompletions TutorialStepCompletion[]
   
@@ -207,7 +207,7 @@ model OverlayConfig {
   currentCount     Int     @default(0) // Compteur actuel
   
   // Relations
-  user        User     @relation("OverlayConfigToUser", fields: [userId], references: [id], onDelete: Cascade)
+  // user        User     @relation("OverlayConfigToUser", fields: [userId], references: [id], onDelete: Cascade)
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

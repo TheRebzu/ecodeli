@@ -42,31 +42,43 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const [deliveryUpdates, setDeliveryUpdates] = useState<DeliveryUpdate[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
+  // 🔧 EcoDeli - Socket.IO activé avec serveur dédié (port 3001)
   // Initialiser la connexion WebSocket quand l'utilisateur est authentifié
   useEffect(() => {
     if (status === "authenticated" && session?.user?.id && session?.user?.role) {
-      console.log("🔌 Initialisation de la connexion WebSocket...");
+      console.log("🔌 Initialisation Socket.IO avec serveur dédié");
+      console.log("📝 Utilisateur:", session.user.email, "- Rôle:", session.user.role);
       
-      const socketInstance = initializeSocket(
-        session.user.id, // Token utilisé comme ID utilisateur
-        session.user.id,
-        session.user.role
-      );
+      try {
+        // Initialiser avec le serveur Socket.IO dédié
+        const socketInstance = initializeSocket(
+          session.user.id, // Utiliser l'ID utilisateur comme token
+          session.user.id,
+          session.user.role
+        );
+        
+        setSocket(socketInstance);
 
-      setSocket(socketInstance);
-      setIsConnected(socketInstance.connected);
+        // Vérification de connexion
+        const checkConnection = () => {
+          const connected = isSocketConnected();
+          setIsConnected(connected);
+        };
 
-      // Écouter les changements d'état de connexion
-      const checkConnection = () => {
-        setIsConnected(isSocketConnected());
-      };
+        const interval = setInterval(checkConnection, 2000);
+        checkConnection(); // Vérification initiale
 
-      const interval = setInterval(checkConnection, 1000);
-
-      // Nettoyer à la fermeture
-      return () => {
-        clearInterval(interval);
-      };
+        // Nettoyer à la fermeture
+        return () => {
+          clearInterval(interval);
+        };
+        
+      } catch (error) {
+        console.error('❌ Erreur initialisation Socket.IO:', error);
+        setSocket(null);
+        setIsConnected(false);
+      }
+      
     } else if (status === "unauthenticated") {
       // Fermer la connexion si l'utilisateur se déconnecte
       closeSocket();

@@ -17,4 +17,5 @@ export * from "./client-services.router";
 export * from "./client-storage.router";
 export * from "./client-subscription.router";
 export * from "./client-tutorial.router";
+export * from "./client-dashboard.router";
 export * from "./client.router";

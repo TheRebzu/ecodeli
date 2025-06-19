@@ -1,9 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  Announcement,
-  AnnouncementStatus} from "@/types/announcements/announcement";
+import { type AnnouncementWithDetails, type ClientStatusDashboardProps } from "@/types/client/announcements";
 import {
   Card,
   CardContent,
@@ -14,9 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { PlusCircle, Package, CheckCircle, Clock, Truck } from "lucide-react";
 
-interface ClientStatusDashboardProps {
-  announcements: Announcement[];
-}
+// Component props are now imported from types/client/announcements.ts
 
 export function ClientStatusDashboard({
   announcements}: ClientStatusDashboardProps) {
@@ -27,18 +23,15 @@ export function ClientStatusDashboard({
   const counts = {
     total: announcements.length,
     pending: announcements.filter(
-      (a) =>
-        a.status === AnnouncementStatus.PENDING ||
-        a.status === AnnouncementStatus.PUBLISHED,
+      (a) => a.status === "PENDING" || a.status === "PUBLISHED",
     ).length,
     inProgress: announcements.filter(
-      (a) =>
-        a.status === AnnouncementStatus.ASSIGNED ||
-        a.status === AnnouncementStatus.IN_PROGRESS,
+      (a) => a.status === "ASSIGNED" || a.status === "IN_PROGRESS",
     ).length,
     completed: announcements.filter(
-      (a) => a.status === AnnouncementStatus.COMPLETED,
-    ).length};
+      (a) => a.status === "COMPLETED" || a.status === "DELIVERED",
+    ).length,
+  };
 
   // Obtenir les annonces récentes (jusqu'à 3)
   const recentAnnouncements = [...announcements]

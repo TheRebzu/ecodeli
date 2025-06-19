@@ -14,33 +14,16 @@ import { StarIcon, MapPinIcon, ClockIcon, EuroIcon } from "lucide-react";
 import { formatPrice, formatDuration } from "@/lib/i18n/formatters";
 import { useRouter } from "next/navigation";
 
-interface ServiceCardProps {
-  service: {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    duration: number;
-    category: {
-      name: string;
-    };
-    provider: {
-      name: string;
-      rating?: number;
-      providerAddress?: string;
-    };
-  };
-}
+import { type ServiceCardProps } from "@/types/client/services";
 
 /**
  * Carte de présentation d'un service
  */
-export function ServiceCard({ service }: ServiceCardProps) {
+export function ServiceCard({ service, onBook, onViewDetails }: ServiceCardProps) {
   const t = useTranslations("services");
   const router = useRouter();
 
-  const { id, name, description, price, duration, category, provider } =
-    service;
+  const { id, name, description, price, duration, category, provider } = service;
 
   // Troncature de la description si trop longue
   const truncatedDescription =
