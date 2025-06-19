@@ -59,7 +59,19 @@ export function ServiceCard({ service, onBook, onViewDetails }: ServiceCardProps
 
   // Navigation vers la page de détail du service
   const handleViewDetails = () => {
-    router.push(`/[locale]/(protected)/client/services/${id}`);
+    if (onViewDetails) {
+      onViewDetails(service);
+    } else {
+      router.push(`/client/services/${id}`);
+    }
+  };
+
+  const handleBookService = () => {
+    if (onBook) {
+      onBook(service);
+    } else {
+      router.push(`/client/services/${id}/book`);
+    }
   };
 
   return (
