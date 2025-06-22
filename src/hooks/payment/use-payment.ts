@@ -148,7 +148,7 @@ export const useCreatePaymentIntent = () => {
   const createPaymentIntent = useCallback(async (data: PaymentFormState) => {
     setIsLoading(true);
     try {
-      const result = await api.payment.createPaymentIntent.mutate(data);
+      const result = await api.clientPayments.createPaymentIntent.mutate(data);
       toast.success("Payment intent créé avec succès");
       return result;
     } catch (error) {
@@ -319,9 +319,9 @@ export const usePaymentHistory = (
     setIsLoading(true);
     setError(null);
     try {
-      const result = await api.payment.getPaymentHistory.query({ page,
+      const result = await api.clientPayments.getPaymentHistory.query({ page,
         limit,
-        filters });
+        ...filters });
       setPaymentHistory(result.payments);
       setPagination(result.pagination);
     } catch (err) {

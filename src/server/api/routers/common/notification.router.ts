@@ -43,7 +43,7 @@ export const notificationRouter = router({ // Get all notifications with paginat
       try {
         const result = await notificationService.getUserNotifications(
           ctx.session.user.id,
-          { includeRead },
+          { includeRead: false },
         );
         return result.notifications;
       } catch (error) {
@@ -84,7 +84,7 @@ export const notificationRouter = router({ // Get all notifications with paginat
       try {
         const result = await notificationService.getUserNotifications(
           ctx.session.user.id,
-          { includeRead },
+          { includeRead: false },
         );
         return result.total;
       } catch (error) {

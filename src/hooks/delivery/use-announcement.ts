@@ -158,11 +158,11 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         setIsSaving(true);
         setError(null);
 
-        const response = await api.announcement.create.mutate(data);
+        const response = await api.clientAnnouncements.createAnnouncement.mutate(data);
 
         toast.success("Annonce créée avec succès");
 
-        return response;
+        return response?.data || response;
       } catch (err) {
         const message =
           err instanceof Error
@@ -633,9 +633,9 @@ export const useClientAnnouncements = (
         const updatedFilters = { ...filters, page } as AnnouncementFilterInput;
 
         const response =
-          await api.announcement.getMyAnnouncements.query(updatedFilters);
+          await api.clientAnnouncements.getMyAnnouncements.query(updatedFilters);
 
-        setMyAnnouncements(response.items);
+        setMyAnnouncements(response.data || []);
 
         return response;
       } catch (err) {
@@ -671,8 +671,8 @@ export const useClientAnnouncements = (
         page: 1} as AnnouncementFilterInput;
 
       const response =
-        await api.announcement.getMyAnnouncements.query(activeFilters);
-      setMyAnnouncements(response.items);
+        await api.clientAnnouncements.getMyAnnouncements.query(activeFilters);
+      setMyAnnouncements(response.data || []);
       setFilters(activeFilters);
 
       return response;
@@ -703,8 +703,8 @@ export const useClientAnnouncements = (
         page: 1} as AnnouncementFilterInput;
 
       const response =
-        await api.announcement.getMyAnnouncements.query(historyFilters);
-      setMyAnnouncements(response.items);
+        await api.clientAnnouncements.getMyAnnouncements.query(historyFilters);
+      setMyAnnouncements(response.data || []);
       setFilters(historyFilters);
 
       return response;

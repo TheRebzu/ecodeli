@@ -106,7 +106,17 @@
       "Bash(timeout 30s pnpm dev)",
       "Bash(timeout:*)",
       "Bash(./scripts/test/curl-pages-test.sh:*)",
-      "Bash(./scripts/test/static-pages-test.sh:*)"
+      "Bash(./scripts/test/static-pages-test.sh:*)",
+      "Bash(/mnt/c/Users/Amine/WebstormProjects/ecodeli/scripts/auth-curl-example.sh)",
+      "Bash(cat:*)",
+      "Bash(-H \"Content-Type: application/json\" )",
+      "Bash(-v)",
+      "Bash(-H \"Content-Type: application/json\" )",
+      "Bash(-d '{}' )",
+      "Bash(-H \"Content-Type: application/json\" )",
+      "Bash(-H \"Content-Type: application/json\" )",
+      "Bash(-c cookies.txt )",
+      "Bash(-H \"Content-Type: application/json\" )"
     ]
   },
   "allowed_tools": [

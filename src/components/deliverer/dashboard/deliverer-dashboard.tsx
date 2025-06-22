@@ -23,7 +23,10 @@ import {
   Bell,
   Wallet,
   Map,
-  ArrowRight} from "lucide-react";
+  ArrowRight,
+  AlertCircle,
+  Route
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -34,6 +37,10 @@ import { useSocket } from "@/components/providers/socket-provider";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils/common";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDelivererPlanning } from "@/hooks/deliverer/use-deliverer-planning";
+import { useDelivererEarnings } from "@/hooks/deliverer/use-deliverer-earnings";
+import { useDelivererApplications } from "@/hooks/deliverer/use-deliverer-applications";
 
 const StatCard = ({
   title,
@@ -374,12 +381,30 @@ const PlannedDeliveries = ({ deliveries }: { deliveries: any[] }) => {
   );
 };
 
-export default function DelivererDashboard({ locale }: { locale }) {
+/**
+ * Dashboard principal pour les livreurs
+ * 
+ * Fonctionnalités selon Mission 1 :
+ * - Vue d'ensemble des activités
+ * - Gestion des annonces et livraisons
+ * - Planning et déplacements
+ * - Paiements et gains
+ * - Pièces justificatives
+ */
+
+export function DelivererDashboard() {
   const router = useRouter();
   const { socket } = useSocket();
   const [urgentNotifications, setUrgentNotifications] = useState<any[]>([]);
   const [realtimeStats, setRealtimeStats] = useState<any>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+
+  // Hooks pour récupérer les données
+  const { planningStats, isStatsLoading: isPlanningLoading } = useDelivererPlanning();
+  const { stats: earningsStats, isSummaryLoading: isEarningsLoading } = useDelivererEarnings();
+  const { getMyApplication } = useDelivererApplications();
+  const myApplication = getMyApplication();
 
   // Récupérer les données du dashboard mobile
   const {
@@ -478,6 +503,292 @@ export default function DelivererDashboard({ locale }: { locale }) {
 
   return (
     <div className="space-y-6">
+      {/* En-tête du dashboard */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Tableau de bord livreur</h1>
+          <p className="text-muted-foreground">
+            Gérez vos livraisons, planning et paiements
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <FileText className="h-4 w-4 mr-2" />
+            Factures
+          </Button>
+          <Button size="sm">
+            <Route className="h-4 w-4 mr-2" />
+            Nouveau trajet
+          </Button>
+        </div>
+      </div>
+
+      {/* Statut de candidature */}
+      {myApplication.data && myApplication.data.status !== "APPROVED" && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <CardTitle className="text-yellow-800">Statut de candidature</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-yellow-700">
+                  Votre candidature est en cours de traitement
+                </p>
+                <p className="text-sm text-yellow-600 mt-1">
+                  Statut: {myApplication.data.status}
+                </p>
+              </div>
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                {myApplication.data.status}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Cartes de statistiques */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Gains totaux</CardTitle>
+            <Euro className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isEarningsLoading ? "..." : `${earningsStats?.totalEarnings ?? 0}€`}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {earningsStats?.growthRate !== undefined && (
+                <span className={`inline-flex items-center ${
+                  earningsStats.growthRate >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  {earningsStats.growthRate > 0 ? '+' : ''}{earningsStats.growthRate}%
+                </span>
+              )}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Livraisons</CardTitle>
+            <Truck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isEarningsLoading ? "..." : earningsStats?.completedDeliveries ?? 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Ce mois-ci
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Trajets planifiés</CardTitle>
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isPlanningLoading ? "..." : planningStats?.activePlannings ?? 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Actifs aujourd'hui
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">En attente</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isEarningsLoading ? "..." : `${earningsStats?.pendingPayments ?? 0}€`}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Paiements en attente
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Contenu principal avec onglets */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="deliveries">Livraisons</TabsTrigger>
+          <TabsTrigger value="planning">Planning</TabsTrigger>
+          <TabsTrigger value="earnings">Gains</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Livraisons récentes */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Livraisons récentes</CardTitle>
+                <CardDescription>
+                  Vos dernières livraisons effectuées
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {/* Placeholder pour les livraisons */}
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="font-medium">Livraison #1234</p>
+                        <p className="text-sm text-muted-foreground">
+                          123 Rue de la Paix, Paris
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      Terminée
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">Livraison #1235</p>
+                        <p className="text-sm text-muted-foreground">
+                          45 Avenue des Champs, Lyon
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      En cours
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Planning du jour */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Planning du jour</CardTitle>
+                <CardDescription>
+                  Vos trajets prévus aujourd'hui
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {/* Placeholder pour le planning */}
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <Calendar className="h-5 w-5 text-gray-600" />
+                    <div>
+                      <p className="font-medium">9h00 - 12h00</p>
+                      <p className="text-sm text-muted-foreground">
+                        Paris → Lyon (A6)
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <Calendar className="h-5 w-5 text-gray-600" />
+                    <div>
+                      <p className="font-medium">14h00 - 17h00</p>
+                      <p className="text-sm text-muted-foreground">
+                        Lyon → Marseille (A7)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="deliveries">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gestion des livraisons</CardTitle>
+              <CardDescription>
+                Consultez et gérez toutes vos livraisons
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Truck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Fonctionnalité en cours de développement
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="planning">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gestion du planning</CardTitle>
+              <CardDescription>
+                Planifiez vos trajets et disponibilités
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Fonctionnalité en cours de développement
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="earnings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gestion des gains</CardTitle>
+              <CardDescription>
+                Consultez vos revenus et demandez des retraits
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Euro className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Fonctionnalité en cours de développement
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pièces justificatives</CardTitle>
+              <CardDescription>
+                Gérez vos documents et pièces justificatives
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Fonctionnalité en cours de développement
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
       {/* Notifications urgentes */}
       {urgentNotifications.length > 0 && (
         <div className="space-y-3">

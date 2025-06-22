@@ -21,11 +21,11 @@ export const clientServicesRouter = router({
         available: z.boolean().default(true),
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(50).default(10),
-      }),
+      }).optional()
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx, input = {} }) => {
       try {
-        const skip = (input.page - 1) * input.limit;
+        const skip = ((input.page ?? 1) - 1) * (input.limit ?? 10);
         const where: any = {
           isActive: true,
         };
@@ -56,7 +56,7 @@ export const clientServicesRouter = router({
             where,
             orderBy: { createdAt: "desc" },
             skip,
-            take: input.limit,
+            take: input.limit ?? 10,
             include: {
               category: {
                 select: {
@@ -69,15 +69,11 @@ export const clientServicesRouter = router({
                   id: true,
                   name: true,
                   image: true,
-                  averageRating: true,
-                  totalReviews: true,
-                  city: true,
                 },
               },
               _count: {
                 select: {
                   bookings: true,
-                  reviews: true,
                 },
               },
             },
@@ -88,9 +84,9 @@ export const clientServicesRouter = router({
         return {
           services,
           total,
-          page: input.page,
-          limit: input.limit,
-          totalPages: Math.ceil(total / input.limit),
+          page: input.page ?? 1,
+          limit: input.limit ?? 10,
+          totalPages: Math.ceil(total / (input.limit ?? 10)),
         };
       } catch (error) {
         console.error("Erreur lors de la recherche de services:", error);
@@ -103,8 +99,14 @@ export const clientServicesRouter = router({
 
   // Récupérer un service par ID
   getServiceById: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .input(z.object({ id: z.string() }).optional())
+    .query(async ({ ctx, input = {} }) => {
+      if (!input.id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "ID du service requis",
+        });
+      }
       try {
         const service = await ctx.db.service.findUnique({
           where: { id: input.id },
@@ -177,9 +179,15 @@ export const clientServicesRouter = router({
         serviceId: z.string(),
         providerId: z.string(),
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      }),
+      }).optional()
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx, input = {} }) => {
+      if (!input.serviceId || !input.providerId || !input.date) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "serviceId, providerId et date requis",
+        });
+      }
       try {
         const requestedDate = new Date(input.date);
         const today = new Date();

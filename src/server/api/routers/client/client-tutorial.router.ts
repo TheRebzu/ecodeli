@@ -12,7 +12,7 @@ const completeTutorialSchema = z.object({
   tutorialType: z.enum(["MISSION_1"]).default("MISSION_1"),
   completedSteps: z.number().min(1).max(10).default(10),
   skipped: z.boolean().optional().default(false), // Nouveau paramètre pour skip
-}).default({ tutorialType: "MISSION_1", completedSteps: 10, skipped: false });
+}).optional().default({ tutorialType: "MISSION_1", completedSteps: 10, skipped: false });
 
 export const clientTutorialRouter = router({ /**
    * Obtenir le statut du tutoriel Mission 1
@@ -64,7 +64,7 @@ export const clientTutorialRouter = router({ /**
    */
   completeTutorial: protectedProcedure
     .input(completeTutorialSchema)
-    .mutation(async ({ ctx, input  }) => {
+    .mutation(async ({ ctx, input = { tutorialType: "MISSION_1", completedSteps: 10, skipped: false } }) => {
       const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {

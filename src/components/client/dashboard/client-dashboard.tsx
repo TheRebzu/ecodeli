@@ -134,7 +134,7 @@ export function ClientDashboard() {
     isLoading,
     error,
     refetch,
-  } = api.client.dashboard.getStats.useQuery({ timeframe: "month" }, {
+  } = api.clientData.getDashboardStats.useQuery(undefined, {
     refetchInterval: 30000, // Actualise toutes les 30 secondes
   });
 

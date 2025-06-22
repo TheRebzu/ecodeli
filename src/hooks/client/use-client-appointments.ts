@@ -61,7 +61,7 @@ export function useClientAppointments(
   const [error, setError] = useState<string | null>(null);
 
   // Utilisation de tRPC pour récupérer les rendez-vous
-  const appointmentsQuery = api.client.appointments.getAppointments.useQuery(
+  const appointmentsQuery = api.clientAppointments.getClientAppointments.useQuery(
     {
       status:
         options.status && options.status !== "all" ? options.status : undefined,
@@ -74,13 +74,13 @@ export function useClientAppointments(
   );
 
   const cancelAppointmentMutation =
-    api.client.appointments.cancelAppointment.useMutation({
+    api.clientAppointments.cancelAppointment.useMutation({
       onSuccess: () => {
         appointmentsQuery.refetch();
       }});
 
   const rescheduleAppointmentMutation =
-    api.client.appointments.rescheduleAppointment.useMutation({
+    api.clientAppointments.rescheduleAppointment.useMutation({
       onSuccess: () => {
         appointmentsQuery.refetch();
       }});
@@ -88,7 +88,7 @@ export function useClientAppointments(
   useEffect(() => {
     setIsLoading(appointmentsQuery.isLoading);
     setError(appointmentsQuery.error?.message || null);
-    setAppointments(appointmentsQuery.data || []);
+    setAppointments(appointmentsQuery.data?.appointments || []);
   }, [
     appointmentsQuery.isLoading,
     appointmentsQuery.error,
@@ -96,7 +96,10 @@ export function useClientAppointments(
 
   const cancelAppointment = async (id: string) => {
     try {
-      await cancelAppointmentMutation.mutateAsync({ id  });
+      await cancelAppointmentMutation.mutateAsync({ 
+        appointmentId: id,
+        reason: "Annulation demandée par le client"
+      });
     } catch (err) {
       throw new Error(
         err instanceof Error ? err.message : "Erreur lors de l'annulation",
@@ -106,7 +109,11 @@ export function useClientAppointments(
 
   const rescheduleAppointment = async (id: string, newDate: Date) => {
     try {
-      await rescheduleAppointmentMutation.mutateAsync({ id, newDate  });
+      await rescheduleAppointmentMutation.mutateAsync({ 
+        appointmentId: id, 
+        newScheduledDate: newDate.toISOString(),
+        reason: "Reprogrammation demandée par le client"
+      });
     } catch (err) {
       throw new Error(
         err instanceof Error

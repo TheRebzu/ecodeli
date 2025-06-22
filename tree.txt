@@ -1,0 +1,77 @@
+src/app/[locale]/(protected)/client//
+├── announcements/
+│   ├── create/
+│   │   └── page.tsx*
+│   ├── [id]/
+│   │   ├── edit/
+│   │   │   └── page.tsx*
+│   │   ├── page.tsx*
+│   │   ├── payment/
+│   │   │   └── page.tsx*
+│   │   └── tracking/
+│   │       └── page.tsx*
+│   └── page.tsx*
+├── appointments/
+│   ├── history/
+│   │   └── page.tsx*
+│   ├── [id]/
+│   │   ├── cancel/
+│   │   │   └── page.tsx*
+│   │   ├── page.tsx*
+│   │   └── reschedule/
+│   │       └── page.tsx*
+│   └── page.tsx*
+├── contracts/
+│   ├── [id]/
+│   │   └── page.tsx*
+│   └── page.tsx*
+├── deliveries/
+│   ├── [id]/
+│   │   ├── confirm/
+│   │   │   └── page.tsx*
+│   │   ├── page.tsx*
+│   │   ├── rate/
+│   │   │   └── page.tsx*
+│   │   └── tracking/
+│   │       └── page.tsx*
+│   └── page.tsx*
+├── invoices/
+│   ├── [id]/
+│   │   └── page.tsx*
+│   └── page.tsx*
+├── layout.tsx*
+├── messages/
+│   ├── [id]/
+│   │   └── page.tsx*
+│   └── page.tsx*
+├── metadata.ts*
+├── notifications/
+│   └── page.tsx*
+├── page.tsx*
+├── payments/
+│   └── page.tsx*
+├── profile/
+│   └── page.tsx*
+├── reviews/
+│   ├── page.tsx*
+│   └── pending/
+│       └── page.tsx*
+├── services/
+│   ├── book/
+│   │   └── page.tsx*
+│   ├── bookings/
+│   │   └── page.tsx*
+│   ├── [id]/
+│   │   └── page.tsx*
+│   └── page.tsx*
+├── storage/
+│   ├── [id]/
+│   │   └── page.tsx*
+│   ├── page.tsx*
+│   └── search/
+│       └── page.tsx*
+├── subscription/
+│   └── page.tsx*
+└── tree.txt*
+
+36 directories, 39 files

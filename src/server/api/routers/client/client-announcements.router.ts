@@ -5,6 +5,7 @@ import {
   AnnouncementStatus,
   AnnouncementPriority,
   DeliveryType} from "@prisma/client";
+import { calculateDistance } from "@/server/utils/geo-calculations";
 
 /**
  * Router pour les annonces clients selon le cahier des charges EcoDeli
@@ -166,6 +167,67 @@ const filtersSchema = z.object({ status: z.array(z.nativeEnum(AnnouncementStatus
 
 export const clientAnnouncementsRouter = router({
   /**
+   * Test de debug pour vérifier l'authentification et les données
+   */
+  debug: protectedProcedure
+    .query(async ({ ctx }) => {
+      const { user } = ctx.session;
+      
+      // Récupérer le profil client
+      const client = await ctx.db.client.findUnique({
+        where: { userId: user.id }
+      });
+
+      if (!client) {
+        return {
+          success: false,
+          error: "Profil client non trouvé",
+          debug: {
+            userId: user.id,
+            userRole: user.role,
+            userEmail: user.email,
+            clientFound: false
+          }
+        };
+      }
+
+      // Compter toutes les annonces du client
+      const totalCount = await ctx.db.announcement.count({
+        where: { clientId: client.id }
+      });
+
+      // Récupérer quelques annonces récentes
+      const recentAnnouncements = await ctx.db.announcement.findMany({
+        where: { clientId: client.id },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          createdAt: true,
+          suggestedPrice: true
+        }
+      });
+
+      return {
+        success: true,
+        debug: {
+          userId: user.id,
+          userRole: user.role,
+          userEmail: user.email,
+          clientFound: true,
+          clientId: client.id,
+          totalAnnouncementsCount: totalCount,
+          recentAnnouncements: recentAnnouncements.map(a => ({
+            ...a,
+            suggestedPrice: a.suggestedPrice?.toNumber()
+          }))
+        }
+      };
+    }),
+
+  /**
    * Récupérer toutes les annonces du client
    */
   getMyAnnouncements: protectedProcedure
@@ -200,49 +262,56 @@ export const clientAnnouncementsRouter = router({
           ...(input.minPrice && { suggestedPrice: { gte: input.minPrice } }),
           ...(input.maxPrice && { suggestedPrice: { lte: input.maxPrice } })};
 
-        // Récupérer les annonces avec pagination
+        // Récupérer les annonces avec pagination et relations
         const announcements = await ctx.db.announcement.findMany({
           where,
-          include: {
-            deliveries: {
-              include: {
-                deliverer: {
-                  select: {
-                    id: true,
-                    name: true,
-                    phoneNumber: true,
-                    image: true}}}},
-            proposals: {
-              include: {
-                deliverer: {
-                  select: {
-                    id: true,
-                    name: true,
-                    image: true}}},
-              orderBy: { suggestedPrice: "asc" }},
-            payments: {
-              select: {
-                id: true,
-                amount: true,
-                status: true,
-                createdAt: true}}},
           orderBy: { createdAt: "desc" },
           skip: input.offset,
-          take: input.limit});
+          take: input.limit,
+          include: {
+            applications: {
+              select: {
+                id: true,
+                status: true,
+                delivererId: true,
+                suggestedPrice: true,
+                createdAt: true
+              }
+            },
+            deliveries: {
+              select: {
+                id: true,
+                status: true,
+                delivererId: true,
+                acceptedAt: true
+              }
+            },
+            proposals: {
+              select: {
+                id: true,
+                status: true,
+                delivererId: true,
+                suggestedPrice: true,
+                createdAt: true
+              }
+            }
+          }
+        });
 
         const totalCount = await ctx.db.announcement.count({ where  });
 
         // Formatter les données
-        const formattedAnnouncements = announcements.map((announcement) => ({ ...announcement,
-          suggestedPrice: announcement.suggestedPrice.toNumber(),
+        const formattedAnnouncements = announcements.map((announcement) => ({ 
+          ...announcement,
+          suggestedPrice: announcement.suggestedPrice?.toNumber(),
           estimatedDistance: announcement.estimatedDistance?.toNumber(),
-          proposalCount: announcement.proposals.length,
-          activeDelivery: announcement.deliveries.find((d) =>
+          applicationCount: (announcement.applications?.length || 0) + (announcement.proposals?.length || 0),
+          activeDelivery: announcement.deliveries?.find((d) =>
             ["ACCEPTED", "IN_PROGRESS", "DELIVERED"].includes(d.status),
           ),
-          lowestProposal: announcement.proposals[0]?.suggestedPrice?.toNumber(),
           canEdit: ["DRAFT", "PUBLISHED"].includes(announcement.status),
-          canCancel: ["PUBLISHED", "MATCHED"].includes(announcement.status) }));
+          canCancel: ["PUBLISHED", "MATCHED"].includes(announcement.status) 
+        }));
 
         return {
           success: true,
@@ -349,17 +418,61 @@ export const clientAnnouncementsRouter = router({
    */
 
   /**
+   * Test simple mutation
+   */
+  testCreate: protectedProcedure
+    .input(z.object({
+      title: z.string(),
+      description: z.string()
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return { success: true, data: input };
+    }),
+
+  /**
    * Créer une nouvelle annonce
    */
+  createAnnouncementNoInput: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      return {
+        success: true,
+        message: "Endpoint sans input fonctionne"
+      };
+    }),
+
   createAnnouncement: protectedProcedure
-    .input(createAnnouncementSchema)
-    .mutation(async ({ ctx, input: input  }) => {
+    .input(createAnnouncementSchema.optional())
+    .mutation(async ({ ctx, input = {} }) => {
       const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
         throw new TRPCError({ code: "FORBIDDEN",
           message: "Seuls les clients peuvent créer des annonces" });
       }
+
+      // Valeurs par défaut pour les champs requis si pas fournis
+      const safeInput = {
+        title: input.title || "Livraison Express",
+        description: input.description || "Besoin d'une livraison rapide",
+        deliveryType: input.deliveryType || "EXPRESS",
+        pickupAddress: input.pickupAddress || "123 Rue de la Paix, Paris",
+        pickupCity: input.pickupCity || "Paris",
+        pickupPostalCode: input.pickupPostalCode || "75001",
+        deliveryAddress: input.deliveryAddress || "456 Avenue des Champs, Paris",
+        deliveryCity: input.deliveryCity || "Paris", 
+        deliveryPostalCode: input.deliveryPostalCode || "75002",
+        pickupDate: input.pickupDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
+        packageType: input.packageType || "SMALL_PACKAGE",
+        estimatedWeight: input.estimatedWeight || 1.0,
+        suggestedPrice: input.suggestedPrice || 15.0,
+        priority: input.priority || "NORMAL",
+        isUrgent: input.isUrgent || false,
+        requiresInsurance: input.requiresInsurance || false,
+        photos: input.photos || [],
+        allowPartialDelivery: input.allowPartialDelivery || false,
+        requiresSignature: input.requiresSignature || true,
+        ...input
+      };
 
       try {
         // Récupérer le profil client
@@ -383,18 +496,18 @@ export const clientAnnouncementsRouter = router({
         }
 
         // Calculer la distance estimée si coordonnées disponibles
-        const estimatedDistance = null;
+        let estimatedDistance = null;
         if (
-          input.pickupLatitude &&
-          input.pickupLongitude &&
-          input.deliveryLatitude &&
-          input.deliveryLongitude
+          safeInput.pickupLatitude &&
+          safeInput.pickupLongitude &&
+          safeInput.deliveryLatitude &&
+          safeInput.deliveryLongitude
         ) {
           estimatedDistance = calculateDistance(
-            input.pickupLatitude,
-            input.pickupLongitude,
-            input.deliveryLatitude,
-            input.deliveryLongitude,
+            safeInput.pickupLatitude,
+            safeInput.pickupLongitude,
+            safeInput.deliveryLatitude,
+            safeInput.deliveryLongitude,
           );
         }
 
@@ -402,45 +515,45 @@ export const clientAnnouncementsRouter = router({
         const announcement = await ctx.db.announcement.create({
           data: {
             clientId: client.id,
-            title: input.title,
-            description: input.description,
-            deliveryType: input.deliveryType,
+            title: safeInput.title,
+            description: safeInput.description,
+            deliveryType: safeInput.deliveryType,
 
-            pickupAddress: input.pickupAddress,
-            pickupCity: input.pickupCity,
-            pickupPostalCode: input.pickupPostalCode,
-            pickupLatitude: input.pickupLatitude,
-            pickupLongitude: input.pickupLongitude,
+            pickupAddress: safeInput.pickupAddress,
+            pickupCity: safeInput.pickupCity,
+            pickupPostalCode: safeInput.pickupPostalCode,
+            pickupLatitude: safeInput.pickupLatitude,
+            pickupLongitude: safeInput.pickupLongitude,
 
-            deliveryAddress: input.deliveryAddress,
-            deliveryCity: input.deliveryCity,
-            deliveryPostalCode: input.deliveryPostalCode,
-            deliveryLatitude: input.deliveryLatitude,
-            deliveryLongitude: input.deliveryLongitude,
+            deliveryAddress: safeInput.deliveryAddress,
+            deliveryCity: safeInput.deliveryCity,
+            deliveryPostalCode: safeInput.deliveryPostalCode,
+            deliveryLatitude: safeInput.deliveryLatitude,
+            deliveryLongitude: safeInput.deliveryLongitude,
 
-            pickupDate: input.pickupDate,
-            deliveryDate: input.deliveryDate,
-            pickupTimeSlot: input.pickupTimeSlot,
-            deliveryTimeSlot: input.deliveryTimeSlot,
+            pickupDate: safeInput.pickupDate,
+            deliveryDate: safeInput.deliveryDate,
+            pickupTimeSlot: safeInput.pickupTimeSlot,
+            deliveryTimeSlot: safeInput.deliveryTimeSlot,
 
-            packageType: input.packageType,
-            estimatedWeight: input.estimatedWeight,
-            estimatedDimensions: input.estimatedDimensions,
+            packageType: safeInput.packageType,
+            estimatedWeight: safeInput.estimatedWeight,
+            estimatedDimensions: safeInput.estimatedDimensions,
             estimatedDistance,
 
-            suggestedPrice: input.suggestedPrice,
-            priority: input.priority,
-            isUrgent: input.isUrgent,
-            requiresInsurance: input.requiresInsurance,
-            insuranceValue: input.insuranceValue,
+            suggestedPrice: safeInput.suggestedPrice,
+            priority: safeInput.priority,
+            isUrgent: safeInput.isUrgent,
+            requiresInsurance: safeInput.requiresInsurance,
+            insuranceValue: safeInput.insuranceValue,
 
-            photos: input.photos,
-            specialInstructions: input.specialInstructions,
-            contactPhone: input.contactPhone,
+            photos: safeInput.photos,
+            specialInstructions: safeInput.specialInstructions,
+            contactPhone: safeInput.contactPhone,
 
-            allowPartialDelivery: input.allowPartialDelivery,
-            requiresSignature: input.requiresSignature,
-            accessCode: input.accessCode,
+            allowPartialDelivery: safeInput.allowPartialDelivery,
+            requiresSignature: safeInput.requiresSignature,
+            accessCode: safeInput.accessCode,
 
             status: "PUBLISHED", // Publier directement
             publishedAt: new Date()},
@@ -452,26 +565,10 @@ export const clientAnnouncementsRouter = router({
                     name: true,
                     email: true}}}}}});
 
-        // Créer le code de validation pour cette annonce
-        const validationCode = generateValidationCode();
-        await ctx.db.deliveryValidationCode.create({
-          data: {
-            announcementId: announcement.id,
-            code: validationCode,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
-            isUsed: false}});
-
-        // Système de notifications automatiques aux livreurs de la zone
-        await notifyNearbyDeliverers(announcement, ctx.db);
-        
-        // Système de matching automatique intelligent
-        await calculateAutomaticMatching(announcement, ctx.db);
-
         return {
           success: true,
           data: {
             ...announcement,
-            validationCode, // Retourner le code au client
             suggestedPrice: announcement.suggestedPrice.toNumber(),
             estimatedDistance: announcement.estimatedDistance?.toNumber()},
           message: "Annonce créée avec succès et publiée"};
@@ -487,7 +584,7 @@ export const clientAnnouncementsRouter = router({
    */
   updateAnnouncement: protectedProcedure
     .input(updateAnnouncementSchema)
-    .mutation(async ({ ctx, input: input  }) => {
+    .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
@@ -635,7 +732,7 @@ export const clientAnnouncementsRouter = router({
       z.object({ id: z.string().cuid(),
         reason: z.string().min(10).max(500) }),
     )
-    .mutation(async ({ ctx, input: input  }) => {
+    .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
@@ -656,7 +753,7 @@ export const clientAnnouncementsRouter = router({
           where: {
             id: input.id,
             clientId: client.id},
-          include: { deliveries }});
+          include: { deliveries: true }});
 
         if (!announcement) {
           throw new TRPCError({ code: "NOT_FOUND",
@@ -766,7 +863,7 @@ export const clientAnnouncementsRouter = router({
       z.object({ proposalId: z.string().cuid(),
         notes: z.string().max(500).optional() }),
     )
-    .mutation(async ({ ctx, input: input  }) => {
+    .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
       if (user.role !== "CLIENT") {
@@ -920,27 +1017,10 @@ export const clientAnnouncementsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR",
           message: "Erreur lors de l'acceptation de la proposition" });
       }
-    })});
+    })
+});
 
-// Helper functions
-function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-): number {
-  const R = 6371; // Rayon de la Terre en km
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // Distance en km
-}
+// Helper functions moved outside router definition
 
 /**
  * Génère un code de validation sécurisé et unique

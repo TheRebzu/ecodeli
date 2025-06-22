@@ -71,6 +71,9 @@ import { delivererValidationRouter } from "./routers/deliverer/deliverer-validat
 import { delivererWalletRouter } from "./routers/deliverer/deliverer-wallet.router";
 import { delivererPerformanceRouter } from "./routers/deliverer/deliverer-performance.router";
 import { nfcManagementRouter } from "./routers/deliverer/nfc-management.router";
+import { delivererPlanningRouter } from "./routers/deliverer/deliverer-planning.router";
+import { delivererEarningsRouter } from "./routers/deliverer/deliverer-earnings.router";
+import { delivererApplicationsRouter } from "./routers/deliverer/deliverer-applications.router";
 
 // New client routers
 import { clientAnnouncementsRouter } from "./routers/client/client-announcements.router";
@@ -173,6 +176,9 @@ export const appRouter = router({
   delivererWallet: delivererWalletRouter,
   delivererPerformance: delivererPerformanceRouter,
   nfcManagement: nfcManagementRouter,
+  delivererPlanning: delivererPlanningRouter,
+  delivererEarnings: delivererEarningsRouter,
+  delivererApplications: delivererApplicationsRouter,
 
   // Provider
   provider: providerRouter,

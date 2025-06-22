@@ -8,8 +8,8 @@ const distanceCache = new Map<string, number>();
 const CACHE_MAX_SIZE = 10000;
 
 // Statistiques de cache pour le calcul du hit rate
-const cacheHits = 0;
-const cacheMisses = 0;
+let cacheHits = 0;
+let cacheMisses = 0;
 
 /**
  * Calcule la distance entre deux points géographiques en utilisant la formule de Haversine
@@ -102,7 +102,7 @@ export function calculateRouteDistance(
 ): number {
   if (points.length < 2) return 0;
 
-  const totalDistance = 0;
+  let totalDistance = 0;
   for (let i = 0; i < points.length - 1; i++) {
     totalDistance += calculateDistance(
       points[i].latitude,
@@ -204,7 +204,7 @@ function createCacheKey(
  */
 function cacheDistance(key: string, distance: number): void {
   // Limiter la taille du cache pour éviter une fuite mémoire
-  if (distanceCache.size >= CACHE_MAXSIZE) {
+  if (distanceCache.size >= CACHE_MAX_SIZE) {
     // Supprimer les entrées les plus anciennes (stratégie FIFO simple)
     const firstKey = distanceCache.keys().next().value;
     if (firstKey) {

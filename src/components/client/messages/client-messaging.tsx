@@ -88,7 +88,7 @@ const ConversationList = ({
   );
 
   const getOtherParticipant = (conversation: Conversation) => {
-    return conversation.participants.find((p) => p.id !== session?.user?.id);
+    return conversation.participants.find((p) => p.id !== data?.user?.id);
   };
 
   const formatTime = (date: Date) => {
@@ -243,7 +243,7 @@ const MessageView = ({
   };
 
   const isMyMessage = (message: Message) => {
-    return message.senderId === session?.user?.id;
+    return message.senderId === data?.user?.id;
   };
 
   return (

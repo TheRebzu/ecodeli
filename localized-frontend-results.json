@@ -1,0 +1,226 @@
+[
+  {
+    "category": "PUBLIC",
+    "test": "Page d'accueil",
+    "status": "SUCCESS",
+    "message": "Page accessible (200)",
+    "timestamp": "2025-06-21T11:06:40.530Z",
+    "data": "{\n  \"contentLength\": 632769,\n  \"hasNextJS\": false,\n  \"hasHydration\": true\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page d'accueil - Contenu",
+    "status": "SUCCESS",
+    "message": "4/4 éléments trouvés (100%)",
+    "timestamp": "2025-06-21T11:06:40.532Z",
+    "data": "{\n  \"foundElements\": 4,\n  \"totalElements\": 4\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page de connexion",
+    "status": "SUCCESS",
+    "message": "Page accessible (200)",
+    "timestamp": "2025-06-21T11:06:46.193Z",
+    "data": "{\n  \"contentLength\": 343517,\n  \"hasNextJS\": false,\n  \"hasHydration\": true\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page de connexion - Contenu",
+    "status": "SUCCESS",
+    "message": "4/4 éléments trouvés (100%)",
+    "timestamp": "2025-06-21T11:06:46.193Z",
+    "data": "{\n  \"foundElements\": 4,\n  \"totalElements\": 4\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page d'inscription",
+    "status": "SUCCESS",
+    "message": "Page accessible (200)",
+    "timestamp": "2025-06-21T11:06:50.677Z",
+    "data": "{\n  \"contentLength\": 339788,\n  \"hasNextJS\": false,\n  \"hasHydration\": true\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page d'inscription - Contenu",
+    "status": "SUCCESS",
+    "message": "4/4 éléments trouvés (100%)",
+    "timestamp": "2025-06-21T11:06:50.677Z",
+    "data": "{\n  \"foundElements\": 4,\n  \"totalElements\": 4\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page À propos",
+    "status": "SUCCESS",
+    "message": "Page accessible (200)",
+    "timestamp": "2025-06-21T11:06:56.882Z",
+    "data": "{\n  \"contentLength\": 465480,\n  \"hasNextJS\": false,\n  \"hasHydration\": true\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page À propos - Contenu",
+    "status": "SUCCESS",
+    "message": "3/3 éléments trouvés (100%)",
+    "timestamp": "2025-06-21T11:06:56.882Z",
+    "data": "{\n  \"foundElements\": 3,\n  \"totalElements\": 3\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page Services",
+    "status": "SUCCESS",
+    "message": "Page accessible (200)",
+    "timestamp": "2025-06-21T11:07:01.810Z",
+    "data": "{\n  \"contentLength\": 534882,\n  \"hasNextJS\": false,\n  \"hasHydration\": true\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page Services - Contenu",
+    "status": "WARNING",
+    "message": "2/3 éléments trouvés (67%)",
+    "timestamp": "2025-06-21T11:07:01.811Z",
+    "data": "{\n  \"foundElements\": 2,\n  \"totalElements\": 3\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page Contact",
+    "status": "SUCCESS",
+    "message": "Page accessible (200)",
+    "timestamp": "2025-06-21T11:07:05.591Z",
+    "data": "{\n  \"contentLength\": 458688,\n  \"hasNextJS\": false,\n  \"hasHydration\": true\n}"
+  },
+  {
+    "category": "PUBLIC",
+    "test": "Page Contact - Contenu",
+    "status": "SUCCESS",
+    "message": "3/3 éléments trouvés (100%)",
+    "timestamp": "2025-06-21T11:07:05.592Z",
+    "data": "{\n  \"foundElements\": 3,\n  \"totalElements\": 3\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Dashboard Client",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:05.803Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient\"\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Annonces Client",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:06.011Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient%2Fannouncements\"\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Créer Annonce",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:06.225Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient%2Fannouncements%2Fcreate\"\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Services Client",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:06.433Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient%2Fservices\"\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Stockage Client",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:06.642Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient%2Fstorage\"\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Rendez-vous Client",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:06.851Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient%2Fappointments\"\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Profil Client",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:07.059Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient%2Fprofile\"\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Factures Client",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:07.268Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient%2Finvoices\"\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Contrats Client",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:07.478Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient%2Fcontracts\"\n}"
+  },
+  {
+    "category": "PROTECTED",
+    "test": "Avis Client",
+    "status": "SUCCESS",
+    "message": "Redirection vers login (sécurité OK)",
+    "timestamp": "2025-06-21T11:07:07.686Z",
+    "data": "{\n  \"redirectTo\": \"/fr/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Ffr%2Fclient%2Freviews\"\n}"
+  },
+  {
+    "category": "SPECIAL",
+    "test": "Page 404",
+    "status": "SUCCESS",
+    "message": "Page accessible (200)",
+    "timestamp": "2025-06-21T11:07:08.129Z",
+    "data": "{\n  \"status\": 200\n}"
+  },
+  {
+    "category": "SPECIAL",
+    "test": "Sitemap",
+    "status": "WARNING",
+    "message": "Content-Type incorrect: text/html; charset=utf-8",
+    "timestamp": "2025-06-21T11:07:10.648Z",
+    "data": "{\n  \"contentType\": \"text/html; charset=utf-8\",\n  \"expectedContentType\": \"text/xml\"\n}"
+  },
+  {
+    "category": "SPECIAL",
+    "test": "Robots.txt",
+    "status": "WARNING",
+    "message": "Content-Type incorrect: text/html; charset=utf-8",
+    "timestamp": "2025-06-21T11:07:10.964Z",
+    "data": "{\n  \"contentType\": \"text/html; charset=utf-8\",\n  \"expectedContentType\": \"text/plain\"\n}"
+  },
+  {
+    "category": "I18N",
+    "test": "Redirection racine vers /fr",
+    "status": "SUCCESS",
+    "message": "Redirection correcte vers /fr/home",
+    "timestamp": "2025-06-21T11:07:13.129Z",
+    "data": "{\n  \"redirectTo\": \"/fr/home\"\n}"
+  },
+  {
+    "category": "I18N",
+    "test": "Page d'accueil FR",
+    "status": "SUCCESS",
+    "message": "Contenu attendu trouvé",
+    "timestamp": "2025-06-21T11:07:13.974Z",
+    "data": "{\n  \"status\": 200,\n  \"hasContent\": true\n}"
+  },
+  {
+    "category": "I18N",
+    "test": "Test locale EN (si disponible)",
+    "status": "SUCCESS",
+    "message": "Test réussi (200)",
+    "timestamp": "2025-06-21T11:07:15.292Z",
+    "data": "{\n  \"status\": 200\n}"
+  }
+]

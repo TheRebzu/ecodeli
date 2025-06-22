@@ -29,6 +29,7 @@ import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils/common";
 import { formatCurrency, formatDate } from "@/utils/document-utils";
 import { useToast } from "@/components/ui/use-toast";
+import { useDelivererEarnings } from "@/hooks/deliverer/use-deliverer-earnings";
 
 import {
   Card,
@@ -87,6 +88,18 @@ export function DelivererPaymentsDashboard() {
   const router = useRouter();
   const { data } = useSession();
   const { toast } = useToast();
+  
+  // Hook personnalisé pour les gains
+  const { 
+    earningsSummary,
+    stats,
+    getEarningsHistory,
+    getPaymentHistory,
+    requestWithdrawal,
+    generateInvoice,
+    isLoading: isEarningsLoading,
+    isSummaryLoading
+  } = useDelivererEarnings();
 
   // États pour la pagination, le filtrage et la recherche
   const [currentPage, setCurrentPage] = useState(1);
